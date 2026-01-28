@@ -395,6 +395,7 @@ docker build -t docsai .
 
 # Run container
 docker run -p 8000:8000 --env-file .env docsai
+
 ```
 
 ### EC2 Deployment (Ubuntu)
