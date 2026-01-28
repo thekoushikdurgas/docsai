@@ -15,12 +15,13 @@ class WorkerService:
     """Service for managing async workflow execution with Django-Q"""
 
     @classmethod
-    def queue_execution(cls, execution_id: str) -> Optional[str]:
+    def queue_execution(cls, execution_id: str, workflow_id: str) -> Optional[str]:
         """
         Queue a workflow execution for async processing.
         
         Args:
             execution_id: UUID of the execution to run
+            workflow_id: UUID of the workflow
             
         Returns:
             Task ID if queued successfully, None otherwise
@@ -31,6 +32,7 @@ class WorkerService:
             task_id = async_task(
                 'apps.durgasflow.services.worker_service.run_execution_task',
                 str(execution_id),
+                str(workflow_id),
                 task_name=f'durgasflow_execution_{execution_id}',
                 group='durgasflow'
             )
@@ -40,7 +42,7 @@ class WorkerService:
             
         except ImportError:
             logger.warning("Django-Q not available, running synchronously")
-            cls.run_execution_task(str(execution_id))
+            run_execution_task(str(execution_id), str(workflow_id))
             return None
         except Exception as e:
             logger.error(f"Failed to queue execution {execution_id}: {e}")
@@ -125,7 +127,7 @@ class WorkerService:
             pass
 
 
-def run_execution_task(execution_id: str) -> dict:
+def run_execution_task(execution_id: str, workflow_id: str) -> dict:
     """
     Task function to run a workflow execution.
     
@@ -133,29 +135,59 @@ def run_execution_task(execution_id: str) -> dict:
     
     Args:
         execution_id: UUID of the execution to run
+        workflow_id: UUID of the workflow
         
     Returns:
         Result dict with status
     """
-    from ..models import Execution
     from .execution_engine import ExecutionEngine
+    from .workflow_storage_service import WorkflowStorageService
+    
+    storage = WorkflowStorageService()
     
     try:
-        execution = Execution.objects.get(id=execution_id)
-        ExecutionEngine._run_execution(execution)
+        workflow = storage.get_workflow(workflow_id)
+        if not workflow:
+            logger.error(f"Workflow {workflow_id} not found")
+            return {
+                'status': 'error',
+                'error': 'Workflow not found'
+            }
+        
+        # Find execution in workflow
+        executions = workflow.get('executions', [])
+        execution = None
+        for exec_item in executions:
+            if exec_item.get('execution_id') == execution_id or exec_item.get('id') == execution_id:
+                execution = exec_item
+                break
+        
+        if not execution:
+            logger.error(f"Execution {execution_id} not found")
+            return {
+                'status': 'error',
+                'error': 'Execution not found'
+            }
+        
+        ExecutionEngine._run_execution(execution, workflow, workflow_id)
+        
+        # Get updated execution status
+        updated_workflow = storage.get_workflow(workflow_id)
+        updated_executions = updated_workflow.get('executions', [])
+        for exec_item in updated_executions:
+            if exec_item.get('execution_id') == execution_id or exec_item.get('id') == execution_id:
+                return {
+                    'status': 'success',
+                    'execution_id': execution_id,
+                    'result_status': exec_item.get('status')
+                }
         
         return {
             'status': 'success',
             'execution_id': execution_id,
-            'result_status': execution.status
+            'result_status': execution.get('status')
         }
         
-    except Execution.DoesNotExist:
-        logger.error(f"Execution {execution_id} not found")
-        return {
-            'status': 'error',
-            'error': 'Execution not found'
-        }
     except Exception as e:
         logger.error(f"Execution {execution_id} failed: {e}")
         return {
@@ -174,30 +206,34 @@ def run_scheduled_workflow_task(workflow_id: str) -> dict:
     Returns:
         Result dict with status
     """
-    from ..models import Workflow
     from .execution_engine import ExecutionEngine
+    from .workflow_storage_service import WorkflowStorageService
+    
+    storage = WorkflowStorageService()
     
     try:
-        workflow = Workflow.objects.get(id=workflow_id, is_active=True)
+        workflow = storage.get_workflow(workflow_id)
+        
+        if not workflow or not workflow.get('is_active'):
+            logger.warning(f"Scheduled workflow {workflow_id} not found or inactive")
+            return {
+                'status': 'skipped',
+                'reason': 'Workflow not found or inactive'
+            }
         
         execution = ExecutionEngine.execute_workflow(
             workflow=workflow,
             trigger_type='schedule',
-            trigger_data={'scheduled': True}
+            trigger_data={'scheduled': True},
+            user_uuid=None  # Scheduled executions don't have a user
         )
         
         return {
             'status': 'success',
             'workflow_id': workflow_id,
-            'execution_id': str(execution.id)
+            'execution_id': execution.get('execution_id') or execution.get('id')
         }
         
-    except Workflow.DoesNotExist:
-        logger.warning(f"Scheduled workflow {workflow_id} not found or inactive")
-        return {
-            'status': 'skipped',
-            'reason': 'Workflow not found or inactive'
-        }
     except Exception as e:
         logger.error(f"Scheduled workflow {workflow_id} failed: {e}")
         return {

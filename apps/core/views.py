@@ -1,18 +1,16 @@
 """Core views for authentication and dashboard."""
 import logging
+from typing import Optional, Dict, Any
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout, get_user_model
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils import timezone
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.conf import settings
 
 from apps.core.clients.appointment360_client import Appointment360Client, Appointment360AuthError
+from apps.core.decorators.auth import require_super_admin
 
 logger = logging.getLogger(__name__)
-User = get_user_model()
 
 
 def _get_client_ip(request):
@@ -20,6 +18,24 @@ def _get_client_ip(request):
     if xff:
         return xff.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR', '127.0.0.1')
+
+
+def _get_geolocation(request) -> Optional[Dict[str, Any]]:
+    """
+    Extract basic geolocation data from request.
+    Returns minimal geolocation dict with IP address.
+    
+    Args:
+        request: Django request object
+        
+    Returns:
+        Dictionary with 'ip' key, or None if extraction fails
+    """
+    try:
+        ip = _get_client_ip(request)
+        return {'ip': ip}
+    except Exception:
+        return None
 
 
 def _set_auth_cookies(response: HttpResponse, access_token: str, refresh_token: str, remember_me: bool = False):
@@ -56,11 +72,19 @@ def _clear_auth_cookies(response: HttpResponse):
 
 def login_view(request):
     """User login view using appointment360. Rate-limited by IP; supports next redirect."""
-    if request.user.is_authenticated:
-        next_url = request.GET.get('next') or request.POST.get('next')
-        if next_url and next_url.startswith('/') and '//' not in next_url:
-            return redirect(next_url)
-        return redirect('core:dashboard')
+    # Check if already authenticated (via token)
+    access_token = request.COOKIES.get('access_token')
+    if access_token:
+        try:
+            client = Appointment360Client(request=request)
+            user_info = client.get_me(access_token)
+            if user_info:
+                next_url = request.GET.get('next') or request.POST.get('next')
+                if next_url and next_url.startswith('/') and '//' not in next_url:
+                    return redirect(next_url)
+                return redirect('core:dashboard')
+        except Exception:
+            pass  # Token might be invalid, continue with login
     
     # Check if appointment360 is enabled
     if not getattr(settings, 'GRAPHQL_ENABLED', False):
@@ -83,8 +107,9 @@ def login_view(request):
             next_url = ''
         
         try:
-            client = Appointment360Client()
-            auth_result = client.login(email, password)
+            client = Appointment360Client(request=request)
+            geolocation = _get_geolocation(request)
+            auth_result = client.login(email, password, geolocation=geolocation)
             
             access_token = auth_result.get('access_token')
             refresh_token = auth_result.get('refresh_token')
@@ -93,33 +118,13 @@ def login_view(request):
             if not access_token or not refresh_token:
                 raise Appointment360AuthError("Invalid response from authentication service")
             
-            # Create or get Django user (for compatibility with existing code)
-            # We'll use email as username
-            user, created = User.objects.get_or_create(
-                username=email,
-                defaults={
-                    'email': email,
-                    'first_name': user_info.get('name', '').split()[0] if user_info.get('name') else '',
-                    'last_name': ' '.join(user_info.get('name', '').split()[1:]) if user_info.get('name') and len(user_info.get('name', '').split()) > 1 else '',
-                }
-            )
-            if not created:
-                # Update user info if exists
-                if user_info.get('name'):
-                    name_parts = user_info.get('name', '').split()
-                    user.first_name = name_parts[0] if name_parts else ''
-                    user.last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
-                user.email = email
-                user.save()
+            # Check if user is SuperAdmin (required for access)
+            is_super_admin = client.is_super_admin(access_token)
+            if not is_super_admin:
+                messages.error(request, 'Access denied. SuperAdmin role required.')
+                return render(request, 'core/login.html', {'next': request.GET.get('next')})
             
-            # Login user in Django session (for compatibility)
-            login(request, user)
-            if not remember_me:
-                request.session.set_expiry(0)
-            else:
-                request.session.set_expiry(86400 * 7)
-            
-            # Set auth cookies
+            # Set auth cookies (no Django session)
             response = redirect(next_url or 'core:dashboard')
             _set_auth_cookies(response, access_token, refresh_token, remember_me)
             
@@ -145,13 +150,27 @@ def login_view(request):
             logger.error(f"Unexpected error during login: {e}", exc_info=True)
             messages.error(request, 'An error occurred during login. Please try again.')
     
+    # Force user to be anonymous for login page rendering
+    # This ensures base.html renders the auth layout instead of dashboard layout
+    from django.contrib.auth.models import AnonymousUser
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        request.user = AnonymousUser()
+    
     return render(request, 'core/login.html', {'next': request.GET.get('next')})
 
 
 def register_view(request):
-    """User registration view using appointment360. Rate-limited by IP (max 5 signups/hour)."""
-    if request.user.is_authenticated:
-        return redirect('core:dashboard')
+    """User registration view using appointment360 GraphQL API."""
+    # Check if already authenticated (via token)
+    access_token = request.COOKIES.get('access_token')
+    if access_token:
+        try:
+            client = Appointment360Client(request=request)
+            user_info = client.get_me(access_token)
+            if user_info:
+                return redirect('core:dashboard')
+        except Exception:
+            pass  # Token might be invalid, continue with registration
     
     # Check if appointment360 is enabled
     if not getattr(settings, 'GRAPHQL_ENABLED', False):
@@ -159,94 +178,90 @@ def register_view(request):
         return render(request, 'core/register.html')
     
     ip = _get_client_ip(request)
-    reg_key = f'register_count:{ip}'
-    reg_count = cache.get(reg_key, 0)
-    if reg_count >= 5:
-        messages.error(request, 'Too many registration attempts from this network. Please try again later.')
+    cooldown_key = f'register_cooldown:{ip}'
+    fail_key = f'register_fail:{ip}'
+    
+    if cache.get(cooldown_key):
+        messages.error(request, 'Too many failed attempts. Please try again in 15 minutes.')
         return render(request, 'core/register.html')
     
     if request.method == 'POST':
-        cache.set(reg_key, reg_count + 1, timeout=3600)
-        if reg_count + 1 > 5:
-            messages.error(request, 'Too many registration attempts from this network. Please try again later.')
-            return render(request, 'core/register.html')
-        
-        name = request.POST.get('username', '').strip()
+        name = request.POST.get('name') or request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
         password_confirm = request.POST.get('password_confirm', '')
+        remember_me = bool(request.POST.get('remember_me'))
         
         # Validation
+        validation_errors = []
         if not name:
-            messages.error(request, 'Username is required.')
-            return render(request, 'core/register.html')
+            validation_errors.append('Name is required.')
         if not email:
-            messages.error(request, 'Email is required.')
-            return render(request, 'core/register.html')
+            validation_errors.append('Email is required.')
         if not password:
-            messages.error(request, 'Password is required.')
-            return render(request, 'core/register.html')
+            validation_errors.append('Password is required.')
+        elif len(password) < 8:
+            validation_errors.append('Password must be at least 8 characters long.')
         if password != password_confirm:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'core/register.html')
+            validation_errors.append('Passwords do not match.')
         
-        try:
-            client = Appointment360Client()
-            auth_result = client.register(name, email, password)
-            
-            access_token = auth_result.get('access_token')
-            refresh_token = auth_result.get('refresh_token')
-            user_info = auth_result.get('user', {})
-            
-            if not access_token or not refresh_token:
-                raise Appointment360AuthError("Invalid response from registration service")
-            
-            # Create Django user (for compatibility with existing code)
-            # Use email as username
-            user, created = User.objects.get_or_create(
-                username=email,
-                defaults={
-                    'email': email,
-                    'first_name': name.split()[0] if name else '',
-                    'last_name': ' '.join(name.split()[1:]) if len(name.split()) > 1 else '',
-                }
-            )
-            if not created:
-                # Update if exists
-                name_parts = name.split()
-                user.first_name = name_parts[0] if name_parts else ''
-                user.last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
-                user.email = email
-                user.save()
-            
-            # Login user in Django session
-            login(request, user)
-            request.session.set_expiry(86400 * 7)  # 7 days for new registrations
-            
-            # Set auth cookies
-            response = redirect('core:dashboard')
-            _set_auth_cookies(response, access_token, refresh_token, remember_me=True)
-            
-            messages.success(request, 'Account created successfully!')
-            return response
-            
-        except Appointment360AuthError as e:
-            error_msg = str(e)
-            # Try to extract field-specific errors from GraphQL error message
-            if 'email' in error_msg.lower():
-                messages.error(request, 'This email is already registered.')
-            elif 'password' in error_msg.lower():
-                messages.error(request, 'Password does not meet requirements.')
-            else:
-                messages.error(request, f'Registration failed: {error_msg}')
-        except Exception as e:
-            logger.error(f"Unexpected error during registration: {e}", exc_info=True)
-            messages.error(request, 'An error occurred during registration. Please try again.')
+        if validation_errors:
+            for error in validation_errors:
+                messages.error(request, error)
+        else:
+            try:
+                client = Appointment360Client(request=request)
+                geolocation = _get_geolocation(request)
+                auth_result = client.register(name, email, password, geolocation=geolocation)
+                
+                access_token = auth_result.get('access_token')
+                refresh_token = auth_result.get('refresh_token')
+                user_info = auth_result.get('user', {})
+                
+                if not access_token or not refresh_token:
+                    raise Appointment360AuthError("Invalid response from registration service")
+                
+                # Check if user is SuperAdmin (required for access)
+                is_super_admin = client.is_super_admin(access_token)
+                if not is_super_admin:
+                    messages.warning(
+                        request, 
+                        'Account created successfully, but SuperAdmin role is required for access. '
+                        'Please contact an administrator to grant access.'
+                    )
+                    return redirect('core:login')
+                
+                # Set auth cookies
+                response = redirect('core:dashboard')
+                _set_auth_cookies(response, access_token, refresh_token, remember_me)
+                
+                cache.delete(fail_key)
+                cache.delete(cooldown_key)
+                messages.success(request, f'Welcome, {user_info.get("name") or email}! Your account has been created.')
+                return response
+                
+            except Appointment360AuthError as e:
+                fail_count = cache.get(fail_key, 0) + 1
+                cache.set(fail_key, fail_count, timeout=900)
+                if fail_count >= 5:
+                    cache.set(cooldown_key, 1, timeout=900)
+                    cache.delete(fail_key)
+                    messages.error(request, 'Too many failed attempts. Please try again in 15 minutes.')
+                else:
+                    error_msg = str(e)
+                    if 'already exists' in error_msg.lower() or 'duplicate' in error_msg.lower():
+                        messages.error(request, 'An account with this email already exists.')
+                    elif 'Registration failed' in error_msg:
+                        messages.error(request, 'Registration failed. Please check your information and try again.')
+                    else:
+                        messages.error(request, error_msg)
+            except Exception as e:
+                logger.error(f"Unexpected error during registration: {e}", exc_info=True)
+                messages.error(request, 'An error occurred during registration. Please try again.')
     
     return render(request, 'core/register.html')
 
 
-@login_required
 def logout_view(request):
     """User logout view using appointment360."""
     # Get access token from cookie
@@ -255,16 +270,13 @@ def logout_view(request):
     # Call appointment360 logout if token exists and service is enabled
     if access_token and getattr(settings, 'GRAPHQL_ENABLED', False):
         try:
-            client = Appointment360Client()
+            client = Appointment360Client(request=request)
             client.logout(access_token)
         except Exception as e:
             logger.warning(f"Failed to logout from appointment360: {e}")
-            # Continue with local logout even if appointment360 logout fails
+            # Continue with logout even if appointment360 logout fails
     
-    # Logout from Django session
-    logout(request)
-    
-    # Clear auth cookies
+    # Clear auth cookies (no Django session to logout from)
     response = redirect('core:login')
     _clear_auth_cookies(response)
     
@@ -272,7 +284,7 @@ def logout_view(request):
     return response
 
 
-@login_required
+@require_super_admin
 def dashboard_view(request):
     """Main dashboard view."""
     from apps.documentation.services.pages_service import PagesService
@@ -298,20 +310,13 @@ def dashboard_view(request):
     except Exception:
         total_endpoints = 0
     
-    # Active sessions
-    try:
-        from apps.ai_agent.models import AILearningSession
-        active_sessions = AILearningSession.objects.filter(
-            created_by=request.user,
-            status='running'
-        ).count()
-    except Exception:
-        active_sessions = 0
+    # Active sessions - will use storage service once migrated
+    active_sessions = 0
     
     # Completed tasks
     try:
         completed_tasks_list = task_service.list_tasks(status='completed', limit=100)
-        completed_tasks = len(completed_tasks_list)
+        completed_tasks = len(completed_tasks_list) if isinstance(completed_tasks_list, list) else 0
     except Exception:
         completed_tasks = 0
     
@@ -323,9 +328,9 @@ def dashboard_view(request):
         recent_tasks_list = task_service.list_tasks(limit=4, offset=0)
         recent_tasks = [
             {
-                'task_id': getattr(task, 'task_id', None),
-                'title': task.title,
-                'created_at': task.created_at
+                'task_id': task.get('task_id') if isinstance(task, dict) else getattr(task, 'task_id', None),
+                'title': task.get('title') if isinstance(task, dict) else getattr(task, 'title', ''),
+                'created_at': task.get('created_at') if isinstance(task, dict) else getattr(task, 'created_at', None)
             }
             for task in recent_tasks_list
         ]

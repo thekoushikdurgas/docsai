@@ -5,16 +5,15 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from apps.knowledge.models import KnowledgeBase
+from apps.core.decorators.auth import require_super_admin
 from apps.knowledge.services import KnowledgeBaseService
 
 logger = logging.getLogger(__name__)
 knowledge_service = KnowledgeBaseService()
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def knowledge_list_api(request):
     """List knowledge base items."""
@@ -33,28 +32,43 @@ def knowledge_list_api(request):
                 limit=limit * 2  # Get more for pagination
             )
         else:
-            queryset = KnowledgeBase.objects.all()
+            # Use storage service to list items
+            filters = {}
             if pattern_type:
-                queryset = queryset.filter(pattern_type=pattern_type)
+                filters['pattern_type'] = pattern_type
             if tags:
-                for tag in tags:
-                    queryset = queryset.filter(tags__contains=[tag])
-            items = list(queryset.order_by('-updated_at'))
+                # Filter by tags (would need to be done in memory or storage service)
+                pass
+            
+            all_items = knowledge_service.storage.list(filters=filters, limit=None, offset=0)
+            items = all_items.get('items', [])
+            
+            # Filter by tags in memory
+            if tags:
+                items = [
+                    item for item in items
+                    if any(tag in item.get('tags', []) for tag in tags)
+                ]
+            
+            # Sort by updated_at descending
+            items.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
         
         paginator = Paginator(items, limit)
         page_obj = paginator.get_page(page)
         
         items_data = [
             {
-                'knowledge_id': str(item.knowledge_id),
-                'pattern_type': item.pattern_type,
-                'title': item.title,
-                'content': item.content[:200] + '...' if len(item.content) > 200 else item.content,
-                'tags': item.tags,
-                'metadata': item.metadata,
-                'created_at': item.created_at.isoformat(),
-                'updated_at': item.updated_at.isoformat(),
-                'created_by': item.created_by.username if item.created_by else None
+                'knowledge_id': item.get('knowledge_id') or item.get('id'),
+                'pattern_type': item.get('pattern_type'),
+                'title': item.get('title'),
+                'content': (item.get('content', '')[:200] + '...' 
+                           if len(item.get('content', '')) > 200 
+                           else item.get('content', '')),
+                'tags': item.get('tags', []),
+                'metadata': item.get('metadata', {}),
+                'created_at': item.get('created_at', ''),
+                'updated_at': item.get('updated_at', ''),
+                'created_by': item.get('created_by')  # UUID string
             }
             for item in page_obj
         ]
@@ -74,7 +88,7 @@ def knowledge_list_api(request):
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def knowledge_detail_api(request, knowledge_id):
     """Get knowledge base item detail."""
@@ -87,21 +101,21 @@ def knowledge_detail_api(request, knowledge_id):
         
         return JsonResponse({
             'item': {
-                'knowledge_id': str(item.knowledge_id),
-                'pattern_type': item.pattern_type,
-                'title': item.title,
-                'content': item.content,
-                'tags': item.tags,
-                'metadata': item.metadata,
-                'created_at': item.created_at.isoformat(),
-                'updated_at': item.updated_at.isoformat(),
-                'created_by': item.created_by.username if item.created_by else None
+                'knowledge_id': item.get('knowledge_id') or item.get('id'),
+                'pattern_type': item.get('pattern_type'),
+                'title': item.get('title'),
+                'content': item.get('content'),
+                'tags': item.get('tags', []),
+                'metadata': item.get('metadata', {}),
+                'created_at': item.get('created_at', ''),
+                'updated_at': item.get('updated_at', ''),
+                'created_by': item.get('created_by')  # UUID string
             },
             'related_items': [
                 {
-                    'knowledge_id': str(rel.knowledge_id),
-                    'title': rel.title,
-                    'pattern_type': rel.pattern_type
+                    'knowledge_id': rel.get('knowledge_id') or rel.get('id'),
+                    'title': rel.get('title'),
+                    'pattern_type': rel.get('pattern_type')
                 }
                 for rel in related_items
             ]
@@ -111,11 +125,16 @@ def knowledge_detail_api(request, knowledge_id):
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
-@login_required
+@require_super_admin
 @csrf_exempt
 @require_http_methods(["POST"])
 def knowledge_create_api(request):
     """Create knowledge base item."""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
     try:
         data = json.loads(request.body)
         
@@ -134,19 +153,19 @@ def knowledge_create_api(request):
             content=content,
             tags=tags,
             metadata=metadata,
-            created_by=request.user
+            created_by=user_uuid
         )
         
         return JsonResponse({
             'success': True,
             'item': {
-                'knowledge_id': str(item.knowledge_id),
-                'pattern_type': item.pattern_type,
-                'title': item.title,
-                'content': item.content,
-                'tags': item.tags,
-                'metadata': item.metadata,
-                'created_at': item.created_at.isoformat()
+                'knowledge_id': item.get('knowledge_id') or item.get('id'),
+                'pattern_type': item.get('pattern_type'),
+                'title': item.get('title'),
+                'content': item.get('content'),
+                'tags': item.get('tags', []),
+                'metadata': item.get('metadata', {}),
+                'created_at': item.get('created_at', '')
             }
         }, status=201)
     except json.JSONDecodeError:
@@ -156,7 +175,7 @@ def knowledge_create_api(request):
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
-@login_required
+@require_super_admin
 @csrf_exempt
 @require_http_methods(["PUT", "PATCH"])
 def knowledge_update_api(request, knowledge_id):
@@ -171,13 +190,13 @@ def knowledge_update_api(request, knowledge_id):
         return JsonResponse({
             'success': True,
             'item': {
-                'knowledge_id': str(item.knowledge_id),
-                'pattern_type': item.pattern_type,
-                'title': item.title,
-                'content': item.content,
-                'tags': item.tags,
-                'metadata': item.metadata,
-                'updated_at': item.updated_at.isoformat()
+                'knowledge_id': item.get('knowledge_id') or item.get('id'),
+                'pattern_type': item.get('pattern_type'),
+                'title': item.get('title'),
+                'content': item.get('content'),
+                'tags': item.get('tags', []),
+                'metadata': item.get('metadata', {}),
+                'updated_at': item.get('updated_at', '')
             }
         })
     except json.JSONDecodeError:
@@ -187,7 +206,7 @@ def knowledge_update_api(request, knowledge_id):
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
-@login_required
+@require_super_admin
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def knowledge_delete_api(request, knowledge_id):
@@ -203,7 +222,7 @@ def knowledge_delete_api(request, knowledge_id):
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def knowledge_search_api(request):
     """Search knowledge base items."""
@@ -225,12 +244,14 @@ def knowledge_search_api(request):
         
         items_data = [
             {
-                'knowledge_id': str(item.knowledge_id),
-                'pattern_type': item.pattern_type,
-                'title': item.title,
-                'content': item.content[:200] + '...' if len(item.content) > 200 else item.content,
-                'tags': item.tags,
-                'updated_at': item.updated_at.isoformat()
+                'knowledge_id': item.get('knowledge_id') or item.get('id'),
+                'pattern_type': item.get('pattern_type'),
+                'title': item.get('title'),
+                'content': (item.get('content', '')[:200] + '...' 
+                           if len(item.get('content', '')) > 200 
+                           else item.get('content', '')),
+                'tags': item.get('tags', []),
+                'updated_at': item.get('updated_at', '')
             }
             for item in items
         ]

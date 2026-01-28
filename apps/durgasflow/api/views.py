@@ -4,17 +4,18 @@ Durgasflow API Views
 
 import json
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 
-from ..models import (
-    Workflow, Execution, ExecutionLog, Credential, WorkflowTemplate
-)
+from apps.core.decorators.auth import require_super_admin
 from ..services.workflow_service import WorkflowService
 from ..services.execution_engine import ExecutionEngine
 from ..services.node_registry import NodeRegistry
+from ..services.workflow_storage_service import (
+    WorkflowStorageService,
+    CredentialStorageService,
+    WorkflowTemplateStorageService
+)
 from .serializers import (
     WorkflowListSerializer, WorkflowDetailSerializer, WorkflowCreateSerializer,
     WorkflowGraphSerializer, ExecutionListSerializer, ExecutionDetailSerializer,
@@ -27,22 +28,33 @@ from .serializers import (
 # Workflow Endpoints
 # ============================================
 
+@require_super_admin
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
 def workflow_list(request):
     """List all workflows or create a new one"""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    
     if request.method == 'GET':
-        workflows = Workflow.objects.filter(created_by=request.user)
+        filters = {'created_by': user_uuid}
         
         # Filtering
         status_filter = request.query_params.get('status')
         trigger_filter = request.query_params.get('trigger')
         
         if status_filter:
-            workflows = workflows.filter(status=status_filter)
+            filters['status'] = status_filter
         if trigger_filter:
-            workflows = workflows.filter(trigger_type=trigger_filter)
+            filters['trigger_type'] = trigger_filter
         
+        workflows_result = storage.list(filters=filters, limit=None, offset=0)
+        workflows = workflows_result.get('items', [])
+        
+        # Convert to serializer format (dicts should work with serializers)
         serializer = WorkflowListSerializer(workflows, many=True)
         return Response(serializer.data)
     
@@ -55,7 +67,7 @@ def workflow_list(request):
                 trigger_type=serializer.validated_data.get('trigger_type', 'manual'),
                 graph_data=serializer.validated_data.get('graph_data'),
                 tags=serializer.validated_data.get('tags'),
-                user=request.user
+                user_uuid=user_uuid
             )
             return Response(
                 WorkflowDetailSerializer(workflow).data,
@@ -64,11 +76,23 @@ def workflow_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@require_super_admin
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
 def workflow_detail(request, workflow_id):
     """Get, update, or delete a workflow"""
-    workflow = get_object_or_404(Workflow, id=workflow_id, created_by=request.user)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    workflow = storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Workflow not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
     
     if request.method == 'GET':
         serializer = WorkflowDetailSerializer(workflow)
@@ -77,54 +101,82 @@ def workflow_detail(request, workflow_id):
     elif request.method == 'PUT':
         serializer = WorkflowCreateSerializer(workflow, data=request.data, partial=True)
         if serializer.is_valid():
-            workflow = WorkflowService.update_workflow(
-                workflow=workflow,
+            updated = WorkflowService.update_workflow(
+                workflow_id=workflow_id,
                 name=serializer.validated_data.get('name'),
                 description=serializer.validated_data.get('description'),
                 trigger_type=serializer.validated_data.get('trigger_type'),
                 tags=serializer.validated_data.get('tags'),
                 settings=serializer.validated_data.get('settings')
             )
-            return Response(WorkflowDetailSerializer(workflow).data)
+            if updated:
+                return Response(WorkflowDetailSerializer(updated).data)
+            return Response({'error': 'Failed to update workflow'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
-        workflow.delete()
+        storage.delete_workflow(workflow_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@require_super_admin
 @api_view(['GET', 'PUT'])
-@permission_classes([IsAuthenticated])
 def workflow_graph(request, workflow_id):
     """Get or update workflow graph data"""
-    workflow = get_object_or_404(Workflow, id=workflow_id, created_by=request.user)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    workflow = storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Workflow not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
     
     if request.method == 'GET':
         return Response({
-            'workflow_id': str(workflow.id),
-            'graph_data': workflow.graph_data
+            'workflow_id': workflow_id,
+            'graph_data': workflow.get('graph_data', {})
         })
     
     elif request.method == 'PUT':
         serializer = WorkflowGraphSerializer(data=request.data)
         if serializer.is_valid():
-            workflow = WorkflowService.save_graph(
-                workflow=workflow,
+            updated = WorkflowService.save_graph(
+                workflow_id=workflow_id,
                 graph_data=serializer.validated_data['graph_data']
             )
-            return Response({
-                'workflow_id': str(workflow.id),
-                'graph_data': workflow.graph_data,
-                'saved': True
-            })
+            if updated:
+                return Response({
+                    'workflow_id': workflow_id,
+                    'graph_data': updated.get('graph_data', {}),
+                    'saved': True
+                })
+            return Response({'error': 'Failed to save graph'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@require_super_admin
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def workflow_execute(request, workflow_id):
     """Execute a workflow manually"""
-    workflow = get_object_or_404(Workflow, id=workflow_id, created_by=request.user)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    workflow = storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Workflow not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
     
     trigger_data = request.data.get('trigger_data', {})
     async_execution = request.data.get('async', False)
@@ -134,13 +186,13 @@ def workflow_execute(request, workflow_id):
             workflow=workflow,
             trigger_type='manual',
             trigger_data=trigger_data,
-            user=request.user,
+            user_uuid=user_uuid,
             async_execution=async_execution
         )
         
         return Response({
-            'execution_id': str(execution.id),
-            'status': execution.status,
+            'execution_id': execution.get('execution_id') or execution.get('id'),
+            'status': execution.get('status'),
             'async': async_execution
         }, status=status.HTTP_201_CREATED)
         
@@ -150,51 +202,110 @@ def workflow_execute(request, workflow_id):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@require_super_admin
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def workflow_activate(request, workflow_id):
     """Activate a workflow"""
-    workflow = get_object_or_404(Workflow, id=workflow_id, created_by=request.user)
-    workflow.activate()
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    workflow = storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Workflow not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    storage.update_workflow(workflow_id, is_active=True, status='active')
     return Response({'status': 'activated', 'is_active': True})
 
 
+@require_super_admin
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def workflow_deactivate(request, workflow_id):
     """Deactivate a workflow"""
-    workflow = get_object_or_404(Workflow, id=workflow_id, created_by=request.user)
-    workflow.deactivate()
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    workflow = storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Workflow not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    storage.update_workflow(workflow_id, is_active=False, status='paused')
     return Response({'status': 'deactivated', 'is_active': False})
 
 
+@require_super_admin
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def workflow_duplicate(request, workflow_id):
     """Duplicate a workflow"""
-    workflow = get_object_or_404(Workflow, id=workflow_id, created_by=request.user)
-    new_workflow = WorkflowService.duplicate_workflow(workflow, request.user)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    workflow = storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Workflow not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    new_workflow = WorkflowService.duplicate_workflow(workflow_id, user_uuid)
     return Response(
         WorkflowDetailSerializer(new_workflow).data,
         status=status.HTTP_201_CREATED
     )
 
 
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def workflow_export(request, workflow_id):
     """Export a workflow to JSON"""
-    workflow = get_object_or_404(Workflow, id=workflow_id, created_by=request.user)
-    export_data = WorkflowService.export_workflow(workflow)
-    return Response(export_data)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    workflow = storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Workflow not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    export_data = WorkflowService.export_workflow(workflow_id)
+    if export_data:
+        return Response(export_data)
+    return Response({'error': 'Failed to export workflow'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@require_super_admin
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def workflow_import(request):
     """Import a workflow from JSON"""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
     try:
-        workflow = WorkflowService.import_workflow(request.data, request.user)
+        workflow = WorkflowService.import_workflow(request.data, user_uuid)
         return Response(
             WorkflowDetailSerializer(workflow).data,
             status=status.HTTP_201_CREATED
@@ -209,96 +320,85 @@ def workflow_import(request):
 # Execution Endpoints
 # ============================================
 
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def execution_list(request):
-    """List all executions"""
-    executions = Execution.objects.filter(
-        workflow__created_by=request.user
-    ).select_related('workflow')
-    
-    # Filtering
-    status_filter = request.query_params.get('status')
-    workflow_filter = request.query_params.get('workflow')
-    
-    if status_filter:
-        executions = executions.filter(status=status_filter)
-    if workflow_filter:
-        executions = executions.filter(workflow_id=workflow_filter)
-    
-    # Limit
-    limit = int(request.query_params.get('limit', 50))
-    executions = executions[:limit]
-    
-    serializer = ExecutionListSerializer(executions, many=True)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def execution_detail(request, execution_id):
     """Get execution details"""
-    execution = get_object_or_404(
-        Execution,
-        id=execution_id,
-        workflow__created_by=request.user
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    
+    # Find execution in workflows
+    workflows_result = storage.list(
+        filters={'created_by': user_uuid},
+        limit=None,
+        offset=0
     )
+    
+    execution = None
+    workflow = None
+    for wf in workflows_result.get('items', []):
+        executions = wf.get('executions', [])
+        for exec_data in executions:
+            if exec_data.get('execution_id') == execution_id or exec_data.get('id') == execution_id:
+                execution = exec_data
+                workflow = wf
+                break
+        if execution:
+            break
+    
+    if not execution:
+        return Response(
+            {'error': 'Execution not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    execution['workflow'] = workflow
     serializer = ExecutionDetailSerializer(execution)
     return Response(serializer.data)
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def execution_cancel(request, execution_id):
-    """Cancel a running execution"""
-    execution = get_object_or_404(
-        Execution,
-        id=execution_id,
-        workflow__created_by=request.user
-    )
-    
-    ExecutionEngine.cancel_execution(execution)
-    return Response({'status': 'cancelled'})
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def execution_retry(request, execution_id):
-    """Retry a failed execution"""
-    execution = get_object_or_404(
-        Execution,
-        id=execution_id,
-        workflow__created_by=request.user
-    )
-    
-    try:
-        new_execution = ExecutionEngine.retry_execution(execution, request.user)
-        return Response(
-            ExecutionDetailSerializer(new_execution).data,
-            status=status.HTTP_201_CREATED
-        )
-    except ValueError as e:
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def execution_logs(request, execution_id):
     """Get execution logs"""
-    execution = get_object_or_404(
-        Execution,
-        id=execution_id,
-        workflow__created_by=request.user
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = WorkflowStorageService()
+    
+    # Find execution in workflows
+    workflows_result = storage.list(
+        filters={'created_by': user_uuid},
+        limit=None,
+        offset=0
     )
     
-    logs = ExecutionLog.objects.filter(execution=execution)
+    logs = []
+    for wf in workflows_result.get('items', []):
+        executions = wf.get('executions', [])
+        for exec_data in executions:
+            if exec_data.get('execution_id') == execution_id or exec_data.get('id') == execution_id:
+                logs = exec_data.get('logs', [])
+                break
+        if logs:
+            break
+    
+    if not logs:
+        return Response(
+            {'error': 'Execution not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
     
     # Filter by level
     level = request.query_params.get('level')
     if level:
-        logs = logs.filter(level=level)
+        logs = [log for log in logs if log.get('level') == level]
     
     serializer = ExecutionLogSerializer(logs, many=True)
     return Response(serializer.data)
@@ -308,8 +408,8 @@ def execution_logs(request, execution_id):
 # Node Registry Endpoints
 # ============================================
 
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def node_types(request):
     """Get all available node types"""
     # Get by category if requested
@@ -323,8 +423,8 @@ def node_types(request):
     return Response(serializer.data)
 
 
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def node_schema(request, node_type):
     """Get schema for a specific node type"""
     # Replace / with url-safe character for URL
@@ -343,20 +443,32 @@ def node_schema(request, node_type):
 # Credential Endpoints
 # ============================================
 
+@require_super_admin
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
 def credential_list(request):
     """List or create credentials"""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    credential_storage = CredentialStorageService()
+    
     if request.method == 'GET':
-        credentials = Credential.objects.filter(created_by=request.user)
+        credentials_result = credential_storage.list(
+            filters={'created_by': user_uuid},
+            limit=None,
+            offset=0
+        )
+        credentials = credentials_result.get('items', [])
         serializer = CredentialListSerializer(credentials, many=True)
         return Response(serializer.data)
     
     elif request.method == 'POST':
         serializer = CredentialDetailSerializer(data=request.data)
         if serializer.is_valid():
-            credential = Credential.objects.create(
-                created_by=request.user,
+            credential = credential_storage.create_credential(
+                created_by=user_uuid,
                 **serializer.validated_data
             )
             return Response(
@@ -366,15 +478,23 @@ def credential_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@require_super_admin
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
 def credential_detail(request, credential_id):
     """Get, update, or delete a credential"""
-    credential = get_object_or_404(
-        Credential,
-        id=credential_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    credential_storage = CredentialStorageService()
+    credential = credential_storage.get_credential(credential_id)
+    
+    if not credential or credential.get('created_by') != user_uuid:
+        return Response(
+            {'error': 'Credential not found or unauthorized'},
+            status=status.HTTP_404_NOT_FOUND
+        )
     
     if request.method == 'GET':
         # Don't return sensitive data
@@ -384,12 +504,14 @@ def credential_detail(request, credential_id):
     elif request.method == 'PUT':
         serializer = CredentialDetailSerializer(credential, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-            return Response(CredentialListSerializer(credential).data)
+            updated = credential_storage.update_credential(credential_id, **serializer.validated_data)
+            if updated:
+                return Response(CredentialListSerializer(updated).data)
+            return Response({'error': 'Failed to update credential'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
-        credential.delete()
+        credential_storage.delete_credential(credential_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -397,26 +519,41 @@ def credential_detail(request, credential_id):
 # Template Endpoints
 # ============================================
 
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def template_list(request):
     """List workflow templates"""
-    templates = WorkflowTemplate.objects.all()
+    template_storage = WorkflowTemplateStorageService()
     
-    # Filter by category
+    filters = {}
     category = request.query_params.get('category')
     if category:
-        templates = templates.filter(category=category)
+        filters['category'] = category
+    
+    templates_result = template_storage.list(
+        filters=filters,
+        limit=None,
+        offset=0
+    )
+    templates = templates_result.get('items', [])
     
     serializer = WorkflowTemplateSerializer(templates, many=True)
     return Response(serializer.data)
 
 
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def template_detail(request, template_id):
     """Get template details"""
-    template = get_object_or_404(WorkflowTemplate, id=template_id)
+    template_storage = WorkflowTemplateStorageService()
+    template = template_storage.get_template(template_id)
+    
+    if not template:
+        return Response(
+            {'error': 'Template not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
     serializer = WorkflowTemplateSerializer(template)
     return Response(serializer.data)
 
@@ -425,10 +562,15 @@ def template_detail(request, template_id):
 # Stats Endpoint
 # ============================================
 
+@require_super_admin
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def stats(request):
     """Get workflow statistics for the current user"""
-    stats_data = WorkflowService.get_workflow_stats(request.user)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    stats_data = WorkflowService.get_workflow_stats(user_uuid)
     serializer = StatsSerializer(stats_data)
     return Response(serializer.data)

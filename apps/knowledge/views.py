@@ -1,17 +1,25 @@
 """Knowledge base views."""
 import json
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .models import KnowledgeBase
+from apps.core.decorators.auth import require_super_admin
 from .services import KnowledgeBaseService
 
+# Pattern type choices (moved from model)
+PATTERN_TYPE_CHOICES = [
+    ('pattern', 'Pattern'),
+    ('documentation', 'Documentation'),
+    ('code_snippet', 'Code Snippet'),
+    ('best_practice', 'Best Practice'),
+    ('api_pattern', 'API Pattern'),
+    ('architecture', 'Architecture'),
+]
 
-@login_required
+
+@require_super_admin
 def knowledge_list(request):
     """List knowledge base items."""
     search_query = request.GET.get('search', '')
@@ -36,8 +44,9 @@ def knowledge_list(request):
     
     # Get all unique tags for filter
     all_tags = set()
-    for item in KnowledgeBase.objects.all():
-        all_tags.update(item.tags or [])
+    all_items = knowledge_service.storage.list(limit=None, offset=0)
+    for item in all_items.get('items', []):
+        all_tags.update(item.get('tags', []) or [])
     
     context = {
         'page_obj': page_obj,
@@ -46,17 +55,22 @@ def knowledge_list(request):
         'tags_filter': tags_filter,
         'view_mode': view_mode,
         'all_tags': sorted(all_tags),
-        'pattern_types': KnowledgeBase.PATTERN_TYPE_CHOICES,
+        'pattern_types': PATTERN_TYPE_CHOICES,
         'total_count': len(knowledge_items),
     }
     
     return render(request, 'knowledge/list.html', context)
 
 
-@login_required
+@require_super_admin
 def knowledge_create(request):
     """Create a new knowledge base item."""
     knowledge_service = KnowledgeBaseService()
+    
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
     
     if request.method == 'POST':
         pattern_type = request.POST.get('pattern_type', '')
@@ -68,7 +82,7 @@ def knowledge_create(request):
         if not pattern_type or not title or not content:
             messages.error(request, 'Please fill in all required fields.')
             return render(request, 'knowledge/create.html', {
-                'pattern_types': KnowledgeBase.PATTERN_TYPE_CHOICES,
+                'pattern_types': PATTERN_TYPE_CHOICES,
             })
         
         # Parse tags
@@ -87,18 +101,18 @@ def knowledge_create(request):
             content=content,
             tags=tags,
             metadata=metadata,
-            created_by=request.user
+            created_by=user_uuid
         )
         
         messages.success(request, 'Knowledge item created successfully!')
-        return redirect('knowledge:detail', knowledge_id=knowledge_item.knowledge_id)
+        return redirect('knowledge:detail', knowledge_id=knowledge_item.get('knowledge_id'))
     
     return render(request, 'knowledge/create.html', {
-        'pattern_types': KnowledgeBase.PATTERN_TYPE_CHOICES,
+        'pattern_types': PATTERN_TYPE_CHOICES,
     })
 
 
-@login_required
+@require_super_admin
 def knowledge_detail(request, knowledge_id):
     """View knowledge base item details."""
     knowledge_service = KnowledgeBaseService()
@@ -120,7 +134,7 @@ def knowledge_detail(request, knowledge_id):
     return render(request, 'knowledge/detail.html', context)
 
 
-@login_required
+@require_super_admin
 def knowledge_edit(request, knowledge_id):
     """Edit knowledge base item."""
     knowledge_service = KnowledgeBaseService()
@@ -131,9 +145,7 @@ def knowledge_edit(request, knowledge_id):
         messages.error(request, 'Knowledge item not found.')
         return redirect('knowledge:list')
     
-    if item.created_by != request.user and not request.user.is_staff:
-        messages.error(request, 'You do not have permission to edit this item.')
-        return redirect('knowledge:detail', knowledge_id=knowledge_id)
+    # SuperAdmin can edit all items (no permission check needed)
     
     if request.method == 'POST':
         pattern_type = request.POST.get('pattern_type', '')
@@ -168,22 +180,22 @@ def knowledge_edit(request, knowledge_id):
             messages.error(request, 'Failed to update knowledge item.')
     
     # Convert tags list to comma-separated string
-    tags_str = ', '.join(item.tags) if item.tags else ''
+    tags_str = ', '.join(item.get('tags', [])) if item.get('tags') else ''
     
     # Convert metadata dict to JSON string
-    metadata_str = json.dumps(item.metadata, indent=2) if item.metadata else '{}'
+    metadata_str = json.dumps(item.get('metadata', {}), indent=2) if item.get('metadata') else '{}'
     
     context = {
         'item': item,
         'tags_str': tags_str,
         'metadata_str': metadata_str,
-        'pattern_types': KnowledgeBase.PATTERN_TYPE_CHOICES,
+        'pattern_types': PATTERN_TYPE_CHOICES,
     }
     
     return render(request, 'knowledge/edit.html', context)
 
 
-@login_required
+@require_super_admin
 def knowledge_delete(request, knowledge_id):
     """Delete knowledge base item."""
     knowledge_service = KnowledgeBaseService()
@@ -194,9 +206,7 @@ def knowledge_delete(request, knowledge_id):
         messages.error(request, 'Knowledge item not found.')
         return redirect('knowledge:list')
     
-    if item.created_by != request.user and not request.user.is_staff:
-        messages.error(request, 'You do not have permission to delete this item.')
-        return redirect('knowledge:detail', knowledge_id=knowledge_id)
+    # SuperAdmin can delete all items (no permission check needed)
     
     if request.method == 'POST':
         success = knowledge_service.delete(str(knowledge_id))
@@ -209,7 +219,7 @@ def knowledge_delete(request, knowledge_id):
     return render(request, 'knowledge/delete_confirm.html', {'item': item})
 
 
-@login_required
+@require_super_admin
 def knowledge_search(request):
     """Advanced search for knowledge base items."""
     query = request.GET.get('q', '').strip()
@@ -227,8 +237,9 @@ def knowledge_search(request):
     
     # Get all unique tags
     all_tags = set()
-    for item in KnowledgeBase.objects.all():
-        all_tags.update(item.tags or [])
+    all_items = knowledge_service.storage.list(limit=None, offset=0)
+    for item in all_items.get('items', []):
+        all_tags.update(item.get('tags', []) or [])
     
     context = {
         'items': items,
@@ -236,7 +247,7 @@ def knowledge_search(request):
         'pattern_type': pattern_type,
         'selected_tags': tags,
         'all_tags': sorted(all_tags),
-        'pattern_types': KnowledgeBase.PATTERN_TYPE_CHOICES,
+        'pattern_types': PATTERN_TYPE_CHOICES,
     }
     
     return render(request, 'knowledge/search.html', context)

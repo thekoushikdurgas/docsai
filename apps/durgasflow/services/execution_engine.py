@@ -6,18 +6,29 @@ Handles the execution of workflows, managing the flow between nodes.
 
 import logging
 import traceback
+import uuid as uuid_lib
 from typing import Optional, Dict, Any, List
 from django.utils import timezone
-from django.contrib.auth import get_user_model
-from django.db import transaction
 
-from ..models import (
-    Workflow, WorkflowNode, Execution, ExecutionLog,
-    ExecutionStatus, TriggerType
-)
+from .workflow_storage_service import WorkflowStorageService
 
-User = get_user_model()
 logger = logging.getLogger(__name__)
+
+# Constants (moved from models)
+class ExecutionStatus:
+    """Execution status"""
+    PENDING = 'pending'
+    RUNNING = 'running'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
+
+class TriggerType:
+    """Types of workflow triggers"""
+    MANUAL = 'manual'
+    WEBHOOK = 'webhook'
+    SCHEDULE = 'schedule'
+    EVENT = 'event'
 
 
 class NodeExecutionContext:
@@ -25,8 +36,8 @@ class NodeExecutionContext:
     
     def __init__(
         self,
-        execution: Execution,
-        workflow: Workflow,
+        execution: Dict[str, Any],
+        workflow: Dict[str, Any],
         trigger_data: Dict,
         credentials: Dict = None
     ):
@@ -40,9 +51,11 @@ class NodeExecutionContext:
     def get_input_data(self, node_id: str, input_index: int = 0) -> Any:
         """Get input data for a node from connected output"""
         # Find connection to this input
-        for conn in self.workflow.connections.all():
-            if str(conn.target_node.node_id) == str(node_id) and conn.target_input == input_index:
-                source_key = f"{conn.source_node.node_id}_{conn.source_output}"
+        connections = self.workflow.get('connections', [])
+        for conn in connections:
+            if (str(conn.get('target_id')) == str(node_id) and 
+                conn.get('target_input') == input_index):
+                source_key = f"{conn.get('source_id')}_{conn.get('source_output')}"
                 return self.node_outputs.get(source_key)
         return None
     
@@ -53,69 +66,101 @@ class NodeExecutionContext:
 
 
 class ExecutionEngine:
-    """Engine for executing workflows"""
+    """Engine for executing workflows using S3 storage"""
+    
+    _storage = WorkflowStorageService()
 
     @classmethod
     def execute_workflow(
         cls,
-        workflow: Workflow,
+        workflow: Dict[str, Any],
         trigger_type: str = TriggerType.MANUAL,
         trigger_data: Optional[Dict] = None,
-        user: Optional[User] = None,
+        user_uuid: Optional[str] = None,
         async_execution: bool = False
-    ) -> Execution:
+    ) -> Dict[str, Any]:
         """
         Execute a workflow.
         
         Args:
-            workflow: Workflow to execute
+            workflow: Workflow dict to execute
             trigger_type: How the workflow was triggered
             trigger_data: Data from the trigger
-            user: User who triggered the execution (optional)
+            user_uuid: User UUID who triggered the execution (optional)
             async_execution: Whether to run asynchronously with Django-Q
             
         Returns:
-            Execution instance
+            Execution data dictionary
         """
-        # Create execution record
-        execution = Execution.objects.create(
-            workflow=workflow,
-            trigger_type=trigger_type,
-            trigger_data=trigger_data or {},
-            triggered_by=user,
-            status=ExecutionStatus.PENDING
-        )
+        workflow_id = workflow.get('id') or workflow.get('workflow_id')
         
-        logger.info(f"Created execution {execution.id} for workflow {workflow.id}")
+        # Convert user_uuid to string if needed
+        if user_uuid:
+            if hasattr(user_uuid, 'uuid'):
+                user_uuid = str(user_uuid.uuid)
+            elif hasattr(user_uuid, 'id'):
+                user_uuid = str(user_uuid.id)
+            else:
+                user_uuid = str(user_uuid)
+        
+        # Create execution record in workflow
+        execution_id = str(uuid_lib.uuid4())
+        execution_data = {
+            'execution_id': execution_id,
+            'id': execution_id,
+            'trigger_type': trigger_type,
+            'trigger_data': trigger_data or {},
+            'triggered_by': user_uuid,
+            'status': ExecutionStatus.PENDING,
+            'created_at': timezone.now().isoformat(),
+            'started_at': None,
+            'finished_at': None,
+            'node_results': {},
+            'logs': [],
+        }
+        
+        # Add execution to workflow
+        executions = workflow.get('executions', [])
+        executions.append(execution_data)
+        cls._storage.update_workflow(workflow_id, executions=executions)
+        
+        logger.info(f"Created execution {execution_id} for workflow {workflow_id}")
         
         if async_execution:
             # Queue for async execution
             from .worker_service import WorkerService
-            WorkerService.queue_execution(execution.id)
-            return execution
+            WorkerService.queue_execution(execution_id, workflow_id)
+            return execution_data
         
         # Execute synchronously
-        cls._run_execution(execution)
-        return execution
+        cls._run_execution(execution_data, workflow, workflow_id)
+        return execution_data
 
     @classmethod
-    def _run_execution(cls, execution: Execution) -> None:
+    def _run_execution(cls, execution: Dict[str, Any], workflow: Dict[str, Any], workflow_id: str) -> None:
         """
         Run the actual execution logic.
         
         Args:
-            execution: Execution to run
+            execution: Execution dict to run
+            workflow: Workflow dict
+            workflow_id: Workflow ID
         """
-        workflow = execution.workflow
+        execution_id = execution.get('execution_id') or execution.get('id')
         
         try:
-            execution.start()
+            # Update execution status to running
+            execution['status'] = ExecutionStatus.RUNNING
+            execution['started_at'] = timezone.now().isoformat()
+            cls._update_execution_in_workflow(workflow_id, execution_id, execution)
             
             # Create execution context
             context = NodeExecutionContext(
                 execution=execution,
                 workflow=workflow,
-                trigger_data=execution.trigger_data
+                trigger_data=execution.get('trigger_data', {}),
+                workflow_id=workflow_id,
+                execution_id=execution_id
             )
             
             # Build execution order (topological sort)
@@ -123,81 +168,122 @@ class ExecutionEngine:
             
             if not node_order:
                 # No nodes to execute
-                execution.complete({'message': 'No nodes to execute'})
+                execution['status'] = ExecutionStatus.COMPLETED
+                execution['finished_at'] = timezone.now().isoformat()
+                execution['result_data'] = {'message': 'No nodes to execute'}
+                cls._update_execution_in_workflow(workflow_id, execution_id, execution)
                 return
             
             # Execute each node in order
             results = {}
             for node in node_order:
                 try:
-                    node_result = cls._execute_node(node, context)
-                    results[str(node.node_id)] = {
+                    node_result = cls._execute_node(node, context, workflow_id, execution_id)
+                    results[str(node.get('node_id'))] = {
                         'status': 'success',
                         'output': node_result
                     }
                 except Exception as e:
-                    results[str(node.node_id)] = {
+                    results[str(node.get('node_id'))] = {
                         'status': 'error',
                         'error': str(e)
                     }
                     # Log node error
-                    ExecutionLog.objects.create(
-                        execution=execution,
-                        node_id=node.node_id,
-                        node_type=node.node_type,
-                        node_title=node.title,
-                        level='error',
-                        message=f"Node execution failed: {str(e)}",
-                        data={'traceback': traceback.format_exc()}
-                    )
+                    cls._add_execution_log(workflow_id, execution_id, {
+                        'node_id': node.get('node_id'),
+                        'node_type': node.get('node_type'),
+                        'node_title': node.get('title'),
+                        'level': 'error',
+                        'message': f"Node execution failed: {str(e)}",
+                        'data': {'traceback': traceback.format_exc()},
+                        'created_at': timezone.now().isoformat()
+                    })
                     # Continue or stop based on settings
-                    if not workflow.settings.get('continue_on_error', False):
+                    if not workflow.get('settings', {}).get('continue_on_error', False):
                         raise
             
             # Complete execution
-            execution.node_results = results
-            execution.save(update_fields=['node_results'])
-            execution.complete(result_data={'node_results': results})
+            execution['node_results'] = results
+            execution['status'] = ExecutionStatus.COMPLETED
+            execution['finished_at'] = timezone.now().isoformat()
+            execution['result_data'] = {'node_results': results}
+            cls._update_execution_in_workflow(workflow_id, execution_id, execution)
             
-            logger.info(f"Execution {execution.id} completed successfully")
+            logger.info(f"Execution {execution_id} completed successfully")
             
         except Exception as e:
             error_message = str(e)
             error_stack = traceback.format_exc()
             
-            logger.error(f"Execution {execution.id} failed: {error_message}")
-            execution.fail(error_message, error_stack)
+            logger.error(f"Execution {execution_id} failed: {error_message}")
+            execution['status'] = ExecutionStatus.FAILED
+            execution['finished_at'] = timezone.now().isoformat()
+            execution['error_message'] = error_message
+            execution['error_stack'] = error_stack
+            cls._update_execution_in_workflow(workflow_id, execution_id, execution)
+    
+    @classmethod
+    def _update_execution_in_workflow(cls, workflow_id: str, execution_id: str, execution_data: Dict[str, Any]) -> None:
+        """Update execution in workflow's executions list"""
+        workflow = cls._storage.get_workflow(workflow_id)
+        if not workflow:
+            return
+        
+        executions = workflow.get('executions', [])
+        for i, exec_item in enumerate(executions):
+            if exec_item.get('execution_id') == execution_id or exec_item.get('id') == execution_id:
+                executions[i] = execution_data
+                break
+        
+        cls._storage.update_workflow(workflow_id, executions=executions)
+    
+    @classmethod
+    def _add_execution_log(cls, workflow_id: str, execution_id: str, log_data: Dict[str, Any]) -> None:
+        """Add log entry to execution"""
+        workflow = cls._storage.get_workflow(workflow_id)
+        if not workflow:
+            return
+        
+        executions = workflow.get('executions', [])
+        for exec_item in executions:
+            if exec_item.get('execution_id') == execution_id or exec_item.get('id') == execution_id:
+                logs = exec_item.get('logs', [])
+                logs.append(log_data)
+                exec_item['logs'] = logs
+                break
+        
+        cls._storage.update_workflow(workflow_id, executions=executions)
 
     @classmethod
-    def _get_execution_order(cls, workflow: Workflow) -> List[WorkflowNode]:
+    def _get_execution_order(cls, workflow: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Get nodes in topological execution order.
         
         Nodes are executed from triggers/inputs to outputs.
         
         Args:
-            workflow: Workflow to analyze
+            workflow: Workflow dict to analyze
             
         Returns:
-            List of WorkflowNode in execution order
+            List of node dicts in execution order
         """
-        nodes = list(workflow.nodes.all())
-        connections = list(workflow.connections.all())
+        nodes = workflow.get('nodes', [])
+        connections = workflow.get('connections', [])
         
         if not nodes:
             return []
         
         # Build adjacency list
-        dependencies = {str(n.node_id): set() for n in nodes}
+        dependencies = {str(n.get('node_id')): set() for n in nodes}
         for conn in connections:
-            target_id = str(conn.target_node.node_id)
-            source_id = str(conn.source_node.node_id)
+            target_id = str(conn.get('target_id'))
+            source_id = str(conn.get('source_id'))
             if target_id in dependencies:
                 dependencies[target_id].add(source_id)
         
         # Topological sort (Kahn's algorithm)
         result = []
-        nodes_by_id = {str(n.node_id): n for n in nodes}
+        nodes_by_id = {str(n.get('node_id')): n for n in nodes}
         
         # Find nodes with no dependencies (usually triggers)
         ready = [nid for nid, deps in dependencies.items() if not deps]
@@ -211,12 +297,12 @@ class ExecutionEngine:
             for nid, deps in dependencies.items():
                 if node_id in deps:
                     deps.remove(node_id)
-                    if not deps and nid not in [n.node_id for n in result]:
+                    if not deps and nid not in [str(n.get('node_id')) for n in result]:
                         ready.append(nid)
         
         # If we couldn't process all nodes, there might be a cycle
         if len(result) != len(nodes):
-            logger.warning(f"Possible cycle detected in workflow {workflow.id}")
+            logger.warning(f"Possible cycle detected in workflow {workflow.get('id')}")
             # Add remaining nodes anyway
             for node in nodes:
                 if node not in result:
@@ -225,105 +311,161 @@ class ExecutionEngine:
         return result
 
     @classmethod
-    def _execute_node(cls, node: WorkflowNode, context: NodeExecutionContext) -> Any:
+    def _execute_node(cls, node: Dict[str, Any], context: NodeExecutionContext, workflow_id: str, execution_id: str) -> Any:
         """
         Execute a single node.
         
         Args:
-            node: Node to execute
+            node: Node dict to execute
             context: Execution context
+            workflow_id: Workflow ID
+            execution_id: Execution ID
             
         Returns:
             Node output data
         """
         from .node_registry import NodeRegistry
         
+        node_id = node.get('node_id')
+        node_type = node.get('node_type')
+        node_title = node.get('title')
+        
         # Log start
-        log_entry = ExecutionLog.objects.create(
-            execution=context.execution,
-            node_id=node.node_id,
-            node_type=node.node_type,
-            node_title=node.title,
-            level='info',
-            message=f"Executing node: {node.title or node.node_type}",
-            started_at=timezone.now()
-        )
+        log_entry = {
+            'node_id': node_id,
+            'node_type': node_type,
+            'node_title': node_title,
+            'level': 'info',
+            'message': f"Executing node: {node_title or node_type}",
+            'created_at': timezone.now().isoformat(),
+            'finished_at': None
+        }
+        cls._add_execution_log(workflow_id, execution_id, log_entry)
         
         try:
             # Get node handler from registry
-            handler = NodeRegistry.get_node_handler(node.node_type)
+            handler = NodeRegistry.get_node_handler(node_type)
             
             if not handler:
-                raise ValueError(f"Unknown node type: {node.node_type}")
+                raise ValueError(f"Unknown node type: {node_type}")
             
             # Get input data
-            input_data = context.get_input_data(node.node_id)
+            input_data = context.get_input_data(node_id)
             
             # Execute node
             output_data = handler.execute(
-                config=node.config,
+                config=node.get('config', {}),
                 input_data=input_data,
                 context=context
             )
             
             # Store output
-            for i in range(len(node.outputs) if node.outputs else 1):
-                context.set_output_data(node.node_id, i, output_data)
+            outputs = node.get('outputs', [])
+            for i in range(len(outputs) if outputs else 1):
+                context.set_output_data(node_id, i, output_data)
             
             # Update log
-            log_entry.finished_at = timezone.now()
-            log_entry.message = f"Node completed: {node.title or node.node_type}"
-            log_entry.data = {'output_preview': str(output_data)[:500]}
-            log_entry.save()
+            log_entry['finished_at'] = timezone.now().isoformat()
+            log_entry['message'] = f"Node completed: {node_title or node_type}"
+            log_entry['data'] = {'output_preview': str(output_data)[:500]}
+            cls._add_execution_log(workflow_id, execution_id, log_entry)
             
             return output_data
             
         except Exception as e:
-            log_entry.level = 'error'
-            log_entry.message = f"Node failed: {str(e)}"
-            log_entry.finished_at = timezone.now()
-            log_entry.save()
+            log_entry['level'] = 'error'
+            log_entry['message'] = f"Node failed: {str(e)}"
+            log_entry['finished_at'] = timezone.now().isoformat()
+            cls._add_execution_log(workflow_id, execution_id, log_entry)
             raise
 
     @classmethod
-    def cancel_execution(cls, execution: Execution) -> None:
+    def cancel_execution(cls, workflow_id: str, execution_id: str) -> None:
         """
         Cancel a running execution.
         
         Args:
-            execution: Execution to cancel
+            workflow_id: Workflow ID
+            execution_id: Execution ID to cancel
         """
-        if execution.status == ExecutionStatus.RUNNING:
-            execution.status = ExecutionStatus.CANCELLED
-            execution.finished_at = timezone.now()
-            execution.save(update_fields=['status', 'finished_at', 'updated_at'])
-            
-            logger.info(f"Cancelled execution {execution.id}")
+        workflow = cls._storage.get_workflow(workflow_id)
+        if not workflow:
+            return
+        
+        executions = workflow.get('executions', [])
+        for exec_item in executions:
+            if exec_item.get('execution_id') == execution_id or exec_item.get('id') == execution_id:
+                if exec_item.get('status') == ExecutionStatus.RUNNING:
+                    exec_item['status'] = ExecutionStatus.CANCELLED
+                    exec_item['finished_at'] = timezone.now().isoformat()
+                    cls._update_execution_in_workflow(workflow_id, execution_id, exec_item)
+                    logger.info(f"Cancelled execution {execution_id}")
+                break
 
     @classmethod
-    def retry_execution(cls, execution: Execution, user: Optional[User] = None) -> Execution:
+    def retry_execution(cls, workflow_id: str, execution_id: str, user_uuid: Optional[str] = None) -> Dict[str, Any]:
         """
         Retry a failed execution.
         
         Args:
-            execution: Failed execution to retry
-            user: User performing the retry
+            workflow_id: Workflow ID
+            execution_id: Failed execution ID to retry
+            user_uuid: User UUID performing the retry
             
         Returns:
-            New Execution instance
+            New execution data dictionary
         """
-        if execution.retry_count >= execution.max_retries:
+        workflow = cls._storage.get_workflow(workflow_id)
+        if not workflow:
+            raise ValueError(f"Workflow not found: {workflow_id}")
+        
+        # Find the failed execution
+        executions = workflow.get('executions', [])
+        failed_execution = None
+        for exec_item in executions:
+            if exec_item.get('execution_id') == execution_id or exec_item.get('id') == execution_id:
+                failed_execution = exec_item
+                break
+        
+        if not failed_execution:
+            raise ValueError(f"Execution not found: {execution_id}")
+        
+        retry_count = failed_execution.get('retry_count', 0)
+        max_retries = failed_execution.get('max_retries', 3)
+        
+        if retry_count >= max_retries:
             raise ValueError("Maximum retries exceeded")
         
-        # Create new execution as retry
-        new_execution = Execution.objects.create(
-            workflow=execution.workflow,
-            trigger_type=execution.trigger_type,
-            trigger_data=execution.trigger_data,
-            triggered_by=user or execution.triggered_by,
-            retry_count=execution.retry_count + 1,
-            max_retries=execution.max_retries
-        )
+        # Convert user_uuid to string if needed
+        if user_uuid:
+            if hasattr(user_uuid, 'uuid'):
+                user_uuid = str(user_uuid.uuid)
+            elif hasattr(user_uuid, 'id'):
+                user_uuid = str(user_uuid.id)
+            else:
+                user_uuid = str(user_uuid)
         
-        cls._run_execution(new_execution)
+        # Create new execution as retry
+        new_execution_id = str(uuid_lib.uuid4())
+        new_execution = {
+            'execution_id': new_execution_id,
+            'id': new_execution_id,
+            'trigger_type': failed_execution.get('trigger_type'),
+            'trigger_data': failed_execution.get('trigger_data', {}),
+            'triggered_by': user_uuid or failed_execution.get('triggered_by'),
+            'retry_count': retry_count + 1,
+            'max_retries': max_retries,
+            'status': ExecutionStatus.PENDING,
+            'created_at': timezone.now().isoformat(),
+            'started_at': None,
+            'finished_at': None,
+            'node_results': {},
+            'logs': [],
+        }
+        
+        # Add to workflow executions
+        executions.append(new_execution)
+        cls._storage.update_workflow(workflow_id, executions=executions)
+        
+        cls._run_execution(new_execution, workflow, workflow_id)
         return new_execution

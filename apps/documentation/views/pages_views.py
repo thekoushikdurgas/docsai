@@ -109,7 +109,7 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
             messages.error(request, "Page not found.")
             return redirect("documentation:pages_list")
 
-        content = page.get("content", "")
+        content = page.get("content") or ""
         page_html = markdown.markdown(content, extensions=["fenced_code", "tables"])
         page_json = json.dumps(page, indent=2, default=str)
 

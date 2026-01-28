@@ -841,7 +841,7 @@ def media_file_viewer(request: HttpRequest, file_path: str) -> HttpResponse:
             page = content  # content is already the parsed page dict
             
             # Extract page content and convert to HTML if markdown
-            page_content = page.get("content", "")
+            page_content = page.get("content") or ""
             page_html = ""
             if page_content:
                 try:

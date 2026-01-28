@@ -4,16 +4,16 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from apps.core.decorators.auth import require_super_admin
 from apps.ai_agent.services.ai_service import AIService
-from apps.ai_agent.models import AILearningSession, ChatMessage
+from apps.ai_agent.services.session_storage_service import AISessionStorageService
 
 logger = logging.getLogger(__name__)
 ai_service = AIService()
 
 
-@login_required
+@require_super_admin
 @csrf_exempt
 @require_http_methods(["POST"])
 def chat_api(request):
@@ -27,34 +27,35 @@ def chat_api(request):
         if not prompt:
             return JsonResponse({'error': 'Prompt is required'}, status=400)
         
+        # Get user UUID from token
+        user_uuid = None
+        if hasattr(request, 'appointment360_user'):
+            user_uuid = request.appointment360_user.get('uuid')
+        
+        storage = AISessionStorageService()
+        
         # Get or create session
         if session_id:
-            try:
-                session = AILearningSession.objects.get(
-                    session_id=session_id,
-                    created_by=request.user
-                )
-            except AILearningSession.DoesNotExist:
+            session = storage.get_session(session_id)
+            if not session or session.get('created_by') != user_uuid:
                 return JsonResponse({'error': 'Session not found'}, status=404)
         else:
-            session = AILearningSession.objects.create(
+            session = storage.create_session(
                 session_name=f'Chat {timezone.now().strftime("%Y-%m-%d %H:%M")}',
-                created_by=request.user,
-                status='running',
-                started_at=timezone.now()
+                created_by=user_uuid,
+                patterns_learned={}
             )
+            session_id = session.get('session_id')
+            storage.update_session(session_id, status='running', started_at=timezone.now().isoformat())
         
-        # Build messages from database
+        # Build messages from storage
         messages_list = []
-        db_messages = ChatMessage.objects.filter(
-            session=session,
-            created_by=request.user
-        ).order_by('created_at')[:20]
+        db_messages = storage.get_messages(session_id)
         
-        for msg in db_messages:
+        for msg in db_messages[-20:]:  # Last 20 messages
             messages_list.append({
-                'role': msg.role,
-                'content': msg.content
+                'role': msg.get('role'),
+                'content': msg.get('content')
             })
         
         messages_list.append({
@@ -71,31 +72,30 @@ def chat_api(request):
         
         if response:
             # Save messages
-            ChatMessage.objects.create(
-                session=session,
+            storage.add_message(
+                session_id,
                 role='user',
                 content=prompt,
-                created_by=request.user
+                created_by=user_uuid
             )
             
-            ChatMessage.objects.create(
-                session=session,
+            storage.add_message(
+                session_id,
                 role='assistant',
                 content=response.get('content', ''),
+                created_by=user_uuid,
                 metadata={
                     'groundingSources': response.get('groundingSources', []),
                     **response.get('metadata', {})
-                },
-                created_by=request.user
+                }
             )
             
-            session.updated_at = timezone.now()
-            session.save(update_fields=['updated_at'])
+            storage.update_session(session_id, updated_at=timezone.now().isoformat())
             
             return JsonResponse({
                 'text': response.get('content', ''),
                 'groundingSources': response.get('groundingSources', []),
-                'session_id': str(session.session_id),
+                'session_id': session_id,
                 'metadata': response.get('metadata', {})
             })
         else:
@@ -108,66 +108,73 @@ def chat_api(request):
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def sessions_api(request):
     """List AI sessions."""
     limit = int(request.GET.get('limit', 50))
-    sessions = AILearningSession.objects.filter(
-        created_by=request.user
-    ).order_by('-created_at')[:limit]
+    
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = AISessionStorageService()
+    
+    sessions_result = storage.list(filters={'created_by': user_uuid}, limit=limit, offset=0, order_by='created_at', reverse=True)
     
     sessions_data = []
-    for session in sessions:
-        message_count = ChatMessage.objects.filter(session=session).count()
+    for session in sessions_result.get('items', []):
+        message_count = len(session.get('messages', []))
         sessions_data.append({
-            'session_id': str(session.session_id),
-            'session_name': session.session_name,
-            'status': session.status,
-            'started_at': session.started_at.isoformat() if session.started_at else None,
-            'created_at': session.created_at.isoformat(),
-            'updated_at': session.updated_at.isoformat(),
+            'session_id': session.get('session_id'),
+            'session_name': session.get('session_name'),
+            'status': session.get('status'),
+            'started_at': session.get('started_at'),
+            'created_at': session.get('created_at'),
+            'updated_at': session.get('updated_at'),
             'message_count': message_count
         })
     
     return JsonResponse({'sessions': sessions_data})
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def session_detail_api(request, session_id):
     """Get session detail."""
-    try:
-        session = AILearningSession.objects.get(
-            session_id=session_id,
-            created_by=request.user
-        )
-    except AILearningSession.DoesNotExist:
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    storage = AISessionStorageService()
+    
+    session = storage.get_session(session_id)
+    
+    if not session or session.get('created_by') != user_uuid:
         return JsonResponse({'error': 'Session not found'}, status=404)
     
-    messages = ChatMessage.objects.filter(
-        session=session,
-        created_by=request.user
-    ).order_by('created_at')
+    messages = storage.get_messages(session_id)
     
     messages_data = [
         {
-            'role': msg.role,
-            'content': msg.content,
-            'groundingSources': msg.metadata.get('groundingSources', []),
-            'timestamp': msg.created_at.isoformat()
+            'role': msg.get('role'),
+            'content': msg.get('content'),
+            'groundingSources': msg.get('metadata', {}).get('groundingSources', []),
+            'timestamp': msg.get('created_at')
         }
         for msg in messages
     ]
     
     return JsonResponse({
         'session': {
-            'session_id': str(session.session_id),
-            'session_name': session.session_name,
-            'status': session.status,
-            'started_at': session.started_at.isoformat() if session.started_at else None,
-            'created_at': session.created_at.isoformat(),
-            'updated_at': session.updated_at.isoformat()
+            'session_id': session.get('session_id'),
+            'session_name': session.get('session_name'),
+            'status': session.get('status'),
+            'started_at': session.get('started_at'),
+            'created_at': session.get('created_at'),
+            'updated_at': session.get('updated_at')
         },
         'messages': messages_data
     })

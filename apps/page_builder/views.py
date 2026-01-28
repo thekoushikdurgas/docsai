@@ -1,9 +1,9 @@
 """Page Builder views."""
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from apps.core.decorators.auth import require_super_admin
 
 
-@login_required
+@require_super_admin
 def page_builder_view(request):
     """Visual page builder."""
     from apps.documentation.services.pages_service import PagesService

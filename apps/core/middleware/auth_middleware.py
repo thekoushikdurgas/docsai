@@ -24,6 +24,11 @@ class Appointment360AuthMiddleware:
         self.auth_enabled = getattr(settings, 'GRAPHQL_AUTH_ENABLED', True)
     
     def __call__(self, request):
+        # Skip public routes (login, register, logout)
+        # This prevents the middleware from setting request.user on auth pages
+        if request.path in ['/login/', '/register/', '/logout/']:
+            return self.get_response(request)
+        
         # Only process if appointment360 auth is enabled
         if not (self.enabled and self.auth_enabled):
             return self.get_response(request)
@@ -53,7 +58,7 @@ class Appointment360AuthMiddleware:
                 refresh_token = request.COOKIES.get('refresh_token')
                 if refresh_token:
                     try:
-                        client = Appointment360Client()
+                        client = Appointment360Client(request=request)
                         auth_result = client.refresh_token(refresh_token)
                         
                         new_access_token = auth_result.get('access_token')

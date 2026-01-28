@@ -19,34 +19,79 @@ class GraphQLError(Exception):
 class GraphQLClient:
     """Client for executing GraphQL queries and mutations."""
     
-    def __init__(self, endpoint_url: Optional[str] = None, api_key: Optional[str] = None):
+    def __init__(self, endpoint_url: Optional[str] = None, access_token: Optional[str] = None, request=None):
         """
         Initialize GraphQL client.
         
         Args:
             endpoint_url: GraphQL endpoint URL (defaults to settings)
-            api_key: API key for authentication (defaults to settings)
+            access_token: JWT access token for authentication (optional, can be extracted from request)
+            request: Django request object to extract access token from (optional)
         """
         self.endpoint = endpoint_url or getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', 'http://localhost:8000/graphql')
-        self.api_key = api_key or getattr(settings, 'APPOINTMENT360_GRAPHQL_API_KEY', None)
+        self.request = request
+        self.access_token = access_token or self._extract_token_from_request()
         self.timeout = getattr(settings, 'GRAPHQL_TIMEOUT', 30)
         self.max_retries = getattr(settings, 'GRAPHQL_MAX_RETRIES', 3)
         self.retry_delay = getattr(settings, 'GRAPHQL_RETRY_DELAY', 1)  # seconds
         self.client = httpx.Client(timeout=self.timeout)
         
         logger.info(f"GraphQLClient initialized with endpoint: {self.endpoint}")
-        logger.debug(f"API Key configured: {bool(self.api_key)}")
+        logger.debug(f"Access token configured: {bool(self.access_token)}")
         logger.debug(f"Retry settings: max_retries={self.max_retries}, retry_delay={self.retry_delay}s")
     
+    def _extract_token_from_request(self) -> Optional[str]:
+        """
+        Extract access token from request context.
+        
+        Tries multiple sources:
+        1. request.COOKIES.get('access_token')
+        2. request.META.get('HTTP_AUTHORIZATION') (Bearer token)
+        3. request.appointment360_user.get('access_token') if available
+        
+        Returns:
+            Access token string or None
+        """
+        if not self.request:
+            return None
+        
+        # Try cookie first
+        access_token = self.request.COOKIES.get('access_token')
+        if access_token:
+            return access_token
+        
+        # Try Authorization header
+        auth_header = self.request.META.get('HTTP_AUTHORIZATION', '')
+        if auth_header.startswith('Bearer '):
+            return auth_header[7:]  # Remove 'Bearer ' prefix
+        
+        # Try request.appointment360_user if available
+        if hasattr(self.request, 'appointment360_user'):
+            user_data = self.request.appointment360_user
+            if isinstance(user_data, dict):
+                return user_data.get('access_token')
+        
+        return None
+    
     def _get_headers(self, additional_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
-        """Get default headers for GraphQL requests."""
+        """
+        Get default headers for GraphQL requests.
+        
+        Uses access token from initialization or request context.
+        """
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
         
-        if self.api_key:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+        # Use access token if available
+        token = self.access_token
+        if not token and self.request:
+            # Try to extract token again (in case it was set after initialization)
+            token = self._extract_token_from_request()
+        
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
         
         if additional_headers:
             headers.update(additional_headers)

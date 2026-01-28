@@ -1,35 +1,55 @@
 """Endpoint JSON Importer for Durgasman."""
 
 import json
+import uuid as uuid_lib
 from typing import Dict, Any
+from datetime import datetime
 
-from ..models import Collection, ApiRequest
+from ..services.durgasman_storage_service import CollectionStorageService
 
 
-def import_endpoint_json(file_path: str, user) -> Collection:
+def import_endpoint_json(file_path: str, user_uuid: str) -> Dict[str, Any]:
     """Convert endpoint JSON from media/endpoints/ to Durgasman collection."""
+    # Convert user_uuid to string if needed
+    if hasattr(user_uuid, 'uuid'):
+        user_uuid = str(user_uuid.uuid)
+    elif hasattr(user_uuid, 'id'):
+        user_uuid = str(user_uuid.id)
+    else:
+        user_uuid = str(user_uuid)
+    
+    storage = CollectionStorageService()
 
     with open(file_path, 'r') as f:
         endpoint_data = json.load(f)
 
     # Create collection for this endpoint
     collection_name = f"Endpoint: {endpoint_data.get('endpoint_id', 'Unknown')}"
-    collection = Collection.objects.create(
+    collection = storage.create_collection(
         name=collection_name,
         description=endpoint_data.get('description', ''),
-        user=user
+        user=user_uuid
     )
+    
+    collection_id = collection.get('collection_id') or collection.get('id')
+    requests = []
 
     # Handle different endpoint types
     if endpoint_data.get('api_version') == 'graphql':
-        _import_graphql_endpoint(endpoint_data, collection)
+        request_data = _import_graphql_endpoint(endpoint_data)
     else:
-        _import_rest_endpoint(endpoint_data, collection)
+        request_data = _import_rest_endpoint(endpoint_data)
+    
+    requests.append(request_data)
+    
+    # Update collection with requests
+    storage.update_collection(collection_id, requests=requests)
+    
+    # Return updated collection
+    return storage.get_collection(collection_id)
 
-    return collection
 
-
-def _import_graphql_endpoint(endpoint_data: Dict[str, Any], collection: Collection) -> None:
+def _import_graphql_endpoint(endpoint_data: Dict[str, Any]) -> Dict[str, Any]:
     """Import GraphQL endpoint from DocsAI format."""
 
     # Build GraphQL query/mutation
@@ -67,20 +87,22 @@ def _import_graphql_endpoint(endpoint_data: Dict[str, Any], collection: Collecti
         'variables': {}
     })
 
-    # Create the API request
-    ApiRequest.objects.create(
-        collection=collection,
-        name=endpoint_data.get('endpoint_id', 'GraphQL Request'),
-        method='POST',
-        url='/graphql',  # Your GraphQL endpoint
-        headers=headers,
-        body=body,
-        response_schema=endpoint_data.get('response_schema', ''),
-        auth_type='Bearer Token'
-    )
+    # Return the API request data
+    return {
+        'request_id': str(uuid_lib.uuid4()),
+        'name': endpoint_data.get('endpoint_id', 'GraphQL Request'),
+        'method': 'POST',
+        'url': '/graphql',  # Your GraphQL endpoint
+        'headers': headers,
+        'body': body,
+        'response_schema': endpoint_data.get('response_schema', ''),
+        'auth_type': 'Bearer Token',
+        'created_at': datetime.utcnow().isoformat(),
+        'updated_at': datetime.utcnow().isoformat(),
+    }
 
 
-def _import_rest_endpoint(endpoint_data: Dict[str, Any], collection: Collection) -> None:
+def _import_rest_endpoint(endpoint_data: Dict[str, Any]) -> Dict[str, Any]:
     """Import REST endpoint from DocsAI format."""
 
     # Build URL from endpoint path
@@ -106,26 +128,40 @@ def _import_rest_endpoint(endpoint_data: Dict[str, Any], collection: Collection)
             'enabled': True
         })
 
-    # Create the API request
-    ApiRequest.objects.create(
-        collection=collection,
-        name=endpoint_data.get('endpoint_id', 'REST Request'),
-        method=endpoint_data.get('method', 'GET'),
-        url=url,
-        headers=headers,
-        response_schema=endpoint_data.get('response_schema', ''),
-        auth_type='Bearer Token' if 'Bearer token' in auth.lower() else 'None'
-    )
+    # Return the API request data
+    return {
+        'request_id': str(uuid_lib.uuid4()),
+        'name': endpoint_data.get('endpoint_id', 'REST Request'),
+        'method': endpoint_data.get('method', 'GET'),
+        'url': url,
+        'headers': headers,
+        'response_schema': endpoint_data.get('response_schema', ''),
+        'auth_type': 'Bearer Token' if 'Bearer token' in auth.lower() else 'None',
+        'created_at': datetime.utcnow().isoformat(),
+        'updated_at': datetime.utcnow().isoformat(),
+    }
 
 
-def import_multiple_endpoints(file_paths: list, user) -> Collection:
+def import_multiple_endpoints(file_paths: list, user_uuid: str) -> Dict[str, Any]:
     """Import multiple endpoint JSON files into a single collection."""
+    # Convert user_uuid to string if needed
+    if hasattr(user_uuid, 'uuid'):
+        user_uuid = str(user_uuid.uuid)
+    elif hasattr(user_uuid, 'id'):
+        user_uuid = str(user_uuid.id)
+    else:
+        user_uuid = str(user_uuid)
+    
+    storage = CollectionStorageService()
 
-    collection = Collection.objects.create(
+    collection = storage.create_collection(
         name="Imported Endpoints Collection",
         description=f"Imported from {len(file_paths)} endpoint files",
-        user=user
+        user=user_uuid
     )
+    
+    collection_id = collection.get('collection_id') or collection.get('id')
+    requests = []
 
     for file_path in file_paths:
         try:
@@ -133,16 +169,22 @@ def import_multiple_endpoints(file_paths: list, user) -> Collection:
                 endpoint_data = json.load(f)
 
             if endpoint_data.get('api_version') == 'graphql':
-                _import_graphql_endpoint(endpoint_data, collection)
+                request_data = _import_graphql_endpoint(endpoint_data)
             else:
-                _import_rest_endpoint(endpoint_data, collection)
+                request_data = _import_rest_endpoint(endpoint_data)
+            
+            requests.append(request_data)
 
         except Exception as e:
             # Log error but continue with other files
             print(f"Error importing {file_path}: {e}")
             continue
-
-    return collection
+    
+    # Update collection with all requests
+    storage.update_collection(collection_id, requests=requests)
+    
+    # Return updated collection
+    return storage.get_collection(collection_id)
 
 
 def generate_request_from_endpoint_data(endpoint_data: Dict[str, Any]) -> Dict[str, Any]:

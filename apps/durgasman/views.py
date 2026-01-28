@@ -1,35 +1,86 @@
 """Durgasman API Testing App Views."""
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.db import models
 import json
 import os
 from django.conf import settings
 
-from .models import Collection, ApiRequest, Environment, RequestHistory, MockEndpoint
+from apps.core.decorators.auth import require_super_admin
+from .services.durgasman_storage_service import (
+    CollectionStorageService,
+    EnvironmentStorageService,
+    RequestHistoryStorageService
+)
 
 
-@login_required
+@require_super_admin
 def dashboard(request):
     """Main Durgasman dashboard."""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    collection_storage = CollectionStorageService()
+    history_storage = RequestHistoryStorageService()
+    environment_storage = EnvironmentStorageService()
+    
+    collections_result = collection_storage.list(
+        filters={'user': user_uuid},
+        limit=10,
+        offset=0,
+        order_by='created_at',
+        reverse=True
+    )
+    collections = collections_result.get('items', [])
+    
+    history_result = history_storage.list(
+        filters={'user': user_uuid},
+        limit=5,
+        offset=0,
+        order_by='timestamp',
+        reverse=True
+    )
+    recent_history = history_result.get('items', [])
+    
+    environments_result = environment_storage.list(
+        filters={'user': user_uuid},
+        limit=5,
+        offset=0,
+        order_by='created_at',
+        reverse=True
+    )
+    environments = environments_result.get('items', [])
+    
     context = {
-        'collections': Collection.objects.filter(user=request.user).select_related('user')[:10],
-        'recent_history': RequestHistory.objects.filter(user=request.user).select_related('user', 'collection')[:5],
-        'environments': Environment.objects.filter(user=request.user).select_related('user')[:5],
+        'collections': collections,
+        'recent_history': recent_history,
+        'environments': environments,
     }
     return render(request, 'durgasman/dashboard.html', context)
 
 
-@login_required
+@require_super_admin
 def collection_detail(request, collection_id):
     """View collection details and requests."""
-    collection = get_object_or_404(Collection, id=collection_id, user=request.user)
-    requests = collection.requests.all()
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    collection_storage = CollectionStorageService()
+    collection = collection_storage.get_collection(collection_id)
+    
+    if not collection or collection.get('user') != user_uuid:
+        messages.error(request, 'Collection not found or unauthorized.')
+        return redirect('durgasman:dashboard')
+    
+    # Get requests from collection (stored as nested data)
+    requests = collection.get('requests', [])
 
     context = {
         'collection': collection,
@@ -38,9 +89,14 @@ def collection_detail(request, collection_id):
     return render(request, 'durgasman/collection_detail.html', context)
 
 
-@login_required
+@require_super_admin
 def import_view(request):
     """Handle import from media manager."""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
     import_type = request.GET.get('type')
     file_path = request.GET.get('file')
 
@@ -60,17 +116,17 @@ def import_view(request):
     try:
         if import_type == 'postman':
             from .services.postman_importer import import_postman_collection
-            collection = import_postman_collection(full_path, request.user)
-            messages.success(request, f'Successfully imported Postman collection: {collection.name}')
+            collection = import_postman_collection(full_path, user_uuid)
+            messages.success(request, f'Successfully imported Postman collection: {collection.get("name")}')
         elif import_type == 'endpoints':
             from .services.endpoint_importer import import_endpoint_json
-            collection = import_endpoint_json(full_path, request.user)
-            messages.success(request, f'Successfully imported endpoint: {collection.name}')
+            collection = import_endpoint_json(full_path, user_uuid)
+            messages.success(request, f'Successfully imported endpoint: {collection.get("name")}')
         else:
             messages.error(request, f'Unknown import type: {import_type}')
             return redirect('documentation:media_manager_dashboard')
 
-        return redirect('durgasman:collection_detail', collection_id=collection.id)
+        return redirect('durgasman:collection_detail', collection_id=collection.get('collection_id') or collection.get('id'))
 
     except Exception as e:
         messages.error(request, f'Import failed: {str(e)}')
@@ -79,125 +135,266 @@ def import_view(request):
 
 # API Views
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def api_collections(request):
     """API endpoint for collections."""
-    collections = Collection.objects.filter(user=request.user).select_related('user').values(
-        'id', 'name', 'description', 'created_at'
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    collection_storage = CollectionStorageService()
+    
+    collections_result = collection_storage.list(
+        filters={'user': user_uuid},
+        limit=None,
+        offset=0
     )
+    collections = collections_result.get('items', [])
 
     # Add request count for each collection
     for collection in collections:
-        # Use prefetch_related for better performance when counting
-        collection['requests_count'] = ApiRequest.objects.filter(collection_id=collection['id']).count()
+        collection_id = collection.get('collection_id') or collection.get('id')
+        requests = collection.get('requests', [])
+        collection['requests_count'] = len(requests) if requests else 0
 
     return JsonResponse({
-        'collections': list(collections),
+        'collections': collections,
         'total': len(collections)
     })
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def api_collection_requests(request, collection_id):
     """API endpoint for collection requests."""
-    collection = get_object_or_404(Collection, id=collection_id, user=request.user)
-    requests = collection.requests.all().values(
-        'id', 'name', 'method', 'url', 'headers', 'params', 'body',
-        'auth_type', 'response_schema', 'created_at', 'updated_at'
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    collection_storage = CollectionStorageService()
+    collection = collection_storage.get_collection(collection_id)
+    
+    if not collection or collection.get('user') != user_uuid:
+        return JsonResponse({'error': 'Collection not found or unauthorized'}, status=404)
+    
+    # Get requests from collection (stored as nested data)
+    requests = collection.get('requests', [])
+    
+    # Format requests
+    formatted_requests = []
+    for req in requests:
+        formatted_requests.append({
+            'id': req.get('request_id') or req.get('id'),
+            'name': req.get('name'),
+            'method': req.get('method'),
+            'url': req.get('url'),
+            'headers': req.get('headers', []),
+            'params': req.get('params', []),
+            'body': req.get('body'),
+            'auth_type': req.get('auth_type'),
+            'response_schema': req.get('response_schema'),
+            'created_at': req.get('created_at'),
+            'updated_at': req.get('updated_at'),
+        })
 
     return JsonResponse({
         'collection': {
-            'id': collection.id,
-            'name': collection.name,
-            'description': collection.description,
+            'id': collection.get('collection_id') or collection.get('id'),
+            'name': collection.get('name'),
+            'description': collection.get('description'),
         },
-        'requests': list(requests),
-        'total': len(requests)
+        'requests': formatted_requests,
+        'total': len(formatted_requests)
     })
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET", "PUT", "DELETE"])
 def api_request_detail(request, request_id):
     """API endpoint for individual request CRUD."""
-    api_request = get_object_or_404(ApiRequest, id=request_id, collection__user=request.user)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    collection_storage = CollectionStorageService()
+    
+    # Find request in collections
+    collections_result = collection_storage.list(
+        filters={'user': user_uuid},
+        limit=None,
+        offset=0
+    )
+    
+    api_request = None
+    collection = None
+    collection_id = None
+    
+    for coll in collections_result.get('items', []):
+        requests = coll.get('requests', [])
+        for req in requests:
+            if req.get('request_id') == request_id or req.get('id') == request_id:
+                api_request = req
+                collection = coll
+                collection_id = coll.get('collection_id') or coll.get('id')
+                break
+        if api_request:
+            break
+    
+    if not api_request:
+        return JsonResponse({'error': 'Request not found or unauthorized'}, status=404)
 
     if request.method == 'GET':
         return JsonResponse({
-            'id': api_request.id,
-            'name': api_request.name,
-            'method': api_request.method,
-            'url': api_request.url,
-            'headers': api_request.headers,
-            'params': api_request.params,
-            'body': api_request.body,
-            'auth_type': api_request.auth_type,
-            'response_schema': api_request.response_schema,
+            'id': api_request.get('request_id') or api_request.get('id'),
+            'name': api_request.get('name'),
+            'method': api_request.get('method'),
+            'url': api_request.get('url'),
+            'headers': api_request.get('headers', []),
+            'params': api_request.get('params', []),
+            'body': api_request.get('body', ''),
+            'auth_type': api_request.get('auth_type'),
+            'response_schema': api_request.get('response_schema', ''),
         })
 
     elif request.method == 'PUT':
         data = json.loads(request.body)
-        for field in ['name', 'method', 'url', 'headers', 'params', 'body', 'auth_type', 'response_schema']:
-            if field in data:
-                setattr(api_request, field, data[field])
-        api_request.save()
+        
+        # Update request in collection
+        requests = collection.get('requests', [])
+        for i, req in enumerate(requests):
+            if req.get('request_id') == request_id or req.get('id') == request_id:
+                # Update fields
+                for field in ['name', 'method', 'url', 'headers', 'params', 'body', 'auth_type', 'response_schema']:
+                    if field in data:
+                        requests[i][field] = data[field]
+                break
+        
+        # Update collection
+        collection_storage.update_collection(collection_id, requests=requests)
         return JsonResponse({'success': True})
 
     elif request.method == 'DELETE':
-        api_request.delete()
+        # Remove request from collection
+        requests = collection.get('requests', [])
+        requests = [req for req in requests if req.get('request_id') != request_id and req.get('id') != request_id]
+        
+        # Update collection
+        collection_storage.update_collection(collection_id, requests=requests)
         return JsonResponse({'success': True})
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def api_environments(request):
     """API endpoint for environments."""
-    environments = Environment.objects.filter(user=request.user).values(
-        'id', 'name', 'created_at'
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    environment_storage = EnvironmentStorageService()
+    environments_result = environment_storage.list(
+        filters={'user': user_uuid},
+        limit=None,
+        offset=0
     )
+    environments = environments_result.get('items', [])
+    
+    formatted_environments = [
+        {
+            'id': env.get('environment_id') or env.get('id'),
+            'name': env.get('name'),
+            'created_at': env.get('created_at'),
+        }
+        for env in environments
+    ]
 
     return JsonResponse({
-        'environments': list(environments),
-        'total': len(environments)
+        'environments': formatted_environments,
+        'total': len(formatted_environments)
     })
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def api_history(request):
     """API endpoint for request history."""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
     limit = int(request.GET.get('limit', 50))
-    history = RequestHistory.objects.filter(user=request.user)[:limit].values(
-        'id', 'timestamp', 'method', 'url', 'response_status',
-        'response_time_ms', 'response_size_bytes'
+    
+    history_storage = RequestHistoryStorageService()
+    history_result = history_storage.list(
+        filters={'user': user_uuid},
+        limit=limit,
+        offset=0
     )
+    history = history_result.get('items', [])
+
+    # Format history items
+    formatted_history = [
+        {
+            'id': h.get('history_id') or h.get('id'),
+            'timestamp': h.get('timestamp') or h.get('created_at'),
+            'method': h.get('method'),
+            'url': h.get('url'),
+            'response_status': h.get('response_status'),
+            'response_time_ms': h.get('response_time_ms'),
+            'response_size_bytes': h.get('response_size_bytes')
+        }
+        for h in history
+    ]
 
     return JsonResponse({
-        'history': list(history),
-        'total': len(history)
+        'history': formatted_history,
+        'total': len(formatted_history)
     })
 
 
-@login_required
+@require_super_admin
 @require_http_methods(["GET"])
 def api_mocks(request):
     """API endpoint for mock endpoints."""
-    mocks = MockEndpoint.objects.filter(
-        models.Q(collection__user=request.user) | models.Q(collection__isnull=True)
-    ).values(
-        'id', 'path', 'method', 'status_code', 'enabled', 'created_at'
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    collection_storage = CollectionStorageService()
+    collections_result = collection_storage.list(
+        filters={'user': user_uuid},
+        limit=None,
+        offset=0
     )
+    
+    # Collect mock endpoints from collections
+    mocks = []
+    for collection in collections_result.get('items', []):
+        mock_endpoints = collection.get('mock_endpoints', [])
+        for mock in mock_endpoints:
+            mocks.append({
+                'id': mock.get('mock_id') or mock.get('id'),
+                'path': mock.get('path'),
+                'method': mock.get('method'),
+                'status_code': mock.get('status_code'),
+                'enabled': mock.get('enabled', True),
+                'created_at': mock.get('created_at'),
+            })
 
     return JsonResponse({
-        'mocks': list(mocks),
+        'mocks': mocks,
         'total': len(mocks)
     })
 
 
-@login_required
+@require_super_admin
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_analyze_response(request):

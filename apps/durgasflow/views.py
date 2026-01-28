@@ -5,53 +5,119 @@ Template views for the workflow automation interface.
 """
 
 import json
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+import logging
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core.paginator import Paginator
-from django.db.models import Q
 
-from .models import (
-    Workflow, WorkflowNode, Execution, ExecutionLog,
-    Credential, WorkflowTemplate, WorkflowStatus, ExecutionStatus
-)
+from apps.core.decorators.auth import require_super_admin
 from .services.workflow_service import WorkflowService
 from .services.execution_engine import ExecutionEngine
+from .services.workflow_storage_service import (
+    WorkflowStorageService,
+    CredentialStorageService,
+    WorkflowTemplateStorageService
+)
+
+logger = logging.getLogger(__name__)
+
+# Status choices (moved from models)
+class WorkflowStatus:
+    DRAFT = 'draft'
+    ACTIVE = 'active'
+    PAUSED = 'paused'
+    ARCHIVED = 'archived'
+    choices = [
+        (DRAFT, 'Draft'),
+        (ACTIVE, 'Active'),
+        (PAUSED, 'Paused'),
+        (ARCHIVED, 'Archived'),
+    ]
+
+class ExecutionStatus:
+    PENDING = 'pending'
+    RUNNING = 'running'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
+    choices = [
+        (PENDING, 'Pending'),
+        (RUNNING, 'Running'),
+        (COMPLETED, 'Completed'),
+        (FAILED, 'Failed'),
+        (CANCELLED, 'Cancelled'),
+    ]
 
 
-@login_required
+@require_super_admin
 def dashboard(request):
     """Main durgasflow dashboard"""
-    user = request.user
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
+    template_storage = WorkflowTemplateStorageService()
     
     # Get user's workflows
-    workflows = Workflow.objects.filter(created_by=user)[:5]
+    workflows_result = workflow_storage.list(
+        filters={'created_by': user_uuid},
+        limit=5,
+        offset=0,
+        order_by='created_at',
+        reverse=True
+    )
+    workflows = workflows_result.get('items', [])
     
-    # Get recent executions
-    recent_executions = Execution.objects.filter(
-        workflow__created_by=user
-    ).select_related('workflow')[:10]
+    # Get recent executions from all workflows
+    recent_executions = []
+    for workflow in workflows:
+        executions = workflow.get('executions', [])
+        for exec_data in executions[:2]:  # Get 2 most recent per workflow
+            exec_data['workflow'] = workflow
+            recent_executions.append(exec_data)
+    
+    # Sort by created_at descending and limit to 10
+    recent_executions.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    recent_executions = recent_executions[:10]
     
     # Statistics
+    all_workflows_result = workflow_storage.list(
+        filters={'created_by': user_uuid},
+        limit=None,
+        offset=0
+    )
+    all_workflows = all_workflows_result.get('items', [])
+    
+    total_executions = sum(len(w.get('executions', [])) for w in all_workflows)
+    successful_executions = sum(
+        len([e for e in w.get('executions', []) if e.get('status') == ExecutionStatus.COMPLETED])
+        for w in all_workflows
+    )
+    failed_executions = sum(
+        len([e for e in w.get('executions', []) if e.get('status') == ExecutionStatus.FAILED])
+        for w in all_workflows
+    )
+    
     stats = {
-        'total_workflows': Workflow.objects.filter(created_by=user).count(),
-        'active_workflows': Workflow.objects.filter(created_by=user, is_active=True).count(),
-        'total_executions': Execution.objects.filter(workflow__created_by=user).count(),
-        'successful_executions': Execution.objects.filter(
-            workflow__created_by=user,
-            status=ExecutionStatus.COMPLETED
-        ).count(),
-        'failed_executions': Execution.objects.filter(
-            workflow__created_by=user,
-            status=ExecutionStatus.FAILED
-        ).count(),
+        'total_workflows': len(all_workflows),
+        'active_workflows': len([w for w in all_workflows if w.get('is_active')]),
+        'total_executions': total_executions,
+        'successful_executions': successful_executions,
+        'failed_executions': failed_executions,
     }
     
     # Featured templates
-    templates = WorkflowTemplate.objects.filter(is_featured=True)[:4]
+    templates_result = template_storage.list(
+        filters={'is_featured': True},
+        limit=4,
+        offset=0
+    )
+    templates = templates_result.get('items', [])
     
     context = {
         'workflows': workflows,
@@ -62,34 +128,50 @@ def dashboard(request):
     return render(request, 'durgasflow/dashboard.html', context)
 
 
-@login_required
+@require_super_admin
 def workflow_list(request):
     """List all workflows"""
-    user = request.user
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
     
     # Filtering
     status = request.GET.get('status', '')
     trigger = request.GET.get('trigger', '')
     search = request.GET.get('search', '')
     
-    workflows = Workflow.objects.filter(created_by=user)
-    
+    filters = {'created_by': user_uuid}
     if status:
-        workflows = workflows.filter(status=status)
+        filters['status'] = status
     if trigger:
-        workflows = workflows.filter(trigger_type=trigger)
+        filters['trigger_type'] = trigger
+    
+    # Get all workflows for filtering/searching
+    workflows_result = workflow_storage.list(
+        filters=filters,
+        limit=None,
+        offset=0
+    )
+    workflows = workflows_result.get('items', [])
+    
+    # Apply search filter
     if search:
-        workflows = workflows.filter(
-            Q(name__icontains=search) | Q(description__icontains=search)
-        )
+        search_lower = search.lower()
+        workflows = [
+            w for w in workflows
+            if search_lower in w.get('name', '').lower() or search_lower in w.get('description', '').lower()
+        ]
     
     # Pagination
     paginator = Paginator(workflows, 12)
     page = request.GET.get('page', 1)
-    workflows = paginator.get_page(page)
+    workflows_page = paginator.get_page(page)
     
     context = {
-        'workflows': workflows,
+        'workflows': workflows_page,
         'status_filter': status,
         'trigger_filter': trigger,
         'search': search,
@@ -98,9 +180,14 @@ def workflow_list(request):
     return render(request, 'durgasflow/workflow_list.html', context)
 
 
-@login_required
+@require_super_admin
 def workflow_create(request):
     """Create a new workflow"""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
     if request.method == 'POST':
         name = request.POST.get('name', 'Untitled Workflow')
         description = request.POST.get('description', '')
@@ -110,28 +197,34 @@ def workflow_create(request):
             name=name,
             description=description,
             trigger_type=trigger_type,
-            user=request.user
+            user_uuid=user_uuid
         )
         
-        messages.success(request, f'Workflow "{workflow.name}" created successfully.')
-        return redirect('durgasflow:editor', workflow_id=workflow.id)
+        messages.success(request, f'Workflow "{workflow.get("name")}" created successfully.')
+        return redirect('durgasflow:editor', workflow_id=workflow.get('id'))
     
     return render(request, 'durgasflow/workflow_form.html', {
         'is_create': True,
     })
 
 
-@login_required
+@require_super_admin
 def workflow_detail(request, workflow_id):
     """View workflow details"""
-    workflow = get_object_or_404(
-        Workflow,
-        id=workflow_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        messages.error(request, 'Workflow not found or unauthorized.')
+        return redirect('durgasflow:workflow_list')
     
     # Get recent executions for this workflow
-    executions = Execution.objects.filter(workflow=workflow)[:10]
+    executions = workflow.get('executions', [])[:10]
     
     context = {
         'workflow': workflow,
@@ -140,23 +233,31 @@ def workflow_detail(request, workflow_id):
     return render(request, 'durgasflow/workflow_detail.html', context)
 
 
-@login_required
+@require_super_admin
 def workflow_edit(request, workflow_id):
     """Edit workflow settings"""
-    workflow = get_object_or_404(
-        Workflow,
-        id=workflow_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        messages.error(request, 'Workflow not found or unauthorized.')
+        return redirect('durgasflow:workflow_list')
     
     if request.method == 'POST':
-        workflow.name = request.POST.get('name', workflow.name)
-        workflow.description = request.POST.get('description', workflow.description)
-        workflow.trigger_type = request.POST.get('trigger_type', workflow.trigger_type)
-        workflow.save()
+        workflow_storage.update_workflow(
+            workflow_id,
+            name=request.POST.get('name', workflow.get('name')),
+            description=request.POST.get('description', workflow.get('description')),
+            trigger_type=request.POST.get('trigger_type', workflow.get('trigger_type'))
+        )
         
-        messages.success(request, f'Workflow "{workflow.name}" updated successfully.')
-        return redirect('durgasflow:workflow_detail', workflow_id=workflow.id)
+        messages.success(request, f'Workflow "{request.POST.get("name", workflow.get("name"))}" updated successfully.')
+        return redirect('durgasflow:workflow_detail', workflow_id=workflow_id)
     
     context = {
         'workflow': workflow,
@@ -165,31 +266,43 @@ def workflow_edit(request, workflow_id):
     return render(request, 'durgasflow/workflow_form.html', context)
 
 
-@login_required
+@require_super_admin
 @require_POST
 def workflow_delete(request, workflow_id):
     """Delete a workflow"""
-    workflow = get_object_or_404(
-        Workflow,
-        id=workflow_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
     
-    name = workflow.name
-    workflow.delete()
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        messages.error(request, 'Workflow not found or unauthorized.')
+        return redirect('durgasflow:workflow_list')
+    
+    name = workflow.get('name')
+    workflow_storage.delete_workflow(workflow_id)
     
     messages.success(request, f'Workflow "{name}" deleted successfully.')
     return redirect('durgasflow:workflow_list')
 
 
-@login_required
+@require_super_admin
 def editor(request, workflow_id):
     """Visual workflow editor"""
-    workflow = get_object_or_404(
-        Workflow,
-        id=workflow_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        messages.error(request, 'Workflow not found or unauthorized.')
+        return redirect('durgasflow:workflow_list')
     
     # Get available node types for the palette
     from .services.node_registry import NodeRegistry
@@ -197,50 +310,72 @@ def editor(request, workflow_id):
     
     context = {
         'workflow': workflow,
-        'graph_data': json.dumps(workflow.graph_data),
+        'graph_data': json.dumps(workflow.get('graph_data', {})),
         'node_types': node_types,
     }
     return render(request, 'durgasflow/editor.html', context)
 
 
-@login_required
+@require_super_admin
 def editor_new(request):
     """Create and open a new workflow in the editor"""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
     workflow = WorkflowService.create_workflow(
         name='Untitled Workflow',
-        user=request.user
+        user_uuid=user_uuid
     )
-    return redirect('durgasflow:editor', workflow_id=workflow.id)
+    return redirect('durgasflow:editor', workflow_id=workflow.get('id'))
 
 
-@login_required
+@require_super_admin
 def execution_list(request):
     """List all executions"""
-    user = request.user
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
     
     # Filtering
     status = request.GET.get('status', '')
     workflow_id = request.GET.get('workflow', '')
     
-    executions = Execution.objects.filter(
-        workflow__created_by=user
-    ).select_related('workflow')
+    # Get all workflows for this user
+    workflows_result = workflow_storage.list(
+        filters={'created_by': user_uuid},
+        limit=None,
+        offset=0
+    )
+    workflows = workflows_result.get('items', [])
     
-    if status:
-        executions = executions.filter(status=status)
-    if workflow_id:
-        executions = executions.filter(workflow_id=workflow_id)
+    # Collect executions from all workflows
+    all_executions = []
+    for workflow in workflows:
+        if workflow_id and workflow.get('id') != workflow_id:
+            continue
+        
+        executions = workflow.get('executions', [])
+        for exec_data in executions:
+            exec_data['workflow'] = workflow
+            if status and exec_data.get('status') != status:
+                continue
+            all_executions.append(exec_data)
+    
+    # Sort by created_at descending
+    all_executions.sort(key=lambda x: x.get('created_at', ''), reverse=True)
     
     # Pagination
-    paginator = Paginator(executions, 20)
+    paginator = Paginator(all_executions, 20)
     page = request.GET.get('page', 1)
-    executions = paginator.get_page(page)
-    
-    # Get workflows for filter dropdown
-    workflows = Workflow.objects.filter(created_by=user)
+    executions_page = paginator.get_page(page)
     
     context = {
-        'executions': executions,
+        'executions': executions_page,
         'workflows': workflows,
         'status_filter': status,
         'workflow_filter': workflow_id,
@@ -249,33 +384,67 @@ def execution_list(request):
     return render(request, 'durgasflow/execution_list.html', context)
 
 
-@login_required
+@require_super_admin
 def execution_detail(request, execution_id):
     """View execution details and logs"""
-    execution = get_object_or_404(
-        Execution,
-        id=execution_id,
-        workflow__created_by=request.user
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
+    
+    # Find execution in workflows
+    workflows_result = workflow_storage.list(
+        filters={'created_by': user_uuid},
+        limit=None,
+        offset=0
     )
     
-    logs = ExecutionLog.objects.filter(execution=execution)
+    execution = None
+    workflow = None
+    for wf in workflows_result.get('items', []):
+        executions = wf.get('executions', [])
+        for exec_data in executions:
+            if exec_data.get('execution_id') == execution_id or exec_data.get('id') == execution_id:
+                execution = exec_data
+                workflow = wf
+                break
+        if execution:
+            break
+    
+    if not execution:
+        messages.error(request, 'Execution not found or unauthorized.')
+        return redirect('durgasflow:execution_list')
+    
+    # Get logs from execution
+    logs = execution.get('logs', [])
     
     context = {
         'execution': execution,
+        'workflow': workflow,
         'logs': logs,
     }
     return render(request, 'durgasflow/execution_detail.html', context)
 
 
-@login_required
+@require_super_admin
 @require_POST
 def workflow_execute(request, workflow_id):
     """Manually execute a workflow"""
-    workflow = get_object_or_404(
-        Workflow,
-        id=workflow_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
+    
+    if not workflow or workflow.get('created_by') != user_uuid:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Workflow not found or unauthorized'}, status=404)
+        messages.error(request, 'Workflow not found or unauthorized.')
+        return redirect('durgasflow:workflow_list')
     
     try:
         # Parse trigger data from request
@@ -287,14 +456,14 @@ def workflow_execute(request, workflow_id):
             workflow=workflow,
             trigger_type='manual',
             trigger_data=trigger_data,
-            user=request.user
+            user_uuid=user_uuid
         )
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
-                'execution_id': str(execution.id),
-                'status': execution.status,
+                'execution_id': execution.get('execution_id') or execution.get('id'),
+                'status': execution.get('status'),
             })
         
         messages.success(request, 'Workflow execution started.')
@@ -311,42 +480,65 @@ def workflow_execute(request, workflow_id):
         return redirect('durgasflow:workflow_detail', workflow_id=workflow.id)
 
 
-@login_required
+@require_super_admin
 @require_POST
 def workflow_activate(request, workflow_id):
     """Activate a workflow"""
-    workflow = get_object_or_404(
-        Workflow,
-        id=workflow_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
     
-    workflow.activate()
-    messages.success(request, f'Workflow "{workflow.name}" activated.')
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
     
-    return redirect('durgasflow:workflow_detail', workflow_id=workflow.id)
+    if not workflow or workflow.get('created_by') != user_uuid:
+        messages.error(request, 'Workflow not found or unauthorized.')
+        return redirect('durgasflow:workflow_list')
+    
+    workflow_storage.update_workflow(workflow_id, is_active=True, status='active')
+    messages.success(request, f'Workflow "{workflow.get("name")}" activated.')
+    
+    return redirect('durgasflow:workflow_detail', workflow_id=workflow_id)
 
 
-@login_required
+@require_super_admin
 @require_POST
 def workflow_deactivate(request, workflow_id):
     """Deactivate a workflow"""
-    workflow = get_object_or_404(
-        Workflow,
-        id=workflow_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
     
-    workflow.deactivate()
-    messages.success(request, f'Workflow "{workflow.name}" deactivated.')
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
     
-    return redirect('durgasflow:workflow_detail', workflow_id=workflow.id)
+    if not workflow or workflow.get('created_by') != user_uuid:
+        messages.error(request, 'Workflow not found or unauthorized.')
+        return redirect('durgasflow:workflow_list')
+    
+    workflow_storage.update_workflow(workflow_id, is_active=False, status='paused')
+    messages.success(request, f'Workflow "{workflow.get("name")}" deactivated.')
+    
+    return redirect('durgasflow:workflow_detail', workflow_id=workflow_id)
 
 
-@login_required
+@require_super_admin
 def credential_list(request):
     """List all credentials"""
-    credentials = Credential.objects.filter(created_by=request.user)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    credential_storage = CredentialStorageService()
+    credentials_result = credential_storage.list(
+        filters={'created_by': user_uuid},
+        limit=None,
+        offset=0
+    )
+    credentials = credentials_result.get('items', [])
     
     context = {
         'credentials': credentials,
@@ -354,9 +546,16 @@ def credential_list(request):
     return render(request, 'durgasflow/credential_list.html', context)
 
 
-@login_required
+@require_super_admin
 def credential_create(request):
     """Create a new credential"""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    credential_storage = CredentialStorageService()
+    
     if request.method == 'POST':
         name = request.POST.get('name', '')
         credential_type = request.POST.get('credential_type', 'api_key')
@@ -378,16 +577,16 @@ def credential_create(request):
             data['access_token'] = request.POST.get('access_token', '')
             data['refresh_token'] = request.POST.get('refresh_token', '')
         
-        credential = Credential.objects.create(
+        credential = credential_storage.create_credential(
             name=name,
             credential_type=credential_type,
             service_name=service_name,
             description=description,
             data=data,
-            created_by=request.user
+            created_by=user_uuid
         )
         
-        messages.success(request, f'Credential "{credential.name}" created successfully.')
+        messages.success(request, f'Credential "{credential.get("name")}" created successfully.')
         return redirect('durgasflow:credential_list')
     
     return render(request, 'durgasflow/credential_form.html', {
@@ -395,22 +594,33 @@ def credential_create(request):
     })
 
 
-@login_required
+@require_super_admin
 def credential_detail(request, credential_id):
     """View/edit credential details"""
-    credential = get_object_or_404(
-        Credential,
-        id=credential_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    credential_storage = CredentialStorageService()
+    credential = credential_storage.get_credential(credential_id)
+    
+    if not credential or credential.get('created_by') != user_uuid:
+        messages.error(request, 'Credential not found or unauthorized.')
+        return redirect('durgasflow:credential_list')
     
     if request.method == 'POST':
-        credential.name = request.POST.get('name', credential.name)
-        credential.description = request.POST.get('description', credential.description)
-        credential.service_name = request.POST.get('service_name', credential.service_name)
-        credential.save()
+        updated = credential_storage.update_credential(
+            credential_id,
+            name=request.POST.get('name', credential.get('name')),
+            description=request.POST.get('description', credential.get('description', '')),
+            service_name=request.POST.get('service_name', credential.get('service_name'))
+        )
         
-        messages.success(request, f'Credential "{credential.name}" updated successfully.')
+        if updated:
+            messages.success(request, f'Credential "{updated.get("name")}" updated successfully.')
+        else:
+            messages.error(request, 'Failed to update credential.')
         return redirect('durgasflow:credential_list')
     
     context = {
@@ -420,64 +630,91 @@ def credential_detail(request, credential_id):
     return render(request, 'durgasflow/credential_form.html', context)
 
 
-@login_required
+@require_super_admin
 @require_POST
 def credential_delete(request, credential_id):
     """Delete a credential"""
-    credential = get_object_or_404(
-        Credential,
-        id=credential_id,
-        created_by=request.user
-    )
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
     
-    name = credential.name
-    credential.delete()
+    credential_storage = CredentialStorageService()
+    credential = credential_storage.get_credential(credential_id)
+    
+    if not credential or credential.get('created_by') != user_uuid:
+        messages.error(request, 'Credential not found or unauthorized.')
+        return redirect('durgasflow:credential_list')
+    
+    name = credential.get('name')
+    credential_storage.delete_credential(credential_id)
     
     messages.success(request, f'Credential "{name}" deleted successfully.')
     return redirect('durgasflow:credential_list')
 
 
-@login_required
+@require_super_admin
 def template_list(request):
     """List available workflow templates"""
+    from .services.workflow_template_storage_service import WorkflowTemplateStorageService
+    
     category = request.GET.get('category', '')
     
-    templates = WorkflowTemplate.objects.all()
-    
+    template_storage = WorkflowTemplateStorageService()
+    filters = {}
     if category:
-        templates = templates.filter(category=category)
+        filters['category'] = category
+    
+    templates_result = template_storage.list(filters=filters, limit=None, offset=0)
+    templates = templates_result.get('items', [])
+    
+    # Get categories from first template or define default
+    categories = ['automation', 'integration', 'data-processing', 'notification', 'other']
+    if templates:
+        # Extract unique categories from templates
+        categories = list(set([t.get('category', 'other') for t in templates]))
     
     context = {
         'templates': templates,
         'category_filter': category,
-        'categories': WorkflowTemplate.TEMPLATE_CATEGORIES,
+        'categories': categories,
     }
     return render(request, 'durgasflow/template_list.html', context)
 
 
-@login_required
+@require_super_admin
 @require_POST
 def template_use(request, template_id):
     """Create a workflow from a template"""
-    template = get_object_or_404(WorkflowTemplate, id=template_id)
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    template_storage = WorkflowTemplateStorageService()
+    template = template_storage.get_template(template_id)
+    
+    if not template:
+        messages.error(request, 'Template not found.')
+        return redirect('durgasflow:template_list')
 
     # Create workflow from template
-    workflow = Workflow.objects.create(
-        name=f"{template.name} (Copy)",
-        description=template.description,
-        graph_data=template.graph_data,
-        created_by=request.user
+    workflow = WorkflowService.create_workflow(
+        name=f"{template.get('name')} (Copy)",
+        description=template.get('description', ''),
+        graph_data=template.get('graph_data', {}),
+        user_uuid=user_uuid
     )
 
     # Increment template usage
-    template.use_count += 1
-    template.save(update_fields=['use_count'])
+    use_count = template.get('use_count', 0) + 1
+    template_storage.update_template(template_id, use_count=use_count)
 
-    messages.success(request, f'Workflow created from template "{template.name}".')
-    return redirect('durgasflow:editor', workflow_id=workflow.id)
+    messages.success(request, f'Workflow created from template "{template.get("name")}".')
+    return redirect('durgasflow:editor', workflow_id=workflow.get('id'))
 
 
-@login_required
+@require_super_admin
 @require_POST
 def import_n8n_workflow(request, workflow_path):
     """
@@ -490,6 +727,11 @@ def import_n8n_workflow(request, workflow_path):
     import json
     from pathlib import Path
     from django.conf import settings
+
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
 
     try:
         # Construct the full path to the n8n workflow file
@@ -509,13 +751,16 @@ def import_n8n_workflow(request, workflow_path):
             n8n_data = json.load(f)
 
         # Import the workflow
-        workflow = WorkflowService.import_n8n_workflow(n8n_data, request.user)
+        workflow = WorkflowService.import_n8n_workflow(n8n_data, user_uuid)
+
+        # Count nodes from graph_data
+        nodes_count = len(workflow.get('graph_data', {}).get('nodes', []))
 
         # Add success message
         messages.success(
             request,
-            f'Successfully imported n8n workflow "{workflow.name}". '
-            f'Converted to durgasflow format with {len(workflow.nodes.all())} nodes.'
+            f'Successfully imported n8n workflow "{workflow.get("name")}". '
+            f'Converted to durgasflow format with {nodes_count} nodes.'
         )
 
         # Redirect to the editor
@@ -540,20 +785,23 @@ def import_n8n_workflow(request, workflow_path):
 @require_http_methods(['GET', 'POST'])
 def webhook_handler(request, workflow_id, webhook_path):
     """Handle incoming webhooks for workflow triggers"""
-    try:
-        workflow = Workflow.objects.get(
-            id=workflow_id,
-            webhook_path=webhook_path,
-            is_active=True,
-            trigger_type='webhook'
-        )
-    except Workflow.DoesNotExist:
+    workflow_storage = WorkflowStorageService()
+    workflow = workflow_storage.get_workflow(workflow_id)
+    
+    if not workflow:
+        return JsonResponse({'error': 'Workflow not found or inactive'}, status=404)
+    
+    # Check webhook path, active status, and trigger type
+    if (workflow.get('webhook_path') != webhook_path or
+        not workflow.get('is_active') or
+        workflow.get('trigger_type') != 'webhook'):
         return JsonResponse({'error': 'Workflow not found or inactive'}, status=404)
     
     # Validate webhook secret if set
-    if workflow.webhook_secret:
+    webhook_secret = workflow.get('webhook_secret')
+    if webhook_secret:
         provided_secret = request.headers.get('X-Webhook-Secret', '')
-        if provided_secret != workflow.webhook_secret:
+        if provided_secret != webhook_secret:
             return JsonResponse({'error': 'Invalid webhook secret'}, status=403)
     
     # Build trigger data from request
@@ -577,15 +825,17 @@ def webhook_handler(request, workflow_id, webhook_path):
         execution = ExecutionEngine.execute_workflow(
             workflow=workflow,
             trigger_type='webhook',
-            trigger_data=trigger_data
+            trigger_data=trigger_data,
+            user_uuid=None  # Webhook executions don't have a user
         )
         
         return JsonResponse({
             'success': True,
-            'execution_id': str(execution.id),
-            'status': execution.status,
+            'execution_id': execution.get('execution_id') or execution.get('id'),
+            'status': execution.get('status'),
         })
     except Exception as e:
+        logger.error(f"Webhook execution failed: {e}", exc_info=True)
         return JsonResponse({
             'success': False,
             'error': str(e),

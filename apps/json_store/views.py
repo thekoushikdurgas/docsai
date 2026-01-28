@@ -1,32 +1,40 @@
 """JSON Store views."""
+import logging
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from apps.core.decorators.auth import require_super_admin
+from apps.json_store.services.json_store_storage_service import JSONStoreStorageService
+
+logger = logging.getLogger(__name__)
 
 
-@login_required
+@require_super_admin
 def list_json_view(request):
     """List all JSON store entries."""
-    from apps.documentation.repositories.s3_json_storage import S3JSONStorage
-    from django.conf import settings
-    
-    storage = S3JSONStorage()
+    storage = JSONStoreStorageService()
     
     try:
-        # List JSON files from json_store prefix
-        json_prefix = f"{settings.S3_DATA_PREFIX}json_store/"
-        files = storage.list_json_files(json_prefix, max_keys=100)
+        # Get user UUID for filtering (optional)
+        user_uuid = None
+        if hasattr(request, 'appointment360_user'):
+            user_uuid = request.appointment360_user.get('uuid')
+        
+        # List all stores
+        result = storage.list_stores(limit=100, offset=0)
+        stores = result.get('items', [])
         
         entries = []
-        for file_key in files:
-            entry_data = storage.read_json(file_key)
-            if entry_data:
-                entries.append({
-                    'key': file_key.split('/')[-1].replace('.json', ''),
-                    'data': entry_data,
-                    'size': len(str(entry_data))
-                })
-    except Exception:
+        for store in stores:
+            entries.append({
+                'key': store.get('key', ''),
+                'data': store.get('data', {}),
+                'type': store.get('type', 'custom'),
+                'description': store.get('description', ''),
+                'size': len(str(store.get('data', {}))),
+                'created_at': store.get('created_at', ''),
+            })
+    except Exception as e:
         entries = []
+        logger.error(f"Error listing JSON stores: {e}", exc_info=True)
     
     context = {
         'entries': entries,

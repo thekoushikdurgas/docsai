@@ -1,9 +1,9 @@
 """Roadmap views."""
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from apps.core.decorators.auth import require_super_admin
 
 
-@login_required
+@require_super_admin
 def roadmap_view(request):
     """Development roadmap view."""
     from django.utils import timezone

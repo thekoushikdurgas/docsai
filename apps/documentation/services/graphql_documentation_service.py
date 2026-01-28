@@ -20,16 +20,21 @@ DETAIL_CACHE_TIMEOUT = 300  # 5 minutes for detail queries
 class GraphQLDocumentationService:
     """Service wrapper for documentation GraphQL queries and mutations with enhanced caching and logging."""
     
-    def __init__(self):
-        """Initialize GraphQL documentation service with enhanced configuration."""
+    def __init__(self, request=None, access_token: Optional[str] = None):
+        """
+        Initialize GraphQL documentation service with enhanced configuration.
+        
+        Args:
+            request: Django request object to extract access token from (optional)
+            access_token: JWT access token for authentication (optional, can be extracted from request)
+        """
         endpoint_url = getattr(
             settings,
             "APPOINTMENT360_GRAPHQL_URL",
             "http://localhost:8000/graphql",
         )
-        api_key = getattr(settings, "APPOINTMENT360_GRAPHQL_API_KEY", None)
         
-        self.client = GraphQLClient(endpoint_url=endpoint_url, api_key=api_key)
+        self.client = GraphQLClient(endpoint_url=endpoint_url, access_token=access_token, request=request)
         
         # Metrics
         self.query_count = 0
@@ -40,9 +45,9 @@ class GraphQLDocumentationService:
         self.total_query_time = 0.0
         
         logger.info(
-            "GraphQLDocumentationService initialized: endpoint=%s, api_key_configured=%s",
+            "GraphQLDocumentationService initialized: endpoint=%s, access_token_configured=%s",
             endpoint_url,
-            bool(api_key),
+            bool(access_token or (request and self.client.access_token)),
         )
     
     def _get_cache_key(self, operation: str, **kwargs: Any) -> str:

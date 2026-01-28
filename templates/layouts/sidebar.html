@@ -27,30 +27,78 @@
 </aside>
 
 <script>
+    // Toggle sidebar group (expand/collapse)
     function toggleSidebarGroup(button) {
         const groupItems = button.nextElementSibling;
         const chevron = button.querySelector('.chevron');
+        const isExpanded = !groupItems.classList.contains('hidden');
         
-        if (groupItems.classList.contains('hidden')) {
-            // Open
-            groupItems.classList.remove('hidden');
-            chevron.style.transform = 'rotate(180deg)';
-        } else {
+        if (isExpanded) {
             // Close
             groupItems.classList.add('hidden');
-            chevron.style.transform = 'rotate(0deg)';
+            chevron.classList.remove('rotate-180');
+            button.setAttribute('aria-expanded', 'false');
+            // Save state to localStorage
+            const groupLabel = button.closest('.sidebar-group').dataset.groupLabel;
+            localStorage.setItem(`sidebar_group_${groupLabel}`, 'collapsed');
+        } else {
+            // Open
+            groupItems.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
+            button.setAttribute('aria-expanded', 'true');
+            // Save state to localStorage
+            const groupLabel = button.closest('.sidebar-group').dataset.groupLabel;
+            localStorage.setItem(`sidebar_group_${groupLabel}`, 'expanded');
         }
     }
     
-    // Initialize chevron state based on initial visibility
+    // Toggle nested children items
+    function toggleNestedChildren(linkWrapper) {
+        const children = linkWrapper.querySelector('.nested-children');
+        const chevron = linkWrapper.querySelector('.chevron');
+        
+        if (!children) return;
+        
+        const isExpanded = !children.classList.contains('hidden');
+        
+        if (isExpanded) {
+            children.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-90');
+        } else {
+            children.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-90');
+        }
+    }
+    
+    // Initialize sidebar state on page load
     document.addEventListener('DOMContentLoaded', function() {
+        // Restore group expanded state from localStorage
         const groups = document.querySelectorAll('.sidebar-group');
         groups.forEach(group => {
+            const groupLabel = group.dataset.groupLabel;
+            const savedState = localStorage.getItem(`sidebar_group_${groupLabel}`);
             const items = group.querySelector('.group-items');
             const chevron = group.querySelector('.chevron');
-            // If the group has active items (is not hidden), rotate the chevron
-            if (!items.classList.contains('hidden')) {
-                 chevron.style.transform = 'rotate(180deg)';
+            const button = group.querySelector('.group-header');
+            
+            // If group has active items or was previously expanded, show it
+            if (group.classList.contains('has-active') || savedState === 'expanded') {
+                if (items) items.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-180');
+                if (button) button.setAttribute('aria-expanded', 'true');
+            }
+        });
+        
+        // Auto-expand nested children if any child is active
+        document.querySelectorAll('.sidebar-link-item-wrapper').forEach(wrapper => {
+            const hasActiveChild = wrapper.querySelector('.nested-children .bg-blue-50, .nested-children .dark\\:bg-blue-900\\/30');
+            if (hasActiveChild) {
+                const children = wrapper.querySelector('.nested-children');
+                const chevron = wrapper.querySelector('.chevron');
+                if (children) {
+                    children.classList.remove('hidden');
+                    if (chevron) chevron.classList.add('rotate-90');
+                }
             }
         });
     });

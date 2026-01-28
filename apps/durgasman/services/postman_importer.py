@@ -1,22 +1,37 @@
 """Postman Collection Importer for Durgasman."""
 
 import json
-import uuid
+import uuid as uuid_lib
 from typing import Dict, List, Any, Optional
+from datetime import datetime
 
-from ..models import Collection, ApiRequest
+from ..services.durgasman_storage_service import CollectionStorageService
 
 
-def import_postman_collection(file_path: str, user) -> Collection:
+def import_postman_collection(file_path: str, user_uuid: str) -> Dict[str, Any]:
     """Import Postman collection from media/postman/collection/"""
+    # Convert user_uuid to string if needed
+    if hasattr(user_uuid, 'uuid'):
+        user_uuid = str(user_uuid.uuid)
+    elif hasattr(user_uuid, 'id'):
+        user_uuid = str(user_uuid.id)
+    else:
+        user_uuid = str(user_uuid)
+    
+    storage = CollectionStorageService()
+    
     with open(file_path, 'r') as f:
         data = json.load(f)
 
-    collection = Collection.objects.create(
+    # Create collection
+    collection = storage.create_collection(
         name=data['info']['name'],
         description=data['info'].get('description', ''),
-        user=user
+        user=user_uuid
     )
+    
+    collection_id = collection.get('collection_id') or collection.get('id')
+    requests = []
 
     def process_item(item: Dict[str, Any], folder_path: str = '') -> None:
         """Recursively process Postman items (requests and folders)."""
@@ -60,16 +75,18 @@ def import_postman_collection(file_path: str, user) -> Collection:
             if body_data and body_data.get('mode') == 'raw':
                 body = body_data.get('raw', '')
 
-            ApiRequest.objects.create(
-                collection=collection,
-                name=f"{folder_path}{item['name']}".strip(),
-                method=request_data.get('method', 'GET'),
-                url=raw_url,
-                headers=headers,
-                params=params,
-                body=body,
-                auth_type=_extract_auth_type(request_data),
-            )
+            requests.append({
+                'request_id': str(uuid_lib.uuid4()),
+                'name': f"{folder_path}{item['name']}".strip(),
+                'method': request_data.get('method', 'GET'),
+                'url': raw_url,
+                'headers': headers,
+                'params': params,
+                'body': body,
+                'auth_type': _extract_auth_type(request_data),
+                'created_at': datetime.utcnow().isoformat(),
+                'updated_at': datetime.utcnow().isoformat(),
+            })
         elif 'item' in item:
             # This is a folder
             new_path = f"{folder_path}{item['name']}/"
@@ -79,8 +96,12 @@ def import_postman_collection(file_path: str, user) -> Collection:
     # Process all items in the collection
     for item in data.get('item', []):
         process_item(item)
-
-    return collection
+    
+    # Update collection with requests
+    storage.update_collection(collection_id, requests=requests)
+    
+    # Return updated collection
+    return storage.get_collection(collection_id)
 
 
 def _extract_auth_type(request_data: Dict[str, Any]) -> str:
@@ -100,58 +121,70 @@ def _extract_auth_type(request_data: Dict[str, Any]) -> str:
         return 'None'
 
 
-def import_postman_environment(file_path: str, user):
+def import_postman_environment(file_path: str, user_uuid: str) -> Dict[str, Any]:
     """Import environment variables from media/postman/environment/"""
-    from ..models import Environment, EnvVariable
+    from ..services.durgasman_storage_service import EnvironmentStorageService
+    
+    # Convert user_uuid to string if needed
+    if hasattr(user_uuid, 'uuid'):
+        user_uuid = str(user_uuid.uuid)
+    elif hasattr(user_uuid, 'id'):
+        user_uuid = str(user_uuid.id)
+    else:
+        user_uuid = str(user_uuid)
+    
+    storage = EnvironmentStorageService()
 
     with open(file_path, 'r') as f:
         data = json.load(f)
 
-    environment = Environment.objects.create(
-        name=data['name'],
-        user=user
-    )
-
+    variables = []
     for var in data.get('values', []):
         if isinstance(var, dict):
-            EnvVariable.objects.create(
-                environment=environment,
-                key=var.get('key', ''),
-                value=var.get('value', ''),
-                enabled=var.get('enabled', True)
-            )
+            variables.append({
+                'key': var.get('key', ''),
+                'value': var.get('value', ''),
+                'enabled': var.get('enabled', True)
+            })
+
+    environment = storage.create_environment(
+        name=data['name'],
+        user=user_uuid,
+        variables=variables
+    )
 
     return environment
 
 
-def export_to_postman(collection: Collection) -> Dict[str, Any]:
+def export_to_postman(collection: Dict[str, Any]) -> Dict[str, Any]:
     """Export Durgasman collection to Postman v2.1 format."""
     items = []
 
-    for request in collection.requests.all():
+    requests = collection.get('requests', [])
+    for request in requests:
         # Convert headers
         headers = []
-        for h in request.headers:
+        for h in request.get('headers', []):
             if h.get('enabled', True):
                 headers.append({
-                    'key': h['key'],
-                    'value': h['value'],
+                    'key': h.get('key', ''),
+                    'value': h.get('value', ''),
                     'type': 'text'
                 })
 
         # Convert query parameters
         query = []
-        for p in request.params:
+        for p in request.get('params', []):
             if p.get('enabled', True):
                 query.append({
-                    'key': p['key'],
-                    'value': p['value'],
+                    'key': p.get('key', ''),
+                    'value': p.get('value', ''),
                     'type': 'text'
                 })
 
         # Build URL object
         url_obj = {
-            'raw': request.url,
+            'raw': request.get('url', ''),
             'protocol': 'https',
             'host': ['api', 'example', 'com'],  # This would need to be parsed from URL
         }
@@ -161,10 +194,10 @@ def export_to_postman(collection: Collection) -> Dict[str, Any]:
 
         # Build request body
         body = {}
-        if request.body:
+        if request.get('body'):
             body = {
                 'mode': 'raw',
-                'raw': request.body,
+                'raw': request.get('body', ''),
                 'options': {
                     'raw': {
                         'language': 'json'
@@ -173,9 +206,9 @@ def export_to_postman(collection: Collection) -> Dict[str, Any]:
             }
 
         item = {
-            'name': request.name,
+            'name': request.get('name', ''),
             'request': {
-                'method': request.method,
+                'method': request.get('method', 'GET'),
                 'header': headers,
                 'body': body,
                 'url': url_obj,
@@ -187,8 +220,8 @@ def export_to_postman(collection: Collection) -> Dict[str, Any]:
 
     return {
         'info': {
-            'name': collection.name,
-            'description': collection.description or '',
+            'name': collection.get('name', ''),
+            'description': collection.get('description', ''),
             'schema': 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
         },
         'item': items,

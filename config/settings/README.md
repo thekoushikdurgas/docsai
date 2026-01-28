@@ -52,6 +52,7 @@ DJANGO_SETTINGS_MODULE=config.settings.production python manage.py runserver
 ### base.py
 
 Contains all common settings:
+
 - Installed apps
 - Middleware
 - Database configuration
@@ -64,6 +65,7 @@ Contains all common settings:
 ### development.py
 
 Development-specific overrides:
+
 - `DEBUG = True`
 - `ALLOWED_HOSTS = ['*']`
 - Console email backend
@@ -74,6 +76,7 @@ Development-specific overrides:
 ### staging.py
 
 Staging environment settings:
+
 - `DEBUG = False`
 - Security headers enabled
 - SMTP email backend
@@ -82,6 +85,7 @@ Staging environment settings:
 ### production.py
 
 Production settings with full security:
+
 - `DEBUG = False`
 - All security headers enabled
 - Long HSTS duration
@@ -92,6 +96,7 @@ Production settings with full security:
 ### testing.py
 
 Test environment optimizations:
+
 - In-memory SQLite database
 - Faster password hashing
 - Dummy cache
@@ -101,6 +106,7 @@ Test environment optimizations:
 ### local.py
 
 Personal local overrides (not committed to git):
+
 - Copy from `local.py.example` (if exists)
 - Add your personal customizations
 - Never commit this file
@@ -110,12 +116,14 @@ Personal local overrides (not committed to git):
 Key environment variables used across settings:
 
 ### Django Core
+
 - `SECRET_KEY` - Django secret key (required)
 - `DEBUG` - Debug mode (True/False)
 - `ALLOWED_HOSTS` - Comma-separated list of allowed hosts
 - `DJANGO_ENV` - Environment name (development/staging/production/testing)
 
 ### Database
+
 - `DATABASE_ENGINE` - Database type (sqlite/postgresql)
 - `DATABASE_NAME` - Database name
 - `DATABASE_USER` - Database user
@@ -124,12 +132,14 @@ Key environment variables used across settings:
 - `DATABASE_PORT` - Database port
 
 ### AWS S3
+
 - `AWS_ACCESS_KEY_ID` - AWS access key
 - `AWS_SECRET_ACCESS_KEY` - AWS secret key
 - `AWS_REGION` - AWS region
 - `S3_BUCKET_NAME` - S3 bucket name
 
 ### Cache & Redis (Optional)
+
 - `USE_REDIS_CACHE` - Enable Redis cache (True/False, default: False)
   - When `False`: Uses Django LocMemCache (per-process, no Redis required)
   - When `True`: Requires Redis configuration below
@@ -139,6 +149,7 @@ Key environment variables used across settings:
 - `REDIS_URL` - Full Redis URL (alternative to host/port/db, only if USE_REDIS_CACHE=True)
 
 ### Email
+
 - `EMAIL_HOST` - SMTP host
 - `EMAIL_PORT` - SMTP port
 - `EMAIL_USE_TLS` - Use TLS (True/False)
@@ -146,17 +157,21 @@ Key environment variables used across settings:
 - `EMAIL_HOST_PASSWORD` - SMTP password
 
 ### GraphQL
+
 - `APPOINTMENT360_GRAPHQL_URL` - GraphQL endpoint URL
-- `APPOINTMENT360_GRAPHQL_API_KEY` - API key
 - `GRAPHQL_AUTH_ENABLED` - Enable GraphQL auth (True/False)
 
+**Note:** Authentication uses JWT tokens from login sessions. No API key is required. Tokens are automatically extracted from request cookies or Authorization headers.
+
 ### Lambda APIs
+
 - `LAMBDA_DOCUMENTATION_API_URL` - Documentation API URL
 - `LAMBDA_DOCUMENTATION_API_KEY` - Documentation API key
 - `LAMBDA_AI_API_URL` - AI API URL
 - `LAMBDA_AI_API_KEY` - AI API key
 
 ### AI Services
+
 - `OPENAI_API_KEY` - OpenAI API key
 - `GEMINI_API_KEY` - Google Gemini API key
 
@@ -190,16 +205,19 @@ If you're migrating from `docsai/settings.py`:
 ## Troubleshooting
 
 ### Settings not loading
+
 - Check `DJANGO_SETTINGS_MODULE` environment variable
 - Verify `DJANGO_ENV` is set correctly
 - Check for import errors in settings files
 
 ### Security warnings
+
 - Run `python manage.py check --deploy` for production checks
 - Review security settings in `production.py`
 - Ensure `DEBUG=False` in production
 
 ### Database connection issues
+
 - Verify database environment variables
 - Check `DATABASE_ENGINE` is set correctly
 - Test connection with `python manage.py dbshell`

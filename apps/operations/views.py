@@ -1,9 +1,9 @@
 """Operations views."""
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from apps.core.decorators.auth import require_super_admin
 
 
-@login_required
+@require_super_admin
 def operations_view(request):
     """Operations hub: stats and links to analyze/validate/generate/upload/workflow."""
     stats = {'total_operations': 0, 'successful': 0, 'failed': 0, 'uptime': '99.9%'}

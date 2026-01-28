@@ -399,18 +399,22 @@ class DebugNode(BaseNodeHandler):
     ]
     
     def execute(self, config: Dict, input_data: Any, context: Any) -> Any:
-        from ..models import ExecutionLog
+        from django.utils import timezone
         
         message = config.get('message', 'Debug output')
         
-        ExecutionLog.objects.create(
-            execution=context.execution,
-            node_id='debug',
-            node_type='action/debug',
-            node_title='Debug',
-            level='debug',
-            message=message,
-            data={'input': str(input_data)[:1000]}
-        )
+        log_data = {
+            'node_id': 'debug',
+            'node_type': 'action/debug',
+            'node_title': 'Debug',
+            'level': 'debug',
+            'message': message,
+            'data': {'input': str(input_data)[:1000]},
+            'created_at': timezone.now().isoformat()
+        }
+        
+        # Use context's add_log method if available
+        if hasattr(context, 'add_log'):
+            context.add_log(log_data)
         
         return input_data

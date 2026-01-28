@@ -3,18 +3,30 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 import json
 import asyncio
+from datetime import datetime
 
-from ..models import RequestHistory, Environment, EnvVariable
+from apps.core.decorators.auth import require_super_admin
+from ..services.durgasman_storage_service import (
+    EnvironmentStorageService,
+    RequestHistoryStorageService
+)
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
+@require_super_admin
 def execute_request(request):
     """Execute an API request."""
+    # Get user UUID from token
+    user_uuid = None
+    if hasattr(request, 'appointment360_user'):
+        user_uuid = request.appointment360_user.get('uuid')
+    
+    environment_storage = EnvironmentStorageService()
+    history_storage = RequestHistoryStorageService()
+    
     try:
         data = json.loads(request.body)
 
@@ -22,11 +34,19 @@ def execute_request(request):
         environment_vars = {}
         try:
             # For now, get the first environment. In a real app, you'd have active environment selection
-            env = Environment.objects.filter(user=request.user).first()
-            if env:
+            environments_result = environment_storage.list(
+                filters={'user': user_uuid},
+                limit=1,
+                offset=0
+            )
+            envs = environments_result.get('items', [])
+            if envs:
+                env = envs[0]
+                variables = env.get('variables', [])
                 environment_vars = {
-                    var.key: var.value
-                    for var in env.env_variables.filter(enabled=True)
+                    var.get('key'): var.get('value')
+                    for var in variables
+                    if var.get('enabled', True)
                 }
         except:
             pass  # No environment variables
@@ -36,8 +56,8 @@ def execute_request(request):
         result = execute_request_sync(data, environment_vars)
 
         # Save to history
-        RequestHistory.objects.create(
-            user=request.user,
+        history_storage.create_history(
+            user=user_uuid,
             method=data['method'],
             url=data['url'],
             request_headers=data.get('headers', {}),

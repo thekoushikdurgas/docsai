@@ -76,6 +76,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'apps.core.middleware.auth_middleware.Appointment360AuthMiddleware',
+    'apps.core.middleware.super_admin_middleware.SuperAdminMiddleware',  # SuperAdmin-only access
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.core.middleware.security_middleware.SecurityHeadersMiddleware',  # Custom security headers
@@ -282,8 +283,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 # Appointment360 GraphQL Configuration
-APPOINTMENT360_GRAPHQL_URL = os.getenv('APPOINTMENT360_GRAPHQL_URL', 'http://localhost:8000/graphql')
-APPOINTMENT360_GRAPHQL_API_KEY = os.getenv('APPOINTMENT360_GRAPHQL_API_KEY', '')
+APPOINTMENT360_GRAPHQL_URL = os.getenv('APPOINTMENT360_GRAPHQL_URL', 'http://34.229.94.175/graphql')
 GRAPHQL_TIMEOUT = int(os.getenv('GRAPHQL_TIMEOUT', '30'))
 
 # GraphQL Configuration Validation
@@ -307,10 +307,14 @@ def validate_graphql_config():
     
     return len(errors) == 0, errors
 
-GRAPHQL_ENABLED = bool(APPOINTMENT360_GRAPHQL_API_KEY)
+GRAPHQL_ENABLED = bool(APPOINTMENT360_GRAPHQL_URL)
 GRAPHQL_USE_FALLBACK = not GRAPHQL_ENABLED
 GRAPHQL_AUTH_ENABLED = os.getenv('GRAPHQL_AUTH_ENABLED', 'True').lower() == 'true'
 S3_AUTH_STORAGE_ENABLED = os.getenv('S3_AUTH_STORAGE_ENABLED', 'False').lower() == 'true'
+
+# SuperAdmin Middleware Configuration
+SUPER_ADMIN_ONLY_ENABLED = os.getenv('SUPER_ADMIN_ONLY_ENABLED', 'True').lower() == 'true'
+SUPER_ADMIN_CACHE_TTL = int(os.getenv('SUPER_ADMIN_CACHE_TTL', '300'))  # 5 minutes default
 
 # Session Configuration
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -578,11 +582,8 @@ def validate_startup_config():
             except Exception as e:
                 errors.append(f"Invalid APPOINTMENT360_GRAPHQL_URL: {e}")
         
-        if GRAPHQL_AUTH_ENABLED and not APPOINTMENT360_GRAPHQL_API_KEY:
-            warnings_list.append(
-                "GRAPHQL_AUTH_ENABLED is True but APPOINTMENT360_GRAPHQL_API_KEY is missing. "
-                "GraphQL requests may fail."
-            )
+        # Note: GraphQL authentication now uses JWT tokens from authenticated sessions
+        # No API key is required - tokens are extracted from request cookies/headers
     
     # Lambda API URL validation
     # LAMBDA_DOCUMENTATION_API_* validation removed - no longer used

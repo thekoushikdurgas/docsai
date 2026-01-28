@@ -156,7 +156,6 @@ class Command(BaseCommand):
         self.stdout.write('\n[GraphQL Configuration]')
         
         graphql_url = getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', '')
-        graphql_key = getattr(settings, 'APPOINTMENT360_GRAPHQL_API_KEY', '')
         graphql_enabled = getattr(settings, 'GRAPHQL_AUTH_ENABLED', False)
         
         if graphql_url:
@@ -173,16 +172,10 @@ class Command(BaseCommand):
                     else:
                         if self.verbose:
                             self.info.append(f"GraphQL URL configured: {graphql_url}")
+                        if self.verbose:
+                            self.info.append("GraphQL authentication uses JWT tokens from authenticated sessions")
                 except Exception as e:
                     self.errors.append(f"Invalid APPOINTMENT360_GRAPHQL_URL: {e}")
-            
-            if graphql_enabled and not graphql_key:
-                self.warnings.append(
-                    "GRAPHQL_AUTH_ENABLED is True but APPOINTMENT360_GRAPHQL_API_KEY is missing"
-                )
-            elif graphql_key:
-                if self.verbose:
-                    self.info.append("GraphQL API key configured")
         else:
             self.warnings.append("APPOINTMENT360_GRAPHQL_URL not configured - GraphQL fallback will not work")
 
@@ -301,24 +294,26 @@ class Command(BaseCommand):
         self.stdout.write('\n[API Connectivity Checks]')
         self.stdout.write('(This may take a few seconds...)')
         
-        # Check GraphQL API
+        # Check GraphQL API connectivity
+        # Note: Full authentication requires JWT tokens from login, so we only check URL reachability
         graphql_url = getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', '')
-        graphql_key = getattr(settings, 'APPOINTMENT360_GRAPHQL_API_KEY', '')
         
-        if graphql_url and graphql_key:
+        if graphql_url:
             try:
                 with httpx.Client(timeout=5) as client:
-                    headers = {'Authorization': f'Bearer {graphql_key}'}
+                    # Try a simple health check query (may require auth, but we're checking connectivity)
                     response = client.post(
                         graphql_url,
-                        json={'query': '{ health { status } }'},
-                        headers=headers
+                        json={'query': '{ __typename }'},
+                        headers={'Content-Type': 'application/json'}
                     )
-                    if response.status_code == 200:
+                    # Accept any response (200, 400, 401) as "reachable"
+                    # 401 means auth required, which is expected
+                    if response.status_code in [200, 400, 401]:
                         if self.verbose:
                             self.info.append("✓ GraphQL API is reachable")
                     else:
-                        self.warnings.append(f"GraphQL API returned status {response.status_code}")
+                        self.warnings.append(f"GraphQL API returned unexpected status {response.status_code}")
             except httpx.TimeoutException:
                 self.warnings.append("GraphQL API connection timeout - check URL and network")
             except Exception as e:
