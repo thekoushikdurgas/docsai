@@ -6,7 +6,10 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.development')
+    # Use environment-based settings selection (via DJANGO_ENV) by default.
+    # This keeps local dev as the default (DJANGO_ENV=development) while allowing
+    # production deployments to set DJANGO_ENV=production without changing code.
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

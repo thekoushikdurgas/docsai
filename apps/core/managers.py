@@ -1,4 +1,5 @@
 """Custom managers and querysets for common query patterns."""
+from django.contrib.auth.models import UserManager
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
@@ -65,4 +66,31 @@ class BaseManager(models.Manager):
     
     def by_updated_date(self, order: str = 'desc'):
         """Order by updated_at."""
+        return self.get_queryset().by_updated_date(order)
+
+
+class UserBaseManager(UserManager):
+    """
+    Auth-aware manager for the custom User model.
+
+    Django's auth commands (e.g. createsuperuser) expect UserManager behavior
+    including get_by_natural_key(). We also keep the common BaseQuerySet helpers.
+    """
+
+    def get_queryset(self):
+        return BaseQuerySet(self.model, using=self._db)
+
+    def active(self):
+        return self.get_queryset().active()
+
+    def published(self):
+        return self.get_queryset().published()
+
+    def recent(self, days: int = 7):
+        return self.get_queryset().recent(days)
+
+    def by_created_date(self, order: str = 'desc'):
+        return self.get_queryset().by_created_date(order)
+
+    def by_updated_date(self, order: str = 'desc'):
         return self.get_queryset().by_updated_date(order)

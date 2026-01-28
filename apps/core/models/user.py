@@ -3,7 +3,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from .base import TimeStampedModel
-from ..managers import BaseManager
+from ..managers import UserBaseManager
 
 
 class User(AbstractUser, TimeStampedModel):
@@ -19,7 +19,7 @@ class User(AbstractUser, TimeStampedModel):
     api_keys = models.JSONField(default=dict, blank=True)
     
     # Use custom manager
-    objects = BaseManager()
+    objects = UserBaseManager()
     
     class Meta:
         db_table = 'users'

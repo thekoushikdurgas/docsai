@@ -118,6 +118,9 @@ Set at least:
 ```bash
 cd /var/www/docsai
 source venv/bin/activate
+# Ensure production settings are used for all management commands
+export DJANGO_ENV=production
+
 python manage.py migrate --noinput
 python manage.py createsuperuser
 python manage.py validate_env
