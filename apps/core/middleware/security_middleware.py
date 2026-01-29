@@ -17,10 +17,14 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         if not request.path.startswith('/admin/') and not settings.DEBUG:
             response['Content-Security-Policy'] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                # Allow Tailwind CDN + d3js for current templates (login uses Tailwind CDN).
+                # Prefer self-hosting in the future to tighten CSP.
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://d3js.org; "
+                "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://d3js.org; "
                 "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: https:; "
-                "font-src 'self' data:; "
+                # Some pages may reference external fonts; allow this specific host.
+                "font-src 'self' data: https://r2cdn.perplexity.ai; "
                 "connect-src 'self' https:;"
             )
         

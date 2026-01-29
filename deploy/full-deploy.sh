@@ -388,6 +388,17 @@ setup_django() {
     # Collect static files
     log "Collecting static files..."
     python manage.py collectstatic --noinput
+
+    # Ensure Nginx can read static/media (avoid 403 from file permissions)
+    # Nginx runs as www-data on Ubuntu.
+    if [ -d "staticfiles" ]; then
+        chown -R ubuntu:www-data staticfiles || true
+        chmod -R a+rX staticfiles || true
+    fi
+    if [ -d "media" ]; then
+        chown -R ubuntu:www-data media || true
+        chmod -R a+rX media || true
+    fi
     
     # Validate environment
     log "Validating environment..."

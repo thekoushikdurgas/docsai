@@ -34,6 +34,9 @@ else:
         'security.W012',  # SESSION_COOKIE_SECURE
         'security.W016',  # CSRF_COOKIE_SECURE
     ]
+    # Avoid browser console warnings about COOP being ignored on non-HTTPS origins.
+    # COOP/COEP are "powerful features" that browsers only honor on trustworthy origins (HTTPS/localhost).
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'unsafe-none'
 
 # Email Backend (SMTP for production)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
