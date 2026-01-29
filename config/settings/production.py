@@ -26,6 +26,14 @@ if USE_HTTPS:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+else:
+    # Silence expected security checks when intentionally serving HTTP-only (e.g. IP deploy)
+    SILENCED_SYSTEM_CHECKS = [
+        'security.W004',  # SECURE_HSTS_SECONDS
+        'security.W008',  # SECURE_SSL_REDIRECT
+        'security.W012',  # SESSION_COOKIE_SECURE
+        'security.W016',  # CSRF_COOKIE_SECURE
+    ]
 
 # Email Backend (SMTP for production)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

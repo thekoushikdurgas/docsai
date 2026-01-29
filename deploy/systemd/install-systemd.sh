@@ -117,7 +117,9 @@ fi
 
 # Ensure wrapper script exists and has correct permissions
 if [ -f "deploy/systemd/gunicorn-start.sh" ]; then
-    # Script already exists in deploy/systemd/, just ensure permissions
+    # Strip CRLF if present (avoids systemd status 203/EXEC when repo was edited on Windows)
+    sed -i 's/\r$//' deploy/systemd/gunicorn-start.sh 2>/dev/null || true
+    # Ensure permissions
     chmod +x deploy/systemd/gunicorn-start.sh
     chown ubuntu:ubuntu deploy/systemd/gunicorn-start.sh
     echo "Gunicorn wrapper script verified ✓"
