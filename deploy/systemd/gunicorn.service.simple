@@ -24,9 +24,11 @@ Restart=on-failure
 RestartSec=5s
 
 # Security
-PrivateTmp=true
-ProtectSystem=full
-ReadWritePaths=/home/ubuntu/docsai /var/log/django
+# PrivateTmp=false allows Gunicorn to write temporary files
+# ProtectSystem=strict allows writes to /run for socket and PID files
+PrivateTmp=false
+ProtectSystem=strict
+ReadWritePaths=/home/ubuntu/docsai /var/log/django /run
 
 # Logging
 StandardOutput=journal

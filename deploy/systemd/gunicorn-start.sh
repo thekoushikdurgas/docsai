@@ -19,6 +19,7 @@ export PATH="$PROJECT_DIR/venv/bin:$PATH"
 WORKERS=$(( $(nproc) * 2 + 1 ))
 
 # Start Gunicorn with all options as command-line arguments
+# Note: Not using --pid to avoid permission issues - systemd manages the process
 exec gunicorn \
   --workers "$WORKERS" \
   --worker-class sync \
@@ -29,7 +30,6 @@ exec gunicorn \
   --error-logfile /var/log/django/gunicorn-error.log \
   --log-level info \
   --bind unix:/run/gunicorn.sock \
-  --pid /run/gunicorn.pid \
   --preload \
   --name docsai-production \
   config.wsgi:application

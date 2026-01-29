@@ -4,7 +4,10 @@ Before=gunicorn.service
 
 [Socket]
 ListenStream=/run/gunicorn.sock
-SocketMode=0666
+# SocketMode=0660 allows ubuntu user and www-data group (Nginx) to access
+SocketMode=0660
+SocketUser=ubuntu
+SocketGroup=www-data
 
 [Install]
 WantedBy=sockets.target
