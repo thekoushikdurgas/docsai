@@ -1,12 +1,12 @@
 """SuperAdmin-only access middleware."""
 
 import logging
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.conf import settings
 from django.core.cache import cache
-from django.urls import resolve, Resolver404
 
 from apps.core.clients.appointment360_client import Appointment360Client, Appointment360AuthError
+from apps.core.super_admin_debug import debug_log
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,7 @@ class SuperAdminMiddleware:
         '/login/',
         '/logout/',
         '/register/',  # Will be removed later
+        '/favicon.ico',  # Browser requests; avoid 403
     ]
     
     # Route prefixes that are public
@@ -56,34 +57,34 @@ class SuperAdminMiddleware:
             logger.warning("SuperAdmin middleware is disabled (SUPER_ADMIN_ONLY_ENABLED=False)")
     
     def __call__(self, request):
-        # Skip if middleware is disabled
         if not self.enabled:
             return self.get_response(request)
         
-        # Skip if GraphQL is not enabled
         if not self.graphql_enabled:
             logger.warning("SuperAdmin middleware requires GRAPHQL_ENABLED=True")
             return self.get_response(request)
         
-        # Check if route is public
-        if self._is_public_route(request.path):
+        is_public = self._is_public_route(request.path)
+        access_token = self._get_access_token(request)
+        debug_log(f"middleware path={request.path!r} is_public={is_public} has_token={bool(access_token)}")
+        if is_public:
             return self.get_response(request)
         
-        # Get access token
-        access_token = self._get_access_token(request)
         if not access_token:
+            debug_log(f"middleware no token path={request.path!r} redirect to login")
+            if request.path == "/" or request.path == "":
+                return HttpResponseRedirect("/login/?next=/")
             return self._forbidden_response(request, "Authentication required")
         
-        # Check if user is SuperAdmin (with caching)
         is_super_admin = self._check_super_admin(access_token, request)
-        
+        debug_log(f"middleware _check_super_admin path={request.path!r} result={is_super_admin}")
         if not is_super_admin:
+            debug_log(f"middleware 403 SuperAdmin required path={request.path!r}")
             return self._forbidden_response(
                 request, 
                 "Access denied. SuperAdmin role required."
             )
         
-        # User is SuperAdmin, proceed
         return self.get_response(request)
     
     def _is_public_route(self, path: str) -> bool:
@@ -124,15 +125,12 @@ class SuperAdminMiddleware:
         Returns:
             True if SuperAdmin, False otherwise
         """
-        # Check cache first
-        cache_key = f'super_admin_check:{access_token[:20]}'  # Use first 20 chars as key
+        cache_key = f'super_admin_check:{access_token[:20]}'
         cached_result = cache.get(cache_key)
-        
         if cached_result is not None:
-            logger.debug(f"Cache hit for SuperAdmin check: {cached_result}")
+            debug_log(f"middleware _check_super_admin cache_hit={cached_result}")
             return cached_result
         
-        # Call Appointment360 API to check role
         try:
             client = Appointment360Client(request=request)
             is_super_admin = client.is_super_admin(access_token)
@@ -140,7 +138,7 @@ class SuperAdminMiddleware:
             # Cache the result
             cache.set(cache_key, is_super_admin, self.cache_ttl)
             
-            logger.debug(f"SuperAdmin check result: {is_super_admin}")
+            debug_log(f"middleware _check_super_admin api result={is_super_admin}")
             return is_super_admin
             
         except Appointment360AuthError as e:

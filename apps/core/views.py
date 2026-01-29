@@ -1,6 +1,7 @@
 """Core views for authentication and dashboard."""
 import logging
 from typing import Optional, Dict, Any
+from urllib.parse import quote
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.core.cache import cache
@@ -9,6 +10,7 @@ from django.conf import settings
 
 from apps.core.clients.appointment360_client import Appointment360Client, Appointment360AuthError
 from apps.core.decorators.auth import require_super_admin
+from apps.core.super_admin_debug import debug_log
 
 logger = logging.getLogger(__name__)
 
@@ -40,14 +42,14 @@ def _get_geolocation(request) -> Optional[Dict[str, Any]]:
 
 def _set_auth_cookies(response: HttpResponse, access_token: str, refresh_token: str, remember_me: bool = False):
     """Set httpOnly cookies for access and refresh tokens."""
+    # When remember_me=False use session cookie (omit max_age/expires). Never use expires=0 - it is
+    # interpreted as Unix epoch and the cookie is discarded immediately, so the next request has no cookie.
     max_age = 86400 * 7 if remember_me else None  # 7 days if remember_me, session cookie otherwise
-    expires = None if remember_me else 0
     
     response.set_cookie(
         'access_token',
         access_token,
         max_age=max_age,
-        expires=expires,
         httponly=True,
         secure=not settings.DEBUG,  # Secure in production
         samesite='Lax',
@@ -75,15 +77,21 @@ def login_view(request):
     # Check if already authenticated (via token)
     access_token = request.COOKIES.get('access_token')
     if access_token:
+        debug_log(f"login_view GET has cookie access_token len={len(access_token)}")
         try:
             client = Appointment360Client(request=request)
             user_info = client.get_me(access_token)
+            debug_log(f"login_view GET get_me result user_info={bool(user_info)} role={user_info.get('role') if user_info else None}")
             if user_info:
                 next_url = request.GET.get('next') or request.POST.get('next')
-                if next_url and next_url.startswith('/') and '//' not in next_url:
-                    return redirect(next_url)
+                target = next_url if (next_url and next_url.startswith('/') and '//' not in next_url) else None
+                dest = target or 'core:dashboard'
+                debug_log(f"login_view GET redirect dest={dest}")
+                if target:
+                    return redirect(target)
                 return redirect('core:dashboard')
-        except Exception:
+        except Exception as e:
+            debug_log(f"login_view GET get_me exception {type(e).__name__}: {e}")
             pass  # Token might be invalid, continue with login
     
     # Check if appointment360 is enabled
@@ -120,12 +128,21 @@ def login_view(request):
             
             # Check if user is SuperAdmin (required for access)
             is_super_admin = client.is_super_admin(access_token)
+            debug_log(f"login_view POST is_super_admin={is_super_admin} email={email}")
             if not is_super_admin:
+                debug_log("login_view POST denied: not SuperAdmin")
                 messages.error(request, 'Access denied. SuperAdmin role required.')
                 return render(request, 'core/login.html', {'next': request.GET.get('next')})
             
             # Set auth cookies (no Django session)
-            response = redirect(next_url or 'core:dashboard')
+            # Redirect to /login/?next=<target> so the browser sends the cookie on the next request
+            # (direct redirect to / can miss the cookie on first load in some browsers)
+            target = (next_url or '/').strip() or '/'
+            if target and ('//' in target or not target.startswith('/')):
+                target = '/'
+            redirect_url = '/login/?next=' + quote(target)
+            debug_log(f"login_view POST success redirect to {redirect_url}")
+            response = redirect(redirect_url)
             _set_auth_cookies(response, access_token, refresh_token, remember_me)
             
             cache.delete(fail_key)
@@ -231,8 +248,9 @@ def register_view(request):
                     )
                     return redirect('core:login')
                 
-                # Set auth cookies
-                response = redirect('core:dashboard')
+                # Set auth cookies; redirect to /login/?next=/ so browser sends cookie on next request
+                target = '/'
+                response = redirect('/login/?next=' + quote(target))
                 _set_auth_cookies(response, access_token, refresh_token, remember_me)
                 
                 cache.delete(fail_key)

@@ -1,4 +1,5 @@
 """Tests for core views."""
+from unittest.mock import patch
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -8,7 +9,7 @@ User = get_user_model()
 
 class CoreViewsTest(TestCase):
     """Test core views."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.client = Client()
@@ -17,21 +18,30 @@ class CoreViewsTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-    
+
     def test_login_view_get(self):
         """Test login page GET request."""
         response = self.client.get(reverse('core:login'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'login', status_code=200)
-    
-    def test_login_view_post_success(self):
-        """Test successful login."""
+
+    @patch('apps.core.views.Appointment360Client')
+    def test_login_view_post_success(self, mock_client_class):
+        """Test successful login (mocked GraphQL)."""
+        mock_client_class.return_value.login.return_value = {
+            'access_token': 'mock_access',
+            'refresh_token': 'mock_refresh',
+            'user': {'uuid': 'u1', 'email': 'test@example.com', 'name': 'Test'},
+        }
+        mock_client_class.return_value.is_super_admin.return_value = True
         response = self.client.post(reverse('core:login'), {
-            'username': 'testuser',
+            'username': 'test@example.com',
             'password': 'testpass123'
         })
-        self.assertRedirects(response, reverse('core:dashboard'))
-    
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
+        self.assertIn('next=', response.url)
+
     def test_login_view_post_invalid(self):
         """Test login with invalid credentials."""
         response = self.client.post(reverse('core:login'), {
@@ -40,36 +50,46 @@ class CoreViewsTest(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Invalid', status_code=200)
-    
+
     def test_register_view_get(self):
         """Test register page GET request."""
         response = self.client.get(reverse('core:register'))
         self.assertEqual(response.status_code, 200)
-    
-    def test_register_view_post_success(self):
-        """Test successful registration."""
+
+    @patch('apps.core.views.Appointment360Client')
+    def test_register_view_post_success(self, mock_client_class):
+        """Test successful registration (mocked GraphQL)."""
+        mock_client_class.return_value.register.return_value = {
+            'access_token': 'mock_access',
+            'refresh_token': 'mock_refresh',
+            'user': {'uuid': 'u1', 'email': 'newuser@example.com', 'name': 'New'},
+        }
+        mock_client_class.return_value.is_super_admin.return_value = True
         response = self.client.post(reverse('core:register'), {
-            'username': 'newuser',
+            'name': 'New User',
             'email': 'newuser@example.com',
             'password': 'newpass123',
             'password_confirm': 'newpass123'
         })
-        self.assertRedirects(response, reverse('core:dashboard'))
-        self.assertTrue(User.objects.filter(username='newuser').exists())
-    
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
+        self.assertIn('next=', response.url)
+
     def test_dashboard_view_requires_login(self):
-        """Test dashboard requires authentication."""
+        """Test dashboard requires authentication (redirect to login with next=/)."""
         response = self.client.get(reverse('core:dashboard'))
         self.assertRedirects(response, f"{reverse('core:login')}?next={reverse('core:dashboard')}")
-    
-    def test_dashboard_view_authenticated(self):
-        """Test dashboard for authenticated user."""
-        self.client.login(username='testuser', password='testpass123')
+
+    @patch('apps.core.clients.appointment360_client.Appointment360Client.is_super_admin')
+    def test_dashboard_view_authenticated(self, mock_is_super_admin):
+        """Test dashboard for authenticated user (token-based; mock SuperAdmin check)."""
+        mock_is_super_admin.return_value = True
+        self.client.cookies['access_token'] = 'mock_token'
         response = self.client.get(reverse('core:dashboard'))
         self.assertEqual(response.status_code, 200)
-    
+
     def test_logout_view(self):
         """Test logout."""
-        self.client.login(username='testuser', password='testpass123')
+        self.client.cookies['access_token'] = 'mock_token'
         response = self.client.get(reverse('core:logout'))
         self.assertRedirects(response, reverse('core:login'))

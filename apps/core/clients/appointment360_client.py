@@ -1,11 +1,24 @@
-"""Appointment360 GraphQL authentication client."""
+"""Appointment360 GraphQL authentication client.
+
+API contract: docs/1/api360api/GraphQL/01_AUTH_MODULE.md, 02_USERS_MODULE.md.
+
+Token → SuperAdmin detection:
+  1. Token: cookie 'access_token' or header 'Authorization: Bearer <token>' (space required).
+  2. get_me(token): GraphQL auth { me { profile { jobTitle, bio, role, credits } } }.
+  3. is_super_admin(token): profile.role == 'SuperAdmin'.
+"""
 
 import logging
 from typing import Optional, Dict, Any
 from django.conf import settings
 from apps.core.services.graphql_client import GraphQLClient, GraphQLError
+from apps.core.super_admin_debug import debug_log
 
 logger = logging.getLogger(__name__)
+
+# Role strings from Appointment360 GraphQL (auth.me.profile.role)
+SUPER_ADMIN_ROLE = 'SuperAdmin'
+ADMIN_ROLE = 'Admin'
 
 
 class Appointment360AuthError(Exception):
@@ -81,8 +94,6 @@ class Appointment360Client:
                 raise Appointment360AuthError("Invalid response from appointment360 API")
             
             login_data = result['auth']['login']
-            
-            # Normalize field names (GraphQL returns camelCase, we use snake_case)
             return {
                 'access_token': login_data.get('accessToken'),
                 'refresh_token': login_data.get('refreshToken'),
@@ -90,7 +101,7 @@ class Appointment360Client:
                     'uuid': login_data.get('user', {}).get('uuid'),
                     'email': login_data.get('user', {}).get('email'),
                     'name': login_data.get('user', {}).get('name'),
-                }
+                },
             }
         except GraphQLError as e:
             logger.error(f"GraphQL error during login: {e}")
@@ -152,8 +163,6 @@ class Appointment360Client:
                 raise Appointment360AuthError("Invalid response from appointment360 API")
             
             register_data = result['auth']['register']
-            
-            # Normalize field names
             return {
                 'access_token': register_data.get('accessToken'),
                 'refresh_token': register_data.get('refreshToken'),
@@ -161,7 +170,7 @@ class Appointment360Client:
                     'uuid': register_data.get('user', {}).get('uuid'),
                     'email': register_data.get('user', {}).get('email'),
                     'name': register_data.get('user', {}).get('name'),
-                }
+                },
             }
         except GraphQLError as e:
             logger.error(f"GraphQL error during register: {e}")
@@ -255,8 +264,6 @@ class Appointment360Client:
                 raise Appointment360AuthError("Invalid response from appointment360 API")
             
             refresh_data = result['auth']['refreshToken']
-            
-            # Normalize field names
             return {
                 'access_token': refresh_data.get('accessToken'),
                 'refresh_token': refresh_data.get('refreshToken'),
@@ -264,7 +271,7 @@ class Appointment360Client:
                     'uuid': refresh_data.get('user', {}).get('uuid'),
                     'email': refresh_data.get('user', {}).get('email'),
                     'name': refresh_data.get('user', {}).get('name'),
-                }
+                },
             }
         except GraphQLError as e:
             logger.error(f"GraphQL error during token refresh: {e}")
@@ -275,13 +282,13 @@ class Appointment360Client:
     
     def get_me(self, access_token: str) -> Optional[Dict[str, Any]]:
         """
-        Get current authenticated user info with role.
+        Get current authenticated user info (auth.me per 01_AUTH_MODULE.md).
         
         Args:
-            access_token: Access token
+            access_token: Access token (sent as Authorization: Bearer <token>)
             
         Returns:
-            Dictionary with user info (uuid, email, name, role) or None if not authenticated
+            Dict with uuid, email, name, role, job_title, bio, credits; or None if not authenticated
         """
         if not self.enabled:
             return None
@@ -294,7 +301,10 @@ class Appointment360Client:
                     email
                     name
                     profile {
+                        jobTitle
+                        bio
                         role
+                        credits
                     }
                 }
             }
@@ -308,27 +318,35 @@ class Appointment360Client:
         try:
             result = self.graphql_client.execute_query(query, headers=headers, use_cache=False)
             if not result or 'auth' not in result:
+                debug_log("get_me no result or no auth in result")
                 return None
             
             me_data = result['auth'].get('me')
             if not me_data:
+                debug_log("get_me auth.me is empty")
                 return None
             
-            profile = me_data.get('profile', {})
-            
+            profile = me_data.get('profile', {}) or {}
+            role = profile.get('role')
+            debug_log(f"get_me role={role!r} email={me_data.get('email')!r}")
             return {
                 'uuid': me_data.get('uuid'),
                 'email': me_data.get('email'),
                 'name': me_data.get('name'),
-                'role': profile.get('role') if profile else None,
+                'role': role,
+                'job_title': profile.get('jobTitle'),
+                'bio': profile.get('bio'),
+                'credits': profile.get('credits'),
             }
         except GraphQLError as e:
+            debug_log(f"get_me GraphQLError: {e}")
             logger.debug(f"GraphQL error getting user info (may not be authenticated): {e}")
             return None
         except Exception as e:
+            debug_log(f"get_me Exception: {type(e).__name__} {e}")
             logger.warning(f"Unexpected error getting user info: {e}")
             return None
-    
+
     def get_me_with_profile(self, access_token: str) -> Optional[Dict[str, Any]]:
         """
         Get current authenticated user info with full profile details.
@@ -355,6 +373,7 @@ class Appointment360Client:
                         jobTitle
                         bio
                         timezone
+                        avatarUrl
                         role
                         credits
                         subscriptionPlan
@@ -383,8 +402,7 @@ class Appointment360Client:
             if not me_data:
                 return None
             
-            profile = me_data.get('profile', {})
-            
+            profile = me_data.get('profile', {}) or {}
             return {
                 'uuid': me_data.get('uuid'),
                 'email': me_data.get('email'),
@@ -394,6 +412,7 @@ class Appointment360Client:
                     'job_title': profile.get('jobTitle'),
                     'bio': profile.get('bio'),
                     'timezone': profile.get('timezone'),
+                    'avatar_url': profile.get('avatarUrl'),
                     'role': profile.get('role'),
                     'credits': profile.get('credits', 0),
                     'subscription_plan': profile.get('subscriptionPlan'),
@@ -403,7 +422,7 @@ class Appointment360Client:
                     'subscription_ends_at': profile.get('subscriptionEndsAt'),
                     'created_at': profile.get('createdAt'),
                     'updated_at': profile.get('updatedAt'),
-                } if profile else None,
+                },
             }
         except GraphQLError as e:
             logger.debug(f"GraphQL error getting user profile (may not be authenticated): {e}")
@@ -430,15 +449,17 @@ class Appointment360Client:
     def is_super_admin(self, access_token: str) -> bool:
         """
         Check if user is SuperAdmin.
-        
+
         Args:
             access_token: Access token
-            
+
         Returns:
             True if user is SuperAdmin, False otherwise
         """
         role = self.get_user_role(access_token)
-        return role == 'SuperAdmin'
+        result = (role or '').strip() == SUPER_ADMIN_ROLE
+        debug_log(f"is_super_admin role={role!r} result={result}")
+        return result
     
     def is_admin_or_super_admin(self, access_token: str) -> bool:
         """
@@ -451,7 +472,7 @@ class Appointment360Client:
             True if user is Admin or SuperAdmin, False otherwise
         """
         role = self.get_user_role(access_token)
-        return role in ['Admin', 'SuperAdmin']
+        return (role or '').strip() in (ADMIN_ROLE, SUPER_ADMIN_ROLE)
     
     def get_session(self, access_token: str) -> Optional[Dict[str, Any]]:
         """

@@ -77,7 +77,6 @@ def require_super_admin(view_func):
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        # Get access token
         access_token = request.COOKIES.get('access_token')
         if not access_token:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
