@@ -56,6 +56,16 @@ fi
 cp deploy/systemd/gunicorn.socket $SYSTEMD_DIR/
 chmod 644 $SYSTEMD_DIR/gunicorn.socket
 
+# Copy wrapper script
+if [ -f "deploy/systemd/gunicorn-start.sh" ]; then
+    cp deploy/systemd/gunicorn-start.sh "$PROJECT_DIR/deploy/systemd/gunicorn-start.sh"
+    chmod +x "$PROJECT_DIR/deploy/systemd/gunicorn-start.sh"
+    chown ubuntu:ubuntu "$PROJECT_DIR/deploy/systemd/gunicorn-start.sh"
+    echo "Gunicorn wrapper script installed ✓"
+else
+    echo "WARNING: gunicorn-start.sh not found, service may fail"
+fi
+
 # Copy service file
 cp deploy/systemd/gunicorn.service $SYSTEMD_DIR/
 chmod 644 $SYSTEMD_DIR/gunicorn.service

@@ -16,13 +16,8 @@ Environment="PATH=/home/ubuntu/docsai/venv/bin:/usr/bin:/bin"
 Environment="PYTHONPATH=/home/ubuntu/docsai"
 
 # Gunicorn command
-# Note: Using --config requires Gunicorn to support systemd notifications
-# If Type=notify fails, change to Type=simple and remove --config, use command-line args instead
-ExecStart=/home/ubuntu/docsai/venv/bin/gunicorn \
-  --config config.gunicorn.production \
-  --bind unix:/run/gunicorn.sock \
-  --pid /run/gunicorn.pid \
-  config.wsgi:application
+# Using wrapper script to ensure proper environment setup
+ExecStart=/home/ubuntu/docsai/deploy/systemd/gunicorn-start.sh
 
 # Restart policy
 Restart=on-failure
