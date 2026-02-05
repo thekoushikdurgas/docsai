@@ -1,0 +1,40 @@
+{
+  "name": "Combined Filters - Text + Keyword + Range",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ComplexContactSearch($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority country createdAt} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"title\",\n\"operator\":\"contains\",\n\"value\":\"engineer developer\"\n},\n{\n\"field\":\"departments\",\n\"operator\":\"in\",\n\"value\":[\n\"Engineering\",\n\"Product\"\n]\n},\n{\n\"field\":\"seniority\",\n\"operator\":\"in\",\n\"value\":[\n\"Senior\",\n\"Lead\",\n\"Principal\"\n]\n},\n{\n\"field\":\"country\",\n\"operator\":\"in\",\n\"value\":[\n\"united states\",\n\"canada\",\n\"united kingdom\"\n]\n},\n{\n\"field\":\"email_status\",\n\"operator\":\"eq\",\n\"value\":\"verified\"\n},\n{\n\"field\":\"created_at\",\n\"operator\":\"gte\",\n\"value\":\"2023-01-01T00:00:00Z\"\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"created_at\",\n\"orderDirection\":\"desc\"\n},\n{\n\"orderBy\":\"last_name\",\n\"orderDirection\":\"asc\"\n}\n],\n\"limit\":50,\n\"page\":1\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ComplexContactSearch($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority country createdAt} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"title\",\n\"operator\":\"contains\",\n\"value\":\"engineer developer\"\n},\n{\n\"field\":\"departments\",\n\"operator\":\"in\",\n\"value\":[\n\"Engineering\",\n\"Product\"\n]\n},\n{\n\"field\":\"seniority\",\n\"operator\":\"in\",\n\"value\":[\n\"Senior\",\n\"Lead\",\n\"Principal\"\n]\n},\n{\n\"field\":\"country\",\n\"operator\":\"in\",\n\"value\":[\n\"united states\",\n\"canada\",\n\"united kingdom\"\n]\n},\n{\n\"field\":\"email_status\",\n\"operator\":\"eq\",\n\"value\":\"verified\"\n},\n{\n\"field\":\"created_at\",\n\"operator\":\"gte\",\n\"value\":\"2023-01-01T00:00:00Z\"\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"created_at\",\n\"orderDirection\":\"desc\"\n},\n{\n\"orderBy\":\"last_name\",\n\"orderDirection\":\"asc\"\n}\n],\n\"limit\":50,\n\"page\":1\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

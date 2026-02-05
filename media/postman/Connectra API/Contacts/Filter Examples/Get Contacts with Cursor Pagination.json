@@ -1,0 +1,48 @@
+{
+  "name": "Get Contacts with Cursor Pagination",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "Connectra API Key",
+        "dataType": "string"
+      },
+      {
+        "id": 2,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"departments\": [\"Engineering\"],\n        \"email_status\": [\"verified\"]\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"created_at\",\n      \"order_direction\": \"desc\"\n    },\n    {\n      \"order_by\": \"id\",\n      \"order_direction\": \"asc\"\n    }\n  ],\n  \"search_after\": [\"2024-01-15T08:00:00Z\", 123],\n  \"limit\": 25\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"departments\": [\"Engineering\"],\n        \"email_status\": [\"verified\"]\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"created_at\",\n      \"order_direction\": \"desc\"\n    },\n    {\n      \"order_by\": \"id\",\n      \"order_direction\": \"asc\"\n    }\n  ],\n  \"search_after\": [\"2024-01-15T08:00:00Z\", 123],\n  \"limit\": 25\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

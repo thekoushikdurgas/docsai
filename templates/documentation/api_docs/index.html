@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}API Reference - DocsAI Agent{% endblock %}
+
+{% block content %}
+<div id="main-content" class="space-y-6 animate-in fade-in duration-500">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
+        <div>
+            <h1 class="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">API Reference</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-2">All {{ total_endpoints }} GET endpoints with usage statistics</p>
+        </div>
+        <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Total requests</span>
+                <span class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ total_requests }}</span>
+            </div>
+            <a href="{% url 'schema' %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors font-medium text-sm" target="_blank" rel="noopener">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+                OpenAPI schema
+            </a>
+        </div>
+    </div>
+
+    <!-- Page Usage by User Type Graph -->
+    <section class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Page Usage by User Type</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Endpoint request patterns across user segments</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="graph-view-grouped" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-indigo-600 text-white transition-colors">
+                        Grouped
+                    </button>
+                    <button id="graph-view-stacked" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Stacked
+                    </button>
+                    <button id="graph-view-heatmap" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Heatmap
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary Cards -->
+        {% if aggregated_stats %}
+        <div class="px-6 py-4 bg-gray-50/50 dark:bg-gray-900/30 border-b border-gray-200 dark:border-gray-700">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                {% for user_type, stats in aggregated_stats.items %}
+                {% if stats.total_requests > 0 %}
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        {{ user_type|replace:"_, "|title }}
+                    </div>
+                    <div class="text-lg font-bold text-gray-900 dark:text-white">
+                        {{ stats.total_requests }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ stats.unique_endpoints }} endpoints
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Graph Container -->
+        <div class="p-6">
+            <div id="endpoint-stats-graph" class="w-full" style="min-height: 400px;"></div>
+            <div id="endpoint-stats-graph-legend" class="mt-4"></div>
+        </div>
+    </section>
+
+    <!-- All APIs: single table with sortable headers -->
+    <section class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden" aria-labelledby="api-docs-table-heading">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
+            <h2 id="api-docs-table-heading" class="text-lg font-bold text-gray-900 dark:text-gray-100">All APIs</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">All {{ total_endpoints }} GET endpoints — click column headers to sort</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table id="api-docs-table" class="w-full text-sm text-left text-gray-700 dark:text-gray-300">
+                <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="api-docs-sortable px-4 py-3 font-semibold tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700" data-sort-key="group-name" tabindex="0" role="button" aria-sort="none">
+                            <span class="inline-flex items-center gap-1">Group<span class="sort-icon" aria-hidden="true"></span></span>
+                        </th>
+                        <th scope="col" class="api-docs-sortable px-4 py-3 font-semibold tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700" data-sort-key="method" tabindex="0" role="button" aria-sort="none">
+                            <span class="inline-flex items-center gap-1">Method<span class="sort-icon" aria-hidden="true"></span></span>
+                        </th>
+                        <th scope="col" class="api-docs-sortable px-4 py-3 font-semibold tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700" data-sort-key="path" tabindex="0" role="button" aria-sort="none">
+                            <span class="inline-flex items-center gap-1">Path<span class="sort-icon" aria-hidden="true"></span></span>
+                        </th>
+                        <th scope="col" class="api-docs-sortable px-4 py-3 font-semibold tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700" data-sort-key="name" tabindex="0" role="button" aria-sort="none">
+                            <span class="inline-flex items-center gap-1">Name<span class="sort-icon" aria-hidden="true"></span></span>
+                        </th>
+                        <th scope="col" class="api-docs-sortable px-4 py-3 font-semibold tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700" data-sort-key="description" tabindex="0" role="button" aria-sort="none">
+                            <span class="inline-flex items-center gap-1">Description<span class="sort-icon" aria-hidden="true"></span></span>
+                        </th>
+                        <th scope="col" class="api-docs-sortable px-4 py-3 font-semibold tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700" data-sort-key="calls" tabindex="0" role="button" aria-sort="none">
+                            <span class="inline-flex items-center gap-1">Calls<span class="sort-icon" aria-hidden="true"></span></span>
+                        </th>
+                        <th scope="col" class="api-docs-sortable px-4 py-3 font-semibold tracking-wider cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700" data-sort-key="last" tabindex="0" role="button" aria-sort="none">
+                            <span class="inline-flex items-center gap-1">Last<span class="sort-icon" aria-hidden="true"></span></span>
+                        </th>
+                        <th scope="col" class="px-4 py-3 font-semibold tracking-wider">Try</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                    {% for ep in all_endpoints %}
+                    <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors"
+                        data-group-name="{{ ep.group_name }}"
+                        data-method="{{ ep.method }}"
+                        data-path="{{ ep.path }}"
+                        data-name="{{ ep.name }}"
+                        data-description="{{ ep.description|default:'' }}"
+                        data-calls="{{ ep.stats.request_count|default:0 }}"
+                        data-last="{{ ep.last_called_sort|default:0 }}"
+                        data-endpoint-key="{{ ep.endpoint_key }}">
+                        <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{{ ep.group_name }}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">{{ ep.method }}</span>
+                        </td>
+                        <td class="px-4 py-3"><code class="text-sm font-mono text-gray-800 dark:text-gray-200 break-all">{{ ep.path }}</code></td>
+                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{{ ep.name }}</td>
+                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400">{{ ep.description|default:"" }}</td>
+                        <td class="px-4 py-3 text-gray-700 dark:text-gray-300">
+                            <span class="font-medium">{{ ep.stats.request_count|default:0 }}</span> call{{ ep.stats.request_count|default:0|pluralize }}
+                        </td>
+                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400" aria-label="Last called">{{ ep.last_called_display }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ ep.path }}" target="_blank" rel="noopener" class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Open in new tab">Try</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script src="{% static 'js/components/endpoint-stats-graph.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const graphData = {{ user_type_stats_json|safe }};
+    
+    // Initialize graph
+    let currentView = 'grouped';
+    let graph = new EndpointStatsGraph('endpoint-stats-graph', graphData, {
+        view: currentView,
+        showLegend: true,
+        topN: 20  // Show top 20 endpoints by default
+    });
+    graph.render();
+    
+    // View switcher buttons
+    const groupedBtn = document.getElementById('graph-view-grouped');
+    const stackedBtn = document.getElementById('graph-view-stacked');
+    const heatmapBtn = document.getElementById('graph-view-heatmap');
+    
+    function updateButtonStates(activeBtn) {
+        [groupedBtn, stackedBtn, heatmapBtn].forEach(btn => {
+            if (btn === activeBtn) {
+                btn.className = 'px-3 py-1.5 text-sm font-medium rounded-lg bg-indigo-600 text-white transition-colors';
+            } else {
+                btn.className = 'px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors';
+            }
+        });
+    }
+    
+    groupedBtn.addEventListener('click', function() {
+        currentView = 'grouped';
+        graph.switchView(currentView);
+        updateButtonStates(groupedBtn);
+    });
+    
+    stackedBtn.addEventListener('click', function() {
+        currentView = 'stacked';
+        graph.switchView(currentView);
+        updateButtonStates(stackedBtn);
+    });
+    
+    heatmapBtn.addEventListener('click', function() {
+        currentView = 'heatmap';
+        graph.switchView(currentView);
+        updateButtonStates(heatmapBtn);
+    });
+    
+    // Listen for dark mode changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'class') {
+                graph.render();  // Re-render on dark mode toggle
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+
+    // API docs table: sortable headers (client-side sort)
+    (function() {
+        const tableId = 'api-docs-table';
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        let currentSortColumn = null;
+        let currentSortDirection = 'asc';
+
+        function getDataAttr(row, columnKey) {
+            const attrMap = {
+                'group-name': 'data-group-name',
+                'method': 'data-method',
+                'path': 'data-path',
+                'name': 'data-name',
+                'description': 'data-description',
+                'calls': 'data-calls',
+                'last': 'data-last'
+            };
+            const attr = attrMap[columnKey];
+            return attr ? row.getAttribute(attr) : '';
+        }
+
+        function sortApiDocsTable(columnKey) {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            if (rows.length === 0) return;
+
+            const isSameColumn = currentSortColumn === columnKey;
+            if (isSameColumn) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = columnKey;
+                currentSortDirection = 'asc';
+            }
+
+            const numericKeys = ['calls', 'last'];
+            const isNumeric = numericKeys.indexOf(columnKey) !== -1;
+
+            rows.sort(function(a, b) {
+                let aVal = getDataAttr(a, columnKey);
+                let bVal = getDataAttr(b, columnKey);
+
+                if (isNumeric) {
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                    if (currentSortDirection === 'asc') {
+                        return aVal - bVal;
+                    } else {
+                        return bVal - aVal;
+                    }
+                }
+
+                aVal = (aVal || '').toString();
+                bVal = (bVal || '').toString();
+                const cmp = aVal.localeCompare(bVal, undefined, { sensitivity: 'base' });
+                return currentSortDirection === 'asc' ? cmp : -cmp;
+            });
+
+            rows.forEach(function(row) {
+                tbody.appendChild(row);
+            });
+
+            updateSortIndicator();
+        }
+
+        function updateSortIndicator() {
+            const headers = table.querySelectorAll('thead th.api-docs-sortable');
+            headers.forEach(function(th) {
+                const key = th.getAttribute('data-sort-key');
+                const iconSpan = th.querySelector('.sort-icon');
+                if (key === currentSortColumn) {
+                    th.setAttribute('aria-sort', currentSortDirection === 'asc' ? 'ascending' : 'descending');
+                    if (iconSpan) {
+                        iconSpan.textContent = currentSortDirection === 'asc' ? ' \u25B2' : ' \u25BC';
+                        iconSpan.className = 'sort-icon text-indigo-600 dark:text-indigo-400';
+                    }
+                } else {
+                    th.setAttribute('aria-sort', 'none');
+                    if (iconSpan) {
+                        iconSpan.textContent = ' \u2195';
+                        iconSpan.className = 'sort-icon text-gray-400';
+                    }
+                }
+            });
+        }
+
+        table.querySelectorAll('thead th.api-docs-sortable').forEach(function(th) {
+            th.addEventListener('click', function() {
+                const key = th.getAttribute('data-sort-key');
+                if (key) sortApiDocsTable(key);
+            });
+            th.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const key = th.getAttribute('data-sort-key');
+                    if (key) sortApiDocsTable(key);
+                }
+            });
+        });
+    })();
+});
+</script>
+{% endblock %}

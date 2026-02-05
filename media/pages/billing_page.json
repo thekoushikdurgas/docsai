@@ -1,0 +1,269 @@
+{
+  "_id": "billing_page-001",
+  "page_id": "billing_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/billing",
+    "file_path": "contact360/dashboard/app/(dashboard)/billing/page.tsx",
+    "purpose": "Billing and subscription management. User tab: current subscription, upgrade plans, addon packs, payment method, invoices. Admin tab (admin/superAdmin): My Billing / System Management. Admin CRUD for plans and addons (superAdmin only). Data batched via billingPageApi.",
+    "s3_key": "data/pages/billing_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "Admin tab visible to admin/superAdmin. Plan and addon CRUD (create, update, delete) only for superAdmin.",
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/GetBilling",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBillingPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get billing info via billing.billing. Credits, subscription plan, status, periods. Batched in billingPageApi via useBillingPage."
+      },
+      {
+        "endpoint_path": "graphql/GetPlans",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBillingPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get plans via billing.plans. Batched in billingPageApi via useBillingPage. Optional (includePlans)."
+      },
+      {
+        "endpoint_path": "graphql/GetAddons",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBillingPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get addons via billing.addons. Batched in billingPageApi via useBillingPage. Optional (includeAddons)."
+      },
+      {
+        "endpoint_path": "graphql/GetInvoices",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBillingPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get invoices via billing.invoices. Paginated (limit 10). Batched in billingPageApi via useBillingPage. Optional (includeInvoices)."
+      },
+      {
+        "endpoint_path": "graphql/Subscribe",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Subscribe to plan via billing.subscribe. Tier and period (monthly/quarterly/yearly). Via useBilling.subscribeToPlan."
+      },
+      {
+        "endpoint_path": "graphql/PurchaseAddon",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Purchase addon via billing.purchaseAddon. Via useBilling.purchaseAddon in AddonPackages."
+      },
+      {
+        "endpoint_path": "graphql/CancelSubscription",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Cancel subscription via billing.cancelSubscription. Via useBilling.cancelSubscription in CurrentSubscription."
+      },
+      {
+        "endpoint_path": "graphql/GetAdminPlans",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_fetching",
+        "description": "Get admin plans via billing.adminPlans. Include inactive. Via useBilling.loadAdminPlans when admin tab active. superAdmin only."
+      },
+      {
+        "endpoint_path": "graphql/GetAdminAddons",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_fetching",
+        "description": "Get admin addons via billing.adminAddons. Include inactive. Via useBilling.loadAdminAddons when admin tab active. superAdmin only."
+      },
+      {
+        "endpoint_path": "graphql/CreatePlan",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_mutation",
+        "description": "Create plan via billing.createPlan. Via useBilling.addPlan in AdminBillingView. superAdmin only."
+      },
+      {
+        "endpoint_path": "graphql/UpdatePlan",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_mutation",
+        "description": "Update plan via billing.updatePlan. Via useBilling.updatePlan in AdminBillingView. superAdmin only."
+      },
+      {
+        "endpoint_path": "graphql/DeletePlan",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_mutation",
+        "description": "Delete plan via billing.deletePlan. Via useBilling.deletePlan in AdminBillingView. superAdmin only."
+      },
+      {
+        "endpoint_path": "graphql/CreateAddon",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_mutation",
+        "description": "Create addon via billing.createAddon. Via useBilling.addAddon in AdminBillingView. superAdmin only."
+      },
+      {
+        "endpoint_path": "graphql/UpdateAddon",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_mutation",
+        "description": "Update addon via billing.updateAddon. Via useBilling.updateAddon in AdminBillingView. superAdmin only."
+      },
+      {
+        "endpoint_path": "graphql/DeleteAddon",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "billingService",
+        "via_hook": "useBilling",
+        "usage_type": "conditional",
+        "usage_context": "data_mutation",
+        "description": "Delete addon via billing.deleteAddon. Via useBilling.deleteAddon in AdminBillingView. superAdmin only."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "DashboardAccessGate",
+        "file_path": "components/shared/DashboardAccessGate.tsx"
+      },
+      {
+        "name": "DashboardPageLayout",
+        "file_path": "components/layouts/DashboardPageLayout.tsx"
+      },
+      {
+        "name": "PageHeader",
+        "file_path": "components/patterns/PageHeader.tsx"
+      },
+      {
+        "name": "CurrentSubscription",
+        "file_path": "components/features/billing/CurrentSubscription.tsx"
+      },
+      {
+        "name": "SubscriptionPlans",
+        "file_path": "components/features/billing/SubscriptionPlans.tsx"
+      },
+      {
+        "name": "AddonPackages",
+        "file_path": "components/features/billing/AddonPackages.tsx"
+      },
+      {
+        "name": "AdminBillingView",
+        "file_path": "components/features/billing/AdminBillingView.tsx"
+      },
+      {
+        "name": "PaymentMethodCard",
+        "file_path": "components/features/billing/PaymentMethodCard.tsx"
+      },
+      {
+        "name": "InvoiceHistory",
+        "file_path": "components/features/billing/InvoiceHistory.tsx"
+      },
+      {
+        "name": "PaymentModal",
+        "file_path": "components/features/billing/PaymentModal.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 15,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [
+      {
+        "id": "subscription",
+        "text": "Current Subscription",
+        "level": 2
+      },
+      {
+        "id": "upgrade",
+        "text": "Upgrade Plan",
+        "level": 2
+      },
+      {
+        "id": "addons",
+        "text": "One-time Credit Packs",
+        "level": 2
+      },
+      {
+        "id": "invoices",
+        "text": "Invoice History",
+        "level": 2
+      }
+    ],
+    "subheadings": [],
+    "tabs": [
+      {
+        "id": "user",
+        "label": "My Billing",
+        "content_ref": "billing-user"
+      },
+      {
+        "id": "admin",
+        "label": "System Management",
+        "content_ref": "billing-admin"
+      }
+    ],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

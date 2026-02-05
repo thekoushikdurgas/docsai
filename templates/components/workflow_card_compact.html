@@ -1,0 +1,73 @@
+{% comment %}
+Workflow card compact component - row layout for list view.
+
+Usage:
+{% include 'components/workflow_card_compact.html' with workflow=workflow variant="my_workflow" %}
+
+Parameters:
+- workflow: Workflow dict
+- variant: my_workflow, n8n, or template
+{% endcomment %}
+
+<div class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+    <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+            {% if variant == 'my_workflow' %}
+                {% if workflow.is_active %}bg-green-100 dark:bg-green-900/30{% else %}bg-gray-100 dark:bg-gray-700{% endif %}
+            {% elif variant == 'n8n' %}
+                {% if workflow.is_supported %}bg-green-100 dark:bg-green-900/30{% else %}bg-amber-100 dark:bg-amber-900/30{% endif %}
+            {% else %}
+                bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30
+            {% endif %}">
+            <svg class="w-5 h-5
+                {% if variant == 'my_workflow' %}
+                    {% if workflow.is_active %}text-green-600 dark:text-green-400{% else %}text-gray-500 dark:text-gray-400{% endif %}
+                {% elif variant == 'n8n' %}
+                    {% if workflow.is_supported %}text-green-600 dark:text-green-400{% else %}text-amber-600 dark:text-amber-400{% endif %}
+                {% else %}
+                    text-blue-600 dark:text-blue-400
+                {% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path>
+            </svg>
+        </div>
+        <div>
+            {% if variant == 'my_workflow' %}
+                <a href="{% url 'durgasflow:workflow_detail' workflow.id %}" class="font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400">{{ workflow.name }}</a>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ workflow.trigger_type|title }} • {{ workflow.execution_count|default:0 }} runs</p>
+            {% elif variant == 'n8n' %}
+                <span class="font-bold text-gray-900 dark:text-gray-100">{{ workflow.name }}</span>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ workflow.node_count }} nodes • {{ workflow.category }}</p>
+            {% else %}
+                <span class="font-bold text-gray-900 dark:text-gray-100">{{ workflow.name }}</span>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ workflow.category|default:"Template"|title }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        {% if variant == 'my_workflow' %}
+            {% include 'components/status_badge.html' with status=workflow.status variant="workflow" %}
+            <a href="{% url 'durgasflow:editor' workflow.id %}" class="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30" title="Edit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            </a>
+            <form method="post" action="{% url 'durgasflow:workflow_execute' workflow.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30" title="Execute">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132a1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
+                </button>
+            </form>
+        {% elif variant == 'n8n' %}
+            <span class="px-2 py-1 text-xs font-semibold rounded-lg {% if workflow.is_supported %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300{% else %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300{% endif %}">
+                {% if workflow.is_supported %}✓ Supported{% else %}⚠ Partial{% endif %}
+            </span>
+            <form method="post" action="{% url 'durgasflow:import_n8n' workflow.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700">Import</button>
+            </form>
+        {% else %}
+            <form method="post" action="{% url 'durgasflow:template_use' workflow.id %}">
+                {% csrf_token %}
+                <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700">Use Template</button>
+            </form>
+        {% endif %}
+    </div>
+</div>

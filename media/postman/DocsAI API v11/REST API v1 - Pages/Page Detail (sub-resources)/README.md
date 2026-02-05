@@ -1,0 +1,1 @@
+Page sub-resources (access-control, sections, components, endpoints, versions).

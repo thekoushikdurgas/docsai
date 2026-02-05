@@ -1,0 +1,40 @@
+{
+  "name": "Real-World_Partnership Opportunities",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query PartnershipTargets($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name employeesCount industries annualRevenue technologies website city country} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"industries\",\n\"operator\":\"in\",\n\"value\":[\n\"Software\",\n\"SaaS\",\n\"Technology\"\n]\n},\n{\n\"field\":\"employees_count\",\n\"operator\":\"gte\",\n\"value\":50\n},\n{\n\"field\":\"employees_count\",\n\"operator\":\"lte\",\n\"value\":500\n},\n{\n\"field\":\"annual_revenue\",\n\"operator\":\"gte\",\n\"value\":1000000\n},\n{\n\"field\":\"technologies\",\n\"operator\":\"in\",\n\"value\":[\n\"Python\",\n\"Go\",\n\"AWS\",\n\"React\"\n]\n},\n{\n\"field\":\"country\",\n\"operator\":\"in\",\n\"value\":[\n\"united states\",\n\"canada\",\n\"united kingdom\"\n]\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"annual_revenue\",\n\"orderDirection\":\"desc\"\n}\n],\n\"limit\":100,\n\"page\":1\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query PartnershipTargets($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name employeesCount industries annualRevenue technologies website city country} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"industries\",\n\"operator\":\"in\",\n\"value\":[\n\"Software\",\n\"SaaS\",\n\"Technology\"\n]\n},\n{\n\"field\":\"employees_count\",\n\"operator\":\"gte\",\n\"value\":50\n},\n{\n\"field\":\"employees_count\",\n\"operator\":\"lte\",\n\"value\":500\n},\n{\n\"field\":\"annual_revenue\",\n\"operator\":\"gte\",\n\"value\":1000000\n},\n{\n\"field\":\"technologies\",\n\"operator\":\"in\",\n\"value\":[\n\"Python\",\n\"Go\",\n\"AWS\",\n\"React\"\n]\n},\n{\n\"field\":\"country\",\n\"operator\":\"in\",\n\"value\":[\n\"united states\",\n\"canada\",\n\"united kingdom\"\n]\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"annual_revenue\",\n\"orderDirection\":\"desc\"\n}\n],\n\"limit\":100,\n\"page\":1\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

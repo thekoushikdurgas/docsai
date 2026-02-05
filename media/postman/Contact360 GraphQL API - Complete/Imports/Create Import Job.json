@@ -1,0 +1,40 @@
+{
+  "name": "Create Import Job",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation CreateImportJob($input:CreateImportJobInput!){ imports{ createImportJob(input:$input){ uuid jobType status data createdAt}}}\",\n\"variables\":{\n\"input\":{\n\"s3Key\":\"uploads/uuid_contacts.csv\",\n\"s3Bucket\":\"my-bucket\",\n\"retryCount\":3,\n\"service\":\"contact\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation CreateImportJob($input:CreateImportJobInput!){ imports{ createImportJob(input:$input){ uuid jobType status data createdAt}}}\",\n\"variables\":{\n\"input\":{\n\"s3Key\":\"uploads/uuid_contacts.csv\",\n\"s3Bucket\":\"my-bucket\",\n\"retryCount\":3,\n\"service\":\"contact\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

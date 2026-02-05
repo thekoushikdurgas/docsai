@@ -1,0 +1,40 @@
+{
+  "name": "Create Contact Export",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrlV2}}/exports/contacts",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "if (rq.response.code === 201) {\n    const response = rq.response.json();\n    if (response.export_id) {\n        rq.collectionVariables.set('sampleExportId', response.export_id);\n    }\n    if (response.download_url) {\n        rq.collectionVariables.set('sampleExportDownloadUrl', response.download_url);\n    }\n}"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Authorization",
+        "value": "Bearer {{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"filters\": {},\n  \"format\": \"csv\"\n}",
+    "bodyContainer": {
+      "text": "{\n  \"filters\": {},\n  \"format\": \"csv\"\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

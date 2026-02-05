@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analyze Documentation - Operations{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <a href="{% url 'documentation:dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+        </a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <a href="{% url 'documentation:operations_dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Operations</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-700 dark:text-gray-300 font-medium">Analyze</span>
+    </nav>
+
+    <!-- Suggested next step -->
+    <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Suggested next step</p>
+    <div class="flex flex-wrap items-center gap-2 text-sm mb-4">
+        <a href="{% url 'documentation:operations_validate' %}{% if operation_id %}?parent_operation_id={{ operation_id }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">Validate</a>
+    </div>
+    
+    <!-- Header -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Analyze Documentation</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Analyze and process documentation files</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Form -->
+    <div id="analysis-form-wrap" class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <form id="analysis-form" method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label for="analysis_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Analysis Type
+                </label>
+                <select 
+                    id="analysis_type" 
+                    name="analysis_type"
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                    <option value="all">All (Pages, Endpoints, Relationships, N8N, Postman, Result)</option>
+                    <option value="pages">Pages Only</option>
+                    <option value="endpoints">Endpoints Only</option>
+                    <option value="relationships">Relationships Only</option>
+                    <option value="n8n">N8N Only</option>
+                    <option value="postman">Postman Only</option>
+                    <option value="result">Result Only</option>
+                </select>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Data from media/pages, media/endpoints, media/relationship, media/n8n, media/postman, media/result</p>
+            </div>
+            
+            <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <a href="{% url 'documentation:operations_dashboard' %}" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium text-sm">
+                    Cancel
+                </a>
+                <button 
+                    type="submit"
+                    class="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium text-sm"
+                >
+                    Start Analysis
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Progress (hidden by default, shown when analysis starts via JS) -->
+    <div id="analysis-progress" class="hidden bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mt-6">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 dark:border-gray-700 border-t-blue-500 flex-shrink-0"></div>
+            <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Analyzing documentation</h3>
+                <p id="analysis-progress-label" class="text-sm text-gray-500 dark:text-gray-400">Starting…</p>
+                <p id="analysis-progress-file" class="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5"></p>
+            </div>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div id="analysis-progress-bar" class="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+        </div>
+        <p id="analysis-progress-step" class="text-xs text-gray-500 dark:text-gray-400 mt-2">0 / 0 files</p>
+    </div>
+    
+    <!-- Results Display (hidden by default, shown after analysis) -->
+    <div id="analysis-results" class="{% if not report %}hidden{% endif %} bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mt-6 max-w-6xl">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Analysis Results</h3>
+        <div id="results-content" class="space-y-6">
+            {% if report %}
+                {% if report.analysis_error %}
+                <div class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300">
+                    <p class="font-medium">Analysis failed</p>
+                    <p class="text-sm mt-1">{{ report.analysis_error }}</p>
+                </div>
+                {% else %}
+                {% if report.summary %}
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Total files</p>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ report.summary.total_files }}</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Valid</p>
+                        <p class="text-lg font-semibold text-green-700 dark:text-green-300">{{ report.summary.total_valid }}</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Invalid</p>
+                        <p class="text-lg font-semibold text-red-700 dark:text-red-300">{{ report.summary.total_invalid }}</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Scope</p>
+                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ analysis_type|default:"all" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% if report and not report.analysis_error %}
+                    {{ report|json_script:"analysis-report-data" }}
+                    <button type="button" id="download-report-btn" class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        Download report (JSON)
+                    </button>
+                    {% if operation_id %}
+                    <a href="{% url 'documentation:operations_validate' %}?parent_operation_id={{ operation_id }}" class="px-3 py-1.5 text-sm rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors">
+                        Next: Validate
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
+
+                {% if report.pages %}
+                <details class="border border-gray-200 dark:border-gray-600 rounded-lg mb-2 group" open>
+                    <summary class="p-4 cursor-pointer list-none flex items-center justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg [&::-webkit-details-marker]:hidden">
+                        <span>Pages — {{ report.pages.valid|default:0 }} valid, {{ report.pages.invalid|default:0 }} invalid</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Success</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for f in report.pages.files %}{% if f.valid %}<li>{{ f.file }}{% if f.page_id %} ({{ f.page_id }}){% endif %}</li>{% endif %}{% empty %}<li class="text-gray-400">No files in this run</li>{% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Errors (all)</p>
+                            <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for err in report.pages.errors %}<li>{{ err.file }}: {{ err.error }}</li>{% endfor %}
+                                {% for f in report.pages.files %}{% if not f.valid %}{% for e in f.errors %}<li>{{ f.file }}: {{ e.message|default:e.field|default:"" }}</li>{% empty %}<li>{{ f.file }}: invalid</li>{% endfor %}{% endif %}{% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+                {% endif %}
+                {% if report.endpoints %}
+                <details class="border border-gray-200 dark:border-gray-600 rounded-lg mb-2 group">
+                    <summary class="p-4 cursor-pointer list-none flex items-center justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg [&::-webkit-details-marker]:hidden">
+                        <span>Endpoints — {{ report.endpoints.valid|default:0 }} valid, {{ report.endpoints.invalid|default:0 }} invalid</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Success</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for f in report.endpoints.files %}{% if f.valid %}<li>{{ f.file }}{% if f.endpoint_id %} ({{ f.endpoint_id }}){% endif %}</li>{% endif %}{% empty %}<li class="text-gray-400">No files in this run</li>{% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Errors (all)</p>
+                            <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for err in report.endpoints.errors %}<li>{{ err.file }}: {{ err.error }}</li>{% endfor %}
+                                {% for f in report.endpoints.files %}{% if not f.valid %}{% for e in f.errors %}<li>{{ f.file }}: {{ e.message|default:e.field|default:"" }}</li>{% empty %}<li>{{ f.file }}: invalid</li>{% endfor %}{% endif %}{% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+                {% endif %}
+                {% if report.relationships %}
+                <details class="border border-gray-200 dark:border-gray-600 rounded-lg mb-2 group">
+                    <summary class="p-4 cursor-pointer list-none flex items-center justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg [&::-webkit-details-marker]:hidden">
+                        <span>Relationships — {{ report.relationships.valid|default:0 }} valid, {{ report.relationships.invalid|default:0 }} invalid</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Success</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for f in report.relationships.files %}{% if f.valid %}<li>{{ f.file }}</li>{% endif %}{% empty %}<li class="text-gray-400">No files in this run</li>{% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Errors (all)</p>
+                            <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for err in report.relationships.errors %}<li>{{ err.file }}: {{ err.error }}</li>{% endfor %}
+                                {% for f in report.relationships.files %}{% if not f.valid %}{% for e in f.errors %}<li>{{ f.file }}: {{ e.message|default:e.field|default:"" }}</li>{% empty %}<li>{{ f.file }}: invalid</li>{% endfor %}{% endif %}{% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+                {% endif %}
+                {% if report.n8n %}
+                <details class="border border-gray-200 dark:border-gray-600 rounded-lg mb-2 group">
+                    <summary class="p-4 cursor-pointer list-none flex items-center justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg [&::-webkit-details-marker]:hidden">
+                        <span>N8N — {{ report.n8n.valid|default:0 }} valid, {{ report.n8n.invalid|default:0 }} invalid</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Success</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for f in report.n8n.files %}{% if f.valid %}<li>{{ f.file }}</li>{% endif %}{% empty %}<li class="text-gray-400">No files in this run</li>{% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Errors (all)</p>
+                            <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for err in report.n8n.errors %}<li>{{ err.file }}: {{ err.error }}</li>{% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+                {% endif %}
+                {% if report.postman %}
+                <details class="border border-gray-200 dark:border-gray-600 rounded-lg mb-2 group">
+                    <summary class="p-4 cursor-pointer list-none flex items-center justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg [&::-webkit-details-marker]:hidden">
+                        <span>Postman — {{ report.postman.valid|default:0 }} valid, {{ report.postman.invalid|default:0 }} invalid</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Success</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for f in report.postman.files %}{% if f.valid %}<li>{{ f.file }}</li>{% endif %}{% empty %}<li class="text-gray-400">No files in this run</li>{% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Errors (all)</p>
+                            <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for err in report.postman.errors %}<li>{{ err.file }}: {{ err.error }}</li>{% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+                {% endif %}
+                {% if report.result %}
+                <details class="border border-gray-200 dark:border-gray-600 rounded-lg mb-2 group">
+                    <summary class="p-4 cursor-pointer list-none flex items-center justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg [&::-webkit-details-marker]:hidden">
+                        <span>Result — {{ report.result.valid|default:0 }} valid, {{ report.result.invalid|default:0 }} invalid</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Success</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for f in report.result.files %}{% if f.valid %}<li>{{ f.file }}</li>{% endif %}{% empty %}<li class="text-gray-400">No files in this run</li>{% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Errors (all)</p>
+                            <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for err in report.result.errors %}<li>{{ err.file }}: {{ err.error }}</li>{% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+                {% endif %}
+                {% endif %}
+            {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">Run analysis to see results.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    var form = document.getElementById('analysis-form');
+    var formWrap = document.getElementById('analysis-form-wrap');
+    var progressEl = document.getElementById('analysis-progress');
+    var progressBar = document.getElementById('analysis-progress-bar');
+    var progressLabel = document.getElementById('analysis-progress-label');
+    var progressFile = document.getElementById('analysis-progress-file');
+    var progressStep = document.getElementById('analysis-progress-step');
+    var startUrl = "{% url 'documentation:api_operations_analyze_start' %}";
+    var progressUrlTemplate = "{% url 'documentation:api_operations_analyze_progress' job_id='__JOB_ID__' %}";
+
+    function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : null;
+    }
+
+    if (form && progressEl) {
+        form.addEventListener('submit', function(ev) {
+            ev.preventDefault();
+            var analysisType = (document.getElementById('analysis_type') && document.getElementById('analysis_type').value) || 'all';
+            var csrfToken = (form.querySelector('input[name=csrfmiddlewaretoken]') && form.querySelector('input[name=csrfmiddlewaretoken]').value) || getCookie('csrftoken');
+            formWrap.classList.add('hidden');
+            progressEl.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressLabel.textContent = 'Starting…';
+            progressFile.textContent = '';
+            progressStep.textContent = '0 / 0 files';
+
+            fetch(startUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ analysis_type: analysisType }),
+                credentials: 'same-origin'
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.error) {
+                    progressLabel.textContent = 'Error: ' + data.error;
+                    progressEl.querySelector('.animate-spin').classList.add('hidden');
+                    return;
+                }
+                var jobId = data.job_id;
+                var poll = function() {
+                    fetch(progressUrlTemplate.replace('__JOB_ID__', encodeURIComponent(jobId)), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                        .then(function(r) { return r.json(); })
+                        .then(function(p) {
+                            if (p.error && p.done) {
+                                progressLabel.textContent = 'Error: ' + (p.error || 'Unknown error');
+                                progressEl.querySelector('.animate-spin').classList.add('hidden');
+                                return;
+                            }
+                            if (p.done) {
+                                window.location.href = window.location.pathname + '?job_id=' + encodeURIComponent(jobId);
+                                return;
+                            }
+                            var total = Math.max(1, p.total_files || 0);
+                            var current = p.current_index || 0;
+                            var pct = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
+                            progressBar.style.width = pct + '%';
+                            progressLabel.textContent = (p.section ? p.section + ': ' : '') + (p.section_current && p.section_total ? 'file ' + p.section_current + ' of ' + p.section_total : current + ' / ' + total + ' files');
+                            progressFile.textContent = p.current_file ? p.current_file : '';
+                            progressStep.textContent = current + ' / ' + total + ' files';
+                            setTimeout(poll, 500);
+                        })
+                        .catch(function(err) {
+                            progressLabel.textContent = 'Error: ' + (err.message || 'Poll failed');
+                            progressEl.querySelector('.animate-spin').classList.add('hidden');
+                        });
+                };
+                poll();
+            }).catch(function(err) {
+                progressLabel.textContent = 'Error: ' + (err.message || 'Failed to start');
+                progressEl.querySelector('.animate-spin').classList.add('hidden');
+            });
+        });
+    }
+
+    {% if report and not report.analysis_error %}
+    var btn = document.getElementById('download-report-btn');
+    var scriptEl = document.getElementById('analysis-report-data');
+    if (btn && scriptEl) {
+        btn.addEventListener('click', function() {
+            try {
+                var json = scriptEl.textContent;
+                var blob = new Blob([json], { type: 'application/json' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'analysis-report-' + (new Date().toISOString().slice(0, 10)) + '.json';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            } catch (e) { console.error(e); }
+        });
+    }
+    {% endif %}
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{
+  "name": "Company Config - Full Company Details",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"seniority\": [\"executive\", \"principal\"],\n        \"email_status\": [\"verified\"]\n      }\n    }\n  },\n  \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"title\", \"email\", \"company_id\"],\n  \"company_config\": {\n    \"populate\": true,\n    \"select_columns\": [\"uuid\", \"name\", \"employees_count\", \"industries\", \"annual_revenue\", \"total_funding\", \"technologies\", \"website\", \"linkedin_url\", \"city\", \"state\", \"country\"]\n  },\n  \"page\": 1,\n  \"limit\": 25\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"seniority\": [\"executive\", \"principal\"],\n        \"email_status\": [\"verified\"]\n      }\n    }\n  },\n  \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"title\", \"email\", \"company_id\"],\n  \"company_config\": {\n    \"populate\": true,\n    \"select_columns\": [\"uuid\", \"name\", \"employees_count\", \"industries\", \"annual_revenue\", \"total_funding\", \"technologies\", \"website\", \"linkedin_url\", \"city\", \"state\", \"country\"]\n  },\n  \"page\": 1,\n  \"limit\": 25\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "List Activities",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ListActivities($filters:ActivityFilterInput){ activities{ activities(filters:$filters){ items{ id userId serviceType actionType status resultCount createdAt} total limit offset hasNext hasPrevious}}}\",\n\"variables\":{\n\"filters\":{\n\"serviceType\":\"ai_chats\",\n\"actionType\":\"create\",\n\"limit\":50,\n\"offset\":0\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ListActivities($filters:ActivityFilterInput){ activities{ activities(filters:$filters){ items{ id userId serviceType actionType status resultCount createdAt} total limit offset hasNext hasPrevious}}}\",\n\"variables\":{\n\"filters\":{\n\"serviceType\":\"ai_chats\",\n\"actionType\":\"create\",\n\"limit\":50,\n\"offset\":0\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

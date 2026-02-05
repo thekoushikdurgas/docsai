@@ -1,0 +1,40 @@
+{
+  "name": "Get Dashboard Page",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query GetDashboardPage($pageId:String!){ dashboardPages{ dashboardPage(pageId:$pageId){ pageId metadata{ title description route} accessControl{ allowedRoles restrictionType}}}}\",\n\"variables\":{\n\"pageId\":\"dashboard-home\"\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query GetDashboardPage($pageId:String!){ dashboardPages{ dashboardPage(pageId:$pageId){ pageId metadata{ title description route} accessControl{ allowedRoles restrictionType}}}}\",\n\"variables\":{\n\"pageId\":\"dashboard-home\"\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

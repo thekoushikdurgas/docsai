@@ -1,0 +1,106 @@
+{
+  "_id": "activities_page-001",
+  "page_id": "activities_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/activities",
+    "file_path": "contact360/dashboard/app/(dashboard)/activities/page.tsx",
+    "purpose": "Activity tracking page with stats cards, filterable activity table, and details modal. Filters: service_type, action_type, status, date range. Data batched via activitiesPageApi (activities + activityStats).",
+    "s3_key": "data/pages/activities_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": null,
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/GetActivities",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "activitiesService",
+        "via_hook": "useActivitiesPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "List user activities via activities.activities. Filters: serviceType, actionType, status, startDate, endDate, limit, offset. Batched in activitiesPageApi via useActivitiesPage."
+      },
+      {
+        "endpoint_path": "graphql/GetActivityStats",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "activitiesService",
+        "via_hook": "useActivitiesPage",
+        "usage_type": "primary",
+        "usage_context": "analytics",
+        "description": "Get activity stats via activities.activityStats. Returns totalActivities, byServiceType, byActionType, byStatus. Batched in activitiesPageApi via useActivitiesPage. Optional (includeStats)."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "DashboardAccessGate",
+        "file_path": "components/shared/DashboardAccessGate.tsx"
+      },
+      {
+        "name": "DataPageLayout",
+        "file_path": "components/layouts/DataPageLayout.tsx"
+      },
+      {
+        "name": "DataToolbar",
+        "file_path": "components/patterns/DataToolbar.tsx"
+      },
+      {
+        "name": "ActivityStatsCards",
+        "file_path": "components/features/activities/ActivityStatsCards.tsx"
+      },
+      {
+        "name": "ActivityTable",
+        "file_path": "components/features/activities/ActivityTable.tsx"
+      },
+      {
+        "name": "ActivityDetailsModal",
+        "file_path": "components/features/activities/ActivityDetailsModal.tsx"
+      },
+      {
+        "name": "ActivitiesSidebar",
+        "file_path": "components/features/activities/ActivitiesSidebar.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 2,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [
+      {
+        "id": "stats",
+        "text": "Statistics",
+        "level": 2
+      },
+      {
+        "id": "table",
+        "text": "Activity Table",
+        "level": 2
+      }
+    ],
+    "subheadings": [],
+    "tabs": [],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

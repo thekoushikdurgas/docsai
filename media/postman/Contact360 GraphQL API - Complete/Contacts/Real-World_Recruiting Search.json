@@ -1,0 +1,40 @@
+{
+  "name": "Real-World_Recruiting Search",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query EngineeringCandidates($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority companyUuid} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"title\",\n\"operator\":\"contains\",\n\"value\":\"engineer developer architect\"\n},\n{\n\"field\":\"departments\",\n\"operator\":\"in\",\n\"value\":[\n\"Engineering\",\n\"Product\"\n]\n},\n{\n\"field\":\"seniority\",\n\"operator\":\"in\",\n\"value\":[\n\"Senior\",\n\"Lead\",\n\"Principal\"\n]\n},\n{\n\"field\":\"company_technologies\",\n\"operator\":\"in\",\n\"value\":[\n\"Python\",\n\"Go\",\n\"React\",\n\"AWS\"\n]\n},\n{\n\"field\":\"company_employees_count\",\n\"operator\":\"gte\",\n\"value\":100\n},\n{\n\"field\":\"country\",\n\"operator\":\"in\",\n\"value\":[\n\"united states\",\n\"canada\"\n]\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"created_at\",\n\"orderDirection\":\"desc\"\n}\n],\n\"limit\":50,\n\"page\":1\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query EngineeringCandidates($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority companyUuid} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"title\",\n\"operator\":\"contains\",\n\"value\":\"engineer developer architect\"\n},\n{\n\"field\":\"departments\",\n\"operator\":\"in\",\n\"value\":[\n\"Engineering\",\n\"Product\"\n]\n},\n{\n\"field\":\"seniority\",\n\"operator\":\"in\",\n\"value\":[\n\"Senior\",\n\"Lead\",\n\"Principal\"\n]\n},\n{\n\"field\":\"company_technologies\",\n\"operator\":\"in\",\n\"value\":[\n\"Python\",\n\"Go\",\n\"React\",\n\"AWS\"\n]\n},\n{\n\"field\":\"company_employees_count\",\n\"operator\":\"gte\",\n\"value\":100\n},\n{\n\"field\":\"country\",\n\"operator\":\"in\",\n\"value\":[\n\"united states\",\n\"canada\"\n]\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"created_at\",\n\"orderDirection\":\"desc\"\n}\n],\n\"limit\":50,\n\"page\":1\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

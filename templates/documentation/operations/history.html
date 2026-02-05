@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Operations History - Documentation{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-6xl mx-auto">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <a href="{% url 'documentation:dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+        </a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <a href="{% url 'documentation:operations_dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Operations</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-700 dark:text-gray-300 font-medium">History</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Operations history</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Documentation operation runs (Analyze, Validate, Generate, Upload, Seed)</p>
+            </div>
+            <a href="{% url 'documentation:operations_dashboard' %}" class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm">
+                ← Back to Operations
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <label for="history-filter" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Filter by type:</label>
+        <select id="history-filter" class="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+            <option value="">All</option>
+            <option value="docs_analyze">Analyze</option>
+            <option value="docs_validate">Validate</option>
+            <option value="docs_generate_json">Generate JSON</option>
+            <option value="docs_generate_postman">Generate Postman</option>
+            <option value="docs_upload_s3">Upload S3</option>
+            <option value="docs_seed">Seed</option>
+        </select>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 overflow-x-auto">
+        <div id="history-loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</div>
+        <div id="history-content" class="hidden">
+            <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-300">
+                <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-600">
+                        <th class="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">Type</th>
+                        <th class="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">Name</th>
+                        <th class="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">Status</th>
+                        <th class="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100">When</th>
+                        <th class="py-3 font-medium text-gray-900 dark:text-gray-100">Summary</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody"></tbody>
+            </table>
+        </div>
+        <div id="history-empty" class="hidden text-sm text-gray-500 dark:text-gray-400 py-8 text-center">No operations found.</div>
+        <div id="history-error" class="hidden text-sm text-red-600 dark:text-red-400 py-4"></div>
+        <div id="history-load-more" class="hidden mt-4 text-center">
+            <button type="button" id="history-load-more-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm">Load more</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var apiUrl = '{% url "documentation:api_operations_history" %}';
+    var limit = 20;
+    var offset = 0;
+    var filterType = '';
+
+    var labels = {
+        'docs_analyze': 'Analyze',
+        'docs_validate': 'Validate',
+        'docs_generate_json': 'Generate JSON',
+        'docs_generate_postman': 'Generate Postman',
+        'docs_upload_s3': 'Upload S3',
+        'docs_seed': 'Seed'
+    };
+
+    function escapeHtml(s) {
+        if (s == null || s === '') return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '—';
+        try {
+            var d = new Date(iso);
+            return isNaN(d.getTime()) ? iso : d.toLocaleString();
+        } catch (e) { return iso; }
+    }
+
+    function summaryText(summary, opType) {
+        if (!summary) return '—';
+        if (typeof summary === 'string') return escapeHtml(summary.substring(0, 120));
+        if (summary.error) return escapeHtml(summary.error.substring(0, 120));
+        if (summary.message) return escapeHtml(summary.message.substring(0, 120));
+        if (opType === 'docs_analyze' || opType === 'docs_validate') {
+            var parts = [];
+            ['pages', 'endpoints', 'relationships'].forEach(function(k) {
+                var d = summary[k];
+                if (d && typeof d === 'object' && (d.valid !== undefined || d.invalid !== undefined)) {
+                    parts.push(k + ': ' + (d.valid || 0) + ' valid, ' + (d.invalid || 0) + ' invalid');
+                }
+            });
+            return parts.length ? escapeHtml(parts.join('; ')) : (summary.success !== undefined ? (summary.success ? 'Success' : 'Failed') : '—');
+        }
+        if (opType === 'docs_generate_json' && summary.indexes) {
+            var idx = summary.indexes;
+            var list = Object.keys(idx).map(function(k) { return k + ' ' + (idx[k] ? '✓' : '✗'); }).join(', ');
+            return escapeHtml(list || (summary.success ? 'Success' : 'Failed'));
+        }
+        if (opType === 'docs_generate_postman') {
+            if (summary.success && summary.filename) return escapeHtml('Saved: ' + summary.filename);
+            return summary.error ? escapeHtml(summary.error.substring(0, 80)) : (summary.success ? 'Success' : 'Failed');
+        }
+        if (opType === 'docs_upload_s3' && summary.by_type) {
+            var by = summary.by_type;
+            var up = Object.keys(by).map(function(k) { return k + ': ' + (by[k].synced || 0) + ' synced, ' + (by[k].errors || 0) + ' errors'; }).join('; ');
+            return escapeHtml(up || (summary.success ? 'Success' : 'Failed'));
+        }
+        if (opType === 'docs_seed') return summary.success ? 'Seeding completed' : (summary.message || 'Failed');
+        return summary.success !== undefined ? (summary.success ? 'Success' : 'Failed') : '—';
+    }
+
+    function statusBadge(status) {
+        var s = (status || '').toLowerCase();
+        if (s === 'completed') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">Completed</span>';
+        if (s === 'failed') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">Failed</span>';
+        if (s === 'running') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">Running</span>';
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">' + escapeHtml(status || '—') + '</span>';
+    }
+
+    function buildUrl() {
+        var u = apiUrl + '?limit=' + limit + '&offset=' + offset;
+        if (filterType) u += '&operation_type=' + encodeURIComponent(filterType);
+        return u;
+    }
+
+    function renderRows(ops) {
+        var tbody = document.getElementById('history-tbody');
+        ops.forEach(function(op) {
+            var tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-100 dark:border-gray-700';
+            tr.innerHTML =
+                '<td class="py-2 pr-4">' + escapeHtml(labels[op.operation_type] || op.operation_type || '—') + '</td>' +
+                '<td class="py-2 pr-4">' + escapeHtml(op.name || '—') + '</td>' +
+                '<td class="py-2 pr-4">' + statusBadge(op.status) + '</td>' +
+                '<td class="py-2 pr-4 text-gray-600 dark:text-gray-400">' + escapeHtml(formatDate(op.created_at)) + '</td>' +
+                '<td class="py-2 text-gray-600 dark:text-gray-400">' + summaryText(op.report_summary, op.operation_type) + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    function load(append) {
+        var loading = document.getElementById('history-loading');
+        var content = document.getElementById('history-content');
+        var empty = document.getElementById('history-empty');
+        var errEl = document.getElementById('history-error');
+        var loadMore = document.getElementById('history-load-more');
+        var tbody = document.getElementById('history-tbody');
+
+        if (!append) {
+            loading.classList.remove('hidden');
+            content.classList.add('hidden');
+            empty.classList.add('hidden');
+            errEl.classList.add('hidden');
+            loadMore.classList.add('hidden');
+            tbody.innerHTML = '';
+        }
+
+        fetch(buildUrl(), { credentials: 'same-origin' })
+            .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error(r.statusText)); })
+            .then(function(data) {
+                loading.classList.add('hidden');
+                if (data.error) {
+                    errEl.textContent = data.error;
+                    errEl.classList.remove('hidden');
+                    return;
+                }
+                var ops = data.operations || [];
+                if (ops.length === 0 && !append) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                renderRows(ops);
+                content.classList.remove('hidden');
+                if (ops.length >= limit) {
+                    document.getElementById('history-load-more-btn').onclick = function() {
+                        offset += limit;
+                        load(true);
+                    };
+                    loadMore.classList.remove('hidden');
+                } else {
+                    loadMore.classList.add('hidden');
+                }
+            })
+            .catch(function(e) {
+                loading.classList.add('hidden');
+                errEl.textContent = 'Could not load history: ' + (e.message || 'Unknown error');
+                errEl.classList.remove('hidden');
+            });
+    }
+
+    document.getElementById('history-filter').addEventListener('change', function() {
+        filterType = this.value || '';
+        offset = 0;
+        load(false);
+    });
+
+    load(false);
+})();
+</script>
+{% endblock %}

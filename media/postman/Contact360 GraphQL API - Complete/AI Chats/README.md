@@ -1,0 +1,1 @@
+AI Chats module - Queries and Mutations

@@ -1,0 +1,151 @@
+{
+  "_id": "linkedin_page-001",
+  "page_id": "linkedin_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/linkedin",
+    "file_path": "contact360/dashboard/app/(dashboard)/linkedin/page.tsx",
+    "purpose": "LinkedIn tools page with Search, Upload, and Paste tabs. Search by single URL; upload CSV with column mapping; paste URLs for bulk export. UsageCounter for free users. Sections gated via DashboardComponentGuard.",
+    "s3_key": "data/pages/linkedin_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "Search, Upload, Paste tabs gated via DashboardComponentGuard. UsageCounter shown to free users only.",
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/SearchByLinkedInUrl",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "linkedinService",
+        "via_hook": "useLinkedIn",
+        "usage_type": "primary",
+        "usage_context": "data_mutation",
+        "description": "Search contacts and companies by single LinkedIn URL. Used in Search tab. linkedin.search mutation."
+      },
+      {
+        "endpoint_path": "graphql/ExportByLinkedInUrls",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "linkedinService",
+        "via_hook": "useLinkedIn",
+        "usage_type": "primary",
+        "usage_context": "data_mutation",
+        "description": "Export contacts/companies from LinkedIn URLs. Used in Paste tab and Upload tab (after CSV mapping). Creates export job."
+      },
+      {
+        "endpoint_path": "graphql/UpsertByLinkedInUrl",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "linkedinService",
+        "via_hook": "useLinkedIn",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Upsert single contact/company from LinkedIn URL. Used for add-to-Connectra flow."
+      },
+      {
+        "endpoint_path": "graphql/GetExport",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "exportService",
+        "via_hook": "useLinkedIn",
+        "usage_type": "secondary",
+        "usage_context": "data_fetching",
+        "description": "Get export status and download URL. Used for polling and download after exportByLinkedInUrls."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "ToolPageLayout",
+        "file_path": "components/layouts/ToolPageLayout.tsx"
+      },
+      {
+        "name": "DashboardAccessGate",
+        "file_path": "components/shared/DashboardAccessGate.tsx"
+      },
+      {
+        "name": "DashboardComponentGuard",
+        "file_path": "components/shared/DashboardComponentGuard.tsx"
+      },
+      {
+        "name": "PageHeader",
+        "file_path": "components/patterns/PageHeader.tsx"
+      },
+      {
+        "name": "UsageCounter",
+        "file_path": "components/shared/UsageCounter.tsx"
+      },
+      {
+        "name": "LinkedInHeader",
+        "file_path": "components/features/linkedin/LinkedInHeader.tsx"
+      },
+      {
+        "name": "LinkedInTabNavigation",
+        "file_path": "components/features/linkedin/LinkedInTabNavigation.tsx"
+      },
+      {
+        "name": "LinkedInSearchTab",
+        "file_path": "components/features/linkedin/LinkedInSearchTab.tsx"
+      },
+      {
+        "name": "LinkedInUploadTab",
+        "file_path": "components/features/linkedin/LinkedInUploadTab.tsx"
+      },
+      {
+        "name": "LinkedInPasteTab",
+        "file_path": "components/features/linkedin/LinkedInPasteTab.tsx"
+      },
+      {
+        "name": "LinkedInInfoBox",
+        "file_path": "components/features/linkedin/LinkedInInfoBox.tsx"
+      },
+      {
+        "name": "LinkedInCsvMappingModal",
+        "file_path": "components/features/linkedin/LinkedInCsvMappingModal.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 4,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [],
+    "subheadings": [],
+    "tabs": [
+      {
+        "id": "search",
+        "label": "Search",
+        "content_ref": "linkedin-search"
+      },
+      {
+        "id": "upload",
+        "label": "Upload",
+        "content_ref": "linkedin-upload"
+      },
+      {
+        "id": "paste",
+        "label": "Paste",
+        "content_ref": "linkedin-paste"
+      }
+    ],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

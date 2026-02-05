@@ -1,0 +1,40 @@
+{
+  "name": "Create Plan",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation CreatePlan($input:CreatePlanInput!){ billing{ createPlan(input:$input){ message tier}}}\",\n\"variables\":{\n\"input\":{\n\"tier\":\"test\",\n\"name\":\"Test Plan\",\n\"category\":\"STARTER\",\n\"periods\":[\n{\n\"period\":\"monthly\",\n\"credits\":1000,\n\"ratePerCredit\":0.001,\n\"price\":10.0\n}\n],\n\"isActive\":true\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation CreatePlan($input:CreatePlanInput!){ billing{ createPlan(input:$input){ message tier}}}\",\n\"variables\":{\n\"input\":{\n\"tier\":\"test\",\n\"name\":\"Test Plan\",\n\"category\":\"STARTER\",\n\"periods\":[\n{\n\"period\":\"monthly\",\n\"credits\":1000,\n\"ratePerCredit\":0.001,\n\"price\":10.0\n}\n],\n\"isActive\":true\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "_id": "export_page-001",
+  "page_id": "export_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/export",
+    "file_path": "contact360/dashboard/app/(dashboard)/export/page.tsx",
+    "purpose": "Export management page with My Exports and S3 Files (admin-only) tabs. List, filter, download, cancel exports. Create Export redirects to contacts. Delete All and S3 tab for admin/superAdmin.",
+    "s3_key": "data/pages/export_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "S3 Files tab and Delete All button visible only to admin/superAdmin.",
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/Exports",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "exportsService",
+        "via_hook": "useExportPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "List exports with pagination and status/type filters. Via exportPageApi. Auto-refreshes every 3 seconds for pending/processing exports."
+      },
+      {
+        "endpoint_path": "graphql/GetExport",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "exportsService",
+        "via_hook": "useExportManager",
+        "usage_type": "secondary",
+        "usage_context": "data_fetching",
+        "description": "Get export details for download URL and status polling. Used by useExportManager."
+      },
+      {
+        "endpoint_path": "graphql/CancelExport",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "exportsService",
+        "via_hook": "useExportManager",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Cancel a pending or processing export."
+      },
+      {
+        "endpoint_path": "graphql/S3ListFiles",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "s3Service",
+        "via_hook": "useS3Files",
+        "usage_type": "conditional",
+        "usage_context": "data_fetching",
+        "description": "List S3 export files. Used by S3FileBrowser. Only when S3 tab is active (admin/superAdmin)."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "ToolPageLayout",
+        "file_path": "components/layouts/ToolPageLayout.tsx"
+      },
+      {
+        "name": "DashboardAccessGate",
+        "file_path": "components/shared/DashboardAccessGate.tsx"
+      },
+      {
+        "name": "PageHeader",
+        "file_path": "components/patterns/PageHeader.tsx"
+      },
+      {
+        "name": "ExportFilters",
+        "file_path": "components/features/export/ExportFilters.tsx"
+      },
+      {
+        "name": "ExportListTable",
+        "file_path": "components/features/export/ExportListTable.tsx"
+      },
+      {
+        "name": "ExportTableRow",
+        "file_path": "components/features/export/ExportTableRow.tsx"
+      },
+      {
+        "name": "ExportDeleteModal",
+        "file_path": "components/features/export/ExportDeleteModal.tsx"
+      },
+      {
+        "name": "ExportMessages",
+        "file_path": "components/features/export/ExportMessages.tsx"
+      },
+      {
+        "name": "S3FileBrowser",
+        "file_path": "components/features/export/S3FileBrowser.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 4,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [],
+    "subheadings": [],
+    "tabs": [
+      {
+        "id": "exports",
+        "label": "My Exports",
+        "content_ref": "export-list"
+      },
+      {
+        "id": "s3",
+        "label": "S3 Files",
+        "content_ref": "s3-browser"
+      }
+    ],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

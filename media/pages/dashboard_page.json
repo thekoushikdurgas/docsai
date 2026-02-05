@@ -1,0 +1,157 @@
+{
+  "_id": "dashboard_page-001",
+  "page_id": "dashboard_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/dashboard",
+    "file_path": "contact360/dashboard/app/(dashboard)/dashboard/page.tsx",
+    "purpose": "Main dashboard page with stats (admin/superAdmin only), performance chart, activity feed, pending exports, usage overview, quick actions, and upgrade banner for free users.",
+    "s3_key": "data/pages/dashboard_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "Stats grid (userStats) visible only to admin/superAdmin. Performance chart and activity feed gated via DashboardComponentGuard.",
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/UserStats",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "adminService",
+        "via_hook": "useDashboardPage",
+        "usage_type": "conditional",
+        "usage_context": "analytics",
+        "description": "Admin user statistics (total users, active users, users by role/plan). Only batched when includeStats is true (admin/superAdmin). Via dashboardPageApi."
+      },
+      {
+        "endpoint_path": "graphql/Activities",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "activitiesService",
+        "via_hook": "useDashboardPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Recent user activities with limit (default 5). Batched with userStats and exports in dashboardPageApi via useDashboardPage hook."
+      },
+      {
+        "endpoint_path": "graphql/ListExports",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "exportsService",
+        "via_hook": "useDashboardPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "List pending and processing exports. Filtered by status. Batched in dashboardPageApi via useDashboardPage hook. Auto-refresh every 60s."
+      },
+      {
+        "endpoint_path": "graphql/Usage",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "usageService",
+        "via_hook": "useUsageTracking",
+        "usage_type": "secondary",
+        "usage_context": "data_fetching",
+        "description": "Feature usage via UsageOverview. Fetched by useUsageTracking within UsageOverview component."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "DashboardPageLayout",
+        "file_path": "components/layouts/DashboardPageLayout.tsx"
+      },
+      {
+        "name": "DashboardAccessGate",
+        "file_path": "components/shared/DashboardAccessGate.tsx"
+      },
+      {
+        "name": "DashboardComponentGuard",
+        "file_path": "components/shared/DashboardComponentGuard.tsx"
+      },
+      {
+        "name": "DashboardHeader",
+        "file_path": "components/features/dashboard/DashboardHeader.tsx"
+      },
+      {
+        "name": "StatsGrid",
+        "file_path": "components/shared/StatsGrid.tsx"
+      },
+      {
+        "name": "DashboardPerformanceChart",
+        "file_path": "components/features/dashboard/DashboardPerformanceChart.tsx"
+      },
+      {
+        "name": "DashboardActivityFeed",
+        "file_path": "components/features/dashboard/DashboardActivityFeed.tsx"
+      },
+      {
+        "name": "DashboardQuickActions",
+        "file_path": "components/features/dashboard/DashboardQuickActions.tsx"
+      },
+      {
+        "name": "DashboardPendingExports",
+        "file_path": "components/features/dashboard/DashboardPendingExports.tsx"
+      },
+      {
+        "name": "DashboardUpgradeBanner",
+        "file_path": "components/features/dashboard/DashboardUpgradeBanner.tsx"
+      },
+      {
+        "name": "UsageOverview",
+        "file_path": "components/features/usage/UsageOverview.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 4,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [
+      {
+        "id": "stats",
+        "text": "Statistics",
+        "level": 2
+      },
+      {
+        "id": "performance_chart",
+        "text": "Performance",
+        "level": 2
+      },
+      {
+        "id": "activity_feed",
+        "text": "Recent Activity",
+        "level": 2
+      },
+      {
+        "id": "usage",
+        "text": "Usage Overview",
+        "level": 2
+      },
+      {
+        "id": "exports",
+        "text": "Pending Exports",
+        "level": 2
+      }
+    ],
+    "subheadings": [],
+    "tabs": [],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

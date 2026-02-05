@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Durgasman - API Testing{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/durgasman.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-200 transition-colors">
+    <!-- Header -->
+    {% comment %} <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 transition-colors">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'durgasman:dashboard' %}" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-orange-600 rounded flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(234,88,12,0.4)] dark:shadow-orange-500/30">
+                        D
+                    </div>
+                    <span class="font-black text-lg tracking-tighter text-gray-900 dark:text-white">Durgasman Studio</span>
+                </a>
+                <nav class="flex items-center space-x-1">
+                    <a href="{% url 'durgasman:dashboard' %}"
+                       class="px-3 py-1.5 rounded text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-orange-600/10 text-orange-600 dark:text-orange-400{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white{% endif %}">
+                        Dashboard
+                    </a>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-gray-500 dark:text-gray-400">AI Powered</span>
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            </div>
+        </div>
+    </header> {% endcomment %}
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <form id="durgasman-csrf-form" style="display:none">{% csrf_token %}</form>
+        {% block durgasman_content %}{% endblock %}
+    </main>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/components/durgasman/request-builder.js' %}"></script>
+<script src="{% static 'js/components/durgasman/response-viewer.js' %}"></script>
+<script src="{% static 'js/components/durgasman/sidebar.js' %}"></script>
+<script src="{% static 'js/components/durgasman/durgasman-controller.js' %}"></script>
+{% endblock %}
+{% endblock %}

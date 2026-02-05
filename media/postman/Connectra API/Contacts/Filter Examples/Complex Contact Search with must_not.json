@@ -1,0 +1,48 @@
+{
+  "name": "Complex Contact Search with must_not",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "Connectra API Key",
+        "dataType": "string"
+      },
+      {
+        "id": 2,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"software engineer\",\n          \"filter_key\": \"title\",\n          \"search_type\": \"exact\",\n          \"slop\": 2\n        }\n      ],\n      \"must_not\": [\n        {\n          \"text_value\": \"intern\",\n          \"filter_key\": \"title\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true\n        }\n      ]\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"seniority\": [\"senior\"],\n        \"departments\": [\"Engineering\"],\n        \"country\": [\"united states\", \"canada\"],\n        \"email_status\": [\"verified\"]\n      },\n      \"must_not\": {\n        \"email_status\": [\"invalid\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"created_at\": {\n          \"gte\": \"2022-01-01T00:00:00Z\"\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"created_at\",\n      \"order_direction\": \"desc\"\n    },\n    {\n      \"order_by\": \"id\",\n      \"order_direction\": \"asc\"\n    }\n  ],\n  \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"title\", \"email\", \"company_id\", \"facebook_url\", \"twitter_url\", \"stage\"],\n  \"page\": 1,\n  \"limit\": 50\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"software engineer\",\n          \"filter_key\": \"title\",\n          \"search_type\": \"exact\",\n          \"slop\": 2\n        }\n      ],\n      \"must_not\": [\n        {\n          \"text_value\": \"intern\",\n          \"filter_key\": \"title\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true\n        }\n      ]\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"seniority\": [\"senior\"],\n        \"departments\": [\"Engineering\"],\n        \"country\": [\"united states\", \"canada\"],\n        \"email_status\": [\"verified\"]\n      },\n      \"must_not\": {\n        \"email_status\": [\"invalid\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"created_at\": {\n          \"gte\": \"2022-01-01T00:00:00Z\"\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"created_at\",\n      \"order_direction\": \"desc\"\n    },\n    {\n      \"order_by\": \"id\",\n      \"order_direction\": \"asc\"\n    }\n  ],\n  \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"title\", \"email\", \"company_id\", \"facebook_url\", \"twitter_url\", \"stage\"],\n  \"page\": 1,\n  \"limit\": 50\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

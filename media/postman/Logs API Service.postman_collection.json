@@ -1,0 +1,436 @@
+{
+	"info": {
+		"_postman_id": "2067f759-28ad-49c2-a60f-04f4a8b2d02c",
+		"name": "Logs API Service",
+		"description": "Postman collection for Lambda Logs API Service deployed on AWS API Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://prbal5-1003.postman.co/workspace/priama~c1c1d143-bd8f-4768-b551-66234b878d2b/collection/20572666-2067f759-28ad-49c2-a60f-04f4a8b2d02c?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Check service health and MongoDB connection status"
+					},
+					"response": []
+				},
+				{
+					"name": "Root Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health/info",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health",
+								"info"
+							]
+						},
+						"description": "Get service information"
+					},
+					"response": []
+				}
+			],
+			"description": "Health check and service info endpoints (no authentication required)"
+		},
+		{
+			"name": "Logs",
+			"item": [
+				{
+					"name": "Create Log",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"level\": \"INFO\",\n  \"logger\": \"app.service\",\n  \"message\": \"User logged in successfully\",\n  \"context\": {\n    \"user_id\": \"12345\",\n    \"ip_address\": \"192.168.1.1\"\n  },\n  \"user_id\": \"12345\",\n  \"request_id\": \"req-abc-123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/logs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs"
+							]
+						},
+						"description": "Create a single log entry"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Logs Batch",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"logs\": [\n    {\n      \"level\": \"INFO\",\n      \"logger\": \"app.service\",\n      \"message\": \"First log message\",\n      \"user_id\": \"12345\"\n    },\n    {\n      \"level\": \"WARNING\",\n      \"logger\": \"app.service\",\n      \"message\": \"Second log message\",\n      \"user_id\": \"12345\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/logs/batch",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs",
+								"batch"
+							]
+						},
+						"description": "Create multiple log entries in a single request (max 100 logs per batch)"
+					},
+					"response": []
+				},
+				{
+					"name": "Query Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logs?level=INFO&logger=app.service&limit=10&skip=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs"
+							],
+							"query": [
+								{
+									"key": "level",
+									"value": "INFO",
+									"description": "Filter by log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)"
+								},
+								{
+									"key": "logger",
+									"value": "app.service",
+									"description": "Filter by logger name"
+								},
+								{
+									"key": "user_id",
+									"value": "",
+									"description": "Filter by user ID",
+									"disabled": true
+								},
+								{
+									"key": "request_id",
+									"value": "",
+									"description": "Filter by request ID",
+									"disabled": true
+								},
+								{
+									"key": "start_time",
+									"value": "",
+									"description": "Filter by start time (ISO format)",
+									"disabled": true
+								},
+								{
+									"key": "end_time",
+									"value": "",
+									"description": "Filter by end time (ISO format)",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Maximum number of results (1-1000)"
+								},
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of results to skip (for pagination)"
+								}
+							]
+						},
+						"description": "Query logs with filters (level, logger, user_id, request_id, time range)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logs/search?query=error&limit=10&skip=0",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "error",
+									"description": "Search query for full-text search (required)"
+								},
+								{
+									"key": "level",
+									"value": "ERROR",
+									"description": "Filter by log level",
+									"disabled": true
+								},
+								{
+									"key": "logger",
+									"value": "",
+									"description": "Filter by logger name",
+									"disabled": true
+								},
+								{
+									"key": "user_id",
+									"value": "",
+									"description": "Filter by user ID",
+									"disabled": true
+								},
+								{
+									"key": "request_id",
+									"value": "",
+									"description": "Filter by request ID",
+									"disabled": true
+								},
+								{
+									"key": "start_time",
+									"value": "",
+									"description": "Filter by start time (ISO format)",
+									"disabled": true
+								},
+								{
+									"key": "end_time",
+									"value": "",
+									"description": "Filter by end time (ISO format)",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Maximum number of results (1-1000)"
+								},
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of results to skip (for pagination)"
+								}
+							]
+						},
+						"description": "Search logs using full-text search in message content"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Log by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logs/:log_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs",
+								":log_id"
+							],
+							"variable": [
+								{
+									"key": "log_id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "MongoDB ObjectId of the log"
+								}
+							]
+						},
+						"description": "Get a single log entry by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Log",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"Updated log message\",\n  \"context\": {\n    \"updated\": true,\n    \"updated_by\": \"admin\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/logs/:log_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs",
+								":log_id"
+							],
+							"variable": [
+								{
+									"key": "log_id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "MongoDB ObjectId of the log"
+								}
+							]
+						},
+						"description": "Update a log entry (message and/or context)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Log",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logs/:log_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs",
+								":log_id"
+							],
+							"variable": [
+								{
+									"key": "log_id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "MongoDB ObjectId of the log"
+								}
+							]
+						},
+						"description": "Delete a single log entry by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Delete Logs",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"level\": \"DEBUG\",\n  \"start_time\": \"2024-01-01T00:00:00Z\",\n  \"end_time\": \"2024-01-31T23:59:59Z\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/logs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs"
+							]
+						},
+						"description": "Bulk delete logs matching the specified filters"
+					},
+					"response": []
+				}
+			],
+			"description": "Log CRUD operations - all endpoints require X-API-Key header"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://pjvf7ammsc.execute-api.us-east-1.amazonaws.com/default/logsapis",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd",
+			"type": "string",
+			"description": "API key for authentication"
+		}
+	]
+}

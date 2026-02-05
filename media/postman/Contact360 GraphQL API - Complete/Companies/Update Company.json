@@ -1,0 +1,40 @@
+{
+  "name": "Update Company",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation UpdateCompany($uuid:ID!, $input:UpdateCompanyInput!){ companies{ updateCompany(uuid:$uuid, input:$input){ uuid name employeesCount industries website}}}\",\n\"variables\":{\n\"uuid\":\"{{companyUuid}}\",\n\"input\":{\n\"name\":\"Acme Corporation Updated\",\n\"employeesCount\":500\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation UpdateCompany($uuid:ID!, $input:UpdateCompanyInput!){ companies{ updateCompany(uuid:$uuid, input:$input){ uuid name employeesCount industries website}}}\",\n\"variables\":{\n\"uuid\":\"{{companyUuid}}\",\n\"input\":{\n\"name\":\"Acme Corporation Updated\",\n\"employeesCount\":500\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "_id": "profile_page-001",
+  "page_id": "profile_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/profile",
+    "file_path": "contact360/dashboard/app/(dashboard)/profile/page.tsx",
+    "purpose": "User profile management with tabs: My Profile (edit name, title, bio, avatar), Team (admin-only), AI Settings, Appearance, Notifications, Security (sessions, 2FA), API Keys (Pro+), Billing (redirects to /billing). Data batched via profilePageApi.",
+    "s3_key": "data/pages/profile_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard)",
+    "authorization": "Team tab visible only to admin. API Keys tab gated by hasFeatureAccess(Feature.API_KEYS). Billing tab redirects to /billing.",
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/GetMe",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "authService",
+        "via_hook": "useProfilePage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get current user via auth.me. Batched in profilePageApi with API keys, sessions, team, 2FA via useProfilePage."
+      },
+      {
+        "endpoint_path": "graphql/ListAPIKeys",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useProfilePage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "List API keys via profile.listAPIKeys. Batched in profilePageApi via useProfilePage."
+      },
+      {
+        "endpoint_path": "graphql/ListSessions",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useProfilePage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "List sessions via profile.listSessions. Batched in profilePageApi via useProfilePage."
+      },
+      {
+        "endpoint_path": "graphql/ListTeamMembers",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useProfilePage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "List team members (admin only). Batched with profile, API keys, sessions, and 2FA in useProfilePage hook."
+      },
+      {
+        "endpoint_path": "graphql/Get2FAStatus",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "twoFactorService",
+        "via_hook": "useProfilePage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get 2FA status via twoFactor.get2FAStatus. Batched in profilePageApi via useProfilePage."
+      },
+      {
+        "endpoint_path": "graphql/CreateAPIKey",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useAPIKeys",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Create a new API key"
+      },
+      {
+        "endpoint_path": "graphql/DeleteAPIKey",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useAPIKeys",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Delete an API key"
+      },
+      {
+        "endpoint_path": "graphql/RevokeSession",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useSessions",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Revoke a specific session."
+      },
+      {
+        "endpoint_path": "graphql/InviteTeamMember",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useTeam",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Invite a team member by email. Admin only."
+      },
+      {
+        "endpoint_path": "graphql/UpdateTeamMemberRole",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useTeam",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Update a team member's role."
+      },
+      {
+        "endpoint_path": "graphql/RemoveTeamMember",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "profileService",
+        "via_hook": "useTeam",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Remove a team member."
+      },
+      {
+        "endpoint_path": "graphql/Setup2FA",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "twoFactorService",
+        "via_hook": "use2FA",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Setup 2FA for user account"
+      },
+      {
+        "endpoint_path": "graphql/Verify2FA",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "twoFactorService",
+        "via_hook": "use2FA",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Verify 2FA code"
+      },
+      {
+        "endpoint_path": "graphql/Disable2FA",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "twoFactorService",
+        "via_hook": "use2FA",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Disable 2FA for user account"
+      },
+      {
+        "endpoint_path": "graphql/UpdateProfile",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "usersService",
+        "via_hook": "useUserProfile",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Update profile (name, jobTitle, bio). Via useUserProfile in ProfileEditForm save."
+      },
+      {
+        "endpoint_path": "graphql/UploadAvatar",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "usersService",
+        "via_hook": "useUserProfile",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Upload avatar image. Via useUserProfile in ProfileEditForm. Max 5MB, JPEG/PNG/GIF/WebP."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "ProfileTabNavigation",
+        "file_path": "components/features/profile/ProfileTabNavigation.tsx"
+      },
+      {
+        "name": "ProfileHeader",
+        "file_path": "components/features/profile/ProfileHeader.tsx"
+      },
+      {
+        "name": "ProfileOverviewCard",
+        "file_path": "components/features/profile/ProfileOverviewCard.tsx"
+      },
+      {
+        "name": "ProfileEditForm",
+        "file_path": "components/features/profile/ProfileEditForm.tsx"
+      },
+      {
+        "name": "ProfileTeamManagement",
+        "file_path": "components/features/profile/ProfileTeamManagement.tsx"
+      },
+      {
+        "name": "ProfileAISettings",
+        "file_path": "components/features/profile/ProfileAISettings.tsx"
+      },
+      {
+        "name": "ProfileAppearance",
+        "file_path": "components/features/profile/ProfileAppearance.tsx"
+      },
+      {
+        "name": "ProfileNotifications",
+        "file_path": "components/features/profile/ProfileNotifications.tsx"
+      },
+      {
+        "name": "ProfileSecurity",
+        "file_path": "components/features/profile/ProfileSecurity.tsx"
+      },
+      {
+        "name": "ProfileAPIKeys",
+        "file_path": "components/features/profile/ProfileAPIKeys.tsx"
+      },
+      {
+        "name": "TwoFactorModal",
+        "file_path": "components/features/profile/TwoFactorModal.tsx"
+      },
+      {
+        "name": "ProfileModals",
+        "file_path": "components/features/profile/ProfileModals.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 16,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [],
+    "subheadings": [],
+    "tabs": [
+      {
+        "id": "my-profile",
+        "label": "My Profile",
+        "content_ref": "profile-edit"
+      },
+      {
+        "id": "team",
+        "label": "Team",
+        "content_ref": "profile-team"
+      },
+      {
+        "id": "ai-settings",
+        "label": "AI Settings",
+        "content_ref": "profile-ai"
+      },
+      {
+        "id": "appearance",
+        "label": "Appearance",
+        "content_ref": "profile-appearance"
+      },
+      {
+        "id": "notifications",
+        "label": "Notifications",
+        "content_ref": "profile-notifications"
+      },
+      {
+        "id": "security",
+        "label": "Security",
+        "content_ref": "profile-security"
+      },
+      {
+        "id": "api-keys",
+        "label": "API Keys",
+        "content_ref": "profile-api-keys"
+      },
+      {
+        "id": "billing",
+        "label": "Billing",
+        "content_ref": "profile-billing"
+      }
+    ],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

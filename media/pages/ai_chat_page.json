@@ -1,0 +1,146 @@
+{
+  "_id": "ai_chat_page-001",
+  "page_id": "ai_chat_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/ai-chat",
+    "file_path": "contact360/dashboard/app/(dashboard)/ai-chat/page.tsx",
+    "purpose": "AI chat assistant (NexusAI Pro) with sidebar (chat list, search), model selector, message streaming via WebSocket or SSE fallback, rate limit handling. Create/delete chats, send messages. Pro/feature access gated.",
+    "s3_key": "data/pages/ai_chat_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "Gated via DashboardAccessGate (pageId: ai-chat). Pro/Feature.AI_CHAT access required.",
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/ListAIChats",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "aiChatsService",
+        "via_hook": "useAiChat",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "List AI chats via aiChats.chats. Optional filters: search, date range. Via aiChatService.listChats in useAiChat. Limit 25."
+      },
+      {
+        "endpoint_path": "graphql/GetAIChat",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "aiChatsService",
+        "via_hook": "useAiChat",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get chat by ID via aiChats.chat. Used after WebSocket complete and in streamMessage fallback. Via aiChatService.getChat."
+      },
+      {
+        "endpoint_path": "graphql/CreateAIChat",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "aiChatsService",
+        "via_hook": "useAiChat",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Create new chat via aiChats.createChat. Default title 'New Conversation'. Via aiChatService.createChat."
+      },
+      {
+        "endpoint_path": "graphql/UpdateAIChat",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "aiChatsService",
+        "via_hook": "useAiChat",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Update chat via aiChats.updateChat (title, metadata). Used by service; may be called on send or rename."
+      },
+      {
+        "endpoint_path": "graphql/DeleteAIChat",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "aiChatsService",
+        "via_hook": "useAiChat",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Delete chat via aiChats.deleteChat. Via aiChatService.deleteChat in ChatSidebar and ChatHeader clear."
+      },
+      {
+        "endpoint_path": "graphql/SendMessage",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "aiChatsService",
+        "via_hook": "useAiChat",
+        "usage_type": "primary",
+        "usage_context": "data_mutation",
+        "description": "Send message via aiChats.sendMessage. Primary for SSE fallback; WebSocket preferred when available. Via aiChatService.sendMessage/streamMessage."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "DashboardAccessGate",
+        "file_path": "components/shared/DashboardAccessGate.tsx"
+      },
+      {
+        "name": "ChatSidebar",
+        "file_path": "components/features/ai-chat/ChatSidebar.tsx"
+      },
+      {
+        "name": "ChatHeader",
+        "file_path": "components/features/ai-chat/ChatHeader.tsx"
+      },
+      {
+        "name": "ChatRateLimitAlert",
+        "file_path": "components/features/ai-chat/ChatRateLimitAlert.tsx"
+      },
+      {
+        "name": "ChatMessagesList",
+        "file_path": "components/features/ai-chat/ChatMessagesList.tsx"
+      },
+      {
+        "name": "ChatMobileSidebar",
+        "file_path": "components/features/ai-chat/ChatMobileSidebar.tsx"
+      },
+      {
+        "name": "ChatWelcomeOrInput",
+        "file_path": "components/features/ai-chat/ChatWelcomeOrInput.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 6,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [
+      {
+        "id": "sidebar",
+        "text": "Chat Sidebar",
+        "level": 2
+      },
+      {
+        "id": "main",
+        "text": "Main Chat Area",
+        "level": 2
+      }
+    ],
+    "subheadings": [],
+    "tabs": [],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

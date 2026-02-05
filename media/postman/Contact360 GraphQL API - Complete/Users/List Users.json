@@ -1,0 +1,40 @@
+{
+  "name": "List Users",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ListUsers($limit:Int, $offset:Int){ users{ users(limit:$limit, offset:$offset){ uuid email name isActive createdAt}}}\",\n\"variables\":{\n\"limit\":50,\n\"offset\":0\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ListUsers($limit:Int, $offset:Int){ users{ users(limit:$limit, offset:$offset){ uuid email name isActive createdAt}}}\",\n\"variables\":{\n\"limit\":50,\n\"offset\":0\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

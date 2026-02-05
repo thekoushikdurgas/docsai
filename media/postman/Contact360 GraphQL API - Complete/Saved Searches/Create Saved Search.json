@@ -1,0 +1,40 @@
+{
+  "name": "Create Saved Search",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation CreateSavedSearch($input:CreateSavedSearchInput!){ savedSearches{ createSavedSearch(input:$input){ id name description type search_term filters sort_field sort_direction page_size created_at use_count}}}\",\n\"variables\":{\n\"input\":{\n\"name\":\"Tech Companies in SF\",\n\"description\":\"Technology companies in San Francisco\",\n\"type\":\"company\",\n\"search_term\":\"technology\",\n\"filters\":{\n\"location\":\"San Francisco\",\n\"industry\":\"Technology\"\n},\n\"sort_field\":\"name\",\n\"sort_direction\":\"asc\",\n\"page_size\":50\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation CreateSavedSearch($input:CreateSavedSearchInput!){ savedSearches{ createSavedSearch(input:$input){ id name description type search_term filters sort_field sort_direction page_size created_at use_count}}}\",\n\"variables\":{\n\"input\":{\n\"name\":\"Tech Companies in SF\",\n\"description\":\"Technology companies in San Francisco\",\n\"type\":\"company\",\n\"search_term\":\"technology\",\n\"filters\":{\n\"location\":\"San Francisco\",\n\"industry\":\"Technology\"\n},\n\"sort_field\":\"name\",\n\"sort_direction\":\"asc\",\n\"page_size\":50\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

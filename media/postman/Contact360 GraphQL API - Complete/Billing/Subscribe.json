@@ -1,0 +1,40 @@
+{
+  "name": "Subscribe",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation Subscribe($input:SubscribeInput!){ billing{ subscribe(input:$input){ message subscriptionPlan credits}}}\",\n\"variables\":{\n\"input\":{\n\"tier\":\"pro\",\n\"period\":\"monthly\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation Subscribe($input:SubscribeInput!){ billing{ subscribe(input:$input){ message subscriptionPlan credits}}}\",\n\"variables\":{\n\"input\":{\n\"tier\":\"pro\",\n\"period\":\"monthly\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

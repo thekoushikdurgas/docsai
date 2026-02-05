@@ -1,0 +1,549 @@
+{
+	"info": {
+		"_postman_id": "contact-ai-service-collection-2026",
+		"name": "Contact AI Service",
+		"description": "Postman collection for Lambda Contact AI Service deployed on AWS API Gateway.\n\n**Base URL**: {{base_url}}\n**Production URL**: https://aziwa531nl.execute-api.us-east-1.amazonaws.com\n**Local Development**: http://localhost:8080\n\n**Authentication**:\n- Health check endpoint: No authentication required\n- All other endpoints: X-API-Key header required\n- Chat endpoints: Also require X-User-ID header\n- API Key: {{api_key}}\n- User ID: {{user_id}}\n\n## API Structure\n- **Health Check**: Service health endpoint (no auth)\n- **AI Chat**: 7 endpoints for chat management (CRUD, messaging, streaming)\n- **Gemini AI**: 3 endpoints for AI-powered features (email analysis, company summaries, filter parsing)\n\n## Features\n- AI chat conversation management\n- Real-time AI response streaming (Server-Sent Events)\n- Email risk analysis using Gemini AI\n- Company summary generation\n- Natural language filter parsing\n- PostgreSQL integration with connection pooling\n- User-scoped chat isolation\n\n## Usage\n1. Set environment variables: `base_url`, `api_key`, `user_id`\n2. Test health endpoint first (no auth required)\n3. Create a chat using POST /api/v1/ai-chats/\n4. Send messages and receive AI responses\n5. Use streaming endpoint for real-time responses\n6. Test Gemini AI features (email analysis, company summaries, filter parsing)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"health"
+							]
+						},
+						"description": "Check service health status. Returns service name, version, and status. No authentication required."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check endpoint (no authentication required)"
+		},
+		{
+			"name": "AI Chat",
+			"item": [
+				{
+					"name": "List Chats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/?limit=25&offset=0&ordering=-created_at",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								""
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "25",
+									"description": "Number of results per page (1-100)",
+									"disabled": false
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Offset for pagination",
+									"disabled": false
+								},
+								{
+									"key": "ordering",
+									"value": "-created_at",
+									"description": "Order by field. Prepend '-' for descending. Valid: created_at, updated_at, -created_at, -updated_at",
+									"disabled": false
+								},
+								{
+									"key": "title",
+									"value": "",
+									"description": "Case-insensitive substring match against chat title",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "General-purpose search term",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "1-indexed page number (alternative to offset)",
+									"disabled": true
+								},
+								{
+									"key": "page_size",
+									"value": "25",
+									"description": "Explicit page size override",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get a paginated list of all AI chat conversations for a user. Only returns chats owned by the specified user (from X-User-ID header). Default ordering is by -created_at (newest first)."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"My Chat Title\",\n  \"messages\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								""
+							]
+						},
+						"description": "Create a new AI chat conversation. The user_id is provided via X-User-ID header (set by appointment360). The chat ID is a UUID generated automatically. Messages can be empty initially and added later via update."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific AI chat conversation, including all messages. Only the chat owner can access their chats."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Chat",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Chat Title\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Update an existing AI chat conversation (typically to add new messages or update the title). All fields are optional - only provided fields will be updated (partial update). When updating messages, provide the complete messages array (it replaces existing messages). Only the chat owner can update their chats."
+					},
+					"response": []
+				},
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"Hello, how are you?\",\n  \"model\": \"gemini-1.5-flash\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								"message"
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Send a message in a chat and get AI response. This endpoint adds the user's message to the chat, generates an AI response using Gemini, and returns the updated chat with both messages. Only the chat owner can send messages.\n\n**Request Body:**\n- `message` (required): User message text (min 1 character)\n- `model` (optional): Model selection override. Valid: `gemini-1.5-flash`, `gemini-1.5-pro`, `gemini-2.0-flash-exp`, `gemini-2.5-pro`"
+					},
+					"response": []
+				},
+				{
+					"name": "Stream Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"Tell me about artificial intelligence\",\n  \"model\": \"gemini-1.5-flash\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/message/stream",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								"message",
+								"stream"
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Send a message in a chat and stream AI response using Server-Sent Events (SSE). This endpoint streams the AI response as it's generated, providing a better user experience for longer responses. The response is sent as Server-Sent Events. Only the chat owner can send messages.\n\n**Request Body:**\n- `message` (required): User message text (min 1 character)\n- `model` (optional): Model selection override\n\n**Response:**\n- Content-Type: `text/event-stream`\n- Format: `data: chunk\n\n`\n- Ends with: `data: [DONE]\n\n`\n\n**Note:** In Postman, streaming responses may not display correctly. Use curl or a proper SSE client for testing."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Chat",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Delete an AI chat conversation. Only the chat owner can delete their chats. Deletion is permanent and cannot be undone."
+					},
+					"response": []
+				}
+			],
+			"description": "AI Chat endpoints for managing conversations (7 endpoints total)"
+		},
+		{
+			"name": "Gemini AI",
+			"item": [
+				{
+					"name": "Email Risk Analysis",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/gemini/email/analyze",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"gemini",
+								"email",
+								"analyze"
+							]
+						},
+						"description": "Analyze email address for potential risk factors using Gemini AI.\n\n**Request Body:**\n- `email` (required): Email address to analyze (must be valid email format)\n\n**Response:**\n- `riskScore`: Risk score from 0-10 (0 = low risk, 10 = high risk)\n- `analysis`: Detailed analysis text\n- `isRoleBased`: Whether the email is role-based (e.g., info@, support@)\n- `isDisposable`: Whether the email is from a disposable email service"
+					},
+					"response": []
+				},
+				{
+					"name": "Company Summary",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_name\": \"Google\",\n  \"industry\": \"Technology\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/gemini/company/summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"gemini",
+								"company",
+								"summary"
+							]
+						},
+						"description": "Generate AI-powered company summary using Gemini AI.\n\n**Request Body:**\n- `company_name` (required): Company name\n- `industry` (required): Industry sector\n\n**Response:**\n- `summary`: Generated company summary text"
+					},
+					"response": []
+				},
+				{
+					"name": "Parse Filters",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": \"Find software engineers in San Francisco with 5-10 years of experience\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/gemini/parse-filters",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"gemini",
+								"parse-filters"
+							]
+						},
+						"description": "Parse natural language query into structured contact filter parameters using Gemini AI.\n\n**Request Body:**\n- `query` (required): Natural language query to parse\n\n**Response:**\n- `job_titles`: Extracted job titles (nullable)\n- `company_names`: Extracted company names (nullable)\n- `industry`: Extracted industries (nullable)\n- `location`: Extracted locations (nullable)\n- `employees`: Employee count range [min, max] (nullable)\n- `seniority`: Extracted seniority levels (nullable)"
+					},
+					"response": []
+				}
+			],
+			"description": "Gemini AI endpoints for AI-powered features (3 endpoints total)"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://aziwa531nl.execute-api.us-east-1.amazonaws.com",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "contact-ai-api-key-change-me",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "user-uuid-here",
+			"type": "string"
+		}
+	]
+}

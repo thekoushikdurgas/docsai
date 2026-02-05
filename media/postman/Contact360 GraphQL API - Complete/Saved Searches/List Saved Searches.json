@@ -1,0 +1,40 @@
+{
+  "name": "List Saved Searches",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ListSavedSearches($type:String, $limit:Int, $offset:Int){ savedSearches{ listSavedSearches(type:$type, limit:$limit, offset:$offset){ searches{ id name description type search_term filters sort_field sort_direction page_size created_at updated_at last_used_at use_count} total}}}\",\n\"variables\":{\n\"type\":\"contact\",\n\"limit\":50,\n\"offset\":0\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ListSavedSearches($type:String, $limit:Int, $offset:Int){ savedSearches{ listSavedSearches(type:$type, limit:$limit, offset:$offset){ searches{ id name description type search_term filters sort_field sort_direction page_size created_at updated_at last_used_at use_count} total}}}\",\n\"variables\":{\n\"type\":\"contact\",\n\"limit\":50,\n\"offset\":0\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

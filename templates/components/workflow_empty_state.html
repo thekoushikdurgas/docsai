@@ -1,0 +1,55 @@
+{% comment %}
+Workflow empty state component - contextual empty states for workflow tabs.
+
+Usage:
+{% include 'components/workflow_empty_state.html' with tab="my_workflows" %}
+{% include 'components/workflow_empty_state.html' with tab="n8n" search=search %}
+{% include 'components/workflow_empty_state.html' with tab="templates" %}
+{% include 'components/workflow_empty_state.html' with tab="executions" %}
+
+Parameters:
+- tab: my_workflows, n8n, templates, or executions
+- title: Override title
+- message: Override message
+- action_url: Override action URL
+- action_text: Override action text
+- has_filters: Whether filters were applied (affects message)
+{% endcomment %}
+
+<div class="col-span-full text-center py-12">
+    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+        </svg>
+    </div>
+    <h3 class="font-semibold text-gray-900 dark:text-gray-100">
+        {{ title|default:"No workflows found" }}
+    </h3>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        {% if message %}
+            {{ message }}
+        {% elif has_filters %}
+            Try adjusting your filters
+        {% elif tab == 'my_workflows' %}
+            Create your first workflow to get started
+        {% elif tab == 'n8n' %}
+            Place n8n workflow JSON files in media/n8n/ to see them here
+        {% elif tab == 'templates' %}
+            Templates will appear here when available
+        {% elif tab == 'executions' %}
+            Executions will appear here after workflows run
+        {% else %}
+            No items found
+        {% endif %}
+    </p>
+    {% if action_url and action_text %}
+        <a href="{{ action_url }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+            {{ action_text }}
+        </a>
+    {% elif tab == 'my_workflows' and not has_filters %}
+        <a href="{% url 'durgasflow:editor_new' %}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Create Workflow
+        </a>
+    {% endif %}
+</div>

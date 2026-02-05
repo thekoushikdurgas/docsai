@@ -1,0 +1,1 @@
+Combined category filtering endpoints

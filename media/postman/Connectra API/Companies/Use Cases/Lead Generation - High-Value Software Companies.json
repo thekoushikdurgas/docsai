@@ -1,0 +1,40 @@
+{
+  "name": "Lead Generation - High-Value Software Companies",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/companies/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"software technology\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true,\n          \"operator\": \"and\"\n        }\n      ]\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"industries\": [\"Software\", \"SaaS\", \"Technology\"],\n        \"country\": [\"united states\", \"canada\", \"united kingdom\"],\n        \"technologies\": [\"Cloud\", \"AI\", \"Machine Learning\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"employees_count\": {\n          \"gte\": 50,\n          \"lte\": 1000\n        },\n        \"annual_revenue\": {\n          \"gte\": 1000000\n        },\n        \"created_at\": {\n          \"gte\": \"2020-01-01T00:00:00Z\"\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"annual_revenue\",\n      \"order_direction\": \"desc\"\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 50\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"software technology\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true,\n          \"operator\": \"and\"\n        }\n      ]\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"industries\": [\"Software\", \"SaaS\", \"Technology\"],\n        \"country\": [\"united states\", \"canada\", \"united kingdom\"],\n        \"technologies\": [\"Cloud\", \"AI\", \"Machine Learning\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"employees_count\": {\n          \"gte\": 50,\n          \"lte\": 1000\n        },\n        \"annual_revenue\": {\n          \"gte\": 1000000\n        },\n        \"created_at\": {\n          \"gte\": \"2020-01-01T00:00:00Z\"\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"annual_revenue\",\n      \"order_direction\": \"desc\"\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 50\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

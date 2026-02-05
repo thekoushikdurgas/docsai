@@ -1,0 +1,47 @@
+{% comment %}
+Workflow stats strip component - contextual stats for workflow views.
+
+Usage:
+{% include 'components/workflow_stats_strip.html' with total=12 active=3 successful=10 total_executions=15 %}
+
+Parameters:
+- total: Total count (workflows, templates, etc.)
+- active: Active count (for workflows)
+- successful: Successful executions count
+- total_executions: Total executions count
+- available: Available count (for n8n)
+- categories_count: Number of categories (for n8n)
+{% endcomment %}
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+    <div class="text-center">
+        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ total|default:0 }}</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">Total</div>
+    </div>
+    {% if active is not None %}
+    <div class="text-center">
+        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ active|default:0 }}</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">Active</div>
+    </div>
+    {% endif %}
+    {% if available is not None %}
+    <div class="text-center">
+        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ available|default:0 }}</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">Available</div>
+    </div>
+    {% endif %}
+    {% if categories_count is not None %}
+    <div class="text-center">
+        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ categories_count|default:0 }}</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">Categories</div>
+    </div>
+    {% endif %}
+    {% if total_executions is not None and successful is not None %}
+    <div class="text-center">
+        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {% if total_executions > 0 %}{{ successful|floatformat:0 }}%{% else %}N/A{% endif %}
+        </div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">Success Rate</div>
+    </div>
+    {% endif %}
+</div>

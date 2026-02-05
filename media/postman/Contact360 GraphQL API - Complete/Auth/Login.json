@@ -1,0 +1,40 @@
+{
+  "name": "Login",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "if (rq.response.code === 200){\nconst jsonData = rq.response.json();\nconst authData = jsonData.data?.auth;\nif (authData){\nconst result = authData.login || authData.register || authData.refreshToken;\nif (result){\nif (result.accessToken){\nrq.environment.set(\"accessToken\",result.accessToken);\n}\nif (result.refreshToken){\nrq.environment.set(\"refreshToken\",result.refreshToken);\n}\nif (result.user && result.user.uuid){\nrq.environment.set(\"userId\",result.user.uuid);\n}\n}\n}\n}"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation Login($input:LoginInput!){ auth{ login(input:$input){ accessToken refreshToken user{ uuid email name}}}}\",\n\"variables\":{\n\"input\":{\n\"email\":\"{{email}}\",\n\"password\":\"{{password}}\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation Login($input:LoginInput!){ auth{ login(input:$input){ accessToken refreshToken user{ uuid email name}}}}\",\n\"variables\":{\n\"input\":{\n\"email\":\"{{email}}\",\n\"password\":\"{{password}}\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

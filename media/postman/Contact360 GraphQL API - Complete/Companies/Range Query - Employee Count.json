@@ -1,0 +1,40 @@
+{
+  "name": "Range Query - Employee Count",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query MidSizeCompanies($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name employeesCount industries annualRevenue} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"employees_count\",\n\"operator\":\"gte\",\n\"value\":50\n},\n{\n\"field\":\"employees_count\",\n\"operator\":\"lte\",\n\"value\":1000\n}\n]\n},\n\"limit\":100\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query MidSizeCompanies($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name employeesCount industries annualRevenue} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"employees_count\",\n\"operator\":\"gte\",\n\"value\":50\n},\n{\n\"field\":\"employees_count\",\n\"operator\":\"lte\",\n\"value\":1000\n}\n]\n},\n\"limit\":100\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

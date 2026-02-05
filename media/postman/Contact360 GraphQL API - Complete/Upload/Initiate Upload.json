@@ -1,0 +1,40 @@
+{
+  "name": "Initiate Upload",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation InitiateUpload($input:InitiateUploadInput!){ upload{ initiateUpload(input:$input){ uploadId fileKey totalParts partSize}}}\",\n\"variables\":{\n\"input\":{\n\"filename\":\"large-file.zip\",\n\"fileSize\":10485760,\n\"contentType\":\"application/zip\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation InitiateUpload($input:InitiateUploadInput!){ upload{ initiateUpload(input:$input){ uploadId fileKey totalParts partSize}}}\",\n\"variables\":{\n\"input\":{\n\"filename\":\"large-file.zip\",\n\"fileSize\":10485760,\n\"contentType\":\"application/zip\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

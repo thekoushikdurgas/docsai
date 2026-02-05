@@ -1,0 +1,1 @@
+Endpoints index management: read, rebuild, and validate

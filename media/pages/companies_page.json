@@ -1,0 +1,142 @@
+{
+  "_id": "companies_page-001",
+  "page_id": "companies_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/companies",
+    "file_path": "contact360/dashboard/app/(dashboard)/companies/page.tsx",
+    "purpose": "Company listing and management page with VQL filtering, search, grid/list view modes, bulk export (Pro+), pagination, and AI-powered company summaries via Gemini.",
+    "s3_key": "data/pages/companies_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "BULK_EXPORT requires Pro+ via hasFeatureAccess(Feature.BULK_EXPORT)",
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/CompanyQuery",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "companiesService",
+        "via_hook": "useCompaniesPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Query companies with VQL filtering, pagination, and sorting. Batched with filter definitions in companiesPageApi via useCompaniesPage hook."
+      },
+      {
+        "endpoint_path": "graphql/CompanyFilters",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "companiesService",
+        "via_hook": "useCompaniesPage",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get available filter definitions for companies. Batched with company data in companiesPageApi via useCompaniesPage hook."
+      },
+      {
+        "endpoint_path": "graphql/GenerateCompanySummary",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "geminiService",
+        "via_hook": "useCompanySummary",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "AI-generated company summary via aiChats.generateCompanySummary. Called on-demand from CompaniesDataDisplay."
+      },
+      {
+        "endpoint_path": "graphql/CreateCompanyExport",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "exportsService",
+        "via_hook": "useCompanyExport",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "Create a CSV export of selected companies. Requires BULK_EXPORT feature."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "DataPageLayout",
+        "file_path": "components/layouts/DataPageLayout.tsx"
+      },
+      {
+        "name": "DashboardAccessGate",
+        "file_path": "components/shared/DashboardAccessGate.tsx"
+      },
+      {
+        "name": "CompaniesFilterSidebar",
+        "file_path": "components/features/companies/CompaniesFilterSidebar.tsx"
+      },
+      {
+        "name": "CompaniesDataDisplay",
+        "file_path": "components/features/companies/CompaniesDataDisplay.tsx"
+      },
+      {
+        "name": "CompaniesGrid",
+        "file_path": "components/features/companies/CompaniesGrid.tsx"
+      },
+      {
+        "name": "CompaniesList",
+        "file_path": "components/features/companies/CompaniesList.tsx"
+      },
+      {
+        "name": "CompanySummaryCard",
+        "file_path": "components/features/companies/CompanySummaryCard.tsx"
+      },
+      {
+        "name": "CompaniesModals",
+        "file_path": "components/features/companies/CompaniesModals.tsx"
+      },
+      {
+        "name": "DataToolbar",
+        "file_path": "components/patterns/DataToolbar.tsx"
+      },
+      {
+        "name": "Pagination",
+        "file_path": "components/patterns/Pagination.tsx"
+      },
+      {
+        "name": "ExportConfirmModal",
+        "file_path": "components/features/export/ExportConfirmModal.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 4,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": {
+    "headings": [],
+    "subheadings": [],
+    "tabs": [
+      {
+        "id": "grid",
+        "label": "Grid",
+        "content_ref": "companies-grid"
+      },
+      {
+        "id": "list",
+        "label": "List",
+        "content_ref": "companies-list"
+      }
+    ],
+    "buttons": [],
+    "input_boxes": [],
+    "text_blocks": [],
+    "components": [],
+    "utilities": [],
+    "services": [],
+    "hooks": [],
+    "contexts": [],
+    "ui_components": [],
+    "endpoints": []
+  },
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

@@ -1,0 +1,2092 @@
+{
+	"info": {
+		"_postman_id": "3333ef6a-c57d-4980-b59c-8735372dc212",
+		"name": "Documentation API Service",
+		"description": "Postman collection for Lambda Documentation API Service deployed on AWS API Gateway.\n\n**Base URL**: {{base_url}}\n**Production URL**: https://94hucnirj2.execute-api.us-east-1.amazonaws.com\n\n**Authentication**:\n- Public endpoints: No authentication required (most endpoints are public)\n- Access control handled at data model level via access_control fields\n\n## API Structure\n\n### REST API v1\n- **Health Check**: Service health and info endpoints (2 endpoints)\n- **Pages API** (`/api/v1/pages/`): 30+ endpoints - Full CRUD, category filtering (by type, by user type), format/import/analyse, statistics\n- **Endpoints API** (`/api/v1/endpoints/`): 28+ endpoints - Full CRUD, category filtering, format/import/analyse\n- **Relationships API** (`/api/v1/relationships/`): 30+ endpoints - Full CRUD, category filtering, format/import/analyse, statistics\n- **Postman API** (`/api/v1/postman/`): 8+ endpoints - Configuration CRUD, format/import/analyse, statistics\n- **Index Management API** (`/api/v1/index/`): 12 endpoints - Read/rebuild/validate indexes for all resources\n\n**Total**: 100+ endpoints\n\n## Features\n- **JSON Ingestion**: `/format/` endpoints return copy/paste examples, `/import/` accepts JSON payloads for upsert operations\n- **Analysis Integration**: `/analyse/` endpoints ingest analysis JSON from frontend/backend tools and sync into S3\n- **Index Management**: Read, rebuild, and validate index.json files for fast INDEX-ONLY responses\n- **S3 JSON storage**: All data (metadata and content) stored in JSON files\n- **Content included directly**: No presigned URLs needed - content in JSON responses\n- **Category filtering**: By type, user type (access control), version, method, usage type, usage context, state\n- **Statistics endpoints**: Index-based aggregated statistics for fast responses\n- **Partial updates (PATCH)**: Recursive merge for nested objects\n- **Graceful error handling**: Statistics endpoints return empty defaults on errors\n\n## New Endpoints (v2)\n\n### Format Endpoints\n- `GET /api/v1/{resource}/format/` - Returns JSON examples, S3 key conventions, and analysis payload formats\n\n### Import Endpoints\n- `POST /api/v1/{resource}/import/?mode=upsert|create_only|update_only` - Accepts JSON payloads (single item, list, or wrapper object) and upserts to S3 with index updates\n\n### Analyse Endpoints\n- `POST /api/v1/{resource}/analyse/` - Ingests analysis JSON from tools and syncs into S3 using existing sync_from_analysis methods\n\n### Index Management\n- `GET /api/v1/index/{resource}/` - Read index.json\n- `POST /api/v1/index/{resource}/rebuild/` - Rebuild index from S3 files\n- `GET /api/v1/index/{resource}/validate/` - Validate index consistency\n\n## Route Ordering Note\n\nThe API is built with FastAPI. Specific routes (like `/format/`, `/import/`, `/statistics/`) are defined BEFORE parameterized routes (`/{id}/`) to prevent route conflicts.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666",
+		"_collection_link": "https://prbal5-1003.postman.co/workspace/priama~c1c1d143-bd8f-4768-b551-66234b878d2b/collection/20572666-3333ef6a-c57d-4980-b59c-8735372dc212?action=share&source=collection_link&creator=20572666"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Check service health and MongoDB connection status. Returns cached health status immediately (<5ms) and refreshes in background if stale."
+					},
+					"response": []
+				},
+				{
+					"name": "Root Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Get service information (name, version, status). No authentication required."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check and service info endpoints (no authentication required)"
+		},
+		{
+			"name": "REST API v1 - Pages",
+			"item": [
+				{
+					"name": "Base CRUD",
+					"item": [
+						{
+							"name": "List Pages",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/?page_type=docs&include_drafts=true&include_deleted=false&limit=100&offset=0",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ""],
+									"query": [
+										{"key": "page_type", "value": "docs", "description": "Filter by page type", "disabled": true},
+										{"key": "include_drafts", "value": "true", "description": "Include draft pages"},
+										{"key": "include_deleted", "value": "false", "description": "Include deleted pages"},
+										{"key": "limit", "value": "100", "description": "Maximum number of results"},
+										{"key": "offset", "value": "0", "description": "Number of results to skip"}
+									]
+								},
+								"description": "List all documentation pages with filters and pagination."
+							},
+							"response": []
+						},
+						{
+							"name": "Create Page",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"page_id\": \"test_page\",\n  \"page_type\": \"docs\",\n  \"metadata\": {\n    \"route\": \"/test\",\n    \"file_path\": \"app/test/page.tsx\",\n    \"purpose\": \"Test page\",\n    \"status\": \"draft\",\n    \"authentication\": \"Not required\",\n    \"last_updated\": \"2024-01-01T00:00:00.000000+00:00\"\n  },\n  \"content\": \"# Test Page\\n\\nThis is test content.\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ""]
+								},
+								"description": "Create new documentation page. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Page",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", ""],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Get documentation page by ID. Content is included directly in the JSON response."
+							},
+							"response": [
+								{
+									"name": "Success - Get Page",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/api/v1/pages/about_page/",
+											"host": ["{{base_url}}"],
+											"path": ["api", "v1", "pages", "about_page", ""]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [{"key": "Content-Type", "value": "application/json"}],
+									"body": "{\n  \"_id\": \"about-page-001\",\n  \"page_id\": \"about_page\",\n  \"page_type\": \"docs\",\n  \"metadata\": {\n    \"route\": \"/about\",\n    \"file_path\": \"app/about/page.tsx\",\n    \"purpose\": \"About page\",\n    \"s3_key\": \"data/pages/about_page.json\",\n    \"status\": \"published\",\n    \"authentication\": \"Not required\",\n    \"last_updated\": \"2024-01-01T00:00:00.000000+00:00\",\n    \"uses_endpoints\": [],\n    \"ui_components\": [],\n    \"endpoint_count\": 0,\n    \"api_versions\": []\n  },\n  \"content\": \"# About\\n\\nThis is the about page content in markdown format.\",\n  \"created_at\": \"2024-01-01T00:00:00.000000+00:00\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Page (PUT)",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"metadata\": {\n    \"purpose\": \"Updated purpose\"\n  },\n  \"content\": \"# Updated Content\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", ""],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Full update documentation page. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Partial Update Page (PATCH)",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"metadata\": {\n    \"purpose\": \"Updated purpose only\"\n  }\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", ""],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Partial update documentation page. Only provided fields are updated. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Page",
+							"request": {
+								"method": "DELETE",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/?hard_delete=false",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", ""],
+									"query": [{"key": "hard_delete", "value": "false", "description": "Permanently delete"}],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Delete documentation page. Default is soft delete. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Base CRUD operations for pages"
+				},
+				{
+					"name": "Category - By Type",
+					"item": [
+						{
+							"name": "List Docs Pages",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/by-type/docs/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "by-type", "docs", ""]
+								},
+								"description": "List all docs pages."
+							},
+							"response": []
+						},
+						{
+							"name": "List Marketing Pages",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/by-type/marketing/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "by-type", "marketing", ""]
+								},
+								"description": "List all marketing pages."
+							},
+							"response": []
+						},
+						{
+							"name": "List Dashboard Pages",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/by-type/dashboard/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "by-type", "dashboard", ""]
+								},
+								"description": "List all dashboard pages."
+							},
+							"response": []
+						},
+						{
+							"name": "Count Pages by Type",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/by-type/:page_type/count/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "by-type", ":page_type", "count", ""],
+									"variable": [{"key": "page_type", "value": "docs", "description": "Page type"}]
+								},
+								"description": "Get count of pages by type. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List Page Types",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/types/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "types", ""]
+								},
+								"description": "List all page types with counts. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List Published by Type",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/by-type/:page_type/published/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "by-type", ":page_type", "published", ""],
+									"variable": [{"key": "page_type", "value": "docs", "description": "Page type"}]
+								},
+								"description": "List published pages by type."
+							},
+							"response": []
+						},
+						{
+							"name": "List Drafts by Type",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/by-type/:page_type/draft/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "by-type", ":page_type", "draft", ""],
+									"variable": [{"key": "page_type", "value": "docs", "description": "Page type"}]
+								},
+								"description": "List draft pages by type."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Type Statistics",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/by-type/:page_type/stats/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "by-type", ":page_type", "stats", ""],
+									"variable": [{"key": "page_type", "value": "docs", "description": "Page type"}]
+								},
+								"description": "Get statistics for a specific page type. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by page type"
+				},
+				{
+					"name": "Category - By User Type",
+					"item": [
+						{
+							"name": "List Pages by Super Admin",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/super_admin/?page_type=docs&include_drafts=true&include_deleted=false",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "super_admin", ""],
+									"query": [
+										{"key": "page_type", "value": "docs", "description": "Filter by page type", "disabled": true},
+										{"key": "include_drafts", "value": "true", "description": "Include draft pages"},
+										{"key": "include_deleted", "value": "false", "description": "Include deleted pages"}
+									]
+								},
+								"description": "List pages accessible by super_admin users. Filters pages based on access_control.can_view for super_admin. Only returns pages where super_admin has can_view=True."
+							},
+							"response": []
+						},
+						{
+							"name": "List Pages by Admin",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/admin/?page_type=docs&include_drafts=true&include_deleted=false",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "admin", ""],
+									"query": [
+										{"key": "page_type", "value": "docs", "description": "Filter by page type", "disabled": true},
+										{"key": "include_drafts", "value": "true", "description": "Include draft pages"},
+										{"key": "include_deleted", "value": "false", "description": "Include deleted pages"}
+									]
+								},
+								"description": "List pages accessible by admin users. Filters pages based on access_control.can_view for admin. Only returns pages where admin has can_view=True."
+							},
+							"response": []
+						},
+						{
+							"name": "List Pages by Pro User",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/pro_user/?page_type=docs&include_drafts=true&include_deleted=false",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "pro_user", ""],
+									"query": [
+										{"key": "page_type", "value": "docs", "description": "Filter by page type", "disabled": true},
+										{"key": "include_drafts", "value": "true", "description": "Include draft pages"},
+										{"key": "include_deleted", "value": "false", "description": "Include deleted pages"}
+									]
+								},
+								"description": "List pages accessible by pro_user users. Filters pages based on access_control.can_view for pro_user. Only returns pages where pro_user has can_view=True."
+							},
+							"response": []
+						},
+						{
+							"name": "List Pages by Free User",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/free_user/?page_type=docs&include_drafts=true&include_deleted=false",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "free_user", ""],
+									"query": [
+										{"key": "page_type", "value": "docs", "description": "Filter by page type", "disabled": true},
+										{"key": "include_drafts", "value": "true", "description": "Include draft pages"},
+										{"key": "include_deleted", "value": "false", "description": "Include deleted pages"}
+									]
+								},
+								"description": "List pages accessible by free_user users. Filters pages based on access_control.can_view for free_user. Only returns pages where free_user has can_view=True."
+							},
+							"response": []
+						},
+						{
+							"name": "List Pages by Guest",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/guest/?page_type=docs&include_drafts=true&include_deleted=false",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "guest", ""],
+									"query": [
+										{"key": "page_type", "value": "docs", "description": "Filter by page type", "disabled": true},
+										{"key": "include_drafts", "value": "true", "description": "Include draft pages"},
+										{"key": "include_deleted", "value": "false", "description": "Include deleted pages"}
+									]
+								},
+								"description": "List pages accessible by guest users. Filters pages based on access_control.can_view for guest. Only returns pages where guest has can_view=True."
+							},
+							"response": []
+						},
+						{
+							"name": "List Pages by User Type (Dynamic)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:user_type/?page_type=docs&include_drafts=true&include_deleted=false&status=published",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":user_type", ""],
+									"query": [
+										{"key": "page_type", "value": "docs", "description": "Filter by page type", "disabled": true},
+										{"key": "include_drafts", "value": "true", "description": "Include draft pages"},
+										{"key": "include_deleted", "value": "false", "description": "Include deleted pages"},
+										{"key": "status", "value": "published", "description": "Filter by status", "disabled": true}
+									],
+									"variable": [
+										{"key": "user_type", "value": "admin", "description": "User type: super_admin, admin, pro_user, free_user, guest"}
+									]
+								},
+								"description": "List pages accessible by a specific user type. Path parameter: user_type (super_admin, admin, pro_user, free_user, guest). Filters pages based on access_control.can_view for the specified user type. Supports additional filters: page_type, include_drafts, include_deleted, status."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by user type (access control). Returns only pages where the specified user type has can_view=True in access_control."
+				},
+				{
+					"name": "Custom Actions",
+					"item": [
+						{
+							"name": "Publish Page",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/publish/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", "publish", ""],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Publish a draft page. Sets status to 'published'. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Unpublish Page",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/unpublish/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", "unpublish", ""],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Unpublish a published page. Sets status to 'draft'. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Sync Page to Lambda",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/sync-lambda/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", "sync-lambda", ""],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Sync page to Lambda (placeholder for Django integration). Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Sync Page to S3",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/:page_id/sync-s3/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", ":page_id", "sync-s3", ""],
+									"variable": [{"key": "page_id", "value": "about_page", "description": "Page ID"}]
+								},
+								"description": "Sync page to S3 (placeholder for Django integration). Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Custom action endpoints for pages"
+				},
+				{
+					"name": "Format & Examples",
+					"item": [
+						{
+							"name": "Get Pages Format",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/format/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "format", ""]
+								},
+								"description": "Get copy/paste JSON examples and S3 key conventions for pages. Returns minimal required fields, example payloads, and analysis payload format. No authentication required."
+							},
+							"response": []
+						}
+					],
+					"description": "Format endpoints return JSON schema examples and S3 storage conventions"
+				},
+				{
+					"name": "Import & Upsert",
+					"item": [
+						{
+							"name": "Import Pages (Upsert)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"pages\": [\n    {\n      \"page_id\": \"test_page\",\n      \"page_type\": \"docs\",\n      \"metadata\": {\n        \"route\": \"/test\",\n        \"file_path\": \"app/test/page.tsx\",\n        \"purpose\": \"Test page\",\n        \"status\": \"published\",\n        \"authentication\": \"Not required\",\n        \"last_updated\": \"2024-01-01T00:00:00.000000+00:00\"\n      },\n      \"content\": \"# Test Page\\n\\nContent here.\"\n    }\n  ]\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/import/?mode=upsert",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "import", ""],
+									"query": [
+										{"key": "mode", "value": "upsert", "description": "Import mode: upsert, create_only, update_only"}
+									]
+								},
+								"description": "Import/upsert pages from JSON payload. Accepts single page object, list of pages, or {\"pages\": [...]}. Mode: upsert (default), create_only, update_only. Returns statistics: total, created, updated, errors."
+							},
+							"response": []
+						},
+						{
+							"name": "Import Pages (Create Only)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n  {\n    \"page_id\": \"new_page\",\n    \"page_type\": \"docs\",\n    \"metadata\": {\n      \"route\": \"/new\",\n      \"file_path\": \"app/new/page.tsx\",\n      \"purpose\": \"New page\",\n      \"status\": \"draft\",\n      \"authentication\": \"Not required\",\n      \"last_updated\": \"2024-01-01T00:00:00.000000+00:00\"\n    },\n    \"content\": \"# New Page\"\n  }\n]",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/import/?mode=create_only",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "import", ""],
+									"query": [
+										{"key": "mode", "value": "create_only", "description": "Only create new pages, fail if exists"}
+									]
+								},
+								"description": "Import pages in create-only mode. Fails if any page already exists."
+							},
+							"response": []
+						}
+					],
+					"description": "Import/upsert endpoints accept JSON payloads and write to S3 with index updates"
+				},
+				{
+					"name": "Analyse & Sync",
+					"item": [
+						{
+							"name": "Analyse Pages",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"pages\": [\n    {\n      \"page_path\": \"/dashboard\",\n      \"page_title\": \"Dashboard\",\n      \"page_file\": \"app/dashboard/page.tsx\",\n      \"ui_components\": [\"Chart\", \"Card\"],\n      \"hooks\": [\"useDashboard\"],\n      \"services\": [\"adminService\"],\n      \"contexts\": [\"AuthContext\"]\n    }\n  ]\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/analyse/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "analyse", ""]
+								},
+								"description": "Ingest frontend analysis JSON and sync pages into S3. Accepts {\"pages\": [...]} or list of page analysis entries. Calls sync_from_analysis internally."
+							},
+							"response": []
+						}
+					],
+					"description": "Analyse endpoints ingest analysis JSON from frontend tools and sync into S3"
+				},
+				{
+					"name": "Statistics",
+					"item": [
+						{
+							"name": "Get Pages Statistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/pages/statistics/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "pages", "statistics", ""]
+								},
+								"description": "Get overall pages statistics from the pages index (index-only). Returns total, version, last_updated, statistics, and indexes. Fast response using pre-calculated index data."
+							},
+							"response": []
+						}
+					],
+					"description": "Statistics endpoints return index-based aggregated data"
+				}
+			],
+			"description": "REST API v1 - Pages API: 25+ endpoints with full CRUD, category filtering, format/import/analyse endpoints, statistics, and custom actions"
+		},
+		{
+			"name": "REST API v1 - Endpoints",
+			"item": [
+				{
+					"name": "Base CRUD",
+					"item": [
+						{
+							"name": "List Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/?api_version=v4&method=GET&limit=100&offset=0",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", ""],
+									"query": [
+										{"key": "api_version", "value": "v4", "description": "Filter by API version", "disabled": true},
+										{"key": "method", "value": "GET", "description": "Filter by method", "disabled": true},
+										{"key": "limit", "value": "100", "description": "Maximum number of results"},
+										{"key": "offset", "value": "0", "description": "Number of results to skip"}
+									]
+								},
+								"description": "List all endpoint documentation with optional filters. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Create Endpoint",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"endpoint_id\": \"test_endpoint\",\n  \"endpoint_path\": \"/api/v4/test\",\n  \"method\": \"GET\",\n  \"api_version\": \"v4\",\n  \"service_file\": \"app/services/test_service.ts\",\n  \"description\": \"Test endpoint\",\n  \"authentication\": \"Bearer token (JWT)\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", ""]
+								},
+								"description": "Create endpoint documentation. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/:endpoint_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", ":endpoint_id", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Get endpoint documentation by ID. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Update Endpoint (PUT)",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"description\": \"Updated description\",\n  \"authentication\": \"Bearer token (JWT) required\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/:endpoint_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", ":endpoint_id", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Full update endpoint documentation. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Partial Update Endpoint (PATCH)",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"description\": \"Updated description only\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/:endpoint_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", ":endpoint_id", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Partial update endpoint documentation. Only provided fields are updated. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Endpoint",
+							"request": {
+								"method": "DELETE",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/:endpoint_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", ":endpoint_id", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Delete endpoint documentation. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Base CRUD operations for endpoints"
+				},
+				{
+					"name": "Category - By API Version",
+					"item": [
+						{
+							"name": "List v1 Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-api-version/v1/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-api-version", "v1", ""]
+								},
+								"description": "List all v1 endpoints. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List v4 Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-api-version/v4/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-api-version", "v4", ""]
+								},
+								"description": "List all v4 endpoints. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List GraphQL Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-api-version/graphql/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-api-version", "graphql", ""]
+								},
+								"description": "List all GraphQL endpoints. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Count by API Version",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-api-version/:api_version/count/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-api-version", ":api_version", "count", ""],
+									"variable": [{"key": "api_version", "value": "v4", "description": "API version"}]
+								},
+								"description": "Get count of endpoints by API version. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List API Versions",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/api-versions/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "api-versions", ""]
+								},
+								"description": "List all API versions with counts. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by API version"
+				},
+				{
+					"name": "Category - By Method",
+					"item": [
+						{
+							"name": "List GET Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-method/GET/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-method", "GET", ""]
+								},
+								"description": "List all GET endpoints. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List POST Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-method/POST/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-method", "POST", ""]
+								},
+								"description": "List all POST endpoints. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List QUERY Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-method/QUERY/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-method", "QUERY", ""]
+								},
+								"description": "List all QUERY (GraphQL) endpoints. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List MUTATION Endpoints",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-method/MUTATION/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-method", "MUTATION", ""]
+								},
+								"description": "List all MUTATION (GraphQL) endpoints. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Count by Method",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-method/:method/count/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-method", ":method", "count", ""],
+									"variable": [{"key": "method", "value": "GET", "description": "HTTP/GraphQL method"}]
+								},
+								"description": "Get count of endpoints by method. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List Methods",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/methods/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "methods", ""]
+								},
+								"description": "List all HTTP/GraphQL methods with counts. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by HTTP/GraphQL method"
+				},
+				{
+					"name": "Combined Filters",
+					"item": [
+						{
+							"name": "List by Version and Method",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-api-version/:api_version/by-method/:method/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-api-version", ":api_version", "by-method", ":method", ""],
+									"variable": [
+										{"key": "api_version", "value": "v4", "description": "API version"},
+										{"key": "method", "value": "GET", "description": "HTTP method"}
+									]
+								},
+								"description": "List endpoints filtered by both API version and method. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get API Version Statistics",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-api-version/:api_version/stats/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-api-version", ":api_version", "stats", ""],
+									"variable": [{"key": "api_version", "value": "v4", "description": "API version"}]
+								},
+								"description": "Get statistics for a specific API version. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Method Statistics",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/by-method/:method/stats/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "by-method", ":method", "stats", ""],
+									"variable": [{"key": "method", "value": "GET", "description": "HTTP/GraphQL method"}]
+								},
+								"description": "Get statistics for a specific method. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Combined category filtering endpoints"
+				},
+				{
+					"name": "Custom Actions",
+					"item": [
+						{
+							"name": "Get Pages Using Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/:endpoint_id/pages/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", ":endpoint_id", "pages", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Get all pages using a specific endpoint. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Custom action endpoints for endpoints"
+				},
+				{
+					"name": "Format & Examples",
+					"item": [
+						{
+							"name": "Get Endpoints Format",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/format/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "format", ""]
+								},
+								"description": "Get copy/paste JSON examples and S3 key conventions for endpoints. Returns minimal required fields, example payloads, and analysis payload format. No authentication required."
+							},
+							"response": []
+						}
+					],
+					"description": "Format endpoints return JSON schema examples and S3 storage conventions"
+				},
+				{
+					"name": "Import & Upsert",
+					"item": [
+						{
+							"name": "Import Endpoints (Upsert)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"endpoints\": [\n    {\n      \"endpoint_id\": \"get_users_v1\",\n      \"endpoint_path\": \"/api/v1/users\",\n      \"method\": \"GET\",\n      \"api_version\": \"v1\",\n      \"description\": \"Get list of users\",\n      \"authentication\": \"Not specified\",\n      \"service_file\": \"app/services/users_service.py\",\n      \"service_methods\": [\"get_users\"],\n      \"repository_methods\": [\"find_users\"]\n    }\n  ]\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/import/?mode=upsert",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "import", ""],
+									"query": [
+										{"key": "mode", "value": "upsert", "description": "Import mode: upsert, create_only, update_only"}
+									]
+								},
+								"description": "Import/upsert endpoints from JSON payload. Accepts single endpoint object, list of endpoints, or {\"endpoints\": [...]}. Mode: upsert (default), create_only, update_only. Returns statistics: total, created, updated, errors."
+							},
+							"response": []
+						}
+					],
+					"description": "Import/upsert endpoints accept JSON payloads and write to S3 with index updates"
+				},
+				{
+					"name": "Analyse & Sync",
+					"item": [
+						{
+							"name": "Analyse Endpoints",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"endpoints\": [\n    {\n      \"endpoint_id\": \"GetUserStats\",\n      \"endpoint_path\": \"graphql/GetUserStats\",\n      \"method\": \"QUERY\",\n      \"api_version\": \"graphql\",\n      \"router_file\": \"app/api/graphql/schema.py\",\n      \"service_methods\": [\"getUserStats\"],\n      \"authentication\": \"Not specified\",\n      \"description\": \"Fetch dashboard stats\"\n    }\n  ]\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/endpoints/analyse/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "endpoints", "analyse", ""]
+								},
+								"description": "Ingest analysis JSON and sync endpoints into S3. Accepts {\"endpoints\": [...]} or list of endpoint analysis entries. Calls sync_from_analysis internally."
+							},
+							"response": []
+						}
+					],
+					"description": "Analyse endpoints ingest analysis JSON from backend tools and sync into S3"
+				}
+			],
+			"description": "REST API v1 - Endpoints API: 28+ endpoints with full CRUD, category filtering by version/method, format/import/analyse endpoints, statistics, and graceful error handling"
+		},
+		{
+			"name": "REST API v1 - Relationships",
+			"item": [
+				{
+					"name": "Base CRUD",
+					"item": [
+						{
+							"name": "List Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/?limit=100&offset=0",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", ""],
+									"query": [
+										{"key": "limit", "value": "100", "description": "Maximum number of results"},
+										{"key": "offset", "value": "0", "description": "Number of results to skip"}
+									]
+								},
+								"description": "List all relationships with pagination. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Create Relationship",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"page_path\": \"/dashboard\",\n  \"endpoint_path\": \"/api/v4/contacts\",\n  \"method\": \"GET\",\n  \"api_version\": \"v4\",\n  \"via_service\": \"contactsService\",\n  \"via_hook\": \"useContactsPage\",\n  \"usage_type\": \"primary\",\n  \"usage_context\": \"data_fetching\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", ""]
+								},
+								"description": "Create a new relationship. Relationship ID is auto-generated. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Relationship",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/:relationship_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", ":relationship_id", ""],
+									"variable": [{"key": "relationship_id", "value": "dashboard_api_v4_contacts_GET", "description": "Relationship ID (format: {page_path}_{endpoint_path}_{method})"}]
+								},
+								"description": "Get relationship by ID. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Update Relationship (PUT)",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"page_path\": \"/dashboard\",\n  \"endpoint_path\": \"/api/v4/contacts\",\n  \"method\": \"GET\",\n  \"api_version\": \"v4\",\n  \"via_service\": \"contactsService\",\n  \"usage_type\": \"secondary\",\n  \"usage_context\": \"data_fetching\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/:relationship_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", ":relationship_id", ""],
+									"variable": [{"key": "relationship_id", "value": "dashboard_api_v4_contacts_GET", "description": "Relationship ID"}]
+								},
+								"description": "Full update relationship. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Partial Update Relationship (PATCH)",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"},
+									{"key": "X-API-Key", "value": "{{api_key}}"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"usage_type\": \"secondary\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/:relationship_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", ":relationship_id", ""],
+									"variable": [{"key": "relationship_id", "value": "dashboard_api_v4_contacts_GET", "description": "Relationship ID"}]
+								},
+								"description": "Partial update relationship. Only provided fields are updated. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Relationship",
+							"request": {
+								"method": "DELETE",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/:relationship_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", ":relationship_id", ""],
+									"variable": [{"key": "relationship_id", "value": "dashboard_api_v4_contacts_GET", "description": "Relationship ID"}]
+								},
+								"description": "Delete relationship. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Base CRUD operations for relationships"
+				},
+				{
+					"name": "Category - By Page",
+					"item": [
+						{
+							"name": "Get Relationships by Page",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-page/:page_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-page", ":page_id", ""],
+									"variable": [{"key": "page_id", "value": "dashboard_page", "description": "Page ID"}]
+								},
+								"description": "Get all relationships for a specific page. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Count Relationships by Page",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-page/:page_id/count/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-page", ":page_id", "count", ""],
+									"variable": [{"key": "page_id", "value": "dashboard_page", "description": "Page ID"}]
+								},
+								"description": "Get count of relationships for a page. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Primary Relationships by Page",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-page/:page_id/primary/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-page", ":page_id", "primary", ""],
+									"variable": [{"key": "page_id", "value": "dashboard_page", "description": "Page ID"}]
+								},
+								"description": "Get primary relationships for a page. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Secondary Relationships by Page",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-page/:page_id/secondary/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-page", ":page_id", "secondary", ""],
+									"variable": [{"key": "page_id", "value": "dashboard_page", "description": "Page ID"}]
+								},
+								"description": "Get secondary relationships for a page. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by page"
+				},
+				{
+					"name": "Category - By Endpoint",
+					"item": [
+						{
+							"name": "Get Relationships by Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-endpoint/:endpoint_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-endpoint", ":endpoint_id", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Get all relationships for a specific endpoint. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Count Relationships by Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-endpoint/:endpoint_id/count/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-endpoint", ":endpoint_id", "count", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Get count of relationships for an endpoint. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Pages for Endpoint",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-endpoint/:endpoint_id/pages/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-endpoint", ":endpoint_id", "pages", ""],
+									"variable": [{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"}]
+								},
+								"description": "Get all pages using a specific endpoint. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by endpoint"
+				},
+				{
+					"name": "Category - By Usage Type",
+					"item": [
+						{
+							"name": "Get Primary Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-type/primary/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-type", "primary", ""]
+								},
+								"description": "Get all primary relationships. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Secondary Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-type/secondary/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-type", "secondary", ""]
+								},
+								"description": "Get all secondary relationships. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Conditional Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-type/conditional/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-type", "conditional", ""]
+								},
+								"description": "Get all conditional relationships. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Count by Usage Type",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-type/:usage_type/count/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-type", ":usage_type", "count", ""],
+									"variable": [{"key": "usage_type", "value": "primary", "description": "Usage type"}]
+								},
+								"description": "Get count of relationships by usage type. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List Usage Types",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/usage-types/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "usage-types", ""]
+								},
+								"description": "List all usage types with counts. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by usage type"
+				},
+				{
+					"name": "Category - By Usage Context",
+					"item": [
+						{
+							"name": "Get Data Fetching Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-context/data_fetching/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-context", "data_fetching", ""]
+								},
+								"description": "Get all data fetching relationships. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Data Mutation Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-context/data_mutation/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-context", "data_mutation", ""]
+								},
+								"description": "Get all data mutation relationships. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Authentication Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-context/authentication/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-context", "authentication", ""]
+								},
+								"description": "Get all authentication relationships. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Analytics Relationships",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-context/analytics/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-context", "analytics", ""]
+								},
+								"description": "Get all analytics relationships. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Count by Usage Context",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-context/:usage_context/count/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-context", ":usage_context", "count", ""],
+									"variable": [{"key": "usage_context", "value": "data_fetching", "description": "Usage context"}]
+								},
+								"description": "Get count of relationships by usage context. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "List Usage Contexts",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/usage-contexts/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "usage-contexts", ""]
+								},
+								"description": "List all usage contexts with counts. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Category endpoints filtered by usage context"
+				},
+				{
+					"name": "Combined Filters",
+					"item": [
+						{
+							"name": "Get by Page and Usage Type",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-page/:page_id/by-usage-type/:usage_type/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-page", ":page_id", "by-usage-type", ":usage_type", ""],
+									"variable": [
+										{"key": "page_id", "value": "dashboard_page", "description": "Page ID"},
+										{"key": "usage_type", "value": "primary", "description": "Usage type"}
+									]
+								},
+								"description": "Get relationships filtered by page and usage type. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get by Endpoint and Usage Context",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-endpoint/:endpoint_id/by-usage-context/:usage_context/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-endpoint", ":endpoint_id", "by-usage-context", ":usage_context", ""],
+									"variable": [
+										{"key": "endpoint_id", "value": "get_contacts_v4", "description": "Endpoint ID"},
+										{"key": "usage_context", "value": "data_fetching", "description": "Usage context"}
+									]
+								},
+								"description": "Get relationships filtered by endpoint and usage context. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Get by Usage Type and Context",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/by-usage-type/:usage_type/by-usage-context/:usage_context/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "by-usage-type", ":usage_type", "by-usage-context", ":usage_context", ""],
+									"variable": [
+										{"key": "usage_type", "value": "primary", "description": "Usage type"},
+										{"key": "usage_context", "value": "data_fetching", "description": "Usage context"}
+									]
+								},
+								"description": "Get relationships filtered by usage type and context. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Combined category filtering endpoints"
+				},
+				{
+					"name": "Graph & Visualization",
+					"item": [
+						{
+							"name": "Get Relationship Graph",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/graph/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "graph", ""]
+								},
+								"description": "Get full relationship graph (nodes and edges) for visualization. Returns nodes (pages and endpoints) and edges (relationships) with metadata. No authentication required."
+							},
+							"response": []
+						}
+					],
+					"description": "Graph and visualization endpoints"
+				},
+				{
+					"name": "Statistics & Validation",
+					"item": [
+						{
+							"name": "Get Relationship Statistics",
+							"request": {
+								"method": "GET",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/statistics/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "statistics", ""]
+								},
+								"description": "Get relationship statistics. Requires API key."
+							},
+							"response": []
+						},
+						{
+							"name": "Validate Relationships",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "X-API-Key", "value": "{{api_key}}"}],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/validate/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "validate", ""]
+								},
+								"description": "Validate relationships for broken links. Requires API key."
+							},
+							"response": []
+						}
+					],
+					"description": "Statistics and validation endpoints"
+				},
+				{
+					"name": "Format & Examples",
+					"item": [
+						{
+							"name": "Get Relationships Format",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/format/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "format", ""]
+								},
+								"description": "Get copy/paste JSON examples and S3 key conventions for relationships. Returns examples for single relationship, by-page file format, by-endpoint file format, and analysis payload format. No authentication required."
+							},
+							"response": []
+						}
+					],
+					"description": "Format endpoints return JSON schema examples and S3 storage conventions"
+				},
+				{
+					"name": "Import & Upsert",
+					"item": [
+						{
+							"name": "Import Relationships (Single)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"page_path\": \"/dashboard\",\n  \"endpoint_path\": \"graphql/GetUserStats\",\n  \"method\": \"QUERY\",\n  \"api_version\": \"graphql\",\n  \"via_service\": \"adminService\",\n  \"via_hook\": \"useDashboardPage\",\n  \"usage_type\": \"conditional\",\n  \"usage_context\": \"analytics\"\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/import/?mode=upsert",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "import", ""],
+									"query": [
+										{"key": "mode", "value": "upsert", "description": "Import mode: upsert, create_only, update_only"}
+									]
+								},
+								"description": "Import single relationship. Accepts flat relationship object with page_path, endpoint_path, method, etc."
+							},
+							"response": []
+						},
+						{
+							"name": "Import Relationships (By-Page Format)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"page_path\": \"/dashboard\",\n  \"endpoints\": [\n    {\n      \"page_path\": \"/dashboard\",\n      \"endpoint_path\": \"graphql/GetUserStats\",\n      \"method\": \"QUERY\",\n      \"api_version\": \"graphql\",\n      \"via_service\": \"adminService\",\n      \"via_hook\": \"useDashboardPage\",\n      \"usage_type\": \"conditional\",\n      \"usage_context\": \"analytics\",\n      \"updated_at\": \"2024-01-01T00:00:00.000000+00:00\"\n    }\n  ]\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/import/?mode=upsert",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "import", ""],
+									"query": [
+										{"key": "mode", "value": "upsert", "description": "Import mode"}
+									]
+								},
+								"description": "Import relationships in by-page format. Service automatically flattens and creates bidirectional relationships."
+							},
+							"response": []
+						},
+						{
+							"name": "Import Relationships (List)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n  {\n    \"page_path\": \"/dashboard\",\n    \"endpoint_path\": \"graphql/GetUserStats\",\n    \"method\": \"QUERY\",\n    \"api_version\": \"graphql\",\n    \"via_service\": \"adminService\",\n    \"usage_type\": \"primary\",\n    \"usage_context\": \"data_fetching\"\n  },\n  {\n    \"page_path\": \"/dashboard\",\n    \"endpoint_path\": \"graphql/GetActivities\",\n    \"method\": \"QUERY\",\n    \"api_version\": \"graphql\",\n    \"via_service\": \"activitiesService\",\n    \"usage_type\": \"secondary\",\n    \"usage_context\": \"analytics\"\n  }\n]",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/import/?mode=upsert",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "import", ""],
+									"query": [
+										{"key": "mode", "value": "upsert", "description": "Import mode"}
+									]
+								},
+								"description": "Import multiple relationships as a list. Each item is a flat relationship object."
+							},
+							"response": []
+						}
+					],
+					"description": "Import/upsert endpoints accept JSON payloads in multiple formats (single, by-page, by-endpoint, list) and write to S3 with index updates"
+				},
+				{
+					"name": "Analyse & Sync",
+					"item": [
+						{
+							"name": "Analyse Relationships",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"relationships\": {\n    \"page_to_endpoints\": {\n      \"/dashboard\": [\n        {\n          \"endpoint_path\": \"graphql/GetUserStats\",\n          \"method\": \"QUERY\",\n          \"api_version\": \"graphql\",\n          \"via_service\": \"adminService\",\n          \"via_hook\": \"useDashboardPage\",\n          \"usage_type\": \"primary\",\n          \"usage_context\": \"analytics\",\n          \"updated_at\": \"2024-01-01T00:00:00.000000+00:00\"\n        }\n      ]\n    },\n    \"endpoint_to_pages\": {\n      \"QUERY:graphql/GetUserStats\": [\n        {\n          \"page_path\": \"/dashboard\",\n          \"page_title\": \"Dashboard Page\",\n          \"via_service\": \"adminService\",\n          \"via_hook\": \"useDashboardPage\",\n          \"usage_type\": \"primary\",\n          \"usage_context\": \"analytics\",\n          \"updated_at\": \"2024-01-01T00:00:00.000000+00:00\"\n        }\n      ]\n    }\n  }\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/relationships/analyse/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "relationships", "analyse", ""]
+								},
+								"description": "Ingest analysis JSON and sync relationships, pages, and endpoints references. Accepts {\"relationships\": {\"page_to_endpoints\": {...}, \"endpoint_to_pages\": {...}}}. Calls sync_all_relationships internally."
+							},
+							"response": []
+						}
+					],
+					"description": "Analyse endpoints ingest analysis JSON from frontend/backend tools and sync into S3"
+				}
+			],
+			"description": "REST API v1 - Relationships API: 30+ endpoints with full CRUD, category filtering, relationship ID support, format/import/analyse endpoints, and graceful error handling"
+		},
+		{
+			"name": "REST API v1 - Postman",
+			"item": [
+				{
+					"name": "Base CRUD",
+					"item": [
+						{
+							"name": "List Postman Configurations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/postman/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "postman", ""]
+								},
+								"description": "List all Postman configurations."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Postman Configuration",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/postman/:config_id/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "postman", ":config_id", ""],
+									"variable": [{"key": "config_id", "value": "contact360", "description": "Configuration ID"}]
+								},
+								"description": "Get Postman configuration by ID."
+							},
+							"response": []
+						}
+					],
+					"description": "Base CRUD operations for Postman configurations"
+				},
+				{
+					"name": "Format & Examples",
+					"item": [
+						{
+							"name": "Get Postman Format",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/postman/format/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "postman", "format", ""]
+								},
+								"description": "Get copy/paste JSON examples and S3 key conventions for Postman configurations. Returns minimal required fields, example payloads. No authentication required."
+							},
+							"response": []
+						}
+					],
+					"description": "Format endpoints return JSON schema examples and S3 storage conventions"
+				},
+				{
+					"name": "Import & Upsert",
+					"item": [
+						{
+							"name": "Import Postman Configuration",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"config_id\": \"contact360\",\n  \"name\": \"Contact360 API\",\n  \"description\": \"Postman configuration for Contact360 APIs\",\n  \"state\": \"development\",\n  \"collection\": {\n    \"info\": {\n      \"name\": \"Contact360 API\",\n      \"schema\": \"https://schema.getpostman.com/json/collection/v2.1.0/collection.json\"\n    },\n    \"item\": []\n  },\n  \"environments\": [],\n  \"endpoint_mappings\": [],\n  \"test_suites\": [],\n  \"metadata\": {\n    \"created_at\": \"2024-01-01T00:00:00.000000+00:00\",\n    \"updated_at\": \"2024-01-01T00:00:00.000000+00:00\",\n    \"version\": \"1.0.0\"\n  }\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/postman/import/?mode=upsert",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "postman", "import", ""],
+									"query": [
+										{"key": "mode", "value": "upsert", "description": "Import mode: upsert, create_only, update_only"}
+									]
+								},
+								"description": "Import/upsert Postman configuration JSON into S3 and update indexes. Accepts single configuration object, list of configurations, or {\"configurations\": [...]}. Mode: upsert (default), create_only, update_only."
+							},
+							"response": []
+						}
+					],
+					"description": "Import/upsert endpoints accept JSON payloads and write to S3 with index updates"
+				},
+				{
+					"name": "Analyse & Sync",
+					"item": [
+						{
+							"name": "Analyse Postman",
+							"request": {
+								"method": "POST",
+								"header": [
+									{"key": "Content-Type", "value": "application/json"}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"config_id\": \"contact360\",\n  \"name\": \"Contact360 API\",\n  \"collection\": {\n    \"info\": {\n      \"name\": \"Contact360 API\",\n      \"schema\": \"https://schema.getpostman.com/json/collection/v2.1.0/collection.json\"\n    },\n    \"item\": []\n  }\n}",
+									"options": {"raw": {"language": "json"}}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/postman/analyse/?mode=upsert",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "postman", "analyse", ""],
+									"query": [
+										{"key": "mode", "value": "upsert", "description": "Alias of /import for Postman (upsert by default)"}
+									]
+								},
+								"description": "Alias of /import for Postman configurations. Kept for symmetry with other resources. Accepts same payload format as /import."
+							},
+							"response": []
+						}
+					],
+					"description": "Analyse endpoints for Postman (alias of import for symmetry)"
+				},
+				{
+					"name": "Statistics",
+					"item": [
+						{
+							"name": "Get Postman Statistics",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/postman/statistics/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "postman", "statistics", ""]
+								},
+								"description": "Get Postman configuration statistics."
+							},
+							"response": []
+						}
+					],
+					"description": "Statistics endpoints for Postman configurations"
+				}
+			],
+			"description": "REST API v1 - Postman API: Configuration management, format/import/analyse endpoints, and statistics"
+		},
+		{
+			"name": "REST API v1 - Index Management",
+			"item": [
+				{
+					"name": "Pages Index",
+					"item": [
+						{
+							"name": "Get Pages Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/pages/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "pages", ""]
+								},
+								"description": "Read current pages index.json from S3. Returns version, last_updated, total, pages list, indexes, and statistics. Cached for 60 seconds."
+							},
+							"response": []
+						},
+						{
+							"name": "Rebuild Pages Index",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/pages/rebuild/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "pages", "rebuild", ""]
+								},
+								"description": "Rebuild pages index from all page files in S3. Scans data/pages/*.json and rebuilds data/pages/index.json with full page data for INDEX-ONLY responses. Returns 202 Accepted with rebuild status."
+							},
+							"response": []
+						},
+						{
+							"name": "Validate Pages Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/pages/validate/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "pages", "validate", ""]
+								},
+								"description": "Validate pages index consistency. Checks that all page files in S3 are listed in index, and that index doesn't reference non-existent files. Returns validation report with missing_in_index and extra_in_index lists."
+							},
+							"response": []
+						}
+					],
+					"description": "Pages index management: read, rebuild, and validate"
+				},
+				{
+					"name": "Endpoints Index",
+					"item": [
+						{
+							"name": "Get Endpoints Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/endpoints/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "endpoints", ""]
+								},
+								"description": "Read current endpoints index.json from S3. Returns version, last_updated, total, endpoints list, indexes (by_api_version, by_method, by_path_method, by_endpoint_state, by_lambda_service), and statistics. Cached for 60 seconds."
+							},
+							"response": []
+						},
+						{
+							"name": "Rebuild Endpoints Index",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/endpoints/rebuild/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "endpoints", "rebuild", ""]
+								},
+								"description": "Rebuild endpoints index from all endpoint files in S3. Scans data/endpoints/*.json and rebuilds data/endpoints/index.json with full endpoint data for INDEX-ONLY responses. Returns 202 Accepted with rebuild status."
+							},
+							"response": []
+						},
+						{
+							"name": "Validate Endpoints Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/endpoints/validate/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "endpoints", "validate", ""]
+								},
+								"description": "Validate endpoints index consistency. Checks that all endpoint files in S3 are listed in index, validates by_path_method mapping correctness. Returns validation report with missing_in_index, extra_in_index, and by_path_method_mismatches."
+							},
+							"response": []
+						}
+					],
+					"description": "Endpoints index management: read, rebuild, and validate"
+				},
+				{
+					"name": "Relationships Index",
+					"item": [
+						{
+							"name": "Get Relationships Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/relationships/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "relationships", ""]
+								},
+								"description": "Read current relationships index.json from S3. Returns version, last_updated, total, relationships list, indexes (by_page, by_endpoint, by_usage_type, by_usage_context, by_state, etc.), and statistics. Cached for 60 seconds."
+							},
+							"response": []
+						},
+						{
+							"name": "Rebuild Relationships Index",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/relationships/rebuild/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "relationships", "rebuild", ""]
+								},
+								"description": "Rebuild relationships index from all relationship files in S3. Scans data/relationships/by-page/*.json and rebuilds data/relationships/index.json with full relationship data for INDEX-ONLY responses. Returns 202 Accepted with rebuild status."
+							},
+							"response": []
+						},
+						{
+							"name": "Validate Relationships Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/relationships/validate/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "relationships", "validate", ""]
+								},
+								"description": "Validate relationships index consistency. Checks that relationships derived from by-page files match relationships listed in index, validates presence of expected by-page and by-endpoint files. Returns validation report with missing_in_index, extra_in_index, missing_by_endpoint_files, and missing_by_page_files."
+							},
+							"response": []
+						}
+					],
+					"description": "Relationships index management: read, rebuild, and validate"
+				},
+				{
+					"name": "Postman Index",
+					"item": [
+						{
+							"name": "Get Postman Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/postman/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "postman", ""]
+								},
+								"description": "Read current Postman index.json from S3. Returns configurations list, total, updated_at. Cached for 60 seconds."
+							},
+							"response": []
+						},
+						{
+							"name": "Rebuild Postman Index",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/postman/rebuild/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "postman", "rebuild", ""]
+								},
+								"description": "Rebuild Postman index.json and by-state indexes from configuration objects. Scans data/postman/configurations/*.json and rebuilds data/postman/index.json and data/postman/by-state/{state}.json files. Returns 202 Accepted with rebuild status including states breakdown."
+							},
+							"response": []
+						},
+						{
+							"name": "Validate Postman Index",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/index/postman/validate/",
+									"host": ["{{base_url}}"],
+									"path": ["api", "v1", "index", "postman", "validate", ""]
+								},
+								"description": "Validate Postman index consistency. Checks that all configuration files in S3 are listed in index, and that index doesn't reference non-existent files. Returns validation report with missing_in_index and extra_in_index lists."
+							},
+							"response": []
+						}
+					],
+					"description": "Postman index management: read, rebuild, and validate"
+				}
+			],
+			"description": "REST API v1 - Index Management API: Read, rebuild, and validate index.json files for all resources (pages, endpoints, relationships, postman). Indexes enable fast INDEX-ONLY list responses without reading individual files."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://94hucnirj2.execute-api.us-east-1.amazonaws.com",
+			"type": "string",
+			"description": "Base URL for the API Gateway endpoint"
+		},
+		{
+			"key": "api_key",
+			"value": "bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd",
+			"type": "string",
+			"description": "API key for authentication"
+		}
+	]
+}

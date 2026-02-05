@@ -1,0 +1,129 @@
+{
+  "_id": "email_page-001",
+  "page_id": "email_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/email",
+    "file_path": "contact360/dashboard/app/(dashboard)/email/page.tsx",
+    "purpose": "Email Finder and Verifier page with Finder | Verifier tabs. Finder: single and bulk email search by name/domain. Verifier: single and bulk email verification with risk analysis.",
+    "s3_key": "data/pages/email_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": null,
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/FindEmails",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "emailService",
+        "via_hook": "useFinder",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Find single email by first name, last name, domain. Used in Finder single search."
+      },
+      {
+        "endpoint_path": "graphql/FindEmailsBulk",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "emailService",
+        "via_hook": "useFinder",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Bulk email finder for up to 50 contacts. Used in Finder bulk upload."
+      },
+      {
+        "endpoint_path": "graphql/VerifySingleEmail",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "emailService",
+        "via_hook": "useVerifier",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Verify a single email address for validity and risk."
+      },
+      {
+        "endpoint_path": "graphql/VerifyEmailsBulk",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "emailService",
+        "via_hook": "useVerifier",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Verify multiple email addresses in bulk (up to 1000)."
+      },
+      {
+        "endpoint_path": "graphql/AnalyzeEmailRisk",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "geminiService",
+        "via_hook": "useVerifier",
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "AI-powered email risk analysis (Gemini)."
+      },
+      {
+        "endpoint_path": "graphql/GetActivities",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "activitiesService",
+        "via_hook": "useVerifier",
+        "usage_type": "secondary",
+        "usage_context": "data_fetching",
+        "description": "Get finder/verifier activity history."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "EmailMainTabs",
+        "file_path": "components/features/email/EmailMainTabs.tsx"
+      },
+      {
+        "name": "FinderSingleSearch",
+        "file_path": "components/features/finder/FinderSingleSearch.tsx"
+      },
+      {
+        "name": "FinderBulkUpload",
+        "file_path": "components/features/finder/FinderBulkUpload.tsx"
+      },
+      {
+        "name": "FinderMappingModal",
+        "file_path": "components/features/finder/FinderMappingModal.tsx"
+      },
+      {
+        "name": "VerifierBulkTab",
+        "file_path": "components/features/verifier/VerifierBulkTab.tsx"
+      },
+      {
+        "name": "VerifierEmailTab",
+        "file_path": "components/features/verifier/VerifierEmailTab.tsx"
+      },
+      {
+        "name": "EmailRiskAnalyzer",
+        "file_path": "components/features/email/EmailRiskAnalyzer.tsx"
+      },
+      {
+        "name": "MetricsBanner",
+        "file_path": "components/shared/MetricsBanner.tsx"
+      },
+      {
+        "name": "UsageCounter",
+        "file_path": "components/shared/UsageCounter.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 6,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": null,
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

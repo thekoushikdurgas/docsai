@@ -1,0 +1,1 @@
+Analyse endpoints for Postman (alias of import for symmetry)

@@ -1,0 +1,238 @@
+{
+  "info": {
+    "name": "Job Scheduler (Python)",
+    "description": "Postman collection for lambda/job_scheduler_py.\n\nAuth:\n- /health and /openapi.json: no auth\n- all /api/v1/*: requires X-API-Key\n\nWorkflows:\n- Email_Export:\n  - POST /api/v1/jobs/email-export (convenience)\n  - merge job stores final S3 key in job_response.output_s3_key\n- Contact360 Import:\n  - POST /api/v1/jobs/contact360-import (convenience)\n  - finalize job stores report key in job_response.report_s3_key\n- Contact360 Export:\n  - POST /api/v1/jobs/contact360-export (convenience)\n  - merge job stores final CSV key in job_response.output_s3_key\n\nTip: Convenience requests store the final UUID into env var job_uuid for quick follow-up GET/Retry.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "OpenAPI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/openapi.json",
+              "host": ["{{base_url}}"],
+              "path": ["openapi.json"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Bulk insert complete graph (DAG)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"uuid\": \"Import:wf_demo_0001:prepare\",\n    \"job_title\": \"Contact360 Import - prepare chunks\",\n    \"job_type\": \"contact360_import_prepare\",\n    \"data\": {\n      \"workflow_id\": \"wf_demo_0001\",\n      \"s3_bucket\": \"{{s3_bucket}}\",\n      \"s3_key\": \"{{contact360_import_s3_key}}\",\n      \"output_prefix\": \"{{contact360_import_output_prefix}}\",\n      \"chunk_count\": 2\n    },\n    \"edges\": [\"Import:wf_demo_0001:chunk:0001\", \"Import:wf_demo_0001:chunk:0002\"],\n    \"retry_count\": 3,\n    \"retry_interval\": 5,\n    \"run_after\": null\n  },\n  {\n    \"uuid\": \"Import:wf_demo_0001:chunk:0001\",\n    \"job_title\": \"Contact360 Import - process chunk 0001\",\n    \"job_type\": \"contact360_import_chunk\",\n    \"data\": {\n      \"workflow_id\": \"wf_demo_0001\",\n      \"s3_bucket\": \"{{s3_bucket}}\",\n      \"output_prefix\": \"{{contact360_import_output_prefix}}\",\n      \"chunk_index\": 1\n    },\n    \"edges\": [\"Import:wf_demo_0001:finalize\"],\n    \"retry_count\": 3,\n    \"retry_interval\": 5,\n    \"run_after\": null\n  },\n  {\n    \"uuid\": \"Import:wf_demo_0001:chunk:0002\",\n    \"job_title\": \"Contact360 Import - process chunk 0002\",\n    \"job_type\": \"contact360_import_chunk\",\n    \"data\": {\n      \"workflow_id\": \"wf_demo_0001\",\n      \"s3_bucket\": \"{{s3_bucket}}\",\n      \"output_prefix\": \"{{contact360_import_output_prefix}}\",\n      \"chunk_index\": 2\n    },\n    \"edges\": [\"Import:wf_demo_0001:finalize\"],\n    \"retry_count\": 3,\n    \"retry_interval\": 5,\n    \"run_after\": null\n  },\n  {\n    \"uuid\": \"Import:wf_demo_0001:finalize\",\n    \"job_title\": \"Contact360 Import - finalize\",\n    \"job_type\": \"contact360_import_finalize\",\n    \"data\": {\n      \"workflow_id\": \"wf_demo_0001\",\n      \"s3_bucket\": \"{{s3_bucket}}\",\n      \"output_prefix\": \"{{contact360_import_output_prefix}}\",\n      \"chunk_count\": 2\n    },\n    \"edges\": [],\n    \"retry_count\": 3,\n    \"retry_interval\": 5,\n    \"run_after\": null\n  }\n]\n"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/bulk-insert/complete-graph",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", "bulk-insert", "complete-graph"]
+            }
+          }
+        },
+        {
+          "name": "Create Email_Export DAG (convenience)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  if (j && j.merge_uuid) {",
+                  "    pm.environment.set('job_uuid', j.merge_uuid);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workflow_id\": null,\n  \"s3_bucket\": \"{{s3_bucket}}\",\n  \"input_csv_key\": \"{{input_csv_key}}\",\n  \"output_prefix\": \"{{output_prefix}}\",\n  \"chunk_count\": {{chunk_count}},\n  \"email_column\": \"{{email_column}}\",\n  \"csv_columns\": {\n    \"first_name\": \"{{csv_first_name_col}}\",\n    \"last_name\": \"{{csv_last_name_col}}\",\n    \"domain\": \"{{csv_domain_col}}\"\n  },\n  \"retry_count\": 3,\n  \"retry_interval\": 5\n}\n"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/email-export",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", "email-export"]
+            }
+          }
+        },
+        {
+          "name": "Create Contact360 Import DAG (convenience)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  if (j && j.finalize_uuid) {",
+                  "    pm.environment.set('job_uuid', j.finalize_uuid);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workflow_id\": null,\n  \"s3_bucket\": \"{{s3_bucket}}\",\n  \"s3_key\": \"{{contact360_import_s3_key}}\",\n  \"output_prefix\": \"{{contact360_import_output_prefix}}\",\n  \"chunk_count\": {{contact360_import_chunk_count}},\n  \"retry_count\": 3,\n  \"retry_interval\": 5\n}\n"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/contact360-import",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", "contact360-import"]
+            }
+          }
+        },
+        {
+          "name": "Create Contact360 Export DAG (convenience)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  if (j && j.merge_uuid) {",
+                  "    pm.environment.set('job_uuid', j.merge_uuid);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workflow_id\": null,\n  \"s3_bucket\": \"{{s3_bucket}}\",\n  \"output_prefix\": \"{{contact360_export_output_prefix}}\",\n  \"service\": \"{{contact360_export_service}}\",\n  \"vql\": {\n    \"where\": {\n      \"text_matches\": { \"must\": [], \"must_not\": [] },\n      \"keyword_match\": { \"must\": {}, \"must_not\": {} },\n      \"range_query\": { \"must\": {}, \"must_not\": {} }\n    },\n    \"select_columns\": {{contact360_export_select_columns}},\n    \"order_by\": [{ \"order_by\": \"uuid\", \"order_direction\": \"desc\" }],\n    \"cursor\": [],\n    \"page\": 0,\n    \"limit\": {{contact360_export_page_size}}\n  },\n  \"slice_count\": {{contact360_export_slice_count}},\n  \"page_size\": {{contact360_export_page_size}},\n  \"retry_count\": 2,\n  \"retry_interval\": 5\n}\n"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/contact360-export",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", "contact360-export"]
+            }
+          }
+        },
+        {
+          "name": "List jobs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs?limit=25&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "limit", "value": "25" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List jobs (filter status=open,failed)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs?status=open&status=failed&limit=25&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "status", "value": "open" },
+                { "key": "status", "value": "failed" },
+                { "key": "limit", "value": "25" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get job by uuid",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/{{job_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", "{{job_uuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Retry job",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": null,\n  \"retry_count\": 3,\n  \"retry_interval\": 5,\n  \"run_after\": null\n}\n"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/{{job_uuid}}/retry",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", "{{job_uuid}}", "retry"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "api_key", "value": "change-me" },
+    { "key": "job_uuid", "value": "" }
+  ]
+}
+

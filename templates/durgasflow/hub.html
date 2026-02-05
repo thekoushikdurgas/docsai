@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static core_filters %}
+
+{% block title %}Workflow Hub - Durgasflow{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Workflow Hub</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">Manage, discover, and run workflows in one place</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'durgasflow:editor_new' %}" class="px-5 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-lg shadow-blue-200 dark:shadow-blue-900/50 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                New Workflow
+            </a>
+            <a href="/media/?tab=n8n" class="px-5 py-2.5 bg-amber-600 dark:bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-700 dark:hover:bg-amber-600 transition-all flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                Browse n8n
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-2">
+        <div class="flex gap-1" role="tablist">
+            <a href="?tab=my_workflows{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if trigger_filter %}&trigger={{ trigger_filter }}{% endif %}" 
+               class="px-4 py-2 rounded-xl font-medium text-sm transition-colors {% if tab == 'my_workflows' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300{% else %}text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100{% endif %}">
+                My Workflows ({{ stats.total_workflows }})
+            </a>
+            <a href="?tab=n8n{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" 
+               class="px-4 py-2 rounded-xl font-medium text-sm transition-colors {% if tab == 'n8n' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300{% else %}text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100{% endif %}">
+                n8n Library ({{ stats.n8n_total }})
+            </a>
+            <a href="?tab=templates{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" 
+               class="px-4 py-2 rounded-xl font-medium text-sm transition-colors {% if tab == 'templates' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300{% else %}text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100{% endif %}">
+                Templates ({{ stats.templates_count }})
+            </a>
+            <a href="?tab=executions{% if search %}&search={{ search }}{% endif %}" 
+               class="px-4 py-2 rounded-xl font-medium text-sm transition-colors {% if tab == 'executions' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300{% else %}text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100{% endif %}">
+                Executions ({{ stats.total_executions }})
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+        <input type="hidden" name="tab" value="{{ tab }}" />
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" name="search" value="{{ search }}" placeholder="Search..." class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500" />
+            </div>
+            {% if tab == 'my_workflows' %}
+                <select name="status" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Statuses</option>
+                    {% for value, label in status_choices %}<option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+                <select name="trigger" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Triggers</option>
+                    <option value="manual" {% if trigger_filter == 'manual' %}selected{% endif %}>Manual</option>
+                    <option value="webhook" {% if trigger_filter == 'webhook' %}selected{% endif %}>Webhook</option>
+                    <option value="schedule" {% if trigger_filter == 'schedule' %}selected{% endif %}>Scheduled</option>
+                </select>
+            {% elif tab == 'n8n' or tab == 'templates' %}
+                <select name="category" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Categories</option>
+                    {% for cat in n8n_categories|default:template_categories|default:"" %}
+                        <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat|title }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700">Filter</button>
+        </div>
+    </form>
+
+    <!-- Tab Content -->
+    {% if tab == 'my_workflows' %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for workflow in my_workflows %}
+                {% include 'components/workflow_card.html' with workflow=workflow variant="my_workflow" %}
+            {% empty %}
+                {% include 'components/workflow_empty_state.html' with tab="my_workflows" has_filters=search_or_status_or_trigger %}
+            {% endfor %}
+        </div>
+    {% elif tab == 'n8n' %}
+        {% if n8n_workflows_page %}
+            <div class="flex items-center justify-between gap-4 mb-6" data-n8n-total="{{ n8n_total|default:0 }}" data-bulk-import-url="{% url 'durgasflow:import_n8n_bulk' %}">
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{ n8n_total }} workflow{{ n8n_total|pluralize }} in library</span>
+                <button type="button" id="n8n-import-all-btn" class="px-4 py-2 bg-amber-600 dark:bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 dark:hover:bg-amber-600 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    Import all
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for workflow in n8n_workflows_page %}
+                    {% include 'components/workflow_card.html' with workflow=workflow variant="n8n" %}
+                {% endfor %}
+            </div>
+            {% if n8n_num_pages > 1 %}
+            <div class="mt-8 flex items-center justify-center gap-2">
+                {% if n8n_page > 1 %}
+                <a href="?tab=n8n&n8n_page={{ n8n_page|add:-1 }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
+                {% endif %}
+                <span class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Page {{ n8n_page }} of {{ n8n_num_pages }} ({{ n8n_total }} workflows)</span>
+                {% if n8n_page < n8n_num_pages %}
+                <a href="?tab=n8n&n8n_page={{ n8n_page|add:1 }}{% if search %}&search={{ search }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            {% include 'components/workflow_empty_state.html' with tab="n8n" has_filters=search_or_category action_url="?tab=n8n" action_text="Clear filters" %}
+        {% endif %}
+    {% elif tab == 'templates' %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for template in templates %}
+                {% include 'components/workflow_card.html' with workflow=template variant="template" %}
+            {% empty %}
+                {% include 'components/workflow_empty_state.html' with tab="templates" has_filters=search_or_category %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+            {% if executions %}
+                <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                    {% for execution in executions %}
+                        <a href="{% url 'durgasflow:execution_detail' execution.id|default:execution.execution_id %}" class="block p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center {% if execution.status == 'completed' %}bg-green-100 dark:bg-green-900/30{% elif execution.status == 'failed' %}bg-red-100 dark:bg-red-900/30{% elif execution.status == 'running' %}bg-blue-100 dark:bg-blue-900/30{% else %}bg-gray-100 dark:bg-gray-700{% endif %}">
+                                        <svg class="w-6 h-6 {% if execution.status == 'completed' %}text-green-600 dark:text-green-400{% elif execution.status == 'failed' %}text-red-600 dark:text-red-400{% elif execution.status == 'running' %}text-blue-600 dark:text-blue-400{% else %}text-gray-500 dark:text-gray-400{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132a1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900 dark:text-gray-100">{{ execution.workflow.name }}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ execution.created_at|timesince_safe }} ago</p>
+                                    </div>
+                                </div>
+                                {% include 'components/status_badge.html' with status=execution.status variant="execution" %}
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {% include 'components/workflow_empty_state.html' with tab="executions" has_filters=search %}
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('n8n-import-all-btn');
+        var container = document.querySelector('[data-bulk-import-url]');
+        if (!btn || !container) return;
+        var bulkUrl = container.getAttribute('data-bulk-import-url');
+        if (bulkUrl && bulkUrl.charAt(bulkUrl.length - 1) !== '/') bulkUrl = bulkUrl + '/';
+        var total = parseInt(container.getAttribute('data-n8n-total') || '0', 10);
+
+        btn.addEventListener('click', function() {
+            var importCount = Math.min(total, 100);
+            var message = total > 0
+                ? 'Import up to ' + importCount + ' workflow' + (importCount === 1 ? '' : 's') + ' from the n8n library (max 100 per run). This may take a minute.'
+                : 'Import workflows from the n8n library.';
+            Modal.confirm({
+                title: 'Import n8n workflows',
+                size: 'xl',
+                content: '<div class="space-y-4"><div class="flex items-start gap-4"><div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center ring-2 ring-amber-200/50 dark:ring-amber-800/30"><svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg></div><div class="flex-1 min-w-0"><p class="text-gray-800 dark:text-gray-100 font-medium leading-relaxed">' + message + '</p><p class="text-sm text-gray-500 dark:text-gray-400 mt-2">New workflows will appear in <strong class="text-gray-700 dark:text-gray-200">My Workflows</strong>.</p></div></div></div>',
+                confirmText: 'Import',
+                cancelText: 'Cancel'
+            }).then(function(confirmed) {
+                if (!confirmed) return;
+                var progressModal = new Modal({
+                    id: 'n8n-bulk-progress',
+                    title: 'Importing workflows',
+                    size: 'lg',
+                    content: '<div class="space-y-4"><p class="text-gray-600 dark:text-gray-300">Processing workflows… please wait. Do not close this window.</p><div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full animate-pulse transition-all duration-500" style="width: 45%"></div></div></div>',
+                    showFooter: true,
+                    showCancel: false,
+                    confirmText: 'Close',
+                    closable: false
+                });
+                progressModal.open();
+
+                var headers = { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+                if (typeof addCSRFToHeaders === 'function') addCSRFToHeaders(headers);
+
+                fetch(bulkUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ scope: 'all' }),
+                    credentials: 'same-origin'
+                }).then(function(res) {
+                    var status = res.status;
+                    var ct = res.headers.get('Content-Type') || '';
+                    if (status === 0) {
+                        return Promise.resolve({
+                            ok: false,
+                            status: 0,
+                            data: { ok: false, error: 'Request was redirected. Session may have expired — refresh the page (Ctrl+F5) and try again.' }
+                        });
+                    }
+                    if (status === 302 || status === 301 || status === 303 || status === 307 || status === 308) {
+                        var loc = res.headers.get('Location') || '';
+                        return Promise.resolve({
+                            ok: false,
+                            status: status,
+                            data: { ok: false, error: 'Session may have expired. Please refresh the page and try again.', redirect: loc }
+                        });
+                    }
+                    if (res.redirected) {
+                        return Promise.resolve({
+                            ok: false,
+                            status: status,
+                            data: { ok: false, error: 'Request was redirected (e.g. to login). Refresh the page (Ctrl+F5) and log in as SuperAdmin. Ensure cookies are enabled for this site.' }
+                        });
+                    }
+                    var isJson = (ct && ct.indexOf('application/json') !== -1);
+                    if (!isJson) {
+                        return Promise.resolve({
+                            ok: false,
+                            status: status,
+                            data: { ok: false, error: 'Server returned non-JSON (HTML). Session may have expired — refresh and log in as SuperAdmin.' }
+                        });
+                    }
+                    return res.text().then(function(text) {
+                        var data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch (e) {
+                            return { ok: false, status: status, data: { ok: false, error: 'Invalid JSON from server. Session may have expired — refresh and try again.' } };
+                        }
+                        return { ok: res.ok && data && data.ok !== false, status: status, data: data };
+                    });
+                })
+                  .then(function(result) {
+                    var data = result.data || {};
+                    if (!result.ok || !data.ok) {
+                        var errMsg = data.message || data.error || 'Import failed (HTTP ' + result.status + ').';
+                        if (result.status === 401) {
+                            errMsg = data.message || data.error || 'Session expired. Please log in again.';
+                        } else if (result.status === 403 || result.status === 302 || result.status === 301) {
+                            errMsg = (data.message || data.error || 'Access denied.') + ' Session may have expired.';
+                        }
+                        progressModal.setContent(
+                            '<div class="space-y-4">' +
+                            '<div class="flex items-start gap-4"><div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center"><svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>' +
+                            '<div class="flex-1 min-w-0"><p class="font-medium text-gray-900 dark:text-gray-100">' + errMsg + '</p>' +
+                            '<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">What to try:</p>' +
+                            '<ul class="text-sm text-gray-600 dark:text-gray-300 mt-1 space-y-1 list-disc list-inside"><li>Refresh the page (Ctrl+F5) and try again</li><li>Ensure you are logged in as SuperAdmin</li><li>Check that cookies are enabled for http://127.0.0.1:8000</li></ul></div></div></div>'
+                        );
+                        progressModal.setTitle('Import failed');
+                        progressModal.options.closable = true;
+                        progressModal.options.backdropClose = true;
+                        progressModal.options.onClose = function() { window.location.reload(); };
+                        return;
+                    }
+                    var summary = data.summary || {};
+                    var successCount = summary.success || 0;
+                    var failedCount = summary.failed || 0;
+                    var totalCount = summary.total || 0;
+                    var parts = [];
+                    parts.push('<div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div><div><p class="font-semibold text-gray-900 dark:text-gray-100">Imported ' + successCount + ' of ' + totalCount + ' workflow' + (totalCount === 1 ? '' : 's') + '</p>' + (failedCount > 0 ? '<p class="text-sm text-amber-600 dark:text-amber-400">' + failedCount + ' failed</p>' : '') + '</div></div>');
+                    parts.push('<div class="mt-4 max-h-52 overflow-y-auto rounded-xl bg-gray-50 dark:bg-gray-800/50 p-3 space-y-1 text-sm">');
+                    (data.results || []).forEach(function(r) {
+                        if (r.success) {
+                            parts.push('<div class="text-green-600 dark:text-green-400">✓ ' + (r.name || r.workflow_path) + '</div>');
+                        } else {
+                            parts.push('<div class="text-red-600 dark:text-red-400">✗ ' + (r.workflow_path || '') + ': ' + (r.error || 'Error') + '</div>');
+                        }
+                    });
+                    parts.push('</div>');
+                    progressModal.setContent(parts.join(''));
+                    progressModal.setTitle('Import complete');
+                    progressModal.options.closable = true;
+                    progressModal.options.backdropClose = true;
+                    progressModal.options.onClose = function() { window.location.reload(); };
+                  })
+                  .catch(function(err) {
+                    var msg = (err.message || 'Network error').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    progressModal.setContent(
+                        '<div class="space-y-4">' +
+                        '<div class="flex items-start gap-4"><div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center"><svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>' +
+                        '<div class="flex-1 min-w-0"><p class="font-medium text-gray-900 dark:text-gray-100">' + msg + '</p>' +
+                        '<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">What to try:</p>' +
+                        '<ul class="text-sm text-gray-600 dark:text-gray-300 mt-1 space-y-1 list-disc list-inside"><li>Refresh the page (Ctrl+F5) and try again</li><li>Ensure you are logged in as SuperAdmin</li><li>Check your network connection</li></ul></div></div></div>'
+                    );
+                    progressModal.setTitle('Import failed');
+                    progressModal.options.closable = true;
+                    progressModal.options.backdropClose = true;
+                    progressModal.options.onClose = function() { window.location.reload(); };
+                  });
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}

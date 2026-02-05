@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload to S3 - Operations{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto">
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <a href="{% url 'documentation:dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+        </a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <a href="{% url 'documentation:operations_dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Operations</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-700 dark:text-gray-300 font-medium">Upload to S3</span>
+    </nav>
+
+    <!-- Suggested next step -->
+    <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Suggested next step</p>
+    <div class="flex flex-wrap items-center gap-2 text-sm mb-4">
+        <a href="{% url 'documentation:operations_seed' %}{% if parent_operation_id %}?parent_operation_id={{ parent_operation_id }}{% endif %}" class="px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">Seed documentation</a>
+    </div>
+
+    <div id="upload-form-wrap" class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Upload to S3</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            Upload all JSON files from media/ (pages, endpoints, relationships, n8n, postman, project, result, media root) to S3.
+        </p>
+        
+        <form id="upload-s3-form" method="post" action="{% url 'documentation:operations_upload' %}" class="space-y-6">
+            {% csrf_token %}
+            {% if parent_operation_id %}<input type="hidden" name="parent_operation_id" value="{{ parent_operation_id }}">{% endif %}
+            <div class="space-y-2">
+                <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <input type="checkbox" id="upload_all" name="upload_all" value="1" class="rounded border-gray-300 dark:border-gray-600">
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-200">Upload all (all sources below)</span>
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-1 border-l-2 border-gray-200 dark:border-gray-600 ml-1">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_pages" value="1" checked class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">pages/</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_endpoints" value="1" checked class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">endpoints/</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_relationships" value="1" checked class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">relationship(s)/</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_postman" value="1" class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">postman/</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_n8n" value="1" class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">n8n/</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_project" value="1" class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">project/</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_result" value="1" class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">result/</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="upload_media" value="1" class="rounded border-gray-300 dark:border-gray-600 upload-source">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">media/ (root JSON)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button 
+                    type="submit"
+                    class="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium"
+                >
+                    Upload to S3
+                </button>
+                <a href="{% url 'documentation:operations_dashboard' %}" class="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Progress (hidden by default, shown when upload starts via JS) -->
+    <div id="upload-progress" class="hidden bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mt-6">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 dark:border-gray-700 border-t-indigo-500 flex-shrink-0"></div>
+            <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Uploading to S3</h3>
+                <p id="upload-progress-label" class="text-sm text-gray-500 dark:text-gray-400">Starting…</p>
+                <p id="upload-progress-file" class="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5"></p>
+            </div>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div id="upload-progress-bar" class="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+        </div>
+        <p id="upload-progress-step" class="text-xs text-gray-500 dark:text-gray-400 mt-2">0 / 0 files</p>
+    </div>
+
+    <!-- Results (shown after upload) -->
+    <div id="upload-results" class="{% if not report %}hidden{% endif %} bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 max-w-6xl">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Upload Results</h3>
+        <div id="upload-results-body" class="space-y-4">
+            {% if report %}
+                {% if report.message %}
+                <div class="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200">
+                    <p class="text-sm">{{ report.message }}</p>
+                </div>
+                {% endif %}
+                {% if report.results %}
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {{ report|json_script:"upload-report-data" }}
+                    <button type="button" id="download-upload-report-btn" class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        Download report (JSON)
+                    </button>
+                    {% if operation_id %}
+                    <a href="{% url 'documentation:operations_seed' %}?parent_operation_id={{ operation_id }}" class="px-3 py-1.5 text-sm rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">
+                        Next: Seed documentation
+                    </a>
+                    {% endif %}
+                </div>
+                {% for name, data in report.results.items %}
+                <details class="border border-gray-200 dark:border-gray-600 rounded-lg mb-2 group {% if data.success %}bg-green-50/30 dark:bg-green-900/10{% else %}bg-red-50/30 dark:bg-red-900/10{% endif %}">
+                    <summary class="p-4 cursor-pointer list-none flex items-center justify-between font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg [&::-webkit-details-marker]:hidden">
+                        <span>{{ name|title }} — {% if data.success %}✓ {{ data.synced|default:0 }} / {{ data.total_files|default:0 }} files uploaded{% else %}✗ {{ data.error|default:data.errors|default:0 }} error(s){% endif %}</span>
+                        <span class="group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div class="px-4 pb-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Success (all)</p>
+                            <ul class="text-sm text-gray-600 dark:text-gray-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for f in data.success_files %}
+                                <li>{{ f.file }}</li>
+                                {% empty %}
+                                <li class="text-gray-400">{% if data.success %}—{% else %}No files uploaded{% endif %}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Errors (all)</p>
+                            {% if data.error %}
+                            <p class="text-sm text-red-600 dark:text-red-400">{{ data.error }}</p>
+                            {% endif %}
+                            {% if data.error_details %}
+                            <ul class="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto">
+                                {% for detail in data.error_details %}
+                                <li>{{ detail.file }}: {{ detail.error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-sm text-gray-400">None</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </details>
+                {% endfor %}
+                {% if report.success %}
+                <p class="text-sm text-green-600 dark:text-green-400 font-medium">All selected types uploaded successfully.</p>
+                {% else %}
+                <p class="text-sm text-red-600 dark:text-red-400 font-medium">Some uploads failed. See details above.</p>
+                {% endif %}
+                {% endif %}
+            {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">Run upload to see results.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var form = document.getElementById('upload-s3-form');
+    var formWrap = document.getElementById('upload-form-wrap');
+    var progressEl = document.getElementById('upload-progress');
+    var progressBar = document.getElementById('upload-progress-bar');
+    var progressLabel = document.getElementById('upload-progress-label');
+    var progressFile = document.getElementById('upload-progress-file');
+    var progressStep = document.getElementById('upload-progress-step');
+    var startUrl = "/docs/api/operations/upload/start/";
+    var progressUrlTemplate = "/docs/api/operations/upload-progress/__JOB_ID__/";
+    var uploadPageUrl = "/docs/operations/upload/";
+
+    function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : null;
+    }
+
+    var uploadAllEl = document.getElementById('upload_all');
+    if (uploadAllEl) {
+        uploadAllEl.addEventListener('change', function() {
+            var sources = form.querySelectorAll('.upload-source');
+            sources.forEach(function(cb) { cb.checked = uploadAllEl.checked; });
+        });
+    }
+    if (form) {
+        form.querySelectorAll('.upload-source').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                if (uploadAllEl && !cb.checked) uploadAllEl.checked = false;
+            });
+        });
+    }
+    if (form && progressEl) {
+        form.addEventListener('submit', function(ev) {
+            ev.preventDefault();
+            var csrfToken = (form.querySelector('input[name=csrfmiddlewaretoken]') && form.querySelector('input[name=csrfmiddlewaretoken]').value) || getCookie('csrftoken');
+            var parentOpInput = form.querySelector('input[name=parent_operation_id]');
+            var parentOpId = parentOpInput ? parentOpInput.value : '';
+            var payload = {
+                upload_all: !!form.querySelector('[name=upload_all]').checked,
+                upload_pages: !!form.querySelector('[name=upload_pages]').checked,
+                upload_endpoints: !!form.querySelector('[name=upload_endpoints]').checked,
+                upload_relationships: !!form.querySelector('[name=upload_relationships]').checked,
+                upload_postman: !!form.querySelector('[name=upload_postman]').checked,
+                upload_n8n: !!form.querySelector('[name=upload_n8n]').checked,
+                upload_project: !!form.querySelector('[name=upload_project]').checked,
+                upload_result: !!form.querySelector('[name=upload_result]').checked,
+                upload_media: !!form.querySelector('[name=upload_media]').checked
+            };
+            var anySelected = payload.upload_all || payload.upload_pages || payload.upload_endpoints || payload.upload_relationships || payload.upload_postman || payload.upload_n8n || payload.upload_project || payload.upload_result || payload.upload_media;
+            if (!anySelected) {
+                alert('Select at least one resource type to upload.');
+                return;
+            }
+            formWrap.classList.add('hidden');
+            progressEl.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressLabel.textContent = 'Starting…';
+            progressFile.textContent = '';
+            progressStep.textContent = '0 / 0 files';
+
+            fetch(startUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload),
+                credentials: 'same-origin'
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.error && !data.job_id) {
+                    progressLabel.textContent = 'Error: ' + data.error;
+                    progressEl.querySelector('.animate-spin').classList.add('hidden');
+                    return;
+                }
+                var jobId = data.job_id;
+                if (!jobId) {
+                    progressLabel.textContent = 'Error: No job ID returned';
+                    progressEl.querySelector('.animate-spin').classList.add('hidden');
+                    return;
+                }
+                var poll = function() {
+                    fetch(progressUrlTemplate.replace('__JOB_ID__', encodeURIComponent(jobId)), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                        .then(function(r) { return r.json(); })
+                        .then(function(p) {
+                            if (p.error && p.done) {
+                                progressLabel.textContent = 'Error: ' + (p.error || 'Unknown error');
+                                progressEl.querySelector('.animate-spin').classList.add('hidden');
+                                return;
+                            }
+                            if (p.done) {
+                                var url = uploadPageUrl + '?job_id=' + encodeURIComponent(jobId);
+                                if (parentOpId) { url += '&parent_operation_id=' + encodeURIComponent(parentOpId); }
+                                window.location.href = url;
+                                return;
+                            }
+                            var total = Math.max(1, p.total_files || 0);
+                            var current = p.current_index || 0;
+                            var pct = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
+                            progressBar.style.width = pct + '%';
+                            progressLabel.textContent = (p.section ? p.section + ': ' : '') + (p.section_current && p.section_total ? 'file ' + p.section_current + ' of ' + p.section_total : current + ' / ' + total + ' files');
+                            progressFile.textContent = p.current_file ? p.current_file : '';
+                            progressStep.textContent = (p.current_index ?? current) + ' / ' + (p.total_files ?? total) + ' files';
+                            setTimeout(poll, 500);
+                        })
+                        .catch(function(err) {
+                            progressLabel.textContent = 'Error: ' + (err.message || 'Poll failed');
+                            progressEl.querySelector('.animate-spin').classList.add('hidden');
+                        });
+                };
+                poll();
+            }).catch(function(err) {
+                progressLabel.textContent = 'Error: ' + (err.message || 'Failed to start');
+                progressEl.querySelector('.animate-spin').classList.add('hidden');
+            });
+        });
+    }
+
+    {% if report and report.results %}
+    var btn = document.getElementById('download-upload-report-btn');
+    var scriptEl = document.getElementById('upload-report-data');
+    if (btn && scriptEl) {
+        btn.addEventListener('click', function() {
+            try {
+                var json = scriptEl.textContent;
+                var blob = new Blob([json], { type: 'application/json' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'upload-report-' + (new Date().toISOString().slice(0, 10)) + '.json';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            } catch (e) { console.error(e); }
+        });
+    }
+    {% endif %}
+})();
+</script>
+{% endblock %}

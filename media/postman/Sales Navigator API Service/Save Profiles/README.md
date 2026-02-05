@@ -1,0 +1,1 @@
+Save Sales Navigator profiles to Connectra database. Requires API key authentication via X-API-Key header.

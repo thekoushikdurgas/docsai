@@ -1,0 +1,427 @@
+{
+	"info": {
+		"_postman_id": "email-api-service-collection-2026",
+		"name": "Email API Service",
+		"description": "Postman collection for Lambda Email API Service deployed on AWS API Gateway.\n\n**Base URL**: {{base_url}}\n**Production URL**: https://futbzxg5x8.execute-api.us-east-1.amazonaws.com\n**Local Development**: http://localhost:8080\n\n**Authentication**:\n- Root and health check endpoints: No authentication required\n- All /email/* endpoints: X-API-Key header required\n- Email pattern endpoints (/email-patterns/*): No authentication required\n- API Key: Set {{api_key}} in environment variables (do not hardcode)\n\n## API Structure\n- **Health Check & Root**: Service status endpoints (no auth)\n- **Email Finder**: 3 endpoints (finder, finder/bulk, single find+verify)\n- **Email Verification**: 4 endpoints (verifier, verifier/single, bulk/verifier, single/verifier)\n- **Email Patterns**: 2 endpoints (add, add/bulk) - no auth required\n\n## Features\n- Find emails by contact name and company domain using Connectra VQL\n- Generate email pattern combinations\n- Verify emails using multiple providers (Truelist, IcyPeas)\n- Bulk email verification (up to 10,000 emails)\n- Single email verification\n- Pattern-based email generation and verification\n- Store and learn email format patterns per company/domain\n\n## Usage\n1. Set environment variables: `base_url`, `api_key`\n2. Test health endpoint first (no auth required)\n3. Find emails using POST /email/finder/ with JSON body\n4. Verify single emails using POST /email/single/verifier/\n5. Verify multiple emails using POST /email/bulk/verifier/\n6. Generate and verify email patterns using POST /email/verifier/\n7. Add email patterns using POST /email-patterns/add (no auth)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Root",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Get service information. Returns service name, version, and status. No authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Check service health status. Returns service name, version, and comprehensive configuration diagnostics. No authentication required."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check and root endpoints (no authentication required)"
+		},
+		{
+			"name": "Email Finder",
+			"item": [
+				{
+					"name": "Find Emails",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\",\n  \"website\": null\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email/finder/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email",
+								"finder",
+								""
+							]
+						},
+						"description": "Find emails by contact name and company domain. Searches for contacts matching the provided first name and last name whose company website domain matches the provided domain/website. Only returns contacts that have email addresses."
+					},
+					"response": []
+				},
+				{
+					"name": "Find Emails (Bulk)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\n    {\n      \"first_name\": \"John\",\n      \"last_name\": \"Doe\",\n      \"domain\": \"example.com\"\n    },\n    {\n      \"first_name\": \"Jane\",\n      \"last_name\": \"Smith\",\n      \"domain\": \"example.com\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email/finder/bulk",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email",
+								"finder",
+								"bulk"
+							]
+						},
+						"description": "Find emails for multiple contacts in parallel. Maximum of 50 contacts per request for optimal performance."
+					},
+					"response": []
+				},
+				{
+					"name": "Find and Verify Single Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\",\n  \"website\": null,\n  \"provider\": \"truelist\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email/single/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email",
+								"single",
+								""
+							]
+						},
+						"description": "Find and verify a single email (combined finder + verifier). First tries to find email using Connectra/Pattern/Generator, then verifies it using the specified provider."
+					},
+					"response": []
+				}
+			],
+			"description": "Email finder endpoints for finding emails by contact name and company domain"
+		},
+		{
+			"name": "Email Verification",
+			"item": [
+				{
+					"name": "Generate and Verify Emails",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\",\n  \"website\": null,\n  \"provider\": \"truelist\",\n  \"email_count\": 1000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email/verifier/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email",
+								"verifier",
+								""
+							]
+						},
+						"description": "Generate email patterns and verify them. Creates email combinations based on name variations and verifies them using the specified provider."
+					},
+					"response": []
+				},
+				{
+					"name": "Find and Verify Single Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\",\n  \"website\": null,\n  \"provider\": \"truelist\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email/verifier/single/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email",
+								"verifier",
+								"single",
+								""
+							]
+						},
+						"description": "Find and verify a single valid email. Generates email patterns and returns the first valid email found."
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Email Verification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"provider\": \"truelist\",\n  \"emails\": [\n    \"john.doe@example.com\",\n    \"jane.smith@example.com\",\n    \"invalid@example.com\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email/bulk/verifier/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email",
+								"bulk",
+								"verifier",
+								""
+							]
+						},
+						"description": "Verify multiple emails in bulk. Supports up to 10,000 emails per request. Returns verification status for each email (valid, invalid, catchall, unknown)."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Single Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"provider\": \"truelist\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email/single/verifier/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email",
+								"single",
+								"verifier",
+								""
+							]
+						},
+						"description": "Verify a single email address. Returns verification status (valid, invalid, catchall, unknown) and provider-specific details."
+					},
+					"response": []
+				}
+			],
+			"description": "Email verification endpoints for verifying emails using Truelist or IcyPeas providers"
+		},
+		{
+			"name": "Email Patterns",
+			"item": [
+				{
+					"name": "Add Email Pattern",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_uuid\": \"company-uuid-here\",\n  \"email\": \"john.doe@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email-patterns/add",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email-patterns",
+								"add"
+							]
+						},
+						"description": "Add a new email pattern for a company. No authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Email Patterns (Bulk)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\n    {\n      \"company_uuid\": \"company-uuid-1\",\n      \"email\": \"john.doe@example.com\",\n      \"first_name\": \"John\",\n      \"last_name\": \"Doe\",\n      \"domain\": \"example.com\"\n    },\n    {\n      \"company_uuid\": \"company-uuid-2\",\n      \"email\": \"jane.smith@example.com\",\n      \"first_name\": \"Jane\",\n      \"last_name\": \"Smith\",\n      \"domain\": \"example.com\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/email-patterns/add/bulk",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"email-patterns",
+								"add",
+								"bulk"
+							]
+						},
+						"description": "Add multiple email patterns in bulk. No authentication required."
+					},
+					"response": []
+				}
+			],
+			"description": "Email pattern endpoints for storing and learning email format patterns per company/domain. No authentication required."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://futbzxg5x8.execute-api.us-east-1.amazonaws.com",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "your-api-key-here",
+			"type": "string",
+			"description": "Set this in your Postman environment variables. Do not hardcode API keys."
+		}
+	]
+}

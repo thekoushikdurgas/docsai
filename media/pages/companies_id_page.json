@@ -1,0 +1,83 @@
+{
+  "_id": "companies_id_page-001",
+  "page_id": "companies_id_page",
+  "page_type": "dashboard",
+  "metadata": {
+    "route": "/companies/[id]",
+    "file_path": "contact360/dashboard/app/(dashboard)/companies/[id]/page.tsx",
+    "purpose": "Company detail page with overview tab (metadata, AI summary), contacts tab (VQL-filtered company contacts), and delete capability. Dynamic route by company UUID.",
+    "s3_key": "data/pages/companies_id_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard)",
+    "authorization": null,
+    "page_state": "development",
+    "last_updated": "2026-02-03T00:00:00.000000+00:00",
+    "uses_endpoints": [
+      {
+        "endpoint_path": "graphql/GetCompany",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "companiesService",
+        "via_hook": null,
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Get single company by UUID. Called via getCompanyById."
+      },
+      {
+        "endpoint_path": "graphql/CompanyContacts",
+        "method": "QUERY",
+        "api_version": "graphql",
+        "via_service": "vqlCompanyContactsService",
+        "via_hook": "useCompanyContacts",
+        "usage_type": "primary",
+        "usage_context": "data_fetching",
+        "description": "Query contacts scoped to this company via VQL. Used in CompanyContactsTab."
+      },
+      {
+        "endpoint_path": "graphql/GenerateCompanySummary",
+        "method": "MUTATION",
+        "api_version": "graphql",
+        "via_service": "geminiService",
+        "via_hook": null,
+        "usage_type": "secondary",
+        "usage_context": "data_mutation",
+        "description": "AI-generated company summary via Gemini."
+      }
+    ],
+    "ui_components": [
+      {
+        "name": "CompanyContactsTab",
+        "file_path": "components/features/companies/CompanyContactsTab.tsx"
+      },
+      {
+        "name": "Button3D",
+        "file_path": "components/ui/Button3D.tsx"
+      },
+      {
+        "name": "Badge3D",
+        "file_path": "components/ui/Badge3D.tsx"
+      },
+      {
+        "name": "Modal3D",
+        "file_path": "components/ui/Modal3D.tsx"
+      },
+      {
+        "name": "SkeletonBlock",
+        "file_path": "components/shared/Skeleton.tsx"
+      }
+    ],
+    "versions": [],
+    "endpoint_count": 3,
+    "api_versions": [
+      "graphql"
+    ],
+    "content_sections": null
+  },
+  "content": null,
+  "created_at": "2026-02-03T00:00:00.000000+00:00",
+  "access_control": null,
+  "sections": null,
+  "fallback_data": [],
+  "mock_data": [],
+  "demo_data": []
+}

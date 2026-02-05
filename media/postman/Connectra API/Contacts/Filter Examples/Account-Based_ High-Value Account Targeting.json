@@ -1,0 +1,48 @@
+{
+  "name": "Account-Based_ High-Value Account Targeting",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "Connectra API Key",
+        "dataType": "string"
+      },
+      {
+        "id": 2,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"company_industries\": [\"Software\", \"SaaS\", \"Technology\"],\n        \"company_country\": [\"united states\", \"canada\", \"united kingdom\"],\n        \"seniority\": [\"senior\", \"lead\", \"principal\", \"executive\"],\n        \"departments\": [\"Sales\", \"Marketing\", \"Engineering\", \"Product\"],\n        \"email_status\": [\"verified\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"company_employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"company_annual_revenue\": {\n          \"gte\": 5000000\n        },\n        \"company_total_funding\": {\n          \"gte\": 10000000\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"seniority\",\n      \"order_direction\": \"desc\"\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 200\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"company_industries\": [\"Software\", \"SaaS\", \"Technology\"],\n        \"company_country\": [\"united states\", \"canada\", \"united kingdom\"],\n        \"seniority\": [\"senior\", \"lead\", \"principal\", \"executive\"],\n        \"departments\": [\"Sales\", \"Marketing\", \"Engineering\", \"Product\"],\n        \"email_status\": [\"verified\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"company_employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"company_annual_revenue\": {\n          \"gte\": 5000000\n        },\n        \"company_total_funding\": {\n          \"gte\": 10000000\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"seniority\",\n      \"order_direction\": \"desc\"\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 200\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

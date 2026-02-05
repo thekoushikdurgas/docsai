@@ -1,0 +1,1 @@
+REST API v1 - Relationships API: 30+ endpoints with full CRUD, category filtering, relationship ID support, format/import/analyse endpoints, and graceful error handling

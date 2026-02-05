@@ -1,0 +1,40 @@
+{
+  "name": "Parse Contact Filters",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation ParseFilters($input:ParseFiltersInput!){ aiChats{ parseContactFilters(input:$input){ jobTitles companyNames industry location employees seniority}}}\",\n\"variables\":{\n\"input\":{\n\"query\":\"Find VPs at tech companies in San Francisco\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation ParseFilters($input:ParseFiltersInput!){ aiChats{ parseContactFilters(input:$input){ jobTitles companyNames industry location employees seniority}}}\",\n\"variables\":{\n\"input\":{\n\"query\":\"Find VPs at tech companies in San Francisco\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

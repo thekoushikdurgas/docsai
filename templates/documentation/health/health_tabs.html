@@ -1,0 +1,159 @@
+{% with health_subtab=health_subtab|default:'status' %}
+<style>
+.health-subtab-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-bottom: -2px;
+}
+.health-subtab-button:hover {
+    color: #374151;
+    border-bottom-color: #d1d5db;
+}
+.health-subtab-button.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+.dark .health-subtab-button { color: #9ca3af; }
+.dark .health-subtab-button:hover { color: #e5e7eb; border-bottom-color: #4b5563; }
+.dark .health-subtab-button.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+.health-subtab-content { display: none; }
+.health-subtab-content.active { display: block; animation: fadeIn 0.2s ease-in; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="space-y-6">
+    <div class="border-b border-gray-200 dark:border-gray-700">
+        <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
+            <a href="?tab=health&health_tab=status" class="health-subtab-button {% if health_subtab == 'status' %}active{% endif %}" role="tab">Status</a>
+            <a href="?tab=health&health_tab=database" class="health-subtab-button {% if health_subtab == 'database' %}active{% endif %}" role="tab">Database</a>
+            <a href="?tab=health&health_tab=cache" class="health-subtab-button {% if health_subtab == 'cache' %}active{% endif %}" role="tab">Cache</a>
+            <a href="?tab=health&health_tab=storage" class="health-subtab-button {% if health_subtab == 'storage' %}active{% endif %}" role="tab">Storage</a>
+            <a href="?tab=health&health_tab=service_info" class="health-subtab-button {% if health_subtab == 'service_info' %}active{% endif %}" role="tab">Service-info</a>
+        </nav>
+    </div>
+
+    <!-- Status panel -->
+    <div id="health-subtab-status" class="health-subtab-content {% if health_subtab == 'status' %}active{% endif %}">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Overall Status</h3>
+            {% if comprehensive_health_status %}
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1.5 rounded-full text-sm font-medium
+                        {% if comprehensive_health_status.status == 'healthy' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400
+                        {% elif comprehensive_health_status.status == 'degraded' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400
+                        {% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% endif %}">
+                        {{ comprehensive_health_status.status|default:"unknown" }}
+                    </span>
+                    {% if comprehensive_health_status.timestamp %}
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Timestamp: {{ comprehensive_health_status.timestamp }}</span>
+                    {% endif %}
+                </div>
+                {% if comprehensive_health_status.components %}
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% for comp_name, comp_data in comprehensive_health_status.components.items %}
+                    <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ comp_name|title }}</span>
+                        <span class="ml-2 px-2 py-0.5 rounded text-xs font-medium
+                            {% if comp_data.status == 'healthy' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400
+                            {% elif comp_data.status == 'degraded' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400
+                            {% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% endif %}">
+                            {{ comp_data.status|default:"unknown" }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">Health status not available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Database panel -->
+    <div id="health-subtab-database" class="health-subtab-content {% if health_subtab == 'database' %}active{% endif %}">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Database</h3>
+            {% with comp=comprehensive_health_status.components.database %}
+            {% if comp %}
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
+                        <dd><span class="px-2 py-0.5 rounded text-xs font-medium {% if comp.status == 'healthy' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400{% elif comp.status == 'degraded' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400{% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% endif %}">{{ comp.status }}</span></dd></div>
+                    {% if comp.message %}<div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Message</dt><dd class="text-sm text-gray-700 dark:text-gray-300">{{ comp.message }}</dd></div>{% endif %}
+                    {% if comp.error %}<div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Error</dt><dd class="text-sm text-red-600 dark:text-red-400">{{ comp.error }}</dd></div>{% endif %}
+                </dl>
+            {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">Database health not available.</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!-- Cache panel -->
+    <div id="health-subtab-cache" class="health-subtab-content {% if health_subtab == 'cache' %}active{% endif %}">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Cache</h3>
+            {% with comp=comprehensive_health_status.components.cache %}
+            {% if comp %}
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
+                        <dd><span class="px-2 py-0.5 rounded text-xs font-medium {% if comp.status == 'healthy' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400{% elif comp.status == 'degraded' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400{% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% endif %}">{{ comp.status }}</span></dd></div>
+                    {% if comp.message %}<div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Message</dt><dd class="text-sm text-gray-700 dark:text-gray-300">{{ comp.message }}</dd></div>{% endif %}
+                    {% if comp.error %}<div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Error</dt><dd class="text-sm text-red-600 dark:text-red-400">{{ comp.error }}</dd></div>{% endif %}
+                </dl>
+            {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">Cache health not available.</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!-- Storage panel -->
+    <div id="health-subtab-storage" class="health-subtab-content {% if health_subtab == 'storage' %}active{% endif %}">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Storage</h3>
+            {% with comp=comprehensive_health_status.components.storage %}
+            {% if comp %}
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
+                        <dd><span class="px-2 py-0.5 rounded text-xs font-medium {% if comp.status == 'healthy' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400{% elif comp.status == 'degraded' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400{% else %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% endif %}">{{ comp.status }}</span></dd></div>
+                    {% if comp.message %}<div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Message</dt><dd class="text-sm text-gray-700 dark:text-gray-300">{{ comp.message }}</dd></div>{% endif %}
+                    {% if comp.error %}<div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Error</dt><dd class="text-sm text-red-600 dark:text-red-400">{{ comp.error }}</dd></div>{% endif %}
+                </dl>
+            {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">Storage health not available.</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!-- Service-info panel -->
+    <div id="health-subtab-service_info" class="health-subtab-content {% if health_subtab == 'service_info' %}active{% endif %}">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Service Information</h3>
+            {% if service_info %}
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Service</dt><dd class="text-sm text-gray-900 dark:text-gray-100">{{ service_info.service|default:"N/A" }}</dd></div>
+                    <div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Version</dt><dd class="text-sm text-gray-900 dark:text-gray-100">{{ service_info.version|default:"N/A" }}</dd></div>
+                    <div><dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
+                        <dd><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if service_info.status == 'running' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200{% endif %}">{{ service_info.status|default:"unknown" }}</span></dd></div>
+                </dl>
+            {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">Service info not available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endwith %}

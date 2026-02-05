@@ -1,0 +1,60 @@
+{% comment %}
+Workflow filters component - search, status, trigger, category filters.
+
+Usage:
+{% include 'components/workflow_filters.html' with search=search status_filter=status_filter trigger_filter=trigger_filter category_filter=category_filter %}
+
+Parameters:
+- search: Search query value
+- status_filter: Selected status
+- trigger_filter: Selected trigger type
+- category_filter: Selected category (for n8n/templates)
+- status_choices: List of (value, label) for status dropdown
+- show_category: Show category filter (default: false)
+- show_view_toggle: Show grid/list toggle (default: false)
+- view_mode: grid or list (when show_view_toggle)
+{% endcomment %}
+
+<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+    <form method="get" class="flex flex-wrap items-center gap-4">
+        <div class="flex-1 min-w-[200px]">
+            <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Search workflows..." class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <select name="status" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+            <option value="">All Statuses</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+            {% empty %}
+                <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                <option value="paused" {% if status_filter == 'paused' %}selected{% endif %}>Paused</option>
+            {% endfor %}
+        </select>
+        <select name="trigger" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+            <option value="">All Triggers</option>
+            <option value="manual" {% if trigger_filter == 'manual' %}selected{% endif %}>Manual</option>
+            <option value="webhook" {% if trigger_filter == 'webhook' %}selected{% endif %}>Webhook</option>
+            <option value="schedule" {% if trigger_filter == 'schedule' %}selected{% endif %}>Scheduled</option>
+        </select>
+        {% if show_category and categories %}
+            <select name="category" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat|title }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">Filter</button>
+        {% if show_view_toggle %}
+            <div class="flex items-center gap-1 ml-auto">
+                <button type="button" data-view="grid" class="p-2 rounded-lg {% if view_mode != 'list' %}bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400{% else %}text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}" title="Grid view" aria-label="Grid view">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                </button>
+                <button type="button" data-view="list" class="p-2 rounded-lg {% if view_mode == 'list' %}bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400{% else %}text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}" title="List view" aria-label="List view">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        {% endif %}
+    </form>
+</div>

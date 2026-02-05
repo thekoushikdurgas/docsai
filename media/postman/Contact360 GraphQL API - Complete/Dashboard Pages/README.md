@@ -1,0 +1,1 @@
+Dashboard Pages module - Queries and Mutations

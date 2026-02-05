@@ -1,0 +1,199 @@
+{% extends 'durgasman/base.html' %}
+
+{% block durgasman_content %}
+<div class="h-[calc(100vh-4rem)] flex flex-col">
+    <!-- Header bar (Postman/Requestly style) -->
+    <div class="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
+        <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4 min-w-0">
+                <a href="{% url 'durgasman:dashboard' %}" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                </a>
+                <div class="text-sm text-gray-600 dark:text-gray-300 truncate">
+                    <span class="font-medium text-gray-900 dark:text-white">{{ collection.name }}</span>
+                    <span id="breadcrumb-request" class="text-gray-500 dark:text-gray-400 hidden"> / <span class="text-gray-800 dark:text-gray-200" id="breadcrumb-request-name"></span></span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <select id="env-select" class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-800 dark:text-gray-200 outline-none focus:ring-1 focus:ring-orange-500 min-w-[180px]" aria-label="Environment">
+                    <option value="">No environment</option>
+                    {% for env in environments %}
+                    <option value="{{ env.environment_id|default:env.id }}">{{ env.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" title="Download" aria-label="Download">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                </button>
+                <button type="button" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" title="Save" aria-label="Save">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                </button>
+                <button type="button" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" title="Share" aria-label="Share">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex min-h-0">
+        <!-- Left sidebar: Requests (hierarchical) -->
+        <div class="w-64 flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
+            <div class="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Requests</h2>
+                <button class="px-2 py-1 text-xs bg-orange-600 hover:bg-orange-500 text-white rounded transition-colors">Add</button>
+            </div>
+            <div class="p-2 overflow-y-auto flex-1">
+                {% for folder_name, folder_requests in folders %}
+                <div class="mb-2">
+                    {% if folder_name %}
+                    <button type="button" class="folder-toggle w-full flex items-center gap-2 px-2 py-1.5 text-left text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" data-folder="{{ folder_name|slugify }}">
+                        <svg class="folder-chevron w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        {{ folder_name }}
+                    </button>
+                    <div class="folder-content pl-2 ml-2 border-l border-gray-200 dark:border-gray-700" data-folder="{{ folder_name|slugify }}">
+                        {% for req in folder_requests %}
+                        <div class="request-item py-1.5 px-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2 group"
+                             data-request-id="{{ req.id }}" data-request-name="{{ req.display_name|default:req.name }}">
+                            <span class="px-1.5 py-0.5 text-xs font-bold rounded flex-shrink-0 request-method-badge
+                                {% if req.method == 'GET' %}bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400
+                                {% elif req.method == 'POST' %}bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400
+                                {% elif req.method == 'PUT' %}bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400
+                                {% elif req.method == 'DELETE' %}bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400
+                                {% else %}bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400{% endif %}">{{ req.method }}</span>
+                            <span class="text-sm text-gray-800 dark:text-gray-200 truncate request-name-text">{{ req.display_name|default:req.name }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {% for req in folder_requests %}
+                    <div class="request-item py-1.5 px-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+                         data-request-id="{{ req.id }}" data-request-name="{{ req.display_name|default:req.name }}">
+                        <span class="px-1.5 py-0.5 text-xs font-bold rounded flex-shrink-0 request-method-badge
+                            {% if req.method == 'GET' %}bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400
+                            {% elif req.method == 'POST' %}bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400
+                            {% elif req.method == 'PUT' %}bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400
+                            {% elif req.method == 'DELETE' %}bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400
+                            {% else %}bg-gray-100 dark:bg-gray-500/20 text-gray-600 dark:text-gray-400{% endif %}">{{ req.method }}</span>
+                        <span class="text-sm text-gray-800 dark:text-gray-200 truncate request-name-text">{{ req.display_name|default:req.name }}</span>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+                    <div class="text-3xl mb-2">📄</div>
+                    <div>No requests yet</div>
+                    <div class="text-xs mt-1">Add your first API request</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Main: Request Builder + Response (side-by-side) -->
+        <div class="flex-1 flex min-w-0">
+            <!-- Request Builder -->
+            <div class="flex-1 flex flex-col min-w-0 border-r border-gray-200 dark:border-gray-700">
+                <div id="request-builder-container" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+                    <div id="request-builder-empty" class="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 p-8">
+                        <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                        </svg>
+                        <p class="text-sm font-medium">Select a request to start testing</p>
+                        <p class="text-xs mt-1">Choose a request from the sidebar or add a new one</p>
+                    </div>
+                    <div id="request-builder-content" class="flex-1 flex flex-col min-h-0 overflow-hidden hidden"></div>
+                </div>
+            </div>
+
+            <!-- Response Viewer -->
+            <div class="w-1/2 flex-shrink-0 flex flex-col min-h-0 bg-gray-50 dark:bg-gray-950">
+                <div id="response-viewer-container" class="flex-1 flex flex-col min-h-0">
+                    <div id="response-viewer-content" class="flex-1 flex flex-col min-h-0 overflow-hidden">
+                        <div id="response-viewer-empty" class="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 p-8">
+                            <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <p class="text-sm font-medium">Nothing to see here!</p>
+                            <p class="text-xs mt-1">Please run a request to see the response</p>
+                            <div class="flex gap-3 mt-4 text-xs">
+                                <span class="text-gray-600 dark:text-gray-400">Ctrl+Enter to send</span>
+                                <span class="text-gray-600 dark:text-gray-400">Ctrl+S to save</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const collectionId = '{{ collection.collection_id|default:collection.id }}';
+
+    // Response viewer - always init
+    if (typeof ResponseViewer !== 'undefined') {
+        window.responseViewer = new ResponseViewer('response-viewer-content');
+    }
+
+    // Folder toggle
+    document.querySelectorAll('.folder-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const folder = this.dataset.folder;
+            const content = document.querySelector('.folder-content[data-folder="' + folder + '"]');
+            const chevron = this.querySelector('.folder-chevron');
+            if (content) {
+                content.classList.toggle('hidden');
+                chevron.classList.toggle('rotate-90', !content.classList.contains('hidden'));
+            }
+        });
+    });
+
+    // Request selection
+    document.querySelectorAll('.request-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const requestId = this.dataset.requestId;
+            const requestName = this.dataset.requestName;
+
+            document.querySelectorAll('.request-item').forEach(i => {
+                i.classList.remove('bg-orange-100', 'dark:bg-orange-600', 'text-orange-900', 'dark:text-white', 'request-item-selected');
+                i.querySelectorAll('.request-method-badge').forEach(b => b.classList.remove('!bg-orange-200', 'dark:!bg-white/20', '!text-orange-900', 'dark:!text-white'));
+                i.querySelectorAll('.request-name-text').forEach(s => s.classList.remove('!text-orange-900', 'dark:!text-white'));
+            });
+            this.classList.add('bg-orange-100', 'dark:bg-orange-600', 'text-orange-900', 'dark:text-white', 'request-item-selected');
+            this.querySelectorAll('.request-method-badge').forEach(b => b.classList.add('!bg-orange-200', 'dark:!bg-white/20', '!text-orange-900', 'dark:!text-white'));
+            this.querySelectorAll('.request-name-text').forEach(s => s.classList.add('!text-orange-900', 'dark:!text-white'));
+
+            document.getElementById('breadcrumb-request').classList.remove('hidden');
+            document.getElementById('breadcrumb-request-name').textContent = requestName;
+            document.getElementById('request-builder-empty').classList.add('hidden');
+            document.getElementById('request-builder-content').classList.remove('hidden');
+
+            fetch('/durgasman/api/requests/' + requestId + '/')
+                .then(r => r.json())
+                .then(data => {
+                    if (typeof RequestBuilder === 'undefined') return;
+                    if (!window.requestBuilder) {
+                        window.requestBuilder = new RequestBuilder('request-builder-content', data);
+                    } else {
+                        window.requestBuilder.loadRequest(data);
+                    }
+                })
+                .catch(err => console.error('Error loading request:', err));
+        });
+    });
+
+    // Persist environment selection
+    const envSelect = document.getElementById('env-select');
+    if (envSelect) {
+        const saved = localStorage.getItem('durgasman_env_' + collectionId);
+        if (saved) envSelect.value = saved;
+        envSelect.addEventListener('change', function() {
+            localStorage.setItem('durgasman_env_' + collectionId, this.value);
+        });
+    }
+});
+</script>
+{% endblock %}

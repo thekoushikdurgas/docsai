@@ -1,0 +1,1 @@
+Category endpoints filtered by state.
