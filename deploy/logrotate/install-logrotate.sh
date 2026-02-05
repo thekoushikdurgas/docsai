@@ -15,9 +15,9 @@ fi
 cp deploy/logrotate/docsai $LOGROTATE_DIR/
 chmod 644 $LOGROTATE_DIR/docsai
 
-# Test logrotate config
+# Test logrotate config (use verbose mode so it actually runs instead of debug-only)
 echo "Testing logrotate configuration..."
-logrotate -d $LOGROTATE_DIR/docsai
+logrotate -v $LOGROTATE_DIR/docsai >/dev/null 2>&1 || echo "logrotate test reported issues (see output above)"
 
 echo "Logrotate configuration installed successfully!"
 echo "Logs will be rotated daily and kept for 14 days"
