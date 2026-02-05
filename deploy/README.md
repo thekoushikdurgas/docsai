@@ -85,11 +85,10 @@ sudo bash deploy/full-deploy.sh --interactive
 **What it does**:
 
 - ✅ Installs all system dependencies
-- ✅ Sets up PostgreSQL database (optional)
 - ✅ Creates Python virtual environment
 - ✅ Installs Python dependencies
 - ✅ Configures `.env.prod` file
-- ✅ Runs Django migrations
+- ✅ Runs Django migrations (for Django internals only)
 - ✅ Collects static files
 - ✅ Installs Gunicorn systemd service
 - ✅ Configures Nginx reverse proxy
@@ -223,7 +222,7 @@ sudo systemctl restart gunicorn
 | Pre-deploy validation | ✅ (runs script) | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Post-deploy verification | ✅ (runs script) | ❌ | ✅ | ❌ | ❌ | ❌ |
 | System dependencies | via full-deploy | ❌ | ❌ | ✅ | ✅ | ❌ |
-| Database setup | via full-deploy | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Database setup | n/a (SQLite only) | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Python venv | via full-deploy | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Install dependencies | via full-deploy | ❌ | ❌ | ✅ | ❌ | ✅ |
 | Environment config | via full-deploy | ❌ | ❌ | ✅ | ❌ | ❌ |
@@ -267,14 +266,7 @@ sudo systemctl restart gunicorn
 - Full production setup
 - SSL certificate from Let's Encrypt
 
-### Use Case 5: Using RDS Database
-
-**Script**: `full-deploy.sh --http-only --skip-db-setup`
-
-- Skip local PostgreSQL setup
-- Configure RDS in `.env.prod` manually
-
-### Use Case 6: CI/CD Updates
+### Use Case 5: CI/CD Updates
 
 **Script**: `remote-deploy.sh` (via GitHub Actions)
 
@@ -284,16 +276,6 @@ sudo systemctl restart gunicorn
 ---
 
 ## Troubleshooting
-
-### Script Fails at Database Setup
-
-If using RDS or external database:
-
-```bash
-sudo bash deploy/full-deploy.sh --http-only --skip-db-setup
-```
-
-Then edit `.env.prod` with your database credentials.
 
 ### Permission Errors
 

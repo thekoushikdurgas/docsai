@@ -186,14 +186,11 @@ install_system_dependencies() {
         python3-pip \
         python3-venv \
         python3-dev \
-        postgresql-client \
-        postgresql \
         nginx \
         git \
         curl \
         wget \
         build-essential \
-        libpq-dev \
         ufw \
         > /dev/null 2>&1
     
@@ -203,53 +200,6 @@ install_system_dependencies() {
     fi
     
     log "System dependencies installed ✓"
-}
-
-# Setup PostgreSQL database
-setup_database() {
-    if [ "$SKIP_DB_SETUP" = true ]; then
-        log_info "Skipping database setup (--skip-db-setup)"
-        return
-    fi
-    
-    log "Setting up PostgreSQL database..."
-    
-    if [ "$INTERACTIVE" = true ]; then
-        read -p "Do you want to set up PostgreSQL on this EC2 instance? (y/n): " setup_local_db
-        if [[ ! "$setup_local_db" =~ ^[Yy]$ ]]; then
-            log_info "Skipping local database setup. Please configure RDS or external database."
-            return
-        fi
-        
-        read -p "Database name [docsai]: " db_name
-        db_name=${db_name:-docsai}
-        
-        read -p "Database user [docsai_user]: " db_user
-        db_user=${db_user:-docsai_user}
-        
-        read -sp "Database password: " db_password
-        echo ""
-    else
-        # Default values
-        db_name="docsai"
-        db_user="docsai_user"
-        db_password=$(openssl rand -base64 32)
-        log_info "Generated random database password"
-    fi
-    
-    # Create database and user
-    sudo -u postgres psql -c "CREATE DATABASE $db_name;" 2>/dev/null || log_warning "Database $db_name may already exist"
-    sudo -u postgres psql -c "CREATE USER $db_user WITH PASSWORD '$db_password';" 2>/dev/null || log_warning "User $db_user may already exist"
-    sudo -u postgres psql -c "ALTER ROLE $db_user SET client_encoding TO 'utf8';" 2>/dev/null || true
-    sudo -u postgres psql -c "ALTER ROLE $db_user SET default_transaction_isolation TO 'read committed';" 2>/dev/null || true
-    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $db_name TO $db_user;" 2>/dev/null || true
-    
-    log "Database setup completed ✓"
-    log_info "Database: $db_name"
-    log_info "User: $db_user"
-    if [ "$INTERACTIVE" = false ]; then
-        log_info "Password: $db_password (save this securely!)"
-    fi
 }
 
 # Setup Python virtual environment
@@ -408,17 +358,6 @@ setup_django() {
     python manage.py check --deploy || log_warning "Django deployment check had warnings"
     
     log "Django setup completed ✓"
-    
-    # Prompt for superuser creation
-    if [ "$INTERACTIVE" = true ]; then
-        read -p "Do you want to create a superuser now? (y/n): " create_superuser
-        if [[ "$create_superuser" =~ ^[Yy]$ ]]; then
-            python manage.py createsuperuser
-        fi
-    else
-        log_info "To create a superuser, run:"
-        log_info "  cd $PROJECT_DIR && source venv/bin/activate && python manage.py createsuperuser"
-    fi
 }
 
 # Install Gunicorn systemd service
@@ -654,7 +593,6 @@ main() {
     # Run deployment steps
     check_prerequisites
     install_system_dependencies
-    setup_database
     setup_python_env
     configure_environment
     setup_django

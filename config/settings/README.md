@@ -55,7 +55,6 @@ Contains all common settings:
 
 - Installed apps
 - Middleware
-- Database configuration
 - Static/media files
 - Logging
 - DRF configuration
@@ -124,12 +123,9 @@ Key environment variables used across settings:
 
 ### Database
 
-- `DATABASE_ENGINE` - Database type (sqlite/postgresql)
-- `DATABASE_NAME` - Database name
-- `DATABASE_USER` - Database user
-- `DATABASE_PASSWORD` - Database password
-- `DATABASE_HOST` - Database host
-- `DATABASE_PORT` - Database port
+DocsAI does not use a relational database for its business data. A minimal
+SQLite database is configured internally by Django only where required
+(e.g. sessions/auth), and no database-related environment variables are needed.
 
 ### AWS S3
 
@@ -218,6 +214,7 @@ If you're migrating from `docsai/settings.py`:
 
 ### Database connection issues
 
-- Verify database environment variables
-- Check `DATABASE_ENGINE` is set correctly
-- Test connection with `python manage.py dbshell`
+DocsAI no longer relies on a relational database for application data. If you
+encounter database errors, ensure the default SQLite configuration in
+`base.py` has not been modified, or review any custom extensions that may be
+introducing database usage.

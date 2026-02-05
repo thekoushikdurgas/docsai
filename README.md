@@ -33,7 +33,7 @@ A comprehensive Django application for managing documentation, API endpoints, an
 ## 🔧 Prerequisites
 
 - **Python**: 3.8 or higher
-- **Database**: SQLite (default for development) or PostgreSQL 12+ (for production)
+- **Database**: No external database required (SQLite used internally by Django only)
 - **Virtual Environment**: Recommended (Python venv)
 - **Optional**:
   - Redis (for caching and Django-Q)
@@ -83,25 +83,10 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 
 ### 5. Database Setup
 
-**For Development (SQLite - Default):**
-```bash
-# No database configuration needed! SQLite is used automatically.
-python manage.py makemigrations
-python manage.py migrate
-python manage.py createsuperuser
-```
-
-**For Production (PostgreSQL):**
-```bash
-# Set DATABASE_ENGINE=postgresql in .env
-# Create database
-createdb docsai
-
-# Run migrations
-python manage.py makemigrations
-python manage.py migrate
-python manage.py createsuperuser
-```
+DocsAI no longer uses a relational database for its business data. A minimal
+SQLite database is configured internally by Django only where required
+(for example, sessions/auth), and no database setup (migrations, Postgres,
+or superuser creation) is required for normal usage of the application.
 
 ### 6. Validate Environment
 
@@ -122,7 +107,8 @@ python manage.py collectstatic --noinput
 python manage.py runserver
 ```
 
-Visit `http://localhost:8000` and log in with your superuser credentials.
+Visit `http://localhost:8000` and log in via Appointment360 using a SuperAdmin
+account.
 
 ## 💻 Local Development
 
@@ -254,36 +240,10 @@ See `.env.example` for a complete list of available configuration options.
 
 ## 🗄️ Database Setup
 
-### Development (SQLite)
-
-SQLite is the default database for development. No setup required:
-
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-```
-
-### Production (PostgreSQL)
-
-1. Install PostgreSQL
-2. Create database:
-   ```bash
-   createdb docsai
-   ```
-3. Set environment variables in `.env`:
-   ```env
-   DATABASE_ENGINE=postgresql
-   DATABASE_NAME=docsai
-   DATABASE_USER=postgres
-   DATABASE_PASSWORD=your-password
-   DATABASE_HOST=localhost
-   DATABASE_PORT=5432
-   ```
-4. Run migrations:
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser
-   ```
+DocsAI does not use a relational database for its business data. A minimal
+SQLite database is configured internally by Django only where required
+(for example, sessions/auth). You generally do not need to run migrations
+or create Django superusers for normal use of the application.
 
 ## 🏃 Running the Application
 
@@ -446,10 +406,8 @@ python manage.py sqlmigrate <app> <migration>
 
 ### User Management
 
-```bash
-python manage.py createsuperuser
-python manage.py changepassword <username>
-```
+User accounts and roles are managed by Appointment360 via GraphQL and JWT.
+DocsAI itself does not manage local Django users for application access.
 
 ### Static Files
 
@@ -487,7 +445,7 @@ python manage.py check_best_practices --output reports/check.json
 |---------|---------|
 | `validate_env` | Validate environment (Django, DB, AWS, AI, cache). Options: `--verbose`, `--skip-connectivity` |
 | `check_best_practices` | 100-point Django checklist. Options: `--category`, `--output`, `--format` |
-| `create_superuser` | Create superuser. Options: `--username`, `--email`, `--password`, `--noinput` |
+| `create_superuser` | Legacy helper to create a Django superuser (used for debugging/admin only, not for main DocsAI access) | `--username`, `--email`, `--password`, `--noinput` |
 | `sync_from_lambda` | Sync docs from Lambda API. Options: `--resource-type pages\|endpoints\|relationships\|all`, `--limit` |
 | `rebuild_indexes` | Rebuild S3 indexes. Options: `--resource-type pages\|endpoints\|relationships\|all` |
 | `normalize_media_files` | Normalize all media JSON. Options: `--write` (default dry-run) |

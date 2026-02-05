@@ -103,33 +103,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'docsai.wsgi.application'
 
-# Database
-# Use SQLite by default for development, PostgreSQL for production
-DATABASE_ENGINE = os.getenv('DATABASE_ENGINE', 'sqlite').lower()
 
-if DATABASE_ENGINE == 'postgresql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DATABASE_NAME', 'docsai'),
-            'USER': os.getenv('DATABASE_USER', 'postgres'),
-            'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
-            'HOST': os.getenv('DATABASE_HOST', 'localhost'),
-            'PORT': os.getenv('DATABASE_PORT', '5432'),
-            'OPTIONS': {
-                'connect_timeout': 10,
-            },
-            'ATOMIC_REQUESTS': True,
-            'CONN_MAX_AGE': 600,
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# Database connection pooling (no-op for SQLite, but configurable for other engines)
+# When using PostgreSQL or another production database, set CONN_MAX_AGE>0 (in seconds)
+# via environment variable to enable persistent connections.
+CONN_MAX_AGE = int(os.getenv('CONN_MAX_AGE', '0'))
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -642,14 +620,6 @@ def validate_startup_config():
                 f"MEDIA_ROOT directory does not exist: {MEDIA_ROOT}. "
                 f"Create it with: mkdir -p {MEDIA_ROOT}"
             )
-    
-    # Database validation
-    if DATABASE_ENGINE == 'postgresql':
-        db_config = DATABASES.get('default', {})
-        if not db_config.get('NAME'):
-            errors.append("PostgreSQL DATABASE_NAME is required when DATABASE_ENGINE=postgresql")
-        if not db_config.get('USER'):
-            errors.append("PostgreSQL DATABASE_USER is required when DATABASE_ENGINE=postgresql")
     
     # Report errors (critical - will prevent startup in strict mode)
     if errors:

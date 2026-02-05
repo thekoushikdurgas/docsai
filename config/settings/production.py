@@ -54,11 +54,6 @@ LOGGING['root']['level'] = 'INFO'  # noqa
 CORS_ALLOW_ALL_ORIGINS = False
 # CORS_ALLOWED_ORIGINS should be set in environment variables
 
-# Database connection pooling for production
-if DATABASE_ENGINE == 'postgresql':
-    DATABASES['default']['CONN_MAX_AGE'] = 600  # noqa
-    DATABASES['default']['ATOMIC_REQUESTS'] = True  # noqa
-
 # Static files - use S3 in production if configured, otherwise WhiteNoise
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

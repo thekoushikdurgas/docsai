@@ -42,8 +42,3 @@ LOGGING['root']['level'] = 'INFO'  # noqa
 # CORS - restrict to staging frontend
 CORS_ALLOW_ALL_ORIGINS = False
 # Set CORS_ALLOWED_ORIGINS in environment variables
-
-# Database connection pooling for staging
-if DATABASE_ENGINE == 'postgresql':
-    DATABASES['default']['CONN_MAX_AGE'] = 300  # noqa
-    DATABASES['default']['ATOMIC_REQUESTS'] = True  # noqa

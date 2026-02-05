@@ -14,7 +14,7 @@ Run from project root: `python manage.py <command> [options]`.
 |---------|---------|---------|
 | **validate_env** | Validate environment (Django, DB, AWS S3, GraphQL, Logs/Lambda API, AI, storage, cache, Django-Q); optional connectivity checks | `--skip-connectivity`, `--verbose` |
 | **check_best_practices** | Run 100-point Django best-practices checklist (uses `scripts/django_checker.py`) | `--category "Security"`, `--output reports/check.json`, `--format json\|text\|both` |
-| **create_superuser** | Create superuser (interactive or from args) | `--username`, `--email`, `--password`, `--noinput` |
+| **create_superuser** | Legacy helper to create a Django superuser (used only for debugging/admin, not for main DocsAI access) | `--username`, `--email`, `--password`, `--noinput` |
 | **sync_from_lambda** | Sync docs from Lambda API to S3 (pages, endpoints, relationships) | `--resource-type pages\|endpoints\|relationships\|all`, `--limit N` (default 100) |
 | **rebuild_indexes** | Rebuild S3 indexes by scanning files | `--resource-type pages\|endpoints\|relationships\|all` |
 

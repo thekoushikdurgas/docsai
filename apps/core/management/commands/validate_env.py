@@ -41,7 +41,6 @@ class Command(BaseCommand):
         
         # Validate all sections
         self._validate_django_settings()
-        self._validate_database_config()
         self._validate_aws_s3_config()
         self._validate_graphql_config()
         self._validate_logs_api_config()
@@ -97,30 +96,6 @@ class Command(BaseCommand):
         else:
             if self.verbose:
                 self.info.append(f"ALLOWED_HOSTS configured: {', '.join(allowed_hosts)}")
-
-    def _validate_database_config(self):
-        """Validate database configuration."""
-        self.stdout.write('\n[Database Configuration]')
-        
-        db_engine = getattr(settings, 'DATABASE_ENGINE', 'sqlite').lower()
-        
-        if db_engine == 'sqlite':
-            if self.verbose:
-                self.info.append("Using SQLite database (development)")
-            db_path = settings.DATABASES['default']['NAME']
-            db_dir = os.path.dirname(db_path) if db_path != ':memory:' else None
-            if db_dir and not os.path.exists(db_dir):
-                self.warnings.append(f"Database directory does not exist: {db_dir}")
-        elif db_engine == 'postgresql':
-            if self.verbose:
-                self.info.append("Using PostgreSQL database (production)")
-            db_config = settings.DATABASES['default']
-            if not db_config.get('NAME'):
-                self.errors.append("PostgreSQL DATABASE_NAME is required")
-            if not db_config.get('USER'):
-                self.errors.append("PostgreSQL DATABASE_USER is required")
-        else:
-            self.errors.append(f"Unknown DATABASE_ENGINE: {db_engine}")
 
     def _validate_aws_s3_config(self):
         """Validate AWS S3 configuration."""

@@ -63,8 +63,10 @@ class ApiTrackingMiddleware:
         Priority order:
         1. X-User-Type header (explicitly set by frontend)
         2. Session data (request.session.get('user_type'))
-        3. User object attribute (request.user.user_type if exists)
-        4. Default to 'guest' for unauthenticated/unknown
+        3. Appointment360 role (request.appointment360_user.role if available)
+        4. User object attribute (request.user.user_type if exists)
+        5. Default mapping for authenticated users
+        6. guest for unauthenticated/unknown
         
         Returns:
             user_type string (super_admin, admin, pro_user, free_user, guest) or None
@@ -81,13 +83,30 @@ class ApiTrackingMiddleware:
             logger.debug("user_type from session: %s", user_type)
             return user_type
         
-        # Priority 3: Check user object
+        # Priority 3: Check Appointment360 user role if present
+        if hasattr(request, "appointment360_user"):
+            user_data = request.appointment360_user or {}
+            role = None
+            if isinstance(user_data, dict):
+                # appointment360_client.get_me() returns role at top level
+                role = user_data.get("role")
+            if role:
+                role_str = (role or "").strip()
+                if role_str == "SuperAdmin":
+                    logger.debug("user_type from appointment360_user.role: super_admin")
+                    return "super_admin"
+                if role_str == "Admin":
+                    logger.debug("user_type from appointment360_user.role: admin")
+                    return "admin"
+                # Other roles fall through to default mapping below
+        
+        # Priority 4: Check user object
         if hasattr(request, 'user') and hasattr(request.user, 'user_type'):
             user_type = request.user.user_type
             logger.debug("user_type from user object: %s", user_type)
             return user_type
         
-        # Priority 4: Check if user is authenticated and map to a default type
+        # Priority 5: Check if user is authenticated and map to a default type
         if hasattr(request, 'user') and request.user.is_authenticated:
             # Map Django user to a default user_type based on properties
             if hasattr(request.user, 'is_superuser') and request.user.is_superuser:

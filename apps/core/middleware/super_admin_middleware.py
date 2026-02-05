@@ -84,9 +84,9 @@ class SuperAdminMiddleware:
                     },
                     status=401
                 )
-            if request.path == "/" or request.path == "":
-                return HttpResponseRedirect("/login/?next=/")
-            return self._forbidden_response(request, "Authentication required")
+            # For normal browser requests, redirect to login and preserve next
+            next_path = request.path or "/"
+            return HttpResponseRedirect(f"/login/?next={next_path}")
         
         is_super_admin = self._check_super_admin(access_token, request)
         debug_log(f"middleware _check_super_admin path={request.path!r} result={is_super_admin}")

@@ -50,13 +50,11 @@ apt install -y \
     python3-pip \
     python3-venv \
     python3-dev \
-    postgresql-client \
     nginx \
     git \
     curl \
     wget \
-    build-essential \
-    libpq-dev
+    build-essential
 
 if [ "$HTTP_ONLY" = false ]; then
     apt install -y certbot python3-certbot-nginx
@@ -146,11 +144,9 @@ if [ "$HTTP_ONLY" = true ]; then
     echo "1. Verify: curl http://34.201.10.84/api/v1/health/"
     echo "2. Logs:   sudo journalctl -u gunicorn -f"
     echo "3. Nginx:  sudo tail -f /var/log/nginx/docsai_error.log"
-    echo "4. Superuser: cd $PROJECT_DIR && source venv/bin/activate && python manage.py createsuperuser"
 else
     echo "Next steps:"
     echo "1. Verify: curl https://$DOMAIN/api/v1/health/"
     echo "2. Logs:   sudo journalctl -u gunicorn -f"
     echo "3. Nginx:  sudo tail -f /var/log/nginx/docsai_error.log"
-    echo "4. Superuser: cd $PROJECT_DIR && source venv/bin/activate && python manage.py createsuperuser"
 fi
