@@ -103,10 +103,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'docsai.wsgi.application'
 
+# Database
+# DocsAI does not use a relational database for business data.
+# A minimal SQLite database is configured only for Django internals
+# (sessions/auth/admin where needed).
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
-# Database connection pooling (no-op for SQLite, but configurable for other engines)
-# When using PostgreSQL or another production database, set CONN_MAX_AGE>0 (in seconds)
-# via environment variable to enable persistent connections.
+# Optional connection pooling settings are no-ops for SQLite but allow
+# future engines (e.g. PostgreSQL) to reuse the same setting.
 CONN_MAX_AGE = int(os.getenv('CONN_MAX_AGE', '0'))
 
 # Password validation
