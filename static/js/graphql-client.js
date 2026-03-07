@@ -45,6 +45,6 @@ class GraphQLClient {
 
 // Initialize global GraphQL client
 window.graphql = new GraphQLClient(
-    window.GRAPHQL_ENDPOINT || 'http://100.53.186.109/graphql',
+    window.GRAPHQL_ENDPOINT || 'https://100.53.186.109/graphql',
     window.GRAPHQL_API_KEY || ''
 );

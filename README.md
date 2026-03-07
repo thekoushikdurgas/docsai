@@ -232,9 +232,9 @@ DATABASE_PORT=5432
 | `OPENAI_API_KEY` | OpenAI API key | AI features use fallback |
 | `GOOGLE_API_KEY` | Google Gemini API key | AI features use fallback |
 | `REDIS_URL` | Redis connection URL | Uses in-memory cache |
-| `APPOINTMENT360_GRAPHQL_URL` | Appointment360 GraphQL API endpoint | Auth/docs fallback disabled; default: `http://100.53.186.109/graphql` |
+| `APPOINTMENT360_GRAPHQL_URL` | Appointment360 GraphQL API endpoint | Auth/docs fallback disabled; default: `https://100.53.186.109/graphql` |
 
-**Appointment360 GraphQL**: The app talks to the Appointment360 GraphQL-only API for login, user profile, and documentation. Set `APPOINTMENT360_GRAPHQL_URL` (e.g. `http://100.53.186.109/graphql`). The backend also exposes `/health` at the same host. Authentication uses JWT from login (cookies or `Authorization: Bearer`); no API key is required.
+**Appointment360 GraphQL**: The app talks to the Appointment360 GraphQL-only API for login, user profile, and documentation. Set `APPOINTMENT360_GRAPHQL_URL` (e.g. `https://100.53.186.109/graphql`). The backend also exposes `/health` at the same host. Authentication uses JWT from login (cookies or `Authorization: Bearer`); no API key is required.
 
 See `.env.example` for a complete list of available configuration options.
 

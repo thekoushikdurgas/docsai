@@ -12,12 +12,17 @@ from apps.core.exceptions import LambdaAPIError
 from apps.core.services.graphql_client import GraphQLError
 from .services.admin_client import AdminGraphQLClient
 from .services.logs_api_client import LogsApiClient
-from .utils import build_logs_query_params, time_range_to_iso
+from .services.tkdjob_client import TkdJobClient
+from .services.s3storage_client import S3StorageClient
+from .utils import build_logs_query_params, build_jobs_query_params, time_range_to_iso
 
 logger = logging.getLogger(__name__)
 
 LOGS_API_ENABLED = getattr(settings, "LOGS_API_ENABLED", False)
+JOB_SCHEDULER_ENABLED = getattr(settings, "JOB_SCHEDULER_ENABLED", False)
+S3STORAGE_ENABLED = getattr(settings, "S3STORAGE_ENABLED", False)
 VALID_PER_PAGE = (10, 25, 50, 100)
+VALID_JOBS_LIMIT = (10, 25, 50, 100)
 
 
 def _get_client(request):
@@ -328,6 +333,285 @@ def system_status_view(request):
         logger.exception("Admin system status error")
         context["error"] = str(e)
     return render(request, "admin/system_status.html", context)
+
+
+# ---------------------------------------------------------------------------
+# Job Scheduler (lambda/tkdjob)
+# ---------------------------------------------------------------------------
+
+@require_admin_or_super_admin
+def jobs_view(request):
+    """Job Scheduler - list jobs with filters and pagination."""
+    config_ok = JOB_SCHEDULER_ENABLED
+    page = max(1, int(request.GET.get("page", 1)))
+    limit_param = int(request.GET.get("limit", 25))
+    limit = limit_param if limit_param in VALID_JOBS_LIMIT else 25
+    status_list = [s for s in request.GET.getlist("status") if (s or "").strip()]
+    uuid_filter = (request.GET.get("uuid") or "").strip()
+    offset = (page - 1) * limit
+
+    context = {
+        "jobs": [],
+        "total": 0,
+        "error": None,
+        "config_ok": config_ok,
+        "page": page,
+        "limit": limit,
+        "total_pages": 0,
+        "status_filter": status_list,
+        "uuid_filter": uuid_filter,
+        "start_index": 0,
+        "end_index": 0,
+        "prev_query_params": None,
+        "next_query_params": None,
+        "page_urls": [],
+        "job_stats": {"total": 0, "completed": 0, "failed": 0, "processing": 0},
+    }
+
+    if not config_ok:
+        return render(request, "admin/jobs.html", context)
+
+    try:
+        client = TkdJobClient()
+        result = client.list_jobs(
+            status=status_list if status_list else None,
+            uuid=uuid_filter or None,
+            limit=limit,
+            offset=offset,
+        )
+        jobs = result.get("jobs", [])
+        total = result.get("total", len(jobs))
+        if len(jobs) == limit:
+            total = max(total, page * limit)
+        total_pages = max(1, (total + limit - 1) // limit)
+        context["jobs"] = jobs
+        context["total"] = total
+        context["total_pages"] = total_pages
+        context["start_index"] = (page - 1) * limit + 1 if total else 0
+        context["end_index"] = min(page * limit, total) if total else 0
+
+        completed = sum(1 for j in jobs if j.get("status") == "completed")
+        failed = sum(1 for j in jobs if j.get("status") == "failed")
+        processing = sum(1 for j in jobs if j.get("status") == "processing")
+        context["job_stats"] = {
+            "total": len(jobs),
+            "completed": completed,
+            "failed": failed,
+            "processing": processing,
+        }
+
+        def base(p):
+            return build_jobs_query_params(
+                page=p,
+                limit=limit,
+                status=status_list if status_list else None,
+                uuid_filter=uuid_filter,
+            )
+
+        context["prev_query_params"] = base(page - 1) if page > 1 else None
+        context["next_query_params"] = base(page + 1) if page < total_pages else None
+        page_numbers = [n for n in range(1, total_pages + 1) if page - 2 <= n <= page + 2]
+        context["page_urls"] = [(n, base(n)) for n in page_numbers]
+    except LambdaAPIError as e:
+        logger.warning("Admin jobs error: %s", e)
+        context["error"] = str(e)
+    except Exception as e:
+        logger.exception("Admin jobs error")
+        context["error"] = str(e)
+    return render(request, "admin/jobs.html", context)
+
+
+@require_admin_or_super_admin
+def job_detail_view(request, job_uuid):
+    """JSON: job + status + timeline + dag for detail modal."""
+    if not JOB_SCHEDULER_ENABLED:
+        return JsonResponse(
+            {"success": False, "error": "Job Scheduler is not configured"},
+            status=400,
+        )
+    try:
+        client = TkdJobClient()
+        job = client.get_job(job_uuid)
+        status_data = client.get_job_status(job_uuid)
+        timeline_data = client.get_job_timeline(job_uuid)
+        dag_data = client.get_job_dag(job_uuid, include_status=True)
+        return JsonResponse({
+            "success": True,
+            "job": job,
+            "status": status_data,
+            "timeline": timeline_data,
+            "dag": dag_data,
+        })
+    except LambdaAPIError as e:
+        logger.warning("Admin job detail error: %s", e)
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=getattr(e, "status_code", 500),
+        )
+    except Exception as e:
+        logger.exception("Admin job detail error")
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=500,
+        )
+
+
+@require_admin_or_super_admin
+@require_http_methods(["POST"])
+def job_retry_view(request, job_uuid):
+    """POST: retry a failed job. JSON body optional: data, priority, retry_count, retry_interval, run_after."""
+    if not JOB_SCHEDULER_ENABLED:
+        return JsonResponse(
+            {"success": False, "error": "Job Scheduler is not configured"},
+            status=400,
+        )
+    try:
+        body = json.loads(request.body) if request.body else {}
+        client = TkdJobClient()
+        job = client.retry_job(
+            job_uuid,
+            data=body.get("data"),
+            priority=body.get("priority"),
+            retry_count=body.get("retry_count"),
+            retry_interval=body.get("retry_interval"),
+            run_after=body.get("run_after"),
+        )
+        return JsonResponse({"success": True, "data": job})
+    except LambdaAPIError as e:
+        logger.warning("Admin job retry error: %s", e)
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=getattr(e, "status_code", 500),
+        )
+    except Exception as e:
+        logger.exception("Admin job retry error")
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=500,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Storage Files (lambda/s3storage)
+# ---------------------------------------------------------------------------
+
+@require_admin_or_super_admin
+def storage_files_view(request):
+    """Storage Files - list files in a bucket with optional prefix. Buckets from users API."""
+    bucket_users = []
+    try:
+        client = _get_client(request)
+        bucket_users = client.list_users_with_buckets(limit=500)
+    except GraphQLError as e:
+        logger.warning("Admin storage buckets GraphQL error: %s", e)
+    except Exception as e:
+        logger.exception("Admin storage buckets error")
+
+    buckets = [u["bucket"] for u in bucket_users if u.get("bucket")]
+    config_ok = S3STORAGE_ENABLED and len(buckets) > 0
+    bucket_id = (request.GET.get("bucket_id") or "").strip()
+    if not bucket_id and buckets:
+        bucket_id = buckets[0]
+    prefix = (request.GET.get("prefix") or "").strip()
+
+    context = {
+        "files": [],
+        "bucket_id": bucket_id,
+        "buckets": buckets,
+        "bucket_users": bucket_users,
+        "prefix": prefix,
+        "error": None,
+        "config_ok": config_ok,
+    }
+
+    if not config_ok or not bucket_id:
+        return render(request, "admin/storage_files.html", context)
+
+    try:
+        client = S3StorageClient()
+        context["files"] = client.list_objects(bucket_id=bucket_id, prefix=prefix)
+    except LambdaAPIError as e:
+        logger.warning("Admin storage files error: %s", e)
+        context["error"] = str(e)
+    except Exception as e:
+        logger.exception("Admin storage files error")
+        context["error"] = str(e)
+    return render(request, "admin/storage_files.html", context)
+
+
+@require_admin_or_super_admin
+def storage_download_url_view(request):
+    """GET: return presigned download URL for bucket_id + file_key (query params)."""
+    if not S3STORAGE_ENABLED:
+        return JsonResponse(
+            {"success": False, "error": "Storage is not configured"},
+            status=400,
+        )
+    bucket_id = (request.GET.get("bucket_id") or "").strip()
+    file_key = (request.GET.get("file_key") or "").strip()
+    if not bucket_id or not file_key:
+        return JsonResponse(
+            {"success": False, "error": "bucket_id and file_key are required"},
+            status=400,
+        )
+    try:
+        client = S3StorageClient()
+        result = client.get_download_url(bucket_id=bucket_id, file_key=file_key)
+        return JsonResponse({
+            "success": True,
+            "downloadUrl": result.get("downloadUrl", ""),
+            "expiresIn": result.get("expiresIn", 0),
+        })
+    except LambdaAPIError as e:
+        logger.warning("Admin storage download URL error: %s", e)
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=getattr(e, "status_code", 500),
+        )
+    except Exception as e:
+        logger.exception("Admin storage download URL error")
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=500,
+        )
+
+
+@require_admin_or_super_admin
+@require_http_methods(["POST"])
+def storage_delete_view(request):
+    """POST: delete file. Body or form: bucket_id, file_key. Returns JSON."""
+    if not S3STORAGE_ENABLED:
+        return JsonResponse(
+            {"success": False, "error": "Storage is not configured"},
+            status=400,
+        )
+    try:
+        if request.content_type and "application/json" in request.content_type:
+            body = json.loads(request.body) if request.body else {}
+        else:
+            body = request.POST
+        bucket_id = (body.get("bucket_id") or "").strip()
+        file_key = (body.get("file_key") or "").strip()
+        if not bucket_id or not file_key:
+            return JsonResponse(
+                {"success": False, "error": "bucket_id and file_key are required"},
+                status=400,
+            )
+        client = S3StorageClient()
+        client.delete_object(bucket_id=bucket_id, file_key=file_key)
+        return JsonResponse({"success": True, "message": "File deleted"})
+    except LambdaAPIError as e:
+        logger.warning("Admin storage delete error: %s", e)
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=getattr(e, "status_code", 500),
+        )
+    except Exception as e:
+        logger.exception("Admin storage delete error")
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=500,
+        )
 
 
 @require_admin_or_super_admin

@@ -16,4 +16,12 @@ urlpatterns = [
     path('logs/<str:log_id>/delete/', views.log_delete_view, name='log_delete'),
     path('system-status/', views.system_status_view, name='system_status'),
     path('settings/', views.settings_view, name='settings'),
+    # Job Scheduler (lambda/tkdjob)
+    path('jobs/', views.jobs_view, name='jobs'),
+    path('jobs/<str:job_uuid>/detail/', views.job_detail_view, name='job_detail'),
+    path('jobs/<str:job_uuid>/retry/', views.job_retry_view, name='job_retry'),
+    # Storage Files (lambda/s3storage)
+    path('storage/', views.storage_files_view, name='storage_files'),
+    path('storage/download-url/', views.storage_download_url_view, name='storage_download_url'),
+    path('storage/delete/', views.storage_delete_view, name='storage_delete'),
 ]

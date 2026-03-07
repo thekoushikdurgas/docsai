@@ -78,6 +78,54 @@ class AdminGraphQLClient:
         total = conn.get("pageInfo", {}).get("total", 0)
         return {"users": users, "total": total}
 
+    def list_users_with_buckets(
+        self, limit: int = 500, offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """
+        List users with bucket IDs (Admin/SuperAdmin only).
+        Returns list of dicts with uuid, email, name, bucket for storage file browsing.
+        """
+        query = """
+        query ListUsersWithBuckets($filters: UserFilterInput) {
+          admin {
+            usersWithBuckets(filters: $filters) {
+              items {
+                uuid
+                email
+                name
+                bucket
+              }
+              pageInfo {
+                total
+              }
+            }
+          }
+        }
+        """
+        data = self.client.execute_query(
+            query,
+            variables={"filters": {"limit": limit, "offset": offset}},
+            use_cache=False,
+        )
+        if not data or "admin" not in data:
+            return []
+        conn = data["admin"].get("usersWithBuckets")
+        if not conn:
+            return []
+        items = conn.get("items", [])
+        result = []
+        for u in items:
+            bucket = u.get("bucket")
+            if not bucket:
+                bucket = u.get("uuid")
+            result.append({
+                "uuid": u.get("uuid", ""),
+                "email": u.get("email", ""),
+                "name": u.get("name") or "",
+                "bucket": bucket or "",
+            })
+        return result
+
     def get_user_stats(self) -> Dict[str, Any]:
         """
         Get user statistics (Admin or SuperAdmin).

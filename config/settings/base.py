@@ -267,7 +267,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 # Appointment360 GraphQL Configuration
-APPOINTMENT360_GRAPHQL_URL = os.getenv('APPOINTMENT360_GRAPHQL_URL', 'http://100.53.186.109/graphql')
+APPOINTMENT360_GRAPHQL_URL = os.getenv('APPOINTMENT360_GRAPHQL_URL', 'https://100.53.186.109/graphql')
 GRAPHQL_TIMEOUT = int(os.getenv('GRAPHQL_TIMEOUT', '30'))
 GRAPHQL_MAX_RETRIES = int(os.getenv('GRAPHQL_MAX_RETRIES', '3'))
 GRAPHQL_RETRY_DELAY = int(os.getenv('GRAPHQL_RETRY_DELAY', '1'))  # seconds between retries (exponential backoff)
@@ -303,6 +303,17 @@ LOGS_API_URL = os.getenv('LOGS_API_URL', 'https://adusbfi8ce.execute-api.us-east
 LOGS_API_KEY = os.getenv('LOGS_API_KEY', 'bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd')
 LOGS_API_ENABLED = bool(LOGS_API_URL and LOGS_API_KEY)
 LOGS_API_TIMEOUT = int(os.getenv('LOGS_API_TIMEOUT', '30'))
+
+# Job Scheduler (lambda/tkdjob)
+JOB_SCHEDULER_API_URL = os.getenv('JOB_SCHEDULER_API_URL', '')
+JOB_SCHEDULER_API_KEY = os.getenv('JOB_SCHEDULER_API_KEY', '')
+JOB_SCHEDULER_API_TIMEOUT = int(os.getenv('JOB_SCHEDULER_API_TIMEOUT', '30'))
+JOB_SCHEDULER_ENABLED = bool(JOB_SCHEDULER_API_URL and JOB_SCHEDULER_API_KEY)
+
+# S3 Storage (lambda/s3storage)
+S3STORAGE_API_URL = os.getenv('S3STORAGE_API_URL', '')
+S3STORAGE_API_TIMEOUT = int(os.getenv('S3STORAGE_API_TIMEOUT', '30'))
+S3STORAGE_ENABLED = bool(S3STORAGE_API_URL)
 
 
 def validate_logs_api_config():

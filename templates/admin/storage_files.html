@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Storage Files - Admin - DocsAI{% endblock %}
+
+{% block content %}
+<div class="space-y-8 animate-in fade-in duration-500">
+    <div class="flex flex-col gap-6 bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div>
+            <h2 class="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Storage Files</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">Browse and manage files in s3storage buckets.</p>
+        </div>
+    </div>
+
+    {% if not config_ok %}
+    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200">
+        <p class="font-medium">Storage is not configured. Set S3STORAGE_API_URL. Buckets are loaded from the users API (Admin/SuperAdmin).</p>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300">
+        <p class="font-medium">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    {% if config_ok %}
+    {% if bucket_users|length > 1 %}
+    <nav role="tablist" class="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+        {% for bu in bucket_users %}
+        <a href="?bucket_id={{ bu.bucket }}{% if prefix %}&amp;prefix={{ prefix|urlencode }}{% endif %}" class="px-4 py-2 rounded-lg text-sm font-medium {% if bucket_id == bu.bucket %}bg-blue-600 text-white{% else %}bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}" title="Bucket: {{ bu.bucket }}">{{ bu.email|default:bu.name|default:bu.bucket }} ({{ bu.bucket }})</a>
+        {% endfor %}
+    </nav>
+    {% else %}
+    {% if bucket_id %}
+    <p class="text-sm text-gray-500 dark:text-gray-400">Bucket: <span class="font-medium text-gray-700 dark:text-gray-300">{{ bucket_id }}</span>{% for bu in bucket_users %}{% if bu.bucket == bucket_id %} — {{ bu.email|default:bu.name|default:"" }}{% endif %}{% endfor %}</p>
+    {% endif %}
+    {% endif %}
+
+    <form method="get" class="flex flex-wrap gap-3 items-end p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+        <input type="hidden" name="bucket_id" value="{{ bucket_id }}" />
+        <div class="flex flex-col gap-1">
+            <label for="prefix" class="text-xs font-medium text-gray-500 dark:text-gray-400">Prefix</label>
+            <input type="text" name="prefix" id="prefix" value="{{ prefix }}" placeholder="e.g. upload/2024/" class="px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm w-56" />
+        </div>
+        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 h-[38px]">Filter</button>
+        <a href="?bucket_id={{ bucket_id }}" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">Clear</a>
+    </form>
+
+    <div class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Files</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px]">
+                <thead class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <tr>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Key</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Filename</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Size</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last modified</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Content type</th>
+                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for file in files %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 storage-file-row" data-bucket-id="{{ bucket_id }}" data-file-key="{{ file.key }}">
+                        <td class="py-3 px-4 text-sm font-mono text-gray-900 dark:text-gray-100" title="{{ file.key }}">{{ file.key|truncatechars:32 }}</td>
+                        <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">{{ file.filename|default:file.key|default:"—" }}</td>
+                        <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{{ file.size|filesizeformat }}</td>
+                        <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ file.last_modified|default:"—" }}</td>
+                        <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">{{ file.content_type|default:"—" }}</td>
+                        <td class="py-3 px-4 text-right">
+                            <button type="button" class="storage-download-btn px-2 py-1 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm font-medium" data-bucket-id="{{ bucket_id }}" data-file-key="{{ file.key }}" data-filename="{{ file.filename|default:file.key }}">Download URL</button>
+                            <button type="button" class="storage-delete-btn px-2 py-1 rounded text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-medium" data-bucket-id="{{ bucket_id }}" data-file-key="{{ file.key }}">Delete</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-gray-500 dark:text-gray-400">No files in this bucket.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Download URL modal -->
+    <div id="storage-download-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="storage-download-modal-title" role="dialog" aria-modal="true">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" aria-hidden="true" id="storage-download-modal-backdrop"></div>
+            <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full p-6 border border-gray-200 dark:border-gray-700">
+                <h3 id="storage-download-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Download URL</h3>
+                <p id="storage-download-filename" class="text-sm text-gray-500 dark:text-gray-400 mb-3"></p>
+                <input type="text" id="storage-download-url-input" readonly class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm font-mono mb-3" />
+                <div aria-live="polite" id="storage-download-announce" class="sr-only"></div>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" id="storage-download-copy-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Copy</button>
+                    <a id="storage-download-open-link" href="#" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 inline-block">Open link</a>
+                    <button type="button" id="storage-download-close-btn" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete confirm modal -->
+    <div id="storage-delete-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="storage-delete-modal-title" role="dialog" aria-modal="true">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" aria-hidden="true" id="storage-delete-modal-backdrop"></div>
+            <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700">
+                <h3 id="storage-delete-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Delete file?</h3>
+                <p id="storage-delete-message" class="text-sm text-gray-600 dark:text-gray-300 mb-4">This action cannot be undone.</p>
+                <form id="storage-delete-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="storage-delete-bucket-id" name="bucket_id" value="" />
+                    <input type="hidden" id="storage-delete-file-key" name="file_key" value="" />
+                    <div class="flex justify-end gap-2">
+                        <button type="button" id="storage-delete-cancel-btn" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600">Cancel</button>
+                        <button type="submit" id="storage-delete-submit-btn" class="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if config_ok %}
+<script>
+(function() {
+    var getCookie = function(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : null;
+    };
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : getCookie('csrftoken');
+    var downloadUrlBase = '{% url "admin:storage_download_url" %}';
+
+    // Download URL modal
+    var downloadModal = document.getElementById('storage-download-modal');
+    var downloadBackdrop = document.getElementById('storage-download-modal-backdrop');
+    var downloadUrlInput = document.getElementById('storage-download-url-input');
+    var downloadFilenameEl = document.getElementById('storage-download-filename');
+    var downloadAnnounce = document.getElementById('storage-download-announce');
+    var downloadCopyBtn = document.getElementById('storage-download-copy-btn');
+    var downloadOpenLink = document.getElementById('storage-download-open-link');
+    var downloadCloseBtn = document.getElementById('storage-download-close-btn');
+
+    function openDownloadModal(bucketId, fileKey, filename) {
+        filename = filename || fileKey || 'File';
+        downloadFilenameEl.textContent = 'Download URL for ' + filename;
+        downloadUrlInput.value = '';
+        downloadOpenLink.href = '#';
+        downloadModal.classList.remove('hidden');
+        fetch(downloadUrlBase + '?bucket_id=' + encodeURIComponent(bucketId) + '&file_key=' + encodeURIComponent(fileKey))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var url = (data.downloadUrl !== undefined ? data.downloadUrl : data.download_url) || '';
+                downloadUrlInput.value = url;
+                downloadOpenLink.href = url;
+            })
+            .catch(function() {
+                downloadUrlInput.value = 'Failed to load URL';
+            });
+    }
+    function closeDownloadModal() {
+        downloadModal.classList.add('hidden');
+    }
+    function copyUrl() {
+        var url = downloadUrlInput.value;
+        if (!url) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function() {
+                if (downloadAnnounce) {
+                    downloadAnnounce.textContent = 'URL copied to clipboard';
+                }
+            });
+        } else {
+            downloadUrlInput.select();
+            document.execCommand('copy');
+            if (downloadAnnounce) downloadAnnounce.textContent = 'URL copied to clipboard';
+        }
+    }
+    downloadBackdrop && downloadBackdrop.addEventListener('click', closeDownloadModal);
+    downloadCloseBtn && downloadCloseBtn.addEventListener('click', closeDownloadModal);
+    downloadCopyBtn && downloadCopyBtn.addEventListener('click', copyUrl);
+
+    document.querySelectorAll('.storage-download-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            openDownloadModal(
+                btn.getAttribute('data-bucket-id'),
+                btn.getAttribute('data-file-key'),
+                btn.getAttribute('data-filename')
+            );
+        });
+    });
+
+    // Delete modal
+    var deleteModal = document.getElementById('storage-delete-modal');
+    var deleteBackdrop = document.getElementById('storage-delete-modal-backdrop');
+    var deleteMessage = document.getElementById('storage-delete-message');
+    var deleteBucketInput = document.getElementById('storage-delete-bucket-id');
+    var deleteFileKeyInput = document.getElementById('storage-delete-file-key');
+    var deleteForm = document.getElementById('storage-delete-form');
+    var deleteCancelBtn = document.getElementById('storage-delete-cancel-btn');
+    var deleteSubmitBtn = document.getElementById('storage-delete-submit-btn');
+    var rowToRemove = null;
+
+    function openDeleteModal(bucketId, fileKey, rowEl) {
+        deleteBucketInput.value = bucketId;
+        deleteFileKeyInput.value = fileKey;
+        deleteMessage.textContent = 'Delete ' + fileKey + '? This action cannot be undone.';
+        rowToRemove = rowEl || null;
+        deleteModal.classList.remove('hidden');
+    }
+    function closeDeleteModal() {
+        deleteModal.classList.add('hidden');
+        rowToRemove = null;
+    }
+    deleteBackdrop && deleteBackdrop.addEventListener('click', closeDeleteModal);
+    deleteCancelBtn && deleteCancelBtn.addEventListener('click', closeDeleteModal);
+
+    document.querySelectorAll('.storage-delete-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            openDeleteModal(btn.getAttribute('data-bucket-id'), btn.getAttribute('data-file-key'), btn.closest('.storage-file-row'));
+        });
+    });
+
+    deleteForm && deleteForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var bucketId = deleteBucketInput.value;
+        var fileKey = deleteFileKeyInput.value;
+        if (!bucketId || !fileKey) return;
+        deleteSubmitBtn.disabled = true;
+        var formData = new FormData();
+        formData.append('bucket_id', bucketId);
+        formData.append('file_key', fileKey);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+        fetch('{% url "admin:storage_delete" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            deleteSubmitBtn.disabled = false;
+            closeDeleteModal();
+            if (data.success && rowToRemove) rowToRemove.remove();
+            else if (!data.success) alert(data.error || 'Delete failed');
+        }).catch(function() {
+            deleteSubmitBtn.disabled = false;
+            alert('Request failed');
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

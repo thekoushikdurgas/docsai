@@ -47,7 +47,7 @@ class GraphQLClient:
             access_token: JWT access token for authentication (optional, can be extracted from request)
             request: Django request object to extract access token from (optional)
         """
-        self.endpoint = endpoint_url or getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', 'http://100.53.186.109/graphql')
+        self.endpoint = endpoint_url or getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', 'https://100.53.186.109/graphql')
         self.request = request
         self.access_token = access_token or self._extract_token_from_request()
         self.timeout = getattr(settings, 'GRAPHQL_TIMEOUT', 30)

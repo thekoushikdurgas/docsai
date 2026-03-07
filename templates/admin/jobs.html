@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Job Scheduler - Admin - DocsAI{% endblock %}
+
+{% block content %}
+<div class="space-y-8 animate-in fade-in duration-500">
+    <div class="flex flex-col gap-6 bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Job Scheduler</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">View and manage scheduler jobs (tkdjob).</p>
+            </div>
+            <a href="{% url 'admin:jobs' %}" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">Clear filters</a>
+        </div>
+    </div>
+
+    {% if not config_ok %}
+    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200">
+        <p class="font-medium">Job Scheduler is not configured. Set JOB_SCHEDULER_API_URL and JOB_SCHEDULER_API_KEY.</p>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300">
+        <p class="font-medium">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    {% if config_ok %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% include 'components/stat_card.html' with label="Total Jobs" value=job_stats.total change="" trend="" color="bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400" icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>' %}
+        {% include 'components/stat_card.html' with label="Completed" value=job_stats.completed change="" trend="" color="bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400" icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>' %}
+        {% include 'components/stat_card.html' with label="Failed" value=job_stats.failed change="" trend="" color="bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400" icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>' %}
+        {% include 'components/stat_card.html' with label="Processing" value=job_stats.processing change="" trend="" color="bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400" icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>' %}
+    </div>
+    {% endif %}
+
+    {% if config_ok %}
+    <form method="get" class="flex flex-wrap gap-3 items-end p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+        <div class="flex flex-col gap-1">
+            <label for="status" class="text-xs font-medium text-gray-500 dark:text-gray-400">Status</label>
+            <select name="status" id="status" class="px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm">
+                <option value="">All</option>
+                <option value="open" {% if 'open' in status_filter %}selected{% endif %}>open</option>
+                <option value="in_queue" {% if 'in_queue' in status_filter %}selected{% endif %}>in_queue</option>
+                <option value="processing" {% if 'processing' in status_filter %}selected{% endif %}>processing</option>
+                <option value="completed" {% if 'completed' in status_filter %}selected{% endif %}>completed</option>
+                <option value="failed" {% if 'failed' in status_filter %}selected{% endif %}>failed</option>
+                <option value="retry" {% if 'retry' in status_filter %}selected{% endif %}>retry</option>
+            </select>
+        </div>
+        <div class="flex flex-col gap-1">
+            <label for="limit" class="text-xs font-medium text-gray-500 dark:text-gray-400">Limit</label>
+            <select name="limit" id="limit" class="px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm">
+                <option value="10" {% if limit == 10 %}selected{% endif %}>10</option>
+                <option value="25" {% if limit == 25 %}selected{% endif %}>25</option>
+                <option value="50" {% if limit == 50 %}selected{% endif %}>50</option>
+            </select>
+        </div>
+        <div class="flex flex-col gap-1">
+            <label for="uuid" class="text-xs font-medium text-gray-500 dark:text-gray-400">UUID</label>
+            <input type="text" name="uuid" id="uuid" value="{{ uuid_filter }}" placeholder="Filter by UUID…" class="px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm w-48" />
+        </div>
+        <input type="hidden" name="page" value="1" />
+        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 h-[38px]">Filter</button>
+    </form>
+
+    <div class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Jobs</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px]">
+                <thead class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <tr>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">UUID</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Try count</th>
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created at</th>
+                        <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for job in jobs %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30" data-job-uuid="{{ job.uuid }}">
+                        <td class="py-3 px-4 text-sm font-mono text-gray-900 dark:text-gray-100" title="{{ job.uuid }}">
+                            {{ job.uuid|truncatechars:12 }}
+                        </td>
+                        <td class="py-3 px-4 text-sm text-gray-900 dark:text-gray-100">{{ job.job_title|default:"—" }}</td>
+                        <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{{ job.job_type|default:"—" }}</td>
+                        <td class="py-3 px-4">
+                            {% with st=job.status %}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full {% if st == 'completed' %}bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300{% elif st == 'failed' %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300{% elif st == 'processing' %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300{% elif st == 'in_queue' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300{% elif st == 'open' %}bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300{% elif st == 'retry' %}bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300{% else %}bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400{% endif %}">{{ st|default:"—" }}</span>
+                            {% endwith %}
+                        </td>
+                        <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-300">{{ job.try_count|default:0 }}</td>
+                        <td class="py-3 px-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ job.created_at|default:"—" }}</td>
+                        <td class="py-3 px-4 text-right">
+                            <button type="button" class="job-view-btn px-2 py-1 rounded text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm font-medium" data-job-uuid="{{ job.uuid }}">View</button>
+                            {% if job.status == 'failed' or job.status == 'retry' %}
+                            <button type="button" class="job-retry-btn px-2 py-1 rounded text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-sm font-medium" data-job-uuid="{{ job.uuid }}">Retry</button>
+                            {% else %}
+                            <button type="button" class="px-2 py-1 rounded text-gray-400 dark:text-gray-500 text-sm font-medium cursor-not-allowed" disabled>Retry</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-gray-500 dark:text-gray-400">No jobs found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if page_urls or total > 0 %}
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-4">
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                {% if total > 0 %}
+                Showing {{ start_index }}–{{ end_index }} of {{ total }} jobs
+                {% else %}
+                No jobs
+                {% endif %}
+            </p>
+            <div class="flex items-center gap-2">
+                {% if prev_query_params %}
+                <a href="?{{ prev_query_params }}" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium">Previous</a>
+                {% endif %}
+                {% for num, params in page_urls %}
+                {% if num == page %}
+                <span aria-current="page" class="px-4 py-2 rounded-lg bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium">{{ num }}</span>
+                {% else %}
+                <a href="?{{ params }}" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium">{{ num }}</a>
+                {% endif %}
+                {% endfor %}
+                {% if next_query_params %}
+                <a href="?{{ next_query_params }}" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Job detail modal -->
+    <div id="job-detail-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="job-detail-modal-title" role="dialog" aria-modal="true">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" aria-hidden="true" id="job-detail-modal-backdrop"></div>
+            <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
+                    <h3 id="job-detail-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100">Job details</h3>
+                    <div class="flex items-center gap-2">
+                        <span id="job-detail-uuid" class="text-sm font-mono text-gray-500 dark:text-gray-400"></span>
+                        <button type="button" id="job-detail-copy-uuid" class="p-1.5 rounded text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" title="Copy UUID" aria-label="Copy UUID">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        </button>
+                        <button type="button" id="job-detail-close" class="p-1.5 rounded text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Close">×</button>
+                    </div>
+                </div>
+                <nav id="job-detail-tabs" class="flex border-b border-gray-200 dark:border-gray-700 px-4" role="tablist">
+                    <button type="button" role="tab" data-tab="overview" class="job-detail-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 -mb-px" aria-selected="true">Overview</button>
+                    <button type="button" role="tab" data-tab="status" class="job-detail-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 -mb-px" aria-selected="false">Status & Progress</button>
+                    <button type="button" role="tab" data-tab="timeline" class="job-detail-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 -mb-px" aria-selected="false">Timeline</button>
+                    <button type="button" role="tab" data-tab="dag" class="job-detail-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 -mb-px" aria-selected="false">DAG</button>
+                </nav>
+                <div class="flex-1 overflow-y-auto p-4">
+                    <div id="job-detail-loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</div>
+                    <div id="job-detail-overview" class="hidden space-y-2"></div>
+                    <div id="job-detail-status" class="hidden space-y-2"></div>
+                    <div id="job-detail-timeline" class="hidden space-y-2"></div>
+                    <div id="job-detail-dag" class="hidden space-y-2"></div>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 space-y-3">
+                    <div id="job-detail-retry-form" class="hidden flex flex-wrap gap-3 items-end">
+                        <div class="flex flex-col gap-1">
+                            <label for="job-retry-count" class="text-xs font-medium text-gray-500 dark:text-gray-400">Retry count</label>
+                            <input type="number" id="job-retry-count" min="0" class="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm w-24" placeholder="Optional" />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label for="job-run-after" class="text-xs font-medium text-gray-500 dark:text-gray-400">Run after (ISO)</label>
+                            <input type="text" id="job-run-after" class="px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm w-48" placeholder="e.g. 2025-02-20T10:00:00Z" />
+                        </div>
+                        <button type="button" id="job-detail-retry-btn" class="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 h-[38px]">Retry job</button>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" id="job-detail-close-btn" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if config_ok %}
+<script>
+(function() {
+    var getCookie = function(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : null;
+    };
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : getCookie('csrftoken');
+    var detailBase = '{% url "admin:job_detail" "00000000-0000-0000-0000-000000000000" %}'.replace('00000000-0000-0000-0000-000000000000', '');
+    var retryBase = '{% url "admin:job_retry" "00000000-0000-0000-0000-000000000000" %}'.replace('00000000-0000-0000-0000-000000000000', '');
+
+    var modal = document.getElementById('job-detail-modal');
+    var backdrop = document.getElementById('job-detail-modal-backdrop');
+    var uuidEl = document.getElementById('job-detail-uuid');
+    var copyUuidBtn = document.getElementById('job-detail-copy-uuid');
+    var closeBtn = document.getElementById('job-detail-close');
+    var closeBtnFooter = document.getElementById('job-detail-close-btn');
+    var loadingEl = document.getElementById('job-detail-loading');
+    var overviewEl = document.getElementById('job-detail-overview');
+    var statusEl = document.getElementById('job-detail-status');
+    var timelineEl = document.getElementById('job-detail-timeline');
+    var dagEl = document.getElementById('job-detail-dag');
+    var retryForm = document.getElementById('job-detail-retry-form');
+    var retryBtn = document.getElementById('job-detail-retry-btn');
+    var retryCountInput = document.getElementById('job-retry-count');
+    var runAfterInput = document.getElementById('job-run-after');
+    var currentUuid = null;
+
+    function showTab(tabName) {
+        document.querySelectorAll('.job-detail-tab').forEach(function(t) {
+            t.setAttribute('aria-selected', t.getAttribute('data-tab') === tabName ? 'true' : 'false');
+            t.classList.toggle('border-blue-600', t.getAttribute('data-tab') === tabName);
+            t.classList.toggle('text-gray-500', t.getAttribute('data-tab') !== tabName);
+            t.classList.toggle('text-blue-600', t.getAttribute('data-tab') === tabName);
+        });
+        overviewEl.classList.add('hidden');
+        statusEl.classList.add('hidden');
+        timelineEl.classList.add('hidden');
+        dagEl.classList.add('hidden');
+        var panel = document.getElementById('job-detail-' + tabName);
+        if (panel) panel.classList.remove('hidden');
+    }
+
+    function renderOverview(job) {
+        if (!job) return;
+        var html = '';
+        ['uuid', 'job_title', 'job_type', 'status', 'try_count', 'created_at', 'updated_at', 'run_after'].forEach(function(k) {
+            var v = job[k];
+            if (v === undefined || v === null) v = '—';
+            else if (typeof v === 'object') v = JSON.stringify(v);
+            html += '<p class="text-sm"><span class="font-medium text-gray-500 dark:text-gray-400">' + k + '</span>: <span class="text-gray-900 dark:text-gray-100">' + escapeHtml(String(v)) + '</span></p>';
+        });
+        overviewEl.innerHTML = html;
+    }
+    function renderStatus(data) {
+        statusEl.innerHTML = '<pre class="text-sm bg-gray-50 dark:bg-gray-700 p-3 rounded-lg overflow-auto">' + escapeHtml(JSON.stringify(data || {}, null, 2)) + '</pre>';
+    }
+    function renderTimeline(data) {
+        var items = (data && data.timeline) ? data.timeline : [];
+        if (items.length === 0) {
+            timelineEl.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No timeline events.</p>';
+            return;
+        }
+        var html = '<ul class="space-y-2">';
+        items.forEach(function(ev) {
+            html += '<li class="text-sm p-2 rounded-lg bg-gray-50 dark:bg-gray-700">' + escapeHtml(JSON.stringify(ev)) + '</li>';
+        });
+        html += '</ul>';
+        timelineEl.innerHTML = html;
+    }
+    function renderDag(data) {
+        if (!data || (!data.nodes && !data.edges)) {
+            dagEl.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No DAG data.</p>';
+            return;
+        }
+        dagEl.innerHTML = '<pre class="text-sm bg-gray-50 dark:bg-gray-700 p-3 rounded-lg overflow-auto">' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre>';
+    }
+    function escapeHtml(s) {
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+    }
+
+    function openDetail(uuid) {
+        currentUuid = uuid;
+        uuidEl.textContent = uuid;
+        loadingEl.classList.remove('hidden');
+        overviewEl.classList.add('hidden');
+        statusEl.classList.add('hidden');
+        timelineEl.classList.add('hidden');
+        dagEl.classList.add('hidden');
+        retryForm.classList.add('hidden');
+        modal.classList.remove('hidden');
+
+        fetch(detailBase + encodeURIComponent(uuid) + '/')
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                loadingEl.classList.add('hidden');
+                if (res.success) {
+                    renderOverview(res.job);
+                    renderStatus(res.status);
+                    renderTimeline(res.timeline);
+                    renderDag(res.dag);
+                    showTab('overview');
+                    var st = (res.job && res.job.status) ? res.job.status : '';
+                    if (st === 'failed' || st === 'retry') retryForm.classList.remove('hidden');
+                } else {
+                    overviewEl.classList.remove('hidden');
+                    overviewEl.innerHTML = '<p class="text-sm text-red-600 dark:text-red-400">' + escapeHtml(res.error || 'Failed to load job') + '</p>';
+                }
+            })
+            .catch(function(err) {
+                loadingEl.classList.add('hidden');
+                overviewEl.classList.remove('hidden');
+                overviewEl.innerHTML = '<p class="text-sm text-red-600 dark:text-red-400">' + escapeHtml(err.message || 'Request failed') + '</p>';
+            });
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        currentUuid = null;
+    }
+    backdrop && backdrop.addEventListener('click', closeModal);
+    closeBtn && closeBtn.addEventListener('click', closeModal);
+    closeBtnFooter && closeBtnFooter.addEventListener('click', closeModal);
+
+    document.querySelectorAll('.job-detail-tab').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            showTab(btn.getAttribute('data-tab'));
+        });
+    });
+
+    document.querySelectorAll('.job-view-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            openDetail(btn.getAttribute('data-job-uuid'));
+        });
+    });
+
+    copyUuidBtn && copyUuidBtn.addEventListener('click', function() {
+        if (currentUuid && navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(currentUuid).then(function() {
+                copyUuidBtn.setAttribute('aria-label', 'Copied');
+                setTimeout(function() { copyUuidBtn.setAttribute('aria-label', 'Copy UUID'); }, 2000);
+            });
+        }
+    });
+
+    retryBtn && retryBtn.addEventListener('click', function() {
+        if (!currentUuid || !confirm('Retry this job?')) return;
+        var body = {};
+        var rc = retryCountInput && retryCountInput.value.trim();
+        if (rc !== '') body.retry_count = parseInt(rc, 10);
+        var ra = runAfterInput && runAfterInput.value.trim();
+        if (ra !== '') body.run_after = ra;
+        retryBtn.disabled = true;
+        fetch(retryBase + encodeURIComponent(currentUuid) + '/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify(body)
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            retryBtn.disabled = false;
+            if (data.success) {
+                closeModal();
+                window.location.reload();
+            } else {
+                alert(data.error || 'Retry failed');
+            }
+        }).catch(function() {
+            retryBtn.disabled = false;
+            alert('Request failed');
+        });
+    });
+
+    document.querySelectorAll('.job-retry-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            openDetail(btn.getAttribute('data-job-uuid'));
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -74,3 +74,20 @@ def build_logs_query_params(
     if search:
         params["search"] = search
     return urlencode(params)
+
+
+def build_jobs_query_params(
+    *,
+    page: int = 1,
+    limit: int = 25,
+    status: Optional[list] = None,
+    uuid_filter: str = "",
+) -> str:
+    """Build query string for admin jobs URL with filter params preserved."""
+    params = [("page", page), ("limit", limit)]
+    if status:
+        for s in status:
+            params.append(("status", s))
+    if uuid_filter:
+        params.append(("uuid", uuid_filter))
+    return urlencode(params)
