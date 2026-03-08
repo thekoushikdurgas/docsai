@@ -154,7 +154,7 @@ SQLite database is configured internally by Django only where required
 
 ### GraphQL
 
-- `APPOINTMENT360_GRAPHQL_URL` - GraphQL endpoint URL (default: `https://100.53.186.109/graphql`; backend also exposes `/health`)
+- `APPOINTMENT360_GRAPHQL_URL` - GraphQL endpoint URL (default: `http://100.53.186.109/graphql`; backend also exposes `/health`)
 - `GRAPHQL_AUTH_ENABLED` - Enable GraphQL auth (True/False)
 
 **Note:** Authentication uses JWT tokens from login sessions. No API key is required. Tokens are automatically extracted from request cookies or Authorization headers.

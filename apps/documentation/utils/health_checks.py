@@ -221,8 +221,8 @@ def check_graphql_backend_health() -> Dict[str, Any]:
     """
     Check Appointment360 GraphQL backend health via its /health endpoint.
     
-    Uses APPOINTMENT360_GRAPHQL_URL to derive base URL (e.g. https://100.53.186.109/graphql
-    -> https://100.53.186.109/health). If URL is not configured, returns not_available.
+    Uses APPOINTMENT360_GRAPHQL_URL to derive base URL (e.g. http://100.53.186.109/graphql
+    -> http://100.53.186.109/health). If URL is not configured, returns not_available.
     
     Returns:
         Dict with 'status' ('healthy', 'unhealthy', 'not_available'), 'response_time_ms', and optional 'error'
