@@ -31,7 +31,7 @@ class GraphQLDocumentationService:
         endpoint_url = getattr(
             settings,
             "APPOINTMENT360_GRAPHQL_URL",
-            "http://100.53.186.109/graphql",
+            "http://api.contact360.io/graphql",
         )
         
         self.client = GraphQLClient(endpoint_url=endpoint_url, access_token=access_token, request=request)

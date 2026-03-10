@@ -267,7 +267,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 # Appointment360 GraphQL Configuration
-APPOINTMENT360_GRAPHQL_URL = os.getenv('APPOINTMENT360_GRAPHQL_URL', 'http://100.53.186.109/graphql')
+APPOINTMENT360_GRAPHQL_URL = os.getenv('APPOINTMENT360_GRAPHQL_URL', 'http://api.contact360.io/graphql')
 GRAPHQL_TIMEOUT = int(os.getenv('GRAPHQL_TIMEOUT', '30'))
 GRAPHQL_MAX_RETRIES = int(os.getenv('GRAPHQL_MAX_RETRIES', '3'))
 GRAPHQL_RETRY_DELAY = int(os.getenv('GRAPHQL_RETRY_DELAY', '1'))  # seconds between retries (exponential backoff)
