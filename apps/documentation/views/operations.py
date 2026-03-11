@@ -1303,7 +1303,7 @@ def task_detail_view(request: HttpRequest, task_id: str) -> HttpResponse:
 @require_super_admin
 def media_manager_dashboard(request: HttpRequest) -> HttpResponse:
     """Media Manager dashboard – GitHub-style file browser for media/ JSON. GET /docs/media/manager/"""
-    from apps.documentation.services.media_manager_service import MediaManagerService
+    from apps.documentation.services.documentation_media_service import MediaManagerService
 
     try:
         svc = MediaManagerService()
@@ -1317,7 +1317,7 @@ def media_manager_dashboard(request: HttpRequest) -> HttpResponse:
             "file_counts": file_counts,
             "resource_types": resource_types,
         }
-        return render(request, "documentation/media_manager.html", context)
+        return render(request, "documentation/documentation_files.html", context)
     except Exception as e:
         logger.error("Error rendering media manager dashboard: %s", e, exc_info=True)
         # Return empty context on error
@@ -1326,4 +1326,4 @@ def media_manager_dashboard(request: HttpRequest) -> HttpResponse:
             "file_counts": {},
             "resource_types": ["pages", "endpoints", "relationships", "postman", "n8n", "project"],
         }
-        return render(request, "documentation/media_manager.html", context)
+        return render(request, "documentation/documentation_files.html", context)

@@ -1,7 +1,7 @@
 /**
- * Media Manager Dashboard Controller
+ * Documentation Dashboard Controller
  * 
- * Manages Media Manager Dashboard state, pagination, filtering, and data loading
+ * Manages the documentation dashboard state, pagination, filtering, and data loading
  * Uses direct service calls via AJAX API endpoints
  * 
  * Features:
@@ -30,14 +30,14 @@ class MediaManagerDashboardController {
         this.data = {};
         this.searchQuery = {};
         
-        // API endpoints (updated to use unified routes)
+        // API endpoints for documentation dashboard
         this.apiEndpoints = {
-            pages: options.pagesApiUrl || '/docs/api/media-manager/pages/',  // Keep API endpoints as-is for now
-            endpoints: options.endpointsApiUrl || '/docs/api/media-manager/endpoints/',
-            relationships: options.relationshipsApiUrl || '/docs/api/media-manager/relationships/',
-            postman: options.postmanApiUrl || '/docs/api/media-manager/postman/',
-            statistics: options.statisticsApiUrl || '/docs/api/media-manager/statistics/',
-            health: options.healthApiUrl || '/docs/api/media-manager/health/'
+            pages: options.pagesApiUrl || '/docs/api/dashboard/pages/',
+            endpoints: options.endpointsApiUrl || '/docs/api/dashboard/endpoints/',
+            relationships: options.relationshipsApiUrl || '/docs/api/dashboard/relationships/',
+            postman: options.postmanApiUrl || '/docs/api/dashboard/postman/',
+            statistics: options.statisticsApiUrl || '/docs/api/dashboard/statistics/',
+            health: options.healthApiUrl || '/docs/api/dashboard/health/'
         };
         
         // Pagination instances
@@ -49,7 +49,7 @@ class MediaManagerDashboardController {
         // Debounce timer for search
         this.searchDebounceTimer = null;
         this.SEARCH_DEBOUNCE_MS = 300;
-        
+
         // Initialize
         this.init();
     }
@@ -82,6 +82,7 @@ class MediaManagerDashboardController {
         if (window.initialData) {
             this.renderInitialData();
         }
+
     }
     
     /**

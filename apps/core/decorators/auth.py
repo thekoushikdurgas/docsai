@@ -223,7 +223,7 @@ def _is_browser_request(request) -> bool:
 
 
 def _forbidden_response(request, message: str):
-    """Return 403 Forbidden response."""
+    """Return 403 Forbidden response, or redirect browser to login."""
     accept = (request.headers.get("Accept") or "").strip()
     content_type = (request.headers.get("Content-Type") or "").split(";")[0].strip()
     wants_json = (
@@ -247,17 +247,10 @@ def _forbidden_response(request, message: str):
             },
             status=403
         )
-    
-    # Return HTML response
-    return HttpResponseForbidden(
-        f"""
-        <html>
-            <head><title>Access Denied</title></head>
-            <body>
-                <h1>Access Denied</h1>
-                <p>{message}</p>
-                <p><a href="/login/">Login</a></p>
-            </body>
-        </html>
-        """
-    )
+
+    # For browser requests, redirect to login instead of showing 403 HTML
+    login_url = getattr(settings, "LOGIN_URL", "/login/")
+    next_path = request.path or "/"
+    if "//" in next_path or not next_path.startswith("/"):
+        next_path = "/"
+    return redirect(f"{login_url}?next={quote(next_path)}")

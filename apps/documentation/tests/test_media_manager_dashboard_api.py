@@ -28,18 +28,18 @@ from apps.documentation.tests.helpers import (
 User = get_user_model()
 
 
-class MediaManagerDashboardAPITestCase(BaseAPITestCase):
-    """Test cases for Media Manager Dashboard API endpoints."""
+class DocumentationDashboardAPITestCase(BaseAPITestCase):
+    """Test cases for documentation dashboard API endpoints."""
     
     def setUp(self):
         """Set up test fixtures."""
         super().setUp()
-        self.pages_api_url = reverse('documentation:api_media_manager_pages')
-        self.endpoints_api_url = reverse('documentation:api_media_manager_endpoints')
-        self.relationships_api_url = reverse('documentation:api_media_manager_relationships')
-        self.postman_api_url = reverse('documentation:api_media_manager_postman')
-        self.statistics_api_url = reverse('documentation:api_media_manager_statistics')
-        self.health_api_url = reverse('documentation:api_media_manager_health')
+        self.pages_api_url = reverse('documentation:api_docs_dashboard_pages')
+        self.endpoints_api_url = reverse('documentation:api_docs_dashboard_endpoints')
+        self.relationships_api_url = reverse('documentation:api_docs_dashboard_relationships')
+        self.postman_api_url = reverse('documentation:api_docs_dashboard_postman')
+        self.statistics_api_url = reverse('documentation:api_docs_dashboard_statistics')
+        self.health_api_url = reverse('documentation:api_docs_dashboard_health')
     
     def test_get_pages_list_api_success(self):
         """Test get_pages_list_api with success."""
@@ -48,7 +48,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
             {'page_id': 'page2', 'page_type': 'docs'}
         ]
         
-        with patch('apps.documentation.api.media_manager_api.get_pages_service') as mock_get_service:
+        with patch('apps.documentation.api.documentation_dashboard_api.get_pages_service') as mock_get_service:
             mock_service = Mock()
             mock_get_service.return_value = mock_service
             mock_service.list_pages.return_value = {
@@ -67,7 +67,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
     
     def test_get_pages_list_api_with_filters(self):
         """Test get_pages_list_api with filters."""
-        with patch('apps.documentation.api.media_manager_api.get_pages_service') as mock_get_service:
+        with patch('apps.documentation.api.documentation_dashboard_api.get_pages_service') as mock_get_service:
             mock_service = Mock()
             mock_get_service.return_value = mock_service
             mock_service.list_pages.return_value = {'pages': [], 'total': 0}
@@ -89,7 +89,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
             {'page_id': 'other-page', 'page_type': 'docs'}
         ]
         
-        with patch('apps.documentation.api.media_manager_api.get_pages_service') as mock_get_service:
+        with patch('apps.documentation.api.documentation_dashboard_api.get_pages_service') as mock_get_service:
             mock_service = Mock()
             mock_get_service.return_value = mock_service
             mock_service.list_pages.return_value = {
@@ -111,7 +111,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
             {'endpoint_id': 'endpoint2', 'method': 'POST'}
         ]
         
-        with patch('apps.documentation.api.media_manager_api.get_endpoints_service') as mock_get_service:
+        with patch('apps.documentation.api.documentation_dashboard_api.get_endpoints_service') as mock_get_service:
             mock_service = Mock()
             mock_get_service.return_value = mock_service
             mock_service.list_endpoints.return_value = {
@@ -134,7 +134,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
             {'relationship_id': 'rel2', 'page_path': 'page2', 'endpoint_path': '/api/v1/test2/'}
         ]
         
-        with patch('apps.documentation.api.media_manager_api.get_relationships_service') as mock_get_service:
+        with patch('apps.documentation.api.documentation_dashboard_api.get_relationships_service') as mock_get_service:
             mock_service = Mock()
             mock_get_service.return_value = mock_service
             mock_service.list_relationships.return_value = {
@@ -157,7 +157,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
             {'config_id': 'config2', 'name': 'Config 2'}
         ]
         
-        with patch('apps.documentation.api.media_manager_api.get_postman_service') as mock_get_service:
+        with patch('apps.documentation.api.documentation_dashboard_api.get_postman_service') as mock_get_service:
             mock_service = Mock()
             mock_get_service.return_value = mock_service
             mock_service.list_configurations.return_value = {
@@ -175,7 +175,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
     
     def test_get_statistics_api_success(self):
         """Test get_statistics_api with success."""
-        with patch('apps.documentation.api.media_manager_api.get_media_manager_dashboard_service') as mock_get_service:
+        with patch('apps.documentation.api.documentation_dashboard_api.get_media_manager_dashboard_service') as mock_get_service:
             mock_service = Mock()
             mock_get_service.return_value = mock_service
             mock_service.pages_service.get_pages_statistics.return_value = {'total': 10}
@@ -202,7 +202,7 @@ class MediaManagerDashboardAPITestCase(BaseAPITestCase):
             }
         }
         
-        with patch('apps.documentation.api.media_manager_api.get_comprehensive_health_status', return_value=mock_health):
+        with patch('apps.documentation.api.documentation_dashboard_api.get_comprehensive_health_status', return_value=mock_health):
             response = self.client.get(self.health_api_url)
             self.assertEqual(response.status_code, 200)
             

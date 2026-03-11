@@ -39,7 +39,6 @@ ROUTE_MAPPINGS = {
     
     # Pages API routes
     'media_manager_pages_format': 'pages_format',
-    'media_manager_pages_statistics': 'pages_statistics',
     'media_manager_pages_types': 'pages_types',
     'media_manager_pages_by_type_docs': 'pages_by_type_docs',
     'media_manager_pages_by_type_marketing': 'pages_by_type_marketing',

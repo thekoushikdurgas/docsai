@@ -86,36 +86,18 @@ All under the documentation app; require a logged-in session.
 | POST/PUT | `/docs/api/relationships/<relationship_id>/update/` | Update relationship |
 | POST/DELETE | `/docs/api/relationships/<relationship_id>/delete/` | Delete relationship |
 
-### 3.2 Media Manager dashboard (lists / stats)
+### 3.2 Documentation dashboard (lists / stats)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/docs/api/media-manager/pages/` | Pages list for dashboard |
-| GET | `/docs/api/media-manager/endpoints/` | Endpoints list |
-| GET | `/docs/api/media-manager/relationships/` | Relationships list |
-| GET | `/docs/api/media-manager/postman/` | Postman list |
-| GET | `/docs/api/media-manager/statistics/` | Statistics |
-| GET | `/docs/api/media-manager/health/` | Health |
+| GET | `/docs/api/dashboard/pages/` | Pages list for dashboard |
+| GET | `/docs/api/dashboard/endpoints/` | Endpoints list |
+| GET | `/docs/api/dashboard/relationships/` | Relationships list |
+| GET | `/docs/api/dashboard/postman/` | Postman list |
+| GET | `/docs/api/dashboard/statistics/` | Statistics |
+| GET | `/docs/api/dashboard/health/` | Health |
 
-### 3.3 Media files
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/docs/api/media/files/` | List files |
-| POST | `/docs/api/media/files/create/` | Create file |
-| GET | `/docs/api/media/sync-status/` | Sync status |
-| POST | `/docs/api/media/bulk-sync/` | Bulk sync |
-| POST | `/docs/api/media/indexes/regenerate/pages/` | Regenerate pages index |
-| POST | `/docs/api/media/indexes/regenerate/endpoints/` | Regenerate endpoints index |
-| POST | `/docs/api/media/indexes/regenerate/postman/` | Regenerate postman index |
-| POST | `/docs/api/media/indexes/regenerate/relationships/` | Regenerate relationships index |
-| POST | `/docs/api/media/indexes/regenerate/all/` | Regenerate all indexes |
-| GET | `/docs/api/media/files/<path:file_path>/` | Get file |
-| PUT/PATCH | `/docs/api/media/files/<path:file_path>/update/` | Update file |
-| DELETE | `/docs/api/media/files/<path:file_path>/delete/` | Delete file |
-| POST | `/docs/api/media/sync/<path:file_path>/` | Sync single file |
-
-### 3.4 Operations
+### 3.3 Operations
 
 | Method | Path | Description |
 |--------|------|-------------|

@@ -68,11 +68,8 @@ def list_pages_view(request):
     except Exception as e:
         logger.error(f"Error listing pages: {e}", exc_info=True)
         messages.error(request, 'An error occurred while loading pages.')
-        context = {
-            'pages': [], 'total': 0, 'page_obj': None,
-            'empty_state_create_url': reverse('documentation:create'),
-        }
-        return render(request, 'documentation/list.html', context)
+        from apps.documentation.views.dashboard import documentation_dashboard
+        return documentation_dashboard(request)
 
 
 @require_super_admin
@@ -82,7 +79,7 @@ def get_page_view(request, page_id):
     page = service.get_page(page_id)
     if not page:
         messages.error(request, 'Page not found.')
-        return redirect('documentation:list')
+        return redirect('documentation:dashboard')
     # Normalize: ensure top-level content for detail.html (content may be missing or only under metadata)
     if isinstance(page, dict):
         page['content'] = page.get('content') or (page.get('metadata') or {}).get('content', '') or ''
@@ -124,7 +121,7 @@ def create_page_view(request):
             created = service.create_page(page_data)
             if created:
                 messages.success(request, 'Page created successfully!')
-                return redirect('documentation:list')
+                return redirect('documentation:dashboard')
             else:
                 messages.error(request, 'Failed to create page.')
         except Exception as e:
@@ -139,7 +136,7 @@ def update_page_view(request, page_id):
     """Update documentation page."""
     if not page_id:
         messages.error(request, 'Invalid page ID.')
-        return redirect('documentation:list')
+        return redirect('documentation:dashboard')
     
     service = get_pages_service()
     
@@ -150,7 +147,7 @@ def update_page_view(request, page_id):
                 messages.error(request, 'Title is required.')
                 page = service.get_page(page_id)
                 if not page:
-                    return redirect('documentation:list')
+                    return redirect('documentation:dashboard')
                 return render(request, 'documentation/edit.html', {'page': page})
             
             page_data = {
@@ -181,17 +178,17 @@ def update_page_view(request, page_id):
         page = service.get_page(page_id)
         if not page:
             messages.error(request, 'Page not found.')
-            return redirect('documentation:list')
+            return redirect('documentation:dashboard')
         
         context = {'page': page}
         return render(request, 'documentation/edit.html', context)
     except Exception as e:
         logger.error(f"Error loading page {page_id}: {e}", exc_info=True)
         messages.error(request, 'An error occurred while loading the page.')
-        return redirect('documentation:list')
+        return redirect('documentation:dashboard')
 
 
-def _safe_redirect_url(request, default_name='documentation:list'):
+def _safe_redirect_url(request, default_name='documentation:dashboard'):
     """Return redirect target: return_url if present and safe, else default."""
     return_url = request.GET.get('return_url') or request.POST.get('return_url', '')
     if return_url and return_url.startswith('/') and '//' not in return_url:

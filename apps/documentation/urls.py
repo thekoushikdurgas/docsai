@@ -75,11 +75,11 @@ from .views.postman_views import (
     postman_delete_view,
 )
 from .views import operations
-from .views import media_views
-from .views import media_manager_dashboard
+from .views import documentation_dashboard_views as media_manager_dashboard
+from .views import documentation_file_views
 from .views import routes_overview
 from .api import views as api_views
-from .api import media_manager_api
+from .api import documentation_dashboard_api as media_manager_api
 
 app_name = 'documentation'
 
@@ -109,8 +109,7 @@ urlpatterns = [
     # Routes & APIs overview (static route before parameterized)
     path('routes-overview/', routes_overview.routes_overview_view, name='routes_overview'),
 
-    # Pages API Routes (static routes before parameterized) - 20 routes
-    path('pages/statistics/', media_manager_dashboard.media_manager_pages_statistics, name='pages_statistics'),
+    # Pages API Routes (static routes before parameterized) - statistics now live on main /docs/ dashboard
     path('pages/format/', redirect_pages_format_to_create, name='pages_format'),
     path('pages/types/', media_manager_dashboard.media_manager_pages_types, name='pages_types'),
     path('pages/by-type/docs/', media_manager_dashboard.media_manager_pages_by_type_docs, name='pages_by_type_docs'),
@@ -287,186 +286,18 @@ urlpatterns = [
     path('postman/<str:postman_id>/edit/', postman_form_view, name='postman_edit'),
     path('postman/<str:postman_id>/', postman_detail_view, name='postman_detail'),
     
-    # ============================================================================
-    # Redirects from old /docs/media-manager/* routes to new /docs/* routes
-    # These redirects will be removed after migration period (30 days)
-    # ============================================================================
-    # Main dashboard redirect
-    path('media-manager/', lambda r: redirect('documentation:dashboard'), name='media_manager_dashboard_redirect'),
-    path('media-manager/pages/', lambda r: redirect('documentation:dashboard_pages'), name='media_manager_pages_redirect'),
-    path('media-manager/endpoints/', lambda r: redirect('documentation:dashboard_endpoints'), name='media_manager_endpoints_redirect'),
-    path('media-manager/relationships/', lambda r: redirect('documentation:dashboard_relationships'), name='media_manager_relationships_redirect'),
-    path('media-manager/postman/', lambda r: redirect('documentation:dashboard'), name='media_manager_postman_redirect'),
-    
-    # Service Info & Health redirects
-    path('media-manager/service-info/', lambda r: redirect('documentation:service_info'), name='media_manager_service_info_redirect'),
-    path('media-manager/docs/endpoint-stats/', lambda r: redirect('documentation:docs_endpoint_stats'), name='media_manager_docs_endpoint_stats_redirect'),
-    path('media-manager/statistics/', lambda r: redirect('documentation:dashboard'), name='media_manager_statistics_redirect'),
-    
-    # Pages redirects (using create_redirect_view helper for parameterized routes)
-    path('media-manager/pages/statistics/', create_redirect_view('pages_statistics'), name='media_manager_pages_statistics_redirect'),
-    path('media-manager/pages/format/', redirect_pages_format_to_create, name='media_manager_pages_format_redirect'),
-    path('media-manager/pages/types/', create_redirect_view('pages_types'), name='media_manager_pages_types_redirect'),
-    path('media-manager/pages/by-type/docs/', create_redirect_view('pages_by_type_docs'), name='media_manager_pages_by_type_docs_redirect'),
-    path('media-manager/pages/by-type/marketing/', create_redirect_view('pages_by_type_marketing'), name='media_manager_pages_by_type_marketing_redirect'),
-    path('media-manager/pages/by-type/dashboard/', create_redirect_view('pages_by_type_dashboard'), name='media_manager_pages_by_type_dashboard_redirect'),
-    path('media-manager/pages/by-type/<str:page_type>/published/', create_redirect_view('pages_by_type_published'), name='media_manager_pages_by_type_published_redirect'),
-    path('media-manager/pages/by-type/<str:page_type>/draft/', create_redirect_view('pages_by_type_draft'), name='media_manager_pages_by_type_draft_redirect'),
-    path('media-manager/pages/by-type/<str:page_type>/stats/', create_redirect_view('pages_by_type_stats'), name='media_manager_pages_by_type_stats_redirect'),
-    path('media-manager/pages/by-type/<str:page_type>/count/', create_redirect_view('pages_by_type_count'), name='media_manager_pages_by_type_count_redirect'),
-    path('media-manager/pages/by-state/<str:state>/count/', create_redirect_view('pages_by_state_count'), name='media_manager_pages_by_state_count_redirect'),
-    path('media-manager/pages/by-state/<str:state>/', create_redirect_view('pages_by_state'), name='media_manager_pages_by_state_redirect'),
-    path('media-manager/pages/by-user-type/<str:user_type>/', create_redirect_view('pages_by_user_type'), name='media_manager_pages_by_user_type_redirect'),
-    path('media-manager/pages/<str:page_id>/sections/', create_redirect_view('page_sections'), name='media_manager_page_sections_redirect'),
-    path('media-manager/pages/<str:page_id>/components/', create_redirect_view('page_components'), name='media_manager_page_components_redirect'),
-    path('media-manager/pages/<str:page_id>/endpoints/', create_redirect_view('page_endpoints'), name='media_manager_page_endpoints_redirect'),
-    path('media-manager/pages/<str:page_id>/versions/', create_redirect_view('page_versions'), name='media_manager_page_versions_redirect'),
-    path('media-manager/pages/<str:page_id>/access-control/', create_redirect_view('page_access_control'), name='media_manager_page_access_control_redirect'),
-    path('media-manager/pages/<str:page_id>/', create_redirect_view('page_detail_enhanced'), name='media_manager_page_detail_redirect'),
-    
-    # Endpoints redirects
-    path('media-manager/endpoints/statistics/', create_redirect_view('endpoints_statistics'), name='media_manager_endpoints_statistics_redirect'),
-    path('media-manager/endpoints/format/', create_redirect_view('endpoints_format'), name='media_manager_endpoints_format_redirect'),
-    path('media-manager/endpoints/api-versions/', create_redirect_view('endpoints_api_versions'), name='media_manager_endpoints_api_versions_redirect'),
-    path('media-manager/endpoints/methods/', create_redirect_view('endpoints_methods'), name='media_manager_endpoints_methods_redirect'),
-    path('media-manager/endpoints/by-api-version/v1/', create_redirect_view('endpoints_by_api_version_v1'), name='media_manager_endpoints_by_api_version_v1_redirect'),
-    path('media-manager/endpoints/by-api-version/v4/', create_redirect_view('endpoints_by_api_version_v4'), name='media_manager_endpoints_by_api_version_v4_redirect'),
-    path('media-manager/endpoints/by-api-version/graphql/', create_redirect_view('endpoints_by_api_version_graphql'), name='media_manager_endpoints_by_api_version_graphql_redirect'),
-    path('media-manager/endpoints/by-api-version/<str:api_version>/count/', create_redirect_view('endpoints_by_api_version_count'), name='media_manager_endpoints_by_api_version_count_redirect'),
-    path('media-manager/endpoints/by-api-version/<str:api_version>/stats/', create_redirect_view('endpoints_by_api_version_stats'), name='media_manager_endpoints_by_api_version_stats_redirect'),
-    path('media-manager/endpoints/by-api-version/<str:api_version>/by-method/<str:method>/', create_redirect_view('endpoints_by_api_version_by_method'), name='media_manager_endpoints_by_api_version_by_method_redirect'),
-    path('media-manager/endpoints/by-method/GET/', create_redirect_view('endpoints_by_method_get'), name='media_manager_endpoints_by_method_get_redirect'),
-    path('media-manager/endpoints/by-method/POST/', create_redirect_view('endpoints_by_method_post'), name='media_manager_endpoints_by_method_post_redirect'),
-    path('media-manager/endpoints/by-method/QUERY/', create_redirect_view('endpoints_by_method_query'), name='media_manager_endpoints_by_method_query_redirect'),
-    path('media-manager/endpoints/by-method/MUTATION/', create_redirect_view('endpoints_by_method_mutation'), name='media_manager_endpoints_by_method_mutation_redirect'),
-    # Generic endpoints by method redirect (must be after specific routes)
-    path('media-manager/endpoints/by-method/<str:method>/', create_redirect_view('endpoints_by_method'), name='media_manager_endpoints_by_method_redirect'),
-    path('media-manager/endpoints/by-method/<str:method>/count/', create_redirect_view('endpoints_by_method_count'), name='media_manager_endpoints_by_method_count_redirect'),
-    path('media-manager/endpoints/by-method/<str:method>/stats/', create_redirect_view('endpoints_by_method_stats'), name='media_manager_endpoints_by_method_stats_redirect'),
-    path('media-manager/endpoints/by-state/<str:state>/count/', create_redirect_view('endpoints_by_state_count'), name='media_manager_endpoints_by_state_count_redirect'),
-    path('media-manager/endpoints/by-state/<str:state>/', create_redirect_view('endpoints_by_state'), name='media_manager_endpoints_by_state_redirect'),
-    path('media-manager/endpoints/by-lambda/<str:service_name>/count/', create_redirect_view('endpoints_by_lambda_count'), name='media_manager_endpoints_by_lambda_count_redirect'),
-    path('media-manager/endpoints/by-lambda/<str:service_name>/', create_redirect_view('endpoints_by_lambda'), name='media_manager_endpoints_by_lambda_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/pages/', create_redirect_view('endpoint_pages'), name='media_manager_endpoint_pages_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/access-control/', create_redirect_view('endpoint_access_control'), name='media_manager_endpoint_access_control_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/lambda-services/', create_redirect_view('endpoint_lambda_services'), name='media_manager_endpoint_lambda_services_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/files/', create_redirect_view('endpoint_files'), name='media_manager_endpoint_files_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/methods/', create_redirect_view('endpoint_methods'), name='media_manager_endpoint_methods_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/used-by-pages/', create_redirect_view('endpoint_used_by_pages'), name='media_manager_endpoint_used_by_pages_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/dependencies/', create_redirect_view('endpoint_dependencies'), name='media_manager_endpoint_dependencies_redirect'),
-    path('media-manager/endpoints/<str:endpoint_id>/', create_redirect_view('endpoint_detail_enhanced'), name='media_manager_endpoint_detail_redirect'),
-    
-    # Relationships redirects
-    path('media-manager/relationships/statistics/', create_redirect_view('relationships_statistics'), name='media_manager_relationships_statistics_redirect'),
-    path('media-manager/relationships/format/', create_redirect_view('relationships_format'), name='media_manager_relationships_format_redirect'),
-    path('media-manager/relationships/graph/', create_redirect_view('relationships_graph'), name='media_manager_relationships_graph_redirect'),
-    path('media-manager/relationships/usage-types/', create_redirect_view('relationships_usage_types'), name='media_manager_relationships_usage_types_redirect'),
-    path('media-manager/relationships/usage-contexts/', create_redirect_view('relationships_usage_contexts'), name='media_manager_relationships_usage_contexts_redirect'),
-    path('media-manager/relationships/by-page/<str:page_id>/primary/', create_redirect_view('relationships_by_page_primary'), name='media_manager_relationships_by_page_primary_redirect'),
-    path('media-manager/relationships/by-page/<str:page_id>/secondary/', create_redirect_view('relationships_by_page_secondary'), name='media_manager_relationships_by_page_secondary_redirect'),
-    path('media-manager/relationships/by-page/<str:page_id>/count/', create_redirect_view('relationships_by_page_count'), name='media_manager_relationships_by_page_count_redirect'),
-    path('media-manager/relationships/by-page/<str:page_id>/by-usage-type/<str:usage_type>/', create_redirect_view('relationships_by_page_by_usage_type'), name='media_manager_relationships_by_page_by_usage_type_redirect'),
-    path('media-manager/relationships/by-page/<str:page_id>/', create_redirect_view('relationships_by_page'), name='media_manager_relationships_by_page_redirect'),
-    path('media-manager/relationships/by-endpoint/<str:endpoint_id>/pages/', create_redirect_view('relationships_by_endpoint_pages'), name='media_manager_relationships_by_endpoint_pages_redirect'),
-    path('media-manager/relationships/by-endpoint/<str:endpoint_id>/count/', create_redirect_view('relationships_by_endpoint_count'), name='media_manager_relationships_by_endpoint_count_redirect'),
-    path('media-manager/relationships/by-endpoint/<str:endpoint_id>/by-usage-context/<str:usage_context>/', create_redirect_view('relationships_by_endpoint_by_usage_context'), name='media_manager_relationships_by_endpoint_by_usage_context_redirect'),
-    path('media-manager/relationships/by-endpoint/<str:endpoint_id>/', create_redirect_view('relationships_by_endpoint'), name='media_manager_relationships_by_endpoint_redirect'),
-    path('media-manager/relationships/by-usage-type/primary/', create_redirect_view('relationships_by_usage_type_primary'), name='media_manager_relationships_by_usage_type_primary_redirect'),
-    path('media-manager/relationships/by-usage-type/secondary/', create_redirect_view('relationships_by_usage_type_secondary'), name='media_manager_relationships_by_usage_type_secondary_redirect'),
-    path('media-manager/relationships/by-usage-type/conditional/', create_redirect_view('relationships_by_usage_type_conditional'), name='media_manager_relationships_by_usage_type_conditional_redirect'),
-    path('media-manager/relationships/by-usage-type/<str:usage_type>/count/', create_redirect_view('relationships_by_usage_type_count'), name='media_manager_relationships_by_usage_type_count_redirect'),
-    path('media-manager/relationships/by-usage-type/<str:usage_type>/by-usage-context/<str:usage_context>/', create_redirect_view('relationships_by_usage_type_by_usage_context'), name='media_manager_relationships_by_usage_type_by_usage_context_redirect'),
-    path('media-manager/relationships/by-usage-context/data_fetching/', create_redirect_view('relationships_by_usage_context_data_fetching'), name='media_manager_relationships_by_usage_context_data_fetching_redirect'),
-    path('media-manager/relationships/by-usage-context/data_mutation/', create_redirect_view('relationships_by_usage_context_data_mutation'), name='media_manager_relationships_by_usage_context_data_mutation_redirect'),
-    path('media-manager/relationships/by-usage-context/authentication/', create_redirect_view('relationships_by_usage_context_authentication'), name='media_manager_relationships_by_usage_context_authentication_redirect'),
-    path('media-manager/relationships/by-usage-context/analytics/', create_redirect_view('relationships_by_usage_context_analytics'), name='media_manager_relationships_by_usage_context_analytics_redirect'),
-    path('media-manager/relationships/by-usage-context/<str:usage_context>/count/', create_redirect_view('relationships_by_usage_context_count'), name='media_manager_relationships_by_usage_context_count_redirect'),
-    path('media-manager/relationships/by-state/<str:state>/count/', create_redirect_view('relationships_by_state_count'), name='media_manager_relationships_by_state_count_redirect'),
-    path('media-manager/relationships/by-state/<str:state>/', create_redirect_view('relationships_by_state'), name='media_manager_relationships_by_state_redirect'),
-    path('media-manager/relationships/by-lambda/<str:service_name>/', create_redirect_view('relationships_by_lambda'), name='media_manager_relationships_by_lambda_redirect'),
-    path('media-manager/relationships/by-invocation-pattern/<str:pattern>/', create_redirect_view('relationships_by_invocation_pattern'), name='media_manager_relationships_by_invocation_pattern_redirect'),
-    path('media-manager/relationships/by-postman-config/<str:config_id>/', create_redirect_view('relationships_by_postman_config'), name='media_manager_relationships_by_postman_config_redirect'),
-    path('media-manager/relationships/performance/slow/', create_redirect_view('relationships_performance_slow'), name='media_manager_relationships_performance_slow_redirect'),
-    path('media-manager/relationships/performance/errors/', create_redirect_view('relationships_performance_errors'), name='media_manager_relationships_performance_errors_redirect'),
-    path('media-manager/relationships/<str:relationship_id>/access-control/', create_redirect_view('relationship_access_control'), name='media_manager_relationship_access_control_redirect'),
-    path('media-manager/relationships/<str:relationship_id>/data-flow/', create_redirect_view('relationship_data_flow'), name='media_manager_relationship_data_flow_redirect'),
-    path('media-manager/relationships/<str:relationship_id>/performance/', create_redirect_view('relationship_performance'), name='media_manager_relationship_performance_redirect'),
-    path('media-manager/relationships/<str:relationship_id>/dependencies/', create_redirect_view('relationship_dependencies'), name='media_manager_relationship_dependencies_redirect'),
-    path('media-manager/relationships/<str:relationship_id>/postman/', create_redirect_view('relationship_postman'), name='media_manager_relationship_postman_redirect'),
-    path('media-manager/relationships/<str:relationship_id>/', create_redirect_view('relationship_detail_enhanced'), name='media_manager_relationship_detail_redirect'),
-    
-    # Postman redirects
-    path('media-manager/postman/statistics/', create_redirect_view('postman_statistics'), name='media_manager_postman_statistics_redirect'),
-    path('media-manager/postman/format/', create_redirect_view('postman_format'), name='media_manager_postman_format_redirect'),
-    path('media-manager/postman/by-state/<str:state>/count/', create_redirect_view('postman_by_state_count'), name='media_manager_postman_by_state_count_redirect'),
-    path('media-manager/postman/by-state/<str:state>/', create_redirect_view('postman_by_state'), name='media_manager_postman_by_state_redirect'),
-    path('media-manager/postman/<str:config_id>/collection/', create_redirect_view('postman_collection'), name='media_manager_postman_collection_redirect'),
-    path('media-manager/postman/<str:config_id>/environments/<str:env_name>/', create_redirect_view('postman_environment'), name='media_manager_postman_environment_redirect'),
-    path('media-manager/postman/<str:config_id>/environments/', create_redirect_view('postman_environments'), name='media_manager_postman_environments_redirect'),
-    path('media-manager/postman/<str:config_id>/mappings/<str:mapping_id>/', create_redirect_view('postman_mapping'), name='media_manager_postman_mapping_redirect'),
-    path('media-manager/postman/<str:config_id>/mappings/', create_redirect_view('postman_mappings'), name='media_manager_postman_mappings_redirect'),
-    path('media-manager/postman/<str:config_id>/test-suites/<str:suite_id>/', create_redirect_view('postman_test_suite'), name='media_manager_postman_test_suite_redirect'),
-    path('media-manager/postman/<str:config_id>/test-suites/', create_redirect_view('postman_test_suites'), name='media_manager_postman_test_suites_redirect'),
-    path('media-manager/postman/<str:config_id>/access-control/', create_redirect_view('postman_access_control'), name='media_manager_postman_access_control_redirect'),
-    path('media-manager/postman/<str:config_id>/', create_redirect_view('postman_detail_enhanced'), name='media_manager_postman_detail_redirect'),
-    
-    # Index redirects
-    path('media-manager/index/pages/validate/', create_redirect_view('index_pages_validate'), name='media_manager_index_pages_validate_redirect'),
-    path('media-manager/index/endpoints/validate/', create_redirect_view('index_endpoints_validate'), name='media_manager_index_endpoints_validate_redirect'),
-    path('media-manager/index/relationships/validate/', create_redirect_view('index_relationships_validate'), name='media_manager_index_relationships_validate_redirect'),
-    path('media-manager/index/postman/validate/', create_redirect_view('index_postman_validate'), name='media_manager_index_postman_validate_redirect'),
-    path('media-manager/index/pages/', create_redirect_view('index_pages'), name='media_manager_index_pages_redirect'),
-    path('media-manager/index/endpoints/', create_redirect_view('index_endpoints'), name='media_manager_index_endpoints_redirect'),
-    path('media-manager/index/relationships/', create_redirect_view('index_relationships'), name='media_manager_index_relationships_redirect'),
-    path('media-manager/index/postman/', create_redirect_view('index_postman'), name='media_manager_index_postman_redirect'),
-    
-    # Dashboard API redirects
-    path('media-manager/dashboard/pages/', create_redirect_view('dashboard_pages_enhanced'), name='media_manager_dashboard_pages_redirect'),
-    path('media-manager/dashboard/endpoints/', create_redirect_view('dashboard_endpoints_enhanced'), name='media_manager_dashboard_endpoints_redirect'),
-    path('media-manager/dashboard/relationships/', create_redirect_view('dashboard_relationships_enhanced'), name='media_manager_dashboard_relationships_redirect'),
-    path('media-manager/dashboard/postman/', create_redirect_view('dashboard_postman_enhanced'), name='media_manager_dashboard_postman_redirect'),
-    
-    # ============================================================================
-    # OLD ROUTES REMOVED - All routes above now redirect to new unified routes
-    # The following old routes have been migrated to /docs/* (without media-manager prefix)
-    # and redirects have been added above. Old routes removed to avoid conflicts.
-    # ============================================================================
-    
-    # Media Manager Dashboard AJAX API endpoints
-    path('api/media-manager/pages/', media_manager_api.get_pages_list_api, name='api_media_manager_pages'),
-    path('api/media-manager/endpoints/', media_manager_api.get_endpoints_list_api, name='api_media_manager_endpoints'),
-    path('api/media-manager/relationships/', media_manager_api.get_relationships_list_api, name='api_media_manager_relationships'),
-    path('api/media-manager/postman/', media_manager_api.get_postman_list_api, name='api_media_manager_postman'),
-    path('api/media-manager/statistics/', media_manager_api.get_statistics_api, name='api_media_manager_statistics'),
-    path('api/media-manager/health/', media_manager_api.get_health_api, name='api_media_manager_health'),
+    # Documentation dashboard AJAX API endpoints
+    path('api/dashboard/pages/', media_manager_api.get_pages_list_api, name='api_docs_dashboard_pages'),
+    path('api/dashboard/endpoints/', media_manager_api.get_endpoints_list_api, name='api_docs_dashboard_endpoints'),
+    path('api/dashboard/relationships/', media_manager_api.get_relationships_list_api, name='api_docs_dashboard_relationships'),
+    path('api/dashboard/postman/', media_manager_api.get_postman_list_api, name='api_docs_dashboard_postman'),
+    path('api/dashboard/statistics/', media_manager_api.get_statistics_api, name='api_docs_dashboard_statistics'),
+    path('api/dashboard/health/', media_manager_api.get_health_api, name='api_docs_dashboard_health'),
 
-    # Media Manager dashboard (GitHub-style file browser)
-    path('media/manager/', operations.media_manager_dashboard, name='media_manager_dashboard'),
-    # Media file preview, viewer, form, delete
-    path('media/preview/<path:file_path>', media_views.media_file_preview, name='media_file_preview'),
-    path('media/viewer/<path:file_path>', media_views.media_file_viewer, name='media_file_viewer'),
-    path('media/form/create/', media_views.media_file_form, name='media_file_form'),
-    path('media/form/edit/<path:file_path>', media_views.media_file_form, name='media_file_form_edit'),
-    path('media/delete/<path:file_path>', media_views.media_file_delete_confirm, name='media_file_delete_confirm'),
-    path('media/file/<path:file_path>/analyze/', media_views.analyze_file_view, name='media_file_analyze'),
-    path('media/file/<path:file_path>/validate/', media_views.validate_file_view, name='media_file_validate'),
-    path('media/file/<path:file_path>/generate-json/', media_views.generate_json_file_view, name='media_file_generate_json'),
-    path('media/file/<path:file_path>/upload-s3/', media_views.upload_file_to_s3_view, name='media_file_upload_s3'),
-
-    # Media API (specific routes first)
-    path('api/media/files/', media_views.list_files_api, name='api_media_files'),
-    path('api/media/files/create/', media_views.create_file_api, name='api_media_file_create'),
-    path('api/media/sync-status/', media_views.sync_status_api, name='api_media_sync_status'),
-    path('api/media/bulk-sync/', media_views.bulk_sync_api, name='api_media_bulk_sync'),
-    path('api/media/indexes/regenerate/pages/', media_views.regenerate_pages_index_api, name='api_media_regenerate_pages_index'),
-    path('api/media/indexes/regenerate/endpoints/', media_views.regenerate_endpoints_index_api, name='api_media_regenerate_endpoints_index'),
-    path('api/media/indexes/regenerate/postman/', media_views.regenerate_postman_index_api, name='api_media_regenerate_postman_index'),
-    path('api/media/indexes/regenerate/relationships/', media_views.regenerate_relationships_index_api, name='api_media_regenerate_relationships_index'),
-    path('api/media/indexes/regenerate/all/', media_views.regenerate_all_indexes_api, name='api_media_regenerate_all_indexes'),
-    path('api/media/files/<path:file_path>/', media_views.get_file_api, name='api_media_file'),
-    path('api/media/files/<path:file_path>/update/', media_views.update_file_api, name='api_media_file_update'),
-    path('api/media/files/<path:file_path>/delete/', media_views.delete_file_api, name='api_media_file_delete'),
-    path('api/media/sync/<path:file_path>/', media_views.sync_file_api, name='api_media_sync_file'),
+    # Documentation files API (legacy media API name preserved for compatibility)
+    path('api/media/files/', documentation_file_views.list_files_api, name='api_media_files'),
+    path('api/media/sync-status/', documentation_file_views.sync_status_api, name='api_media_sync_status'),
+    path('api/media/bulk-sync/', documentation_file_views.bulk_sync_api, name='api_media_bulk_sync'),
 
     # Operations
     path('operations/', operations.operations_dashboard, name='operations_dashboard'),
@@ -492,10 +323,5 @@ urlpatterns = [
     path('operations/tasks/', operations.task_list_view, name='operations_tasks'),
     path('operations/tasks/<str:task_id>/', operations.task_detail_view, name='operations_task_detail'),
     
-    # Legacy URLs for backward compatibility
-    path('list/', legacy_views.list_pages_view, name='list'),
-    path('<str:page_id>/', legacy_views.get_page_view, name='detail'),
-    path('create/', legacy_views.create_page_view, name='create'),
-    path('<str:page_id>/update/', legacy_views.update_page_view, name='update'),
-    path('<str:page_id>/delete/', legacy_views.delete_page_view, name='delete'),
+    # Legacy detail/update/delete are still available via new dashboard URLs and enhanced forms
 ]

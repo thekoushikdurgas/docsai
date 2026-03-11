@@ -19,9 +19,9 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
                 "default-src 'self'; "
                 # Allow Tailwind CDN + d3js for current templates (login uses Tailwind CDN).
                 # Prefer self-hosting in the future to tighten CSP.
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://d3js.org; "
-                "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://d3js.org; "
-                "style-src 'self' 'unsafe-inline'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://d3js.org https://contact360docs.s3.amazonaws.com; "
+                "script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://d3js.org https://contact360docs.s3.amazonaws.com; "
+                "style-src 'self' 'unsafe-inline' https://contact360docs.s3.amazonaws.com; "
                 "img-src 'self' data: https:; "
                 # Some pages may reference external fonts; allow this specific host.
                 "font-src 'self' data: https://r2cdn.perplexity.ai; "

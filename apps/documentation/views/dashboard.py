@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -21,7 +23,7 @@ from apps.documentation.services import (
     postman_service,
 )
 from apps.documentation.repositories.local_json_storage import LocalJSONStorage
-from apps.documentation.services.media_manager_service import MediaManagerService
+from apps.documentation.services.documentation_media_service import MediaManagerService
 from apps.documentation.utils.api_responses import (
     error_response,
     server_error_response,
@@ -39,10 +41,9 @@ GRAPH_DATA_CACHE_KEY = "dashboard:graph_data"
 GRAPH_DATA_CACHE_TTL = 600  # 10 minutes
 STATISTICS_CACHE_KEY = "dashboard:statistics"
 STATISTICS_CACHE_TTL = 300  # 5 minutes
-VALID_TABS = frozenset({"pages", "endpoints", "relationships", "postman", "graph", "health"})
-VALID_HEALTH_SUBTABS = frozenset({"database", "cache", "storage", "status", "service_info"})
-VALID_VIEW_MODES = frozenset({"list", "files", "sync"})
-
+VALID_TABS = frozenset[str]({"pages", "endpoints", "relationships", "postman", "graph", "health"})
+VALID_HEALTH_SUBTABS = frozenset[str]({"database", "cache", "storage", "status", "service_info"})
+VALID_VIEW_MODES = frozenset[str]({"list", "table"})
 
 # Removed custom helpers - now using api_responses utilities
 # _format_api_success, _format_api_error, _json_success, _json_error removed
@@ -250,7 +251,6 @@ def documentation_dashboard(request: HttpRequest):
     GET /docs/
     Query params: 
     - tab (pages|endpoints|relationships|postman|graph)
-    - view (list|files|sync) - view mode: list view, file browser, or sync status
     - graph_tab
     """
     raw_tab = request.GET.get("tab", "pages")
@@ -339,7 +339,7 @@ def documentation_dashboard(request: HttpRequest):
                 "nodes_count": len(graph_data.get("nodes", [])),
                 "edges_count": len(graph_data.get("edges", [])),
             }
-        elif view_mode == "list":
+        elif view_mode in ("list", "table"):
             if active_tab == "pages":
                 # Parse filters from URL for SSR (e.g. filters={"page_type":"docs"} or ?user_type=admin)
                 page_type_filter = request.GET.get("page_type") or None

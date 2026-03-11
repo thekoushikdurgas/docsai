@@ -4,12 +4,15 @@
 {% block title %}Documentation Dashboard - DocsAI Agent{% endblock %}
 
 {% block content %}
+<!-- Ensure controller is defined before any dashboard init runs (load synchronously at content start) -->
+<script src="{% static 'js/components/dashboard-controller.js' %}?v=20260124"></script>
+<script src="{% static 'js/components/unified-dashboard-controller.js' %}?v=20260126"></script>
 <div class="space-y-6 animate-in fade-in duration-500">
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md">
         <div>
-            <h1 class="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Media Manager Dashboard</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-2">Manage documentation, files, and sync status in one unified interface</p>
+            <h1 class="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Documentation Dashboard</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-2">Overview of your documentation pages, endpoints, relationships, and Postman configs</p>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
             <a href="{% url 'documentation:page_create' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium text-sm shadow-sm">
@@ -92,13 +95,12 @@
                 <a href="{% url 'documentation:dashboard' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Dashboard</a>
                 <a href="{% url 'documentation:service_info' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Service Info</a>
                 <a href="{% url 'documentation:operations_dashboard' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Operations</a>
-                <a href="{% url 'documentation:media_manager_dashboard' %}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">Media Manager</a>
             </div>
         </div>
     </div>
     
     <!-- Statistics Section (Collapsible) -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
+    <div id="stats-section" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
         <button type="button" 
                 id="stats-toggle-btn" 
                 class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
@@ -377,33 +379,22 @@
                             </svg>
                             List View
                         </a>
-                        <a href="?tab={{ active_tab }}&view=files&page={{ current_page }}&page_size={{ page_size }}" 
-                           class="view-mode-btn px-3 py-1.5 text-sm font-medium rounded-md transition-colors {% if view_mode == 'files' %}bg-blue-600 text-white{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}"
-                           data-view-mode="files"
+                        <a href="?tab={{ active_tab }}&view=table&page={{ current_page }}&page_size={{ page_size }}" 
+                           class="view-mode-btn px-3 py-1.5 text-sm font-medium rounded-md transition-colors {% if view_mode == 'table' %}bg-blue-600 text-white{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}"
+                           data-view-mode="table"
                            role="tab">
                             <svg class="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
-                            File Browser
-                        </a>
-                        <a href="?tab={{ active_tab }}&view=sync&page={{ current_page }}&page_size={{ page_size }}" 
-                           class="view-mode-btn px-3 py-1.5 text-sm font-medium rounded-md transition-colors {% if view_mode == 'sync' %}bg-blue-600 text-white{% else %}text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700{% endif %}"
-                           data-view-mode="sync"
-                           role="tab">
-                            <svg class="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                            </svg>
-                            Sync Status
+                            Table View
                         </a>
                     </div>
                 </div>
                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {% if view_mode == 'list' %}
+                    {% if view_mode == 'table' %}
+                        Showing table view
+                    {% else %}
                         Showing list view with cards
-                    {% elif view_mode == 'files' %}
-                        Showing file browser view
-                    {% elif view_mode == 'sync' %}
-                        Showing sync status view
                     {% endif %}
                 </div>
             </div>
@@ -436,7 +427,7 @@
                                 </button>
                                 <div class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                                     <div class="p-2 space-y-1">
-                                        <a href="{% url 'documentation:pages_statistics' %}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Statistics</a>
+                                        <a href="#stats-section" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Statistics</a>
                                         <a href="{% url 'documentation:page_create' %}?tab=format" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Format Examples</a>
                                         <a href="{% url 'documentation:pages_types' %}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">By Type</a>
                                         <a href="{% url 'documentation:pages_by_type_docs' %}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Docs Pages</a>
@@ -450,33 +441,33 @@
                                 <select id="page-type-filter" 
                                         class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                         aria-label="Filter pages by type">
-                                    <option value="">All Types</option>
-                                    <option value="docs">Docs</option>
-                                    <option value="marketing">Marketing</option>
-                                    <option value="dashboard">Dashboard</option>
-                                    <option value="settings">Settings</option>
-                                    <option value="admin">Admin</option>
+                                    <option value="" {% if not request.GET.page_type %}selected{% endif %}>All Types</option>
+                                    <option value="docs" {% if request.GET.page_type == 'docs' %}selected{% endif %}>Docs</option>
+                                    <option value="marketing" {% if request.GET.page_type == 'marketing' %}selected{% endif %}>Marketing</option>
+                                    <option value="dashboard" {% if request.GET.page_type == 'dashboard' %}selected{% endif %}>Dashboard</option>
+                                    <option value="settings" {% if request.GET.page_type == 'settings' %}selected{% endif %}>Settings</option>
+                                    <option value="admin" {% if request.GET.page_type == 'admin' %}selected{% endif %}>Admin</option>
                                 </select>
                                 <label for="page-state-filter" class="sr-only">Filter by state</label>
                                 <select id="page-state-filter" 
                                         class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                         aria-label="Filter pages by state">
-                                    <option value="">All States</option>
-                                    <option value="published">Published</option>
-                                    <option value="draft">Draft</option>
-                                    <option value="archived">Archived</option>
+                                    <option value="" {% if not request.GET.status %}selected{% endif %}>All States</option>
+                                    <option value="published" {% if request.GET.status == 'published' %}selected{% endif %}>Published</option>
+                                    <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Draft</option>
+                                    <option value="archived" {% if request.GET.status == 'archived' %}selected{% endif %}>Archived</option>
                                 </select>
                                 <label for="page-user-type-filter" class="sr-only">Filter by auth user</label>
                                 <select id="page-user-type-filter" 
                                         class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                         aria-label="Filter pages by auth user">
-                                    <option value="">All Auth Users</option>
-                                    <option value="public">Public</option>
-                                    <option value="guest">Guest</option>
-                                    <option value="free_user">Free User</option>
-                                    <option value="pro_user">Pro User</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="super_admin">Super Admin</option>
+                                    <option value="" {% if not request.GET.user_type %}selected{% endif %}>All Auth Users</option>
+                                    <option value="public" {% if request.GET.user_type == 'public' %}selected{% endif %}>Public</option>
+                                    <option value="guest" {% if request.GET.user_type == 'guest' %}selected{% endif %}>Guest</option>
+                                    <option value="free_user" {% if request.GET.user_type == 'free_user' %}selected{% endif %}>Free User</option>
+                                    <option value="pro_user" {% if request.GET.user_type == 'pro_user' %}selected{% endif %}>Pro User</option>
+                                    <option value="admin" {% if request.GET.user_type == 'admin' %}selected{% endif %}>Admin</option>
+                                    <option value="super_admin" {% if request.GET.user_type == 'super_admin' %}selected{% endif %}>Super Admin</option>
                                 </select>
                             </div>
                             <a href="{% url 'documentation:page_create' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium">
@@ -495,26 +486,29 @@
                                 <div id="pages-list" class="space-y-4" role="list" aria-label="Pages list">
                                     {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading pages...' %}
                                 </div>
-                                
-                                <!-- Pagination -->
-                                <div id="pages-pagination" class="mt-6" aria-label="Pages pagination"></div>
                             </div>
                             
-                            <!-- View Mode: File Browser -->
-                            <div id="pages-files-view" class="view-mode-content {% if view_mode == 'files' %}active{% else %}hidden{% endif %}">
-                                <div id="pages-file-browser" data-resource-type="pages">
-                                    <!-- File browser will be loaded by JavaScript -->
-                                    {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading files...' %}
+                            <!-- View Mode: Table -->
+                            <div id="pages-table-view" class="view-mode-content {% if view_mode == 'table' %}active{% else %}hidden{% endif %}">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                                        <thead class="bg-gray-50 dark:bg-gray-900/60">
+                                            <tr>
+                                                <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Page ID</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">State</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Route</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pages-table" class="divide-y divide-gray-200 dark:divide-gray-800">
+                                            <tr><td colspan="4" class="px-4 py-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-gray-500 dark:text-gray-400">Loading pages...</p></td></tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                             
-                            <!-- View Mode: Sync Status -->
-                            <div id="pages-sync-view" class="view-mode-content {% if view_mode == 'sync' %}active{% else %}hidden{% endif %}">
-                                <div id="pages-sync-status" data-resource-type="pages">
-                                    <!-- Sync status will be loaded by JavaScript -->
-                                    {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading sync status...' %}
-                                </div>
-                            </div>
+                            <!-- Pagination (shared by list and table views) -->
+                            <div id="pages-pagination" class="mt-6" aria-label="Pages pagination"></div>
                         </div>
             {% elif active_tab == 'endpoints' %}
                 <!-- Endpoints Tab Content -->
@@ -606,26 +600,37 @@
                     <div id="endpoints-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Endpoints list">
                         {% include 'components/loading-state.html' with type='skeleton' lines=6 %}
                     </div>
-                    
-                            <!-- Pagination -->
-                            <div id="endpoints-pagination" class="mt-6" aria-label="Endpoints pagination"></div>
                         </div>
                         
                         <!-- View Mode: File Browser -->
-                        <div id="endpoints-files-view" class="view-mode-content {% if view_mode == 'files' %}active{% else %}hidden{% endif %}">
-                            <div id="endpoints-file-browser" data-resource-type="endpoints">
-                                <!-- File browser will be loaded by JavaScript -->
-                                {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading files...' %}
+                        <div id="endpoints-table-view" class="view-mode-content {% if view_mode == 'table' %}active{% else %}hidden{% endif %}">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                                    <thead class="bg-gray-50 dark:bg-gray-900/60">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Endpoint</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Method</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">API Version</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">State</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="endpoints-table" class="divide-y divide-gray-200 dark:divide-gray-800">
+                                        <tr><td colspan="4" class="px-4 py-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-gray-500 dark:text-gray-400">Loading endpoints...</p></td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         
                         <!-- View Mode: Sync Status -->
-                        <div id="endpoints-sync-view" class="view-mode-content {% if view_mode == 'sync' %}active{% else %}hidden{% endif %}">
+                        <div id="endpoints-sync-view" class="view-mode-content hidden">
                             <div id="endpoints-sync-status" data-resource-type="endpoints">
                                 <!-- Sync status will be loaded by JavaScript -->
                                 {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading sync status...' %}
                             </div>
                         </div>
+                        
+                        <!-- Pagination (shared by list and table views) -->
+                        <div id="endpoints-pagination" class="mt-6" aria-label="Endpoints pagination"></div>
                     </div>
             {% elif active_tab == 'relationships' %}
                 <!-- Relationships Tab Content -->
@@ -712,26 +717,37 @@
                     <div id="relationships-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Relationships list">
                         {% include 'components/loading-state.html' with type='skeleton' lines=6 %}
                     </div>
-                    
-                            <!-- Pagination -->
-                            <div id="relationships-pagination" class="mt-6" aria-label="Relationships pagination"></div>
                         </div>
                         
                         <!-- View Mode: File Browser -->
-                        <div id="relationships-files-view" class="view-mode-content {% if view_mode == 'files' %}active{% else %}hidden{% endif %}">
-                            <div id="relationships-file-browser" data-resource-type="relationships">
-                                <!-- File browser will be loaded by JavaScript -->
-                                {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading files...' %}
+                        <div id="relationships-table-view" class="view-mode-content {% if view_mode == 'table' %}active{% else %}hidden{% endif %}">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                                    <thead class="bg-gray-50 dark:bg-gray-900/60">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Page</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Endpoint</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Usage Type</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Usage Context</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="relationships-table" class="divide-y divide-gray-200 dark:divide-gray-800">
+                                        <tr><td colspan="4" class="px-4 py-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-gray-500 dark:text-gray-400">Loading relationships...</p></td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         
                         <!-- View Mode: Sync Status -->
-                        <div id="relationships-sync-view" class="view-mode-content {% if view_mode == 'sync' %}active{% else %}hidden{% endif %}">
+                        <div id="relationships-sync-view" class="view-mode-content hidden">
                             <div id="relationships-sync-status" data-resource-type="relationships">
                                 <!-- Sync status will be loaded by JavaScript -->
                                 {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading sync status...' %}
                             </div>
                         </div>
+                        
+                        <!-- Pagination (shared by list and table views) -->
+                        <div id="relationships-pagination" class="mt-6" aria-label="Relationships pagination"></div>
                     </div>
             {% elif active_tab == 'postman' %}
                 <!-- Postman Tab Content -->
@@ -804,26 +820,37 @@
                         <div id="postman-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Postman configurations list">
                             {% include 'components/loading-state.html' with type='skeleton' lines=6 %}
                         </div>
-                        
-                        <!-- Pagination -->
-                        <div id="postman-pagination" class="mt-6" aria-label="Postman pagination"></div>
                     </div>
                         
                         <!-- View Mode: File Browser -->
-                        <div id="postman-files-view" class="view-mode-content {% if view_mode == 'files' %}active{% else %}hidden{% endif %}">
-                            <div id="postman-file-browser" data-resource-type="postman">
-                                <!-- File browser will be loaded by JavaScript -->
-                                {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading files...' %}
+                        <div id="postman-table-view" class="view-mode-content {% if view_mode == 'table' %}active{% else %}hidden{% endif %}">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                                    <thead class="bg-gray-50 dark:bg-gray-900/60">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Config ID</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Name</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">State</th>
+                                            <th scope="col" class="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300">Updated</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="postman-table" class="divide-y divide-gray-200 dark:divide-gray-800">
+                                        <tr><td colspan="4" class="px-4 py-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-gray-500 dark:text-gray-400">Loading Postman configs...</p></td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         
                         <!-- View Mode: Sync Status -->
-                        <div id="postman-sync-view" class="view-mode-content {% if view_mode == 'sync' %}active{% else %}hidden{% endif %}">
+                        <div id="postman-sync-view" class="view-mode-content hidden">
                             <div id="postman-sync-status" data-resource-type="postman">
                                 <!-- Sync status will be loaded by JavaScript -->
                                 {% include 'components/loading-state.html' with type='spinner' size='md' message='Loading sync status...' %}
                             </div>
                         </div>
+                        
+                        <!-- Pagination (shared by list and table views) -->
+                        <div id="postman-pagination" class="mt-6" aria-label="Postman pagination"></div>
                     </div>
             {% elif active_tab == 'graph' %}
                 <!-- Graph Tab Content -->
@@ -907,7 +934,7 @@
     // Store initial data and URLs for backward compatibility
     const initialData = {{ initial_data|safe }};
     window.pageDetailUrlBase = "{% url 'documentation:page_detail' page_id='__PID__' %}";
-    
+
     // Initialize Dashboard Controller
     document.addEventListener('DOMContentLoaded', function() {
         // Statistics are server-rendered; StatsLoader no longer used for initial load
@@ -938,6 +965,11 @@
         // Graph tab is now handled by the included graph_tabs.html template
         
         // Initialize unified dashboard controller (list data: initial_data for first paint, /api/v1/dashboard/* for pagination)
+        // Note on console messages:
+        // - "Could not establish connection. Receiving end does not exist" = from a browser extension (e.g. messaging), not this app.
+        // - "Attempting to use a disconnected port object" = from an extension (e.g. utility_all2 / content.js), not this app.
+        // - "DashboardController not loaded, using fallback rendering" = UnifiedDashboardController was undefined (script load/order or error); fallback or retry below.
+        try {
         if (typeof UnifiedDashboardController !== 'undefined') {
             window.unifiedDashboardController = new UnifiedDashboardController({
                 activeTab: '{{ active_tab }}',
@@ -971,17 +1003,139 @@
                 postmanApiUrl: '/api/v1/dashboard/postman/'
             });
         } else {
-            // Fallback to old rendering if controller not loaded
-            console.warn('DashboardController not loaded, using fallback rendering');
-            if ('{{ active_tab }}' === 'pages') {
-                renderPagesList(initialData.pages || []);
-            } else if ('{{ active_tab }}' === 'endpoints') {
-                renderEndpointsList(initialData.endpoints || []);
-            } else if ('{{ active_tab }}' === 'relationships') {
-                renderRelationshipsList(initialData.relationships || []);
-            } else if ('{{ active_tab }}' === 'postman') {
-                renderPostmanList(initialData.postman || []);
+            // UnifiedDashboardController missing: try loading script once then re-run init
+            var controllerScript = document.querySelector('script[src*="unified-dashboard-controller"]');
+            if (!controllerScript && typeof window._dashboardControllerLoaded !== 'function') {
+                window._dashboardControllerLoaded = function() {
+                    window._dashboardControllerLoaded = null;
+                    if (typeof UnifiedDashboardController !== 'undefined') {
+                        window.unifiedDashboardController = new UnifiedDashboardController({
+                            activeTab: '{{ active_tab }}',
+                            viewMode: '{{ view_mode }}',
+                            initialData: typeof initialData !== 'undefined' ? initialData : {},
+                            pagesApiUrl: '/api/v1/dashboard/pages/',
+                            endpointsApiUrl: '/api/v1/dashboard/endpoints/',
+                            relationshipsApiUrl: '/api/v1/dashboard/relationships/',
+                            postmanApiUrl: '/api/v1/dashboard/postman/',
+                            mediaListFilesUrl: "{% url 'documentation:api_media_files' %}",
+                            mediaBulkSyncUrl: "{% url 'documentation:api_media_bulk_sync' %}",
+                            mediaSyncStatusUrl: "{% url 'documentation:api_media_sync_status' %}",
+                            previewBase: '/docs/media/preview/',
+                            viewerBase: '/docs/media/viewer/',
+                            formEditBase: '/docs/media/form/edit/',
+                            deleteBase: '/docs/media/delete/'
+                        });
+                        if (typeof DashboardController !== 'undefined') { window.dashboardController = window.unifiedDashboardController; }
+                        return;
+                    }
+                    runFallbackRendering();
+                };
+                var s = document.createElement('script');
+                s.src = "{% static 'js/components/unified-dashboard-controller.js' %}?v=20260126";
+                s.async = false;
+                s.onload = function() { window._dashboardControllerLoaded(); };
+                s.onerror = function() { window._dashboardControllerLoaded = null; runFallbackRendering(); };
+                document.head.appendChild(s);
+            } else {
+                runFallbackRendering();
             }
+        }
+        function runFallbackRendering() {
+            console.warn('DashboardController not loaded, using fallback rendering (check Network tab for unified-dashboard-controller.js)');
+            attachFallbackFilterListeners();
+            var viewMode = '{{ view_mode|default:"list" }}';
+            if ('{{ active_tab }}' === 'pages') {
+                if (viewMode === 'table') {
+                    renderPagesTable(initialData.pages || []);
+                } else {
+                    renderPagesList(initialData.pages || []);
+                }
+                renderFallbackPagination('pages', (initialData.pages || []).length, initialData.total || 0);
+            } else if ('{{ active_tab }}' === 'endpoints') {
+                if (viewMode === 'table') {
+                    renderEndpointsTable(initialData.endpoints || []);
+                } else {
+                    renderEndpointsList(initialData.endpoints || []);
+                }
+                renderFallbackPagination('endpoints', (initialData.endpoints || []).length, initialData.total || 0);
+            } else if ('{{ active_tab }}' === 'relationships') {
+                if (viewMode === 'table') {
+                    renderRelationshipsTable(initialData.relationships || []);
+                } else {
+                    renderRelationshipsList(initialData.relationships || []);
+                }
+                renderFallbackPagination('relationships', (initialData.relationships || []).length, initialData.total || 0);
+            } else if ('{{ active_tab }}' === 'postman') {
+                if (viewMode === 'table') {
+                    renderPostmanTable(initialData.postman || []);
+                } else {
+                    renderPostmanList(initialData.postman || []);
+                }
+                renderFallbackPagination('postman', (initialData.postman || []).length, initialData.total || 0);
+            }
+        }
+        function attachFallbackFilterListeners() {
+            var base = '{% url "documentation:dashboard" %}';
+            var tab = '{{ active_tab }}';
+            var view = '{{ view_mode|default:"list" }}';
+            var pageSize = parseInt('{{ page_size|default:20 }}') || 20;
+            function buildFilterParams() {
+                var params = ['tab=' + tab, 'view=' + view, 'page=1', 'page_size=' + pageSize];
+                if (tab === 'pages') {
+                    var pt = document.getElementById('page-type-filter');
+                    var ps = document.getElementById('page-state-filter');
+                    var pu = document.getElementById('page-user-type-filter');
+                    if (pt && pt.value) params.push('page_type=' + encodeURIComponent(pt.value));
+                    if (ps && ps.value) params.push('status=' + encodeURIComponent(ps.value));
+                    if (pu && pu.value) params.push('user_type=' + encodeURIComponent(pu.value));
+                }
+                return params.join('&');
+            }
+            if (tab === 'pages') {
+                var container = document.getElementById('pages-filters');
+                if (container) {
+                    container.querySelectorAll('select').forEach(function(select) {
+                        select.addEventListener('change', function() { window.location.href = base + '?' + buildFilterParams(); });
+                    });
+                }
+            }
+        }
+        function renderFallbackPagination(tabName, itemsShown, total) {
+            var el = document.getElementById(tabName + '-pagination');
+            if (!el) return;
+            var page = parseInt('{{ current_page|default:1 }}') || 1;
+            var pageSize = parseInt('{{ page_size|default:20 }}') || 20;
+            var totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
+            var startItem = (total || 0) === 0 ? 0 : ((page - 1) * pageSize) + 1;
+            var endItem = Math.min(page * pageSize, total || 0);
+            var hasPrev = page > 1;
+            var hasNext = page < totalPages;
+            var base = '{% url "documentation:dashboard" %}';
+            var view = '{{ view_mode|default:"list" }}';
+            var filterQ = '';
+            if (tabName === 'pages') {
+                var q = [];
+                var ptVal = "{{ request.GET.page_type|default:""|escapejs }}";
+                var stVal = "{{ request.GET.status|default:""|escapejs }}";
+                var utVal = "{{ request.GET.user_type|default:""|escapejs }}";
+                if (ptVal) q.push('page_type=' + encodeURIComponent(ptVal));
+                if (stVal) q.push('status=' + encodeURIComponent(stVal));
+                if (utVal) q.push('user_type=' + encodeURIComponent(utVal));
+                if (q.length) filterQ = '&' + q.join('&');
+            }
+            var prevUrl = hasPrev ? base + '?tab=' + tabName + '&view=' + view + '&page=' + (page - 1) + '&page_size=' + pageSize + filterQ : '#';
+            var nextUrl = hasNext ? base + '?tab=' + tabName + '&view=' + view + '&page=' + (page + 1) + '&page_size=' + pageSize + filterQ : '#';
+            var totalNum = total || 0;
+            el.innerHTML = '<div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">' +
+                '<div class="text-sm text-gray-500 dark:text-gray-400">' + (totalNum > 0 ? 'Showing <span class="font-medium text-gray-700 dark:text-gray-300">' + startItem + '-' + endItem + '</span> of <span class="font-medium text-gray-700 dark:text-gray-300">' + totalNum + '</span> items' : 'No items found') + '</div>' +
+                '<div class="flex items-center gap-2">' +
+                (hasPrev ? '<a href="' + prevUrl + '" class="px-3 py-1.5 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>' : '') +
+                '<span class="text-sm text-gray-500 dark:text-gray-400">Page ' + page + ' of ' + totalPages + '</span>' +
+                (hasNext ? '<a href="' + nextUrl + '" class="px-3 py-1.5 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>' : '') +
+                '</div></div>';
+        }
+        } catch (err) {
+            console.error('Dashboard init error:', err);
         }
     });
     
@@ -993,6 +1147,23 @@
         return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
     }
     
+    function renderPagesTable(pages) {
+        const tbody = document.getElementById('pages-table');
+        if (!tbody) return;
+        if (!pages || pages.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No pages found. <a href="{% url "documentation:page_create" %}" class="text-blue-600 dark:text-blue-400 hover:underline">Create First Page</a></td></tr>';
+            return;
+        }
+        tbody.innerHTML = pages.map(function(page) {
+            var pid = (page.page_id || '').toString();
+            var pageType = page.page_type || 'docs';
+            var status = (page.metadata && page.metadata.status) || page.status || 'draft';
+            var route = (page.metadata && page.metadata.route) || '/';
+            var href = pageDetailUrlBase.replace('__PID__', encodeURIComponent(pid));
+            var esc = function(s) { return (s || '').toString().replace(/</g, '&lt;'); };
+            return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-2"><a href="' + href + '" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">' + esc(pid) + '</a></td><td class="px-4 py-2">' + esc(pageType) + '</td><td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium ' + statusClass(status) + '">' + esc(status) + '</span></td><td class="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">' + esc(route) + '</td></tr>';
+        }).join('');
+    }
     function renderPagesList(pages) {
         const container = document.getElementById('pages-list');
         if (!container) return;
@@ -1063,6 +1234,25 @@
             `;
         }).join('');
     }
+    function renderEndpointsTable(endpoints) {
+        var tbody = document.getElementById('endpoints-table');
+        if (!tbody) return;
+        if (!endpoints || endpoints.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No endpoints found</td></tr>';
+            return;
+        }
+        var method = function(m) { return (m && (m + '').toUpperCase()) || 'QUERY'; };
+        var esc = function(s) { return (s || '').toString().replace(/</g, '&lt;'); };
+        tbody.innerHTML = endpoints.map(function(ep) {
+            var eid = ep.endpoint_id || 'Unknown';
+            var m = method(ep.method);
+            var apiVersion = (ep.api_version || '-');
+            var state = (ep.metadata && ep.metadata.status) || ep.status || '-';
+            var href = '/docs/endpoints/' + encodeURIComponent(eid) + '/';
+            var methodClass = m === 'MUTATION' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
+            return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-2"><a href="' + href + '" class="font-medium text-purple-600 dark:text-purple-400 hover:underline">' + esc(eid) + '</a></td><td class="px-4 py-2"><span class="px-2 py-0.5 rounded text-xs font-bold ' + methodClass + '">' + m + '</span></td><td class="px-4 py-2">' + esc(apiVersion) + '</td><td class="px-4 py-2">' + esc(state) + '</td></tr>';
+        }).join('');
+    }
     
     function renderRelationshipsList(relationships) {
         const container = document.getElementById('relationships-list');
@@ -1107,6 +1297,24 @@
                 </div>
             </div>
             `;
+        }).join('');
+    }
+    function renderRelationshipsTable(relationships) {
+        var tbody = document.getElementById('relationships-table');
+        if (!tbody) return;
+        if (!relationships || relationships.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No relationships found</td></tr>';
+            return;
+        }
+        var esc = function(s) { return (s || '').toString().replace(/</g, '&lt;'); };
+        tbody.innerHTML = relationships.map(function(rel) {
+            var rid = rel.relationship_id || rel.id || 'Unknown';
+            var pagePath = rel.page_path || rel.page_id || '-';
+            var endpointPath = rel.endpoint_path || rel.endpoint_id || '-';
+            var usageType = rel.usage_type || 'primary';
+            var usageContext = rel.usage_context || 'data_fetching';
+            var href = '/docs/relationships/' + encodeURIComponent(rid) + '/';
+            return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-2"><a href="' + href + '" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">' + esc(pagePath) + '</a></td><td class="px-4 py-2 font-mono">' + esc(endpointPath) + '</td><td class="px-4 py-2">' + esc(usageType) + '</td><td class="px-4 py-2">' + esc(usageContext) + '</td></tr>';
         }).join('');
     }
     
@@ -1155,6 +1363,29 @@
                 </div>
             </div>
             `;
+        }).join('');
+    }
+    function renderPostmanTable(postmanConfigs) {
+        var tbody = document.getElementById('postman-table');
+        if (!tbody) return;
+        if (!postmanConfigs || postmanConfigs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No Postman configurations found</td></tr>';
+            return;
+        }
+        var stateClass = function(s) {
+            if (!s) return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+            if (['published','active'].includes(s)) return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+            if (['draft','development'].includes(s)) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
+            return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+        };
+        var esc = function(s) { return (s || '').toString().replace(/</g, '&lt;'); };
+        tbody.innerHTML = postmanConfigs.map(function(config) {
+            var configId = config.config_id || config.id || 'Unknown';
+            var name = config.name || configId;
+            var state = config.state || 'draft';
+            var updated = config.updated_at || (config.metadata && config.metadata.updated_at) || '-';
+            var href = '/docs/postman/' + encodeURIComponent(configId) + '/';
+            return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-2"><a href="' + href + '" class="font-medium text-amber-600 dark:text-amber-400 hover:underline">' + esc(configId) + '</a></td><td class="px-4 py-2">' + esc(name) + '</td><td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium ' + stateClass(state) + '">' + esc(state) + '</span></td><td class="px-4 py-2 text-gray-500 dark:text-gray-400">' + esc(updated) + '</td></tr>';
         }).join('');
     }
 </script>

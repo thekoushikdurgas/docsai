@@ -15,7 +15,7 @@ import unittest
 from unittest.mock import Mock, patch, MagicMock
 from django.test import TestCase
 
-from apps.documentation.services.media_manager_dashboard_service import MediaManagerDashboardService
+from apps.documentation.services.documentation_dashboard_service import MediaManagerDashboardService
 from apps.documentation.tests.fixtures import (
     PageFactory,
     EndpointFactory,
@@ -36,10 +36,10 @@ class MediaManagerDashboardServiceTestCase(TestCase):
         self.mock_postman_service = Mock()
         
         # Create service instance with mocked dependencies
-        with patch('apps.documentation.services.media_manager_dashboard_service.get_pages_service', return_value=self.mock_pages_service), \
-             patch('apps.documentation.services.media_manager_dashboard_service.get_endpoints_service', return_value=self.mock_endpoints_service), \
-             patch('apps.documentation.services.media_manager_dashboard_service.get_relationships_service', return_value=self.mock_relationships_service), \
-             patch('apps.documentation.services.media_manager_dashboard_service.get_postman_service', return_value=self.mock_postman_service):
+        with patch('apps.documentation.services.documentation_dashboard_service.get_pages_service', return_value=self.mock_pages_service), \
+             patch('apps.documentation.services.documentation_dashboard_service.get_endpoints_service', return_value=self.mock_endpoints_service), \
+             patch('apps.documentation.services.documentation_dashboard_service.get_relationships_service', return_value=self.mock_relationships_service), \
+             patch('apps.documentation.services.documentation_dashboard_service.get_postman_service', return_value=self.mock_postman_service):
             self.service = MediaManagerDashboardService()
     
     def test_get_dashboard_overview_success(self):
@@ -205,7 +205,7 @@ class MediaManagerDashboardServiceTestCase(TestCase):
             }
         }
         
-        with patch('apps.documentation.services.media_manager_dashboard_service.get_comprehensive_health_status', return_value=mock_health):
+        with patch('apps.documentation.services.documentation_dashboard_service.get_comprehensive_health_status', return_value=mock_health):
             result = self.service.get_health_status()
             
             self.assertIn('status', result)

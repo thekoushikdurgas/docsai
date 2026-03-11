@@ -64,7 +64,11 @@ class Appointment360AuthMiddleware:
                     )
                     return response
             except Appointment360AuthError:
-                pass
+                # Refresh token is invalid or expired; clear cookies so we stop retrying
+                response = self.get_response(request)
+                response.delete_cookie('access_token', path='/')
+                response.delete_cookie('refresh_token', path='/')
+                return response
             except Exception as e:
                 logger.warning(f"Token refresh in middleware failed: {e}")
         

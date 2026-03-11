@@ -119,14 +119,14 @@ relationships_service = _LazyService(get_relationships_service)
 postman_service = _LazyService(get_postman_service)
 
 
-# Media Manager Dashboard Service
+# Documentation dashboard service (formerly Media Manager dashboard)
 _media_manager_dashboard_service = None
 
 
 def get_media_manager_dashboard_service():
-    """Get or create shared MediaManagerDashboardService instance."""
+    """Get or create shared dashboard service instance."""
     global _media_manager_dashboard_service
     if _media_manager_dashboard_service is None:
-        from apps.documentation.services.media_manager_dashboard_service import MediaManagerDashboardService
+        from apps.documentation.services.documentation_dashboard_service import MediaManagerDashboardService
         _media_manager_dashboard_service = MediaManagerDashboardService()
     return _media_manager_dashboard_service

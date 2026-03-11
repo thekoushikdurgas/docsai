@@ -117,7 +117,9 @@ class Appointment360Client:
         try:
             result = self.graphql_client.execute_mutation(mutation, variables)
             if not result or 'auth' not in result or 'login' not in result['auth']:
-                raise Appointment360AuthError("Invalid response from appointment360 API")
+                # Distinguish between "no response" (e.g. timeout) and malformed payload
+                msg = "Authentication service is unavailable. Please try again." if not result else "Invalid response from appointment360 API"
+                raise Appointment360AuthError(msg)
             
             login_data = result['auth']['login']
             user_data = login_data.get('user') or {}

@@ -1,9 +1,11 @@
-"""Media Manager Dashboard Views - Service-based implementation."""
+"""Documentation Dashboard views - service-based implementation."""
 
 from __future__ import annotations
 
 import json
 import logging
+import time
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from django.shortcuts import render
@@ -406,45 +408,6 @@ def media_manager_postman_detail(request: HttpRequest, config_id: str) -> HttpRe
 # ============================================================================
 # Pages API Views - Enhanced routes (mirroring /api/v1/pages/)
 # ============================================================================
-
-@require_super_admin
-def media_manager_pages_statistics(request: HttpRequest) -> HttpResponse:
-    """
-    Media Manager Dashboard - Pages statistics view.
-    
-    GET /docs/media-manager/pages/statistics/
-    Mirrors: GET /api/v1/pages/statistics/
-    """
-    try:
-        pages_service = get_pages_service()
-        stats = pages_service.get_pages_statistics()
-        
-        from apps.documentation.services import get_shared_s3_index_manager
-        index_manager = get_shared_s3_index_manager()
-        index_data = index_manager.read_index("pages")
-        
-        context: Dict[str, Any] = {
-            'statistics': {
-                'total': index_data.get("total", 0),
-                'version': index_data.get("version"),
-                'last_updated': index_data.get("last_updated"),
-                'statistics': index_data.get("statistics", {}),
-                'indexes': index_data.get("indexes", {}),
-            },
-            'pages_statistics': stats,
-        }
-        
-        return _render_resource_view(request, 'pages_statistics.html', context)
-    
-    except Exception as e:
-        logger.error(f"Error loading pages statistics: {e}", exc_info=True)
-        return _render_resource_view(
-            request,
-            'pages_statistics.html',
-            {'statistics': {}, 'pages_statistics': {}, 'error': str(e)},
-            error_message=str(e)
-        )
-
 
 @require_super_admin
 def media_manager_pages_format(request: HttpRequest) -> HttpResponse:

@@ -1,4 +1,4 @@
-"""Media Manager Dashboard AJAX API endpoints - Service-based implementation."""
+"""Documentation Dashboard AJAX API endpoints - service-based implementation."""
 
 from __future__ import annotations
 
@@ -37,9 +37,7 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["GET"])
 def get_pages_list_api(request: HttpRequest) -> JsonResponse:
     """
-    AJAX endpoint for pages list.
-    
-    GET /docs/api/media-manager/pages/
+    AJAX endpoint for pages list on the documentation dashboard.
     
     Query params:
     - page_type: Filter by page type
@@ -62,7 +60,10 @@ def get_pages_list_api(request: HttpRequest) -> JsonResponse:
         state = request.GET.get('state')
         include_drafts = request.GET.get('include_drafts', 'true').lower() == 'true'
         include_deleted = request.GET.get('include_deleted', 'false').lower() == 'true'
-        limit = int(request.GET.get('limit', 20))
+        try:
+            limit = min(int(request.GET.get('limit', 20)), 100)
+        except (TypeError, ValueError):
+            limit = 20
         offset = int(request.GET.get('offset', 0))
         
         # Get pages from service
@@ -128,9 +129,7 @@ def get_pages_list_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def get_endpoints_list_api(request: HttpRequest) -> JsonResponse:
     """
-    AJAX endpoint for endpoints list.
-    
-    GET /docs/api/media-manager/endpoints/
+    AJAX endpoint for endpoints list on the documentation dashboard.
     
     Query params:
     - api_version: Filter by API version
@@ -151,7 +150,10 @@ def get_endpoints_list_api(request: HttpRequest) -> JsonResponse:
         method = request.GET.get('method')
         state = request.GET.get('state')
         lambda_service = request.GET.get('lambda_service')
-        limit = int(request.GET.get('limit', 20))
+        try:
+            limit = min(int(request.GET.get('limit', 20)), 100)
+        except (TypeError, ValueError):
+            limit = 20
         offset = int(request.GET.get('offset', 0))
         
         # Get endpoints from service
@@ -226,9 +228,7 @@ def get_endpoints_list_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def get_relationships_list_api(request: HttpRequest) -> JsonResponse:
     """
-    AJAX endpoint for relationships list.
-    
-    GET /docs/api/media-manager/relationships/
+    AJAX endpoint for relationships list on the documentation dashboard.
     
     Query params:
     - page_id: Filter by page
@@ -249,7 +249,10 @@ def get_relationships_list_api(request: HttpRequest) -> JsonResponse:
         endpoint_id = request.GET.get('endpoint_id')
         usage_type = request.GET.get('usage_type')
         usage_context = request.GET.get('usage_context')
-        limit = int(request.GET.get('limit', 20))
+        try:
+            limit = min(int(request.GET.get('limit', 20)), 100)
+        except (TypeError, ValueError):
+            limit = 20
         offset = int(request.GET.get('offset', 0))
         
         # Get relationships from service
@@ -312,9 +315,7 @@ def get_relationships_list_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def get_postman_list_api(request: HttpRequest) -> JsonResponse:
     """
-    AJAX endpoint for Postman configurations list.
-    
-    GET /docs/api/media-manager/postman/
+    AJAX endpoint for Postman configurations list on the documentation dashboard.
     
     Query params:
     - state: Filter by state
@@ -329,7 +330,10 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
         
         # Extract query parameters
         state = request.GET.get('state')
-        limit = int(request.GET.get('limit', 20))
+        try:
+            limit = min(int(request.GET.get('limit', 20)), 100)
+        except (TypeError, ValueError):
+            limit = 20
         offset = int(request.GET.get('offset', 0))
         
         # Get configurations from service
@@ -389,9 +393,7 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def get_statistics_api(request: HttpRequest) -> JsonResponse:
     """
-    AJAX endpoint for statistics.
-    
-    GET /docs/api/media-manager/statistics/
+    AJAX endpoint for aggregated documentation statistics.
     
     Returns aggregated statistics from all services.
     """
@@ -426,9 +428,7 @@ def get_statistics_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def get_health_api(request: HttpRequest) -> JsonResponse:
     """
-    AJAX endpoint for health status.
-    
-    GET /docs/api/media-manager/health/
+    AJAX endpoint for aggregated health status for the documentation system.
     
     Returns comprehensive health status.
     """

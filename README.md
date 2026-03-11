@@ -492,9 +492,9 @@ See **[Commands Reference](docs/commands.md)** for the full list including npm s
 - Run category-specific checks
 - Check `COMPLETION_STATUS.md` for details
 
-## 📊 Media Manager Dashboard
+## 📊 Documentation Dashboard
 
-The Media Manager Dashboard provides a unified interface for managing documentation resources using direct service calls.
+The Documentation Dashboard provides a unified interface for managing documentation resources using direct service calls.
 
 ### Features
 
@@ -509,13 +509,13 @@ The Media Manager Dashboard provides a unified interface for managing documentat
 
 ### Access
 
-Navigate to `/docs/media-manager/` after logging in.
+Navigate to `/docs/` after logging in (sidebar: Documentation).
 
 ### Documentation
 
-- [Media Manager Dashboard Guide](docs/MEDIA_MANAGER_DASHBOARD_GUIDE.md) - Complete implementation guide
-- [Media Manager Dashboard API](docs/MEDIA_MANAGER_DASHBOARD_API.md) - API reference
-- [Media Manager Routes](docs/MEDIA_MANAGER_ROUTES.md) - Route documentation
+- [Documentation Dashboard Guide](docs/MEDIA_MANAGER_DASHBOARD_GUIDE.md) - Complete implementation guide (legacy name, content describes the documentation dashboard)
+- [Documentation Dashboard API](docs/MEDIA_MANAGER_DASHBOARD_API.md) - API reference
+- [Documentation Routes](docs/MEDIA_MANAGER_ROUTES.md) - Route documentation
 - [Service Methods Audit](docs/SERVICE_METHODS_AUDIT.md) - Service methods reference
 
 ## 📚 Additional Resources

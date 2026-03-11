@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Media Manager - DocsAI{% endblock %}
+{% block title %}Documentation Files - DocsAI{% endblock %}
 
 {% block extra_head %}
 {% include 'components/buttons.html' %}
@@ -21,14 +21,14 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
-        <span class="text-gray-700 dark:text-gray-300 font-medium">Media Manager</span>
+        <span class="text-gray-700 dark:text-gray-300 font-medium">Documentation Files</span>
     </nav>
     
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Media Manager</h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Browse and manage pages, endpoints, relationships, and Postman JSON files in <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">media/</code></p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Documentation Files</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Browse and manage documentation JSON files in <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">media/</code></p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ sync_summary.overall.total_files|default:0 }} files</span>
@@ -239,10 +239,6 @@
 </div>
 
 <script>
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/adfd807a-ef66-43c3-a0f8-1f2210dc4305',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'media_manager.html:config',message:'Setting Media Manager config',data:{activeTab:'{{ resource_types.0|default:"pages" }}',resourceTypes:{{ resource_types|length }},csrfTokenLength:'{{ csrf_token|length }}'},timestamp:Date.now(),sessionId:'debug-session',runId:'media-manager-debug',hypothesisId:'template_config'})}).catch(()=>{});
-// #endregion
-
 window.MEDIA_MANAGER_CONFIG = {
     activeTab: '{{ resource_types.0|default:"pages" }}',
     urls: {
@@ -256,7 +252,7 @@ window.MEDIA_MANAGER_CONFIG = {
     csrfToken: '{{ csrf_token }}'
 };
 </script>
-<script src="{% static 'js/media-manager.js' %}"></script>
+<script src="{% static 'js/documentation-files.js' %}"></script>
 <script>
 document.getElementById('media-refresh-btn')?.addEventListener('click', function() {
     const btn = this;

@@ -15,7 +15,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from apps.documentation.services.file_operations import FileOperationsService
-from apps.documentation.services.media_manager_service import MediaManagerService
+from apps.documentation.services.documentation_media_service import MediaManagerService
 from apps.documentation.services.media_sync_service import MediaSyncService
 from apps.documentation.services import pages_service, endpoints_service, relationships_service, postman_service
 from apps.documentation.utils.relationship_id import generate_relationship_id

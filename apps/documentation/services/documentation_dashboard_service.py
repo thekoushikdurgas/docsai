@@ -1,4 +1,4 @@
-"""Media Manager Dashboard Service - Unified service wrapper for dashboard operations."""
+"""Documentation Dashboard Service - unified service wrapper for dashboard operations."""
 
 import logging
 from typing import Optional, Dict, Any, List
@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class MediaManagerDashboardService(BaseService):
-    """Unified service for Media Manager Dashboard operations."""
+    """Unified service for the Documentation Dashboard operations."""
     
     def __init__(self):
-        """Initialize Media Manager Dashboard Service."""
+        """Initialize Documentation Dashboard Service."""
         super().__init__("MediaManagerDashboardService")
         self.pages_service = get_pages_service()
         self.endpoints_service = get_endpoints_service()

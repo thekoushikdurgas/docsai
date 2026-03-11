@@ -37,7 +37,7 @@ class DashboardE2ETestCase(TestCase):
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Media Manager Dashboard')
+        self.assertContains(response, 'Documentation Dashboard')
         self.assertContains(response, 'Pages')
         self.assertContains(response, 'Endpoints')
         self.assertContains(response, 'Relationships')

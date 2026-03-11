@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 import time
+from urllib.parse import quote
 from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.conf import settings
 from django.core.cache import cache
@@ -260,7 +261,7 @@ class SuperAdminMiddleware:
             return False
     
     def _forbidden_response(self, request, message: str):
-        """Return 403 Forbidden response."""
+        """Return 403 Forbidden response, or redirect browser to login."""
         accept = (request.META.get("HTTP_ACCEPT") or request.headers.get("Accept") or "").strip()
         content_type = (request.META.get("CONTENT_TYPE") or request.headers.get("Content-Type") or "").split(";")[0].strip()
         x_requested_with = (request.META.get("HTTP_X_REQUESTED_WITH") or request.headers.get("X-Requested-With") or "").strip()
@@ -287,17 +288,10 @@ class SuperAdminMiddleware:
                 },
                 status=403
             )
-        
-        # Return HTML response
-        return HttpResponseForbidden(
-            f"""
-            <html>
-                <head><title>Access Denied</title></head>
-                <body>
-                    <h1>Access Denied</h1>
-                    <p>{message}</p>
-                    <p><a href="/login/">Login</a></p>
-                </body>
-            </html>
-            """
-        )
+
+        # For browser requests, redirect to login instead of showing 403 HTML
+        login_url = getattr(settings, "LOGIN_URL", "/login/")
+        next_path = request.path or "/"
+        if "//" in next_path or not next_path.startswith("/"):
+            next_path = "/"
+        return HttpResponseRedirect(f"{login_url}?next={quote(next_path)}")

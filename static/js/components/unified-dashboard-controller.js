@@ -83,7 +83,7 @@ class UnifiedDashboardController {
         
         // Load page size preference
         this.defaultPageSize = this.loadPageSizePreference();
-        
+
         // Initialize
         this.init();
     }
@@ -153,7 +153,7 @@ class UnifiedDashboardController {
                 sortOrder: 'asc'
             };
         });
-        
+
         // Keep navigation hrefs consistent with current state
         this.updateNavigationHrefs();
 
@@ -181,7 +181,7 @@ class UnifiedDashboardController {
         
         // Get view mode
         const view = urlParams.get('view');
-        if (view && ['list', 'files', 'sync'].includes(view)) {
+        if (view && ['list', 'table', 'files', 'sync'].includes(view)) {
             this.viewMode = view;
         }
 
@@ -194,7 +194,6 @@ class UnifiedDashboardController {
         // Get pagination params
         const page = parseInt(urlParams.get('page')) || 1;
         const pageSize = parseInt(urlParams.get('page_size')) || this.defaultPageSize;
-        
         this.currentPage[this.activeTab] = page;
         this.pageSize[this.activeTab] = pageSize;
         
@@ -324,12 +323,8 @@ class UnifiedDashboardController {
         this.switchViewMode(viewMode);
         
         // Load data based on view mode
-        if (viewMode === 'list') {
+        if (viewMode === 'list' || viewMode === 'table') {
             await this.loadList(tabName);
-        } else if (viewMode === 'files') {
-            await this.loadFiles(tabName);
-        } else if (viewMode === 'sync') {
-            await this.loadSyncStatus(tabName);
         }
         
         this.updateURL();
@@ -357,8 +352,7 @@ class UnifiedDashboardController {
             const viewContainers = tabContent.querySelectorAll('.view-mode-content');
             viewContainers.forEach(container => {
                 const containerViewMode = container.id.includes('-list-view') ? 'list' :
-                                         container.id.includes('-files-view') ? 'files' :
-                                         container.id.includes('-sync-view') ? 'sync' : null;
+                                         container.id.includes('-table-view') ? 'table' : null;
                 
                 if (containerViewMode === viewMode) {
                     container.classList.remove('hidden');
@@ -380,14 +374,15 @@ class UnifiedDashboardController {
             return;
         }
         
-        // Try both naming conventions for backward compatibility
-        const targetContainer = this.getCachedElement(`${tabName}-list`, true) || 
-                               document.querySelector(`#${tabName}-list-view #${tabName}-list`);
-        if (!targetContainer) {
-            console.warn(`Container not found for ${tabName} list view`);
+        const isTableView = this.viewMode === 'table';
+        const listContainer = this.getCachedElement(`${tabName}-list`, true) || document.querySelector(`#${tabName}-list-view #${tabName}-list`);
+        const tableContainer = isTableView ? document.getElementById(`${tabName}-table`) : null;
+        const hasContainer = listContainer || tableContainer;
+        if (!hasContainer) {
+            console.warn(`Container not found for ${tabName} (viewMode: ${this.viewMode})`);
             return;
         }
-        
+
         // First paint from server-rendered initial_data when on page 1 and no filters
         // Skip initialData when filters are active - server never applied them, must fetch from API
         const page = this.currentPage[tabName] || 1;
@@ -416,7 +411,7 @@ class UnifiedDashboardController {
         }
         
         this.loading[tabName] = true;
-        this.showLoading(tabName, 'list');
+        this.showLoading(tabName, this.viewMode === 'table' ? 'table' : 'list');
         
         try {
             const data = await this.fetchTabData(tabName);
@@ -425,7 +420,7 @@ class UnifiedDashboardController {
             this.setupPagination(tabName, data);
         } catch (error) {
             console.error(`Error loading ${tabName}:`, error);
-            this.showError(tabName, error, 'list');
+            this.showError(tabName, error, this.viewMode === 'table' ? 'table' : 'list');
         } finally {
             this.loading[tabName] = false;
         }
@@ -557,6 +552,7 @@ class UnifiedDashboardController {
         }
         
         const json = await response.json();
+
         // Adapter: API v1 returns { success, data, meta: { pagination } }
         if (json && typeof json.data !== 'undefined' && json.meta && json.meta.pagination) {
             const p = json.meta.pagination;
@@ -578,36 +574,50 @@ class UnifiedDashboardController {
     }
     
     /**
-     * Render list view
+     * Render list view (or table view when viewMode is 'table')
      */
     renderList(tabName, data) {
-        const container = this.getCachedElement(`${tabName}-list`);
-        if (!container) {
+        const items = data.items || [];
+        const isTableView = this.viewMode === 'table';
+        const tableTbody = isTableView ? document.getElementById(`${tabName}-table`) : null;
+        const listContainer = this.getCachedElement(`${tabName}-list`);
+        const targetContainer = isTableView && tableTbody ? tableTbody : listContainer;
+        if (!targetContainer) {
             return;
         }
         
-        const items = data.items || [];
-        const renderFunction = this.getRenderFunction(tabName);
-        
         if (items.length === 0) {
-            container.innerHTML = this.getEmptyState(tabName, 'list', data);
+            const emptyHtml = isTableView && tableTbody
+                ? `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">${this.getEmptyState(tabName, 'list', data).replace(/<[^>]+>/g, ' ').trim() || 'No items found'}</td></tr>`
+                : this.getEmptyState(tabName, 'list', data);
+            targetContainer.innerHTML = emptyHtml;
             this.setupPagination(tabName, data);
             this.renderFilterChips(tabName);
             return;
         }
         
-        // Enable virtual scrolling for large lists
+        if (isTableView && tableTbody) {
+            const tableRenderFn = this.getTableRenderFunction(tabName);
+            if (tableRenderFn) {
+                tableTbody.innerHTML = tableRenderFn(items);
+                this.setupPagination(tabName, data);
+                this.renderFilterChips(tabName);
+                if (tabName === 'pages' && typeof BulkOperations !== 'undefined' && window.dashboardController && window.dashboardController !== this && window.dashboardController.initBulkOperations) {
+                    try { window.dashboardController.initBulkOperations(tabName, items); } catch (e) { console.warn('Error initializing bulk operations:', e); }
+                }
+                return;
+            }
+        }
+        
+        const renderFunction = this.getRenderFunction(tabName);
         const useVirtualScroll = items.length >= this.VIRTUAL_SCROLL_THRESHOLD;
         
         if (useVirtualScroll) {
-            // Render with virtual scrolling wrapper
-            this.renderListWithVirtualScroll(tabName, items, renderFunction, container);
+            this.renderListWithVirtualScroll(tabName, items, renderFunction, listContainer);
         } else {
-            // Normal rendering for small lists
-            container.innerHTML = renderFunction(items);
+            listContainer.innerHTML = renderFunction(items);
         }
         
-        // Render filter chips after rendering list
         this.renderFilterChips(tabName);
         
         // Initialize bulk operations if enabled (skip if BulkOperations is not available to avoid recursion)
@@ -2004,6 +2014,8 @@ class UnifiedDashboardController {
         if (viewMode === 'list') {
             container = document.getElementById(`${tabName}-list`) || 
                        document.querySelector(`#${tabName}-list-view #${tabName}-list`);
+        } else if (viewMode === 'table') {
+            container = document.getElementById(`${tabName}-table`);
         } else if (viewMode === 'files') {
             container = document.getElementById(`${tabName}-file-browser`) || 
                        document.querySelector(`#${tabName}-files-view #${tabName}-file-browser`);
@@ -2013,7 +2025,12 @@ class UnifiedDashboardController {
         }
         
         if (container) {
-            container.innerHTML = '<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-gray-500 dark:text-gray-400">Loading...</p></div>';
+            const isTable = container.tagName === 'TBODY' || container.id === `${tabName}-table`;
+            if (isTable) {
+                container.innerHTML = '<tr><td colspan="4" class="px-4 py-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-gray-500 dark:text-gray-400">Loading...</p></td></tr>';
+            } else {
+                container.innerHTML = '<div class="text-center py-12"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-gray-500 dark:text-gray-400">Loading...</p></div>';
+            }
         }
     }
     
@@ -2032,6 +2049,8 @@ class UnifiedDashboardController {
         if (viewMode === 'list') {
             container = document.getElementById(`${tabName}-list`) || 
                        document.querySelector(`#${tabName}-list-view #${tabName}-list`);
+        } else if (viewMode === 'table') {
+            container = document.getElementById(`${tabName}-table`);
         } else if (viewMode === 'files') {
             container = document.getElementById(`${tabName}-file-browser`) || 
                        document.querySelector(`#${tabName}-files-view #${tabName}-file-browser`);
@@ -2041,21 +2060,14 @@ class UnifiedDashboardController {
         }
         
         if (container) {
-            container.innerHTML = `
-                <div class="text-center py-12">
-                    <div class="text-red-600 dark:text-red-400 mb-2">
-                        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">${this.escapeHtml(error.message || 'An error occurred')}</p>
-                    <button onclick="window.unifiedDashboardController.loadView('${tabName}', '${viewMode}')" 
-                            class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Retry
-                    </button>
-                </div>
-            `;
+            const errMsg = this.escapeHtml(error.message || 'An error occurred');
+            const retryBtn = `<button onclick="window.unifiedDashboardController.loadView('${tabName}', '${viewMode}')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Retry</button>`;
+            const isTable = container.tagName === 'TBODY' || container.id === `${tabName}-table`;
+            if (isTable) {
+                container.innerHTML = `<tr><td colspan="4" class="px-4 py-12 text-center"><div class="text-red-600 dark:text-red-400 mb-2"><svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div><h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error</h3><p class="text-sm text-gray-500 dark:text-gray-400">${errMsg}</p>${retryBtn}</td></tr>`;
+            } else {
+                container.innerHTML = `<div class="text-center py-12"><div class="text-red-600 dark:text-red-400 mb-2"><svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div><h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error</h3><p class="text-sm text-gray-500 dark:text-gray-400">${errMsg}</p>${retryBtn}</div>`;
+            }
         }
     }
     
@@ -2082,20 +2094,26 @@ class UnifiedDashboardController {
      * Get render function for list view
      */
     getRenderFunction(tabName) {
-        // Direct render functions (use local methods to avoid recursion)
         const renderFunctions = {
             pages: this.renderPagesList.bind(this),
             endpoints: this.renderEndpointsList.bind(this),
             relationships: this.renderRelationshipsList.bind(this),
             postman: this.renderPostmanList.bind(this)
         };
-        
-        return renderFunctions[tabName] || ((items) => {
-            return items.map(item => {
-                const id = item[`${tabName.slice(0, -1)}_id`] || item.id || 'Unknown';
-                return `<div class="p-4 border rounded">${id}</div>`;
-            }).join('');
-        });
+        return renderFunctions[tabName] || ((items) => items.map(item => `<div class="p-4 border rounded">${item[`${tabName.slice(0, -1)}_id`] || item.id || 'Unknown'}</div>`).join(''));
+    }
+    
+    /**
+     * Get table render function (tbody rows) for table view
+     */
+    getTableRenderFunction(tabName) {
+        const fns = {
+            pages: this.renderPagesTableRows.bind(this),
+            endpoints: this.renderEndpointsTableRows.bind(this),
+            relationships: this.renderRelationshipsTableRows.bind(this),
+            postman: this.renderPostmanTableRows.bind(this)
+        };
+        return fns[tabName] || null;
     }
     
     /**
@@ -2352,6 +2370,87 @@ class UnifiedDashboardController {
                 </div>
             </div>
             `;
+        }).join('');
+    }
+    
+    /**
+     * Render pages table rows (tbody)
+     */
+    renderPagesTableRows(pages) {
+        const pageDetailUrlBase = window.pageDetailUrlBase || '/docs/pages/';
+        const statusClass = (s) => {
+            if (!s) return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+            if (['published','active','completed'].includes(s)) return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+            if (['draft','pending'].includes(s)) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
+            if (['failed','cancelled'].includes(s)) return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+            return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+        };
+        const esc = (s) => (s || '').toString().replace(/</g, '&lt;');
+        return pages.map(page => {
+            const pid = (page.page_id || '').toString();
+            const pageType = page.page_type || 'docs';
+            const status = (page.metadata && page.metadata.status) || page.status || 'draft';
+            const route = (page.metadata && page.metadata.route) || '/';
+            const href = pageDetailUrlBase.replace('__PID__', encodeURIComponent(pid));
+            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" data-item-id="${pid.replace(/"/g, '&quot;')}"><td class="px-4 py-2"><a href="${href}" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">${esc(pid)}</a></td><td class="px-4 py-2">${esc(pageType)}</td><td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(status)}">${esc(status)}</span></td><td class="px-4 py-2 font-mono text-gray-600 dark:text-gray-400">${esc(route)}</td></tr>`;
+        }).join('');
+    }
+    
+    /**
+     * Render endpoints table rows (tbody)
+     */
+    renderEndpointsTableRows(endpoints) {
+        const method = (m) => (m && (m + '').toUpperCase()) || 'QUERY';
+        const methodClass = (m) => {
+            const v = method(m);
+            const map = { GET:'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400', POST:'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400', PUT:'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400', DELETE:'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400', PATCH:'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400', QUERY:'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400', MUTATION:'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' };
+            return map[v] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+        };
+        const esc = (s) => (s || '').toString().replace(/</g, '&lt;');
+        return endpoints.map(ep => {
+            const eid = ep.endpoint_id || 'Unknown';
+            const m = method(ep.method);
+            const apiVersion = ep.api_version || '-';
+            const state = (ep.metadata && ep.metadata.status) || ep.status || '-';
+            const href = `/docs/endpoints/${encodeURIComponent(eid)}/`;
+            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" data-item-id="${esc(eid)}"><td class="px-4 py-2"><a href="${href}" class="font-medium text-purple-600 dark:text-purple-400 hover:underline">${esc(eid)}</a></td><td class="px-4 py-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${methodClass(ep.method)}">${m}</span></td><td class="px-4 py-2">${esc(apiVersion)}</td><td class="px-4 py-2">${esc(state)}</td></tr>`;
+        }).join('');
+    }
+    
+    /**
+     * Render relationships table rows (tbody)
+     */
+    renderRelationshipsTableRows(relationships) {
+        const esc = (s) => (s || '').toString().replace(/</g, '&lt;');
+        return relationships.map(rel => {
+            const rid = rel.relationship_id || rel.id || 'Unknown';
+            const pagePath = rel.page_path || rel.page_id || '-';
+            const endpointPath = rel.endpoint_path || rel.endpoint_id || '-';
+            const usageType = rel.usage_type || 'primary';
+            const usageContext = rel.usage_context || 'data_fetching';
+            const href = `/docs/relationships/${encodeURIComponent(rid)}/`;
+            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" data-item-id="${esc(rid)}"><td class="px-4 py-2"><a href="${href}" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">${esc(pagePath)}</a></td><td class="px-4 py-2 font-mono">${esc(endpointPath)}</td><td class="px-4 py-2">${esc(usageType)}</td><td class="px-4 py-2">${esc(usageContext)}</td></tr>`;
+        }).join('');
+    }
+    
+    /**
+     * Render postman table rows (tbody)
+     */
+    renderPostmanTableRows(postmanConfigs) {
+        const stateClass = (s) => {
+            if (!s) return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+            if (['published','active'].includes(s)) return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+            if (['draft','development'].includes(s)) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
+            return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+        };
+        const esc = (s) => (s || '').toString().replace(/</g, '&lt;');
+        return postmanConfigs.map(config => {
+            const configId = config.config_id || config.id || 'Unknown';
+            const name = config.name || configId;
+            const state = config.state || 'draft';
+            const updated = config.updated_at || config.metadata?.updated_at || '-';
+            const href = `/docs/postman/${encodeURIComponent(configId)}/`;
+            return `<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" data-item-id="${esc(configId)}"><td class="px-4 py-2"><a href="${href}" class="font-medium text-amber-600 dark:text-amber-400 hover:underline">${esc(configId)}</a></td><td class="px-4 py-2">${esc(name)}</td><td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${stateClass(state)}">${esc(state)}</span></td><td class="px-4 py-2 text-gray-500 dark:text-gray-400">${esc(updated)}</td></tr>`;
         }).join('');
     }
     

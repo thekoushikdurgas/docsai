@@ -1,4 +1,4 @@
-"""Media Manager – high-level CRUD, list, sync, and sync summary for media JSON."""
+"""Documentation media file service – high-level CRUD, list, sync, and sync summary for JSON models."""
 
 import logging
 from pathlib import Path
@@ -35,8 +35,8 @@ class MediaManagerService(BaseService):
     """
 
     def __init__(self) -> None:
-        """Initialize MediaManagerService with file manager and sync service."""
-        super().__init__("MediaManagerService")
+        """Initialize documentation media service with file manager and sync service."""
+        super().__init__("DocumentationMediaService")
         self.file_manager = MediaFileManagerService()
         self.sync_service = MediaSyncService()
         self.media_root = get_media_root()
