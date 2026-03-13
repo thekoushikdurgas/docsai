@@ -1018,15 +1018,15 @@
             <div class="modal-body space-y-6">
                 <ol class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                     <li id="json-step-indicator-1" class="flex-1 flex items-center gap-2 font-medium">
-                        <span class="inline-flex justify-center w-5 h-5 rounded-full bg-amber-600 text-white text-[10px]">1</span>
+                        <span id="json-step-circle-1" class="inline-flex justify-center w-5 h-5 rounded-full bg-amber-600 text-white text-[10px]">1</span>
                         <span>Select JSON files</span>
                     </li>
                     <li id="json-step-indicator-2" class="flex-1 flex items-center gap-2">
-                        <span class="inline-flex justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">2</span>
+                        <span id="json-step-circle-2" class="inline-flex justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">2</span>
                         <span>Preview & map</span>
                     </li>
                     <li id="json-step-indicator-3" class="flex-1 flex items-center gap-2">
-                        <span class="inline-flex justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">3</span>
+                        <span id="json-step-circle-3" class="inline-flex justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">3</span>
                         <span>Sync result</span>
                     </li>
                 </ol>
@@ -1051,10 +1051,15 @@
 
                 <div id="json-step-2" class="space-y-4 hidden">
                     <p id="json-step-2-desc" class="text-sm text-gray-600 dark:text-gray-300"></p>
+                    <div id="json-step-2-preview" class="border border-gray-200 dark:border-gray-700 rounded-md max-h-64 overflow-auto text-xs text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/40"></div>
                 </div>
 
                 <div id="json-step-3" class="space-y-4 hidden">
                     <div id="json-sync-progress" class="text-sm text-gray-600 dark:text-gray-300">Syncing pages...</div>
+                    <div id="json-sync-progress-bar" class="hidden w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div id="json-sync-progress-fill" class="h-full bg-amber-500 transition-all duration-300 ease-out" style="width: 0%"></div>
+                    </div>
+                    <div id="json-sync-progress-text" class="text-xs text-gray-500 dark:text-gray-400 hidden">0 / 0 pages</div>
                     <div id="json-sync-results" class="text-sm text-gray-700 dark:text-gray-200 space-y-2"></div>
                 </div>
             </div>
@@ -2234,6 +2239,9 @@
         var ind1 = document.getElementById('json-step-indicator-1');
         var ind2 = document.getElementById('json-step-indicator-2');
         var ind3 = document.getElementById('json-step-indicator-3');
+        var c1 = document.getElementById('json-step-circle-1');
+        var c2 = document.getElementById('json-step-circle-2');
+        var c3 = document.getElementById('json-step-circle-3');
         var backBtn = document.getElementById('json-back-btn');
         var nextBtn = document.getElementById('json-next-btn');
         var syncBtn = document.getElementById('json-sync-btn');
@@ -2247,8 +2255,20 @@
         if (ind2) ind2.classList.toggle('font-medium', step === 2);
         if (ind3) ind3.classList.toggle('font-medium', step === 3);
 
+        // Update step indicator circles: completed=green, active=amber, future=gray
+        function setCircle(el, state) {
+            if (!el) return;
+            el.classList.remove('bg-amber-600', 'bg-green-500', 'bg-gray-300', 'dark:bg-gray-700', 'text-white', 'text-gray-800', 'dark:text-gray-100');
+            if (state === 'active') { el.classList.add('bg-amber-600', 'text-white'); el.textContent = el.dataset.num || ''; }
+            else if (state === 'completed') { el.classList.add('bg-green-500', 'text-white'); el.textContent = '\u2713'; }
+            else { el.classList.add('bg-gray-300', 'dark:bg-gray-700', 'text-gray-800', 'dark:text-gray-100'); el.textContent = el.dataset.num || ''; }
+        }
+        if (c1) { c1.dataset.num = '1'; setCircle(c1, step > 1 ? 'completed' : (step === 1 ? 'active' : 'future')); }
+        if (c2) { c2.dataset.num = '2'; setCircle(c2, step > 2 ? 'completed' : (step === 2 ? 'active' : 'future')); }
+        if (c3) { c3.dataset.num = '3'; setCircle(c3, step === 3 ? 'active' : 'future'); }
+
         if (backBtn) backBtn.classList.toggle('hidden', step === 1);
-        if (nextBtn) nextBtn.classList.toggle('hidden', step !== 1 && step !== 2);
+        if (nextBtn) nextBtn.classList.toggle('hidden', step !== 1);
         if (syncBtn) syncBtn.classList.toggle('hidden', step !== 2);
         if (closeBtn) closeBtn.classList.toggle('hidden', step !== 3);
     }
@@ -2274,8 +2294,15 @@
         if (fileError) { fileError.classList.add('hidden'); fileError.textContent = ''; }
         if (syncProgress) syncProgress.textContent = 'Syncing pages from JSON...';
         if (syncResults) syncResults.innerHTML = '';
+        var progressBarWrap = document.getElementById('json-sync-progress-bar');
+        var progressBarFill = document.getElementById('json-sync-progress-fill');
+        var progressText = document.getElementById('json-sync-progress-text');
+        if (progressBarWrap) progressBarWrap.classList.add('hidden');
+        if (progressBarFill) progressBarFill.style.width = '0%';
+        if (progressText) { progressText.classList.add('hidden'); progressText.textContent = '0 / 0 pages'; }
 
         var fileInput = document.getElementById('json-upload-input');
+        if (fileInput) fileInput.value = '';
         if (fileInput && !fileInput._jsonUploadBound) {
             fileInput.addEventListener('change', handleJsonFilesSelected);
             fileInput._jsonUploadBound = true;
@@ -2367,15 +2394,18 @@
                 r.onload = function (e) {
                     try {
                         var parsed = JSON.parse(e.target.result);
+                        var items = [];
                         if (Array.isArray(parsed)) {
-                            parsed.forEach(function (item) {
-                                var p = normalizeJsonToPage(item);
-                                if (p && p.page_id) allPages.push(p);
-                            });
-                        } else {
-                            var p = normalizeJsonToPage(parsed);
-                            if (p && p.page_id) allPages.push(p);
+                            items = parsed;
+                        } else if (parsed && parsed.pages && Array.isArray(parsed.pages)) {
+                            items = parsed.pages;
+                        } else if (parsed && typeof parsed === 'object') {
+                            items = [parsed];
                         }
+                        items.forEach(function (item) {
+                            var p = normalizeJsonToPage(item);
+                            if (p && p.page_id) allPages.push(p);
+                        });
                     } catch (err) {
                         if (fileError) {
                             fileError.textContent = 'Invalid JSON in ' + f.name + ': ' + (err.message || String(err));
@@ -2396,8 +2426,8 @@
         }
     }
 
-    function renderJsonPreviewTable(pages) {
-        var el = document.getElementById('json-preview-table');
+    function renderJsonPreviewTable(pages, targetEl) {
+        var el = targetEl || document.getElementById('json-preview-table');
         if (!el) return;
         if (!pages || pages.length === 0) {
             el.innerHTML = '<p class="p-3 text-gray-500">No valid pages found.</p>';
@@ -2423,7 +2453,9 @@
                 return;
             }
             var desc = document.getElementById('json-step-2-desc');
-            if (desc) desc.textContent = _jsonUploadPages.length + ' page(s) ready to sync. Click "Sync Pages" to import.';
+            if (desc) desc.textContent = _jsonUploadPages.length + ' page(s) ready to sync. Review the preview below and click "Sync Pages" to import.';
+            var previewEl = document.getElementById('json-step-2-preview');
+            if (previewEl) renderJsonPreviewTable(_jsonUploadPages, previewEl);
             setJsonStep(2);
         }
     }
@@ -2461,62 +2493,114 @@
         if (!_jsonUploadPages || _jsonUploadPages.length === 0) return;
 
         var progressEl = document.getElementById('json-sync-progress');
+        var progressBarWrap = document.getElementById('json-sync-progress-bar');
+        var progressBarFill = document.getElementById('json-sync-progress-fill');
+        var progressText = document.getElementById('json-sync-progress-text');
         var resultsEl = document.getElementById('json-sync-results');
         var syncBtn = document.getElementById('json-sync-btn');
 
+        var payload = buildJsonPagesPayload();
+        if (!payload || payload.length === 0) {
+            setJsonStep(3);
+            if (progressEl) progressEl.textContent = 'No valid pages to sync.';
+            if (resultsEl) resultsEl.innerHTML = '<p class="text-amber-600 dark:text-amber-400">No valid pages to sync. Ensure your JSON files contain page objects with page_id and route.</p>';
+            return;
+        }
+
+        setJsonStep(3);
         if (progressEl) progressEl.textContent = 'Syncing pages...';
         if (resultsEl) resultsEl.innerHTML = '';
+        if (progressBarWrap) { progressBarWrap.classList.remove('hidden'); progressBarWrap.classList.add('block'); }
+        if (progressText) { progressText.classList.remove('hidden'); progressText.classList.add('block'); }
+        if (progressBarFill) progressBarFill.style.width = '0%';
         if (syncBtn) syncBtn.disabled = true;
 
-        try {
-            var payload = buildJsonPagesPayload();
-            if (!payload || payload.length === 0) {
-                if (progressEl) progressEl.textContent = 'No valid pages to sync.';
-                return;
-            }
-            var resp = await fetch('/docs/api/pages/bulk-import/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-                credentials: 'same-origin',
-                body: JSON.stringify({ pages: payload })
-            });
-            var json = null;
-            try { json = await resp.json(); } catch (_) { json = {}; }
-            if (!resp.ok) {
-                var msg = (json && json.message) || (json && json.error) || ('Bulk import failed: HTTP ' + resp.status);
-                if (resp.status === 403) msg = (json && json.message) ? String(json.message) : 'Access denied. Please log in as Admin or SuperAdmin.';
-                if (resp.status === 401) msg = (json && json.message) ? String(json.message) : 'Authentication required. Please log in.';
-                throw new Error(msg);
-            }
-            if (!json || json.success === false) throw new Error((json && json.error) || (json && json.message) || 'Bulk import did not succeed.');
+        var CHUNK_SIZE = 25;
+        var chunks = [];
+        for (var i = 0; i < payload.length; i += CHUNK_SIZE) {
+            chunks.push(payload.slice(i, i + CHUNK_SIZE));
+        }
+        var totalPages = payload.length;
+        var created = 0, updated = 0, failed = 0, allErrors = [];
 
-            var data = json.data || {};
-            var created = data.created || 0;
-            var updated = data.updated || 0;
-            var failed = data.failed || 0;
-            var errors = data.errors || [];
+        try {
+            for (var c = 0; c < chunks.length; c++) {
+                var chunk = chunks[c];
+                var resp = await fetch('/docs/api/pages/bulk-import/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ pages: chunk })
+                });
+                var json = null;
+                try { json = await resp.json(); } catch (_) { json = {}; }
+                if (!resp.ok) {
+                    var msg = (json && json.message) || (json && json.error) || ('Bulk import failed: HTTP ' + resp.status);
+                    if (resp.status === 403) msg = (json && json.message) ? String(json.message) : 'Access denied. Please log in as Admin or SuperAdmin.';
+                    if (resp.status === 401) msg = (json && json.message) ? String(json.message) : 'Authentication required. Please log in.';
+                    throw new Error(msg);
+                }
+                if (!json || json.success === false) throw new Error((json && json.error) || (json && json.message) || 'Bulk import did not succeed.');
+
+                var data = json.data || {};
+                created += data.created || 0;
+                updated += data.updated || 0;
+                failed += data.failed || 0;
+                var chunkErrors = data.errors || [];
+                var offset = c * CHUNK_SIZE;
+                chunkErrors.forEach(function (e) {
+                    allErrors.push({ row: (e.row || 0) + offset, page_id: e.page_id, error: e.error });
+                });
+
+                var done = Math.min((c + 1) * CHUNK_SIZE, totalPages);
+                var pct = Math.round((done / totalPages) * 100);
+                if (progressBarFill) progressBarFill.style.width = pct + '%';
+                if (progressText) progressText.textContent = done + ' / ' + totalPages + ' pages synced';
+            }
 
             if (progressEl) progressEl.textContent = 'Sync completed.';
+            if (progressBarFill) progressBarFill.style.width = '100%';
+            if (progressText) progressText.textContent = totalPages + ' / ' + totalPages + ' pages synced';
+
             if (resultsEl) {
                 var html = '<p>Created: <span class="font-semibold">' + created + '</span></p>';
                 html += '<p>Updated: <span class="font-semibold">' + updated + '</span></p>';
                 html += '<p>Failed: <span class="font-semibold">' + failed + '</span></p>';
-                if (errors.length > 0) {
+
+                if (failed > 0) {
+                    html += '<div class="mt-2 p-2 bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono text-gray-700 dark:text-gray-200">';
+                    html += '<div class="mb-1 font-semibold text-[11px]">Example of a minimal valid page JSON object:</div>';
+                    html += '{<br>';
+                    html += '&nbsp;&nbsp;"page_id": "my_page_id",<br>';
+                    html += '&nbsp;&nbsp;"title": "My Page Title",<br>';
+                    html += '&nbsp;&nbsp;"route": "/my_page_id",<br>';
+                    html += '&nbsp;&nbsp;"page_type": "docs"<br>';
+                    html += '}<br>';
+                    html += '<div class="mt-1 text-[11px] text-gray-600 dark:text-gray-400">Add optional fields like "status", "content", and "metadata" as needed.</div>';
+                    html += '</div>';
+                }
+
+                if (allErrors.length > 0) {
                     html += '<div class="mt-3 border border-red-200 dark:border-red-800 rounded-md max-h-40 overflow-auto text-xs"><table class="min-w-full text-left"><thead><tr><th class="px-2 py-1 border-b">Row</th><th class="px-2 py-1 border-b">Page ID</th><th class="px-2 py-1 border-b">Error / Suggestion</th></tr></thead><tbody>';
-                    errors.forEach(function (err) {
+                    allErrors.slice(0, 50).forEach(function (err) {
                         html += '<tr><td class="px-2 py-1 border-b">' + (err.row || '') + '</td><td class="px-2 py-1 border-b">' + (err.page_id || '') + '</td><td class="px-2 py-1 border-b">' + formatJsonUploadError(err) + '</td></tr>';
                     });
                     html += '</tbody></table></div>';
                 }
                 resultsEl.innerHTML = html;
             }
-            setJsonStep(3);
             if (window.unifiedDashboardController && typeof window.unifiedDashboardController.loadView === 'function') {
                 window.unifiedDashboardController.loadView('pages', 'list');
             }
         } catch (err) {
             console.error(err);
-            if (progressEl) progressEl.textContent = 'Sync failed: ' + (err && err.message ? err.message : String(err));
+            var errMsg = err && err.message ? err.message : String(err);
+            if (progressEl) progressEl.textContent = 'Sync failed.';
+            if (progressBarWrap) progressBarWrap.classList.add('hidden');
+            if (progressText) progressText.classList.add('hidden');
+            if (resultsEl) {
+                resultsEl.innerHTML = '<p class="text-red-600 dark:text-red-400 font-medium">Sync failed:</p><p class="text-sm">' + errMsg.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>';
+            }
         } finally {
             if (syncBtn) syncBtn.disabled = false;
         }
@@ -2543,6 +2627,20 @@
 
         if (base.indexOf('Maximum 500 pages per import') !== -1) {
             suggestions.push('Reduce the number of pages in your JSON to 500 or fewer, then try again.');
+        }
+
+        // Common enum / value validation patterns
+        if (base.indexOf('state must be one of') !== -1 || base.indexOf('status must be one of') !== -1) {
+            suggestions.push('Update the "status" (or "state") field to one of the allowed values mentioned in the error, for example "published" or "draft".');
+        }
+
+        if (base.indexOf('page_type must be one of') !== -1 || base.indexOf('Invalid value for page_type') !== -1) {
+            suggestions.push('Set "page_type" to a supported value such as "docs", "marketing", "dashboard", "settings", or "admin".');
+        }
+
+        if (base.indexOf('route') !== -1 && base.indexOf('must start with') !== -1) {
+            var exampleRouteId = pageId || 'my_page_id';
+            suggestions.push('Ensure "route" starts with "/". Example: "/' + exampleRouteId + '".');
         }
 
         if (!suggestions.length) {

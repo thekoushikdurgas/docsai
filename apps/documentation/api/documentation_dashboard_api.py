@@ -511,9 +511,16 @@ def pages_bulk_import_api(request: HttpRequest) -> JsonResponse:
             errors.append({"row": index, "error": "page_id is required"})
             continue
         try:
-            # Normalize to Django format then to Lambda format
+            # Normalize to Django format (includes top-level title from metadata.purpose)
             page_data = DataTransformer.lambda_to_django_page(row) if "_id" in row else row
-            lambda_payload = DataTransformer.django_to_lambda_page(page_data)
+            # Ensure title exists for create_page/update_page validation
+            if not (page_data.get("title") or str(page_data.get("title", "")).strip()):
+                metadata = page_data.get("metadata") or {}
+                purpose = metadata.get("purpose", "")
+                if purpose:
+                    page_data["title"] = purpose
+                else:
+                    page_data["title"] = str(page_id).replace("_", " ").title()
 
             try:
                 existing = service.get_page(page_id)
@@ -522,16 +529,16 @@ def pages_bulk_import_api(request: HttpRequest) -> JsonResponse:
 
             if existing:
                 try:
-                    service.update_page(page_id, lambda_payload)
+                    service.update_page(page_id, page_data)
                     updated += 1
                 except (ValueError, Exception) as upd_exc:
                     if "Page not found" in str(upd_exc):
-                        service.create_page(lambda_payload)
+                        service.create_page(page_data)
                         created += 1
                     else:
                         raise upd_exc
             else:
-                service.create_page(lambda_payload)
+                service.create_page(page_data)
                 created += 1
         except Exception as exc:
             logger.warning("pages_bulk_import_api row %s failed: %s", index, exc)
