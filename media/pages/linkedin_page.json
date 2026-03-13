@@ -145,7 +145,37 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "linkedin_page",
+      "route": "/linkedin",
+      "page_type": "dashboard",
+      "purpose": "LinkedIn tools page with Search, Upload, and Paste tabs. Search by single URL; upload CSV with column mapping; paste URLs for bulk export. UsageCounter for free users. Sections gated via DashboardComponentGuard.",
+      "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+      "authorization": "Search, Upload, Paste tabs gated via DashboardComponentGuard. UsageCounter shown to free users only.",
+      "endpoints": [
+        { "endpoint_path": "graphql/SearchByLinkedInUrl", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/ExportByLinkedInUrls", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/UpsertByLinkedInUrl", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/GetExport", "method": "QUERY", "usage_context": "data_fetching" }
+      ],
+      "ui_components": [
+        "ToolPageLayout",
+        "DashboardAccessGate",
+        "DashboardComponentGuard",
+        "PageHeader",
+        "UsageCounter",
+        "LinkedInHeader",
+        "LinkedInTabNavigation",
+        "LinkedInSearchTab",
+        "LinkedInUploadTab",
+        "LinkedInPasteTab",
+        "LinkedInInfoBox",
+        "LinkedInCsvMappingModal"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }

@@ -128,7 +128,34 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "export_page",
+      "route": "/export",
+      "page_type": "dashboard",
+      "purpose": "Export management page with My Exports and S3 Files (admin-only) tabs. List, filter, download, cancel exports. Create Export redirects to contacts. Delete All and S3 tab for admin/superAdmin.",
+      "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+      "authorization": "S3 Files tab and Delete All button visible only to admin/superAdmin.",
+      "endpoints": [
+        { "endpoint_path": "graphql/Exports", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/GetExport", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/CancelExport", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/S3ListFiles", "method": "QUERY", "usage_context": "data_fetching" }
+      ],
+      "ui_components": [
+        "ToolPageLayout",
+        "DashboardAccessGate",
+        "PageHeader",
+        "ExportFilters",
+        "ExportListTable",
+        "ExportTableRow",
+        "ExportDeleteModal",
+        "ExportMessages",
+        "S3FileBrowser"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }

@@ -1,13 +1,14 @@
-"""Documentation Dashboard AJAX API endpoints - service-based implementation."""
 
+"""Documentation Dashboard AJAX API endpoints - service-based implementation."""
 from __future__ import annotations
 
 import logging
 from typing import Any, Dict, Optional
 
-from apps.core.decorators.auth import require_super_admin
+from apps.core.decorators.auth import require_super_admin, require_admin_or_super_admin
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.documentation.services import (
     get_pages_service,
@@ -446,3 +447,108 @@ def get_health_api(request: HttpRequest) -> JsonResponse:
             message=f"Failed to retrieve health status: {str(e)}",
             status_code=500
         ).to_json_response()
+@require_admin_or_super_admin
+@require_http_methods(["POST"])
+@csrf_exempt
+def pages_bulk_import_api(request: HttpRequest) -> JsonResponse:
+    """
+    Bulk import pages from JSON payload (used by Excel upload flow).
+
+    Body:
+        {
+          "pages": [
+            {
+              "page_id": "...",
+              "page_type": "...",
+              "route": "...",
+              "title": "...",
+              "status": "...",
+              "content": "...",
+              "metadata": { ... }
+            },
+            ...
+          ]
+        }
+    """
+    try:
+        from apps.documentation.utils.request_validation import parse_json_body as _parse_json_body  # type: ignore
+    except Exception:
+        import json
+
+        def _parse_json_body(req: HttpRequest):
+            try:
+                body = json.loads(req.body or b"{}")
+                return body, None
+            except Exception as e:  # pragma: no cover - defensive fallback
+                return None, str(e)
+
+    data, err = _parse_json_body(request)
+    if err:
+        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+
+    pages = (data or {}).get("pages") or []
+    if not isinstance(pages, list) or not pages:
+        return error_response("Field 'pages' must be a non-empty list.", status_code=400).to_json_response()
+    if len(pages) > 500:
+        return error_response("Maximum 500 pages per import.", status_code=400).to_json_response()
+
+    try:
+        from apps.documentation.services import get_pages_service
+        from apps.documentation.utils.data_transformers import DataTransformer
+    except Exception as e:  # pragma: no cover - import defensive
+        logger.error("Failed to import helpers for pages_bulk_import_api: %s", e, exc_info=True)
+        return error_response("Internal error preparing import.", status_code=500).to_json_response()
+
+    service = get_pages_service()
+    created = 0
+    updated = 0
+    errors: list[Dict[str, Any]] = []
+
+    for index, raw_row in enumerate(pages, start=1):
+        row = raw_row or {}
+        page_id = str(row.get("page_id") or "").strip()
+        if not page_id:
+            errors.append({"row": index, "error": "page_id is required"})
+            continue
+        try:
+            # Normalize to Django format then to Lambda format
+            page_data = DataTransformer.lambda_to_django_page(row) if "_id" in row else row
+            lambda_payload = DataTransformer.django_to_lambda_page(page_data)
+
+            try:
+                existing = service.get_page(page_id)
+            except Exception:
+                existing = None
+
+            if existing:
+                try:
+                    service.update_page(page_id, lambda_payload)
+                    updated += 1
+                except (ValueError, Exception) as upd_exc:
+                    if "Page not found" in str(upd_exc):
+                        service.create_page(lambda_payload)
+                        created += 1
+                    else:
+                        raise upd_exc
+            else:
+                service.create_page(lambda_payload)
+                created += 1
+        except Exception as exc:
+            logger.warning("pages_bulk_import_api row %s failed: %s", index, exc)
+            errors.append(
+                {
+                    "row": index,
+                    "page_id": page_id,
+                    "error": str(exc),
+                }
+            )
+
+    return success_response(
+        data={
+            "created": created,
+            "updated": updated,
+            "failed": len(errors),
+            "errors": errors[:50],
+        },
+        message="Pages bulk import completed",
+    ).to_json_response()

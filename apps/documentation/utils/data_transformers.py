@@ -13,9 +13,34 @@ from apps.documentation.schemas.lambda_models import (
 logger = logging.getLogger(__name__)
 
 
+def _normalize_data_ref_item(item: Any, list_name: str, index: int) -> Dict[str, Any]:
+    """Coerce one item to DataReference shape (name, file_path required)."""
+    if not isinstance(item, dict):
+        return {"name": f"{list_name}_{index}", "file_path": ""}
+    name = item.get("name") or item.get("source") or item.get("page_id") or item.get("page_key")
+    if not name:
+        name = f"{list_name}_{index}"
+    elif not isinstance(name, str):
+        name = str(name)
+    file_path = item.get("file_path") or item.get("s3_key") or ""
+    if not isinstance(file_path, str):
+        file_path = str(file_path) if file_path else ""
+    out = {"name": name, "file_path": file_path}
+    if "description" in item and item["description"] is not None:
+        out["description"] = item["description"]
+    return out
+
+
 class DataTransformer:
     """Transform data between Django form format and Lambda API format."""
-    
+
+    @staticmethod
+    def _normalize_data_reference_list(raw_list: List[Any], list_name: str) -> List[Dict[str, Any]]:
+        """Normalize a list of fallback/mock/demo items to DataReference-compatible dicts."""
+        if not raw_list:
+            return []
+        return [_normalize_data_ref_item(it, list_name, i) for i, it in enumerate(raw_list)]
+
     @staticmethod
     def django_to_lambda_page(django_data: Dict[str, Any]) -> Dict[str, Any]:
         """Transform Django form data to Lambda API PageDocumentation format.
@@ -82,12 +107,12 @@ class DataTransformer:
             lambda_data['access_control'] = django_data['access_control']
         if 'sections' in django_data:
             lambda_data['sections'] = django_data['sections']
-        if 'fallback_data' in django_data:
-            lambda_data['fallback_data'] = django_data['fallback_data']
-        if 'mock_data' in django_data:
-            lambda_data['mock_data'] = django_data['mock_data']
-        if 'demo_data' in django_data:
-            lambda_data['demo_data'] = django_data['demo_data']
+        # Normalize data reference lists to DataReference shape (name + file_path required)
+        for key in ('fallback_data', 'mock_data', 'demo_data'):
+            if key in django_data and isinstance(django_data[key], list):
+                lambda_data[key] = DataTransformer._normalize_data_reference_list(
+                    django_data[key], key
+                )
         
         # Validate and normalize
         try:

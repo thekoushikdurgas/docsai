@@ -290,7 +290,49 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "profile_page",
+      "route": "/profile",
+      "page_type": "dashboard",
+      "purpose": "User profile management with tabs: My Profile (edit name, title, bio, avatar), Team (admin-only), AI Settings, Appearance, Notifications, Security (sessions, 2FA), API Keys (Pro+), Billing (redirects to /billing). Data batched via profilePageApi.",
+      "authentication": "Required (protected by useSessionGuard)",
+      "authorization": "Team tab visible only to admin. API Keys tab gated by hasFeatureAccess(Feature.API_KEYS). Billing tab redirects to /billing.",
+      "endpoints": [
+        { "endpoint_path": "graphql/GetMe", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/ListAPIKeys", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/ListSessions", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/ListTeamMembers", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/Get2FAStatus", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/CreateAPIKey", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/DeleteAPIKey", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/RevokeSession", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/InviteTeamMember", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/UpdateTeamMemberRole", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/RemoveTeamMember", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/Setup2FA", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/Verify2FA", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/Disable2FA", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/UpdateProfile", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/UploadAvatar", "method": "MUTATION", "usage_context": "data_mutation" }
+      ],
+      "ui_components": [
+        "ProfileTabNavigation",
+        "ProfileHeader",
+        "ProfileOverviewCard",
+        "ProfileEditForm",
+        "ProfileTeamManagement",
+        "ProfileAISettings",
+        "ProfileAppearance",
+        "ProfileNotifications",
+        "ProfileSecurity",
+        "ProfileAPIKeys",
+        "TwoFactorModal",
+        "ProfileModals"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }

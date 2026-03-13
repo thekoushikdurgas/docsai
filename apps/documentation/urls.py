@@ -294,6 +294,9 @@ urlpatterns = [
     path('api/dashboard/statistics/', media_manager_api.get_statistics_api, name='api_docs_dashboard_statistics'),
     path('api/dashboard/health/', media_manager_api.get_health_api, name='api_docs_dashboard_health'),
 
+    # Pages bulk import (Excel upload -> JSON -> pages create/update)
+    path('api/pages/bulk-import/', media_manager_api.pages_bulk_import_api, name='api_pages_bulk_import'),
+
     # Documentation files API (legacy media API name preserved for compatibility)
     path('api/media/files/', documentation_file_views.list_files_api, name='api_media_files'),
     path('api/media/sync-status/', documentation_file_views.sync_status_api, name='api_media_sync_status'),

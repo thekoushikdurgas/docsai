@@ -433,6 +433,22 @@
                                         <a href="{% url 'documentation:pages_by_type_docs' %}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Docs Pages</a>
                                         <a href="{% url 'documentation:pages_by_type_marketing' %}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Marketing Pages</a>
                                         <a href="{% url 'documentation:pages_by_type_dashboard' %}" class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Dashboard Pages</a>
+                                        <hr class="my-1 border-gray-200 dark:border-gray-700">
+                                        <button type="button"
+                                                onclick="openDownloadExcelModal()"
+                                                class="block w-full text-left px-3 py-2 text-sm text-green-700 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                                            Download in Excel
+                                        </button>
+                                        <button type="button"
+                                                onclick="openUploadExcelModal()"
+                                                class="block w-full text-left px-3 py-2 text-sm text-blue-700 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                                            Upload in Excel
+                                        </button>
+                                        <button type="button"
+                                                onclick="openUploadJsonModal()"
+                                                class="block w-full text-left px-3 py-2 text-sm text-amber-700 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                                            Upload JSON
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -863,6 +879,191 @@
                     {% include 'documentation/health/health_tabs.html' %}
                 </div>
             {% endif %}
+</div>
+    </div>
+</div>
+
+<!-- Download Pages in Excel Modal -->
+<div id="download-excel-modal" class="modal-container" role="dialog" aria-modal="true" aria-labelledby="download-excel-modal-title" aria-hidden="true" style="display: none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog max-w-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="download-excel-modal-title" class="modal-title">Download Pages as Excel</h2>
+                <button type="button" class="modal-close" aria-label="Close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                    Export documentation pages from the current dashboard (optionally applying filters) into an Excel file.
+                </p>
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                    <input id="download-excel-apply-filters" type="checkbox" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500" checked>
+                    <span>Apply current filters (type, state, auth user)</span>
+                </label>
+                <div class="text-sm text-gray-600 dark:text-gray-300">
+                    <div id="download-excel-row-estimate" class="font-medium">Preparing export...</div>
+                    <div id="download-excel-progress" class="mt-1 text-xs text-gray-500 dark:text-gray-400"></div>
+                    <div id="download-excel-error" class="mt-2 text-sm text-red-600 dark:text-red-400 hidden"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDownloadExcelModal()">Cancel</button>
+                <button type="button" id="download-excel-btn" class="modal-btn modal-btn-confirm" onclick="runDownloadExcel()">Download</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Pages from Excel Modal -->
+<div id="upload-excel-modal" class="modal-container" role="dialog" aria-modal="true" aria-labelledby="upload-excel-modal-title" aria-hidden="true" style="display: none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog max-w-2xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="upload-excel-modal-title" class="modal-title">Upload Pages from Excel</h2>
+                <button type="button" class="modal-close" aria-label="Close" onclick="closeUploadExcelModal()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body space-y-6">
+                <!-- Step indicators -->
+                <ol class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <li id="upload-step-indicator-1" class="flex-1 flex items-center gap-2 font-medium">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-[10px]">1</span>
+                        <span>Select file</span>
+                    </li>
+                    <li id="upload-step-indicator-2" class="flex-1 flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">2</span>
+                        <span>Map columns</span>
+                    </li>
+                    <li id="upload-step-indicator-3" class="flex-1 flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">3</span>
+                        <span>Sync result</span>
+                    </li>
+                </ol>
+
+                <!-- Step 1: File select -->
+                <div id="upload-step-1" class="space-y-4">
+                    <div>
+                        <label for="excel-upload-input" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                            Choose Excel / CSV file
+                        </label>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Supported formats: .xlsx, .xls, .csv. The first sheet will be used.
+                        </p>
+                        <div class="mt-3">
+                            <button type="button"
+                                    class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                    onclick="document.getElementById('excel-upload-input').click()">
+                                Browse file
+                            </button>
+                            <input id="excel-upload-input" type="file" accept=".xlsx,.xls,.csv" class="hidden">
+                        </div>
+                    </div>
+                    <div id="upload-file-info" class="text-sm text-gray-600 dark:text-gray-300"></div>
+                    <div id="upload-preview-table" class="border border-gray-200 dark:border-gray-700 rounded-md max-h-64 overflow-auto text-xs text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/40"></div>
+                    <div id="upload-file-error" class="text-sm text-red-600 dark:text-red-400 hidden"></div>
+                </div>
+
+                <!-- Step 2: Column mapping -->
+                <div id="upload-step-2" class="space-y-4 hidden">
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        Map your Excel columns to page fields. Fields marked with * are required.
+                    </p>
+                    <div id="mapping-fields" class="space-y-3">
+                        <!-- Mapping rows populated by JavaScript -->
+                    </div>
+                    <div id="mapping-validation-error" class="text-sm text-red-600 dark:text-red-400 hidden"></div>
+                </div>
+
+                <!-- Step 3: Sync result -->
+                <div id="upload-step-3" class="space-y-4 hidden">
+                    <div id="sync-progress" class="text-sm text-gray-600 dark:text-gray-300">
+                        Syncing pages from Excel...
+                    </div>
+                    <div id="sync-results" class="text-sm text-gray-700 dark:text-gray-200 space-y-2">
+                        <!-- Filled with summary + error table by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="upload-excel-back-btn" class="modal-btn modal-btn-cancel hidden" onclick="uploadExcelPrevStep()">Back</button>
+                <button type="button" id="upload-excel-next-btn" class="modal-btn modal-btn-confirm" onclick="uploadExcelNextStep()">Next</button>
+                <button type="button" id="upload-excel-sync-btn" class="modal-btn modal-btn-confirm hidden" onclick="runUploadExcelSync()">Sync Pages</button>
+                <button type="button" id="upload-excel-close-btn" class="modal-btn modal-btn-cancel hidden" onclick="closeUploadExcelModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Pages from JSON Modal -->
+<div id="upload-json-modal" class="modal-container" role="dialog" aria-modal="true" aria-labelledby="upload-json-modal-title" aria-hidden="true" style="display: none;">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog max-w-2xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="upload-json-modal-title" class="modal-title">Upload Pages from JSON</h2>
+                <button type="button" class="modal-close" aria-label="Close" onclick="closeUploadJsonModal()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body space-y-6">
+                <ol class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <li id="json-step-indicator-1" class="flex-1 flex items-center gap-2 font-medium">
+                        <span class="inline-flex justify-center w-5 h-5 rounded-full bg-amber-600 text-white text-[10px]">1</span>
+                        <span>Select JSON files</span>
+                    </li>
+                    <li id="json-step-indicator-2" class="flex-1 flex items-center gap-2">
+                        <span class="inline-flex justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">2</span>
+                        <span>Preview & map</span>
+                    </li>
+                    <li id="json-step-indicator-3" class="flex-1 flex items-center gap-2">
+                        <span class="inline-flex justify-center w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-[10px]">3</span>
+                        <span>Sync result</span>
+                    </li>
+                </ol>
+
+                <div id="json-step-1" class="space-y-4">
+                    <div>
+                        <label for="json-upload-input" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Choose JSON file(s)</label>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Select one or more .json files. Each file can be a single page object or an array of pages.</p>
+                        <div class="mt-3">
+                            <button type="button"
+                                    class="inline-flex px-3 py-2 text-sm font-medium rounded-lg bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600"
+                                    onclick="document.getElementById('json-upload-input').click()">
+                                Browse files
+                            </button>
+                            <input id="json-upload-input" type="file" accept=".json,application/json" multiple class="hidden">
+                        </div>
+                    </div>
+                    <div id="json-file-info" class="text-sm text-gray-600 dark:text-gray-300"></div>
+                    <div id="json-preview-table" class="border border-gray-200 dark:border-gray-700 rounded-md max-h-64 overflow-auto text-xs text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/40"></div>
+                    <div id="json-file-error" class="text-sm text-red-600 dark:text-red-400 hidden"></div>
+                </div>
+
+                <div id="json-step-2" class="space-y-4 hidden">
+                    <p id="json-step-2-desc" class="text-sm text-gray-600 dark:text-gray-300"></p>
+                </div>
+
+                <div id="json-step-3" class="space-y-4 hidden">
+                    <div id="json-sync-progress" class="text-sm text-gray-600 dark:text-gray-300">Syncing pages...</div>
+                    <div id="json-sync-results" class="text-sm text-gray-700 dark:text-gray-200 space-y-2"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="json-back-btn" class="modal-btn modal-btn-cancel hidden" onclick="uploadJsonPrevStep()">Back</button>
+                <button type="button" id="json-next-btn" class="modal-btn modal-btn-confirm" onclick="uploadJsonNextStep()">Next</button>
+                <button type="button" id="json-sync-btn" class="modal-btn modal-btn-confirm hidden" onclick="runUploadJsonSync()">Sync Pages</button>
+                <button type="button" id="json-close-btn" class="modal-btn modal-btn-cancel hidden" onclick="closeUploadJsonModal()">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -930,6 +1131,8 @@
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <script>
     // Store initial data and URLs for backward compatibility
     const initialData = {{ initial_data|safe }};
@@ -937,6 +1140,14 @@
 
     // Initialize Dashboard Controller
     document.addEventListener('DOMContentLoaded', function() {
+        // Move Excel/JSON modals to body so they render above overflow containers (fixes black screen)
+        var dl = document.getElementById('download-excel-modal');
+        var ul = document.getElementById('upload-excel-modal');
+        var uj = document.getElementById('upload-json-modal');
+        if (dl) document.body.appendChild(dl);
+        if (ul) document.body.appendChild(ul);
+        if (uj) document.body.appendChild(uj);
+
         // Statistics are server-rendered; StatsLoader no longer used for initial load
         // Stats panel toggle functionality
             const toggleBtn = document.getElementById('stats-toggle-btn');
@@ -1387,6 +1598,958 @@
             var href = '/docs/postman/' + encodeURIComponent(configId) + '/';
             return '<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-2"><a href="' + href + '" class="font-medium text-amber-600 dark:text-amber-400 hover:underline">' + esc(configId) + '</a></td><td class="px-4 py-2">' + esc(name) + '</td><td class="px-4 py-2"><span class="px-2 py-0.5 rounded-full text-xs font-medium ' + stateClass(state) + '">' + esc(state) + '</span></td><td class="px-4 py-2 text-gray-500 dark:text-gray-400">' + esc(updated) + '</td></tr>';
         }).join('');
+    }
+
+    // CSRF helper used by Excel upload
+    function getCsrfToken() {
+        return document.cookie.split('; ')
+            .find(function (r) { return r.indexOf('csrftoken=') === 0; })
+            ?.split('=')[1] || '';
+    }
+
+    // ---------- Download Pages as Excel ----------
+
+    async function fetchAllPagesForExport(applyFilters) {
+        var allItems = [];
+        var page = 1;
+        var pageSize = 100;
+        var totalPages = null;
+        var baseUrl = '/api/v1/dashboard/pages/';
+
+        var filters = {};
+        if (applyFilters && window.unifiedDashboardController && window.unifiedDashboardController.filters) {
+            filters = window.unifiedDashboardController.filters.pages || {};
+        }
+
+        while (totalPages === null || page <= totalPages) {
+            var url = new URL(baseUrl, window.location.origin);
+            url.searchParams.set('page', String(page));
+            url.searchParams.set('page_size', String(pageSize));
+            url.searchParams.set('expand', 'full');
+
+            Object.keys(filters || {}).forEach(function (key) {
+                var value = filters[key];
+                if (value !== undefined && value !== null && value !== '') {
+                    url.searchParams.set(key, value);
+                }
+            });
+
+            var response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch pages for export: HTTP ' + response.status);
+            }
+
+            var json = await response.json();
+            if (!json || !json.data || !json.meta || !json.meta.pagination) {
+                break;
+            }
+
+            var items = Array.isArray(json.data) ? json.data : [];
+            allItems = allItems.concat(items);
+
+            var p = json.meta.pagination;
+            totalPages = p.total_pages || 1;
+            page += 1;
+
+            if (items.length === 0) {
+                break;
+            }
+        }
+
+        return allItems;
+    }
+
+    function pageToRow(p) {
+        var md = p.metadata || {};
+        var contentSections = md.content_sections || {};
+        var usesEndpoints = md.uses_endpoints || [];
+        return {
+            'Page ID': p.page_id || '',
+            'Route': md.route || p.route || '',
+            'Title/Purpose': contentSections.title || md.purpose || '',
+            'Status': md.status || '',
+            'Page State': md.page_state || '',
+            'Authentication': md.authentication || '',
+            'Endpoint Count': Array.isArray(usesEndpoints) ? usesEndpoints.length : 0,
+            'Updated At': p.updated_at || md.updated_at || md.last_updated || '',
+            'Created At': p.created_at || md.created_at || ''
+        };
+    }
+
+    function buildPagesExcelWorkbook(pages) {
+        if (typeof XLSX === 'undefined') {
+            throw new Error('Excel library (SheetJS) failed to load. Please refresh the page and try again.');
+        }
+        if (!Array.isArray(pages) || pages.length === 0) {
+            return null;
+        }
+        var sheetOrder = ['Docs', 'Marketing', 'Dashboard', 'Settings', 'Admin', 'Other'];
+        var typeToSheetName = { docs: 'Docs', marketing: 'Marketing', dashboard: 'Dashboard', settings: 'Settings', admin: 'Admin' };
+        var grouped = {};
+        sheetOrder.forEach(function (t) { grouped[t.toLowerCase()] = []; });
+        grouped['other'] = [];
+
+        pages.forEach(function (p) {
+            var pt = (p.page_type || (p.metadata && p.metadata.page_type) || '').toLowerCase() || 'other';
+            var key = typeToSheetName[pt] ? pt : 'other';
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(p);
+        });
+
+        var workbook = XLSX.utils.book_new();
+        sheetOrder.forEach(function (sheetLabel) {
+            var key = sheetLabel.toLowerCase();
+            var typePages = grouped[key] || [];
+            if (typePages.length === 0) return;
+            var rows = typePages.map(pageToRow);
+            var ws = XLSX.utils.json_to_sheet(rows);
+            var safeName = sheetLabel.replace(/[:\\/\?\*\[\]]/g, '_').substring(0, 31);
+            XLSX.utils.book_append_sheet(workbook, ws, safeName);
+        });
+
+        if (workbook.SheetNames.length === 0) {
+            var fallbackRows = pages.map(pageToRow);
+            var fallbackWs = XLSX.utils.json_to_sheet(fallbackRows);
+            XLSX.utils.book_append_sheet(workbook, fallbackWs, 'Pages');
+        }
+        return workbook;
+    }
+
+    function openDownloadExcelModal() {
+        var modal = document.getElementById('download-excel-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('modal-open');
+
+        // Attach close handlers
+        var closeBtn = modal.querySelector('.modal-close');
+        if (closeBtn) {
+            closeBtn.onclick = closeDownloadExcelModal;
+        }
+
+        var estimateEl = document.getElementById('download-excel-row-estimate');
+        if (estimateEl) {
+            var total = 0;
+            if (initialData && typeof initialData.total === 'number') {
+                total = initialData.total;
+            }
+            if (!total && window.unifiedDashboardController && window.unifiedDashboardController.data && window.unifiedDashboardController.data.pages && window.unifiedDashboardController.data.pages.pagination) {
+                total = window.unifiedDashboardController.data.pages.pagination.total || 0;
+            }
+            if (total) {
+                estimateEl.textContent = 'Approximately ' + total + ' pages will be exported.';
+            } else {
+                estimateEl.textContent = 'Number of pages will be determined before export.';
+            }
+        }
+
+        var progressEl = document.getElementById('download-excel-progress');
+        if (progressEl) {
+            progressEl.textContent = '';
+        }
+        var errorEl = document.getElementById('download-excel-error');
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
+    }
+
+    function closeDownloadExcelModal() {
+        var modal = document.getElementById('download-excel-modal');
+        if (!modal) return;
+        modal.classList.remove('modal-open');
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    async function runDownloadExcel() {
+        var btn = document.getElementById('download-excel-btn');
+        var progressEl = document.getElementById('download-excel-progress');
+        var errorEl = document.getElementById('download-excel-error');
+        var applyFiltersCheckbox = document.getElementById('download-excel-apply-filters');
+
+        if (btn) {
+            btn.disabled = true;
+        }
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
+        if (progressEl) {
+            progressEl.textContent = 'Fetching pages...';
+        }
+
+        try {
+            var applyFilters = !!(applyFiltersCheckbox && applyFiltersCheckbox.checked);
+            var pages = await fetchAllPagesForExport(applyFilters);
+            if (!pages || pages.length === 0) {
+                if (progressEl) {
+                    progressEl.textContent = 'No pages to export.';
+                }
+                return;
+            }
+            if (progressEl) {
+                progressEl.textContent = 'Building Excel workbook for ' + pages.length + ' pages...';
+            }
+            var workbook = buildPagesExcelWorkbook(pages);
+            if (!workbook) {
+                throw new Error('Failed to build Excel workbook.');
+            }
+            var today = new Date();
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+            var filename = 'pages_export_' + yyyy + '-' + mm + '-' + dd + '.xlsx';
+            XLSX.writeFile(workbook, filename);
+            if (progressEl) {
+                progressEl.textContent = 'Download started.';
+            }
+        } catch (err) {
+            console.error(err);
+            if (errorEl) {
+                errorEl.textContent = err && err.message ? err.message : String(err);
+                errorEl.classList.remove('hidden');
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+            }
+        }
+    }
+
+    // ---------- Upload Pages from Excel ----------
+
+    var _excelUploadData = null;
+    var _excelUploadStep = 1;
+    var _excelUploadMapping = null;
+
+    function setUploadStep(step) {
+        _excelUploadStep = step;
+        var step1 = document.getElementById('upload-step-1');
+        var step2 = document.getElementById('upload-step-2');
+        var step3 = document.getElementById('upload-step-3');
+        var ind1 = document.getElementById('upload-step-indicator-1');
+        var ind2 = document.getElementById('upload-step-indicator-2');
+        var ind3 = document.getElementById('upload-step-indicator-3');
+        var backBtn = document.getElementById('upload-excel-back-btn');
+        var nextBtn = document.getElementById('upload-excel-next-btn');
+        var syncBtn = document.getElementById('upload-excel-sync-btn');
+        var closeBtn = document.getElementById('upload-excel-close-btn');
+
+        if (step1) step1.classList.toggle('hidden', step !== 1);
+        if (step2) step2.classList.toggle('hidden', step !== 2);
+        if (step3) step3.classList.toggle('hidden', step !== 3);
+
+        if (ind1) ind1.classList.toggle('font-medium', step === 1);
+        if (ind2) ind2.classList.toggle('font-medium', step === 2);
+        if (ind3) ind3.classList.toggle('font-medium', step === 3);
+
+        if (backBtn) backBtn.classList.toggle('hidden', step === 1);
+        if (nextBtn) nextBtn.classList.toggle('hidden', step !== 1 && step !== 2);
+        if (syncBtn) syncBtn.classList.toggle('hidden', step !== 2);
+        if (closeBtn) closeBtn.classList.toggle('hidden', step !== 3);
+    }
+
+    function openUploadExcelModal() {
+        var modal = document.getElementById('upload-excel-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('modal-open');
+
+        _excelUploadData = null;
+        _excelUploadMapping = null;
+        setUploadStep(1);
+
+        var fileInfo = document.getElementById('upload-file-info');
+        var preview = document.getElementById('upload-preview-table');
+        var fileError = document.getElementById('upload-file-error');
+        var mappingError = document.getElementById('mapping-validation-error');
+        var syncProgress = document.getElementById('sync-progress');
+        var syncResults = document.getElementById('sync-results');
+
+        if (fileInfo) fileInfo.textContent = '';
+        if (preview) preview.innerHTML = '';
+        if (fileError) { fileError.classList.add('hidden'); fileError.textContent = ''; }
+        if (mappingError) { mappingError.classList.add('hidden'); mappingError.textContent = ''; }
+        if (syncProgress) syncProgress.textContent = 'Syncing pages from Excel...';
+        if (syncResults) syncResults.innerHTML = '';
+
+        var fileInput = document.getElementById('excel-upload-input');
+        if (fileInput && !fileInput._excelUploadBound) {
+            fileInput.addEventListener('change', handleExcelFileSelected);
+            fileInput._excelUploadBound = true;
+        }
+    }
+
+    function closeUploadExcelModal() {
+        var modal = document.getElementById('upload-excel-modal');
+        if (!modal) return;
+        modal.classList.remove('modal-open');
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function handleExcelFileSelected(event) {
+        var file = event.target.files && event.target.files[0];
+        var fileInfo = document.getElementById('upload-file-info');
+        var preview = document.getElementById('upload-preview-table');
+        var fileError = document.getElementById('upload-file-error');
+
+        if (fileError) { fileError.classList.add('hidden'); fileError.textContent = ''; }
+        if (!file) {
+            if (fileInfo) fileInfo.textContent = 'No file selected.';
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            if (fileError) {
+                fileError.textContent = 'File is too large. Please upload a file up to 10 MB.';
+                fileError.classList.remove('hidden');
+            }
+            return;
+        }
+
+        if (fileInfo) fileInfo.textContent = 'Selected file: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+        if (preview) preview.innerHTML = 'Parsing file...';
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                if (typeof XLSX === 'undefined') {
+                    throw new Error('Excel library (SheetJS) failed to load. Please refresh the page and try again.');
+                }
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheetName = workbook.SheetNames[0];
+                var sheet = workbook.Sheets[sheetName];
+                var rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                if (!rows || rows.length < 2) {
+                    if (fileError) {
+                        fileError.textContent = 'The file does not contain any data rows.';
+                        fileError.classList.remove('hidden');
+                    }
+                    if (preview) preview.innerHTML = '';
+                    return;
+                }
+                var headers = rows[0].map(function (h) { return String(h || '').trim(); });
+                var dataRows = rows.slice(1).map(function (r) {
+                    var obj = {};
+                    headers.forEach(function (h, idx) {
+                        obj[h] = r[idx] != null ? String(r[idx]) : '';
+                    });
+                    return obj;
+                });
+                _excelUploadData = { headers: headers, rows: dataRows };
+                renderUploadPreviewTable(headers, dataRows);
+                autoBuildMappingUI(headers);
+            } catch (err) {
+                console.error(err);
+                if (fileError) {
+                    fileError.textContent = 'Failed to parse file: ' + (err && err.message ? err.message : String(err));
+                    fileError.classList.remove('hidden');
+                }
+                if (preview) preview.innerHTML = '';
+            }
+        };
+        reader.onerror = function () {
+            if (fileError) {
+                fileError.textContent = 'Failed to read file.';
+                fileError.classList.remove('hidden');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function renderUploadPreviewTable(headers, rows) {
+        var preview = document.getElementById('upload-preview-table');
+        if (!preview) return;
+        var maxRows = 5;
+        var html = '<table class="min-w-full text-left text-[11px]"><thead><tr>';
+        headers.forEach(function (h) {
+            html += '<th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 font-medium">' + h.replace(/</g, '&lt;') + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        rows.slice(0, maxRows).forEach(function (row) {
+            html += '<tr>';
+            headers.forEach(function (h) {
+                var v = row[h] != null ? String(row[h]) : '';
+                html += '<td class="px-2 py-1 border-b border-gray-100 dark:border-gray-800 text-gray-700 dark:text-gray-200">' + v.replace(/</g, '&lt;') + '</td>';
+            });
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        preview.innerHTML = html;
+    }
+
+    function autoDetectHeader(headers, patterns) {
+        for (var i = 0; i < headers.length; i++) {
+            var h = headers[i];
+            var normalized = h.trim();
+            for (var j = 0; j < patterns.length; j++) {
+                if (patterns[j].test(normalized)) {
+                    return h;
+                }
+            }
+        }
+        return '';
+    }
+
+    function autoBuildMappingUI(headers) {
+        var container = document.getElementById('mapping-fields');
+        if (!container) return;
+        container.innerHTML = '';
+
+        var fields = [
+            { key: 'page_id', label: 'Page ID *', required: true, patterns: [/^page[_\s-]?id$/i, /^id$/i] },
+            { key: 'route', label: 'Route *', required: true, patterns: [/^route$/i, /^path$/i, /^url$/i] },
+            { key: 'page_type', label: 'Page Type', required: false, patterns: [/^page[_\s-]?type$/i, /^type$/i] },
+            { key: 'purpose', label: 'Purpose / Title', required: false, patterns: [/^purpose$/i, /^description$/i, /^title$/i] },
+            { key: 'status', label: 'Status', required: false, patterns: [/^status$/i, /^state$/i] },
+            { key: 'content', label: 'Content', required: false, patterns: [/^content$/i, /^body$/i] }
+        ];
+
+        var mapping = {};
+
+        fields.forEach(function (field) {
+            var detected = autoDetectHeader(headers, field.patterns || []);
+            mapping[field.key] = detected || '';
+
+            var row = document.createElement('div');
+            row.className = 'flex items-center gap-3';
+
+            var label = document.createElement('label');
+            label.className = 'w-40 text-sm text-gray-700 dark:text-gray-200';
+            label.textContent = field.label;
+            row.appendChild(label);
+
+            var select = document.createElement('select');
+            select.className = 'flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100';
+            select.setAttribute('data-mapping-key', field.key);
+
+            var emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = '— Skip —';
+            select.appendChild(emptyOption);
+
+            headers.forEach(function (h) {
+                var opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = h;
+                if (detected && detected === h) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+
+            row.appendChild(select);
+            container.appendChild(row);
+        });
+
+        _excelUploadMapping = mapping;
+
+        container.querySelectorAll('select').forEach(function (select) {
+            select.addEventListener('change', function (e) {
+                var key = e.target.getAttribute('data-mapping-key');
+                if (!key) return;
+                _excelUploadMapping[key] = e.target.value || '';
+            });
+        });
+    }
+
+    function validateUploadMapping() {
+        var errEl = document.getElementById('mapping-validation-error');
+        if (errEl) {
+            errEl.classList.add('hidden');
+            errEl.textContent = '';
+        }
+        if (!_excelUploadMapping) {
+            if (errEl) {
+                errEl.textContent = 'Mapping is not ready yet.';
+                errEl.classList.remove('hidden');
+            }
+            return false;
+        }
+        if (!_excelUploadMapping.page_id || !_excelUploadMapping.route) {
+            if (errEl) {
+                errEl.textContent = 'Please map at least Page ID and Route.';
+                errEl.classList.remove('hidden');
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function buildPagesPayload(rows, mapping) {
+        return rows.map(function (row) {
+            var pageId = mapping.page_id ? (row[mapping.page_id] || '').trim() : '';
+            var route = mapping.route ? (row[mapping.route] || '').trim() : '';
+            if (!pageId || !route) {
+                return null;
+            }
+            var pageType = mapping.page_type ? (row[mapping.page_type] || '').trim() : 'docs';
+            var purpose = mapping.purpose ? (row[mapping.purpose] || '').trim() : '';
+            var status = mapping.status ? (row[mapping.status] || '').trim() : 'published';
+            var content = mapping.content ? (row[mapping.content] || '') : '';
+            return {
+                page_id: pageId,
+                page_type: pageType || 'docs',
+                route: route,
+                title: purpose,
+                status: status || 'published',
+                content: content,
+                metadata: {
+                    route: route,
+                    purpose: purpose,
+                    status: status || 'published'
+                }
+            };
+        }).filter(function (p) { return p !== null; });
+    }
+
+    function uploadExcelNextStep() {
+        if (_excelUploadStep === 1) {
+            if (!_excelUploadData || !_excelUploadData.headers || !_excelUploadData.rows) {
+                var fileError = document.getElementById('upload-file-error');
+                if (fileError) {
+                    fileError.textContent = 'Please select and parse a valid Excel / CSV file first.';
+                    fileError.classList.remove('hidden');
+                }
+                return;
+            }
+            setUploadStep(2);
+        } else if (_excelUploadStep === 2) {
+            if (!validateUploadMapping()) {
+                return;
+            }
+            setUploadStep(3);
+        }
+    }
+
+    function uploadExcelPrevStep() {
+        if (_excelUploadStep === 2) {
+            setUploadStep(1);
+        } else if (_excelUploadStep === 3) {
+            setUploadStep(2);
+        }
+    }
+
+    async function runUploadExcelSync() {
+        if (!_excelUploadData || !_excelUploadData.rows || !_excelUploadMapping) {
+            return;
+        }
+        if (!validateUploadMapping()) {
+            return;
+        }
+        var progressEl = document.getElementById('sync-progress');
+        var resultsEl = document.getElementById('sync-results');
+        var syncBtn = document.getElementById('upload-excel-sync-btn');
+
+        if (progressEl) progressEl.textContent = 'Syncing pages...';
+        if (resultsEl) resultsEl.innerHTML = '';
+        if (syncBtn) syncBtn.disabled = true;
+
+        try {
+            var payload = buildPagesPayload(_excelUploadData.rows, _excelUploadMapping);
+            if (!payload || payload.length === 0) {
+                if (progressEl) progressEl.textContent = 'No valid rows to sync (missing Page ID or Route).';
+                return;
+            }
+            var resp = await fetch('/docs/api/pages/bulk-import/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ pages: payload })
+            });
+            if (!resp.ok) {
+                throw new Error('Bulk import failed: HTTP ' + resp.status);
+            }
+            var json = await resp.json();
+            if (!json || json.success === false) {
+                throw new Error((json && json.error) || 'Bulk import did not succeed.');
+            }
+            var data = json.data || {};
+            var created = data.created || 0;
+            var updated = data.updated || 0;
+            var failed = data.failed || 0;
+            var errors = data.errors || [];
+
+            if (progressEl) {
+                progressEl.textContent = 'Sync completed.';
+            }
+            if (resultsEl) {
+                var html = '';
+                html += '<p>Created: <span class="font-semibold">' + created + '</span></p>';
+                html += '<p>Updated: <span class="font-semibold">' + updated + '</span></p>';
+                html += '<p>Failed: <span class="font-semibold">' + failed + '</span></p>';
+                if (errors.length > 0) {
+                    html += '<div class="mt-3 border border-red-200 dark:border-red-800 rounded-md max-h-40 overflow-auto text-xs">';
+                    html += '<table class="min-w-full text-left"><thead><tr><th class="px-2 py-1 border-b">Row</th><th class="px-2 py-1 border-b">Page ID</th><th class="px-2 py-1 border-b">Error</th></tr></thead><tbody>';
+                    errors.forEach(function (err) {
+                        html += '<tr><td class="px-2 py-1 border-b">' + (err.row || '') + '</td><td class="px-2 py-1 border-b">' + (err.page_id || '') + '</td><td class="px-2 py-1 border-b">' + (err.error || '') + '</td></tr>';
+                    });
+                    html += '</tbody></table></div>';
+                }
+                resultsEl.innerHTML = html;
+            }
+
+            setUploadStep(3);
+
+            // Reload pages list if controller is available
+            if (window.unifiedDashboardController && typeof window.unifiedDashboardController.loadView === 'function') {
+                window.unifiedDashboardController.loadView('pages', 'list');
+            }
+        } catch (err) {
+            console.error(err);
+            if (progressEl) {
+                progressEl.textContent = 'Sync failed: ' + (err && err.message ? err.message : String(err));
+            }
+        } finally {
+            if (syncBtn) syncBtn.disabled = false;
+        }
+    }
+
+    // ---------- Upload Pages from JSON ----------
+
+    var _jsonUploadPages = [];
+    var _jsonUploadStep = 1;
+
+    function setJsonStep(step) {
+        _jsonUploadStep = step;
+        var step1 = document.getElementById('json-step-1');
+        var step2 = document.getElementById('json-step-2');
+        var step3 = document.getElementById('json-step-3');
+        var ind1 = document.getElementById('json-step-indicator-1');
+        var ind2 = document.getElementById('json-step-indicator-2');
+        var ind3 = document.getElementById('json-step-indicator-3');
+        var backBtn = document.getElementById('json-back-btn');
+        var nextBtn = document.getElementById('json-next-btn');
+        var syncBtn = document.getElementById('json-sync-btn');
+        var closeBtn = document.getElementById('json-close-btn');
+
+        if (step1) step1.classList.toggle('hidden', step !== 1);
+        if (step2) step2.classList.toggle('hidden', step !== 2);
+        if (step3) step3.classList.toggle('hidden', step !== 3);
+
+        if (ind1) ind1.classList.toggle('font-medium', step === 1);
+        if (ind2) ind2.classList.toggle('font-medium', step === 2);
+        if (ind3) ind3.classList.toggle('font-medium', step === 3);
+
+        if (backBtn) backBtn.classList.toggle('hidden', step === 1);
+        if (nextBtn) nextBtn.classList.toggle('hidden', step !== 1 && step !== 2);
+        if (syncBtn) syncBtn.classList.toggle('hidden', step !== 2);
+        if (closeBtn) closeBtn.classList.toggle('hidden', step !== 3);
+    }
+
+    function openUploadJsonModal() {
+        var modal = document.getElementById('upload-json-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        modal.classList.add('modal-open');
+
+        _jsonUploadPages = [];
+        setJsonStep(1);
+
+        var fileInfo = document.getElementById('json-file-info');
+        var preview = document.getElementById('json-preview-table');
+        var fileError = document.getElementById('json-file-error');
+        var syncProgress = document.getElementById('json-sync-progress');
+        var syncResults = document.getElementById('json-sync-results');
+
+        if (fileInfo) fileInfo.textContent = '';
+        if (preview) preview.innerHTML = '';
+        if (fileError) { fileError.classList.add('hidden'); fileError.textContent = ''; }
+        if (syncProgress) syncProgress.textContent = 'Syncing pages from JSON...';
+        if (syncResults) syncResults.innerHTML = '';
+
+        var fileInput = document.getElementById('json-upload-input');
+        if (fileInput && !fileInput._jsonUploadBound) {
+            fileInput.addEventListener('change', handleJsonFilesSelected);
+            fileInput._jsonUploadBound = true;
+        }
+    }
+
+    function closeUploadJsonModal() {
+        var modal = document.getElementById('upload-json-modal');
+        if (!modal) return;
+        modal.classList.remove('modal-open');
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function normalizeJsonToPage(obj) {
+        if (!obj || typeof obj !== 'object') return null;
+        var md = obj.metadata || {};
+        var pageId = obj.page_id || (obj._id && String(obj._id).replace(/-00\d+$/, '')) || '';
+        if (!pageId && md.page_id) pageId = md.page_id;
+        var route = md.route || obj.route || '/';
+        var pageType = obj.page_type || md.page_type || 'docs';
+        var title = md.purpose || (obj.metadata && obj.metadata.purpose) || '';
+        if (!title && pageId) {
+            // Derive a human-friendly title from page_id for minimal/index JSON entries
+            try {
+                title = String(pageId)
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+            } catch (e) {
+                title = String(pageId);
+            }
+        }
+        if (!pageId) return null;
+        return {
+            page_id: String(pageId).trim(),
+            page_type: (pageType || 'docs').toString().toLowerCase(),
+            route: (route || '/').toString(),
+            title: title,
+            status: (md.status || obj.status || 'published').toString(),
+            content: obj.content || '',
+            metadata: obj.metadata || {},
+            _id: obj._id,
+            raw: obj
+        };
+    }
+
+    function handleJsonFilesSelected(event) {
+        var files = event.target.files;
+        var fileInfo = document.getElementById('json-file-info');
+        var preview = document.getElementById('json-preview-table');
+        var fileError = document.getElementById('json-file-error');
+
+        if (fileError) { fileError.classList.add('hidden'); fileError.textContent = ''; }
+        if (!files || files.length === 0) {
+            if (fileInfo) fileInfo.textContent = 'No files selected.';
+            _jsonUploadPages = [];
+            return;
+        }
+
+        var totalSize = 0;
+        for (var i = 0; i < files.length; i++) totalSize += files[i].size;
+        if (totalSize > 10 * 1024 * 1024) {
+            if (fileError) {
+                fileError.textContent = 'Total size exceeds 10 MB. Please upload smaller files.';
+                fileError.classList.remove('hidden');
+            }
+            return;
+        }
+
+        if (fileInfo) fileInfo.textContent = 'Parsing ' + files.length + ' file(s)...';
+        if (preview) preview.innerHTML = '';
+
+        var allPages = [];
+        var filesToRead = files.length;
+        var filesRead = 0;
+
+        function tryFinish() {
+            filesRead++;
+            if (filesRead < filesToRead) return;
+            _jsonUploadPages = allPages.filter(function (p) { return p && p.page_id; });
+            if (fileInfo) fileInfo.textContent = 'Loaded ' + _jsonUploadPages.length + ' page(s) from ' + files.length + ' file(s).';
+            renderJsonPreviewTable(_jsonUploadPages);
+        }
+
+        for (var i = 0; i < files.length; i++) {
+            (function (idx) {
+                var f = files[idx];
+                var r = new FileReader();
+                r.onload = function (e) {
+                    try {
+                        var parsed = JSON.parse(e.target.result);
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(function (item) {
+                                var p = normalizeJsonToPage(item);
+                                if (p && p.page_id) allPages.push(p);
+                            });
+                        } else {
+                            var p = normalizeJsonToPage(parsed);
+                            if (p && p.page_id) allPages.push(p);
+                        }
+                    } catch (err) {
+                        if (fileError) {
+                            fileError.textContent = 'Invalid JSON in ' + f.name + ': ' + (err.message || String(err));
+                            fileError.classList.remove('hidden');
+                        }
+                    }
+                    tryFinish();
+                };
+                r.onerror = function () {
+                    if (fileError) {
+                        fileError.textContent = 'Failed to read ' + f.name;
+                        fileError.classList.remove('hidden');
+                    }
+                    tryFinish();
+                };
+                r.readAsText(f, 'UTF-8');
+            })(i);
+        }
+    }
+
+    function renderJsonPreviewTable(pages) {
+        var el = document.getElementById('json-preview-table');
+        if (!el) return;
+        if (!pages || pages.length === 0) {
+            el.innerHTML = '<p class="p-3 text-gray-500">No valid pages found.</p>';
+            return;
+        }
+        var html = '<table class="min-w-full text-left"><thead><tr><th class="px-2 py-1 border-b font-medium">#</th><th class="px-2 py-1 border-b font-medium">Page ID</th><th class="px-2 py-1 border-b font-medium">Type</th><th class="px-2 py-1 border-b font-medium">Route</th></tr></thead><tbody>';
+        pages.slice(0, 20).forEach(function (p, i) {
+            html += '<tr><td class="px-2 py-1 border-b">' + (i + 1) + '</td><td class="px-2 py-1 border-b font-mono">' + (p.page_id || '') + '</td><td class="px-2 py-1 border-b">' + (p.page_type || '') + '</td><td class="px-2 py-1 border-b">' + (p.route || '') + '</td></tr>';
+        });
+        if (pages.length > 20) html += '<tr><td colspan="4" class="px-2 py-1 text-gray-500">... and ' + (pages.length - 20) + ' more</td></tr>';
+        html += '</tbody></table>';
+        el.innerHTML = html;
+    }
+
+    function uploadJsonNextStep() {
+        if (_jsonUploadStep === 1) {
+            if (!_jsonUploadPages || _jsonUploadPages.length === 0) {
+                var err = document.getElementById('json-file-error');
+                if (err) {
+                    err.textContent = 'Please select valid JSON file(s) with page data first.';
+                    err.classList.remove('hidden');
+                }
+                return;
+            }
+            var desc = document.getElementById('json-step-2-desc');
+            if (desc) desc.textContent = _jsonUploadPages.length + ' page(s) ready to sync. Click "Sync Pages" to import.';
+            setJsonStep(2);
+        }
+    }
+
+    function uploadJsonPrevStep() {
+        if (_jsonUploadStep === 2) setJsonStep(1);
+        else if (_jsonUploadStep === 3) setJsonStep(2);
+    }
+
+    function buildJsonPagesPayload() {
+        if (!_jsonUploadPages || _jsonUploadPages.length === 0) return [];
+        var maxPages = 500;
+        return _jsonUploadPages.slice(0, maxPages).map(function (p) {
+            var title = p.title || (p.metadata && p.metadata.purpose) || '';
+            if (!title && p.page_id) title = String(p.page_id).replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+            if (p.raw && p.raw.page_id) {
+                var out = Object.assign({}, p.raw);
+                if (!out.title) out.title = title;
+                return out;
+            }
+            return {
+                page_id: p.page_id,
+                page_type: p.page_type || 'docs',
+                route: p.route || '/',
+                title: title,
+                status: p.status || 'published',
+                content: p.content || '',
+                metadata: p.metadata || {},
+                _id: p._id
+            };
+        });
+    }
+
+    async function runUploadJsonSync() {
+        if (!_jsonUploadPages || _jsonUploadPages.length === 0) return;
+
+        var progressEl = document.getElementById('json-sync-progress');
+        var resultsEl = document.getElementById('json-sync-results');
+        var syncBtn = document.getElementById('json-sync-btn');
+
+        if (progressEl) progressEl.textContent = 'Syncing pages...';
+        if (resultsEl) resultsEl.innerHTML = '';
+        if (syncBtn) syncBtn.disabled = true;
+
+        try {
+            var payload = buildJsonPagesPayload();
+            if (!payload || payload.length === 0) {
+                if (progressEl) progressEl.textContent = 'No valid pages to sync.';
+                return;
+            }
+            var resp = await fetch('/docs/api/pages/bulk-import/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                credentials: 'same-origin',
+                body: JSON.stringify({ pages: payload })
+            });
+            var json = null;
+            try { json = await resp.json(); } catch (_) { json = {}; }
+            if (!resp.ok) {
+                var msg = (json && json.message) || (json && json.error) || ('Bulk import failed: HTTP ' + resp.status);
+                if (resp.status === 403) msg = (json && json.message) ? String(json.message) : 'Access denied. Please log in as Admin or SuperAdmin.';
+                if (resp.status === 401) msg = (json && json.message) ? String(json.message) : 'Authentication required. Please log in.';
+                throw new Error(msg);
+            }
+            if (!json || json.success === false) throw new Error((json && json.error) || (json && json.message) || 'Bulk import did not succeed.');
+
+            var data = json.data || {};
+            var created = data.created || 0;
+            var updated = data.updated || 0;
+            var failed = data.failed || 0;
+            var errors = data.errors || [];
+
+            if (progressEl) progressEl.textContent = 'Sync completed.';
+            if (resultsEl) {
+                var html = '<p>Created: <span class="font-semibold">' + created + '</span></p>';
+                html += '<p>Updated: <span class="font-semibold">' + updated + '</span></p>';
+                html += '<p>Failed: <span class="font-semibold">' + failed + '</span></p>';
+                if (errors.length > 0) {
+                    html += '<div class="mt-3 border border-red-200 dark:border-red-800 rounded-md max-h-40 overflow-auto text-xs"><table class="min-w-full text-left"><thead><tr><th class="px-2 py-1 border-b">Row</th><th class="px-2 py-1 border-b">Page ID</th><th class="px-2 py-1 border-b">Error / Suggestion</th></tr></thead><tbody>';
+                    errors.forEach(function (err) {
+                        html += '<tr><td class="px-2 py-1 border-b">' + (err.row || '') + '</td><td class="px-2 py-1 border-b">' + (err.page_id || '') + '</td><td class="px-2 py-1 border-b">' + formatJsonUploadError(err) + '</td></tr>';
+                    });
+                    html += '</tbody></table></div>';
+                }
+                resultsEl.innerHTML = html;
+            }
+            setJsonStep(3);
+            if (window.unifiedDashboardController && typeof window.unifiedDashboardController.loadView === 'function') {
+                window.unifiedDashboardController.loadView('pages', 'list');
+            }
+        } catch (err) {
+            console.error(err);
+            if (progressEl) progressEl.textContent = 'Sync failed: ' + (err && err.message ? err.message : String(err));
+        } finally {
+            if (syncBtn) syncBtn.disabled = false;
+        }
+    }
+
+    function formatJsonUploadError(err) {
+        var base = (err && err.error) ? String(err.error) : '';
+        var suggestions = [];
+
+        if (!base) {
+            return 'Unknown error. Please check your JSON structure for this page.';
+        }
+
+        var pageId = err && err.page_id ? String(err.page_id) : '';
+
+        if (base.indexOf('page_id is required') !== -1) {
+            suggestions.push('Add a non-empty \"page_id\" field to each page object. Example: { \"page_id\": \"my_page_id\", \"title\": \"My Page\", ... }.');
+        }
+
+        if (base.indexOf('Missing required fields') !== -1 && base.indexOf('title') !== -1) {
+            var exampleId = pageId || 'my_page_id';
+            suggestions.push('Add a \"title\" field for page_id \"' + exampleId + '\". Example: { \"page_id\": \"' + exampleId + '\", \"title\": \"Human readable title\", \"route\": \"/' + exampleId + '\", \"page_type\": \"docs\", ... }.');
+        }
+
+        if (base.indexOf('Maximum 500 pages per import') !== -1) {
+            suggestions.push('Reduce the number of pages in your JSON to 500 or fewer, then try again.');
+        }
+
+        if (!suggestions.length) {
+            return base;
+        }
+
+        return base + ' — ' + suggestions.join(' ');
     }
 </script>
 {% endblock %}

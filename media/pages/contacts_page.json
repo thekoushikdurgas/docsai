@@ -190,7 +190,41 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "contacts_page",
+      "route": "/contacts",
+      "page_type": "dashboard",
+      "purpose": "Contact listing and management with VQL filtering, natural language AI search, Query Builder, saved searches, Simple/Full view modes, bulk export (Pro), import, and pagination.",
+      "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+      "authorization": "Export requires Pro+ (gated via getContactsFloatingActions isPro check)",
+      "endpoints": [
+        { "endpoint_path": "graphql/ContactQuery", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/ContactCount", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/ListSavedSearches", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/ParseFilters", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/CreateSavedSearch", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/UpdateSavedSearch", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/DeleteSavedSearch", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/CreateContactExport", "method": "MUTATION", "usage_context": "data_mutation" }
+      ],
+      "ui_components": [
+        "DataPageLayout",
+        "DashboardAccessGate",
+        "ContactsFilters",
+        "NaturalLanguageSearch",
+        "ContactsTableContainer",
+        "ContactsMetadata",
+        "ContactsFloatingActions",
+        "ContactsModals",
+        "VQLQueryBuilder",
+        "SaveSearchModal",
+        "SavedSearchesModal",
+        "ExportConfirmModal"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }

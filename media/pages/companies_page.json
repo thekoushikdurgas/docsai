@@ -136,7 +136,36 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "companies_page",
+      "route": "/companies",
+      "page_type": "dashboard",
+      "purpose": "Company listing and management page with VQL filtering, search, grid/list view modes, bulk export (Pro+), pagination, and AI-powered company summaries via Gemini.",
+      "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+      "authorization": "BULK_EXPORT requires Pro+ via hasFeatureAccess(Feature.BULK_EXPORT)",
+      "endpoints": [
+        { "endpoint_path": "graphql/CompanyQuery", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/CompanyFilters", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/GenerateCompanySummary", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/CreateCompanyExport", "method": "MUTATION", "usage_context": "data_mutation" }
+      ],
+      "ui_components": [
+        "DataPageLayout",
+        "DashboardAccessGate",
+        "CompaniesFilterSidebar",
+        "CompaniesDataDisplay",
+        "CompaniesGrid",
+        "CompaniesList",
+        "CompanySummaryCard",
+        "CompaniesModals",
+        "DataToolbar",
+        "Pagination",
+        "ExportConfirmModal"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }

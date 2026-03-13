@@ -140,7 +140,34 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "ai_chat_page",
+      "route": "/ai-chat",
+      "page_type": "dashboard",
+      "purpose": "AI chat assistant (NexusAI Pro) with sidebar (chat list, search), model selector, message streaming via WebSocket or SSE fallback, rate limit handling. Create/delete chats, send messages. Pro/feature access gated.",
+      "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+      "authorization": "Gated via DashboardAccessGate (pageId: ai-chat). Pro/Feature.AI_CHAT access required.",
+      "endpoints": [
+        { "endpoint_path": "graphql/ListAIChats", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/GetAIChat", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/CreateAIChat", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/UpdateAIChat", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/DeleteAIChat", "method": "MUTATION", "usage_context": "data_mutation" },
+        { "endpoint_path": "graphql/SendMessage", "method": "MUTATION", "usage_context": "data_mutation" }
+      ],
+      "ui_components": [
+        "DashboardAccessGate",
+        "ChatSidebar",
+        "ChatHeader",
+        "ChatRateLimitAlert",
+        "ChatMessagesList",
+        "ChatMobileSidebar",
+        "ChatWelcomeOrInput"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }

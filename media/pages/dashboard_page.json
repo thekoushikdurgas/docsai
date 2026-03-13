@@ -151,7 +151,36 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "dashboard_page",
+      "route": "/dashboard",
+      "page_type": "dashboard",
+      "purpose": "Main dashboard page with stats (admin/superAdmin only), performance chart, activity feed, pending exports, usage overview, quick actions, and upgrade banner for free users.",
+      "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+      "authorization": "Stats grid (userStats) visible only to admin/superAdmin. Performance chart and activity feed gated via DashboardComponentGuard.",
+      "endpoints": [
+        { "endpoint_path": "graphql/UserStats", "method": "QUERY", "usage_context": "analytics" },
+        { "endpoint_path": "graphql/Activities", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/ListExports", "method": "QUERY", "usage_context": "data_fetching" },
+        { "endpoint_path": "graphql/Usage", "method": "QUERY", "usage_context": "data_fetching" }
+      ],
+      "ui_components": [
+        "DashboardPageLayout",
+        "DashboardAccessGate",
+        "DashboardComponentGuard",
+        "DashboardHeader",
+        "StatsGrid",
+        "DashboardPerformanceChart",
+        "DashboardActivityFeed",
+        "DashboardQuickActions",
+        "DashboardPendingExports",
+        "DashboardUpgradeBanner",
+        "UsageOverview"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }

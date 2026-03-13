@@ -100,7 +100,37 @@
     "ui_components": [],
     "endpoints": []
   },
-  "fallback_data": [],
+  "fallback_data": [
+    {
+      "source": "dashboardMetadata",
+      "page_id": "activities_page",
+      "route": "/activities",
+      "page_type": "dashboard",
+      "purpose": "Activity tracking page with stats cards, filterable activity table, and details modal. Filters: service_type, action_type, status, date range. Data batched via activitiesPageApi (activities + activityStats).",
+      "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+      "endpoints": [
+        {
+          "endpoint_path": "graphql/GetActivities",
+          "method": "QUERY",
+          "usage_context": "data_fetching"
+        },
+        {
+          "endpoint_path": "graphql/GetActivityStats",
+          "method": "QUERY",
+          "usage_context": "analytics"
+        }
+      ],
+      "ui_components": [
+        "DashboardAccessGate",
+        "DataPageLayout",
+        "DataToolbar",
+        "ActivityStatsCards",
+        "ActivityTable",
+        "ActivityDetailsModal",
+        "ActivitiesSidebar"
+      ]
+    }
+  ],
   "mock_data": [],
   "demo_data": []
 }
