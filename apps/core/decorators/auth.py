@@ -1,6 +1,5 @@
 """Authentication decorators for Appointment360 GraphQL auth."""
 
-import json
 import logging
 import time
 from functools import wraps
@@ -100,16 +99,6 @@ def require_super_admin(view_func):
         if not access_token:
             is_browser = _is_browser_request(request)
             if is_browser:
-                # #region agent log
-                if "/docs/pages/create" in (request.path or ""):
-                    try:
-                        import os as _os
-                        _lp = _os.path.normpath(_os.path.join(_os.path.dirname(__file__), "..", "..", "..", "..", "..", ".cursor", "debug.log"))
-                        with open(_lp, "a", encoding="utf-8") as _f:
-                            _f.write(json.dumps({"hypothesisId": "C", "location": "auth:require_super_admin:redirect_login", "message": "redirect to login (no token)", "data": {"path": request.path}, "timestamp": int(time.time() * 1000)}) + "\n")
-                    except Exception:
-                        pass
-                # #endregion
                 next_url = quote(request.path) if request.path else '/'
                 return redirect(f"{settings.LOGIN_URL}?next={next_url}")
             return _forbidden_response(request, "Authentication required")
@@ -130,13 +119,6 @@ def require_super_admin(view_func):
                 return _forbidden_response(request, "Failed to verify permissions")
         
         if not is_super_admin:
-            # #region agent log
-            if "/import/n8n/bulk" in request.path:
-                try:
-                    open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H2", "location": "auth:require_super_admin:403", "message": "not super_admin returning _forbidden_response", "data": {"path": request.path}, "timestamp": int(time.time() * 1000)}) + "\n")
-                except Exception:
-                    pass
-            # #endregion
             return _forbidden_response(
                 request,
                 "Access denied. SuperAdmin role required."
@@ -231,13 +213,6 @@ def _forbidden_response(request, message: str):
         content_type == "application/json" or
         request.path.startswith("/api/")
     )
-    # #region agent log
-    if "/import/n8n/bulk" in request.path:
-        try:
-            open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H2", "location": "auth:_forbidden_response", "message": "forbidden response", "data": {"path": request.path, "wants_json": wants_json}, "timestamp": int(time.time() * 1000)}) + "\n")
-        except Exception:
-            pass
-    # #endregion
     if wants_json:
         return JsonResponse(
             {

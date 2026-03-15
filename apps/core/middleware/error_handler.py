@@ -83,7 +83,11 @@ class ErrorHandlerMiddleware(MiddlewareMixin):
             extra={
                 'request_path': request.path,
                 'request_method': request.method,
-                'user': str(request.user) if hasattr(request, 'user') else 'anonymous',
+                'user': (
+                    str(getattr(request, 'appointment360_user', {}).get('email') or getattr(request, 'appointment360_user', {}).get('uuid'))
+                    if getattr(request, 'appointment360_user', None)
+                    else (str(request.user) if hasattr(request, 'user') and request.user else 'anonymous')
+                ),
                 'error_type': error_type,
                 'error_message': error_message
             }

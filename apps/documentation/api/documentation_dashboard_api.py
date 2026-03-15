@@ -46,8 +46,10 @@ def get_pages_list_api(request: HttpRequest) -> JsonResponse:
     - state: Filter by page state
     - include_drafts: Include draft pages (default: true)
     - include_deleted: Include deleted pages (default: false)
-    - limit: Items per page (default: 20)
-    - offset: Offset for pagination (default: 0)
+    - limit: Items per page (default: 20)          # legacy
+    - offset: Offset for pagination (default: 0)   # legacy
+    - page: Page number (1-based, preferred)
+    - page_size: Items per page (preferred)
     - search: Search query (client-side filtering)
     - sort: Sort field
     - order: Sort order (asc|desc)
@@ -61,11 +63,31 @@ def get_pages_list_api(request: HttpRequest) -> JsonResponse:
         state = request.GET.get('state')
         include_drafts = request.GET.get('include_drafts', 'true').lower() == 'true'
         include_deleted = request.GET.get('include_deleted', 'false').lower() == 'true'
+
+        # Support both limit/offset and page/page_size styles for pagination.
+        page_param = request.GET.get('page')
+        page_size_param = request.GET.get('page_size')
+        limit_param = request.GET.get('limit')
+        offset_param = request.GET.get('offset')
+
         try:
-            limit = min(int(request.GET.get('limit', 20)), 100)
+            if page_param is not None or page_size_param is not None:
+                # Page-based pagination (used by dashboard UI + exports)
+                page = max(int(page_param or 1), 1)
+                page_size = min(int(page_size_param or 20), 100)
+                limit = page_size
+                offset = (page - 1) * page_size
+            else:
+                # Legacy limit/offset-based pagination (API tests, other callers)
+                limit = min(int(limit_param or 20), 100)
+                offset = int(offset_param or 0)
+                page_size = limit
+                page = (offset // max(limit, 1)) + 1
         except (TypeError, ValueError):
+            page = 1
+            page_size = 20
             limit = 20
-        offset = int(request.GET.get('offset', 0))
+            offset = 0
         
         # Get pages from service
         result = pages_service.list_pages(
@@ -108,14 +130,14 @@ def get_pages_list_api(request: HttpRequest) -> JsonResponse:
         if not should_expand_full(request.GET):
             pages = [to_page_list_item(p) for p in pages]
         
-        return success_response(
-            data={
-                'pages': pages,
-                'total': total,
-                'limit': limit,
-                'offset': offset,
-            },
-            message="Pages retrieved successfully"
+        # Standard paginated response expected by dashboard JS:
+        # { success, data: [...], meta: { pagination: { total, page, page_size, total_pages } } }
+        return paginated_response(
+            data=pages,
+            total=total,
+            page=page,
+            page_size=page_size,
+            message="Pages retrieved successfully",
         ).to_json_response()
     
     except Exception as e:
@@ -137,8 +159,10 @@ def get_endpoints_list_api(request: HttpRequest) -> JsonResponse:
     - method: Filter by HTTP/GraphQL method
     - state: Filter by endpoint state
     - lambda_service: Filter by Lambda service
-    - limit: Items per page (default: 20)
-    - offset: Offset for pagination (default: 0)
+    - limit: Items per page (default: 20)          # legacy
+    - offset: Offset for pagination (default: 0)   # legacy
+    - page: Page number (1-based, preferred)
+    - page_size: Items per page (preferred)
     - search: Search query
     - sort: Sort field
     - order: Sort order (asc|desc)
@@ -151,11 +175,29 @@ def get_endpoints_list_api(request: HttpRequest) -> JsonResponse:
         method = request.GET.get('method')
         state = request.GET.get('state')
         lambda_service = request.GET.get('lambda_service')
+
+        # Support both limit/offset and page/page_size styles for pagination.
+        page_param = request.GET.get('page')
+        page_size_param = request.GET.get('page_size')
+        limit_param = request.GET.get('limit')
+        offset_param = request.GET.get('offset')
+
         try:
-            limit = min(int(request.GET.get('limit', 20)), 100)
+            if page_param is not None or page_size_param is not None:
+                page = max(int(page_param or 1), 1)
+                page_size = min(int(page_size_param or 20), 100)
+                limit = page_size
+                offset = (page - 1) * page_size
+            else:
+                limit = min(int(limit_param or 20), 100)
+                offset = int(offset_param or 0)
+                page_size = limit
+                page = (offset // max(limit, 1)) + 1
         except (TypeError, ValueError):
+            page = 1
+            page_size = 20
             limit = 20
-        offset = int(request.GET.get('offset', 0))
+            offset = 0
         
         # Get endpoints from service
         result = endpoints_service.list_endpoints(
@@ -207,14 +249,12 @@ def get_endpoints_list_api(request: HttpRequest) -> JsonResponse:
         if not should_expand_full(request.GET):
             endpoints = [to_endpoint_list_item(ep) for ep in endpoints]
         
-        return success_response(
-            data={
-                'endpoints': endpoints,
-                'total': total,
-                'limit': limit,
-                'offset': offset,
-            },
-            message="Endpoints retrieved successfully"
+        return paginated_response(
+            data=endpoints,
+            total=total,
+            page=page,
+            page_size=page_size,
+            message="Endpoints retrieved successfully",
         ).to_json_response()
     
     except Exception as e:
@@ -236,8 +276,10 @@ def get_relationships_list_api(request: HttpRequest) -> JsonResponse:
     - endpoint_id: Filter by endpoint
     - usage_type: Filter by usage type
     - usage_context: Filter by usage context
-    - limit: Items per page (default: 20)
-    - offset: Offset for pagination (default: 0)
+    - limit: Items per page (default: 20)          # legacy
+    - offset: Offset for pagination (default: 0)   # legacy
+    - page: Page number (1-based, preferred)
+    - page_size: Items per page (preferred)
     - search: Search query
     - sort: Sort field
     - order: Sort order (asc|desc)
@@ -250,11 +292,29 @@ def get_relationships_list_api(request: HttpRequest) -> JsonResponse:
         endpoint_id = request.GET.get('endpoint_id')
         usage_type = request.GET.get('usage_type')
         usage_context = request.GET.get('usage_context')
+
+        # Support both limit/offset and page/page_size styles for pagination.
+        page_param = request.GET.get('page')
+        page_size_param = request.GET.get('page_size')
+        limit_param = request.GET.get('limit')
+        offset_param = request.GET.get('offset')
+
         try:
-            limit = min(int(request.GET.get('limit', 20)), 100)
+            if page_param is not None or page_size_param is not None:
+                page = max(int(page_param or 1), 1)
+                page_size = min(int(page_size_param or 20), 100)
+                limit = page_size
+                offset = (page - 1) * page_size
+            else:
+                limit = min(int(limit_param or 20), 100)
+                offset = int(offset_param or 0)
+                page_size = limit
+                page = (offset // max(limit, 1)) + 1
         except (TypeError, ValueError):
+            page = 1
+            page_size = 20
             limit = 20
-        offset = int(request.GET.get('offset', 0))
+            offset = 0
         
         # Get relationships from service
         result = relationships_service.list_relationships(
@@ -294,14 +354,12 @@ def get_relationships_list_api(request: HttpRequest) -> JsonResponse:
         if not should_expand_full(request.GET):
             relationships = [to_relationship_list_item(r) for r in relationships]
         
-        return success_response(
-            data={
-                'relationships': relationships,
-                'total': total,
-                'limit': limit,
-                'offset': offset,
-            },
-            message="Relationships retrieved successfully"
+        return paginated_response(
+            data=relationships,
+            total=total,
+            page=page,
+            page_size=page_size,
+            message="Relationships retrieved successfully",
         ).to_json_response()
     
     except Exception as e:
@@ -320,8 +378,10 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
     
     Query params:
     - state: Filter by state
-    - limit: Items per page (default: 20)
-    - offset: Offset for pagination (default: 0)
+    - limit: Items per page (default: 20)          # legacy
+    - offset: Offset for pagination (default: 0)   # legacy
+    - page: Page number (1-based, preferred)
+    - page_size: Items per page (preferred)
     - search: Search query
     - sort: Sort field
     - order: Sort order (asc|desc)
@@ -331,11 +391,29 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
         
         # Extract query parameters
         state = request.GET.get('state')
+
+        # Support both limit/offset and page/page_size styles for pagination.
+        page_param = request.GET.get('page')
+        page_size_param = request.GET.get('page_size')
+        limit_param = request.GET.get('limit')
+        offset_param = request.GET.get('offset')
+
         try:
-            limit = min(int(request.GET.get('limit', 20)), 100)
+            if page_param is not None or page_size_param is not None:
+                page = max(int(page_param or 1), 1)
+                page_size = min(int(page_size_param or 20), 100)
+                limit = page_size
+                offset = (page - 1) * page_size
+            else:
+                limit = min(int(limit_param or 20), 100)
+                offset = int(offset_param or 0)
+                page_size = limit
+                page = (offset // max(limit, 1)) + 1
         except (TypeError, ValueError):
+            page = 1
+            page_size = 20
             limit = 20
-        offset = int(request.GET.get('offset', 0))
+            offset = 0
         
         # Get configurations from service
         result = postman_service.list_configurations(
@@ -372,14 +450,12 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
         if not should_expand_full(request.GET):
             configurations = [to_postman_list_item(c) for c in configurations]
         
-        return success_response(
-            data={
-                'configurations': configurations,
-                'total': total,
-                'limit': limit,
-                'offset': offset,
-            },
-            message="Postman configurations retrieved successfully"
+        return paginated_response(
+            data=configurations,
+            total=total,
+            page=page,
+            page_size=page_size,
+            message="Postman configurations retrieved successfully",
         ).to_json_response()
     
     except Exception as e:
@@ -447,6 +523,142 @@ def get_health_api(request: HttpRequest) -> JsonResponse:
             message=f"Failed to retrieve health status: {str(e)}",
             status_code=500
         ).to_json_response()
+@require_admin_or_super_admin
+@require_http_methods(["POST"])
+@csrf_exempt
+def pages_bulk_import_check_api(request: HttpRequest) -> JsonResponse:
+    """
+    Check which page_ids already exist in the backend (repository).
+    Used by Preview & map to show Create vs Update per page.
+
+    Body: { "page_ids": ["about_page", "activities_page", ...] }
+    Returns: { "existing": ["about_page", ...], "to_create": ["new_page", ...] }
+    """
+    try:
+        from apps.documentation.utils.request_validation import parse_json_body as _parse_json_body  # type: ignore
+    except Exception:
+        import json
+
+        def _parse_json_body(req: HttpRequest):
+            try:
+                body = json.loads(req.body or b"{}")
+                return body, None
+            except Exception as e:
+                return None, str(e)
+
+    data, err = _parse_json_body(request)
+    if err:
+        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+    page_ids = (data or {}).get("page_ids") or []
+    if not isinstance(page_ids, list):
+        return error_response("page_ids must be a list.", status_code=400).to_json_response()
+    page_ids = [str(pid).strip() for pid in page_ids if str(pid).strip()][:500]
+    try:
+        service = get_pages_service()
+        existing = []
+        for pid in page_ids:
+            try:
+                if service.get_page(pid):
+                    existing.append(pid)
+            except Exception:
+                pass
+        to_create = [pid for pid in page_ids if pid not in existing]
+        return success_response(
+            data={"existing": existing, "to_create": to_create},
+            message="Check completed",
+        ).to_json_response()
+    except Exception as e:
+        logger.warning("pages_bulk_import_check_api failed: %s", e, exc_info=True)
+        return error_response(message=str(e), status_code=500).to_json_response()
+
+
+@require_admin_or_super_admin
+@require_http_methods(["POST"])
+@csrf_exempt
+def pages_bulk_import_preview_api(request: HttpRequest) -> JsonResponse:
+    """
+    Preview bulk import: same normalization and validation as bulk-import, no write.
+    Returns create/update/failed counts and per-page action for the Preview & map step.
+
+    Body: same as pages_bulk_import_api { "pages": [ ... ] }
+    Returns: { "existing": [...], "to_create": [...], "validation_errors": [{ "page_id", "error" }, ...] }
+    """
+    try:
+        from apps.documentation.utils.request_validation import parse_json_body as _parse_json_body  # type: ignore
+    except Exception:
+        import json
+
+        def _parse_json_body(req: HttpRequest):
+            try:
+                body = json.loads(req.body or b"{}")
+                return body, None
+            except Exception as e:
+                return None, str(e)
+
+    data, err = _parse_json_body(request)
+    if err:
+        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+    pages = (data or {}).get("pages") or []
+    if not isinstance(pages, list) or not pages:
+        return error_response("Field 'pages' must be a non-empty list.", status_code=400).to_json_response()
+    if len(pages) > 500:
+        return error_response("Maximum 500 pages per import.", status_code=400).to_json_response()
+
+    try:
+        from apps.documentation.services import get_pages_service
+        from apps.documentation.utils.data_transformers import DataTransformer
+    except Exception as e:
+        logger.error("pages_bulk_import_preview_api import failed: %s", e, exc_info=True)
+        return error_response("Internal error.", status_code=500).to_json_response()
+
+    service = get_pages_service()
+    existing: list[str] = []
+    to_create: list[str] = []
+    validation_errors: list[Dict[str, Any]] = []
+
+    for index, raw_row in enumerate(pages, start=1):
+        row = raw_row or {}
+        page_id = str(row.get("page_id") or "").strip()
+        if not page_id:
+            validation_errors.append({"row": index, "page_id": "", "error": "page_id is required"})
+            continue
+        try:
+            page_data = DataTransformer.lambda_to_django_page(row) if "_id" in row else row
+            if not (page_data.get("title") or str(page_data.get("title", "")).strip()):
+                metadata = page_data.get("metadata") or {}
+                purpose = metadata.get("purpose", "")
+                if purpose:
+                    page_data["title"] = purpose
+                else:
+                    page_data["title"] = str(page_id).replace("_", " ").title()
+            title = str(page_data.get("title") or "").strip()
+            if not title:
+                validation_errors.append({"row": index, "page_id": page_id, "error": "Missing required field: title"})
+                continue
+            try:
+                exists = service.get_page(page_id)
+            except Exception:
+                exists = None
+            if exists:
+                existing.append(page_id)
+            else:
+                to_create.append(page_id)
+        except Exception as exc:
+            validation_errors.append({"row": index, "page_id": page_id, "error": str(exc)})
+
+    return success_response(
+        data={
+            "existing": existing,
+            "to_create": to_create,
+            "validation_errors": validation_errors[:100],
+            "to_create_count": len(to_create),
+            "to_update_count": len(existing),
+            "failed_count": len(validation_errors),
+        },
+        message="Preview completed",
+    ).to_json_response()
+
+
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -522,6 +734,7 @@ def pages_bulk_import_api(request: HttpRequest) -> JsonResponse:
                 else:
                     page_data["title"] = str(page_id).replace("_", " ").title()
 
+            # Use unified storage (local + S3) for existence so preview and sync match; write goes to S3 via repository
             try:
                 existing = service.get_page(page_id)
             except Exception:

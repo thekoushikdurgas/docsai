@@ -29,7 +29,7 @@ from apps.documentation.utils.api_responses import validation_error_response
 class TestSchema(BaseModel):
     """Test Pydantic schema."""
     page_id: str = Field(..., min_length=1)
-    page_type: str = Field(..., pattern="^(docs|marketing|dashboard)$")
+    page_type: str = Field(..., pattern="^(docs|marketing|dashboard|product|title)$")
 
 
 class TestQuerySchema(BaseModel):

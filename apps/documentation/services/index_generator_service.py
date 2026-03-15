@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from django.core.cache import cache
 
+from apps.documentation.constants import PAGE_TYPES
 from apps.documentation.utils.paths import (
     get_endpoints_dir,
     get_media_root,
@@ -104,8 +105,8 @@ class IndexGeneratorService:
             files = list_directory_files(pages_dir, extensions=[".json"], exclude_files=INDEX_EXCLUSIONS)
             
             pages: List[Dict[str, Any]] = []
-            indexes: Dict[str, Any] = {"by_type": {"docs": [], "marketing": [], "dashboard": []}, "by_route": {}}
-            stats: Dict[str, Any] = {"total": 0, "by_type": {"docs": 0, "marketing": 0, "dashboard": 0}}
+            indexes: Dict[str, Any] = {"by_type": {pt: [] for pt in PAGE_TYPES}, "by_route": {}}
+            stats: Dict[str, Any] = {"total": 0, "by_type": {pt: 0 for pt in PAGE_TYPES}}
             
             if use_parallel and len(files) > 10:
                 # Process files in parallel for better performance

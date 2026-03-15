@@ -43,6 +43,8 @@ ROUTE_MAPPINGS = {
     'media_manager_pages_by_type_docs': 'pages_by_type_docs',
     'media_manager_pages_by_type_marketing': 'pages_by_type_marketing',
     'media_manager_pages_by_type_dashboard': 'pages_by_type_dashboard',
+    'media_manager_pages_by_type_product': 'pages_by_type_product',
+    'media_manager_pages_by_type_title': 'pages_by_type_title',
     
     # Endpoint routes
     'media_manager_endpoint_detail': 'endpoint_detail_enhanced',

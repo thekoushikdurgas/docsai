@@ -10,7 +10,6 @@ import subprocess
 import sys
 import tempfile
 import threading
-import time
 import uuid
 from pathlib import Path
 from typing import Any, Dict
@@ -37,16 +36,6 @@ _generate_json_jobs_lock = threading.Lock()
 # In-memory store for upload-to-S3 jobs (job_id -> { progress_path, report, error, done })
 _upload_jobs: Dict[str, Dict[str, Any]] = {}
 _upload_jobs_lock = threading.Lock()
-
-# #region agent log
-def _agent_log(message: str, data: dict):
-    try:
-        payload = {"location": "operations.py", "message": message, "data": data, "timestamp": int(time.time() * 1000), "sessionId": "debug-session", "hypothesisId": "H2"}
-        with open("d:\\code\\ayan\\contact\\.cursor\\debug.log", "a", encoding="utf-8") as f:
-            f.write(json.dumps(payload) + "\n")
-    except Exception:
-        pass
-# #endregion
 
 
 @require_super_admin
@@ -204,9 +193,6 @@ def _analyze_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
 def analyze_docs_view(request: HttpRequest) -> HttpResponse:
     """Analyze documentation view. GET /docs/operations/analyze/ or POST to run analysis.
     GET with ?job_id=XXX shows report from a completed background analyze job."""
-    # #region agent log
-    _agent_log("analyze_docs_view entry", {"method": request.method, "user": str(getattr(request.user, "pk", None)), "path": request.path})
-    # #endregion
     context: Dict[str, Any] = {}
     job_id = (request.GET.get("job_id") or "").strip()
     if request.method == "GET" and job_id:
@@ -239,20 +225,10 @@ def analyze_docs_view(request: HttpRequest) -> HttpResponse:
         context["analysis_type"] = analysis_type
         if op_id:
             context["operation_id"] = op_id
-        # #region agent log
-        _agent_log("analyze_docs_view POST completed", {"analysis_type": analysis_type, "has_report": bool(report), "has_error": "analysis_error" in report})
-        # #endregion
     try:
-        resp = render(request, "documentation/operations/analyze.html", context)
-        # #region agent log
-        _agent_log("analyze_docs_view rendered", {"method": request.method, "status": 200})
-        # #endregion
-        return resp
+        return render(request, "documentation/operations/analyze.html", context)
     except Exception as e:
         logger.error("Error rendering analyze docs view: %s", e, exc_info=True)
-        # #region agent log
-        _agent_log("analyze_docs_view exception", {"error": str(e)})
-        # #endregion
         raise
 
 

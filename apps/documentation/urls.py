@@ -115,6 +115,8 @@ urlpatterns = [
     path('pages/by-type/docs/', media_manager_dashboard.media_manager_pages_by_type_docs, name='pages_by_type_docs'),
     path('pages/by-type/marketing/', media_manager_dashboard.media_manager_pages_by_type_marketing, name='pages_by_type_marketing'),
     path('pages/by-type/dashboard/', media_manager_dashboard.media_manager_pages_by_type_dashboard, name='pages_by_type_dashboard'),
+    path('pages/by-type/product/', media_manager_dashboard.media_manager_pages_by_type_product, name='pages_by_type_product'),
+    path('pages/by-type/title/', media_manager_dashboard.media_manager_pages_by_type_title, name='pages_by_type_title'),
     # Generic pages by type route (must be after specific routes)
     path('pages/by-type/<str:page_type>/', media_manager_dashboard.media_manager_pages_by_type, name='pages_by_type'),
     path('pages/by-type/<str:page_type>/published/', media_manager_dashboard.media_manager_pages_by_type_published, name='pages_by_type_published'),
@@ -295,6 +297,8 @@ urlpatterns = [
     path('api/dashboard/health/', media_manager_api.get_health_api, name='api_docs_dashboard_health'),
 
     # Pages bulk import (Excel upload -> JSON -> pages create/update)
+    path('api/pages/bulk-import/check/', media_manager_api.pages_bulk_import_check_api, name='api_pages_bulk_import_check'),
+    path('api/pages/bulk-import/preview/', media_manager_api.pages_bulk_import_preview_api, name='api_pages_bulk_import_preview'),
     path('api/pages/bulk-import/', media_manager_api.pages_bulk_import_api, name='api_pages_bulk_import'),
 
     # Documentation files API (legacy media API name preserved for compatibility)

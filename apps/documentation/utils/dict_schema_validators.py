@@ -9,6 +9,8 @@ shapes are needed.
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
+from apps.documentation.constants import PAGE_TYPES
+
 
 class SchemaValidationError:
     """Represents a single validation error (field, message, optional value)."""
@@ -34,7 +36,7 @@ class PageSchemaValidator:
         "route", "file_path", "purpose", "s3_key", "status",
         "authentication", "last_updated",
     ]
-    VALID_PAGE_TYPES = ["docs", "marketing", "dashboard"]
+    VALID_PAGE_TYPES = list(PAGE_TYPES)
     VALID_STATUSES = ["published", "draft", "deleted"]
 
     def validate(self, data: Dict[str, Any]) -> Tuple[bool, List[SchemaValidationError]]:

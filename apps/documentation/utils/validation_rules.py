@@ -4,14 +4,16 @@ from typing import Any, Dict, List, Optional
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from apps.documentation.constants import PAGE_TYPES
+
 
 # ============= VALIDATION RULE DEFINITIONS =============
 
 class ValidationRules:
     """Centralized validation rules matching Lambda API schemas."""
     
-    # Enum Values
-    PAGE_TYPES = ["dashboard", "marketing", "docs"]
+    # Enum Values (PAGE_TYPES from constants for single source of truth)
+    PAGE_TYPES = list(PAGE_TYPES)
     PAGE_STATES = ["coming_soon", "published", "draft", "development", "test"]
     PAGE_STATUSES = ["draft", "published", "archived", "deleted"]
     HTTP_METHODS = ["QUERY", "MUTATION", "GET", "POST", "PUT", "DELETE", "PATCH"]
@@ -175,7 +177,7 @@ class ValidationErrorCodes:
         COMPUTED_FIELD_MISMATCH: "Computed field value does not match actual data",
         INVALID_ROUTE: "Route must start with '/'",
         INVALID_METHOD: "Method must be one of: QUERY, MUTATION, GET, POST, PUT, DELETE, PATCH",
-        INVALID_PAGE_TYPE: "Page type must be one of: dashboard, marketing, docs",
+        INVALID_PAGE_TYPE: "Page type must be one of: dashboard, marketing, docs, product, title",
         INVALID_PAGE_STATE: "Page state must be one of: coming_soon, published, draft, development, test",
         INVALID_STATUS: "Status must be one of: draft, published, archived, deleted",
         INVALID_USAGE_TYPE: "Usage type must be one of: primary, secondary, conditional, lazy, prefetch",

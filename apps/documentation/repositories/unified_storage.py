@@ -516,9 +516,8 @@ class UnifiedStorage:
             self.logger.warning(f"get_type_statistics failed: {e}")
         result = self.list_pages(limit=None, offset=0)
         pages = result.get("pages", [])
-        count_by_type = {"docs": {"published": 0, "draft": 0, "deleted": 0, "total": 0},
-                        "marketing": {"published": 0, "draft": 0, "deleted": 0, "total": 0},
-                        "dashboard": {"published": 0, "draft": 0, "deleted": 0, "total": 0}}
+        from apps.documentation.constants import PAGE_TYPES
+        count_by_type = {pt: {"published": 0, "draft": 0, "deleted": 0, "total": 0} for pt in PAGE_TYPES}
         for p in pages:
             pt = p.get("page_type", "docs")
             if pt not in count_by_type:

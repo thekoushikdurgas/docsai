@@ -110,8 +110,8 @@ class PagesAPITestCase(BaseAPITestCase):
         mock_service_class.return_value = mock_service
         mock_service.list_pages.return_value = {
             "pages": [
-                {"page_id": "page1", "page_type": "markdown", "metadata": {"title": "T1", "status": "published"}},
-                {"page_id": "page2", "page_type": "html", "metadata": {"title": "T2", "status": "draft"}}
+                {"page_id": "page1", "page_type": "docs", "metadata": {"title": "T1", "status": "published"}},
+                {"page_id": "page2", "page_type": "dashboard", "metadata": {"title": "T2", "status": "draft"}}
             ],
             "total": 2,
             "source": "local"
@@ -152,7 +152,7 @@ class PagesAPITestCase(BaseAPITestCase):
         }
         
         # Test with page_type filter
-        response = self.client.get(self.pages_list_url + '?page_type=markdown')
+        response = self.client.get(self.pages_list_url + '?page_type=docs')
         self.assertEqual(response.status_code, 200)
         
         # Test with status filter
@@ -179,7 +179,7 @@ class PagesAPITestCase(BaseAPITestCase):
         mock_service_class.return_value = mock_service
         mock_service.get_page.return_value = {
             "page_id": self.page_id,
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Test Page"
         }
         

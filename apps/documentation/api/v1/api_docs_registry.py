@@ -62,6 +62,8 @@ GROUPS: List[Dict[str, Any]] = [
             _endpoint("pages/by-type/docs/", "pages_by_type_docs", "Pages by type docs", "List docs-type pages."),
             _endpoint("pages/by-type/marketing/", "pages_by_type_marketing", "Pages by type marketing", "List marketing-type pages."),
             _endpoint("pages/by-type/dashboard/", "pages_by_type_dashboard", "Pages by type dashboard", "List dashboard-type pages."),
+            _endpoint("pages/by-type/product/", "pages_by_type_product", "Pages by type product", "List product-type pages."),
+            _endpoint("pages/by-type/title/", "pages_by_type_title", "Pages by type title", "List title-type pages."),
             _endpoint("pages/by-type/{page_type}/count/", "pages_by_type_count", "Pages by type count", "Count pages by type.", path_params=[{"name": "page_type"}]),
             _endpoint("pages/by-type/{page_type}/published/", "pages_by_type_published", "Pages by type published", "List published pages by type.", path_params=[{"name": "page_type"}]),
             _endpoint("pages/by-type/{page_type}/draft/", "pages_by_type_draft", "Pages by type draft", "List draft pages by type.", path_params=[{"name": "page_type"}]),

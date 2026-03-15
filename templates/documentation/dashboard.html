@@ -168,7 +168,7 @@
                         <div class="space-y-2">
                             {% for v in stats_endpoints_versions.versions %}
                             <div class="flex justify-between items-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">{{ v.version }}</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">{{ v.version|default:v.api_version }}</span>
                                 <span class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ v.count }}</span>
                             </div>
                             {% empty %}
@@ -461,8 +461,8 @@
                                     <option value="docs" {% if request.GET.page_type == 'docs' %}selected{% endif %}>Docs</option>
                                     <option value="marketing" {% if request.GET.page_type == 'marketing' %}selected{% endif %}>Marketing</option>
                                     <option value="dashboard" {% if request.GET.page_type == 'dashboard' %}selected{% endif %}>Dashboard</option>
-                                    <option value="settings" {% if request.GET.page_type == 'settings' %}selected{% endif %}>Settings</option>
-                                    <option value="admin" {% if request.GET.page_type == 'admin' %}selected{% endif %}>Admin</option>
+                                    <option value="product" {% if request.GET.page_type == 'product' %}selected{% endif %}>Product</option>
+                                    <option value="title" {% if request.GET.page_type == 'title' %}selected{% endif %}>Title</option>
                                 </select>
                                 <label for="page-state-filter" class="sr-only">Filter by state</label>
                                 <select id="page-state-filter" 
@@ -1050,8 +1050,16 @@
                 </div>
 
                 <div id="json-step-2" class="space-y-4 hidden">
+                    <div id="json-step-2-progress" class="hidden space-y-2">
+                        <p id="json-step-2-progress-text" class="text-sm text-gray-600 dark:text-gray-300">Checking create, update, and validation...</p>
+                        <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div id="json-step-2-progress-fill" class="h-full bg-amber-500 transition-all duration-300 ease-out animate-pulse" style="width: 40%"></div>
+                        </div>
+                    </div>
                     <p id="json-step-2-desc" class="text-sm text-gray-600 dark:text-gray-300"></p>
+                    <div id="json-step-2-counts" class="hidden flex flex-wrap gap-2 items-center text-xs"></div>
                     <div id="json-step-2-preview" class="border border-gray-200 dark:border-gray-700 rounded-md max-h-64 overflow-auto text-xs text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/40"></div>
+                    <div id="json-step-2-validation-errors" class="hidden text-xs text-red-600 dark:text-red-400 space-y-1 mt-2"></div>
                 </div>
 
                 <div id="json-step-3" class="space-y-4 hidden">
@@ -1180,7 +1188,7 @@
         
         // Graph tab is now handled by the included graph_tabs.html template
         
-        // Initialize unified dashboard controller (list data: initial_data for first paint, /api/v1/dashboard/* for pagination)
+        // Initialize unified dashboard controller (list data: initial_data for first paint, /docs/api/dashboard/* for pagination)
         // Note on console messages:
         // - "Could not establish connection. Receiving end does not exist" = from a browser extension (e.g. messaging), not this app.
         // - "Attempting to use a disconnected port object" = from an extension (e.g. utility_all2 / content.js), not this app.
@@ -1191,10 +1199,10 @@
                 activeTab: '{{ active_tab }}',
                 viewMode: '{{ view_mode }}',
                 initialData: typeof initialData !== 'undefined' ? initialData : {},
-                pagesApiUrl: '/api/v1/dashboard/pages/',
-                endpointsApiUrl: '/api/v1/dashboard/endpoints/',
-                relationshipsApiUrl: '/api/v1/dashboard/relationships/',
-                postmanApiUrl: '/api/v1/dashboard/postman/',
+                pagesApiUrl: "{% url 'documentation:api_docs_dashboard_pages' %}",
+                endpointsApiUrl: "{% url 'documentation:api_docs_dashboard_endpoints' %}",
+                relationshipsApiUrl: "{% url 'documentation:api_docs_dashboard_relationships' %}",
+                postmanApiUrl: "{% url 'documentation:api_docs_dashboard_postman' %}",
                 mediaListFilesUrl: "{% url 'documentation:api_media_files' %}",
                 mediaBulkSyncUrl: "{% url 'documentation:api_media_bulk_sync' %}",
                 mediaSyncStatusUrl: "{% url 'documentation:api_media_sync_status' %}",
@@ -1213,10 +1221,10 @@
             window.dashboardController = new DashboardController({
                 activeTab: '{{ active_tab }}',
                 initialData: typeof initialData !== 'undefined' ? initialData : {},
-                pagesApiUrl: '/api/v1/dashboard/pages/',
-                endpointsApiUrl: '/api/v1/dashboard/endpoints/',
-                relationshipsApiUrl: '/api/v1/dashboard/relationships/',
-                postmanApiUrl: '/api/v1/dashboard/postman/'
+                pagesApiUrl: "{% url 'documentation:api_docs_dashboard_pages' %}",
+                endpointsApiUrl: "{% url 'documentation:api_docs_dashboard_endpoints' %}",
+                relationshipsApiUrl: "{% url 'documentation:api_docs_dashboard_relationships' %}",
+                postmanApiUrl: "{% url 'documentation:api_docs_dashboard_postman' %}"
             });
         } else {
             // UnifiedDashboardController missing: try loading script once then re-run init
@@ -1229,10 +1237,10 @@
                             activeTab: '{{ active_tab }}',
                             viewMode: '{{ view_mode }}',
                             initialData: typeof initialData !== 'undefined' ? initialData : {},
-                            pagesApiUrl: '/api/v1/dashboard/pages/',
-                            endpointsApiUrl: '/api/v1/dashboard/endpoints/',
-                            relationshipsApiUrl: '/api/v1/dashboard/relationships/',
-                            postmanApiUrl: '/api/v1/dashboard/postman/',
+                            pagesApiUrl: "{% url 'documentation:api_docs_dashboard_pages' %}",
+                            endpointsApiUrl: "{% url 'documentation:api_docs_dashboard_endpoints' %}",
+                            relationshipsApiUrl: "{% url 'documentation:api_docs_dashboard_relationships' %}",
+                            postmanApiUrl: "{% url 'documentation:api_docs_dashboard_postman' %}",
                             mediaListFilesUrl: "{% url 'documentation:api_media_files' %}",
                             mediaBulkSyncUrl: "{% url 'documentation:api_media_bulk_sync' %}",
                             mediaSyncStatusUrl: "{% url 'documentation:api_media_sync_status' %}",
@@ -1619,7 +1627,7 @@
         var page = 1;
         var pageSize = 100;
         var totalPages = null;
-        var baseUrl = '/api/v1/dashboard/pages/';
+        var baseUrl = "{% url 'documentation:api_docs_dashboard_pages' %}";
 
         var filters = {};
         if (applyFilters && window.unifiedDashboardController && window.unifiedDashboardController.filters) {
@@ -1697,7 +1705,7 @@
             return null;
         }
         var sheetOrder = ['Docs', 'Marketing', 'Dashboard', 'Settings', 'Admin', 'Other'];
-        var typeToSheetName = { docs: 'Docs', marketing: 'Marketing', dashboard: 'Dashboard', settings: 'Settings', admin: 'Admin' };
+        var typeToSheetName = { docs: 'Docs', marketing: 'Marketing', dashboard: 'Dashboard', product: 'Product', title: 'Title' };
         var grouped = {};
         sheetOrder.forEach(function (t) { grouped[t.toLowerCase()] = []; });
         grouped['other'] = [];
@@ -2229,6 +2237,7 @@
     // ---------- Upload Pages from JSON ----------
 
     var _jsonUploadPages = [];
+    var _jsonUploadFileCount = 0;
     var _jsonUploadStep = 1;
 
     function setJsonStep(step) {
@@ -2281,6 +2290,7 @@
         modal.classList.add('modal-open');
 
         _jsonUploadPages = [];
+        _jsonUploadFileCount = 0;
         setJsonStep(1);
 
         var fileInfo = document.getElementById('json-file-info');
@@ -2300,6 +2310,12 @@
         if (progressBarWrap) progressBarWrap.classList.add('hidden');
         if (progressBarFill) progressBarFill.style.width = '0%';
         if (progressText) { progressText.classList.add('hidden'); progressText.textContent = '0 / 0 pages'; }
+        var step2Progress = document.getElementById('json-step-2-progress');
+        if (step2Progress) step2Progress.classList.add('hidden');
+        var step2Validation = document.getElementById('json-step-2-validation-errors');
+        if (step2Validation) { step2Validation.classList.add('hidden'); step2Validation.innerHTML = ''; }
+        var step2Counts = document.getElementById('json-step-2-counts');
+        if (step2Counts) { step2Counts.classList.add('hidden'); step2Counts.innerHTML = ''; }
 
         var fileInput = document.getElementById('json-upload-input');
         if (fileInput) fileInput.value = '';
@@ -2382,8 +2398,30 @@
         function tryFinish() {
             filesRead++;
             if (filesRead < filesToRead) return;
-            _jsonUploadPages = allPages.filter(function (p) { return p && p.page_id; });
-            if (fileInfo) fileInfo.textContent = 'Loaded ' + _jsonUploadPages.length + ' page(s) from ' + files.length + ' file(s).';
+            var valid = allPages.filter(function (p) { return p && p.page_id; });
+            var seen = {};
+            var deduped = [];
+            for (var i = 0; i < valid.length; i++) {
+                var pid = valid[i].page_id;
+                if (seen[pid]) continue;
+                seen[pid] = true;
+                deduped.push(valid[i]);
+            }
+            _jsonUploadPages = deduped;
+            _jsonUploadFileCount = files.length;
+            var fileCount = files.length;
+            var pageCount = deduped.length;
+            var totalParsed = valid.length;
+            if (fileInfo) {
+                fileInfo.textContent = '';
+                fileInfo.appendChild(document.createTextNode(fileCount + ' file(s) \u2192 ' + pageCount + ' unique page(s) to sync.'));
+                if (totalParsed > fileCount) {
+                    var note = document.createElement('div');
+                    note.className = 'text-xs text-gray-500 dark:text-gray-400 mt-1';
+                    note.textContent = 'Some files contain multiple pages (array or "pages" list). Duplicates by page_id were removed.';
+                    fileInfo.appendChild(note);
+                }
+            }
             renderJsonPreviewTable(_jsonUploadPages);
         }
 
@@ -2426,23 +2464,37 @@
         }
     }
 
-    function renderJsonPreviewTable(pages, targetEl) {
+    function renderJsonPreviewTable(pages, targetEl, options) {
         var el = targetEl || document.getElementById('json-preview-table');
         if (!el) return;
         if (!pages || pages.length === 0) {
             el.innerHTML = '<p class="p-3 text-gray-500">No valid pages found.</p>';
             return;
         }
-        var html = '<table class="min-w-full text-left"><thead><tr><th class="px-2 py-1 border-b font-medium">#</th><th class="px-2 py-1 border-b font-medium">Page ID</th><th class="px-2 py-1 border-b font-medium">Type</th><th class="px-2 py-1 border-b font-medium">Route</th></tr></thead><tbody>';
-        pages.slice(0, 20).forEach(function (p, i) {
-            html += '<tr><td class="px-2 py-1 border-b">' + (i + 1) + '</td><td class="px-2 py-1 border-b font-mono">' + (p.page_id || '') + '</td><td class="px-2 py-1 border-b">' + (p.page_type || '') + '</td><td class="px-2 py-1 border-b">' + (p.route || '') + '</td></tr>';
+        var existingSet = (options && options.existing) ? (function () { var s = {}; (options.existing || []).forEach(function (id) { s[id] = true; }); return s; })() : null;
+        var failedSet = (options && options.failed) ? (function () { var s = {}; (options.failed || []).forEach(function (id) { s[id] = true; }); return s; })() : null;
+        var hasAction = existingSet !== null || failedSet !== null;
+        var thead = '<tr><th class="px-2 py-1 border-b font-medium">#</th><th class="px-2 py-1 border-b font-medium">Page ID</th><th class="px-2 py-1 border-b font-medium">Type</th><th class="px-2 py-1 border-b font-medium">Route</th>';
+        if (hasAction) thead += '<th class="px-2 py-1 border-b font-medium">Action</th>';
+        thead += '</tr>';
+        var html = '<table class="min-w-full text-left"><thead>' + thead + '</thead><tbody>';
+        pages.forEach(function (p, i) {
+            var action = '';
+            if (hasAction) {
+                var pid = p.page_id !== undefined && p.page_id !== null ? String(p.page_id) : '';
+                if (failedSet && failedSet[pid]) action = '<span class="text-red-600 dark:text-red-400">Fail</span>';
+                else if (existingSet && existingSet[p.page_id]) action = '<span class="text-amber-600 dark:text-amber-400">Update</span>';
+                else action = '<span class="text-green-600 dark:text-green-400">Create</span>';
+            }
+            html += '<tr><td class="px-2 py-1 border-b">' + (i + 1) + '</td><td class="px-2 py-1 border-b font-mono">' + (p.page_id || '') + '</td><td class="px-2 py-1 border-b">' + (p.page_type || '') + '</td><td class="px-2 py-1 border-b">' + (p.route || '') + '</td>';
+            if (hasAction) html += '<td class="px-2 py-1 border-b">' + action + '</td>';
+            html += '</tr>';
         });
-        if (pages.length > 20) html += '<tr><td colspan="4" class="px-2 py-1 text-gray-500">... and ' + (pages.length - 20) + ' more</td></tr>';
         html += '</tbody></table>';
         el.innerHTML = html;
     }
 
-    function uploadJsonNextStep() {
+    async function uploadJsonNextStep() {
         if (_jsonUploadStep === 1) {
             if (!_jsonUploadPages || _jsonUploadPages.length === 0) {
                 var err = document.getElementById('json-file-error');
@@ -2452,11 +2504,91 @@
                 }
                 return;
             }
-            var desc = document.getElementById('json-step-2-desc');
-            if (desc) desc.textContent = _jsonUploadPages.length + ' page(s) ready to sync. Review the preview below and click "Sync Pages" to import.';
-            var previewEl = document.getElementById('json-step-2-preview');
-            if (previewEl) renderJsonPreviewTable(_jsonUploadPages, previewEl);
             setJsonStep(2);
+            var progressWrap = document.getElementById('json-step-2-progress');
+            var progressText = document.getElementById('json-step-2-progress-text');
+            var desc = document.getElementById('json-step-2-desc');
+            var previewEl = document.getElementById('json-step-2-preview');
+            if (progressWrap) { progressWrap.classList.remove('hidden'); progressWrap.classList.add('block'); }
+            if (progressText) progressText.textContent = 'Checking create, update, and validation...';
+            if (desc) desc.textContent = '';
+            if (previewEl) previewEl.innerHTML = '';
+            var validationErrEl = document.getElementById('json-step-2-validation-errors');
+            if (validationErrEl) { validationErrEl.classList.add('hidden'); validationErrEl.innerHTML = ''; }
+            var countsResetEl = document.getElementById('json-step-2-counts');
+            if (countsResetEl) { countsResetEl.classList.add('hidden'); countsResetEl.innerHTML = ''; }
+
+            var fileCount = _jsonUploadFileCount || 0;
+            var pageCount = _jsonUploadPages.length;
+            var existing = [], failedPageIds = [];
+            var toCreateCount = 0, toUpdateCount = 0, failedCount = 0;
+            var payload = buildJsonPagesPayload();
+            var previewFailed = false;
+            var previewErrorMessage = '';
+            var validationErrorsList = [];
+            try {
+                var previewResp = await fetch('/docs/api/pages/bulk-import/preview/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ pages: payload })
+                });
+                var previewJson = {};
+                try { previewJson = await previewResp.json(); } catch (_) {}
+                if (previewResp.ok && previewJson.data) {
+                    existing = previewJson.data.existing || [];
+                    toCreateCount = previewJson.data.to_create_count != null ? previewJson.data.to_create_count : (previewJson.data.to_create || []).length;
+                    toUpdateCount = previewJson.data.to_update_count != null ? previewJson.data.to_update_count : existing.length;
+                    failedCount = previewJson.data.failed_count != null ? previewJson.data.failed_count : 0;
+                    var errs = previewJson.data.validation_errors || [];
+                    validationErrorsList = errs;
+                    failedPageIds = errs.map(function (e) { return e.page_id !== undefined && e.page_id !== null ? String(e.page_id) : ''; });
+                } else {
+                    previewFailed = true;
+                    previewErrorMessage = (previewJson && previewJson.message) ? previewJson.message : ('Request failed: ' + (previewResp.status ? 'HTTP ' + previewResp.status : 'network error'));
+                }
+            } catch (e) {
+                previewFailed = true;
+                previewErrorMessage = e && e.message ? e.message : 'Network or server error. Please try again.';
+            }
+
+            if (progressWrap) { progressWrap.classList.add('hidden'); progressWrap.classList.remove('block'); }
+            var summary = (fileCount ? fileCount + ' file(s) \u2192 ' : '') + pageCount + ' unique page(s). ';
+            if (previewFailed) {
+                summary += 'Preview check failed: ' + previewErrorMessage + '. Counts below may be incomplete. You can still sync.';
+            } else {
+                summary += 'Create: ' + toCreateCount + ', Update: ' + toUpdateCount + ', Would fail: ' + failedCount + '. ';
+                summary += 'Review the preview below and click "Sync Pages" to import.';
+            }
+            if (desc) desc.textContent = summary;
+            var countsEl = document.getElementById('json-step-2-counts');
+            if (countsEl) {
+                if (!previewFailed) {
+                    countsEl.classList.remove('hidden');
+                    countsEl.innerHTML = '<span class="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">Create: ' + toCreateCount + '</span>' +
+                        '<span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">Update: ' + toUpdateCount + '</span>' +
+                        '<span class="inline-flex items-center px-2 py-0.5 rounded ' + (failedCount > 0 ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400') + '">Would fail: ' + failedCount + '</span>';
+                } else {
+                    countsEl.classList.add('hidden');
+                    countsEl.innerHTML = '';
+                }
+            }
+            if (previewEl) renderJsonPreviewTable(_jsonUploadPages, previewEl, { existing: existing, failed: failedPageIds });
+
+            var validationEl = document.getElementById('json-step-2-validation-errors');
+            if (validationEl) {
+                if (validationErrorsList.length > 0) {
+                    validationEl.classList.remove('hidden');
+                    validationEl.innerHTML = '<p class="font-medium">Validation errors (would fail):</p>' +
+                        validationErrorsList.map(function (e) {
+                            return 'Row ' + (e.row || '?') + (e.page_id ? ' (' + e.page_id + '): ' : ': ') + (e.error || '');
+                        }).join('<br>') +
+                        (validationErrorsList.length > 10 ? '<br><span class="text-gray-500">... and ' + (validationErrorsList.length - 10) + ' more</span>' : '');
+                } else {
+                    validationEl.classList.add('hidden');
+                    validationEl.innerHTML = '';
+                }
+            }
         }
     }
 
@@ -2582,7 +2714,7 @@
 
                 if (allErrors.length > 0) {
                     html += '<div class="mt-3 border border-red-200 dark:border-red-800 rounded-md max-h-40 overflow-auto text-xs"><table class="min-w-full text-left"><thead><tr><th class="px-2 py-1 border-b">Row</th><th class="px-2 py-1 border-b">Page ID</th><th class="px-2 py-1 border-b">Error / Suggestion</th></tr></thead><tbody>';
-                    allErrors.slice(0, 50).forEach(function (err) {
+                    allErrors.forEach(function (err) {
                         html += '<tr><td class="px-2 py-1 border-b">' + (err.row || '') + '</td><td class="px-2 py-1 border-b">' + (err.page_id || '') + '</td><td class="px-2 py-1 border-b">' + formatJsonUploadError(err) + '</td></tr>';
                     });
                     html += '</tbody></table></div>';
@@ -2635,7 +2767,7 @@
         }
 
         if (base.indexOf('page_type must be one of') !== -1 || base.indexOf('Invalid value for page_type') !== -1) {
-            suggestions.push('Set "page_type" to a supported value such as "docs", "marketing", "dashboard", "settings", or "admin".');
+            suggestions.push('Set "page_type" to a supported value such as "docs", "marketing", "dashboard", "product", or "title".');
         }
 
         if (base.indexOf('route') !== -1 && base.indexOf('must start with') !== -1) {

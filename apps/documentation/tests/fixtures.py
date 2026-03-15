@@ -347,7 +347,8 @@ def generate_random_page_data(**overrides) -> Dict[str, Any]:
     import string
     
     page_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
-    page_type = random.choice(["docs", "marketing", "dashboard"])
+    from apps.documentation.constants import PAGE_TYPES
+    page_type = random.choice(list(PAGE_TYPES))
     page_state = random.choice(["draft", "published", "archived"])
     status = random.choice(["active", "inactive"])
     

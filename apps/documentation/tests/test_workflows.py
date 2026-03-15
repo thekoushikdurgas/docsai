@@ -36,7 +36,7 @@ class CreatePageWorkflowTestCase(BaseAPITestCase):
         # Step 1: Create page via API
         mock_pages_service.create_page.return_value = {
             "page_id": "new_page",
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# New Page",
             "metadata": {"title": "New Page"}
         }
@@ -45,7 +45,7 @@ class CreatePageWorkflowTestCase(BaseAPITestCase):
             self.create_api_url,
             data=json.dumps({
                 "page_id": "new_page",
-                "page_type": "markdown",
+                "page_type": "docs",
                 "content": "# New Page"
             }),
             content_type='application/json'
@@ -61,7 +61,7 @@ class CreatePageWorkflowTestCase(BaseAPITestCase):
         # Step 2: Verify page appears in list
         mock_pages_service.list_pages.return_value = {
             "pages": [
-                {"page_id": "new_page", "page_type": "markdown"}
+                {"page_id": "new_page", "page_type": "docs"}
             ],
             "total": 1
         }
@@ -107,7 +107,7 @@ class EditPageWorkflowTestCase(BaseAPITestCase):
         # Step 1: Get existing page
         mock_pages_service.get_page.return_value = {
             "page_id": self.page_id,
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Original Content"
         }
         mock_endpoints_service.list_endpoints.return_value = {"endpoints": []}
@@ -119,7 +119,7 @@ class EditPageWorkflowTestCase(BaseAPITestCase):
         # Step 2: Update page via API
         mock_pages_service.update_page.return_value = {
             "page_id": self.page_id,
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Updated Content"
         }
         
@@ -141,7 +141,7 @@ class EditPageWorkflowTestCase(BaseAPITestCase):
         # Step 3: Verify changes in detail view
         mock_pages_service.get_page.return_value = {
             "page_id": self.page_id,
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Updated Content"
         }
         

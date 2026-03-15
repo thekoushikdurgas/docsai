@@ -11,6 +11,7 @@ import logging
 from django.views.decorators.http import require_http_methods
 from django.http import HttpRequest, JsonResponse
 
+from apps.documentation.constants import PAGE_TYPES
 from apps.documentation.services import get_pages_service
 from apps.documentation.utils.format_examples import page_examples, analysis_examples
 from apps.documentation.utils.exceptions import DocumentationNotFoundError
@@ -97,7 +98,7 @@ def pages_types(request: HttpRequest) -> JsonResponse:
     try:
         service = get_pages_service()
         types_data = []
-        for pt in ["docs", "marketing", "dashboard"]:
+        for pt in PAGE_TYPES:
             count = service.count_pages_by_type(pt)
             types_data.append({"type": pt, "count": count})
         total = sum(t["count"] for t in types_data)
@@ -145,6 +146,32 @@ def pages_by_type_dashboard(request: HttpRequest) -> JsonResponse:
         return JsonResponse({"pages": result.get("pages", []), "total": result.get("total", 0)})
     except Exception as e:
         logger.exception("pages by-type dashboard failed")
+        return JsonResponse({"detail": str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@cache_documentation_get(timeout=300)
+def pages_by_type_product(request: HttpRequest) -> JsonResponse:
+    """GET /api/v1/pages/by-type/product/"""
+    try:
+        service = get_pages_service()
+        result = service.list_pages(page_type="product", limit=None, offset=0)
+        return JsonResponse({"pages": result.get("pages", []), "total": result.get("total", 0)})
+    except Exception as e:
+        logger.exception("pages by-type product failed")
+        return JsonResponse({"detail": str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+@cache_documentation_get(timeout=300)
+def pages_by_type_title(request: HttpRequest) -> JsonResponse:
+    """GET /api/v1/pages/by-type/title/"""
+    try:
+        service = get_pages_service()
+        result = service.list_pages(page_type="title", limit=None, offset=0)
+        return JsonResponse({"pages": result.get("pages", []), "total": result.get("total", 0)})
+    except Exception as e:
+        logger.exception("pages by-type title failed")
         return JsonResponse({"detail": str(e)}, status=500)
 
 

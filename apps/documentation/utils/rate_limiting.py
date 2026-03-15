@@ -24,19 +24,20 @@ F = TypeVar("F", bound=Callable)
 def _get_client_identifier(request: HttpRequest) -> str:
     """
     Get unique identifier for rate limiting.
-    
-    Uses authenticated user ID if available, otherwise IP address.
+
+    Uses Appointment360 user uuid if available, else Django user id, else IP.
     """
-    if request.user.is_authenticated:
+    appointment360_user = getattr(request, "appointment360_user", None)
+    if isinstance(appointment360_user, dict) and appointment360_user.get("uuid"):
+        return f"user:{appointment360_user['uuid']}"
+    if hasattr(request, "user") and request.user and getattr(request.user, "is_authenticated", False):
         return f"user:{request.user.id}"
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0].strip()
     else:
-        # Get IP address
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip = request.META.get("REMOTE_ADDR", "unknown")
-        return f"ip:{ip}"
+        ip = request.META.get("REMOTE_ADDR", "unknown")
+    return f"ip:{ip}"
 
 
 def _get_rate_limit_key(

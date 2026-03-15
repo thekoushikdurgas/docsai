@@ -7,7 +7,6 @@ from .base import (
     UUIDModel,
     BaseModel,
 )
-from .user import User
 
 __all__ = [
     'TimeStampedModel',
@@ -15,5 +14,4 @@ __all__ = [
     'SoftDeleteModel',
     'UUIDModel',
     'BaseModel',
-    'User',
 ]

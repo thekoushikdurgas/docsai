@@ -112,6 +112,18 @@ Used in `fallback_data`, `mock_data`, `demo_data`.
 | `file_path` | string | Data file path. |
 | `description` | string \| null | Optional description. |
 
+**Canonical (API/create/update):** For create/update and `validate_page_data()`, each item must be a DataReference (`name`, `file_path`, optional `description`).  
+**Storage (extended shape):** Some existing page JSON files (e.g. marketing pages) use an extended structure in `fallback_data` (e.g. `source`, `page_key`, `metadata`, `hero`, `sections`) for app-specific fallback content. That shape is not validated by the canonical schema; strict validation will fail on those items. The read path and repository accept these files; new or updated pages should use DataReference-only lists if they must pass full validation.
+
+**Migration (extended → canonical):** To normalize pages and set `fallback_data` to `[]`, merge each extended fallback item into the main document:
+
+- **Fallback item `metadata`** (e.g. `title`, `description`) → use to fill `metadata.purpose` or `metadata.content_sections.title` / `content_sections.subtitle` when those are empty.
+- **Fallback item `hero`** (title, subtitle, description, features, cta_text) → set or merge into `metadata.content_sections.hero`.
+- **Fallback item `sections`** (value_propositions, story, writer_workflow, cta_section, etc.) → set or merge into `metadata.content_sections` (e.g. `content_sections.value_propositions`, `content_sections.story`, or flat keys like `content_sections.cta_section`).
+- **Dashboard-style fallback** (source `dashboardMetadata` / `authMetadata`: `purpose`, `authentication`, `ui_components` as string list) → ensure `metadata.purpose`, `metadata.authentication` are set; `metadata.ui_components` can stay as list of `{name, file_path}`. Then set `fallback_data = []`.
+
+After merging, set `fallback_data` to `[]` so the canonical keys are the single source of truth.
+
 ---
 
 ## 7. Endpoint Usage in Page: PageEndpointUsage

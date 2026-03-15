@@ -150,16 +150,12 @@ def navigation(request):
 
     # Expose Appointment360 user when set by decorators/middleware (token-only auth)
     appointment360_user = getattr(request, 'appointment360_user', None)
-
-    # Public API doc routes: show main content layout so block content is rendered (not auth_content)
-    path = getattr(request, 'path', '') or ''
-    public_doc_paths = {'/api/docs', '/api/schema'}
-    is_public_doc_route = path.rstrip('/') in public_doc_paths
+    super_admin_verified = getattr(request, '_super_admin_verified', False)
 
     show_authenticated_layout = (
         (request.user.is_authenticated if hasattr(request, 'user') and request.user else False)
         or bool(appointment360_user)
-        or is_public_doc_route
+        or super_admin_verified
     )
 
     return {

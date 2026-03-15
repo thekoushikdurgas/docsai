@@ -49,7 +49,7 @@ class PageDetailViewTestCase(BaseAPITestCase):
         """Test successful page detail view."""
         mock_pages_service.get_page.return_value = {
             "page_id": self.page_id,
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Test Page",
             "metadata": {"title": "Test Page"}
         }
@@ -75,7 +75,7 @@ class PageDetailViewTestCase(BaseAPITestCase):
         """Test page detail view with tab parameter."""
         mock_pages_service.get_page.return_value = {
             "page_id": self.page_id,
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Test",
             "metadata": {}
         }
@@ -106,7 +106,7 @@ class PageFormViewTestCase(BaseAPITestCase):
         """Test page edit form GET request."""
         mock_pages_service.get_page.return_value = {
             "page_id": "test_page",
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Test",
             "metadata": {}
         }
@@ -119,12 +119,12 @@ class PageFormViewTestCase(BaseAPITestCase):
         """Test page form POST (create/update)."""
         mock_pages_service.create_page.return_value = {
             "page_id": "new_page",
-            "page_type": "markdown"
+            "page_type": "docs"
         }
         
         response = self.client.post(self.create_url, {
             'page_id': 'new_page',
-            'page_type': 'markdown',
+            'page_type': 'docs',
             'content': '# New Page'
         })
         
@@ -145,7 +145,7 @@ class PageCreateAPITestCase(BaseAPITestCase):
         """Test successful page creation via API."""
         mock_pages_service.create_page.return_value = {
             "page_id": "new_page",
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# New Page",
             "metadata": {}
         }
@@ -154,7 +154,7 @@ class PageCreateAPITestCase(BaseAPITestCase):
             self.create_api_url,
             data=json.dumps({
                 "page_id": "new_page",
-                "page_type": "markdown",
+                "page_type": "docs",
                 "content": "# New Page"
             }),
             content_type='application/json'
@@ -215,7 +215,7 @@ class PageUpdateAPITestCase(BaseAPITestCase):
         """Test successful page update via API."""
         mock_pages_service.update_page.return_value = {
             "page_id": self.page_id,
-            "page_type": "markdown",
+            "page_type": "docs",
             "content": "# Updated Page"
         }
         
@@ -305,7 +305,7 @@ class PageDraftAPITestCase(BaseAPITestCase):
         """Test successful page draft creation via API."""
         mock_pages_service.create_draft_page.return_value = {
             "page_id": "draft_page",
-            "page_type": "markdown",
+            "page_type": "docs",
             "status": "draft"
         }
         
@@ -313,7 +313,7 @@ class PageDraftAPITestCase(BaseAPITestCase):
             self.draft_api_url,
             data=json.dumps({
                 "page_id": "draft_page",
-                "page_type": "markdown"
+                "page_type": "docs"
             }),
             content_type='application/json'
         )

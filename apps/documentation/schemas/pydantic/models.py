@@ -1,7 +1,9 @@
 """Detailed Pydantic models matching the docs structure exactly (ported from Lambda documentation.api)."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
+
+from apps.documentation.constants import PAGE_TYPES
 
 
 # ============= SHARED ACCESS CONTROL MODELS =============
@@ -145,6 +147,11 @@ class DataReference(BaseModel):
     description: Optional[str] = Field(None, description="Data description")
 
 
+# Allow strict DataReference or extended dict (e.g. marketing fallback with source, page_key, metadata, hero).
+# Validation tries DataReference first; if missing name/file_path, the item is accepted as a plain dict.
+DataReferenceOrDict = Union[DataReference, Dict[str, Any]]
+
+
 # ============= PAGE MODELS =============
 
 class PageEndpointUsage(BaseModel):
@@ -274,29 +281,27 @@ class PageDocumentation(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     id: str = Field(..., alias="_id", description="Unique identifier (format: '{page_id}-001')")
     page_id: str = Field(..., description="Page identifier")
-    page_type: str = Field(..., description="Page type: dashboard, marketing, or docs")
+    page_type: str = Field(..., description="Page type: dashboard, marketing, docs, product, or title")
     metadata: PageMetadata = Field(..., description="Page metadata")
     content: Optional[str] = Field(None, description="Page content (markdown format, stored in JSON)")
     created_at: str = Field(..., description="Creation timestamp (ISO 8601)")
     access_control: Optional[AccessControl] = Field(None, description="Access control settings")
     sections: Optional[PageSections] = Field(None, description="Page section elements")
-    fallback_data: List[DataReference] = Field(default_factory=list, description="Fallback data references")
-    mock_data: List[DataReference] = Field(default_factory=list, description="Mock data references")
-    demo_data: List[DataReference] = Field(default_factory=list, description="Demo data references")
+    fallback_data: List[DataReferenceOrDict] = Field(default_factory=list, description="Fallback data references (DataReference or extended dict)")
+    mock_data: List[DataReferenceOrDict] = Field(default_factory=list, description="Mock data references (DataReference or extended dict)")
+    demo_data: List[DataReferenceOrDict] = Field(default_factory=list, description="Demo data references (DataReference or extended dict)")
 
     @field_validator("page_type")
     @classmethod
     def validate_page_type(cls, v: str) -> str:
-        valid_types = ["dashboard", "marketing", "docs"]
-        if v not in valid_types:
-            raise ValueError(f"page_type must be one of {valid_types}, got {v}")
+        if v not in PAGE_TYPES:
+            raise ValueError(f"page_type must be one of {list(PAGE_TYPES)}, got {v}")
         return v
 
     @field_validator("id")
     @classmethod
     def validate_id_format(cls, v: str) -> str:
         return v
-
 
 # ============= ENDPOINT MODELS =============
 

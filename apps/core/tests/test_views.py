@@ -27,7 +27,7 @@ class CoreViewsTest(TestCase):
 
     @patch('apps.core.views.Appointment360Client')
     def test_login_view_post_success(self, mock_client_class):
-        """Test successful login (mocked GraphQL)."""
+        """Test successful login returns 200 with redirecting page (cookies set then client redirect)."""
         mock_client_class.return_value.login.return_value = {
             'access_token': 'mock_access',
             'refresh_token': 'mock_refresh',
@@ -38,42 +38,17 @@ class CoreViewsTest(TestCase):
             'username': 'test@example.com',
             'password': 'testpass123'
         })
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/login/', response.url)
-        self.assertIn('next=', response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Redirecting', status_code=200)
 
     def test_login_view_post_invalid(self):
-        """Test login with invalid credentials."""
+        """Test login with invalid credentials returns login page."""
         response = self.client.post(reverse('core:login'), {
             'username': 'testuser',
             'password': 'wrongpass'
         })
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Invalid', status_code=200)
-
-    def test_register_view_get(self):
-        """Test register page GET request."""
-        response = self.client.get(reverse('core:register'))
-        self.assertEqual(response.status_code, 200)
-
-    @patch('apps.core.views.Appointment360Client')
-    def test_register_view_post_success(self, mock_client_class):
-        """Test successful registration (mocked GraphQL)."""
-        mock_client_class.return_value.register.return_value = {
-            'access_token': 'mock_access',
-            'refresh_token': 'mock_refresh',
-            'user': {'uuid': 'u1', 'email': 'newuser@example.com', 'name': 'New'},
-        }
-        mock_client_class.return_value.is_super_admin.return_value = True
-        response = self.client.post(reverse('core:register'), {
-            'name': 'New User',
-            'email': 'newuser@example.com',
-            'password': 'newpass123',
-            'password_confirm': 'newpass123'
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/login/', response.url)
-        self.assertIn('next=', response.url)
+        self.assertContains(response, 'Sign In', status_code=200)
 
     def test_dashboard_view_requires_login(self):
         """Test dashboard requires authentication (redirect to login with next=/)."""

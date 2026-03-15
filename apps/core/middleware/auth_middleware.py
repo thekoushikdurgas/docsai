@@ -23,7 +23,7 @@ class Appointment360AuthMiddleware:
         self.auth_enabled = getattr(settings, 'GRAPHQL_AUTH_ENABLED', True)
     
     def __call__(self, request):
-        if request.path in ['/login/', '/register/', '/logout/']:
+        if request.path in ['/login/', '/logout/']:
             return self.get_response(request)
         
         if not (self.enabled and self.auth_enabled):

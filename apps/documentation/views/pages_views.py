@@ -5,20 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import markdown
-import os
-import time
 from typing import Any, Dict, List, Optional, Tuple
-
-# #region agent log
-def _debug_log(location: str, message: str, data: dict, hypothesis_id: str = ""):
-    try:
-        log_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "..", ".cursor", "debug.log"))
-        payload = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": hypothesis_id, "location": location, "message": message, "data": data, "timestamp": int(time.time() * 1000)}
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(payload) + "\n")
-    except Exception:
-        pass
-# #endregion
 
 from apps.core.decorators.auth import require_super_admin, require_admin_or_super_admin
 from django.contrib import messages
@@ -213,9 +200,6 @@ def _collect_form_page_data(request: HttpRequest, page_id: Optional[str]) -> Opt
 @require_admin_or_super_admin
 def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpResponse:
     """Page create/edit form. GET/POST /docs/pages/create/ or /docs/pages/<page_id>/edit/. Viewable by Admin or SuperAdmin."""
-    # #region agent log
-    _debug_log("pages_views.py:page_form_view:entry", "page_form_view entry", {"path": request.path, "method": request.method, "page_id": str(page_id), "user": str(getattr(request, "user", None))}, "A,C,E")
-    # #endregion
     page: Optional[Dict[str, Any]] = None
     is_edit = page_id is not None
     create_mode_generated = (
@@ -290,15 +274,9 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
         page = {
             "metadata": {"access_control": {}},
         }
-    # #region agent log
-    _debug_log("pages_views.py:page_form_view:after_safe_page", "after safe default", {"page_keys": list(page.keys()) if page else [], "metadata_keys": list(page.get("metadata", {}).keys()) if page else []}, "E")
-    # #endregion
 
     page_json = json.dumps(page) if page else "{}"
     # Format & examples data for "Format & examples" tab (merged from /docs/pages/format/)
-    # #region agent log
-    _debug_log("pages_views.py:page_form_view:before_format_data", "before format_data", {"DATA_PREFIX": DATA_PREFIX}, "A")
-    # #endregion
     try:
         format_data = {
             "resource": "pages",
@@ -309,14 +287,7 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
         format_examples_json = json.dumps(format_data.get("examples", {}), indent=2)
         format_analyse_payload_json = json.dumps(format_data.get("analyse_payload_example") or {}, indent=2)
     except Exception as e:
-        # #region agent log
-        _debug_log("pages_views.py:page_form_view:format_data_error", "format_data build failed", {"error": str(e), "type": type(e).__name__}, "A")
-        # #endregion
         raise
-
-    # #region agent log
-    _debug_log("pages_views.py:page_form_view:before_render", "before render", {"template_name": template_name, "context_keys": ["page", "page_json", "is_edit", "active_tab", "available_endpoints", "return_url", "format_data", "format_examples_json", "format_analyse_payload_json"]}, "E")
-    # #endregion
 
     context: Dict[str, Any] = {
         "page": page,

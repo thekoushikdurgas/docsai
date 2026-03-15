@@ -31,7 +31,6 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -159,8 +158,8 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = int(os.getenv('DATA_UPLOAD_MAX_NUMBER_FIELDS', '
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Custom User Model
-AUTH_USER_MODEL = 'core.User'
+# Custom User Model (use Django's auth.User; core.User was removed)
+AUTH_USER_MODEL = 'auth.User'
 
 # Authentication Backends
 # Token-based auth is via Appointment360 (middleware + decorators). ModelBackend for Django admin / tests.

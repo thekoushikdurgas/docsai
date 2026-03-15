@@ -14,6 +14,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse, Http404
 from django.views.decorators.http import require_http_methods
 from django.utils.safestring import mark_safe
 
+from apps.documentation.constants import PAGE_TYPES
 from apps.documentation.services import (
     get_pages_service,
     get_endpoints_service,
@@ -464,7 +465,7 @@ def media_manager_pages_types(request: HttpRequest) -> HttpResponse:
     try:
         pages_service = get_pages_service()
         types_data = []
-        for pt in ["docs", "marketing", "dashboard"]:
+        for pt in PAGE_TYPES:
             count = pages_service.count_pages_by_type(pt)
             types_data.append({"type": pt, "count": count})
         total = sum(t["count"] for t in types_data)
@@ -575,6 +576,68 @@ def media_manager_pages_by_type_dashboard(request: HttpRequest) -> HttpResponse:
             request,
             'pages_by_type.html',
             {'pages': [], 'total': 0, 'page_type': 'dashboard', 'error': str(e)},
+            error_message=str(e)
+        )
+
+
+@require_super_admin
+def media_manager_pages_by_type_product(request: HttpRequest) -> HttpResponse:
+    """
+    Media Manager Dashboard - Pages by type (product) view.
+    
+    GET /docs/media-manager/pages/by-type/product/
+    Mirrors: GET /api/v1/pages/by-type/product/
+    """
+    try:
+        pages_service = get_pages_service()
+        result = pages_service.list_pages(page_type="product", limit=None, offset=0)
+        
+        context: Dict[str, Any] = {
+            'pages': result.get("pages", []),
+            'total': result.get("total", 0),
+            'page_type': 'product',
+            'filters': {'page_type': 'product'},
+        }
+        
+        return _render_resource_view(request, 'pages_by_type.html', context)
+    
+    except Exception as e:
+        logger.error(f"Error loading pages by type product: {e}", exc_info=True)
+        return _render_resource_view(
+            request,
+            'pages_by_type.html',
+            {'pages': [], 'total': 0, 'page_type': 'product', 'error': str(e)},
+            error_message=str(e)
+        )
+
+
+@require_super_admin
+def media_manager_pages_by_type_title(request: HttpRequest) -> HttpResponse:
+    """
+    Media Manager Dashboard - Pages by type (title) view.
+    
+    GET /docs/media-manager/pages/by-type/title/
+    Mirrors: GET /api/v1/pages/by-type/title/
+    """
+    try:
+        pages_service = get_pages_service()
+        result = pages_service.list_pages(page_type="title", limit=None, offset=0)
+        
+        context: Dict[str, Any] = {
+            'pages': result.get("pages", []),
+            'total': result.get("total", 0),
+            'page_type': 'title',
+            'filters': {'page_type': 'title'},
+        }
+        
+        return _render_resource_view(request, 'pages_by_type.html', context)
+    
+    except Exception as e:
+        logger.error(f"Error loading pages by type title: {e}", exc_info=True)
+        return _render_resource_view(
+            request,
+            'pages_by_type.html',
+            {'pages': [], 'total': 0, 'page_type': 'title', 'error': str(e)},
             error_message=str(e)
         )
 

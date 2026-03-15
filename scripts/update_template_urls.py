@@ -30,6 +30,8 @@ URL_MAPPINGS = {
     'media_manager_pages_by_type_docs': 'pages_by_type_docs',
     'media_manager_pages_by_type_marketing': 'pages_by_type_marketing',
     'media_manager_pages_by_type_dashboard': 'pages_by_type_dashboard',
+    'media_manager_pages_by_type_product': 'pages_by_type_product',
+    'media_manager_pages_by_type_title': 'pages_by_type_title',
     'media_manager_pages_by_type_published': 'pages_by_type_published',
     'media_manager_pages_by_type_draft': 'pages_by_type_draft',
     'media_manager_pages_by_type_stats': 'pages_by_type_stats',

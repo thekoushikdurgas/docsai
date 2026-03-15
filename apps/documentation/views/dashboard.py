@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -462,8 +461,9 @@ def documentation_dashboard(request: HttpRequest):
     except Exception as e:
         logger.warning("Error loading pages index for stats: %s", e)
     try:
+        from apps.documentation.constants import PAGE_TYPES
         types_data = []
-        for pt in ["docs", "marketing", "dashboard"]:
+        for pt in PAGE_TYPES:
             count = pages_service.count_pages_by_type(pt)
             types_data.append({"type": pt, "count": count})
         stats_pages_types = {"types": types_data, "total": sum(t["count"] for t in types_data)}
@@ -485,6 +485,32 @@ def documentation_dashboard(request: HttpRequest):
         stats_postman = postman_service.get_statistics()
     except Exception as e:
         logger.warning("Error loading postman stats: %s", e)
+
+    # Align stats so dashboard shows one source of truth (pages_service / endpoints_service, etc.)
+    stats_pages["total"] = stats_pages_types["total"]
+    overview_stats["total_pages"] = stats_pages_types["total"]
+
+    # Derive a reliable total endpoints count.
+    # Prefer dedicated statistics if available; otherwise, fall back to list totals or local index counts.
+    endpoints_total = stats_endpoints_versions.get("total", 0) or stats_endpoints_methods.get("total", 0)
+    if not endpoints_total:
+        # When viewing the endpoints tab, initial_data.total reflects the list API's total.
+        if active_tab == "endpoints":
+            endpoints_total = int(initial_data.get("total", 0) or 0)
+        # Fallback to local file index counts if stats and initial_data are unavailable.
+        if not endpoints_total:
+            endpoints_total = int(health_status.get("local_files", {}).get("endpoints_count", 0) or 0)
+
+    overview_stats["total_endpoints"] = endpoints_total
+
+    # Keep endpoints statistics panels aligned with the overview total when they don't report totals themselves.
+    if not stats_endpoints_versions.get("total"):
+        stats_endpoints_versions["total"] = endpoints_total
+    if not stats_endpoints_methods.get("total"):
+        stats_endpoints_methods["total"] = endpoints_total
+
+    overview_stats["total_relationships"] = stats_relationships.get("total_relationships", 0)
+    overview_stats["total_postman"] = stats_postman.get("total_configurations", stats_postman.get("total", 0))
 
     context: Dict[str, Any] = {
         "active_tab": active_tab,
@@ -511,6 +537,7 @@ def documentation_dashboard(request: HttpRequest):
         "service_info": service_info,
         "health_subtab": health_subtab,
     }
+
     return render(request, "documentation/dashboard.html", context)
 
 

@@ -1,9 +1,7 @@
 """SuperAdmin-only access middleware."""
 
 import hashlib
-import json
 import logging
-import time
 from urllib.parse import quote
 from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.conf import settings
@@ -37,7 +35,6 @@ class SuperAdminMiddleware:
         '/login',
         '/login/',
         '/logout/',
-        '/register/',  # Will be removed later
         '/favicon.ico',  # Browser requests; avoid 403
     ]
     
@@ -46,8 +43,6 @@ class SuperAdminMiddleware:
         '/static/',
         '/media/',
         '/.well-known/',  # Chrome DevTools and other well-known paths
-        '/api/schema/',
-        '/api/docs/',
         '/api/v1/',  # Documentation API v1 - public access (no auth required)
     ]
     
@@ -122,13 +117,6 @@ class SuperAdminMiddleware:
                 )
                 if wants_json:
                     debug_log(f"middleware returning 401 JSON path={request.path!r} wants_json=True")
-                    # #region agent log
-                    if "/import/n8n/bulk" in request.path:
-                        try:
-                            open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H1", "location": "super_admin_middleware:session_expired", "message": "returning 401 JSON", "data": {"path": request.path}, "timestamp": int(time.time() * 1000)}) + "\n")
-                        except Exception:
-                            pass
-                    # #endregion
                     return JsonResponse(
                         {
                             'error': 'Unauthorized',
@@ -137,39 +125,18 @@ class SuperAdminMiddleware:
                         },
                         status=401
                     )
-                # #region agent log
-                if "/import/n8n/bulk" in request.path:
-                    try:
-                        open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H1", "location": "super_admin_middleware:redirect_login", "message": "wants_json=False returning redirect", "data": {"path": request.path, "accept": (request.META.get("HTTP_ACCEPT") or "")[:80]}, "timestamp": int(time.time() * 1000)}) + "\n")
-                    except Exception:
-                        pass
-                # #endregion
                 if request.path == "/" or request.path == "":
                     return HttpResponseRedirect("/login/?next=/")
                 return HttpResponseRedirect(
                     f"/login/?next={request.path}&message=Session expired. Please log in again."
                 )
             debug_log(f"middleware 403 SuperAdmin required path={request.path!r}")
-            # #region agent log
-            if "/import/n8n/bulk" in request.path:
-                try:
-                    open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H1", "location": "super_admin_middleware:403", "message": "returning 403 (JSON or HTML)", "data": {"path": request.path}, "timestamp": int(time.time() * 1000)}) + "\n")
-                except Exception:
-                    pass
-            # #endregion
             return self._forbidden_response(
                 request,
                 "Access denied. SuperAdmin role required."
             )
         
         request._super_admin_verified = True
-        # #region agent log
-        if "/import/n8n/bulk" in request.path:
-            try:
-                open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H1", "location": "super_admin_middleware:passed", "message": "middleware passed request to view", "data": {"path": request.path}, "timestamp": int(time.time() * 1000)}) + "\n")
-            except Exception:
-                pass
-        # #endregion
         return self.get_response(request)
     
     def _is_public_route(self, path: str) -> bool:
@@ -272,13 +239,6 @@ class SuperAdminMiddleware:
             x_requested_with == "XMLHttpRequest" or
             "/import/n8n/bulk" in request.path
         )
-        # #region agent log
-        if "/import/n8n/bulk" in request.path:
-            try:
-                open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H1", "location": "super_admin_middleware:_forbidden_response", "message": "middleware 403", "data": {"path": request.path, "wants_json": wants_json}, "timestamp": int(time.time() * 1000)}) + "\n")
-            except Exception:
-                pass
-        # #endregion
         if wants_json:
             return JsonResponse(
                 {

@@ -10,6 +10,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
+from apps.documentation.constants import PAGE_TYPES
+
 
 # ============= Common Schemas =============
 
@@ -33,7 +35,7 @@ class FilterQuery(BaseModel):
 class PageCreateSchema(BaseModel):
     """Schema for creating a page."""
     page_id: str = Field(..., min_length=1, max_length=200, description="Unique page identifier")
-    page_type: str = Field(..., description="Page type: docs, marketing, or dashboard")
+    page_type: str = Field(..., description="Page type: docs, marketing, dashboard, product, or title")
     title: Optional[str] = Field(default=None, max_length=500, description="Page title")
     description: Optional[str] = Field(default=None, max_length=2000, description="Page description")
     content: Optional[str] = Field(default=None, description="Page content")
@@ -43,9 +45,8 @@ class PageCreateSchema(BaseModel):
     @classmethod
     def validate_page_type(cls, v: str) -> str:
         """Validate page type."""
-        valid_types = ["docs", "marketing", "dashboard"]
-        if v not in valid_types:
-            raise ValueError(f"page_type must be one of {valid_types}")
+        if v not in PAGE_TYPES:
+            raise ValueError(f"page_type must be one of {list(PAGE_TYPES)}")
         return v
     
     @field_validator("page_id")
@@ -75,9 +76,8 @@ class PageUpdateSchema(BaseModel):
         """Validate page type if provided."""
         if v is None:
             return v
-        valid_types = ["docs", "marketing", "dashboard"]
-        if v not in valid_types:
-            raise ValueError(f"page_type must be one of {valid_types}")
+        if v not in PAGE_TYPES:
+            raise ValueError(f"page_type must be one of {list(PAGE_TYPES)}")
         return v
 
 

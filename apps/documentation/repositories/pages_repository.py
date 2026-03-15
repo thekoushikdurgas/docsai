@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from contextlib import contextmanager
 
 from django.conf import settings
+from apps.documentation.constants import PAGE_TYPES
 from apps.documentation.repositories.base import BaseRepository
 from apps.documentation.repositories.s3_json_storage import S3JSONStorage
 from apps.documentation.utils.s3_index_manager import S3IndexManager
@@ -227,13 +228,13 @@ class PagesRepository(BaseRepository):
         return len(page_ids)
 
     def get_type_statistics(self) -> Dict[str, Any]:
-        """Get statistics for all page types (docs, marketing, dashboard)."""
+        """Get statistics for all page types (docs, marketing, dashboard, product, title)."""
         index_data = self.index_manager.read_index("pages")
         stats_data = index_data.get("statistics", {})
         by_type_stats = stats_data.get("by_type", {}) if isinstance(stats_data, dict) else {}
         if by_type_stats:
             statistics = []
-            for page_type in ["docs", "marketing", "dashboard"]:
+            for page_type in PAGE_TYPES:
                 type_stats = by_type_stats.get(page_type, {})
                 statistics.append({
                     "type": page_type,
@@ -246,7 +247,7 @@ class PagesRepository(BaseRepository):
         by_type = index_data.get("indexes", {}).get("by_type", {})
         all_pages = self.list_all(limit=None, offset=0)
         count_by_type_status = {}
-        for page_type in ["docs", "marketing", "dashboard"]:
+        for page_type in PAGE_TYPES:
             count_by_type_status[page_type] = {"published": 0, "draft": 0, "deleted": 0, "total": 0}
         for page in all_pages:
             pt = page.get("page_type", "docs")
@@ -261,7 +262,7 @@ class PagesRepository(BaseRepository):
             elif status_val == "deleted":
                 count_by_type_status[pt]["deleted"] += 1
         statistics = []
-        for page_type in ["docs", "marketing", "dashboard"]:
+        for page_type in PAGE_TYPES:
             s = count_by_type_status.get(page_type, {})
             statistics.append({
                 "type": page_type,

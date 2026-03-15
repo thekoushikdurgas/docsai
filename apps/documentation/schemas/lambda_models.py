@@ -15,6 +15,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from pydantic import ValidationError as PydanticValidationError
 
+from apps.documentation.constants import PAGE_TYPES
 from apps.documentation.schemas.pydantic.models import (
     EnhancedRelationship,
     EndpointDocumentation,
@@ -59,9 +60,8 @@ class LambdaModelValidator:
     @staticmethod
     def validate_page_type(value: str) -> str:
         """Validate page type."""
-        valid_types = ["dashboard", "marketing", "docs"]
-        if value not in valid_types:
-            raise ValidationError(_(f"page_type must be one of {valid_types}, got {value}"))
+        if value not in PAGE_TYPES:
+            raise ValidationError(_(f"page_type must be one of {list(PAGE_TYPES)}, got {value}"))
         return value
     
     @staticmethod

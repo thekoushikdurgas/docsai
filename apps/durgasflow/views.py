@@ -917,13 +917,6 @@ def import_n8n_bulk(request):
 
     Returns JSON: { ok, results: [{ success, workflow_path, workflow_id?, name?, error? }], summary: { total, success, failed } }
     """
-    # #region agent log
-    try:
-        import time as _t
-        open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H3", "location": "durgasflow.views:import_n8n_bulk:entry", "message": "view reached", "data": {"path": getattr(request, "path", "")}, "timestamp": int(_t.time() * 1000)}) + "\n")
-    except Exception:
-        pass
-    # #endregion
     user_uuid = None
     if hasattr(request, 'appointment360_user'):
         user_uuid = request.appointment360_user.get('uuid')
@@ -954,13 +947,6 @@ def import_n8n_bulk(request):
 
         total = len(results)
         success_count = sum(1 for r in results if r.get('success'))
-        # #region agent log
-        try:
-            import time as _t
-            open(r"d:\code\ayan\contact\.cursor\debug.log", "a").write(json.dumps({"hypothesisId": "H3", "location": "durgasflow.views:import_n8n_bulk:return_json", "message": "returning 200 JSON", "data": {"total": total}, "timestamp": int(_t.time() * 1000)}) + "\n")
-        except Exception:
-            pass
-        # #endregion
         return JsonResponse({
             'ok': True,
             'results': results,

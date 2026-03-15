@@ -9,7 +9,7 @@ class Collection(models.Model):
     """Groups API requests (from Postman collections)."""
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     ai_docs = models.TextField(blank=True)  # AI-generated documentation
 
@@ -17,7 +17,7 @@ class Collection(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.name} ({self.user.username})"
+        return f"{self.name} ({self.user.username if self.user_id else 'no user'})"
 
 
 class ApiRequest(models.Model):
@@ -50,7 +50,7 @@ class ApiRequest(models.Model):
 class Environment(models.Model):
     """Environment variable management."""
     name = models.CharField(max_length=200)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='durgasman_environments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='durgasman_environments', null=True, blank=True)
     variables_list = models.JSONField(default=list)  # [{"key": "baseUrl", "value": "https://api.example.com", "enabled": True}]
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -58,7 +58,7 @@ class Environment(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.name} ({self.user.username})"
+        return f"{self.name} ({self.user.username if self.user_id else 'no user'})"
 
 
 class EnvVariable(models.Model):
@@ -78,7 +78,7 @@ class EnvVariable(models.Model):
 
 class RequestHistory(models.Model):
     """Execution history and responses."""
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     method = models.CharField(max_length=10)
     url = models.TextField()

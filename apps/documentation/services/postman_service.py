@@ -11,6 +11,11 @@ from apps.documentation.utils.exceptions import DocumentationError
 
 logger = logging.getLogger(__name__)
 
+# Avoid spamming logs when no Postman configurations are present.
+# In many environments (e.g. local dev), having zero configurations is expected,
+# so we only emit a single informational log per process instead of repeated warnings.
+_NO_CONFIGS_LOGGED = False
+
 
 class PostmanService(DocumentationServiceBase):
     """Service for Postman operations with multi-strategy pattern using UnifiedStorage."""
@@ -168,8 +173,13 @@ class PostmanService(DocumentationServiceBase):
         except Exception as e:
             self.logger.warning(f"Failed to load configurations from S3: {e}")
         
-        # Return empty result if all strategies failed
-        logger.warning("All strategies failed to load configurations")
+        # Return empty result if all strategies failed.
+        # This is often an expected state (e.g. no Postman configs set up locally or in S3),
+        # so log at most once per process to avoid noisy warnings.
+        global _NO_CONFIGS_LOGGED
+        if not _NO_CONFIGS_LOGGED:
+            logger.info("All strategies failed to load Postman configurations; returning empty result")
+            _NO_CONFIGS_LOGGED = True
         return {
             'configurations': [],
             'total': 0,
@@ -407,19 +417,7 @@ class PostmanService(DocumentationServiceBase):
             DocumentationError: If retrieval fails after retries
         """
         try:
-            # #region agent log
-            import json
-            with open('d:\\code\\ayan\\contact\\.cursor\\debug.log', 'a') as f:
-                f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": "A", "location": "postman_service.py:403", "message": "get_environment entry", "data": {"config_id": config_id, "env_name": env_name}, "timestamp": __import__('time').time() * 1000}) + '\n')
-            # #endregion
-            
             config = self.get_configuration(config_id)
-            
-            # #region agent log
-            with open('d:\\code\\ayan\\contact\\.cursor\\debug.log', 'a') as f:
-                f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": "A", "location": "postman_service.py:407", "message": "config loaded", "data": {"config_exists": config is not None, "environments_type": type(config.get('environments', [])).__name__ if config else None, "environments_sample": str(config.get('environments', [])[:2]) if config else None}, "timestamp": __import__('time').time() * 1000}) + '\n')
-            # #endregion
-            
             if not config:
                 return None
             
@@ -435,17 +433,8 @@ class PostmanService(DocumentationServiceBase):
                     self.logger.warning(f"Invalid environments format for config {config_id}: {type(environments)}")
                     return None
             
-            # #region agent log
-            with open('d:\\code\\ayan\\contact\\.cursor\\debug.log', 'a') as f:
-                f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B", "location": "postman_service.py:412", "message": "environments array check", "data": {"environments_len": len(environments), "first_item_type": type(environments[0]).__name__ if environments else None, "first_item_value": str(environments[0]) if environments else None}, "timestamp": __import__('time').time() * 1000}) + '\n')
-            # #endregion
-            
             # Check if environments is array of file names (strings) or objects (dicts)
             if environments and len(environments) > 0 and isinstance(environments[0], str):
-                # #region agent log
-                with open('d:\\code\\ayan\\contact\\.cursor\\debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": "C", "location": "postman_service.py:417", "message": "environments are file names, loading files", "data": {"env_name": env_name}, "timestamp": __import__('time').time() * 1000}) + '\n')
-                # #endregion
                 # Environments are file names, need to load them
                 for env_file_name in environments:
                     try:
@@ -453,12 +442,6 @@ class PostmanService(DocumentationServiceBase):
                         local_storage = get_shared_local_storage()
                         env_path = f"postman/environment/{env_file_name}"
                         env_data = local_storage.read_json(env_path)
-                        
-                        # #region agent log
-                        with open('d:\\code\\ayan\\contact\\.cursor\\debug.log', 'a') as f:
-                            f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": "C", "location": "postman_service.py:425", "message": "loaded env file", "data": {"file_name": env_file_name, "env_data_name": env_data.get('name') if env_data else None, "matches": env_data.get('name') == env_name if env_data else False}, "timestamp": __import__('time').time() * 1000}) + '\n')
-                        # #endregion
-                        
                         if env_data and (env_data.get('name') == env_name or env_data.get('env_name') == env_name):
                             return env_data
                     except Exception as e:
@@ -478,15 +461,7 @@ class PostmanService(DocumentationServiceBase):
                 return None
             else:
                 # Environments are already objects, use existing logic
-                # #region agent log
-                with open('d:\\code\\ayan\\contact\\.cursor\\debug.log', 'a') as f:
-                    f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": "D", "location": "postman_service.py:443", "message": "environments are objects, iterating", "data": {"env_name": env_name}, "timestamp": __import__('time').time() * 1000}) + '\n')
-                # #endregion
                 for env in environments:
-                    # #region agent log
-                    with open('d:\\code\\ayan\\contact\\.cursor\\debug.log', 'a') as f:
-                        f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": "D", "location": "postman_service.py:447", "message": "checking env", "data": {"env_type": type(env).__name__, "env_name_field": env.get('name') if isinstance(env, dict) else None, "matches": env.get('name') == env_name if isinstance(env, dict) else False}, "timestamp": __import__('time').time() * 1000}) + '\n')
-                    # #endregion
                     if isinstance(env, dict) and (env.get('name') == env_name or env.get('env_name') == env_name):
                         return env
                 return None
