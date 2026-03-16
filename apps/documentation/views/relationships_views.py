@@ -31,24 +31,7 @@ DEFAULT_OFFSET = 0
 VALID_DETAIL_TABS = frozenset({"overview", "connection", "usage", "related", "page", "data_flow", "postman_ref", "raw"})
 
 
-# Use shared helper functions (Task 2.3.1)
-from apps.documentation.utils.view_helpers import (
-    parse_limit_offset,
-    parse_json_body,
-    validate_detail_tab,
-)
-
-def _parse_limit_offset(request: HttpRequest) -> Tuple[int, int]:
-    """Parse limit/offset for relationships (uses shared helper)."""
-    return parse_limit_offset(request, DEFAULT_RELATIONSHIP_LIMIT, MAX_RELATIONSHIP_LIMIT, DEFAULT_OFFSET)
-
-def _parse_json_body(request: HttpRequest) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """Parse JSON body (uses shared helper)."""
-    return parse_json_body(request)
-
-def _validate_detail_tab(tab: Optional[str]) -> str:
-    """Validate detail tab for relationships (uses shared helper)."""
-    return validate_detail_tab(tab, "relationships")
+from apps.documentation.utils.view_helpers import parse_json_body, validate_detail_tab
 
 
 def _validate_relationship_id(relationship_id: Optional[str]) -> Optional[str]:
@@ -76,7 +59,7 @@ def relationship_detail_view(request: HttpRequest, relationship_id: str) -> Http
         messages.error(request, "Relationship ID is required.")
         return redirect("documentation:dashboard_relationships")
 
-    active_tab = _validate_detail_tab(request.GET.get("tab"))
+    active_tab = validate_detail_tab(request.GET.get("tab"), "relationships")
 
     try:
         relationship = relationships_service.get_relationship(validated_id)
@@ -367,7 +350,7 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
 @csrf_exempt
 def relationship_create_api(request: HttpRequest) -> JsonResponse:
     """API endpoint to create a new relationship. POST /docs/api/relationships/create/"""
-    data, error_msg = _parse_json_body(request)
+    data, error_msg = parse_json_body(request)
     if error_msg:
         logger.warning("Invalid request body in relationship_create_api: %s", error_msg)
         return error_response(message=error_msg, status_code=400).to_json_response()
@@ -394,7 +377,7 @@ def relationship_update_api(request: HttpRequest, relationship_id: str) -> JsonR
     if not validated_id:
         return error_response(message="Invalid relationship ID", status_code=400).to_json_response()
 
-    data, error_msg = _parse_json_body(request)
+    data, error_msg = parse_json_body(request)
     if error_msg:
         logger.warning("Invalid request body in relationship_update_api: %s", error_msg)
         return error_response(message=error_msg, status_code=400).to_json_response()

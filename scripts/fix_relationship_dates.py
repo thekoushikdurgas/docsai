@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Setup Django environment if needed
 if "DJANGO_SETTINGS_MODULE" not in os.environ:
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docs_ai_agent.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     try:
         import django
         django.setup()

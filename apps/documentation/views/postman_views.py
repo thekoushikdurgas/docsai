@@ -19,11 +19,6 @@ logger = logging.getLogger(__name__)
 
 VALID_DETAIL_TABS = frozenset({"overview", "requests", "variables", "environments", "endpoints", "info", "raw"})
 
-# Use shared helper function (Task 2.3.1)
-def _validate_detail_tab(tab: Optional[str]) -> str:
-    """Validate detail tab for postman (uses shared helper)."""
-    return validate_detail_tab(tab, "postman")
-
 
 def _validate_postman_id(postman_id: Optional[str]) -> Optional[str]:
     """Validate Postman ID. Returns None if invalid."""
@@ -92,7 +87,7 @@ def postman_detail_view(request: HttpRequest, postman_id: str) -> HttpResponse:
         messages.error(request, "Postman ID is required.")
         return redirect("documentation:dashboard")
 
-    active_tab = _validate_detail_tab(request.GET.get("tab"))
+    active_tab = validate_detail_tab(request.GET.get("tab"), "postman")
 
     try:
         # Get Postman configuration

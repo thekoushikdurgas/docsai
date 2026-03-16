@@ -22,11 +22,7 @@ from apps.documentation.utils.api_responses import (
     server_error_response,
     success_response,
 )
-from apps.documentation.utils.view_helpers import (
-    parse_limit_offset,
-    parse_json_body,
-    validate_detail_tab,
-)
+from apps.documentation.utils.view_helpers import parse_json_body, validate_detail_tab
 
 logger = logging.getLogger(__name__)
 
@@ -55,19 +51,6 @@ SAFE_ENDPOINT_DEFAULT: Dict[str, Any] = {
     "sql_file": "",
 }
 
-# Use shared helper functions (Task 2.3.1)
-def _parse_limit_offset(request: HttpRequest) -> Tuple[int, int]:
-    """Parse limit/offset for endpoints (uses shared helper)."""
-    return parse_limit_offset(request, DEFAULT_ENDPOINT_LIMIT, MAX_ENDPOINT_LIMIT, DEFAULT_OFFSET)
-
-def _parse_json_body(request: HttpRequest) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """Parse JSON body (uses shared helper)."""
-    return parse_json_body(request)
-
-def _validate_detail_tab(tab: Optional[str]) -> str:
-    """Validate detail tab for endpoints (uses shared helper)."""
-    return validate_detail_tab(tab, "endpoints")
-
 
 def _validate_endpoint_id(endpoint_id: Optional[str]) -> Optional[str]:
     """Validate endpoint ID. Returns None if invalid."""
@@ -94,7 +77,7 @@ def endpoint_detail_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
         messages.error(request, "Endpoint ID is required.")
         return redirect("documentation:dashboard_endpoints")
 
-    active_tab = _validate_detail_tab(request.GET.get("tab"))
+    active_tab = validate_detail_tab(request.GET.get("tab"), "endpoints")
 
     try:
         endpoint = endpoints_service.get_endpoint(validated_id)
@@ -304,9 +287,7 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
             messages.error(request, "An error occurred while loading the endpoint.")
             return redirect("documentation:dashboard_endpoints")
 
-    # Check if enhanced form should be used
-    use_enhanced = request.GET.get("enhanced", "true").lower() == "true"
-    template_name = "documentation/endpoints/form_enhanced.html" if use_enhanced else "documentation/endpoints/form.html"
+    template_name = "documentation/endpoints/form_enhanced.html"
 
     # Get active tab from URL query parameter; default to "advanced" when creating from generated
     create_mode_generated = (
@@ -338,7 +319,7 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
 @csrf_exempt
 def endpoint_create_api(request: HttpRequest) -> JsonResponse:
     """API endpoint to create a new endpoint. POST /docs/api/endpoints/create/"""
-    data, error_msg = _parse_json_body(request)
+    data, error_msg = parse_json_body(request)
     if error_msg:
         logger.warning("Invalid request body in endpoint_create_api: %s", error_msg)
         return error_response(message=error_msg, status_code=400).to_json_response()
@@ -362,7 +343,7 @@ def endpoint_create_api(request: HttpRequest) -> JsonResponse:
 def endpoint_draft_api(request: HttpRequest) -> JsonResponse:
     """API endpoint to save endpoint draft (auto-save functionality). POST /docs/api/endpoints/draft/"""
     try:
-        data, error_msg = _parse_json_body(request)
+        data, error_msg = parse_json_body(request)
         if error_msg:
             logger.warning("Invalid request body in endpoint_draft_api: %s", error_msg)
             return error_response(message=error_msg, status_code=400).to_json_response()
@@ -420,7 +401,7 @@ def endpoint_update_api(request: HttpRequest, endpoint_id: str) -> JsonResponse:
     if not validated_id:
         return error_response(message="Invalid endpoint ID", status_code=400).to_json_response()
 
-    data, error_msg = _parse_json_body(request)
+    data, error_msg = parse_json_body(request)
     if error_msg:
         logger.warning("Invalid request body in endpoint_update_api: %s", error_msg)
         return error_response(message=error_msg, status_code=400).to_json_response()

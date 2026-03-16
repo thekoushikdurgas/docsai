@@ -9,9 +9,9 @@ from scripts.utils.context import get_logger, is_django_context
 
 logger = get_logger(__name__)
 
-# Type checking
+# Type checking (PageSchemaValidator etc. live in dict_schema_validators)
 if TYPE_CHECKING:
-    from apps.documentation.utils.schema_validators import (
+    from apps.documentation.utils.dict_schema_validators import (
         PageSchemaValidator,
         EndpointSchemaValidator,
         RelationshipSchemaValidator,
@@ -155,8 +155,7 @@ def get_validator(resource_type: str):
     
     if is_django:
         try:
-            # Try Django validators first
-            from apps.documentation.utils.schema_validators import (
+            from apps.documentation.utils.dict_schema_validators import (
                 PageSchemaValidator,
                 EndpointSchemaValidator,
                 RelationshipSchemaValidator,

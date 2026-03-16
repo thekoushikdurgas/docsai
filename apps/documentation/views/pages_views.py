@@ -32,11 +32,7 @@ from apps.documentation.utils.rate_limiting import (
     rate_limit_delete_endpoint,
     rate_limit_list_endpoint,
 )
-from apps.documentation.utils.view_helpers import (
-    parse_limit_offset,
-    parse_json_body,
-    validate_detail_tab,
-)
+from apps.documentation.utils.view_helpers import parse_json_body, validate_detail_tab
 
 logger = logging.getLogger(__name__)
 
@@ -46,20 +42,6 @@ MAX_PAGE_LIMIT = 500
 DEFAULT_OFFSET = 0
 VALID_DETAIL_TABS = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "technical", "sections", "data", "raw"})
 
-# Use shared helper functions (Task 2.3.1)
-# Wrapper functions for backward compatibility
-def _parse_limit_offset(request: HttpRequest) -> Tuple[int, int]:
-    """Parse limit/offset for pages (uses shared helper)."""
-    return parse_limit_offset(request, DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT, DEFAULT_OFFSET)
-
-def _parse_json_body(request: HttpRequest) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """Parse JSON body (uses shared helper)."""
-    return parse_json_body(request)
-
-def _validate_detail_tab(tab: Optional[str]) -> str:
-    """Validate detail tab for pages (uses shared helper)."""
-    return validate_detail_tab(tab, "pages")
-
 
 @require_super_admin
 def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
@@ -68,7 +50,7 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
         messages.error(request, "Page ID is required.")
         return redirect("documentation:dashboard_pages")
 
-    active_tab = _validate_detail_tab(request.GET.get("tab"))
+    active_tab = validate_detail_tab(request.GET.get("tab"), "pages")
 
     try:
         page = pages_service.get_page(page_id)
@@ -287,8 +269,7 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
             messages.error(request, "An error occurred while loading the page.")
             return redirect("documentation:dashboard_pages")
 
-    use_enhanced = request.GET.get("enhanced", "true").lower() == "true"
-    template_name = "documentation/pages/form_enhanced.html" if use_enhanced else "documentation/pages/form.html"
+    template_name = "documentation/pages/form_enhanced.html"
     available_endpoints: List[Dict[str, Any]] = []
     try:
         ep_result = endpoints_service.list_endpoints(limit=100)
@@ -338,8 +319,7 @@ def _form_render(
     active_tab: str,
 ) -> HttpResponse:
     """Render form template with common context (e.g. validation errors)."""
-    use_enhanced = request.GET.get("enhanced", "true").lower() == "true"
-    template_name = "documentation/pages/form_enhanced.html" if use_enhanced else "documentation/pages/form.html"
+    template_name = "documentation/pages/form_enhanced.html"
     if page is None:
         page = {"metadata": {"access_control": {}}}
     format_data = {
@@ -374,7 +354,7 @@ def _form_render(
 @rate_limit_create_endpoint()  # 50 requests/hour per user
 def page_create_api(request: HttpRequest) -> JsonResponse:
     """API endpoint to create a new page. POST /docs/api/pages/"""
-    data, err = _parse_json_body(request)
+    data, err = parse_json_body(request)
     if err:
         return error_response(err, status_code=400).to_json_response()
     try:
@@ -392,7 +372,7 @@ def page_create_api(request: HttpRequest) -> JsonResponse:
 @csrf_exempt
 def page_draft_api(request: HttpRequest) -> JsonResponse:
     """API endpoint to save page draft (auto-save). POST /docs/api/pages/draft/"""
-    data, err = _parse_json_body(request)
+    data, err = parse_json_body(request)
     if err:
         return error_response(err, status_code=400).to_json_response()
     if "metadata" not in data:
@@ -427,7 +407,7 @@ def page_update_api(request: HttpRequest, page_id: str) -> JsonResponse:
     """API endpoint to update a page. PUT/PATCH /docs/api/pages/<page_id>/"""
     if not page_id or not page_id.strip():
         return error_response("Page ID is required", status_code=400).to_json_response()
-    data, err = _parse_json_body(request)
+    data, err = parse_json_body(request)
     if err:
         return error_response(err, status_code=400).to_json_response()
     try:
