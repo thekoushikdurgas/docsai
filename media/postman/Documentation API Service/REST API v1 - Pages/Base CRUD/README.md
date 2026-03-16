@@ -1,1 +1,0 @@
-Base CRUD operations for pages

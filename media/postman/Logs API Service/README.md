@@ -1,1 +1,0 @@
-Postman collection for Lambda Logs API Service deployed on AWS API Gateway

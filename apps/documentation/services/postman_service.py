@@ -1,51 +1,38 @@
-"""Postman Service with multi-strategy pattern (Local → S3 → Lambda)."""
+"""Postman Service with multi-strategy pattern (S3)."""
 
 import logging
 from typing import Optional, Dict, Any, List
 from apps.documentation.services.base import DocumentationServiceBase
 from apps.documentation.repositories.unified_storage import UnifiedStorage
 from apps.documentation.repositories.postman_repository import PostmanRepository
-from apps.documentation.repositories.local_json_storage import LocalJSONStorage
 from apps.documentation.utils.retry import retry_on_network_error
 from apps.documentation.utils.exceptions import DocumentationError
 
 logger = logging.getLogger(__name__)
 
-# Avoid spamming logs when no Postman configurations are present.
-# In many environments (e.g. local dev), having zero configurations is expected,
-# so we only emit a single informational log per process instead of repeated warnings.
 _NO_CONFIGS_LOGGED = False
 
 
 class PostmanService(DocumentationServiceBase):
-    """Service for Postman operations with multi-strategy pattern using UnifiedStorage."""
+    """Service for Postman operations using UnifiedStorage (S3)."""
 
     def __init__(
         self,
         unified_storage: Optional[UnifiedStorage] = None,
         repository: Optional[PostmanRepository] = None,
-        local_storage: Optional[LocalJSONStorage] = None
     ):
         """Initialize Postman service.
 
         Args:
             unified_storage: Optional UnifiedStorage instance. If not provided, creates new one.
             repository: Optional PostmanRepository instance. If not provided, creates new one.
-            local_storage: Optional LocalJSONStorage instance. If not provided, creates new one.
         """
-        # Initialize base class with common patterns (Task 2.3.2)
         super().__init__(
             service_name="PostmanService",
             unified_storage=unified_storage,
             repository=repository or PostmanRepository(),
             resource_name="postman"
         )
-        # Local storage for fallback reads
-        if local_storage is None:
-            from apps.documentation.services import get_shared_local_storage
-            self.local_storage = get_shared_local_storage()
-        else:
-            self.local_storage = local_storage
     
     def list_configurations(
         self,
@@ -85,9 +72,11 @@ class PostmanService(DocumentationServiceBase):
                 self.logger.debug("Cache hit for list_configurations")
                 return cached
         
-        # Try local JSON files first
+        # Try S3 index first
         try:
-            index_data = self.local_storage.get_index('postman')
+            from apps.documentation.services import get_shared_s3_index_manager
+            index_manager = get_shared_s3_index_manager()
+            index_data = index_manager.read_index('postman')
             configurations_list = index_data.get('configurations', [])
             
             if configurations_list:
@@ -106,14 +95,14 @@ class PostmanService(DocumentationServiceBase):
                 else:
                     paginated = filtered_configurations[offset:]
                 
-                logger.debug(f"Loaded {len(paginated)} configurations from local files (total: {total})")
+                logger.debug(f"Loaded {len(paginated)} configurations from S3 index (total: {total})")
                 return {
                     'configurations': paginated,
                     'total': total,
-                    'source': 'local'
+                    'source': 's3'
                 }
         except Exception as e:
-            logger.warning(f"Failed to load configurations from local files: {e}")
+            logger.warning(f"Failed to load configurations from S3 index: {e}")
         
         # Try S3 via repository (scan configurations directory)
         try:
@@ -178,7 +167,7 @@ class PostmanService(DocumentationServiceBase):
         # so log at most once per process to avoid noisy warnings.
         global _NO_CONFIGS_LOGGED
         if not _NO_CONFIGS_LOGGED:
-            logger.info("All strategies failed to load Postman configurations; returning empty result")
+            logger.debug("All strategies failed to load Postman configurations; returning empty result")
             _NO_CONFIGS_LOGGED = True
         return {
             'configurations': [],
@@ -213,25 +202,7 @@ class PostmanService(DocumentationServiceBase):
                 return cached
         
         try:
-            # Try local JSON files first (same strategy as list_configurations)
-            try:
-                from apps.documentation.services import get_shared_local_storage
-                local_storage = get_shared_local_storage()
-                # Configuration files are in postman/configurations/{config_id}.json
-                config_path = f"postman/configurations/{config_id}.json"
-                configuration = local_storage.read_json(config_path)
-                if configuration:
-                    config_id_from_file = configuration.get('config_id') or configuration.get('id') or config_id
-                    if "_id" not in configuration:
-                        configuration["_id"] = config_id_from_file
-                    if use_cache:
-                        cache_key = self._get_cache_key('get_configuration', config_id)
-                        self._set_cache(cache_key, configuration, self.cache_timeout)
-                    return configuration
-            except Exception as e:
-                self.logger.warning(f"Failed to load configuration from local files: {e}")
-            
-            # Fallback to repository (S3)
+            # Try S3 (repository)
             @retry_on_network_error(max_retries=3, initial_delay=1.0)
             def _get_configuration_repository():
                 # Try configurations directory first
@@ -338,27 +309,16 @@ class PostmanService(DocumentationServiceBase):
             default_collection_file = config.get('default_collection')
             if default_collection_file:
                 try:
-                    from apps.documentation.services import get_shared_local_storage
-                    local_storage = get_shared_local_storage()
-                    # Collection files are in postman/collection/{file_name}
-                    collection_path = f"postman/collection/{default_collection_file}"
-                    collection = local_storage.read_json(collection_path)
+                    from django.conf import settings
+                    from apps.documentation.services import get_shared_s3_storage
+                    s3_storage = get_shared_s3_storage()
+                    data_prefix = settings.S3_DATA_PREFIX
+                    collection_key = f"{data_prefix}postman/collection/{default_collection_file}"
+                    collection = s3_storage.read_json(collection_key)
                     if collection:
                         return collection
                 except Exception as e:
-                    self.logger.warning(f"Failed to load collection file {default_collection_file}: {e}")
-                    # Try S3 fallback
-                    try:
-                        from django.conf import settings
-                        from apps.documentation.services import get_shared_s3_storage
-                        s3_storage = get_shared_s3_storage()
-                        data_prefix = settings.S3_DATA_PREFIX
-                        collection_key = f"{data_prefix}postman/collection/{default_collection_file}"
-                        collection = s3_storage.read_json(collection_key)
-                        if collection:
-                            return collection
-                    except Exception as e2:
-                        self.logger.warning(f"Failed to load collection from S3: {e2}")
+                    self.logger.warning(f"Failed to load collection from S3: {e}")
             
             return None
             
@@ -435,29 +395,18 @@ class PostmanService(DocumentationServiceBase):
             
             # Check if environments is array of file names (strings) or objects (dicts)
             if environments and len(environments) > 0 and isinstance(environments[0], str):
-                # Environments are file names, need to load them
                 for env_file_name in environments:
                     try:
-                        from apps.documentation.services import get_shared_local_storage
-                        local_storage = get_shared_local_storage()
-                        env_path = f"postman/environment/{env_file_name}"
-                        env_data = local_storage.read_json(env_path)
+                        from django.conf import settings
+                        from apps.documentation.services import get_shared_s3_storage
+                        s3_storage = get_shared_s3_storage()
+                        data_prefix = settings.S3_DATA_PREFIX
+                        env_key = f"{data_prefix}postman/environment/{env_file_name}"
+                        env_data = s3_storage.read_json(env_key)
                         if env_data and (env_data.get('name') == env_name or env_data.get('env_name') == env_name):
                             return env_data
                     except Exception as e:
-                        self.logger.warning(f"Failed to load environment file {env_file_name}: {e}")
-                        # Try S3 fallback
-                        try:
-                            from django.conf import settings
-                            from apps.documentation.services import get_shared_s3_storage
-                            s3_storage = get_shared_s3_storage()
-                            data_prefix = settings.S3_DATA_PREFIX
-                            env_key = f"{data_prefix}postman/environment/{env_file_name}"
-                            env_data = s3_storage.read_json(env_key)
-                            if env_data and (env_data.get('name') == env_name or env_data.get('env_name') == env_name):
-                                return env_data
-                        except Exception as e2:
-                            self.logger.warning(f"Failed to load environment from S3: {e2}")
+                        self.logger.warning(f"Failed to load environment from S3: {e}")
                 return None
             else:
                 # Environments are already objects, use existing logic
@@ -628,17 +577,6 @@ class PostmanService(DocumentationServiceBase):
                 f"Failed to update configuration {config_id}: {error_response.get('error', str(e))}"
             ) from e
 
-    def _delete_local_postman_file(self, config_id: str) -> None:
-        """Remove local Postman configuration file and invalidate local index cache so list_configurations reflects delete."""
-        try:
-            from apps.documentation.services import get_shared_local_storage
-            from django.core.cache import cache
-            local_storage = get_shared_local_storage()
-            local_storage.delete_file(f"postman/configurations/{config_id}.json")
-            cache.delete("local_json_storage:index:postman")
-        except Exception as e:
-            self.logger.warning(f"Failed to delete local Postman config file or clear index cache for {config_id}: {e}")
-
     def delete_configuration(self, config_id: str) -> bool:
         """
         Delete Postman configuration.
@@ -662,11 +600,9 @@ class PostmanService(DocumentationServiceBase):
             
             success = _delete_configuration_with_retry()
             
-            # Invalidate cache and local file after delete
             if success:
                 self.unified_storage.clear_cache('postman', config_id)
                 self.unified_storage.clear_cache('postman')
-                self._delete_local_postman_file(config_id)
                 self.logger.debug(f"Cleared cache for configuration {config_id} and all postman lists after delete")
             
             return success

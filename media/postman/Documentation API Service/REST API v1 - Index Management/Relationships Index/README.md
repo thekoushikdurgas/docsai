@@ -1,1 +1,0 @@
-Relationships index management: read, rebuild, and validate

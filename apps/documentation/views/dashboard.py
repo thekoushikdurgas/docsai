@@ -21,8 +21,6 @@ from apps.documentation.services import (
     relationships_service,
     postman_service,
 )
-from apps.documentation.repositories.local_json_storage import LocalJSONStorage
-from apps.documentation.services.documentation_media_service import MediaManagerService
 from apps.documentation.utils.api_responses import (
     error_response,
     server_error_response,
@@ -281,10 +279,9 @@ def documentation_dashboard(request: HttpRequest):
     page_size = min(page_size, 200)
     offset = (page - 1) * page_size
 
-    from apps.documentation.services import get_shared_local_storage
-    local_storage = get_shared_local_storage()
+    index_manager = get_shared_s3_index_manager()
     health_status: Dict[str, Any] = {
-        "local_files": {
+        "s3_storage": {
             "enabled": True,
             "status": "ok",
             "pages_count": 0,
@@ -298,32 +295,32 @@ def documentation_dashboard(request: HttpRequest):
     }
 
     try:
-        pages_index = local_storage.get_index("pages")
-        endpoints_index = local_storage.get_index("endpoints")
-        relationships_index = local_storage.get_index("relationships")
+        pages_index = index_manager.read_index("pages")
+        endpoints_index = index_manager.read_index("endpoints")
+        relationships_index = index_manager.read_index("relationships")
 
-        health_status["local_files"]["pages_count"] = pages_index.get("total", 0)
-        health_status["local_files"]["endpoints_count"] = endpoints_index.get("total", 0)
-        health_status["local_files"]["relationships_count"] = relationships_index.get("total", 0)
+        health_status["s3_storage"]["pages_count"] = pages_index.get("total", 0)
+        health_status["s3_storage"]["endpoints_count"] = endpoints_index.get("total", 0)
+        health_status["s3_storage"]["relationships_count"] = relationships_index.get("total", 0)
 
         try:
-            postman_index = local_storage.get_index("postman")
-            health_status["local_files"]["postman_count"] = postman_index.get("total", 0)
+            postman_index = index_manager.read_index("postman")
+            health_status["s3_storage"]["postman_count"] = postman_index.get("total", 0)
         except Exception:
             try:
                 postman_result = postman_service.list_configurations()
-                health_status["local_files"]["postman_count"] = postman_result.get("total", 0)
+                health_status["s3_storage"]["postman_count"] = postman_result.get("total", 0)
             except Exception:
-                health_status["local_files"]["postman_count"] = 0
+                health_status["s3_storage"]["postman_count"] = 0
     except Exception as e:
-        logger.error("Error loading local file stats: %s", e, exc_info=True)
-        health_status["local_files"]["status"] = "error"
+        logger.error("Error loading S3 index stats: %s", e, exc_info=True)
+        health_status["s3_storage"]["status"] = "error"
 
     overview_stats: Dict[str, Any] = {
-        "total_pages": health_status["local_files"]["pages_count"],
-        "total_endpoints": health_status["local_files"]["endpoints_count"],
-        "total_relationships": health_status["local_files"]["relationships_count"],
-        "total_postman": health_status["local_files"]["postman_count"],
+        "total_pages": health_status["s3_storage"]["pages_count"],
+        "total_endpoints": health_status["s3_storage"]["endpoints_count"],
+        "total_relationships": health_status["s3_storage"]["relationships_count"],
+        "total_postman": health_status["s3_storage"]["postman_count"],
         "pages_by_type": {},
         "endpoints_by_method": {},
     }
@@ -424,22 +421,19 @@ def documentation_dashboard(request: HttpRequest):
             logger.warning("Error loading health status for dashboard: %s", e)
             comprehensive_health_status = {"status": "unknown", "components": {}, "timestamp": 0}
     
-    # Media Manager data (for file browser and sync views)
-    sync_summary: Dict[str, Any] = {}
-    file_counts: Dict[str, int] = {}
+    # S3-only: no local file browser; counts from S3 index
     resource_types = ["pages", "endpoints", "relationships", "postman", "n8n", "project"]
-    
+    sync_summary: Dict[str, Any] = {"by_type": {}, "status": "s3_only"}
+    file_counts: Dict[str, int] = {rt: 0 for rt in resource_types}
     try:
-        media_service = MediaManagerService()
-        sync_summary = media_service.get_sync_summary()
-        file_counts = {
-            rt: sync_summary.get("by_type", {}).get(rt, {}).get("total", 0) 
-            for rt in resource_types
-        }
+        index_manager = get_shared_s3_index_manager()
+        for rt in ("pages", "endpoints", "relationships", "postman"):
+            idx = index_manager.read_index(rt)
+            file_counts[rt] = idx.get("total", 0)
+        for rt in ("n8n", "project"):
+            file_counts[rt] = 0
     except Exception as e:
-        logger.warning("Error loading media manager data: %s", e, exc_info=True)
-        sync_summary = {}
-        file_counts = {rt: 0 for rt in resource_types}
+        logger.warning("Error loading S3 index for file counts: %s", e, exc_info=True)
 
     # Statistics for dashboard (server-rendered; replaces /docs/api/statistics/*)
     stats_pages: Dict[str, Any] = {"total": 0, "version": None, "last_updated": None, "statistics": {}, "indexes": {}}
@@ -486,9 +480,16 @@ def documentation_dashboard(request: HttpRequest):
     except Exception as e:
         logger.warning("Error loading postman stats: %s", e)
 
-    # Align stats so dashboard shows one source of truth (pages_service / endpoints_service, etc.)
-    stats_pages["total"] = stats_pages_types["total"]
-    overview_stats["total_pages"] = stats_pages_types["total"]
+    # Align stats so dashboard shows one source of truth. Use list_pages total so overview
+    # matches the list view ("Showing 1-20 of N items"); count_pages_by_type can include
+    # deleted/ineligible pages and disagree with the list.
+    try:
+        list_result = pages_service.list_pages(limit=1, offset=0)
+        pages_list_total = int(list_result.get("total", 0) or 0)
+    except Exception:
+        pages_list_total = 0
+    stats_pages["total"] = pages_list_total if pages_list_total else stats_pages_types["total"]
+    overview_stats["total_pages"] = stats_pages["total"]
 
     # Derive a reliable total endpoints count.
     # Prefer dedicated statistics if available; otherwise, fall back to list totals or local index counts.
@@ -497,9 +498,9 @@ def documentation_dashboard(request: HttpRequest):
         # When viewing the endpoints tab, initial_data.total reflects the list API's total.
         if active_tab == "endpoints":
             endpoints_total = int(initial_data.get("total", 0) or 0)
-        # Fallback to local file index counts if stats and initial_data are unavailable.
+        # Fallback to S3 index counts if stats and initial_data are unavailable.
         if not endpoints_total:
-            endpoints_total = int(health_status.get("local_files", {}).get("endpoints_count", 0) or 0)
+            endpoints_total = int(health_status.get("s3_storage", {}).get("endpoints_count", 0) or 0)
 
     overview_stats["total_endpoints"] = endpoints_total
 
@@ -511,6 +512,24 @@ def documentation_dashboard(request: HttpRequest):
 
     overview_stats["total_relationships"] = stats_relationships.get("total_relationships", 0)
     overview_stats["total_postman"] = stats_postman.get("total_configurations", stats_postman.get("total", 0))
+
+    from apps.documentation.constants import PAGE_TYPES, PAGE_TYPES_DISPLAY
+
+    # For Download Excel modal: list of {type, label, count} for page-type checkboxes
+    page_types_export: List[Dict[str, Any]] = []
+    for pt in stats_pages_types.get("types", []):
+        page_types_export.append({
+            "type": pt.get("type", ""),
+            "label": PAGE_TYPES_DISPLAY.get(pt.get("type", ""), (pt.get("type") or "").capitalize()),
+            "count": pt.get("count", 0),
+        })
+    if not page_types_export:
+        for pt in PAGE_TYPES:
+            page_types_export.append({
+                "type": pt,
+                "label": PAGE_TYPES_DISPLAY.get(pt, pt.capitalize()),
+                "count": 0,
+            })
 
     context: Dict[str, Any] = {
         "active_tab": active_tab,
@@ -528,6 +547,7 @@ def documentation_dashboard(request: HttpRequest):
         # Statistics (server-rendered; replaces /docs/api/statistics/*)
         "stats_pages": stats_pages,
         "stats_pages_types": stats_pages_types,
+        "page_types_export": page_types_export,
         "stats_endpoints_versions": stats_endpoints_versions,
         "stats_endpoints_methods": stats_endpoints_methods,
         "stats_relationships": stats_relationships,
@@ -590,8 +610,7 @@ def dashboard_stats_api(request: HttpRequest) -> JsonResponse:
             message="Dashboard statistics retrieved successfully (cached)"
         ).to_json_response()
     
-    from apps.documentation.services import get_shared_local_storage
-    local_storage = get_shared_local_storage()
+    index_manager = get_shared_s3_index_manager()
     stats: Dict[str, Any] = {
         "total_pages": 0,
         "total_endpoints": 0,
@@ -602,16 +621,16 @@ def dashboard_stats_api(request: HttpRequest) -> JsonResponse:
     }
 
     try:
-        pages_index = local_storage.get_index("pages")
-        endpoints_index = local_storage.get_index("endpoints")
-        relationships_index = local_storage.get_index("relationships")
+        pages_index = index_manager.read_index("pages")
+        endpoints_index = index_manager.read_index("endpoints")
+        relationships_index = index_manager.read_index("relationships")
 
         stats["total_pages"] = pages_index.get("total", 0)
         stats["total_endpoints"] = endpoints_index.get("total", 0)
         stats["total_relationships"] = relationships_index.get("total", 0)
 
         try:
-            postman_index = local_storage.get_index("postman")
+            postman_index = index_manager.read_index("postman")
             stats["total_postman"] = postman_index.get("total", 0)
         except Exception:
             try:

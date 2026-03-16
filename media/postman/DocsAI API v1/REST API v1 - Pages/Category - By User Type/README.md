@@ -1,1 +1,0 @@
-Category endpoints filtered by user type (access control).

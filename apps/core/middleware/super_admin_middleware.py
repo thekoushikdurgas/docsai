@@ -38,13 +38,17 @@ class SuperAdminMiddleware:
         '/favicon.ico',  # Browser requests; avoid 403
     ]
     
-    # Route prefixes that are public
+    # Route prefixes that are public (static/media come from settings so BASE_PATH is respected)
+    _static = (getattr(settings, 'STATIC_URL', '') or '').strip()
+    _media = (getattr(settings, 'MEDIA_URL', '') or '').strip()
     PUBLIC_PREFIXES = [
-        '/static/',
-        '/media/',
         '/.well-known/',  # Chrome DevTools and other well-known paths
         '/api/v1/',  # Documentation API v1 - public access (no auth required)
     ]
+    if _static:
+        PUBLIC_PREFIXES.append(_static if _static.endswith('/') else _static + '/')
+    if _media:
+        PUBLIC_PREFIXES.append(_media if _media.endswith('/') else _media + '/')
     
     def __init__(self, get_response):
         self.get_response = get_response

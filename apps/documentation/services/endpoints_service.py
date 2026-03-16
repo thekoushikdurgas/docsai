@@ -231,17 +231,6 @@ class EndpointsService(DocumentationServiceBase):
             operation_name='update_endpoint'
         )
 
-    def _delete_local_endpoint_file(self, endpoint_id: str) -> None:
-        """Remove local endpoint file and invalidate local index cache so list_endpoints reflects delete."""
-        try:
-            from apps.documentation.services import get_shared_local_storage
-            from django.core.cache import cache
-            local_storage = get_shared_local_storage()
-            local_storage.delete_file(f"endpoints/{endpoint_id}.json")
-            cache.delete("local_json_storage:index:endpoints")
-        except Exception as e:
-            self.logger.warning(f"Failed to delete local endpoint file or clear index cache for {endpoint_id}: {e}")
-
     def delete_endpoint(self, endpoint_id: str) -> bool:
         """
         Delete endpoint (use S3 direct for writes).
@@ -262,8 +251,6 @@ class EndpointsService(DocumentationServiceBase):
             resource_id=endpoint_id,
             operation_name='delete_endpoint'
         )
-        if result:
-            self._delete_local_endpoint_file(endpoint_id)
         return result
 
     def _clear_cache_for_endpoint(self, endpoint_id: str) -> None:
@@ -332,60 +319,6 @@ class EndpointsService(DocumentationServiceBase):
             # Fallback
             result = self.list_endpoints(method=method, limit=1)
             return result.get('total', 0)
-    
-    def get_api_version_statistics(self) -> Dict[str, Any]:
-        """Get API version statistics (use S3 direct like PagesService)."""
-        try:
-            # Get all endpoints and calculate statistics
-            all_endpoints = self.repository.list_all()
-            version_counts = {}
-
-            for endpoint in all_endpoints:
-                api_version = endpoint.get('api_version', 'unknown')
-                if api_version not in version_counts:
-                    version_counts[api_version] = 0
-                version_counts[api_version] += 1
-
-            versions = [
-                {'api_version': version, 'count': count}
-                for version, count in version_counts.items()
-            ]
-
-            return {
-                'versions': versions,
-                'total': len(versions)
-            }
-        except Exception as e:
-            logger.warning(f"Repository failed for get_api_version_statistics: {e}")
-            # Fallback: return empty
-            return {'versions': [], 'total': 0}
-
-    def get_method_statistics(self) -> Dict[str, Any]:
-        """Get method statistics (use S3 direct like PagesService)."""
-        try:
-            # Get all endpoints and calculate statistics
-            all_endpoints = self.repository.list_all()
-            method_counts = {}
-
-            for endpoint in all_endpoints:
-                method = endpoint.get('method', 'unknown')
-                if method not in method_counts:
-                    method_counts[method] = 0
-                method_counts[method] += 1
-
-            methods = [
-                {'method': method, 'count': count}
-                for method, count in method_counts.items()
-            ]
-
-            return {
-                'methods': methods,
-                'total': len(methods)
-            }
-        except Exception as e:
-            logger.warning(f"Repository failed for get_method_statistics: {e}")
-            # Fallback: return empty
-            return {'methods': [], 'total': 0}
     
     def get_endpoint_pages(self, endpoint_id: str) -> Dict[str, Any]:
         """

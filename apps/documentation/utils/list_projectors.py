@@ -40,6 +40,9 @@ def to_page_list_item(page: Dict[str, Any]) -> Dict[str, Any]:
         "route": md.get("route") or page.get("route"),
         "title": md.get("title") or _safe_get(md, "content_sections", "title"),
         "status": md.get("status"),
+        "page_state": md.get("page_state"),
+        "last_updated": md.get("last_updated") or page.get("updated_at") or md.get("updated_at"),
+        "endpoint_count": md.get("endpoint_count"),
         "updated_at": page.get("updated_at") or md.get("updated_at"),
         "created_at": page.get("created_at") or md.get("created_at"),
     }
@@ -52,6 +55,8 @@ def to_endpoint_list_item(endpoint: Dict[str, Any]) -> Dict[str, Any]:
         "api_version": endpoint.get("api_version"),
         "endpoint_path": endpoint.get("endpoint_path") or endpoint.get("path"),
         "state": endpoint.get("endpoint_state") or endpoint.get("state"),
+        "service_file": endpoint.get("service_file"),
+        "page_count": endpoint.get("page_count"),
         "description": endpoint.get("description") or endpoint.get("summary"),
     }
 
@@ -65,16 +70,21 @@ def to_relationship_list_item(rel: Dict[str, Any]) -> Dict[str, Any]:
         "usage_type": rel.get("usage_type"),
         "usage_context": rel.get("usage_context"),
         "state": rel.get("relationship_state") or rel.get("state"),
+        "via_service": rel.get("via_service"),
     }
 
 
 def to_postman_list_item(cfg: Dict[str, Any]) -> Dict[str, Any]:
     md = cfg.get("metadata") if isinstance(cfg.get("metadata"), dict) else {}
+    collection = cfg.get("collection") if isinstance(cfg.get("collection"), dict) else {}
+    info = collection.get("info") if isinstance(collection.get("info"), dict) else {}
+    schema = info.get("schema")
     return {
         "config_id": cfg.get("config_id") or cfg.get("id"),
         "name": cfg.get("name") or md.get("name"),
         "state": cfg.get("state") or md.get("state"),
         "collection_id": _safe_get(cfg, "collection", "id") or _safe_get(cfg, "collection", "collection_id"),
+        "schema": schema,
         "updated_at": cfg.get("updated_at") or md.get("updated_at"),
     }
 

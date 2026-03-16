@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 import traceback
 from typing import Callable, Optional
-from django.http import HttpRequest, JsonResponse, HttpResponse
+from django.http import HttpRequest, JsonResponse, HttpResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 
@@ -66,6 +66,17 @@ class ErrorHandlerMiddleware(MiddlewareMixin):
         Returns:
             JsonResponse with standardized error format, or None to let Django handle it
         """
+        # Http404: do not log as error. For API requests return JSON 404; for others let Django handle.
+        if isinstance(exception, Http404):
+            if (
+                request.path.startswith('/api/') or
+                request.path.startswith('/docs/api/') or
+                request.content_type == 'application/json' or
+                'application/json' in request.META.get('HTTP_ACCEPT', '')
+            ):
+                return not_found_response("Resource").to_json_response()
+            return None
+
         # Log the exception
         error_type = type(exception).__name__
         error_message = str(exception)

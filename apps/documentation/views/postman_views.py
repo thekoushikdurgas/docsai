@@ -17,7 +17,7 @@ from apps.documentation.utils.view_helpers import validate_detail_tab
 
 logger = logging.getLogger(__name__)
 
-VALID_DETAIL_TABS = frozenset({"overview", "collection", "requests", "environments", "mappings", "raw"})
+VALID_DETAIL_TABS = frozenset({"overview", "requests", "variables", "environments", "endpoints", "info", "raw"})
 
 # Use shared helper function (Task 2.3.1)
 def _validate_detail_tab(tab: Optional[str]) -> str:
@@ -133,6 +133,8 @@ def postman_detail_view(request: HttpRequest, postman_id: str) -> HttpResponse:
                             'folder': folder_path,
                             'headers': request_data.get('header', []),
                             'body': request_data.get('body', {}),
+                            'auth': request_data.get('auth') or item.get('auth'),
+                            'event': item.get('event', []),
                         })
                     elif 'item' in item:
                         # This is a folder
@@ -181,7 +183,12 @@ def postman_detail_view(request: HttpRequest, postman_id: str) -> HttpResponse:
         collection_info = {}
         if collection and isinstance(collection, dict):
             collection_info = collection.get('info', {})
-        
+        collection_name = collection_info.get('name') or postman_id
+        breadcrumb_items = [
+            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+            {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+            {"label": collection_name, "url": None},
+        ]
         context = {
             'postman': postman_config,
             'postman_id': postman_id,
@@ -199,6 +206,7 @@ def postman_detail_view(request: HttpRequest, postman_id: str) -> HttpResponse:
             'mappings_count': len(endpoint_mappings),
             'related_endpoints': related_endpoints,
             'endpoints_count': len(related_endpoints),
+            'breadcrumb_items': breadcrumb_items,
         }
     except Exception as e:
         logger.error(f"Error loading Postman configuration {postman_id}: {e}", exc_info=True)

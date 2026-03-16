@@ -1,7 +1,7 @@
 """Pages Service with multi-strategy pattern (Local → S3 → GraphQL/Lambda)."""
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Sequence
 from django.conf import settings
 from apps.documentation.services.base import DocumentationServiceBase
 from apps.documentation.repositories.unified_storage import UnifiedStorage
@@ -72,6 +72,7 @@ class PagesService(DocumentationServiceBase):
     def list_pages(
         self,
         page_type: Optional[str] = None,
+        page_types: Optional[Sequence[str]] = None,
         include_drafts: bool = True,
         include_deleted: bool = False,
         status: Optional[str] = None,
@@ -85,11 +86,12 @@ class PagesService(DocumentationServiceBase):
         1. Try Local JSON files
         2. Fallback to S3
         3. Fallback to GraphQL
-        
+
         Uses DocumentationServiceBase._list_resources() for common patterns (Task 2.3.2).
-        
+
         Args:
-            page_type: Optional page type filter
+            page_type: Optional single page type filter (ignored if page_types is set)
+            page_types: Optional list of page types to include (takes precedence over page_type)
             include_drafts: Whether to include draft pages (default: True)
             include_deleted: Whether to include deleted pages (default: False)
             status: Optional status filter
@@ -97,10 +99,10 @@ class PagesService(DocumentationServiceBase):
             limit: Maximum number of results
             offset: Number of results to skip
             use_cache: Whether to use cache (default: True)
-            
+
         Returns:
             Dictionary with 'pages' list and 'total' count
-            
+
         Raises:
             DocumentationError: If retrieval fails after retries
         """
@@ -109,6 +111,7 @@ class PagesService(DocumentationServiceBase):
             storage_method='list_pages',
             use_cache=use_cache,
             page_type=page_type,
+            page_types=page_types,
             include_drafts=include_drafts,
             include_deleted=include_deleted,
             status=status,
@@ -460,17 +463,6 @@ class PagesService(DocumentationServiceBase):
                 f"Failed to update page {page_id}: {error_response.get('error', str(e))}"
             ) from e
 
-    def _delete_local_page_file(self, page_id: str) -> None:
-        """Remove local page file and invalidate local index cache so list_pages reflects delete."""
-        try:
-            from apps.documentation.services import get_shared_local_storage
-            from django.core.cache import cache
-            local_storage = get_shared_local_storage()
-            local_storage.delete_file(f"pages/{page_id}.json")
-            cache.delete(f"local_json_storage:index:pages")
-        except Exception as e:
-            self.logger.warning(f"Failed to delete local page file or clear index cache for {page_id}: {e}")
-
     def delete_page(self, page_id: str) -> bool:
         """
         Delete page with multi-strategy (GraphQL fallback).
@@ -496,10 +488,8 @@ class PagesService(DocumentationServiceBase):
                     
                     success = _delete_via_graphql()
                     if success:
-                        # Use base class cache clearing
                         self._clear_resource_cache(page_id)
                         self._clear_list_cache()
-                        self._delete_local_page_file(page_id)
                         self.logger.debug(f"Page {page_id} deleted via GraphQL")
                         return True
                 except Exception as e:
@@ -510,8 +500,6 @@ class PagesService(DocumentationServiceBase):
                 resource_id=page_id,
                 operation_name='delete_page'
             )
-            if result:
-                self._delete_local_page_file(page_id)
             return result
             
         except DocumentationError:

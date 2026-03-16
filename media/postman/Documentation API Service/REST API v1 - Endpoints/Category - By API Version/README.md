@@ -1,1 +1,0 @@
-Category endpoints filtered by API version

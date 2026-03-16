@@ -1,1 +1,0 @@
-Category endpoints filtered by user type (access control). Returns only pages where the specified user type has can_view=True in access_control.

@@ -54,38 +54,12 @@ LOGGING['root']['level'] = 'INFO'  # noqa
 CORS_ALLOW_ALL_ORIGINS = False
 # CORS_ALLOWED_ORIGINS should be set in environment variables
 
-# Static files - use S3 in production if configured, otherwise WhiteNoise
-if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_STORAGE_BUCKET_NAME = S3_BUCKET_NAME
-    AWS_S3_REGION_NAME = AWS_REGION
-    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', '')
-    AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',
-    }
-    AWS_S3_FILE_OVERWRITE = False
-    # Many modern S3 buckets have Object Ownership = "Bucket owner enforced",
-    # which disables ACLs entirely. Setting AWS_DEFAULT_ACL would cause:
-    #   AccessControlListNotSupported: The bucket does not allow ACLs
-    # Use bucket policy/IAM for access instead of ACLs.
-    AWS_DEFAULT_ACL = None
-    STATIC_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/static/'
-else:
-    # Fallback to WhiteNoise
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    STATIC_URL = '/static/'
-
-# Media files - use S3 in production if configured
-if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_STORAGE_BUCKET_NAME = S3_BUCKET_NAME
-    AWS_S3_REGION_NAME = AWS_REGION
-    AWS_LOCATION = 'media'
-    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/'
-else:
-    # Fallback to local storage
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
+# Static and media: always use local folders in all environments. S3 is not used for asset
+# static/media; only documentation data (pages, endpoints, postman, relationships) uses S3.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATIC_URL = f'/{BASE_PATH}/static/' if BASE_PATH else '/static/'
+MEDIA_URL = f'/{BASE_PATH}/media/' if BASE_PATH else '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # File upload limits for production
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB

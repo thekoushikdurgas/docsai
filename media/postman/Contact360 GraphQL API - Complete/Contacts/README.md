@@ -1,1 +1,0 @@
-Contacts module - Queries and Mutations

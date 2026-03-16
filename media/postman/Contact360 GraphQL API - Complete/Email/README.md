@@ -1,1 +1,0 @@
-Email module - Queries and Mutations

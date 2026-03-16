@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_ENDPOINT_LIMIT = 20
 MAX_ENDPOINT_LIMIT = 500
 DEFAULT_OFFSET = 0
-VALID_DETAIL_TABS = frozenset({"overview", "request", "response", "graphql", "relationships", "raw"})
+VALID_DETAIL_TABS = frozenset({"overview", "request", "response", "graphql", "relationships", "implementation", "access", "raw"})
 
 # Safe default for create/error re-render so template never hits missing keys
 SAFE_ENDPOINT_DEFAULT: Dict[str, Any] = {
@@ -152,6 +152,15 @@ def endpoint_detail_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
         # Convert endpoint to JSON string for Raw JSON tab
         endpoint_json = json.dumps(endpoint, indent=2, default=str)
 
+        # Extract sub-objects for templates (avoid deep dotted access)
+        lambda_services = endpoint.get("lambda_services")
+        endpoint_files = endpoint.get("files")
+        endpoint_methods_detail = endpoint.get("methods")
+        breadcrumb_items = [
+            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+            {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+            {"label": endpoint.get("endpoint_id") or endpoint_id, "url": None},
+        ]
         context = {
             'endpoint': endpoint,
             'endpoint_json': endpoint_json,
@@ -160,6 +169,10 @@ def endpoint_detail_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
             'relationships_count': len(endpoint_relationships),
             'pages_using_endpoint': pages_using_endpoint,
             'pages_count': len(pages_using_endpoint),
+            'lambda_services': lambda_services,
+            'endpoint_files': endpoint_files,
+            'endpoint_methods_detail': endpoint_methods_detail,
+            'breadcrumb_items': breadcrumb_items,
         }
     except Exception as e:
         logger.error(f"Error loading endpoint {endpoint_id}: {e}", exc_info=True)

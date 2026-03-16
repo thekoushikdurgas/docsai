@@ -1,11 +1,10 @@
-"""Relationships Service with multi-strategy pattern (Local → S3 → Lambda)."""
+"""Relationships Service with multi-strategy pattern (S3)."""
 
 import logging
 from typing import Optional, Dict, Any, List
 from apps.documentation.services.base import DocumentationServiceBase
 from apps.documentation.repositories.unified_storage import UnifiedStorage
 from apps.documentation.repositories.relationships_repository import RelationshipsRepository
-from apps.documentation.repositories.local_json_storage import LocalJSONStorage
 from apps.documentation.utils.retry import retry_on_network_error
 from apps.documentation.utils.exceptions import DocumentationError
 
@@ -13,34 +12,25 @@ logger = logging.getLogger(__name__)
 
 
 class RelationshipsService(DocumentationServiceBase):
-    """Service for relationships operations with multi-strategy pattern using UnifiedStorage."""
+    """Service for relationships operations using UnifiedStorage (S3)."""
     
     def __init__(
         self,
         unified_storage: Optional[UnifiedStorage] = None,
         repository: Optional[RelationshipsRepository] = None,
-        local_storage: Optional[LocalJSONStorage] = None
     ):
         """Initialize relationships service.
         
         Args:
             unified_storage: Optional UnifiedStorage instance. If not provided, creates new one.
             repository: Optional RelationshipsRepository instance. If not provided, creates new one.
-            local_storage: Optional LocalJSONStorage instance. If not provided, creates new one.
         """
-        # Initialize base class with common patterns (Task 2.3.2)
         super().__init__(
             service_name="RelationshipsService",
             unified_storage=unified_storage,
             repository=repository or RelationshipsRepository(),
             resource_name="relationships"
         )
-        # Local storage for fallback reads (uses 'relationships' folder)
-        if local_storage is None:
-            from apps.documentation.services import get_shared_local_storage
-            self.local_storage = get_shared_local_storage()
-        else:
-            self.local_storage = local_storage
     
     def get_relationship(
         self,
@@ -113,9 +103,11 @@ class RelationshipsService(DocumentationServiceBase):
                 self.logger.debug("Cache hit for list_relationships")
                 return cached
 
-        # Try local JSON files first
+        # Try S3 index first
         try:
-            index_data = self.local_storage.get_index('relationships')
+            from apps.documentation.services import get_shared_s3_index_manager
+            index_manager = get_shared_s3_index_manager()
+            index_data = index_manager.read_index('relationships')
             relationships_list = index_data.get('relationships', [])
             
             if relationships_list:
@@ -202,13 +194,13 @@ class RelationshipsService(DocumentationServiceBase):
                 else:
                     paginated = filtered_relationships[offset:]
                 
-                self.logger.debug(f"Loaded {len(paginated)} relationships from local files (total: {total})")
-                result = {'relationships': paginated, 'total': total, 'source': 'local'}
+                self.logger.debug(f"Loaded {len(paginated)} relationships from S3 index (total: {total})")
+                result = {'relationships': paginated, 'total': total, 'source': 's3'}
                 if use_cache:
                     self._set_cache(cache_key, result, 120)  # 2 minutes for list operations
                 return result
         except Exception as e:
-            self.logger.warning(f"Failed to load relationships from local files: {e}")
+            self.logger.warning(f"Failed to load relationships from S3 index: {e}")
         
         # Try S3 via repository (or unified_storage for usage filters)
         try:
@@ -352,17 +344,6 @@ class RelationshipsService(DocumentationServiceBase):
                 f"Failed to update relationship {relationship_id}: {error_response.get('error', str(e))}"
             ) from e
     
-    def _delete_local_relationship_file(self, relationship_id: str) -> None:
-        """Remove local relationship file and invalidate local index cache so list_relationships reflects delete."""
-        try:
-            from apps.documentation.services import get_shared_local_storage
-            from django.core.cache import cache
-            local_storage = get_shared_local_storage()
-            local_storage.delete_file(f"relationships/{relationship_id}.json")
-            cache.delete("local_json_storage:index:relationships")
-        except Exception as e:
-            self.logger.warning(f"Failed to delete local relationship file or clear index cache for {relationship_id}: {e}")
-
     def delete_relationship(self, relationship_id: str) -> bool:
         """
         Delete relationship (use S3 direct for writes).
@@ -385,13 +366,10 @@ class RelationshipsService(DocumentationServiceBase):
             
             success = _delete_relationship_with_retry()
             
-            # Clear cache and local file
             if success:
                 self._clear_cache_for_relationship(relationship_id)
-                # Invalidate cache after delete
                 self.unified_storage.clear_cache('relationships', relationship_id)
                 self.unified_storage.clear_cache('relationships')
-                self._delete_local_relationship_file(relationship_id)
                 self.logger.debug(f"Cleared cache for relationship {relationship_id} and all relationships lists after delete")
             
             return success
@@ -431,21 +409,16 @@ class RelationshipsService(DocumentationServiceBase):
             DocumentationError: If retrieval fails after retries
         """
         try:
-            # Build graph from local storage relationships
-            try:
-                index_data = self.local_storage.get_index('relationships')
-                relationships = index_data.get('relationships', [])
-                
-                if relationships:
-                    self.logger.debug(f"Building graph from {len(relationships)} local relationships")
-                    # Return relationships for client-side graph building
-                    return {
-                        'relationships': relationships,
-                        'total': len(relationships)
-                    }
-            except Exception as e:
-                self.logger.error(f"Local storage fallback for graph also failed: {e}")
-            
+            from apps.documentation.services import get_shared_s3_index_manager
+            index_manager = get_shared_s3_index_manager()
+            index_data = index_manager.read_index('relationships')
+            relationships = index_data.get('relationships', [])
+            if relationships:
+                self.logger.debug(f"Building graph from {len(relationships)} S3 relationships")
+                return {
+                    'relationships': relationships,
+                    'total': len(relationships)
+                }
             return {'nodes': [], 'edges': []}
             
         except Exception as e:

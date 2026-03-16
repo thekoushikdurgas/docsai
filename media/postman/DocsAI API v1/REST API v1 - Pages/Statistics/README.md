@@ -1,1 +1,0 @@
-Statistics endpoints for pages.

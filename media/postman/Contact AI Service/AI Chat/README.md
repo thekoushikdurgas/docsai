@@ -1,1 +1,0 @@
-AI Chat endpoints for managing conversations (7 endpoints total)

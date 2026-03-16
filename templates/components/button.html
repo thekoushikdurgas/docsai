@@ -18,40 +18,40 @@ Parameters:
 - class: Additional CSS classes (optional)
 - id: Button ID (optional)
 - aria_label: ARIA label (optional)
+- icon_only: Boolean - when true and icon set, render only icon (requires aria_label for a11y)
 {% endcomment %}
 
 {% load static %}
-
 {% if href %}
 <a href="{{ href|default:'#' }}" 
-   class="btn btn-{{ type|default:'primary' }} btn-{{ size|default:'md' }}{% if full_width %} btn-full{% endif %}{% if disabled %} btn-disabled{% endif %}{% if loading %} btn-loading{% endif %} {{ class|default:'' }}"
+   class="btn btn-{{ type|default:'primary' }} btn-{{ size|default:'md' }}{% if full_width %} btn-full{% endif %}{% if disabled %} btn-disabled{% endif %}{% if loading %} btn-loading{% endif %}{% if icon_only and icon %} btn-icon-only{% endif %} {{ class|default:'' }}"
    {% if id %}id="{{ id }}"{% endif %}
    {% if disabled %}aria-disabled="true" tabindex="-1"{% endif %}
-   {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+   {% if aria_label %}aria-label="{{ aria_label }}"{% elif icon_only and icon %}aria-label="{{ text|default:'Action' }}"{% endif %}
    {% if onclick %}onclick="{{ onclick }}"{% endif %}>
     {% if loading %}
         <span class="btn-spinner"></span>
     {% elif icon and icon_position != 'right' %}
         <span class="btn-icon btn-icon-left">{{ icon|safe }}</span>
     {% endif %}
-    <span class="btn-text">{{ text|default:'Button' }}</span>
+    {% if not icon_only or not icon %}<span class="btn-text">{{ text|default:'Button' }}</span>{% endif %}
     {% if icon and icon_position == 'right' %}
         <span class="btn-icon btn-icon-right">{{ icon|safe }}</span>
     {% endif %}
 </a>
 {% else %}
-<button type="button"
-        class="btn btn-{{ type|default:'primary' }} btn-{{ size|default:'md' }}{% if full_width %} btn-full{% endif %}{% if disabled %} btn-disabled{% endif %}{% if loading %} btn-loading{% endif %} {{ class|default:'' }}"
+<button type="{{ button_type|default:'button' }}"
+        class="btn btn-{{ type|default:'primary' }} btn-{{ size|default:'md' }}{% if full_width %} btn-full{% endif %}{% if disabled %} btn-disabled{% endif %}{% if loading %} btn-loading{% endif %}{% if icon_only and icon %} btn-icon-only{% endif %} {{ class|default:'' }}"
         {% if id %}id="{{ id }}"{% endif %}
         {% if disabled %}disabled{% endif %}
-        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+        {% if aria_label %}aria-label="{{ aria_label }}"{% elif icon_only and icon %}aria-label="{{ text|default:'Action' }}"{% endif %}
         {% if onclick %}onclick="{{ onclick }}"{% endif %}>
     {% if loading %}
         <span class="btn-spinner"></span>
     {% elif icon and icon_position != 'right' %}
         <span class="btn-icon btn-icon-left">{{ icon|safe }}</span>
     {% endif %}
-    <span class="btn-text">{{ text|default:'Button' }}</span>
+    {% if not icon_only or not icon %}<span class="btn-text">{{ text|default:'Button' }}</span>{% endif %}
     {% if icon and icon_position == 'right' %}
         <span class="btn-icon btn-icon-right">{{ icon|safe }}</span>
     {% endif %}

@@ -22,8 +22,10 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{% url 'documentation:update' page.page_id %}" class="px-6 py-2 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all">Edit</a>
-            <a href="{% url 'documentation:delete' page.page_id %}" class="px-6 py-2 bg-red-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-200 hover:bg-red-700 transition-all">Delete</a>
+            {% url 'documentation:update' page.page_id as update_url %}
+            {% url 'documentation:delete' page.page_id as delete_url %}
+            {% include 'components/button.html' with href=update_url text='Edit' type='secondary' size='md' %}
+            {% include 'components/button.html' with href=delete_url text='Delete' type='danger' size='md' %}
         </div>
     </div>
     

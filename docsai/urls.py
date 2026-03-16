@@ -25,7 +25,6 @@ urlpatterns = [
     path('analytics/', include('apps.analytics.urls')),
     path('ai/', include('apps.ai_agent.urls')),
     path('codebase/', include('apps.codebase.urls')),
-    path('media/', include('apps.media.urls')),
     path('graph/', include('apps.graph.urls')),
     path('roadmap/', include('apps.roadmap.urls')),
     path('postman/', include('apps.postman.urls')),
@@ -44,9 +43,18 @@ urlpatterns = [
     # Durgasflow - Workflow Automation (keeping non-API routes)
     path('durgasflow/', include('apps.durgasflow.urls')),
 ]
-
-# Serve static and media files in development
+# print("BASE_DIR", BASE_DIR)
+# Serve static and media from local folders (contact360/docsai/static, media, staticfiles when BASE_PATH set)
+# In DEBUG: serve media from MEDIA_ROOT, static from source 'static' dir; include Debug Toolbar URLs (namespace 'djdt')
+# When USE_LOCAL_STATIC_MEDIA: also serve media and static from local folders (e.g. runserver with DJANGO_ENV=production)
 if settings.DEBUG:
+    if 'debug_toolbar' in getattr(settings, 'INSTALLED_APPS', []):
+        urlpatterns = [
+            path('__debug__/', include('debug_toolbar.urls')),
+        ] + urlpatterns
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    # Serve static files from static directory (source files)
+    urlpatterns += static(settings.STATIC_URL, document_root=BASE_DIR / 'static')
+elif getattr(settings, 'USE_LOCAL_STATIC_MEDIA', True):
+    # Production with local media: serve media and static from local folders (no AWS S3)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=BASE_DIR / 'static')

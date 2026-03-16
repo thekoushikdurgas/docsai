@@ -79,7 +79,7 @@ class S3IndexManager:
         
         Invalidates:
         - S3 index cache (s3_index:{resource_type})
-        - Local index cache (local_json_storage:index:{resource_type})
+        - S3 index cache (s3_index:{resource_type})
         - UnifiedStorage list cache (unified_storage:{resource_type}:*)
         
         Args:
@@ -100,14 +100,6 @@ class S3IndexManager:
                 logger.debug(f"Invalidated S3 index cache for {resource_type}")
             except Exception as e:
                 logger.warning(f"Cache delete failed for {resource_type} S3 index: {e}")
-            
-            # Invalidate local index cache (if using local storage)
-            local_cache_key = f"local_json_storage:index:{resource_type}"
-            try:
-                cache.delete(local_cache_key)
-                logger.debug(f"Invalidated local index cache for {resource_type}")
-            except Exception as e:
-                logger.warning(f"Cache delete failed for {resource_type} local index: {e}")
             
             # Invalidate UnifiedStorage list cache for this resource type
             # This ensures list operations reflect the updated index
@@ -185,9 +177,15 @@ class S3IndexManager:
         # Optimize filtering with compiled filter function (Task 2.1.3)
         def should_include_page(page: Dict[str, Any]) -> bool:
             """Compiled filter function for faster execution."""
-            # Fast path: page_type filter (most selective)
-            if filters.get('page_type') and page.get('page_type') != filters['page_type']:
-                return False
+            # Fast path: page_type filter (single type or multiple types)
+            pt_filter = filters.get('page_type')
+            if pt_filter is not None:
+                page_pt = page.get('page_type')
+                if isinstance(pt_filter, (list, tuple)):
+                    if page_pt not in pt_filter:
+                        return False
+                elif page_pt != pt_filter:
+                    return False
             
             # Get metadata efficiently
             metadata = page.get('metadata', {})

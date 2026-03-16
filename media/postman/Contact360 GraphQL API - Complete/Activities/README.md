@@ -1,1 +1,0 @@
-Activities module - Queries and Mutations

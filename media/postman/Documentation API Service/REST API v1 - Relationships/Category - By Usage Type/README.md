@@ -1,1 +1,0 @@
-Category endpoints filtered by usage type

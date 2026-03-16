@@ -1,1 +1,0 @@
-Auth module - Queries and Mutations

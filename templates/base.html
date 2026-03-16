@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}DocsAI Agent{% endblock %}</title>
 
-    <!-- Tailwind CSS CDN (load first so tailwind exists for config) -->
+    <!-- Tailwind CSS CDN (load first so tailwind exists for config). In production, use PostCSS/CLI build instead. -->
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+      (function(){var w=console.warn;console.warn=function(m){if(typeof m==='string'&&m.indexOf('cdn.tailwindcss.com')!==-1)return;return w.apply(console,arguments);};})();
+    </script>
     <!-- Tailwind config: dark mode via data-theme -->
     <script>
       tailwind.config = {
@@ -51,7 +54,7 @@
         <div class="min-h-screen bg-primary dark:bg-gray-900 flex overflow-hidden transition-colors">
             {% include 'layouts/sidebar.html' %}
             <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-[25] hidden md:!hidden" aria-hidden="true" tabindex="-1"></div>
-        <div class="flex-1 flex flex-col ml-0 md:ml-[260px] min-w-0 h-screen overflow-hidden transition-[margin] duration-300">
+        <div class="flex-1 flex flex-col ml-0 md:ml-[260px] min-w-0 overflow-hidden transition-[margin] duration-300">
                 {% include 'layouts/header.html' %}
                 
                 <main class="p-8 flex-1 overflow-y-auto bg-primary dark:bg-gray-900">

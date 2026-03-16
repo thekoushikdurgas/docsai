@@ -103,6 +103,32 @@ class DocumentationDashboardAPITestCase(BaseAPITestCase):
             data = json.loads(response.content)
             # Search should filter results
             self.assertTrue(data.get('success'))
+
+    def test_get_pages_list_api_with_page_types(self):
+        """Test get_pages_list_api with page_types (multiple types) for Download Excel."""
+        mock_pages = [
+            {'page_id': 'p1', 'page_type': 'docs'},
+            {'page_id': 'p2', 'page_type': 'marketing'}
+        ]
+        with patch('apps.documentation.api.documentation_dashboard_api.get_pages_service') as mock_get_service, \
+             patch('apps.core.decorators.auth.cache.get', return_value=True):
+            mock_service = Mock()
+            mock_get_service.return_value = mock_service
+            mock_service.list_pages.return_value = {'pages': mock_pages, 'total': 2}
+            response = self.client.get(
+                self.pages_api_url,
+                {'page_types': 'docs,marketing', 'page_size': '20'},
+                HTTP_AUTHORIZATION='Bearer test-token'
+            )
+            self.assertEqual(response.status_code, 200, response.content)
+            mock_service.list_pages.assert_called_once()
+            call_kwargs = mock_service.list_pages.call_args[1]
+            self.assertIn('page_types', call_kwargs)
+            self.assertEqual(set(call_kwargs['page_types']), {'docs', 'marketing'})
+            self.assertIsNone(call_kwargs.get('page_type'))
+            data = json.loads(response.content)
+            self.assertTrue(data.get('success'))
+            self.assertEqual(len(data.get('data', [])), 2)
     
     def test_get_endpoints_list_api_success(self):
         """Test get_endpoints_list_api with success."""

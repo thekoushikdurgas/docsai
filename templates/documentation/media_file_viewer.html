@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static custom_filters %}
 
 {% block title %}Viewer: {{ file_name }} - DocsAI{% endblock %}
 
@@ -318,6 +318,12 @@
                     <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-full">{{ endpoints_count }}</span>
                 </a>
                 {% endif %}
+                <a href="?tab=fields" class="tab-button group {% if active_tab == 'fields' %}active{% endif %}" data-tab="fields" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    <span>All Fields</span>
+                </a>
                 <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -367,6 +373,12 @@
                     <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">{{ related_count }}</span>
                 </a>
                 {% endif %}
+                <a href="?tab=fields" class="tab-button group {% if active_tab == 'fields' %}active{% endif %}" data-tab="fields" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    <span>All Fields</span>
+                </a>
                 <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -447,6 +459,12 @@
                     <span>Access</span>
                 </a>
                 {% endif %}
+                <a href="?tab=fields" class="tab-button group {% if active_tab == 'fields' %}active{% endif %}" data-tab="fields" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    <span>All Fields</span>
+                </a>
                 <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -506,6 +524,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     <span>Access</span>
+                </a>
+                <a href="?tab=fields" class="tab-button group {% if active_tab == 'fields' %}active{% endif %}" data-tab="fields" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    <span>All Fields</span>
                 </a>
                 <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -776,6 +800,13 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- All Fields Tab (Postman) -->
+            <div class="tab-content {% if active_tab == 'fields' %}active{% endif %}" id="tab-fields" role="tabpanel">
+                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                    {% include 'components/json_fields_table.html' with obj=collection skip_item=True %}
+                </div>
+            </div>
 
             <!-- Raw JSON Tab -->
             <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" id="tab-raw" role="tabpanel">
@@ -1158,6 +1189,13 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- All Fields Tab (Relationship) -->
+            <div class="tab-content {% if active_tab == 'fields' %}active{% endif %}" id="tab-fields" role="tabpanel">
+                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                    {% include 'components/json_fields_table.html' with obj=relationship %}
+                </div>
+            </div>
             
             <!-- Raw JSON Tab -->
             <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" id="tab-raw" role="tabpanel">
@@ -1587,6 +1625,13 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- All Fields Tab (Endpoint) -->
+            <div class="tab-content {% if active_tab == 'fields' %}active{% endif %}" id="tab-fields" role="tabpanel">
+                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                    {% include 'components/json_fields_table.html' with obj=endpoint %}
+                </div>
+            </div>
             
             <!-- Raw JSON Tab -->
             <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" id="tab-raw" role="tabpanel">
@@ -2114,6 +2159,13 @@
                         <p class="text-xs text-gray-600 dark:text-gray-400 font-mono break-all">{{ page.metadata.file_path }}</p>
                     </div>
                     {% endif %}
+                </div>
+            </div>
+
+            <!-- All Fields Tab (Page) -->
+            <div class="tab-content {% if active_tab == 'fields' %}active{% endif %}" id="tab-fields" role="tabpanel">
+                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                    {% include 'components/json_fields_table.html' with obj=page %}
                 </div>
             </div>
             

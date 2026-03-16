@@ -110,59 +110,22 @@ def check_cache_health() -> Dict[str, Any]:
 
 def check_storage_health() -> Dict[str, Any]:
     """
-    Check local storage and S3 storage health.
+    Check S3 storage health (local storage removed - S3 only).
     
     Returns:
-        Dict with 'status' and storage information for both local and S3
+        Dict with 'status' and storage information for S3
     """
     storage_info = {
-        "local": {"status": "unknown"},
+        "local": {"status": "removed", "message": "Local storage removed; S3 only"},
         "s3": {"status": "unknown"},
     }
-    
-    # Check local storage
-    try:
-        from apps.documentation.services import get_shared_local_storage
-        
-        storage = get_shared_local_storage()
-        
-        # Try to read an index to verify storage is accessible
-        try:
-            pages_index = storage.get_index("pages")
-            endpoints_index = storage.get_index("endpoints")
-            relationships_index = storage.get_index("relationships")
-            
-            storage_info["local"] = {
-                "status": "healthy",
-                "type": "local_json",
-                "indexes": {
-                    "pages": pages_index.get("total", 0),
-                    "endpoints": endpoints_index.get("total", 0),
-                    "relationships": relationships_index.get("total", 0),
-                },
-            }
-        except Exception as e:
-            logger.warning(f"Storage index read failed: {e}")
-            storage_info["local"] = {
-                "status": "degraded",
-                "type": "local_json",
-                "error": "Index read failed",
-            }
-    except Exception as e:
-        logger.error(f"Local storage health check failed: {e}", exc_info=True)
-        storage_info["local"] = {
-            "status": "unhealthy",
-            "error": str(e),
-        }
     
     # Check S3 storage
     try:
         from apps.core.services.s3_service import S3Service
-        from django.conf import settings
         
         if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
             s3_service = S3Service()
-            # Try to list files (lightweight operation)
             start_time = time.time()
             s3_service.list_files(prefix='health_check/', max_keys=1)
             response_time = (time.time() - start_time) * 1000
@@ -185,16 +148,12 @@ def check_storage_health() -> Dict[str, Any]:
             "error": str(e),
         }
     
-    # Determine overall storage status
-    local_healthy = storage_info["local"].get("status") == "healthy"
-    s3_healthy = storage_info["s3"].get("status") in ["healthy", "not_configured"]
-    
-    if local_healthy and s3_healthy:
+    # Overall status from S3 only
+    s3_status = storage_info["s3"].get("status")
+    if s3_status == "healthy" or s3_status == "not_configured":
         overall_status = "healthy"
-    elif storage_info["local"].get("status") == "unhealthy" and storage_info["s3"].get("status") == "unhealthy":
-        overall_status = "unhealthy"
     else:
-        overall_status = "degraded"
+        overall_status = "unhealthy"
     
     return {
         "status": overall_status,

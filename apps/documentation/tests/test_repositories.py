@@ -113,7 +113,11 @@ class PagesRepositoryTestCase(TestCase):
 
         result = self.repo.list_all(limit=10, offset=0)
 
-        self.assertEqual(len(result), 3)
+        self.assertIsInstance(result, dict)
+        self.assertIn("pages", result)
+        self.assertIn("total", result)
+        self.assertEqual(len(result["pages"]), 3)
+        self.assertEqual(result["total"], 3)
         self.mock_index.get_indexed_pages.assert_called_once()
         filters = self.mock_index.get_indexed_pages.call_args[0][0]
         self.assertEqual(filters["include_drafts"], True)

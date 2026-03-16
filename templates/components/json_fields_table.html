@@ -1,0 +1,87 @@
+{% comment %}
+JSON Fields Table – recursive dict/list renderer with expand/collapse.
+
+Usage: {% include 'components/json_fields_table.html' with obj=page %}
+Parameters:
+- obj: dict to render (required)
+- depth: optional, used internally for nesting
+- skip_keys: optional list of keys to skip (e.g. ['item'] for Postman)
+- skip_item: optional bool; when True, key 'item' is shown as count only (for Postman)
+- max_depth: optional max nesting depth (default 10)
+{% endcomment %}
+{% load custom_filters %}
+{% with depth=depth|default:0 max_d=max_depth|default:10 %}
+{% if obj is None or obj == '' %}
+<span class="text-gray-500 dark:text-gray-400">—</span>
+{% elif obj|is_dict and depth < max_d %}
+<dl class="json-fields-table space-y-2 text-sm">
+    {% for key, val in obj.items %}
+    {% if skip_item and key == 'item' %}
+    <div class="flex justify-between gap-4 py-1">
+        <dt class="text-gray-500 dark:text-gray-400 font-medium">{{ key }}</dt>
+        <dd class="text-gray-900 dark:text-gray-100">{% if val|is_list %}{{ val|length }} item{{ val|length|pluralize }}{% else %}{{ val|default:"—" }}{% endif %} (see Requests tab)</dd>
+    </div>
+    {% elif skip_keys and key in skip_keys %}
+    <div class="flex justify-between gap-4 py-1">
+        <dt class="text-gray-500 dark:text-gray-400 font-medium">{{ key }}</dt>
+        <dd class="text-gray-900 dark:text-gray-100">{% if val|is_list %}{{ val|length }} item{{ val|length|pluralize }}{% else %}{{ val|default:"—" }}{% endif %} (collapsed)</dd>
+    </div>
+    {% elif val is None or val == '' %}
+    <div class="flex justify-between gap-4 py-1">
+        <dt class="text-gray-500 dark:text-gray-400 font-medium">{{ key }}</dt>
+        <dd class="text-gray-500 dark:text-gray-400">—</dd>
+    </div>
+    {% elif val|is_dict %}
+    <div class="py-1">
+        <details class="json-fields-nested">
+            <summary class="cursor-pointer font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">{{ key }} ({{ val|length }} keys)</summary>
+            <div class="pl-4 mt-2 border-l-2 border-gray-200 dark:border-gray-700">
+                {% include 'components/json_fields_table.html' with obj=val depth=depth|add:1 max_depth=max_d skip_keys=skip_keys %}
+            </div>
+        </details>
+    </div>
+    {% elif val|is_list %}
+    <div class="py-1">
+        <details class="json-fields-nested">
+            <summary class="cursor-pointer font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">{{ key }} ({{ val|length }} items)</summary>
+            <ul class="pl-4 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-700 list-none">
+                {% for item in val %}
+                <li class="text-gray-900 dark:text-gray-100">
+                    {% if item|is_dict %}
+                    {% include 'components/json_fields_table.html' with obj=item depth=depth|add:1 max_depth=max_d skip_keys=skip_keys %}
+                    {% elif item|is_list %}
+                    [{{ item|length }} items]
+                    {% else %}
+                    {{ item|default:"—" }}
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </details>
+    </div>
+    {% else %}
+    <div class="flex justify-between gap-4 py-1">
+        <dt class="text-gray-500 dark:text-gray-400 font-medium shrink-0">{{ key }}</dt>
+        <dd class="text-gray-900 dark:text-gray-100 text-right font-mono break-all">{{ val }}</dd>
+    </div>
+    {% endif %}
+    {% endfor %}
+</dl>
+{% elif obj|is_list and depth < max_d %}
+<ul class="space-y-1 text-sm list-none pl-0">
+    {% for item in obj %}
+    <li>
+        {% if item|is_dict %}
+        {% include 'components/json_fields_table.html' with obj=item depth=depth|add:1 max_depth=max_d skip_keys=skip_keys %}
+        {% elif item|is_list %}
+        [{{ item|length }} items]
+        {% else %}
+        {{ item|default:"—" }}
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+{{ obj|default:"—" }}
+{% endif %}
+{% endwith %}

@@ -14,7 +14,6 @@ from django.conf import settings
 
 from apps.core.decorators.auth import require_super_admin
 from apps.documentation.utils.paths import get_media_root, get_postman_dir
-from apps.documentation.repositories.local_json_storage import LocalJSONStorage
 from apps.documentation.services.media_file_manager import MediaFileManagerService
 from apps.documentation.services.postman_discovery_service import PostmanDiscoveryService
 from .services.durgasman_storage_service import (
@@ -73,8 +72,9 @@ def dashboard(request):
         postman_index = discovery.get_index()
     except Exception:
         try:
-            local_storage = LocalJSONStorage()
-            postman_index = local_storage.get_index('postman') or {}
+            from apps.documentation.services import get_shared_s3_index_manager
+            index_manager = get_shared_s3_index_manager()
+            postman_index = index_manager.read_index('postman') or {}
             for c in postman_index.get('collections', []):
                 if not c.get('relative_path') and c.get('file_name'):
                     c['relative_path'] = f"postman/{c['file_name']}"

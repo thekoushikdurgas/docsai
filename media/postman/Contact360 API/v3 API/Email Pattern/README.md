@@ -1,1 +1,0 @@
-Email pattern operations for retrieving email patterns associated with contacts.

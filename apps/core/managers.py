@@ -66,3 +66,29 @@ class BaseManager(models.Manager):
     def by_updated_date(self, order: str = 'desc'):
         """Order by updated_at."""
         return self.get_queryset().by_updated_date(order)
+
+
+class SoftDeleteQuerySet(models.QuerySet):
+    """Queryset for models with soft delete (deleted_at field). Excludes deleted by default."""
+
+    def exclude_deleted(self):
+        """Exclude soft-deleted rows (deleted_at is not null)."""
+        return self.filter(deleted_at__isnull=True)
+
+    def include_deleted(self):
+        """Return full queryset including soft-deleted rows."""
+        return self.all()
+
+
+class SoftDeleteManager(models.Manager):
+    """Manager for models with soft delete. Use deleted_at on the model."""
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if hasattr(self.model, 'deleted_at'):
+            return qs.filter(deleted_at__isnull=True)
+        return qs
+
+    def with_deleted(self):
+        """Return queryset including soft-deleted rows."""
+        return super().get_queryset()

@@ -124,10 +124,15 @@
     background-color: var(--color-bg-secondary);
 }
 
-.modal-btn {
+/* Modal footer buttons: use .btn tokens from button.css */
+.modal-btn,
+.modal-btn-cancel,
+.modal-btn-confirm {
+    /* Base: matches .btn .btn-md */
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--spacing-2);
     padding: var(--spacing-3) var(--spacing-6);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
@@ -138,29 +143,33 @@
     min-width: 5rem;
 }
 
-.modal-btn:focus {
+.modal-btn:focus,
+.modal-btn-cancel:focus,
+.modal-btn-confirm:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-primary-500);
 }
 
 .modal-btn-cancel {
-    background-color: var(--color-bg-primary);
+    /* Maps to .btn-secondary */
+    background-color: var(--color-bg-secondary);
     color: var(--color-text-primary);
     border-color: var(--color-border);
 }
 
-.modal-btn-cancel:hover {
+.modal-btn-cancel:hover:not(:disabled) {
     background-color: var(--color-bg-tertiary);
     border-color: var(--color-border-medium);
 }
 
 .modal-btn-confirm {
+    /* Maps to .btn-primary */
     background-color: var(--color-primary-500);
     color: white;
     border-color: var(--color-primary-500);
 }
 
-.modal-btn-confirm:hover {
+.modal-btn-confirm:hover:not(:disabled) {
     background-color: var(--color-primary-600);
     border-color: var(--color-primary-600);
 }
@@ -245,7 +254,8 @@
         flex-direction: column-reverse;
     }
     
-    .modal-btn {
+    .modal-footer .modal-btn,
+    .modal-footer .btn {
         width: 100%;
     }
 }

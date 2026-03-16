@@ -1,1 +1,0 @@
-Data cleanup operations for cleaning and normalizing contact and company data.

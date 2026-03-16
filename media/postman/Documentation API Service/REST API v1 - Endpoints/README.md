@@ -1,1 +1,0 @@
-REST API v1 - Endpoints API: 28+ endpoints with full CRUD, category filtering by version/method, format/import/analyse endpoints, statistics, and graceful error handling

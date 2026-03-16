@@ -1,84 +1,18 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static custom_filters %}
 
 {% block title %}{{ endpoint.endpoint_id }} - Documentation{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/components/form-responsive.css' %}?v=20260124d">
-<style>
-/* Tab button styles for link-based tabs */
-.tab-button {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-bottom: -2px;
-}
-.tab-button:hover {
-    color: #374151;
-    border-bottom-color: #d1d5db;
-}
-.tab-button.active {
-    color: #9333ea;
-    border-bottom-color: #9333ea;
-}
-.dark .tab-button {
-    color: #9ca3af;
-}
-.dark .tab-button:hover {
-    color: #e5e7eb;
-    border-bottom-color: #4b5563;
-}
-.dark .tab-button.active {
-    color: #a855f7;
-    border-bottom-color: #a855f7;
-}
-.tab-content {
-    display: none;
-}
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.2s ease-in;
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/components/tabs.css' %}?v=20260125">
 {% endblock %}
 
 {% block content %}
 <div class="w-full max-w-6xl mx-auto">
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-        <a href="{% url 'documentation:dashboard' %}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-        </a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <a href="{% url 'documentation:dashboard' %}?tab=endpoints" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Endpoints</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-xs">{{ endpoint.endpoint_id }}</span>
-    </nav>
+    <div class="mb-4">
+        {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
+    </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <!-- Header -->
@@ -105,23 +39,16 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="{% url 'documentation:endpoint_edit' endpoint_id=endpoint.endpoint_id %}" class="inline-flex items-center px-4 py-2 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors font-medium text-sm shadow-sm">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit
-                    </a>
-                    <a href="{% url 'documentation:endpoint_delete' endpoint_id=endpoint.endpoint_id %}" class="inline-flex items-center px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </a>
+                    {% url 'documentation:endpoint_edit' endpoint_id=endpoint.endpoint_id as endpoint_edit_url %}
+                    {% include 'components/button.html' with href=endpoint_edit_url text='Edit' type='primary' size='sm' %}
+                    {% url 'documentation:endpoint_delete' endpoint_id=endpoint.endpoint_id as endpoint_delete_url %}
+                    {% include 'components/button.html' with href=endpoint_delete_url text='Delete' type='danger' size='sm' %}
                 </div>
             </div>
         </div>
 
         <!-- Tab Navigation -->
-        <div class="border-b border-gray-200 dark:border-gray-700 px-6">
+        <div class="border-b border-gray-200 dark:border-gray-700 px-6 tabs-detail tabs-endpoints" data-tabs-theme="endpoints">
             <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
                 <a href="?tab=overview" class="tab-button group {% if active_tab == 'overview' %}active{% endif %}" data-tab="overview" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,6 +84,12 @@
                     {% if pages_count or relationships_count %}
                     {% with pages=pages_count|default:0 %}{% with rels=relationships_count|default:0 %}<span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">{{ pages|add:rels }}</span>{% endwith %}{% endwith %}
                     {% endif %}
+                </a>
+                <a href="?tab=implementation" class="tab-button group {% if active_tab == 'implementation' %}active{% endif %}" data-tab="implementation" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    <span>Implementation</span>
                 </a>
                 {% if endpoint.lambda_services or endpoint.files %}
                 <a href="?tab=lambda-services" class="tab-button group {% if active_tab == 'lambda-services' %}active{% endif %}" data-tab="lambda-services" role="tab">
@@ -213,27 +146,57 @@
                             Basic Information
                         </h3>
                         <dl class="space-y-3">
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Endpoint ID</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ endpoint.endpoint_id }}</dd>
+                            {% include 'components/key_value_row.html' with label='Internal ID (_id)' value=endpoint._id format='mono' %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Endpoint ID</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono text-right">{{ endpoint.endpoint_id }}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Method</dt>
-                                <dd>{% include 'components/badge.html' with type='method' method=endpoint.method|default:'QUERY' text=endpoint.method|default:'QUERY' %}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Method</dt>
+                                <dd class="text-right">{% include 'components/badge.html' with type='method' method=endpoint.method|default:'QUERY' text=endpoint.method|default:'QUERY' %}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Path</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ endpoint.endpoint_path|default:"-" }}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Path</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono text-right">{{ endpoint.endpoint_path|default:"—" }}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">API Version</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100">{{ endpoint.api_version|default:"v1" }}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">API Version</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 text-right">{{ endpoint.api_version|default:"v1" }}</dd>
                             </div>
-                            {% if endpoint.endpoint_state %}
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">State</dt>
-                                <dd>{% include 'components/badge.html' with type='status' status=endpoint.endpoint_state text=endpoint.endpoint_state|title %}</dd>
+                            {% include 'components/key_value_row.html' with label='State' value=endpoint.endpoint_state format='badge' %}
+                            {% include 'components/key_value_row.html' with label='Service file' value=endpoint.service_file format='mono' %}
+                            {% include 'components/key_value_row.html' with label='Router file' value=endpoint.router_file format='mono' %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Rate limit</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 text-right">{{ endpoint.rate_limit|default:"No rate limit" }}</dd>
                             </div>
+                            {% include 'components/key_value_row.html' with label='SQL file' value=endpoint.sql_file format='mono' %}
+                            {% include 'components/key_value_row.html' with label='Page count' value=endpoint.page_count %}
+                            {% include 'components/key_value_row.html' with label='Created' value=endpoint.created_at format='date' %}
+                            {% include 'components/key_value_row.html' with label='Updated' value=endpoint.updated_at format='date' %}
+                            {% if endpoint.service_methods %}
+                            <div class="flex justify-between gap-4 items-start">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Service methods</dt>
+                                <dd class="text-right flex flex-wrap gap-1 justify-end">
+                                    {% for m in endpoint.service_methods %}
+                                    <span class="px-2 py-0.5 text-xs font-mono bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-400 rounded">{{ m }}</span>
+                                    {% endfor %}
+                                </dd>
+                            </div>
+                            {% else %}
+                            {% include 'components/key_value_row.html' with label='Service methods' value=endpoint.service_methods %}
+                            {% endif %}
+                            {% if endpoint.repository_methods %}
+                            <div class="flex justify-between gap-4 items-start">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Repository methods</dt>
+                                <dd class="text-right flex flex-wrap gap-1 justify-end">
+                                    {% for m in endpoint.repository_methods %}
+                                    <span class="px-2 py-0.5 text-xs font-mono bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded">{{ m }}</span>
+                                    {% endfor %}
+                                </dd>
+                            </div>
+                            {% else %}
+                            {% include 'components/key_value_row.html' with label='Repository methods' value=endpoint.repository_methods %}
                             {% endif %}
                         </dl>
                     </div>
@@ -903,51 +866,43 @@
             {% if endpoint.access_control %}
             <div class="tab-content {% if active_tab == 'access' %}active{% endif %}" id="tab-access" role="tabpanel">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Role Permissions -->
-                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                    <!-- Role Permissions (full table) -->
+                    <div class="lg:col-span-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                             <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
-                            Role Permissions
+                            Access Control (by role)
                         </h3>
-                        <div class="space-y-3">
-                            {% if endpoint.access_control.super_admin %}
-                            <div class="flex items-center justify-between p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Super Admin</span>
-                                <div class="flex gap-2">
-                                    {% if endpoint.access_control.super_admin.can_access %}<span class="text-xs text-green-600">View</span>{% endif %}
-                                    {% if endpoint.access_control.super_admin.can_execute %}<span class="text-xs text-green-600">Execute</span>{% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if endpoint.access_control.admin %}
-                            <div class="flex items-center justify-between p-2 bg-amber-50 dark:bg-amber-900/20 rounded">
-                                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Admin</span>
-                                <div class="flex gap-2">
-                                    {% if endpoint.access_control.admin.can_access %}<span class="text-xs text-green-600">View</span>{% endif %}
-                                    {% if endpoint.access_control.admin.can_execute %}<span class="text-xs text-green-600">Execute</span>{% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if endpoint.access_control.pro_user %}
-                            <div class="flex items-center justify-between p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
-                                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Pro User</span>
-                                <div class="flex gap-2">
-                                    {% if endpoint.access_control.pro_user.can_access %}<span class="text-xs text-green-600">View</span>{% endif %}
-                                    {% if endpoint.access_control.pro_user.can_execute %}<span class="text-xs text-green-600">Execute</span>{% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if endpoint.access_control.free_user %}
-                            <div class="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Free User</span>
-                                <div class="flex gap-2">
-                                    {% if endpoint.access_control.free_user.can_access %}<span class="text-xs text-green-600">View</span>{% endif %}
-                                    {% if endpoint.access_control.free_user.can_execute %}<span class="text-xs text-green-600">Execute</span>{% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Role</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Can View</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Can Edit</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Can Delete</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Can Access</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Can Execute</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for role, perms in endpoint.access_control.items %}
+                                    <tr class="border-b border-gray-100 dark:border-gray-800">
+                                        <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ role }}</td>
+                                        {% if perms.items %}
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ perms.can_view|yesno:"Yes,No,—" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ perms.can_edit|yesno:"Yes,No,—" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ perms.can_delete|yesno:"Yes,No,—" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ perms.can_access|yesno:"Yes,No,—" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ perms.can_execute|yesno:"Yes,No,—" }}</td>
+                                        {% else %}
+                                        <td colspan="5" class="py-2 text-gray-900 dark:text-gray-100">{{ perms|yesno:"Allowed,Denied,—" }}</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -966,6 +921,76 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Implementation Tab -->
+            <div class="tab-content {% if active_tab == 'implementation' %}active{% endif %}" id="tab-implementation" role="tabpanel">
+                <div class="space-y-6">
+                    <!-- Service & Router -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Service &amp; Router</h3>
+                        <dl class="space-y-2">
+                            {% include 'components/key_value_row.html' with label='Service file' value=endpoint.service_file format='mono' %}
+                            {% include 'components/key_value_row.html' with label='Router file' value=endpoint.router_file format='mono' %}
+                        </dl>
+                    </div>
+                    <!-- Methods -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Methods</h3>
+                        {% if endpoint.service_methods %}
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Service methods</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {% for m in endpoint.service_methods %}
+                            <span class="px-2 py-1 text-xs font-mono bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-400 rounded">{{ m }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if endpoint.repository_methods %}
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Repository methods</p>
+                        <div class="flex flex-wrap gap-2">
+                            {% for m in endpoint.repository_methods %}
+                            <span class="px-2 py-1 text-xs font-mono bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded">{{ m }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if not endpoint.service_methods and not endpoint.repository_methods %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400">—</p>
+                        {% endif %}
+                    </div>
+                    <!-- Lambda Services -->
+                    {% if lambda_services %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Lambda services</h3>
+                        <div class="space-y-2 text-sm">
+                            {% for key, val in lambda_services.items %}
+                            <div><span class="font-medium text-gray-700 dark:text-gray-300">{{ key }}:</span> <span class="text-gray-600 dark:text-gray-400">{% if val|is_dict %}{{ val|length }} keys{% elif val|is_list %}{{ val|length }} items{% else %}{{ val|default:"—" }}{% endif %}</span></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Files -->
+                    {% if endpoint_files %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Files</h3>
+                        <div class="space-y-2 text-sm">
+                            {% for key, val in endpoint_files.items %}
+                            <div><span class="font-medium text-gray-700 dark:text-gray-300">{{ key }}:</span> <span class="font-mono text-gray-600 dark:text-gray-400">{{ val|default:"—" }}</span></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- HTTP Methods override (endpoint.methods) -->
+                    {% if endpoint_methods_detail %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">HTTP methods detail</h3>
+                        <div class="space-y-2 text-sm">
+                            {% for key, val in endpoint_methods_detail.items %}
+                            <div><span class="font-medium text-gray-700 dark:text-gray-300">{{ key }}:</span> <span class="text-gray-600 dark:text-gray-400">{% if val|is_dict %}{{ val|length }} keys{% elif val|is_list %}{{ val|join:", " }}{% else %}{{ val|default:"—" }}{% endif %}</span></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- Raw JSON Tab -->
             <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" id="tab-raw" role="tabpanel">

@@ -2130,17 +2130,31 @@ class UnifiedDashboardController {
             return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
         }
         
+        function formatDate(val) {
+            if (!val) return '';
+            try {
+                const d = new Date(val);
+                return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch (_) { return ''; }
+        }
         return pages.map(page => {
             const pid = (page.page_id || '').toString();
             const status = (page.metadata && page.metadata.status) || page.status || 'draft';
-            const route = (page.metadata && page.metadata.route) || '/';
+            const route = (page.metadata && page.metadata.route) || page.route || '/';
             const pageType = page.page_type || 'docs';
-            const title = (page.metadata && page.metadata.content_sections && page.metadata.content_sections.title) || pid;
+            const title = (page.metadata && page.metadata.content_sections && page.metadata.content_sections.title) || page.title || pid;
+            const pageState = (page.metadata && page.metadata.page_state) || page.page_state;
+            const lastUpdated = (page.metadata && page.metadata.last_updated) || page.last_updated || page.updated_at;
+            const endpointCount = (page.metadata && page.metadata.endpoint_count) != null ? (page.metadata.endpoint_count ?? page.endpoint_count) : page.endpoint_count;
             const href = pageDetailUrlBase.replace('__PID__', encodeURIComponent(pid));
             const editHref = `/docs/pages/${encodeURIComponent(pid)}/edit/?return_url=${encodeURIComponent(window.location.href)}`;
             // Only show subtitle when it adds information (avoid duplicate title/subtitle when title === pid)
             const showSubtitle = title !== pid;
             const subtitleHtml = showSubtitle ? `<p class="text-xs text-gray-500 dark:text-gray-400 font-mono">${pid.replace(/</g, '&lt;')}</p>` : (route && route !== '/' ? `<p class="text-xs text-gray-500 dark:text-gray-400 font-mono">${route.replace(/</g, '&lt;')}</p>` : '');
+            const pageStateClass = !pageState ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' : ['published', 'active', 'completed'].includes(pageState) ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : ['draft', 'development', 'coming_soon'].includes(pageState) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+            const pageStateBadge = pageState ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${pageStateClass}">${String(pageState).replace(/</g, '&lt;')}</span>` : '';
+            const lastUpdatedHtml = lastUpdated ? `<span class="text-xs text-gray-500 dark:text-gray-400">${formatDate(lastUpdated).replace(/</g, '&lt;')}</span>` : '';
+            const endpointCountHtml = (endpointCount != null && endpointCount !== '') ? `<span class="text-xs text-gray-500 dark:text-gray-400">${Number(endpointCount)} endpoint${Number(endpointCount) !== 1 ? 's' : ''}</span>` : '';
             
             return `
             <div class="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer" 
@@ -2160,10 +2174,13 @@ class UnifiedDashboardController {
                                 ${subtitleHtml}
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 mt-3">
+                        <div class="flex items-center gap-2 mt-3 flex-wrap">
                             <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">${pageType.replace(/</g, '&lt;')}</span>
                             <span class="px-2 py-0.5 rounded-full text-xs font-medium ${statusClass(status)}">${(status + '').replace(/</g, '&lt;')}</span>
+                            ${pageStateBadge}
                             <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">${route.replace(/</g, '&lt;')}</span>
+                            ${lastUpdatedHtml}
+                            ${endpointCountHtml}
                         </div>
                     </div>
                     <div class="flex items-center gap-2 ml-4">
@@ -2214,6 +2231,9 @@ class UnifiedDashboardController {
             const methodValue = method(endpoint.method);
             const apiVersion = endpoint.api_version || '';
             const description = endpoint.description || endpoint.metadata?.description || '';
+            const endpointState = endpoint.state || endpoint.endpoint_state;
+            const serviceFile = endpoint.service_file || '';
+            const pageCount = endpoint.page_count != null ? endpoint.page_count : '';
             const href = `/docs/endpoints/${encodeURIComponent(endpointId)}/`;
             const editHref = `/docs/endpoints/${encodeURIComponent(endpointId)}/edit/?return_url=${encodeURIComponent(window.location.href)}`;
             const deleteHref = `/docs/endpoints/${encodeURIComponent(endpointId)}/delete/?return_url=${encodeURIComponent(window.location.href)}`;
@@ -2251,6 +2271,9 @@ class UnifiedDashboardController {
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="px-2.5 py-1 rounded text-xs font-bold ${methodClass}">${methodValue}</span>
                         ${apiVersion ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">${apiVersion.replace(/</g, '&lt;')}</span>` : ''}
+                        ${endpointState ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">${String(endpointState).replace(/</g, '&lt;')}</span>` : ''}
+                        ${serviceFile ? `<span class="text-xs text-gray-500 dark:text-gray-400 font-mono truncate max-w-[120px]" title="${String(serviceFile).replace(/"/g, '&quot;')}">${String(serviceFile).replace(/</g, '&lt;')}</span>` : ''}
+                        ${pageCount !== '' ? `<span class="text-xs text-gray-500 dark:text-gray-400">${Number(pageCount)} page${Number(pageCount) !== 1 ? 's' : ''}</span>` : ''}
                     </div>
                     ${description ? `<p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">${description.replace(/</g, '&lt;').substring(0, 100)}${description.length > 100 ? '...' : ''}</p>` : ''}
                     <div class="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
@@ -2280,6 +2303,8 @@ class UnifiedDashboardController {
             const endpointPath = rel.endpoint_path || rel.endpoint_id || 'Unknown';
             const usageType = rel.usage_type || 'primary';
             const usageContext = rel.usage_context || 'data_fetching';
+            const state = rel.state || '';
+            const viaService = rel.via_service || '';
             const method = (rel.method || 'QUERY').toUpperCase();
             
             const href = `/docs/relationships/${encodeURIComponent(relationshipId)}/`;
@@ -2290,10 +2315,12 @@ class UnifiedDashboardController {
             <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-2">
+                        <div class="flex items-center gap-2 mb-2 flex-wrap">
                             <span class="px-2 py-1 rounded text-xs font-bold ${method === 'MUTATION' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'}">${method}</span>
                             <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">${usageType}</span>
                             <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">${usageContext}</span>
+                            ${state ? `<span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">${String(state).replace(/</g, '&lt;')}</span>` : ''}
+                            ${viaService ? `<span class="text-xs text-gray-500 dark:text-gray-400 font-mono" title="via_service">${String(viaService).replace(/</g, '&lt;')}</span>` : ''}
                         </div>
                         <div class="space-y-1">
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -2337,6 +2364,7 @@ class UnifiedDashboardController {
             const configId = config.config_id || config.id || 'Unknown';
             const name = config.name || configId;
             const state = config.state || 'draft';
+            const schema = config.schema || (config.collection && config.collection.info && config.collection.info.schema) || '';
             const collectionCount = config.collection ? (config.collection.item ? config.collection.item.length : 0) : 0;
             const environmentCount = config.environments ? config.environments.length : 0;
             
@@ -2350,8 +2378,9 @@ class UnifiedDashboardController {
                     <div class="flex-1">
                         <h4 class="font-semibold text-gray-900 dark:text-gray-100">${name.replace(/</g, '&lt;')}</h4>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${configId.replace(/</g, '&lt;')}</p>
-                        <div class="flex items-center gap-3 mt-2">
+                        <div class="flex items-center gap-3 mt-2 flex-wrap">
                             <span class="px-2 py-1 rounded-full text-xs font-medium ${stateClass(state)}">${state.replace(/</g, '&lt;')}</span>
+                            ${schema ? `<span class="text-xs text-gray-500 dark:text-gray-400 font-mono truncate max-w-[140px]" title="${String(schema).replace(/"/g, '&quot;')}">${String(schema).replace(/</g, '&lt;')}</span>` : ''}
                             ${collectionCount > 0 ? `<span class="text-xs text-gray-500 dark:text-gray-400">${collectionCount} collection${collectionCount !== 1 ? 's' : ''}</span>` : ''}
                             ${environmentCount > 0 ? `<span class="text-xs text-gray-500 dark:text-gray-400">${environmentCount} environment${environmentCount !== 1 ? 's' : ''}</span>` : ''}
                         </div>

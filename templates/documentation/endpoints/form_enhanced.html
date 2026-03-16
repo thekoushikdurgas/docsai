@@ -644,34 +644,11 @@
             <!-- Form Actions -->
             <div class="flex flex-wrap items-center justify-between gap-4 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex items-center gap-3">
-                    <button 
-                        type="submit"
-                        id="submit-btn"
-                        class="inline-flex items-center px-6 py-2.5 bg-purple-600 dark:bg-purple-500 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-all font-medium shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        {% if is_edit %}Save Changes{% else %}Create Endpoint{% endif %}
-                    </button>
-                    <button 
-                        type="button"
-                        id="preview-json-btn"
-                        class="inline-flex items-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
-                    >
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                        </svg>
-                        Preview JSON
-                    </button>
+                    {% include 'components/button.html' with text=is_edit|yesno:'Save Changes,Create Endpoint' type='primary' size='md' button_type='submit' id='submit-btn' class='disabled:opacity-50 disabled:cursor-not-allowed' %}
+                    {% include 'components/button.html' with text='Preview JSON' type='secondary' size='md' id='preview-json-btn' %}
                     {% if is_edit and endpoint.endpoint_id %}
-                    <a href="{% url 'documentation:endpoint_detail' endpoint_id=endpoint.endpoint_id %}" class="inline-flex items-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        View Endpoint
-                    </a>
+                    {% url 'documentation:endpoint_detail' endpoint_id=endpoint.endpoint_id as view_endpoint_url %}
+                    {% include 'components/button.html' with href=view_endpoint_url text='View Endpoint' type='secondary' size='md' %}
                     {% endif %}
                 </div>
                 <div class="flex items-center gap-3">

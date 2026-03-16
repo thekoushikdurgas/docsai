@@ -1,1 +1,0 @@
-REST API v1 - Endpoints API: list, by-api-version, by-method, by-state, by-lambda, and endpoint detail with sub-resources.

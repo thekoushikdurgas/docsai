@@ -1,85 +1,18 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static custom_filters %}
 
 {% block title %}{{ page.metadata.content_sections.title|default:page.page_id }} - Documentation{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/components/form-responsive.css' %}?v=20260124d">
 <link rel="stylesheet" href="{% static 'css/components/tabs.css' %}?v=20260125">
-<style>
-/* Tab button styles for link-based tabs */
-.tab-button {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-bottom: -2px;
-}
-.tab-button:hover {
-    color: #374151;
-    border-bottom-color: #d1d5db;
-}
-.tab-button.active {
-    color: #2563eb;
-    border-bottom-color: #2563eb;
-}
-.dark .tab-button {
-    color: #9ca3af;
-}
-.dark .tab-button:hover {
-    color: #e5e7eb;
-    border-bottom-color: #4b5563;
-}
-.dark .tab-button.active {
-    color: #60a5fa;
-    border-bottom-color: #60a5fa;
-}
-.tab-content {
-    display: none;
-}
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.2s ease-in;
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-</style>
 {% endblock %}
 
 {% block content %}
 <div class="w-full">
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-        <a href="{% url 'documentation:dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-        </a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <a href="{% url 'documentation:dashboard' %}?tab=pages" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pages</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-xs">{{ page.metadata.content_sections.title|default:page.page_id }}</span>
-    </nav>
+    <div class="mb-4">
+        {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
+    </div>
     
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <!-- Header -->
@@ -104,17 +37,10 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="{% url 'documentation:page_edit' page_id=page.page_id %}" class="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium text-sm shadow-sm">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit
-                    </a>
-                    <a href="{% url 'documentation:page_delete' page_id=page.page_id %}" class="inline-flex items-center px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </a>
+                    {% url 'documentation:page_edit' page_id=page.page_id as page_edit_url %}
+                    {% include 'components/button.html' with href=page_edit_url text='Edit' type='primary' size='sm' %}
+                    {% url 'documentation:page_delete' page_id=page.page_id as page_delete_url %}
+                    {% include 'components/button.html' with href=page_delete_url text='Delete' type='danger' size='sm' %}
                 </div>
             </div>
         </div>
@@ -167,6 +93,30 @@
                     </svg>
                     <span>Access</span>
                 </a>
+                <a href="?tab=technical" class="tab-button group {% if active_tab == 'technical' %}active{% endif %}" data-tab="technical" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    <span>Technical</span>
+                </a>
+                <a href="?tab=sections" class="tab-button group {% if active_tab == 'sections' %}active{% endif %}" data-tab="sections" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span>Sections</span>
+                    {% if page_sections_count %}
+                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-400 rounded-full">{{ page_sections_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="?tab=data" class="tab-button group {% if active_tab == 'data' %}active{% endif %}" data-tab="data" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                    <span>Data</span>
+                    {% if fallback_data %}
+                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-full">{{ fallback_data|length }}</span>
+                    {% endif %}
+                </a>
                 <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -189,26 +139,55 @@
                             Basic Information
                         </h3>
                         <dl class="space-y-3">
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Page ID</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ page.page_id }}</dd>
+                            {% if page_internal_id %}
+                            {% include 'components/key_value_row.html' with label='Internal ID (_id)' value=page_internal_id format='mono' %}
+                            {% endif %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Page ID</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono text-right">{{ page.page_id }}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Title</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100">{{ page.metadata.content_sections.title|default:"-" }}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Title</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 text-right truncate max-w-xs" title="{{ page.metadata.purpose }}">{{ page.title|default:page.metadata.content_sections.title|default:"—" }}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Type</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100 capitalize">{{ page.page_type|default:"page" }}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Type</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 text-right capitalize">{{ page.page_type|default:"page" }}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Purpose</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100 truncate max-w-xs" title="{{ page.metadata.purpose }}">{{ page.metadata.purpose|default:"-"|truncatechars:50 }}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Purpose</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 text-right truncate max-w-xs" title="{{ page.metadata.purpose }}">{{ page.metadata.purpose|default:"—"|truncatechars:50 }}</dd>
                             </div>
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Status</dt>
-                                <dd>{% include 'components/badge.html' with type='status' status=page.metadata.status|default:'draft' text=page.metadata.status|default:'draft' %}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Status</dt>
+                                <dd class="text-right">{% include 'components/badge.html' with type='status' status=page.metadata.status|default:'draft' text=page.metadata.status|default:'draft' %}</dd>
                             </div>
+                            {% include 'components/key_value_row.html' with label='File path' value=page.metadata.file_path format='mono' %}
+                            {% include 'components/key_value_row.html' with label='S3 Key' value=page.metadata.s3_key format='mono' %}
+                            {% include 'components/key_value_row.html' with label='Authentication' value=page.metadata.authentication %}
+                            {% include 'components/key_value_row.html' with label='Authorization' value=page.metadata.authorization %}
+                            {% include 'components/key_value_row.html' with label='Page State' value=page.metadata.page_state format='badge' %}
+                            {% include 'components/key_value_row.html' with label='Last Updated' value=page.metadata.last_updated format='date' %}
+                            {% include 'components/key_value_row.html' with label='Endpoint Count' value=page.metadata.endpoint_count %}
+                            {% if page.metadata.api_versions %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">API Versions</dt>
+                                <dd class="text-right flex flex-wrap gap-1 justify-end">
+                                    {% for av in page.metadata.api_versions %}
+                                    {% include 'components/badge.html' with type='resource' resource_type='pages' text=av size='sm' %}
+                                    {% endfor %}
+                                </dd>
+                            </div>
+                            {% else %}
+                            {% include 'components/key_value_row.html' with label='API Versions' value=page.metadata.api_versions %}
+                            {% endif %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Versions</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 text-right">{{ page.metadata.versions|length|default:0 }} {% if page.metadata.versions %}({{ page.metadata.versions|join:", " }}){% endif %}</dd>
+                            </div>
+                            {% if page.created_at %}
+                            {% include 'components/key_value_row.html' with label='Created' value=page.created_at format='date' %}
+                            {% endif %}
                         </dl>
                     </div>
                     
@@ -225,6 +204,30 @@
                                 <dt class="text-sm text-gray-500 dark:text-gray-400">Route</dt>
                                 <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ page.metadata.route|default:"/" }}</dd>
                             </div>
+                            {% if page.metadata.s3_key %}
+                            <div>
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 mb-1">S3 Key</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono break-all">{{ page.metadata.s3_key }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.last_updated %}
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400">Last Updated</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100">{{ page.metadata.last_updated }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.endpoint_count is not None %}
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400">Endpoint Count</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100">{{ page.metadata.endpoint_count }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.versions %}
+                            <div>
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 mb-1">Versions</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100">{{ page.metadata.versions|join:", " }}</dd>
+                            </div>
+                            {% endif %}
                             {% if page.metadata.description %}
                             <div>
                                 <dt class="text-sm text-gray-500 dark:text-gray-400 mb-1">Description</dt>
@@ -245,9 +248,75 @@
                             {% endif %}
                         </dl>
                     </div>
+
+                    <!-- Data (fallback_data, mock_data, demo_data) -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 lg:col-span-2">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                            </svg>
+                            Data
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Fallback data</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ fallback_data|length }} item{{ fallback_data|length|pluralize }}</span>
+                                </div>
+                                {% if fallback_data %}
+                                <details class="text-xs">
+                                    <summary class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">Expand</summary>
+                                    <ul class="mt-2 space-y-1 max-h-32 overflow-auto font-mono list-disc list-inside">
+                                        {% for item in fallback_data %}
+                                        <li class="truncate" title="{{ item }}">{% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                                {% else %}
+                                <p class="text-xs text-gray-500 dark:text-gray-400">—</p>
+                                {% endif %}
+                            </div>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Mock data</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ mock_data|length }} item{{ mock_data|length|pluralize }}</span>
+                                </div>
+                                {% if mock_data %}
+                                <details class="text-xs">
+                                    <summary class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">Expand</summary>
+                                    <ul class="mt-2 space-y-1 max-h-32 overflow-auto font-mono list-disc list-inside">
+                                        {% for item in mock_data %}
+                                        <li class="truncate" title="{{ item }}">{% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                                {% else %}
+                                <p class="text-xs text-gray-500 dark:text-gray-400">—</p>
+                                {% endif %}
+                            </div>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Demo data</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ demo_data|length }} item{{ demo_data|length|pluralize }}</span>
+                                </div>
+                                {% if demo_data %}
+                                <details class="text-xs">
+                                    <summary class="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">Expand</summary>
+                                    <ul class="mt-2 space-y-1 max-h-32 overflow-auto font-mono list-disc list-inside">
+                                        {% for item in demo_data %}
+                                        <li class="truncate" title="{{ item }}">{% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                                {% else %}
+                                <p class="text-xs text-gray-500 dark:text-gray-400">—</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Statistics -->
-                    <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
                             <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ page.metadata.uses_endpoints|length|default:0 }}</div>
                             <div class="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Endpoints</div>
@@ -256,13 +325,21 @@
                             <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ page.metadata.ui_components|length|default:0 }}</div>
                             <div class="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">Components</div>
                         </div>
-                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ page.metadata.content_sections.value_propositions|length|default:0 }}</div>
-                            <div class="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Sections</div>
+                        <div class="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-teal-600 dark:text-teal-400">{{ page_sections_count|default:0 }}</div>
+                            <div class="text-xs text-teal-600/70 dark:text-teal-400/70 mt-1">Sections</div>
                         </div>
                         <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
-                            <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ page.metadata.fallback_data|length|default:0 }}</div>
+                            <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ fallback_data|length|default:0 }}</div>
                             <div class="text-xs text-amber-600/70 dark:text-amber-400/70 mt-1">Fallbacks</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-900/20 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-slate-600 dark:text-slate-400">{{ mock_data|length|default:0 }}</div>
+                            <div class="text-xs text-slate-600/70 dark:text-slate-400/70 mt-1">Mock Data</div>
+                        </div>
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ demo_data|length|default:0 }}</div>
+                            <div class="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-1">Demo Data</div>
                         </div>
                     </div>
                 </div>
@@ -499,6 +576,52 @@
                         {% endif %}
                     </div>
                     {% endif %}
+                    
+                    <!-- Other content_sections keys (hero, navbar, cards, features, product_showcase, pricing, footer, api_example, etc.) -->
+                    {% for cs_key, cs_val in page.metadata.content_sections.items %}
+                    {% if cs_key != "title" and cs_key != "subtitle" and cs_key != "value_propositions" and cs_key != "story" %}
+                    <div class="mt-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ cs_key|title }}</h3>
+                        {% if cs_val.items %}
+                        <dl class="space-y-2">
+                            {% for k, v in cs_val.items %}
+                            <div class="flex flex-wrap gap-x-2">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 font-medium">{{ k }}:</dt>
+                                {% if v.items %}
+                                <dd class="text-sm text-gray-900 dark:text-gray-100"><span class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">nested object</span></dd>
+                                {% elif v|length and v.0.items %}
+                                <dd class="text-sm text-gray-900 dark:text-gray-100"><span class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">list of {{ v|length }} items</span></dd>
+                                {% else %}
+                                <dd class="text-sm text-gray-900 dark:text-gray-100">{{ v }}</dd>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </dl>
+                        {% else %}
+                        {% if cs_val|length and cs_val.0.items %}
+                        <div class="space-y-3">
+                            {% for item in cs_val %}
+                            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                                {% for k, v in item.items %}
+                                <div class="flex flex-wrap gap-x-2 text-sm mb-1">
+                                    <span class="text-gray-500 dark:text-gray-400">{{ k }}:</span>
+                                    <span class="text-gray-900 dark:text-gray-100">{{ v }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {% if "curl" in cs_key or "code" in cs_key or "example" in cs_key %}
+                        <pre class="text-sm font-mono bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap">{{ cs_val }}</pre>
+                        {% else %}
+                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ cs_val }}</p>
+                        {% endif %}
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
                 </div>
                 {% elif page_html %}
                 <article class="prose prose-blue dark:prose-invert max-w-none">
@@ -513,12 +636,8 @@
                     </svg>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No Content</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md">No content available for this page.</p>
-                    <a href="{% url 'documentation:page_edit' page_id=page.page_id %}" class="inline-flex items-center px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit Page
-                    </a>
+                    {% url 'documentation:page_edit' page_id=page.page_id as edit_page_url %}
+                    {% include 'components/button.html' with href=edit_page_url text='Edit Page' type='primary' size='sm' %}
                 </div>
                 {% endif %}
             </div>
@@ -719,7 +838,317 @@
                         <p class="text-xs text-gray-600 dark:text-gray-400 font-mono break-all">{{ page.metadata.file_path }}</p>
                     </div>
                     {% endif %}
+                    
+                    <!-- Structured Access Control -->
+                    {% if access_control %}
+                    <div class="lg:col-span-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            Access Control (by role)
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Role</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Can View</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Can Edit</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Can Delete</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Restricted Components</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for role, perms in access_control.items %}
+                                    <tr class="border-b border-gray-100 dark:border-gray-800">
+                                        <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ role }}</td>
+                                        {% if perms.items %}
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ perms.can_view|yesno:"Yes,No,-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ perms.can_edit|yesno:"Yes,No,-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ perms.can_delete|yesno:"Yes,No,-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{% if perms.restricted_components %}{{ perms.restricted_components|join:", " }}{% else %}-{% endif %}</td>
+                                        {% else %}
+                                        <td colspan="4" class="py-2 text-gray-900 dark:text-gray-100">{{ perms|yesno:"Allowed,Denied,-" }}</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="lg:col-span-2 text-sm text-gray-500 dark:text-gray-400">No structured access control defined.</div>
+                    {% endif %}
                 </div>
+            </div>
+
+            <!-- Technical Tab (file paths, versions, api_versions, sections) -->
+            <div class="tab-content {% if active_tab == 'technical' %}active{% endif %}" id="tab-technical" role="tabpanel">
+                <div class="space-y-6">
+                    <!-- File paths -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">File paths</h3>
+                        <dl class="space-y-2">
+                            {% include 'components/key_value_row.html' with label='File path' value=page.metadata.file_path format='mono' %}
+                            {% include 'components/key_value_row.html' with label='S3 Key' value=page.metadata.s3_key format='mono' %}
+                        </dl>
+                    </div>
+                    <!-- Versions -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Versions</h3>
+                        {% if page.metadata.versions %}
+                        <ul class="space-y-2 text-sm">
+                            {% for ver in page.metadata.versions %}
+                            <li class="text-gray-900 dark:text-gray-100">{{ ver }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400">—</p>
+                        {% endif %}
+                    </div>
+                    <!-- API versions -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">API versions</h3>
+                        {% if page.metadata.api_versions %}
+                        <div class="flex flex-wrap gap-2">
+                            {% for av in page.metadata.api_versions %}
+                            {% include 'components/badge.html' with type='resource' resource_type='pages' text=av size='sm' %}
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400">—</p>
+                        {% endif %}
+                    </div>
+                    <!-- Sections (page.sections dict) -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Sections structure</h3>
+                        {% if page.sections %}
+                        <div class="space-y-3 text-sm">
+                            {% for key, val in page.sections.items %}
+                            <div>
+                                <span class="font-medium text-gray-700 dark:text-gray-300">{{ key }}:</span>
+                                {% if val|is_list %}
+                                <span class="text-gray-600 dark:text-gray-400">{{ val|length }} item{{ val|length|pluralize }}</span>
+                                {% elif val|is_dict %}
+                                <span class="text-gray-600 dark:text-gray-400">{{ val|length }} key{{ val|length|pluralize }}</span>
+                                {% else %}
+                                <span class="text-gray-600 dark:text-gray-400">{{ val|default:"—" }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400">—</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sections Tab (page.sections: headings, tabs, buttons, input_boxes, text_blocks, components, utilities, services, hooks, contexts, ui_components, endpoints) -->
+            <div class="tab-content {% if active_tab == 'sections' %}active{% endif %}" id="tab-sections" role="tabpanel">
+                {% if page_sections_count %}
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Structural elements defined for this page. Edit in the form to add or change sections.</p>
+                        {% url 'documentation:page_edit' page_id=page.page_id as base_edit_url %}{% with edit_sections_href=base_edit_url|add:"?tab=sections" %}{% include 'components/button.html' with href=edit_sections_href text='Edit Sections' type='primary' size='sm' %}{% endwith %}
+                    </div>
+                    {% for section_key, section_list in page_sections.items %}
+                    {% if section_list|length %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ section_key|title }} ({{ section_list|length }})</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        {% if section_key == "headings" or section_key == "subheadings" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Text</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Level</th>
+                                        {% elif section_key == "tabs" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Label</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Content Ref</th>
+                                        {% elif section_key == "buttons" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Label</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Action</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Variant</th>
+                                        {% elif section_key == "input_boxes" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Label</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Type</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Required</th>
+                                        {% elif section_key == "text_blocks" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Format</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Content</th>
+                                        {% elif section_key == "components" or section_key == "ui_components" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Name</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">File Path</th>
+                                        {% elif section_key == "utilities" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">File Path</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Functions</th>
+                                        {% elif section_key == "services" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">File Path</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Methods</th>
+                                        {% elif section_key == "hooks" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">File Path</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Dependencies</th>
+                                        {% elif section_key == "contexts" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">File Path</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Provider</th>
+                                        {% elif section_key == "endpoints" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Endpoint ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Path</th>
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Method</th>
+                                        {% else %}
+                                        <th class="text-left py-2 text-gray-500 dark:text-gray-400">Details</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in section_list %}
+                                    <tr class="border-b border-gray-100 dark:border-gray-800">
+                                        {% if section_key == "headings" or section_key == "subheadings" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ item.text|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.level|default:"-" }}</td>
+                                        {% elif section_key == "tabs" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ item.label|default:"-" }}</td>
+                                        <td class="py-2 font-mono text-gray-900 dark:text-gray-100">{{ item.content_ref|default:"-" }}</td>
+                                        {% elif section_key == "buttons" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ item.label|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ item.action|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.variant|default:"primary" }}</td>
+                                        {% elif section_key == "input_boxes" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ item.label|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ item.input_type|default:"text" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.required|yesno:"Yes,No" }}</td>
+                                        {% elif section_key == "text_blocks" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">{{ item.format|default:"markdown" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100 truncate max-w-xs" title="{{ item.content }}">{{ item.content|default:""|truncatechars:50 }}</td>
+                                        {% elif section_key == "components" or section_key == "ui_components" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 font-mono text-xs text-gray-600 dark:text-gray-400">{{ item.file_path|default:"-" }}</td>
+                                        {% elif section_key == "utilities" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600 dark:text-gray-400">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.functions|join:", "|default:"-" }}</td>
+                                        {% elif section_key == "services" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600 dark:text-gray-400">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.methods|join:", "|default:"-" }}</td>
+                                        {% elif section_key == "hooks" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600 dark:text-gray-400">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.dependencies|join:", "|default:"-" }}</td>
+                                        {% elif section_key == "contexts" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600 dark:text-gray-400">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.provider|default:"-" }}</td>
+                                        {% elif section_key == "endpoints" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ item.endpoint_id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ item.endpoint_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900 dark:text-gray-100">{{ item.method|default:"-" }}</td>
+                                        {% else %}
+                                        <td class="py-2 text-gray-900 dark:text-gray-100 font-mono text-xs">{{ item }}</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No section structure defined</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md">This page has no headings, tabs, buttons, input boxes, or code references. Add them in the edit form.</p>
+                    {% url 'documentation:page_edit' page_id=page.page_id as base_edit_url_2 %}{% with edit_sections_href_2=base_edit_url_2|add:"?tab=sections" %}{% include 'components/button.html' with href=edit_sections_href_2 text='Edit Sections' type='primary' size='sm' %}{% endwith %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Data Tab (fallback_data, mock_data, demo_data) -->
+            <div class="tab-content {% if active_tab == 'data' %}active{% endif %}" id="tab-data" role="tabpanel">
+                {% if fallback_data or mock_data or demo_data %}
+                <div class="space-y-6">
+                    {% if fallback_data %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Fallback Data ({{ fallback_data|length }})</h3>
+                        <div class="space-y-4">
+                            {% for item in fallback_data %}
+                            <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+                                <div class="flex flex-wrap gap-4 text-sm mb-2">
+                                    <span><strong class="text-gray-700 dark:text-gray-300">Source:</strong> {{ item.source|default:"-" }}</span>
+                                    <span><strong class="text-gray-700 dark:text-gray-300">Page key:</strong> {{ item.page_key|default:"-" }}</span>
+                                    <span><strong class="text-gray-700 dark:text-gray-300">Section key:</strong> {{ item.section_key|default:"-" }}</span>
+                                </div>
+                                {% if item.sections %}
+                                <div class="mt-3 pl-4 border-l-2 border-amber-300 dark:border-amber-700">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Nested sections (object)</p>
+                                    <pre class="text-xs font-mono bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto max-h-48">{{ item.sections }}</pre>
+                                </div>
+                                {% endif %}
+                                {% if item.hero %}
+                                <div class="mt-2 text-sm text-gray-700 dark:text-gray-300"><strong>Hero:</strong> {{ item.hero }}</div>
+                                {% endif %}
+                                {% if item.metadata %}
+                                <div class="mt-2 text-sm text-gray-700 dark:text-gray-300"><strong>Metadata:</strong> {{ item.metadata }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if mock_data %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Mock Data ({{ mock_data|length }})</h3>
+                        <div class="space-y-4">
+                            {% for item in mock_data %}
+                            <div class="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                                <pre class="text-sm font-mono text-gray-800 dark:text-gray-200 overflow-x-auto">{{ item }}</pre>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if demo_data %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Demo Data ({{ demo_data|length }})</h3>
+                        <div class="space-y-4">
+                            {% for item in demo_data %}
+                            <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-200 dark:border-indigo-800">
+                                <pre class="text-sm font-mono text-gray-800 dark:text-gray-200 overflow-x-auto">{{ item }}</pre>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No data defined</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md">No fallback, mock, or demo data for this page.</p>
+                </div>
+                {% endif %}
             </div>
             
             <!-- Raw JSON Tab -->

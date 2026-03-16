@@ -1,15 +1,15 @@
-"""Unified storage interface with multi-strategy pattern: Local → S3 → GraphQL."""
+"""Unified storage interface with multi-strategy pattern: S3 → GraphQL → local JSON fallback."""
 
+import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 from abc import ABC, abstractmethod
 from enum import Enum
 
 from django.conf import settings
 from django.core.cache import cache
 
-from apps.documentation.repositories.local_json_storage import LocalJSONStorage
-from apps.documentation.repositories.s3_json_storage import S3JSONStorage
+from apps.documentation.repositories.s3_json_storage import S3JSONStorage, _local_path_for_s3_key
 from apps.core.exceptions import RepositoryError, S3Error
 
 # Optional imports for fallback services
@@ -45,15 +45,15 @@ class StorageBackendInterface(ABC):
 
 
 class UnifiedStorage:
-    """Unified storage with fallback strategy: Local JSON → S3 → GraphQL.
+    """Unified storage with fallback strategy: S3 → GraphQL.
     
-    Provides a unified interface for accessing documentation data from multiple
-    storage backends with automatic fallback, caching, circuit breakers, and
-    request deduplication.
+    Provides a unified interface for accessing documentation data from S3
+    with optional GraphQL fallback, caching, circuit breakers, and
+    request deduplication. Local media/ storage has been removed.
     
     Features:
-    - Multi-backend support (Local, S3, GraphQL)
-    - Automatic fallback mechanism
+    - S3 as primary backend
+    - Optional GraphQL fallback
     - Redis caching with TTL
     - Circuit breakers for external services
     - Request deduplication
@@ -63,22 +63,15 @@ class UnifiedStorage:
 
     def __init__(
         self,
-        local_storage: Optional[LocalJSONStorage] = None,
         s3_storage: Optional[S3JSONStorage] = None,
         graphql_service: Optional[GraphQLDocumentationService] = None,
     ):
         """Initialize unified storage.
         
         Args:
-            local_storage: Optional LocalJSONStorage instance
             s3_storage: Optional S3JSONStorage instance
             graphql_service: Optional GraphQLDocumentationService instance
         """
-        if local_storage is None:
-            from apps.documentation.services import get_shared_local_storage
-            self.local_storage = get_shared_local_storage()
-        else:
-            self.local_storage = local_storage
         if s3_storage is None:
             from apps.documentation.services import get_shared_s3_storage
             self.s3_storage = get_shared_s3_storage()
@@ -93,8 +86,8 @@ class UnifiedStorage:
             except Exception as e:
                 logger.warning(f"Failed to initialize GraphQL service: {e}")
         
-        # Configuration
-        self.use_local_json_files = getattr(settings, 'USE_LOCAL_JSON_FILES', True)
+        # Configuration (local JSON files removed - S3 only)
+        self.use_local_json_files = False
         self.cache_timeout = getattr(settings, 'UNIFIED_STORAGE_CACHE_TTL', 300)  # 5 minutes default
         self.enable_request_deduplication = getattr(settings, 'ENABLE_REQUEST_DEDUPLICATION', True)
         self.enable_caching = getattr(settings, 'UNIFIED_STORAGE_ENABLE_CACHE', True)
@@ -139,7 +132,7 @@ class UnifiedStorage:
         }
         
         self.logger = logging.getLogger(f"{__name__}.UnifiedStorage")
-        self.logger.debug(f"UnifiedStorage initialized (use_local={self.use_local_json_files}, caching={self.enable_caching}, fallback={self.fallback_enabled})")
+        self.logger.debug(f"UnifiedStorage initialized (S3 only, caching={self.enable_caching}, fallback={self.fallback_enabled})")
 
     def _get_cache_key(self, resource_type: str, identifier: str = None, filters: Optional[Dict] = None) -> str:
         """Generate cache key.
@@ -154,14 +147,30 @@ class UnifiedStorage:
         """
         if identifier:
             return f"unified_storage:{resource_type}:{identifier}"
-        
-        # Include filters in cache key for list operations
+
+        # Include filters in cache key for list operations (memcached-safe: no list repr)
         if filters:
-            filter_str = ':'.join(f"{k}={v}" for k, v in sorted(filters.items()) if v is not None)
-            return f"unified_storage:{resource_type}:list:{filter_str}"
-        
+            parts = []
+            for k, v in sorted(filters.items()):
+                if v is not None:
+                    seg = self._cache_key_filter_value(v)
+                    if seg:
+                        parts.append(f"{k}={seg}")
+            if parts:
+                filter_str = ":".join(parts)
+                return f"unified_storage:{resource_type}:list:{filter_str}"
+
         return f"unified_storage:{resource_type}:all"
-    
+
+    @staticmethod
+    def _cache_key_filter_value(value: Any) -> str:
+        """Convert a filter value to a memcached-safe cache key segment (no brackets, quotes, spaces)."""
+        if value is None:
+            return ""
+        if isinstance(value, (list, tuple)):
+            return ",".join(sorted(str(x) for x in value))
+        return str(value)
+
     def _get_request_key(self, resource_type: str, operation: str, **kwargs) -> str:
         """Generate request key for deduplication."""
         key_parts = [resource_type, operation]
@@ -268,29 +277,6 @@ class UnifiedStorage:
                 return None
             return cached
         
-        # Try local files first
-        if self.use_local_json_files:
-            try:
-                page_data = self.local_storage.get_page(page_id)
-                if page_data:
-                    # Apply page_type filter if specified
-                    if page_type and page_data.get('page_type') != page_type:
-                        return None
-                    
-                    self._track_backend_usage(StorageBackend.LOCAL, success=True)
-                    self.logger.debug(f"Loaded page from local files: {page_id}")
-                    self._safe_cache_set(cache_key, page_data, self.cache_timeout)
-                    return page_data
-            except Exception as e:
-                self._handle_backend_error(StorageBackend.LOCAL, e, f"get_page({page_id})")
-                if not self.fallback_enabled:
-                    raise RepositoryError(
-                        message=f"Failed to load page from local storage: {str(e)}",
-                        entity_id=page_id,
-                        operation="get_page",
-                        error_code="LOCAL_STORAGE_FAILED"
-                    ) from e
-        
         # Try S3 with circuit breaker and request deduplication
         def _fetch_from_s3():
             from apps.documentation.repositories.pages_repository import PagesRepository
@@ -304,6 +290,7 @@ class UnifiedStorage:
             else:
                 return repo.get_by_page_id(page_id, page_type)
         
+        page_data = None
         try:
             if self.enable_request_deduplication and self.request_deduplicator:
                 request_key = self._get_request_key('pages', 's3_get', page_id=page_id, page_type=page_type)
@@ -316,6 +303,7 @@ class UnifiedStorage:
                 self.logger.debug(f"Loaded page from S3: {page_id}")
                 self._safe_cache_set(cache_key, page_data, self.cache_timeout)
                 return page_data
+            self.logger.debug(f"Page not found in S3: {page_id}")
         except Exception as e:
             self._handle_backend_error(StorageBackend.S3, e, f"get_page({page_id})")
             if not self.fallback_enabled:
@@ -325,6 +313,40 @@ class UnifiedStorage:
                     operation="get_page",
                     error_code="S3_STORAGE_FAILED"
                 ) from e
+
+        # GraphQL fallback when S3 returned None or raised and fallback is enabled
+        if self.graphql_service:
+            try:
+                if self.graphql_circuit_breaker:
+                    page_data = self.graphql_circuit_breaker.call(
+                        self.graphql_service.get_page,
+                        page_id,
+                        page_type
+                    )
+                else:
+                    page_data = self.graphql_service.get_page(page_id, page_type)
+                if page_data:
+                    self._track_backend_usage(StorageBackend.GRAPHQL, success=True)
+                    self.logger.debug(f"Loaded page from GraphQL: {page_id}")
+                    self._safe_cache_set(cache_key, page_data, self.cache_timeout)
+                    return page_data
+            except Exception as e:
+                self._handle_backend_error(StorageBackend.GRAPHQL, e, f"get_page({page_id})")
+        
+        # Local JSON fallback when S3 and GraphQL have no data (e.g. contact360/media/pages/*.json)
+        s3_key = f"{getattr(settings, 'S3_DATA_PREFIX', 'data/')}pages/{page_id}.json"
+        local_path = _local_path_for_s3_key(s3_key)
+        if local_path and local_path.is_file():
+            try:
+                with open(local_path, "r", encoding="utf-8") as f:
+                    page_data = json.load(f)
+                if page_data and (not page_type or page_data.get("page_type") == page_type):
+                    self._track_backend_usage(StorageBackend.LOCAL, success=True)
+                    self.logger.debug(f"Loaded page from local JSON: {page_id}")
+                    self._safe_cache_set(cache_key, page_data, self.cache_timeout)
+                    return page_data
+            except (json.JSONDecodeError, OSError) as e:
+                self.logger.warning(f"Failed to read local page JSON {local_path}: {e}")
         
         self.logger.debug(f"Page not found in any source: {page_id}")
         return None
@@ -332,6 +354,7 @@ class UnifiedStorage:
     def list_pages(
         self,
         page_type: Optional[str] = None,
+        page_types: Optional[Sequence[str]] = None,
         include_drafts: bool = True,
         include_deleted: bool = False,
         status: Optional[str] = None,
@@ -340,23 +363,28 @@ class UnifiedStorage:
         offset: int = 0
     ) -> Dict[str, Any]:
         """List pages with fallback strategy.
-        
+
         Strategy: Local → S3 → GraphQL
-        
+
         Args:
-            page_type: Optional page type filter
+            page_type: Optional single page type filter (ignored if page_types is set)
+            page_types: Optional list of page types to include (takes precedence over page_type)
             include_drafts: Include draft pages
             include_deleted: Include deleted pages
             status: Optional status filter
             page_state: Optional page state filter (coming_soon, published, draft, development, test)
             limit: Optional limit
             offset: Offset for pagination
-            
+
         Returns:
             Dictionary with 'pages' list and 'total' count
         """
+        if page_types is not None and len(page_types) == 0:
+            page_types = None
+        effective_types = list(page_types) if page_types else None
         filters = {
-            'page_type': page_type,
+            'page_type': effective_types if effective_types else page_type,
+            'page_types': effective_types,
             'status': status,
             'page_state': page_state,
             'include_drafts': include_drafts,
@@ -370,82 +398,13 @@ class UnifiedStorage:
             logger.debug("Cache hit for list_pages")
             return cached
 
-        # Try local files first (optimized filtering - Task 2.1)
-        if self.use_local_json_files:
-            try:
-                # Optimized filter function using compiled logic (Task 2.1.3)
-                def derive_page_state_from_status(status: str) -> str:
-                    """Derive page_state from status if page_state is missing."""
-                    if status in ("published", "draft"):
-                        return status
-                    if status == "deleted":
-                        return "draft"
-                    return "development"
-                
-                # Pre-compile filter conditions for better performance
-                def should_include_page(page_data: Dict[str, Any]) -> bool:
-                    """Compiled filter function for page inclusion."""
-                    # Fast path: page_type filter (most selective)
-                    if page_type and page_data.get('page_type') != page_type:
-                        return False
-                    
-                    metadata = page_data.get('metadata', {})
-                    page_status = metadata.get('status')
-                    
-                    # Filter by status
-                    if status:
-                        if status == "draft":
-                            # Special handling for draft: check both status and page_state
-                            actual_page_state = metadata.get('page_state') or derive_page_state_from_status(page_status or 'published')
-                            if page_status != "draft" and actual_page_state != "draft":
-                                return False
-                        else:
-                            if page_status != status:
-                                return False
-                    
-                    # Filter by page_state
-                    if page_state:
-                        actual_page_state = metadata.get('page_state') or derive_page_state_from_status(page_status or 'published')
-                        if actual_page_state != page_state:
-                            return False
-                    
-                    # Filter by include_drafts
-                    if not include_drafts and page_status == 'draft':
-                        return False
-                    
-                    # Filter by include_deleted
-                    if not include_deleted and page_status == 'deleted':
-                        return False
-                    
-                    return True
-                
-                # Load all pages (already optimized with parallel reading from Phase 1.3)
-                all_pages = self.local_storage.get_all_pages()
-                
-                # Apply filters using list comprehension (faster than loop + append)
-                filtered_pages = [page for page in all_pages if should_include_page(page)]
-                
-                total = len(filtered_pages)
-                
-                # Apply pagination
-                if limit is not None:
-                    filtered_pages = filtered_pages[offset:offset + limit]
-                else:
-                    filtered_pages = filtered_pages[offset:]
-                
-                logger.debug(f"Loaded {len(filtered_pages)} pages from local files (total {total})")
-                result = {'pages': filtered_pages, 'total': total, 'source': 'local'}
-                self._safe_cache_set(cache_key, result, self.cache_timeout)
-                return result
-            except Exception as e:
-                logger.warning(f"Failed to load pages from local files: {e}")
-        
         # Try S3
         try:
             from apps.documentation.repositories.pages_repository import PagesRepository
             repo = PagesRepository(storage=self.s3_storage)
-            pages = repo.list_all(
-                page_type=page_type,
+            out = repo.list_all(
+                page_type=page_type if not effective_types else None,
+                page_types=effective_types,
                 include_drafts=include_drafts,
                 include_deleted=include_deleted,
                 status=status,
@@ -453,8 +412,9 @@ class UnifiedStorage:
                 limit=limit,
                 offset=offset
             )
-            total = len(pages)  # Would need to get total separately
-            logger.debug(f"Loaded {len(pages)} pages from S3")
+            pages = out.get("pages", []) if isinstance(out, dict) else out
+            total = out.get("total", len(pages)) if isinstance(out, dict) else len(pages)
+            logger.debug(f"Loaded {len(pages)} pages from S3, total={total}")
             result = {'pages': pages, 'total': total, 'source': 's3'}
             self._safe_cache_set(cache_key, result, self.cache_timeout)
             return result
@@ -481,21 +441,8 @@ class UnifiedStorage:
         return pages
 
     def count_pages_by_type(self, page_type: str) -> int:
-        """Count pages by type.
-        
-        Uses same strategy as list_pages: Local → S3 for consistency.
-        This ensures count matches list_pages results.
-        """
-        # Try local files first (same strategy as list_pages)
-        if self.use_local_json_files:
-            try:
-                all_pages = self.local_storage.get_all_pages()
-                local_count = sum(1 for p in all_pages if p.get("page_type") == page_type)
-                return local_count
-            except Exception as e:
-                self.logger.warning(f"Local count_pages_by_type failed: {e}")
-        
-        # Fallback to S3
+        """Count pages by type (S3)."""
+        # S3
         try:
             from apps.documentation.repositories.pages_repository import PagesRepository
             repo = PagesRepository(storage=self.s3_storage)
@@ -605,17 +552,6 @@ class UnifiedStorage:
             logger.debug(f"Cache hit for endpoint: {endpoint_id}")
             return cached
         
-        # Try local files first
-        if self.use_local_json_files:
-            try:
-                endpoint_data = self.local_storage.get_endpoint(endpoint_id)
-                if endpoint_data:
-                    logger.debug(f"Loaded endpoint from local files: {endpoint_id}")
-                    self._safe_cache_set(cache_key, endpoint_data, self.cache_timeout)
-                    return endpoint_data
-            except Exception as e:
-                logger.warning(f"Failed to load endpoint from local files: {e}")
-        
         # Try S3
         try:
             from apps.documentation.repositories.endpoints_repository import EndpointsRepository
@@ -652,26 +588,7 @@ class UnifiedStorage:
         if not remaining:
             return out
 
-        # Local: batch load via get_all_endpoints
-        if self.use_local_json_files:
-            try:
-                all_ep = self.local_storage.get_all_endpoints()
-                want = set(remaining)
-                for ep in all_ep:
-                    eid = ep.get('endpoint_id') or ep.get('endpoint_path')
-                    if eid in want:
-                        out[eid] = ep
-                        self._safe_cache_set(self._get_cache_key('endpoints', eid), ep, self.cache_timeout)
-                        want.discard(eid)
-                        if not want:
-                            break
-                remaining = [eid for eid in remaining if eid not in out]
-                if not remaining:
-                    return out
-            except Exception as e:
-                logger.warning(f"Failed bulk load endpoints from local: {e}")
-
-        # Fallback: single get_endpoint for any still missing
+        # Single get_endpoint for any still missing
         for eid in remaining:
             ep = self.get_endpoint(eid)
             if ep:
@@ -711,34 +628,13 @@ class UnifiedStorage:
         cache_key = self._get_cache_key('endpoints', None, filters)
         cached = self._safe_cache_get(cache_key)
         if cached is not None:
-            logger.debug("Cache hit for list_endpoints")
-            return cached
+            # Do not use cached empty result so retries can get real data (avoids stale "No endpoints found")
+            endpoints_cached = cached.get("endpoints") or []
+            if endpoints_cached or (cached.get("total") or 0) > 0:
+                logger.debug("Cache hit for list_endpoints")
+                return cached
+            logger.debug("Skipping cached empty list_endpoints, retrying")
 
-        # Try local files first (batch load via get_all_endpoints to avoid N+1)
-        if self.use_local_json_files:
-            try:
-                all_endpoints = self.local_storage.get_all_endpoints()
-                filtered_endpoints = []
-                for ep in all_endpoints:
-                    if method and ep.get('method', '').upper() != method.upper():
-                        continue
-                    if api_version and ep.get('api_version') != api_version:
-                        continue
-                    if endpoint_state and ep.get('endpoint_state') != endpoint_state:
-                        continue
-                    filtered_endpoints.append(ep)
-                total = len(filtered_endpoints)
-                if limit is not None:
-                    filtered_endpoints = filtered_endpoints[offset:offset + limit]
-                else:
-                    filtered_endpoints = filtered_endpoints[offset:]
-                logger.debug(f"Loaded {len(filtered_endpoints)} endpoints from local files (total {total})")
-                result = {'endpoints': filtered_endpoints, 'total': total, 'source': 'local'}
-                self._safe_cache_set(cache_key, result, self.cache_timeout)
-                return result
-            except Exception as e:
-                logger.warning(f"Failed to load endpoints from local files: {e}")
-        
         # Try S3
         try:
             from apps.documentation.repositories.endpoints_repository import EndpointsRepository
@@ -750,14 +646,27 @@ class UnifiedStorage:
                 limit=limit,
                 offset=offset
             )
-            total = len(endpoints)
+            # Use index total for pagination when no filters; with filters use slice length
+            if api_version or method or endpoint_state:
+                total = len(endpoints)
+            else:
+                try:
+                    from apps.documentation.services import get_shared_s3_index_manager
+                    idx = get_shared_s3_index_manager().read_index("endpoints", use_cache=True)
+                    total = idx.get("total", len(endpoints))
+                    if limit is not None and total < len(endpoints):
+                        total = len(endpoints)
+                except Exception:
+                    total = len(endpoints)
             logger.debug(f"Loaded {len(endpoints)} endpoints from S3")
             result = {'endpoints': endpoints, 'total': total, 'source': 's3'}
-            self._safe_cache_set(cache_key, result, self.cache_timeout)
+            # Do not cache empty results so retries can get real data (avoids stale "No endpoints found" when index has data)
+            if endpoints or total > 0:
+                self._safe_cache_set(cache_key, result, self.cache_timeout)
             return result
         except Exception as e:
             logger.warning(f"Failed to load endpoints from S3: {e}")
-        
+
         # All sources exhausted - return empty result
         return {
             'endpoints': [],
@@ -768,16 +677,7 @@ class UnifiedStorage:
     def get_endpoint_by_path_and_method(
         self, endpoint_path: str, method: str
     ) -> Optional[Dict[str, Any]]:
-        """Get endpoint by path and method."""
-        if self.use_local_json_files:
-            try:
-                all_ep = self.local_storage.get_all_endpoints()
-                method_upper = (method or "GET").upper()
-                for ep in all_ep:
-                    if (ep.get("endpoint_path") == endpoint_path or ep.get("path") == endpoint_path) and ep.get("method", "").upper() == method_upper:
-                        return ep
-            except Exception as e:
-                self.logger.warning(f"Local get_endpoint_by_path_and_method failed: {e}")
+        """Get endpoint by path and method (S3)."""
         try:
             from apps.documentation.repositories.endpoints_repository import EndpointsRepository
             repo = EndpointsRepository(storage=self.s3_storage)
@@ -851,17 +751,6 @@ class UnifiedStorage:
         if cached:
             logger.debug(f"Cache hit for relationship: {relationship_id}")
             return cached
-
-        # Try local files first
-        if self.use_local_json_files:
-            try:
-                relationship_data = self.local_storage.get_relationship(relationship_id)
-                if relationship_data:
-                    logger.debug(f"Loaded relationship from local files: {relationship_id}")
-                    self._safe_cache_set(cache_key, relationship_data, self.cache_timeout)
-                    return relationship_data
-            except Exception as e:
-                logger.warning(f"Failed to load relationship from local files: {e}")
 
         # Try S3
         try:
@@ -966,16 +855,6 @@ class UnifiedStorage:
         Returns:
             Relationships data dictionary, or None if not found
         """
-        # Try local files first
-        if self.use_local_json_files:
-            try:
-                relationships = self.local_storage.get_relationships_by_page(page_path)
-                if relationships:
-                    logger.debug(f"Loaded relationships from local files for page: {page_path}")
-                    return relationships
-            except Exception as e:
-                logger.warning(f"Failed to load relationships from local files: {e}")
-        
         # Try S3
         try:
             from apps.documentation.repositories.relationships_repository import RelationshipsRepository
@@ -1013,16 +892,6 @@ class UnifiedStorage:
         Returns:
             Relationships data dictionary, or None if not found
         """
-        # Try local files first
-        if self.use_local_json_files:
-            try:
-                relationships = self.local_storage.get_relationships_by_endpoint(endpoint_path, method)
-                if relationships:
-                    logger.debug(f"Loaded relationships from local files for endpoint: {endpoint_path}")
-                    return relationships
-            except Exception as e:
-                logger.warning(f"Failed to load relationships from local files: {e}")
-        
         # Try S3
         try:
             from apps.documentation.repositories.relationships_repository import RelationshipsRepository
@@ -1111,26 +980,16 @@ class UnifiedStorage:
     
     def check_health(self) -> Dict[str, Any]:
         """
-        Check health of all storage backends.
+        Check health of storage backends (S3 and optional GraphQL; local removed).
         
         Returns:
             Dictionary with health status for each backend
         """
         health_status = {
-            'local': {'healthy': True, 'available': True},
+            'local': {'healthy': False, 'available': False, 'message': 'removed (S3-only)'},
             's3': {'healthy': True, 'available': False},
             'graphql': {'healthy': True, 'available': False}
         }
-        
-        # Check local storage
-        try:
-            # Simple check - try to read a known path
-            test_index = self.local_storage.get_index('pages')
-            health_status['local']['healthy'] = True
-            health_status['local']['available'] = True
-        except Exception as e:
-            health_status['local']['healthy'] = False
-            health_status['local']['error'] = str(e)
         
         # Check S3 storage
         try:

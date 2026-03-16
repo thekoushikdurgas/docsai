@@ -1,5 +1,6 @@
 """Context processors for core app."""
 import logging
+from django.conf import settings
 from django.urls import resolve, Resolver404, reverse
 from django.urls.exceptions import NoReverseMatch
 
@@ -169,8 +170,13 @@ def navigation(request):
 
 
 def theme(request):
-    """Add theme context to all templates."""
+    """Add theme context and base path (for static/media URLs) to all templates."""
     theme_value = request.session.get('theme', 'light')
+    base_path = getattr(settings, 'BASE_PATH', '') or ''
+    # Docs media URL prefix: /docs when no base path, /contact360/docsai/docs when BASE_PATH set
+    docs_prefix = ('/' + base_path) if base_path else ''
     return {
         'theme': theme_value,
+        'base_path': base_path,
+        'docs_prefix': docs_prefix,
     }

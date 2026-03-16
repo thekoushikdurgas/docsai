@@ -1,1 +1,0 @@
-Comprehensive filter examples for contacts covering all search types and use cases.

@@ -22,20 +22,21 @@ class SectionsEditor {
         }
         
         this.sectionTypes = [
-            { key: 'headings', label: 'Headings', elementType: 'HeadingElement' },
-            { key: 'subheadings', label: 'Subheadings', elementType: 'HeadingElement' },
-            { key: 'tabs', label: 'Tabs', elementType: 'TabElement' },
-            { key: 'buttons', label: 'Buttons', elementType: 'ButtonElement' },
-            { key: 'input_boxes', label: 'Input Boxes', elementType: 'InputBoxElement' },
-            { key: 'text_blocks', label: 'Text Blocks', elementType: 'TextBlockElement' },
-            { key: 'components', label: 'Components', elementType: 'ComponentReference' },
-            { key: 'utilities', label: 'Utilities', elementType: 'UtilityReference' },
-            { key: 'services', label: 'Services', elementType: 'ServiceReference' },
-            { key: 'hooks', label: 'Hooks', elementType: 'HookReference' },
-            { key: 'contexts', label: 'Contexts', elementType: 'ContextReference' },
-            { key: 'ui_components', label: 'UI Components', elementType: 'ComponentReference' },
-            { key: 'endpoints', label: 'Endpoints', elementType: 'EndpointReferenceInSection' }
+            { key: 'headings', label: 'Headings', elementType: 'HeadingElement', group: 'structure', emptyState: 'No headings defined. Headings structure the page hierarchy (e.g. H1, H2).' },
+            { key: 'subheadings', label: 'Subheadings', elementType: 'HeadingElement', group: 'structure', emptyState: 'No subheadings defined. Subheadings are secondary headings within sections.' },
+            { key: 'tabs', label: 'Tabs', elementType: 'TabElement', group: 'structure', emptyState: 'No tabs defined. Tabs organize content into switchable panels.' },
+            { key: 'buttons', label: 'Buttons', elementType: 'ButtonElement', group: 'ui', emptyState: 'No buttons defined. Buttons are interactive actions on this page.' },
+            { key: 'input_boxes', label: 'Input Boxes', elementType: 'InputBoxElement', group: 'ui', emptyState: 'No input boxes defined. Input boxes collect user input (text, number, etc.).' },
+            { key: 'text_blocks', label: 'Text Blocks', elementType: 'TextBlockElement', group: 'ui', emptyState: 'No text blocks defined. Text blocks display static or markdown content.' },
+            { key: 'components', label: 'Components', elementType: 'ComponentReference', group: 'code', emptyState: 'No components referenced. Reference React/components used on this page.' },
+            { key: 'utilities', label: 'Utilities', elementType: 'UtilityReference', group: 'code', emptyState: 'No utilities referenced. Reference utility modules (e.g. formatters, helpers).' },
+            { key: 'services', label: 'Services', elementType: 'ServiceReference', group: 'code', emptyState: 'No services referenced. Reference API or data services used by this page.' },
+            { key: 'hooks', label: 'Hooks', elementType: 'HookReference', group: 'code', emptyState: 'No hooks referenced. Reference React hooks used on this page.' },
+            { key: 'contexts', label: 'Contexts', elementType: 'ContextReference', group: 'code', emptyState: 'No contexts referenced. Reference React context providers.' },
+            { key: 'ui_components', label: 'UI Components', elementType: 'ComponentReference', group: 'code', emptyState: 'No UI components referenced. Reference shared UI component usage.' },
+            { key: 'endpoints', label: 'Endpoints', elementType: 'EndpointReferenceInSection', group: 'code', emptyState: 'No endpoints referenced. Reference API endpoints used by this page.' }
         ];
+        this.sectionGroupLabels = { structure: 'Structure', ui: 'UI elements', code: 'Code references' };
         
         this.data = this.initializeData(this.options.data);
         this.currentSectionType = this.sectionTypes[0].key;
@@ -67,25 +68,10 @@ class SectionsEditor {
                     <p class="text-sm text-gray-600 dark:text-gray-400">Manage all section elements for this page</p>
                 </div>
                 
-                <!-- Section Type Tabs -->
-                <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
-                    <nav class="flex flex-wrap gap-2" role="tablist">
-                        ${this.sectionTypes.map(sectionType => `
-                            <button 
-                                class="section-type-tab px-4 py-2 rounded-t-lg border-b-2 transition-colors ${
-                                    this.currentSectionType === sectionType.key 
-                                        ? 'border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20' 
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                                }"
-                                data-section-type="${sectionType.key}"
-                                role="tab"
-                            >
-                                ${sectionType.label}
-                                <span class="ml-2 text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
-                                    ${this.data[sectionType.key].length}
-                                </span>
-                            </button>
-                        `).join('')}
+                <!-- Section Type Tabs (grouped: Structure / UI elements / Code references) -->
+                <div class="tabs-container tabs-default mb-4">
+                    <nav class="sections-tab-nav space-y-3" role="tablist">
+                        ${this.renderTabGroups()}
                     </nav>
                 </div>
                 
@@ -97,6 +83,30 @@ class SectionsEditor {
         `;
         
         this.container.innerHTML = html;
+    }
+    
+    renderTabGroups() {
+        return ['structure', 'ui', 'code'].map(groupKey => {
+            const typesInGroup = this.sectionTypes.filter(st => st.group === groupKey);
+            const label = this.sectionGroupLabels[groupKey];
+            const tabsHtml = typesInGroup.map(sectionType => `
+                <button 
+                    class="tab-button section-type-tab ${this.currentSectionType === sectionType.key ? 'active' : ''}"
+                    data-section-type="${sectionType.key}"
+                    role="tab"
+                    aria-selected="${this.currentSectionType === sectionType.key}"
+                >
+                    ${sectionType.label}
+                    <span class="tab-badge ml-1.5">${this.data[sectionType.key].length}</span>
+                </button>
+            `).join('');
+            return `
+                <div class="sections-tab-group">
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">${label}</div>
+                    <div class="tabs-list flex flex-wrap gap-2">${tabsHtml}</div>
+                </div>
+            `;
+        }).join('');
     }
     
     renderSectionTypeContent(sectionType) {
@@ -112,7 +122,7 @@ class SectionsEditor {
                     ${!this.options.readOnly ? `
                         <button 
                             type="button" 
-                            class="add-section-item-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                            class="btn btn-primary btn-sm add-section-item-btn"
                             data-section-type="${sectionType}"
                         >
                             + Add ${sectionTypeInfo.label.slice(0, -1)}
@@ -122,8 +132,9 @@ class SectionsEditor {
                 
                 <div class="section-items-list space-y-4">
                     ${items.length === 0 ? `
-                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
-                            <p>No ${sectionTypeInfo.label.toLowerCase()} added yet</p>
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400 space-y-2">
+                            <p>${sectionTypeInfo.emptyState || ('No ' + sectionTypeInfo.label.toLowerCase() + ' added yet.')}</p>
+                            ${!this.options.readOnly ? '<p class="text-sm">Use the button above to add one.</p>' : ''}
                         </div>
                     ` : items.map((item, index) => this.renderSectionItem(sectionType, item, index)).join('')}
                 </div>
@@ -159,7 +170,7 @@ class SectionsEditor {
                     ${!this.options.readOnly ? `
                         <button 
                             type="button" 
-                            class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                            class="btn btn-danger btn-sm remove-item-btn"
                             data-index="${index}"
                         >
                             Remove
@@ -170,19 +181,19 @@ class SectionsEditor {
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.id || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="id" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Text <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.text || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="text" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Level (1-6) <span class="text-red-500">*</span></label>
                         <input type="number" min="1" max="6" value="${item.level || 1}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="level" data-index="${index}" />
                     </div>
                 </div>
@@ -196,26 +207,26 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Tab #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.id || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="id" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.label || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="label" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content Ref <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.content_ref || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="content_ref" data-index="${index}" />
                     </div>
                 </div>
@@ -229,32 +240,32 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Button #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.id || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="id" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.label || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="label" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Action <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.action || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="action" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Variant</label>
                         <input type="text" value="${this.escapeHtml(item.variant || 'primary')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="variant" data-index="${index}" placeholder="primary" />
                     </div>
                 </div>
@@ -268,32 +279,32 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Input Box #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.id || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="id" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.label || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="label" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Input Type</label>
                         <input type="text" value="${this.escapeHtml(item.input_type || 'text')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="input_type" data-index="${index}" placeholder="text" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Placeholder</label>
                         <input type="text" value="${this.escapeHtml(item.placeholder || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="placeholder" data-index="${index}" />
                     </div>
                     <div>
@@ -314,26 +325,26 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Text Block #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.id || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="id" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Format</label>
                         <input type="text" value="${this.escapeHtml(item.format || 'markdown')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="format" data-index="${index}" placeholder="markdown" />
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content <span class="text-red-500">*</span></label>
                         <textarea rows="4" ${this.options.readOnly ? 'readonly' : ''} 
-                                  class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                                  class="section-field form-textarea w-full" 
                                   data-field="content" data-index="${index}">${this.escapeHtml(item.content || '')}</textarea>
                     </div>
                 </div>
@@ -347,26 +358,26 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Component #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.name || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="name" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.file_path || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="file_path" data-index="${index}" />
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Props (JSON)</label>
                         <textarea rows="3" ${this.options.readOnly ? 'readonly' : ''} 
-                                  class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 font-mono text-sm" 
+                                  class="section-field form-textarea w-full font-mono text-sm" 
                                   data-field="props" data-index="${index}" placeholder='{"prop1": "value1"}'>${this.escapeHtml(JSON.stringify(item.props || {}, null, 2))}</textarea>
                     </div>
                 </div>
@@ -380,26 +391,26 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Utility #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.name || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="name" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.file_path || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="file_path" data-index="${index}" />
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Functions (comma-separated)</label>
                         <input type="text" value="${this.escapeHtml((item.functions || []).join(', '))}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="functions" data-index="${index}" placeholder="function1, function2" />
                     </div>
                 </div>
@@ -413,26 +424,26 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Service #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.name || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="name" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.file_path || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="file_path" data-index="${index}" />
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Methods (comma-separated)</label>
                         <input type="text" value="${this.escapeHtml((item.methods || []).join(', '))}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="methods" data-index="${index}" placeholder="method1, method2" />
                     </div>
                 </div>
@@ -446,26 +457,26 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Hook #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.name || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="name" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.file_path || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="file_path" data-index="${index}" />
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dependencies (comma-separated)</label>
                         <input type="text" value="${this.escapeHtml((item.dependencies || []).join(', '))}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="dependencies" data-index="${index}" placeholder="dep1, dep2" />
                     </div>
                 </div>
@@ -479,26 +490,26 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Context #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.name || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="name" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.file_path || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="file_path" data-index="${index}" />
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Provider</label>
                         <input type="text" value="${this.escapeHtml(item.provider || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="provider" data-index="${index}" />
                     </div>
                 </div>
@@ -512,32 +523,32 @@ class SectionsEditor {
                 <div class="flex justify-between items-start mb-3">
                     <h5 class="font-semibold text-gray-900 dark:text-gray-100">Endpoint #${index + 1}</h5>
                     ${!this.options.readOnly ? `
-                        <button type="button" class="remove-item-btn px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm" data-index="${index}">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-index="${index}">Remove</button>
                     ` : ''}
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint ID <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.endpoint_id || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="endpoint_id" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint Path <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.endpoint_path || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="endpoint_path" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Method <span class="text-red-500">*</span></label>
                         <input type="text" value="${this.escapeHtml(item.method || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="method" data-index="${index}" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Path</label>
                         <input type="text" value="${this.escapeHtml(item.file_path || '')}" ${this.options.readOnly ? 'readonly' : ''} 
-                               class="section-field w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700" 
+                               class="section-field form-input w-full" 
                                data-field="file_path" data-index="${index}" />
                     </div>
                 </div>
@@ -552,8 +563,9 @@ class SectionsEditor {
         const tabs = this.container.querySelectorAll('.section-type-tab');
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
-                const sectionType = e.target.getAttribute('data-section-type');
-                this.switchSectionType(sectionType);
+                const btn = e.currentTarget;
+                const sectionType = btn.getAttribute('data-section-type');
+                if (sectionType) this.switchSectionType(sectionType);
             });
         });
         
@@ -561,8 +573,8 @@ class SectionsEditor {
         const addBtns = this.container.querySelectorAll('.add-section-item-btn');
         addBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const sectionType = e.target.getAttribute('data-section-type');
-                this.addSectionItem(sectionType);
+                const sectionType = e.currentTarget.getAttribute('data-section-type');
+                if (sectionType) this.addSectionItem(sectionType);
             });
         });
         
@@ -570,8 +582,8 @@ class SectionsEditor {
         const removeBtns = this.container.querySelectorAll('.remove-item-btn');
         removeBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.getAttribute('data-index'));
-                this.removeSectionItem(this.currentSectionType, index);
+                const index = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+                if (!isNaN(index)) this.removeSectionItem(this.currentSectionType, index);
             });
         });
         

@@ -4,24 +4,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from apps.documentation.repositories.unified_storage import UnifiedStorage
-    from apps.documentation.repositories.local_json_storage import LocalJSONStorage
     from apps.documentation.repositories.s3_json_storage import S3JSONStorage
 
 # Shared storage instances for all services to use
-# This reduces redundant instantiation and allows services to share the same storage
 _shared_unified_storage = None
-_shared_local_storage = None
 _shared_s3_storage = None
 _shared_s3_index_manager = None
-
-
-def get_shared_local_storage():
-    """Get or create shared LocalJSONStorage instance."""
-    global _shared_local_storage
-    if _shared_local_storage is None:
-        from apps.documentation.repositories.local_json_storage import LocalJSONStorage
-        _shared_local_storage = LocalJSONStorage()
-    return _shared_local_storage
 
 
 def get_shared_s3_storage():
@@ -43,14 +31,11 @@ def get_shared_s3_index_manager():
 
 
 def get_shared_unified_storage():
-    """Get or create shared UnifiedStorage instance."""
+    """Get or create shared UnifiedStorage instance (S3 only; local storage removed)."""
     global _shared_unified_storage
     if _shared_unified_storage is None:
         from apps.documentation.repositories.unified_storage import UnifiedStorage
-        _shared_unified_storage = UnifiedStorage(
-            local_storage=get_shared_local_storage(),
-            s3_storage=get_shared_s3_storage()
-        )
+        _shared_unified_storage = UnifiedStorage(s3_storage=get_shared_s3_storage())
     return _shared_unified_storage
 
 

@@ -72,15 +72,9 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <button 
-                    type="submit"
-                    class="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium"
-                >
-                    {% if is_edit %}Update Endpoint{% else %}Create Endpoint{% endif %}
-                </button>
-                <a href="{% url 'documentation:dashboard_endpoints' %}" class="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
-                    Cancel
-                </a>
+                {% url 'documentation:dashboard_endpoints' as cancel_url %}
+                {% include 'components/button.html' with text=is_edit|yesno:'Update Endpoint,Create Endpoint' type='primary' size='md' button_type='submit' %}
+                {% include 'components/button.html' with href=cancel_url text='Cancel' type='secondary' size='md' %}
             </div>
         </form>
     </div>

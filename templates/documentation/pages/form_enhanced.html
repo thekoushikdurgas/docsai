@@ -583,19 +583,32 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div class="flex-1">
-                                <p class="text-sm text-green-800 dark:text-green-200 font-medium mb-1">Content Sections</p>
-                                <p class="text-xs text-green-700 dark:text-green-300">Define content sections like title, subtitle, value propositions, and story sections.</p>
+                                <p class="text-sm text-green-800 dark:text-green-200 font-medium mb-1">Page Structure Sections</p>
+                                <p class="text-xs text-green-700 dark:text-green-300">Define structural elements: headings, tabs, buttons, inputs, text blocks, and code references (components, utilities, services, hooks, contexts, endpoints).</p>
                             </div>
                         </div>
                     </div>
                     
+                    {% if page.sections %}
+                    <div class="grid grid-cols-3 md:grid-cols-7 gap-2 mb-4 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Headings: {{ page.sections.headings|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Subheadings: {{ page.sections.subheadings|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Tabs: {{ page.sections.tabs|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Buttons: {{ page.sections.buttons|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Inputs: {{ page.sections.input_boxes|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Text blocks: {{ page.sections.text_blocks|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Components: {{ page.sections.components|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Utilities: {{ page.sections.utilities|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Services: {{ page.sections.services|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Hooks: {{ page.sections.hooks|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Contexts: {{ page.sections.contexts|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">UI components: {{ page.sections.ui_components|length|default:0 }}</div>
+                        <div class="text-xs font-medium text-gray-600 dark:text-gray-400">Endpoints: {{ page.sections.endpoints|length|default:0 }}</div>
+                    </div>
+                    {% endif %}
+                    
                     <div id="sections-editor" class="space-y-4">
                         <!-- Sections editor will be dynamically generated -->
-                        {% if page.metadata.content_sections %}
-                        <div class="text-sm text-gray-600 dark:text-gray-400">
-                            <p>Current sections: Title, Subtitle, Value Propositions, Story</p>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -617,25 +630,34 @@
                     
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Fallback Data
-                            </label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Fallback Data
+                                </label>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{% if page.fallback_data %}{{ page.fallback_data|length }} item(s){% else %}0 items{% endif %}</span>
+                            </div>
                             <div id="fallback-data-editor" class="border border-gray-300 dark:border-gray-600 rounded-lg min-h-[200px]"></div>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Data to use when primary data source is unavailable</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Data to use when primary data source is unavailable. Each item can define source, page_key, section_key, and nested sections for fallback UI content.</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Mock Data
-                            </label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Mock Data
+                                </label>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{% if page.mock_data %}{{ page.mock_data|length }} item(s){% else %}0 items{% endif %}</span>
+                            </div>
                             <div id="mock-data-editor" class="border border-gray-300 dark:border-gray-600 rounded-lg min-h-[200px]"></div>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Mock data for testing and development</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Mock data for testing and development. Use when APIs are unavailable or for consistent test fixtures.</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Demo Data
-                            </label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Demo Data
+                                </label>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{% if page.demo_data %}{{ page.demo_data|length }} item(s){% else %}0 items{% endif %}</span>
+                            </div>
                             <div id="demo-data-editor" class="border border-gray-300 dark:border-gray-600 rounded-lg min-h-[200px]"></div>
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Demo data for showcasing features</p>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Demo data for showcasing features. Shown to users in demo or trial mode.</p>
                         </div>
                     </div>
                 </div>

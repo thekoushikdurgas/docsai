@@ -1,1 +1,0 @@
-Gemini AI endpoints for AI-powered features (3 endpoints total)

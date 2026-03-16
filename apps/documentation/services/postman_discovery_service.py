@@ -1,12 +1,10 @@
-"""Postman Discovery Service – scan media/postman/ for collections and environments."""
+"""Postman Discovery Service – discover collections and environments from S3."""
 
-import json
 import logging
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from apps.documentation.utils.paths import get_media_root, get_postman_dir, list_directory_files
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +12,19 @@ SKIP_FILES = {"auth.json", "vars.json", "index.json", "contact360.json", "reques
 
 
 class PostmanDiscoveryService:
-    """Discover Postman collections and environments from media/postman/."""
+    """Discover Postman collections and environments from S3."""
 
-    def __init__(self) -> None:
-        self.media_root = get_media_root()
-        self.postman_dir = get_postman_dir()
+    def __init__(self, s3_storage: Optional[Any] = None) -> None:
+        if s3_storage is None:
+            from apps.documentation.services import get_shared_s3_storage
+            self.s3_storage = get_shared_s3_storage()
+        else:
+            self.s3_storage = s3_storage
+        self.data_prefix = (getattr(settings, "S3_DATA_PREFIX", "data/") or "data/").rstrip("/") + "/"
+        self.postman_prefix = f"{self.data_prefix}postman/"
+        self.collections_prefix = f"{self.data_prefix}postman/collections/"
+        self.environments_prefix = f"{self.data_prefix}postman/environments/"
+        self.configurations_prefix = f"{self.data_prefix}postman/configurations/"
 
     def discover_all(self) -> Dict[str, Any]:
         """Discover all collections and environments. Returns unified index structure."""
@@ -44,180 +50,96 @@ class PostmanDiscoveryService:
         }
 
     def _discover_single_file_collections(self) -> List[Dict[str, Any]]:
-        """Discover .postman_collection.json files at postman root."""
+        """Discover collection JSON files in S3 under postman/collections/."""
         result: List[Dict[str, Any]] = []
-        if not self.postman_dir.exists() or not self.postman_dir.is_dir():
-            return result
-
-        for fp in self.postman_dir.iterdir():
-            if not fp.is_file():
-                continue
-            if not fp.name.endswith(".postman_collection.json"):
-                continue
-            try:
-                rel = fp.relative_to(self.media_root)
-                rel_str = str(rel).replace("\\", "/")
-                name = fp.stem.replace(".postman_collection", "").replace("_", " ")
+        try:
+            file_keys = self.s3_storage.list_json_files(self.collections_prefix, max_keys=10000)
+            for s3_key in file_keys:
+                if s3_key.endswith("/index.json"):
+                    continue
+                file_name = s3_key.split("/")[-1]
+                if not file_name.endswith(".json"):
+                    continue
                 try:
-                    data = json.loads(fp.read_text(encoding="utf-8"))
-                    info = data.get("info", {})
-                    name = info.get("name", name)
-                except Exception:
-                    pass
-                result.append({
-                    "collection_id": name,
-                    "file_name": fp.name,
-                    "relative_path": rel_str,
-                    "type": "collection",
-                    "format": "postman",
-                })
-            except (OSError, ValueError) as e:
-                logger.warning("Discovery skip %s: %s", fp, e)
-                continue
-
+                    data = self.s3_storage.read_json(s3_key)
+                    info = (data or {}).get("info", {})
+                    name = info.get("name", file_name.replace(".postman_collection.json", "").replace(".json", "").replace("_", " "))
+                    relative_path = s3_key[len(self.data_prefix):] if s3_key.startswith(self.data_prefix) else s3_key
+                    result.append({
+                        "collection_id": name,
+                        "file_name": file_name,
+                        "relative_path": relative_path.replace("\\", "/"),
+                        "type": "collection",
+                        "format": "postman",
+                    })
+                except (OSError, ValueError) as e:
+                    logger.warning("Discovery skip %s: %s", s3_key, e)
+                    continue
+        except Exception as e:
+            logger.warning("Discovery list collections failed: %s", e)
         result.sort(key=lambda x: (x["collection_id"].lower(), x["file_name"]))
         return result
 
     def _discover_folder_collections(self) -> List[Dict[str, Any]]:
-        """Discover Requestly-style folder collections (top-level dirs with request JSONs)."""
-        result: List[Dict[str, Any]] = []
-        if not self.postman_dir.exists() or not self.postman_dir.is_dir():
-            return result
-
-        for fp in self.postman_dir.iterdir():
-            if not fp.is_dir():
-                continue
-            if fp.name in ("collection", "environment", "environments", "configurations"):
-                continue
-            try:
-                if self._looks_like_requestly_folder(fp):
-                    rel = fp.relative_to(self.media_root)
-                    rel_str = str(rel).replace("\\", "/")
-                    result.append({
-                        "collection_id": fp.name,
-                        "relative_path": rel_str,
-                        "type": "folder_collection",
-                        "format": "requestly",
-                    })
-            except (OSError, ValueError) as e:
-                logger.warning("Discovery skip folder %s: %s", fp, e)
-                continue
-
-        result.sort(key=lambda x: x["collection_id"].lower())
-        return result
-
-    def _looks_like_requestly_folder(self, folder: Path) -> bool:
-        """Check if folder contains Requestly-style request JSONs."""
-        count = 0
-        for _ in folder.rglob("*.json"):
-            count += 1
-            if count >= 1:
-                break
-        if count == 0:
-            return False
-        for fp in folder.rglob("*.json"):
-            if fp.name in SKIP_FILES:
-                continue
-            try:
-                data = json.loads(fp.read_text(encoding="utf-8"))
-                if isinstance(data, dict) and "request" in data:
-                    return True
-            except Exception:
-                continue
-        return False
+        """Folder collections (Requestly-style) are not stored as S3 prefixes; return empty."""
+        return []
 
     def _discover_environments(self) -> List[Dict[str, Any]]:
-        """Discover environment files (root .postman_environment.json + postman/environments/*.json)."""
+        """Discover environment JSON files in S3 under postman/environments/."""
         result: List[Dict[str, Any]] = []
-
-        if self.postman_dir.exists():
-            for fp in self.postman_dir.iterdir():
-                if not fp.is_file():
+        try:
+            file_keys = self.s3_storage.list_json_files(self.environments_prefix, max_keys=10000)
+            for s3_key in file_keys:
+                if s3_key.endswith("/index.json"):
                     continue
-                if not fp.name.endswith(".postman_environment.json"):
+                file_name = s3_key.split("/")[-1]
+                if not file_name.endswith(".json"):
                     continue
                 try:
-                    rel = fp.relative_to(self.media_root)
-                    rel_str = str(rel).replace("\\", "/")
-                    name = fp.stem.replace(".postman_environment", "").replace("_", " ")
-                    try:
-                        data = json.loads(fp.read_text(encoding="utf-8"))
-                        name = data.get("name", name)
-                    except Exception:
-                        pass
+                    data = self.s3_storage.read_json(s3_key)
+                    name = (data or {}).get("name", file_name.replace(".postman_environment.json", "").replace(".json", ""))
+                    relative_path = s3_key[len(self.data_prefix):] if s3_key.startswith(self.data_prefix) else s3_key
                     result.append({
                         "environment_id": name,
-                        "file_name": fp.name,
-                        "relative_path": rel_str,
+                        "file_name": file_name,
+                        "relative_path": relative_path.replace("\\", "/"),
                         "type": "environment",
                         "format": "postman",
                     })
                 except (OSError, ValueError) as e:
-                    logger.warning("Discovery skip env %s: %s", fp, e)
-
-        env_dir = self.postman_dir / "environments"
-        if env_dir.exists() and env_dir.is_dir():
-            for fp in env_dir.iterdir():
-                if not fp.is_file() or fp.suffix.lower() != ".json":
-                    continue
-                try:
-                    rel = fp.relative_to(self.media_root)
-                    rel_str = str(rel).replace("\\", "/")
-                    name = fp.stem
-                    try:
-                        data = json.loads(fp.read_text(encoding="utf-8"))
-                        name = data.get("name", name)
-                    except Exception:
-                        pass
-                    result.append({
-                        "environment_id": name,
-                        "file_name": fp.name,
-                        "relative_path": rel_str,
-                        "type": "environment",
-                        "format": "requestly",
-                    })
-                except (OSError, ValueError) as e:
-                    logger.warning("Discovery skip env %s: %s", fp, e)
-
+                    logger.warning("Discovery skip env %s: %s", s3_key, e)
+        except Exception as e:
+            logger.warning("Discovery list environments failed: %s", e)
         result.sort(key=lambda x: (x["environment_id"].lower(), x["relative_path"]))
         return result
 
     def _discover_configurations(self) -> List[Dict[str, Any]]:
-        """Discover configuration files."""
+        """Discover configuration JSON files in S3 under postman/configurations/."""
         result: List[Dict[str, Any]] = []
-        config_dir = self.postman_dir / "configurations"
-        if not config_dir.exists() or not config_dir.is_dir():
-            for fp in self.postman_dir.iterdir() if self.postman_dir.exists() else []:
-                if not fp.is_file():
+        try:
+            file_keys = self.s3_storage.list_json_files(self.configurations_prefix, max_keys=10000)
+            for s3_key in file_keys:
+                if s3_key.endswith("/index.json"):
                     continue
-                if fp.name in ("contact360.json", "requestly.json"):
-                    try:
-                        data = json.loads(fp.read_text(encoding="utf-8"))
-                        result.append({
-                            "config_id": fp.stem,
-                            "name": data.get("name", fp.stem),
-                            "state": data.get("state", "development"),
-                            "file_name": fp.name,
-                            "type": "configuration",
-                        })
-                    except Exception:
-                        pass
-        else:
-            for fp in config_dir.iterdir():
-                if not fp.is_file() or fp.suffix.lower() != ".json":
+                file_name = s3_key.split("/")[-1]
+                if not file_name.endswith(".json"):
                     continue
                 try:
-                    data = json.loads(fp.read_text(encoding="utf-8"))
+                    data = self.s3_storage.read_json(s3_key)
+                    if not data:
+                        continue
+                    config_id = file_name.replace(".json", "")
                     result.append({
-                        "config_id": fp.stem,
-                        "name": data.get("name", fp.stem),
+                        "config_id": config_id,
+                        "name": data.get("name", config_id),
                         "state": data.get("state", "development"),
-                        "file_name": fp.name,
+                        "file_name": file_name,
                         "type": "configuration",
                     })
                 except Exception:
                     pass
-
+        except Exception as e:
+            logger.warning("Discovery list configurations failed: %s", e)
         result.sort(key=lambda x: x.get("config_id", "").lower())
         return result
 

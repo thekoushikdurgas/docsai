@@ -300,8 +300,32 @@ urlpatterns = [
     path('api/pages/bulk-import/check/', media_manager_api.pages_bulk_import_check_api, name='api_pages_bulk_import_check'),
     path('api/pages/bulk-import/preview/', media_manager_api.pages_bulk_import_preview_api, name='api_pages_bulk_import_preview'),
     path('api/pages/bulk-import/', media_manager_api.pages_bulk_import_api, name='api_pages_bulk_import'),
+    path('api/pages/bulk-upload-to-s3/', media_manager_api.pages_bulk_upload_to_s3_api, name='api_pages_bulk_upload_to_s3'),
+    path('api/pages/import-one/', media_manager_api.pages_import_one_api, name='api_pages_import_one'),
+    path('api/pages/upload-one-to-s3/', media_manager_api.pages_upload_one_to_s3_api, name='api_pages_upload_one_to_s3'),
 
-    # Documentation files API (legacy media API name preserved for compatibility)
+    # Endpoints bulk import / S3 upload
+    path('api/endpoints/bulk-import/preview/', media_manager_api.endpoints_bulk_import_preview_api, name='api_endpoints_bulk_import_preview'),
+    path('api/endpoints/bulk-import/', media_manager_api.endpoints_bulk_import_api, name='api_endpoints_bulk_import'),
+    path('api/endpoints/bulk-upload-to-s3/', media_manager_api.endpoints_bulk_upload_to_s3_api, name='api_endpoints_bulk_upload_to_s3'),
+    path('api/endpoints/import-one/', media_manager_api.endpoints_import_one_api, name='api_endpoints_import_one'),
+    path('api/endpoints/upload-one-to-s3/', media_manager_api.endpoints_upload_one_to_s3_api, name='api_endpoints_upload_one_to_s3'),
+
+    # Relationships bulk import / S3 upload
+    path('api/relationships/bulk-import/preview/', media_manager_api.relationships_bulk_import_preview_api, name='api_relationships_bulk_import_preview'),
+    path('api/relationships/bulk-import/', media_manager_api.relationships_bulk_import_api, name='api_relationships_bulk_import'),
+    path('api/relationships/bulk-upload-to-s3/', media_manager_api.relationships_bulk_upload_to_s3_api, name='api_relationships_bulk_upload_to_s3'),
+    path('api/relationships/import-one/', media_manager_api.relationships_import_one_api, name='api_relationships_import_one'),
+    path('api/relationships/upload-one-to-s3/', media_manager_api.relationships_upload_one_to_s3_api, name='api_relationships_upload_one_to_s3'),
+
+    # Postman bulk import / S3 upload
+    path('api/postman/bulk-import/preview/', media_manager_api.postman_bulk_import_preview_api, name='api_postman_bulk_import_preview'),
+    path('api/postman/bulk-import/', media_manager_api.postman_bulk_import_api, name='api_postman_bulk_import'),
+    path('api/postman/bulk-upload-to-s3/', media_manager_api.postman_bulk_upload_to_s3_api, name='api_postman_bulk_upload_to_s3'),
+    path('api/postman/import-one/', media_manager_api.postman_import_one_api, name='api_postman_import_one'),
+    path('api/postman/upload-one-to-s3/', media_manager_api.postman_upload_one_to_s3_api, name='api_postman_upload_one_to_s3'),
+
+    # Documentation files API (S3-only stubs; local file browser removed)
     path('api/media/files/', documentation_file_views.list_files_api, name='api_media_files'),
     path('api/media/sync-status/', documentation_file_views.sync_status_api, name='api_media_sync_status'),
     path('api/media/bulk-sync/', documentation_file_views.bulk_sync_api, name='api_media_bulk_sync'),

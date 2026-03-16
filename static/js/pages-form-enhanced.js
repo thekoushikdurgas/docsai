@@ -442,7 +442,7 @@ class PagesFormEnhanced {
             readOnly: false
         });
         
-        // Listen for changes
+        // Listen for changes (sections-change is dispatched by SectionsEditor.triggerChange() on add/remove/edit)
         container.addEventListener('sections-change', (e) => {
             this.formData.sections = e.detail.data;
             this.updateFormData();

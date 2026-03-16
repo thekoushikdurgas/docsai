@@ -20,10 +20,10 @@ MAX_LIMIT = 500
 DEFAULT_OFFSET = 0
 
 # Valid detail tabs for different resource types
-VALID_DETAIL_TABS_PAGES = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "raw"})
-VALID_DETAIL_TABS_ENDPOINTS = frozenset({"overview", "request", "response", "graphql", "relationships", "raw"})
-VALID_DETAIL_TABS_RELATIONSHIPS = frozenset({"overview", "connection", "usage", "related", "raw"})
-VALID_DETAIL_TABS_POSTMAN = frozenset({"overview", "collection", "requests", "environments", "mappings", "raw"})
+VALID_DETAIL_TABS_PAGES = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "technical", "sections", "data", "fields", "raw"})
+VALID_DETAIL_TABS_ENDPOINTS = frozenset({"overview", "request", "response", "graphql", "relationships", "implementation", "access", "fields", "raw"})
+VALID_DETAIL_TABS_RELATIONSHIPS = frozenset({"overview", "connection", "usage", "related", "page", "data_flow", "postman_ref", "fields", "raw"})
+VALID_DETAIL_TABS_POSTMAN = frozenset({"overview", "requests", "variables", "environments", "endpoints", "info", "fields", "raw"})
 
 
 def parse_limit_offset(

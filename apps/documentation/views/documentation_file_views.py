@@ -76,50 +76,14 @@ def _validate_file_path(file_path: str) -> Tuple[Optional[str], Optional[Path]]:
 @require_super_admin
 @require_http_methods(["GET"])
 def list_files_api(request):
-    """GET /docs/api/media/files/?resource_type=pages&search=..."""
-    start_time = time.time()
-    try:
-        svc = MediaManagerService()
-        resource_type = request.GET.get("resource_type", "pages")
-        filters = {
-            "sync_status": request.GET.get("sync_status"),
-            "search": request.GET.get("search", ""),
-            "sort_by": request.GET.get("sort_by", "name"),
-            "sort_order": request.GET.get("sort_order", "asc"),
-            "subdirectory": request.GET.get("subdirectory"),  # For relationships and postman
-        }
-        files = svc.list_files(resource_type, filters)
-        response = success_response(
-            data=files,
-            message=f"Retrieved {len(files)} files",
-            meta={
-                "total": len(files),
-                "resource_type": resource_type,
-                "filters_applied": any(filters.values())
-            }
-        )
-
-        # Audit logging
-        response_time = int((time.time() - start_time) * 1000)
-        AuditLogger.log_api_access(
-            request, "/docs/api/media/files/", "GET",
-            success=True, response_time=response_time
-        )
-        AuditLogger.log_file_access(
-            request, "list", f"resource:{resource_type}",
-            resource_type=resource_type, success=True,
-            details=f"filters: {filters}, count: {len(files)}"
-        )
-
-        return response.to_json_response()
-    except Exception as e:
-        logger.exception("list_files_api")
-        response_time = int((time.time() - start_time) * 1000)
-        AuditLogger.log_api_access(
-            request, "/docs/api/media/files/", "GET",
-            success=False, response_time=response_time
-        )
-        return server_error_response(f"Failed to list files: {str(e)}").to_json_response()
+    """GET /docs/api/media/files/ – S3-only: returns empty list (local file browser removed)."""
+    resource_type = request.GET.get("resource_type", "pages")
+    response = success_response(
+        data=[],
+        message="S3-only mode: file list from local media is not available.",
+        meta={"total": 0, "resource_type": resource_type, "s3_only": True}
+    )
+    return response.to_json_response()
 
 
 @require_super_admin
@@ -249,14 +213,9 @@ def delete_file_api(request: HttpRequest, file_path: str) -> JsonResponse:
 @require_super_admin
 @require_http_methods(["GET"])
 def sync_status_api(request: HttpRequest) -> JsonResponse:
-    """GET /docs/api/media/sync-status/"""
-    try:
-        svc = MediaManagerService()
-        summary = svc.get_sync_summary()
-        return success_response(data=summary, message="Sync status retrieved successfully").to_json_response()
-    except Exception as e:
-        logger.exception("sync_status_api")
-        return server_error_response(f"Error retrieving sync status: {str(e)}").to_json_response()
+    """GET /docs/api/media/sync-status/ – S3-only: no local sync."""
+    summary = {"status": "s3_only", "by_type": {}, "message": "Local media sync is not available; data is in S3."}
+    return success_response(data=summary, message="Sync status (S3-only).").to_json_response()
 
 
 @require_super_admin
@@ -288,35 +247,11 @@ def sync_file_api(request: HttpRequest, file_path: str) -> JsonResponse:
 @require_super_admin
 @require_http_methods(["POST"])
 def bulk_sync_api(request: HttpRequest) -> JsonResponse:
-    """POST /docs/api/media/bulk-sync/ body: {resource_type, direction, file_paths?}"""
-    data, error_msg = _parse_json_body(request)
-    if error_msg and request.body:
-        logger.warning("Invalid request body in bulk_sync_api: %s", error_msg)
-        return error_response(message=error_msg, status_code=400).to_json_response()
-
-    try:
-        data = data or {}
-        resource_type = data.get("resource_type", "all")
-        direction = data.get("direction", "to_lambda")
-        file_paths = data.get("file_paths", [])
-        sync_svc = MediaSyncService()
-        results: Dict[str, Any] = {}
-        types = (
-            ["pages", "endpoints", "relationships", "postman"]
-            if resource_type == "all"
-            else [resource_type]
-        )
-        for rt in types:
-            if direction == "to_lambda" and file_paths:
-                for fpath in file_paths:
-                    results[fpath] = sync_svc.sync_file_to_s3(fpath)
-            else:
-                results[rt] = sync_svc._sync_resource_type(rt, dry_run=False)
-        logger.debug("Bulk sync completed: %s files/resources", len(results))
-        return success_response(data={"results": results}, message="Bulk sync completed").to_json_response()
-    except Exception as e:
-        logger.exception("bulk_sync_api")
-        return server_error_response(f"Error performing bulk sync: {str(e)}").to_json_response()
+    """POST /docs/api/media/bulk-sync/ – S3-only: no-op (local sync removed)."""
+    return success_response(
+        data={"results": {}, "s3_only": True},
+        message="S3-only mode: bulk sync from local media is not available."
+    ).to_json_response()
 
 
 # -----------------------------------------------------------------------------
@@ -441,8 +376,8 @@ def media_file_viewer(request: HttpRequest, file_path: str) -> HttpResponse:
     resource_type = detail.get("resource_type", "")
     
     # Validate tab parameter - support page, endpoint, relationship, and postman tabs
-    VALID_DETAIL_TABS = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "raw"})
-    VALID_POSTMAN_DETAIL_TABS = frozenset({"overview", "requests", "variables", "environments", "endpoints", "raw"})
+    VALID_DETAIL_TABS = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "technical", "fields", "raw"})
+    VALID_POSTMAN_DETAIL_TABS = frozenset({"overview", "requests", "variables", "environments", "endpoints", "info", "fields", "raw"})
     
     def _validate_detail_tab(tab: Optional[str], is_postman: bool = False) -> str:
         """Validate detail tab (uses shared helper)."""
@@ -803,7 +738,7 @@ def media_file_viewer(request: HttpRequest, file_path: str) -> HttpResponse:
             postman_json = json.dumps(collection, indent=2, default=str)
             
             # Update tab validation for Postman tabs
-            VALID_POSTMAN_DETAIL_TABS = frozenset({"overview", "requests", "variables", "environments", "endpoints", "raw"})
+            VALID_POSTMAN_DETAIL_TABS = frozenset({"overview", "requests", "variables", "environments", "endpoints", "info", "fields", "raw"})
             def _validate_postman_tab(tab: Optional[str]) -> str:
                 """Validate and normalize tab query parameter for Postman detail view."""
                 if not tab or tab not in VALID_POSTMAN_DETAIL_TABS:

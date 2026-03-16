@@ -1,1 +1,0 @@
-Companies module - Queries and Mutations

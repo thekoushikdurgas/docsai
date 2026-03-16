@@ -1,0 +1,29 @@
+{% comment %}
+Key-Value Row Component
+
+Usage:
+{% include 'components/key_value_row.html' with label='Route' value=page.metadata.route %}
+{% include 'components/key_value_row.html' with label='ID' value=obj._id format='mono' %}
+{% include 'components/key_value_row.html' with label='Status' value=obj.state format='badge' %}
+{% include 'components/key_value_row.html' with label='Updated' value=obj.updated_at format='date' %}
+
+Parameters:
+- label: dt text (required)
+- value: dd value (optional; null/empty shown as null_display)
+- format: 'mono' | 'badge' | 'date' | omit for plain
+- null_display: string for null/empty (default "—")
+- class: extra CSS class on the wrapper div (optional)
+{% endcomment %}
+{% load custom_filters %}
+<div class="flex justify-between gap-4 {% if class %}{{ class }}{% endif %}">
+    <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">{{ label }}</dt>
+    <dd class="text-sm text-gray-900 dark:text-gray-100 text-right {% if format == 'mono' %}font-mono break-all{% endif %}">
+        {% if format == 'badge' and value %}
+            {% include 'components/badge.html' with type='status' status=value text=value size='sm' %}
+        {% elif format == 'date' and value %}
+            {{ value|format_datetime }}
+        {% else %}
+            {% with nd=null_display|default:"—" %}{{ value|null_display:nd }}{% endwith %}
+        {% endif %}
+    </dd>
+</div>

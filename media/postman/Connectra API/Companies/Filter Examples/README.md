@@ -1,1 +1,0 @@
-Comprehensive filter examples for companies covering all search types and use cases.

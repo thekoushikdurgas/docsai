@@ -226,7 +226,7 @@ class Command(BaseCommand):
         """Validate storage configuration."""
         self.stdout.write('\n[Storage Configuration]')
         
-        use_local = getattr(settings, 'USE_LOCAL_JSON_FILES', True)
+        use_local = getattr(settings, 'USE_LOCAL_JSON_FILES', False)
         
         if use_local:
             media_root = getattr(settings, 'MEDIA_ROOT', None)
@@ -353,7 +353,7 @@ class Command(BaseCommand):
         self.stdout.write('\n' + '-' * 70)
         self.stdout.write('Storage Strategy Summary:')
         
-        use_local = getattr(settings, 'USE_LOCAL_JSON_FILES', True)
+        use_local = getattr(settings, 'USE_LOCAL_JSON_FILES', False)
         has_s3 = bool(getattr(settings, 'AWS_ACCESS_KEY_ID', ''))
         has_graphql = bool(getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', ''))
         
@@ -361,7 +361,7 @@ class Command(BaseCommand):
         if use_local:
             strategy_parts.append('Local JSON (primary)')
         if has_s3:
-            strategy_parts.append('S3 (fallback)')
+            strategy_parts.append('S3' + (' (primary)' if not use_local else ' (fallback)'))
         if has_graphql:
             strategy_parts.append('GraphQL (fallback)')
         

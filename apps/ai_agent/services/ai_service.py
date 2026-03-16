@@ -83,8 +83,8 @@ class AIService:
             System context string
         """
         try:
-            pages_index = self.media_loader.local_storage.get_index('pages')
-            endpoints_index = self.media_loader.local_storage.get_index('endpoints')
+            pages_index = self.media_loader.get_index('pages')
+            endpoints_index = self.media_loader.get_index('endpoints')
             
             total_pages = pages_index.get('total', 0)
             total_endpoints = endpoints_index.get('total', 0)

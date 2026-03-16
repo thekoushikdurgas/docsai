@@ -127,12 +127,27 @@ DocsAI does not use a relational database for its business data. A minimal
 SQLite database is configured internally by Django only where required
 (e.g. sessions/auth), and no database-related environment variables are needed.
 
-### AWS S3
+### Static and media assets (local only in all environments)
+
+In **all environments** (development, staging, production, testing), static and media **assets** are served only from local folders and are **never** served from S3.
+
+- **Local folders:**
+  - `media/` – asset subdirs only: `admin`, `rest_framework`, `css`, `js` (Media Manager "files" tab lists these)
+  - `static/` – source for CSS, JS (e.g. `static/css`, `static/js`)
+  - `staticfiles/` – collected static (e.g. admin, css, debug_toolbar, django_extensions, js, rest_framework)
+  - With `BASE_PATH=contact360/docsai`, URLs are `/contact360/docsai/static/`, `/contact360/docsai/media/`
+- **Environment variables:**
+  - `BASE_PATH` – optional URL path prefix (e.g. `contact360/docsai`) for static and media links
+
+### AWS S3 (documentation data only)
+
+Used for **documentation data** (pages, endpoints, postman, relationships) in **all environments** when configured. Documentation data is stored in and read from the S3 bucket; local `media/pages`, `media/endpoints`, `media/postman`, `media/relationship` are used by upload scripts or as optional local fallback only. S3 is **not** used for asset static/media (CSS, JS, admin, rest_framework, etc.).
 
 - `AWS_ACCESS_KEY_ID` - AWS access key
 - `AWS_SECRET_ACCESS_KEY` - AWS secret key
 - `AWS_REGION` - AWS region
 - `S3_BUCKET_NAME` - S3 bucket name
+- `S3_DATA_PREFIX` - Key prefix (default `data/`); docs live at `data/pages/`, `data/endpoints/`, `data/postman/`, `data/relationships/`
 
 ### Cache & Redis (Optional)
 

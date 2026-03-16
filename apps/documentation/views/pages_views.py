@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from apps.core.decorators.auth import require_super_admin, require_admin_or_super_admin
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse, Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -44,7 +44,7 @@ DATA_PREFIX = getattr(settings, "S3_DATA_PREFIX", "data/")
 DEFAULT_PAGE_LIMIT = 20
 MAX_PAGE_LIMIT = 500
 DEFAULT_OFFSET = 0
-VALID_DETAIL_TABS = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "raw"})
+VALID_DETAIL_TABS = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "technical", "sections", "data", "raw"})
 
 # Use shared helper functions (Task 2.3.1)
 # Wrapper functions for backward compatibility
@@ -73,8 +73,7 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
     try:
         page = pages_service.get_page(page_id)
         if not page:
-            messages.error(request, "Page not found.")
-            return redirect("documentation:dashboard_pages")
+            raise Http404("Page not found.")
 
         content = page.get("content") or ""
         page_html = markdown.markdown(content, extensions=["fenced_code", "tables"])
@@ -133,7 +132,20 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
             else:
                 relationships_by_type["other"].append(rel)
 
+        page_sections = page.get("sections") or {}
+        page_sections_count = sum(len(v) for v in page_sections.values() if isinstance(v, list))
+        page_title = (page.get("metadata") or {}).get("content_sections") or {}
+        if isinstance(page_title, dict):
+            page_title = page_title.get("title") or page_id
+        else:
+            page_title = page_id
+        breadcrumb_items = [
+            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+            {"label": "Pages", "url": reverse("documentation:dashboard") + "?tab=pages"},
+            {"label": page_title, "url": None},
+        ]
         context: Dict[str, Any] = {
+            "page_internal_id": page.get("_id"),
             "page": page,
             "page_html": page_html,
             "page_json": page_json,
@@ -143,7 +155,16 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
             "relationships_count": len(page_relationships),
             "endpoints_used": endpoints_used,
             "endpoints_count": len(endpoints_used),
+            "page_sections": page_sections,
+            "page_sections_count": page_sections_count,
+            "fallback_data": page.get("fallback_data") or [],
+            "mock_data": page.get("mock_data") or [],
+            "demo_data": page.get("demo_data") or [],
+            "access_control": page.get("access_control") or {},
+            "breadcrumb_items": breadcrumb_items,
         }
+    except Http404:
+        raise
     except Exception as e:
         logger.error("Error loading page %s: %s", page_id, e, exc_info=True)
         messages.error(request, "An error occurred while loading the page.")
@@ -153,7 +174,10 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
 
 
 def _collect_form_page_data(request: HttpRequest, page_id: Optional[str]) -> Optional[Dict[str, Any]]:
-    """Collect page form data from POST (non-JSON). Returns None if validation fails."""
+    """Collect page form data from POST (non-JSON). Returns None if validation fails.
+    Note: This path does not include sections, fallback_data, mock_data, demo_data.
+    The enhanced form uses Path A (request.POST['page_data'] from getFormDataForSubmission)
+    which includes those fields; this is only used when page_data is not submitted."""
     page_data: Dict[str, Any] = {
         "page_id": request.POST.get("page_id") or page_id,
         "page_type": request.POST.get("page_type", "docs"),
@@ -213,6 +237,9 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
         try:
             page_data: Optional[Dict[str, Any]] = None
             raw = request.POST.get("page_data")
+            # Path A: Enhanced form submits full JSON via hidden page_data (includes sections,
+            # fallback_data, mock_data, demo_data, access_control). Path B: _collect_form_page_data
+            # only collects basic/metadata fields; sections and data arrays are not included there.
             if raw:
                 try:
                     page_data = json.loads(raw)

@@ -1,1 +1,0 @@
-Statistics and dashboard graph (login required). Replaces removed /api/v1/ format, statistics, types, graph endpoints. Base path: /docs/api/.

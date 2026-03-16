@@ -1,1 +1,0 @@
-Two-Factor Authentication module - Queries and Mutations

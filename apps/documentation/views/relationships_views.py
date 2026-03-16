@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_RELATIONSHIP_LIMIT = 20
 MAX_RELATIONSHIP_LIMIT = 500
 DEFAULT_OFFSET = 0
-VALID_DETAIL_TABS = frozenset({"overview", "connection", "usage", "related", "raw"})
+VALID_DETAIL_TABS = frozenset({"overview", "connection", "usage", "related", "page", "data_flow", "postman_ref", "raw"})
 
 
 # Use shared helper functions (Task 2.3.1)
@@ -131,7 +131,16 @@ def relationship_detail_view(request: HttpRequest, relationship_id: str) -> Http
         
         # Convert relationship to JSON string for Raw JSON tab
         relationship_json = json.dumps(relationship, indent=2, default=str)
-        
+
+        # Extract sub-objects for templates (avoid deep dotted access)
+        data_flow = relationship.get("data_flow")
+        page_reference = relationship.get("page_reference")
+        endpoint_reference = relationship.get("endpoint_reference")
+        breadcrumb_items = [
+            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+            {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+            {"label": relationship.get("relationship_id") or validated_id, "url": None},
+        ]
         context = {
             'relationship': relationship,
             'relationship_json': relationship_json,
@@ -140,6 +149,10 @@ def relationship_detail_view(request: HttpRequest, relationship_id: str) -> Http
             'linked_endpoint': linked_endpoint,
             'related_relationships': related_relationships,
             'related_count': len(related_relationships),
+            'data_flow': data_flow,
+            'page_reference': page_reference,
+            'endpoint_reference': endpoint_reference,
+            'breadcrumb_items': breadcrumb_items,
         }
     except Exception as e:
         logger.error(f"Error loading relationship {relationship_id}: {e}", exc_info=True)

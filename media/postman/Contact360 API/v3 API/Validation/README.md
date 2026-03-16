@@ -1,1 +1,0 @@
-Data validation operations for validating contact and company data quality.

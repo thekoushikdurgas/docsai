@@ -74,31 +74,44 @@ class CacheHealthCheckTestCase(TestCase):
 
 
 class StorageHealthCheckTestCase(TestCase):
-    """Test cases for storage health check."""
+    """Test cases for storage health check (S3-only)."""
 
-    @patch('apps.documentation.services.get_shared_local_storage')
-    def test_storage_health_check_success(self, mock_get_storage):
-        """Test successful storage health check."""
-        mock_storage = Mock()
-        mock_get_storage.return_value = mock_storage
-        mock_storage.get_index.side_effect = lambda name: {"total": 10}
-        
+    @patch('apps.documentation.utils.health_checks.settings')
+    @patch('apps.core.services.s3_service.S3Service')
+    def test_storage_health_check_success(self, mock_s3_class, mock_settings):
+        """Test successful S3 storage health check."""
+        mock_settings.AWS_ACCESS_KEY_ID = "key"
+        mock_settings.AWS_SECRET_ACCESS_KEY = "secret"
+        mock_settings.S3_BUCKET_NAME = "test-bucket"
+        mock_settings.AWS_REGION = "us-east-1"
+        mock_s3 = Mock()
+        mock_s3.list_files.return_value = []
+        mock_s3_class.return_value = mock_s3
+
         result = check_storage_health()
-        
+
         self.assertIn("status", result)
-        self.assertIn("type", result)
-        self.assertEqual(result["type"], "local_json")
         self.assertEqual(result["status"], "healthy")
+        self.assertIn("storage", result)
+        self.assertIn("s3", result["storage"])
+        self.assertEqual(result["storage"]["s3"]["status"], "healthy")
 
-    @patch('apps.documentation.services.get_shared_local_storage')
-    def test_storage_health_check_failure(self, mock_get_storage):
-        """Test storage health check with storage error."""
-        mock_get_storage.side_effect = Exception("Storage error")
-        
+    @patch('apps.documentation.utils.health_checks.settings')
+    @patch('apps.core.services.s3_service.S3Service')
+    def test_storage_health_check_failure(self, mock_s3_class, mock_settings):
+        """Test S3 storage health check with error."""
+        mock_settings.AWS_ACCESS_KEY_ID = "key"
+        mock_settings.AWS_SECRET_ACCESS_KEY = "secret"
+        mock_s3 = Mock()
+        mock_s3.list_files.side_effect = Exception("S3 error")
+        mock_s3_class.return_value = mock_s3
+
         result = check_storage_health()
-        
+
         self.assertEqual(result["status"], "unhealthy")
-        self.assertIn("error", result)
+        self.assertIn("storage", result)
+        self.assertEqual(result["storage"]["s3"]["status"], "unhealthy")
+        self.assertIn("error", result["storage"]["s3"])
 
 
 class ExternalAPIHealthCheckTestCase(TestCase):

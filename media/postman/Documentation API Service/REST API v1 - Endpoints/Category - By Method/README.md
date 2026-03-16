@@ -1,1 +1,0 @@
-Category endpoints filtered by HTTP/GraphQL method

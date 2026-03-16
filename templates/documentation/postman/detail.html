@@ -5,80 +5,14 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/components/form-responsive.css' %}?v=20260124d">
-<style>
-/* Tab button styles for link-based tabs */
-.tab-button {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-bottom: -2px;
-}
-.tab-button:hover {
-    color: #374151;
-    border-bottom-color: #d1d5db;
-}
-.tab-button.active {
-    color: #f59e0b;
-    border-bottom-color: #f59e0b;
-}
-.dark .tab-button {
-    color: #9ca3af;
-}
-.dark .tab-button:hover {
-    color: #e5e7eb;
-    border-bottom-color: #4b5563;
-}
-.dark .tab-button.active {
-    color: #fbbf24;
-    border-bottom-color: #fbbf24;
-}
-.tab-content {
-    display: none;
-}
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.2s ease-in;
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/components/tabs.css' %}?v=20260125">
 {% endblock %}
 
 {% block content %}
 <div class="w-full">
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-        <a href="{% url 'documentation:dashboard' %}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-        </a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <a href="{% url 'documentation:dashboard' %}?tab=postman" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Postman</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-xs">{{ collection_info.name|default:postman_id }}</span>
-    </nav>
+    <div class="mb-4">
+        {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
+    </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <!-- Header -->
@@ -110,7 +44,7 @@
         </div>
 
         <!-- Tab Navigation -->
-        <div class="border-b border-gray-200 dark:border-gray-700 px-6">
+        <div class="border-b border-gray-200 dark:border-gray-700 px-6 tabs-detail tabs-postman" data-tabs-theme="postman">
             <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
                 <a href="?tab=overview" class="tab-button group {% if active_tab == 'overview' %}active{% endif %}" data-tab="overview" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,6 +86,12 @@
                     <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-full">{{ endpoints_count }}</span>
                 </a>
                 {% endif %}
+                <a href="?tab=info" class="tab-button group {% if active_tab == 'info' %}active{% endif %}" data-tab="info" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Collection Info</span>
+                </a>
                 <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -259,22 +199,78 @@
                     
                     {% if requests %}
                     <div class="space-y-3">
-                        {% for request in requests %}
-                        <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center space-x-3">
-                                    {% include 'components/badge.html' with type='method' method=request.method text=request.method %}
-                                    <h3 class="font-medium text-gray-900 dark:text-gray-100">{{ request.name }}</h3>
-                                    {% if request.folder %}
-                                    <span class="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">{{ request.folder }}</span>
+                        {% for req in requests %}
+                        <details class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors group">
+                            <summary class="cursor-pointer list-none flex items-center justify-between flex-wrap gap-2">
+                                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                    {% include 'components/badge.html' with type='method' method=req.method text=req.method %}
+                                    <h3 class="font-medium text-gray-900 dark:text-gray-100">{{ req.name }}</h3>
+                                    {% if req.folder %}
+                                    <span class="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">{{ req.folder }}</span>
                                     {% endif %}
                                 </div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Click to expand</span>
+                            </summary>
+                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                                <p class="text-sm text-gray-600 dark:text-gray-400 font-mono break-all">{{ req.url }}</p>
+                                {% if req.description %}
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Description</h4>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ req.description }}</p>
+                                </div>
+                                {% endif %}
+                                {% if req.headers %}
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Headers</h4>
+                                    <ul class="text-sm font-mono space-y-1">
+                                        {% for h in req.headers %}
+                                        <li><span class="text-gray-600 dark:text-gray-400">{{ h.key|default:h.name }}:</span> <span class="text-gray-900 dark:text-gray-100">{{ h.value|default:"" }}</span></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                {% if req.body %}
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Body</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Mode: {{ req.body.mode|default:"raw" }}</p>
+                                    {% if req.body.raw %}
+                                    <pre class="mt-1 p-2 bg-white dark:bg-gray-800 rounded text-xs overflow-auto max-h-48">{{ req.body.raw }}</pre>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% if req.auth %}
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Auth</h4>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">Type: {{ req.auth.type|default:"configured" }}</p>
+                                    {% if req.auth.key or req.auth.value %}
+                                    <ul class="text-xs font-mono mt-1 space-y-1">
+                                        {% for k, v in req.auth.items %}
+                                        {% if k != "type" %}<li><span class="text-gray-500">{{ k }}:</span> {{ v }}</li>{% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% if req.event %}
+                                <div>
+                                    <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Event scripts</h4>
+                                    {% for ev in req.event %}
+                                    <div class="mb-2">
+                                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ ev.listen|default:"script" }}</span>
+                                        {% if ev.script %}
+                                        {% if ev.script.exec %}
+                                        <pre class="mt-1 p-2 bg-white dark:bg-gray-800 rounded text-xs overflow-auto max-h-24">{% for line in ev.script.exec %}{{ line }}{% if not forloop.last %}
+{% endif %}{% endfor %}</pre>
+                                        {% else %}
+                                        <pre class="mt-1 p-2 bg-white dark:bg-gray-800 rounded text-xs overflow-auto max-h-24">{{ ev.script }}</pre>
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 font-mono mb-2">{{ request.url|truncatewords:10 }}</p>
-                            {% if request.description %}
-                            <p class="text-sm text-gray-600 dark:text-gray-300">{{ request.description|truncatewords:20 }}</p>
-                            {% endif %}
-                        </div>
+                        </details>
                         {% endfor %}
                     </div>
                     {% else %}
@@ -341,19 +337,35 @@
                         </div>
                     </div>
                     
-                    <div class="space-y-3">
+                    <div class="space-y-6">
                         {% for env in environments %}
                         <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                            <h3 class="font-medium text-gray-900 dark:text-gray-100 mb-2">{{ env.name|default:"Unnamed Environment" }}</h3>
+                            <h3 class="font-medium text-gray-900 dark:text-gray-100 mb-4">{{ env.name|default:"Unnamed Environment" }}</h3>
                             {% if env.values %}
-                            <div class="space-y-2 mt-3">
-                                {% for var in env.values %}
-                                <div class="flex items-center justify-between text-sm">
-                                    <span class="font-mono text-gray-700 dark:text-gray-300">{{ var.key }}</span>
-                                    <span class="text-gray-500 dark:text-gray-400 font-mono text-xs">{{ var.value|truncatewords:5 }}</span>
-                                </div>
-                                {% endfor %}
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                                            <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Key</th>
+                                            <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Value</th>
+                                            <th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Type</th>
+                                            <th class="text-left py-2 text-gray-500 dark:text-gray-400">Enabled</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for var in env.values %}
+                                        <tr class="border-b border-gray-100 dark:border-gray-800">
+                                            <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ var.key|default:var.name|default:"—" }}</td>
+                                            <td class="py-2 pr-4 font-mono text-gray-700 dark:text-gray-300">{{ var.value|default:"—" }}</td>
+                                            <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">{{ var.type|default:"—" }}</td>
+                                            <td class="py-2 text-gray-600 dark:text-gray-400">{{ var.enabled|default:True }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
+                            {% else %}
+                            <p class="text-sm text-gray-500 dark:text-gray-400">No variables in this environment.</p>
                             {% endif %}
                         </div>
                         {% endfor %}
@@ -403,6 +415,87 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Collection Info Tab -->
+            <div class="tab-content {% if active_tab == 'info' %}active{% endif %}" id="tab-info" role="tabpanel">
+                <div class="space-y-6">
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Info</h3>
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                            {% if collection_info._postman_id %}
+                            <div class="flex justify-between sm:block"><dt class="text-gray-500 dark:text-gray-400">_postman_id</dt><dd class="font-mono text-gray-900 dark:text-gray-100">{{ collection_info._postman_id }}</dd></div>
+                            {% endif %}
+                            {% if collection_info.name %}
+                            <div class="flex justify-between sm:block"><dt class="text-gray-500 dark:text-gray-400">Name</dt><dd class="font-medium text-gray-900 dark:text-gray-100">{{ collection_info.name }}</dd></div>
+                            {% endif %}
+                            {% if collection_info.description %}
+                            <div class="col-span-full"><dt class="text-gray-500 dark:text-gray-400 mb-1">Description</dt><dd class="text-gray-700 dark:text-gray-300">{{ collection_info.description }}</dd></div>
+                            {% endif %}
+                            {% if collection_info.schema %}
+                            <div class="flex justify-between sm:block"><dt class="text-gray-500 dark:text-gray-400">Schema</dt><dd class="font-mono text-gray-900 dark:text-gray-100 text-xs break-all">{{ collection_info.schema }}</dd></div>
+                            {% endif %}
+                            {% if collection_info._exporter_id %}
+                            <div class="flex justify-between sm:block"><dt class="text-gray-500 dark:text-gray-400">_exporter_id</dt><dd class="font-mono text-gray-900 dark:text-gray-100">{{ collection_info._exporter_id }}</dd></div>
+                            {% endif %}
+                        </dl>
+                    </div>
+                    {% if collection.auth %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Collection auth</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Type: {{ collection.auth.type|default:"configured" }}</p>
+                        <dl class="text-sm space-y-1 mt-2">
+                            {% for k, v in collection.auth.items %}
+                            {% if k != "type" %}
+                            <div class="flex gap-2"><dt class="text-gray-500 dark:text-gray-400 font-mono">{{ k }}:</dt><dd class="font-mono text-gray-900 dark:text-gray-100">{{ v }}</dd></div>
+                            {% endif %}
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
+                    {% if collection.event %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Collection event scripts</h3>
+                        {% for ev in collection.event %}
+                        <div class="mb-3">
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ ev.listen|default:"script" }}</span>
+                            {% if ev.script and ev.script.exec %}
+                            <pre class="mt-1 p-2 bg-white dark:bg-gray-800 rounded text-xs overflow-auto max-h-24">{% for line in ev.script.exec %}{{ line }}{% if not forloop.last %}
+{% endif %}{% endfor %}</pre>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Collection variables</h3>
+                        {% if variables %}
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead><tr class="border-b border-gray-200 dark:border-gray-700"><th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Key</th><th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Value</th><th class="text-left py-2 pr-4 text-gray-500 dark:text-gray-400">Type</th><th class="text-left py-2 text-gray-500 dark:text-gray-400">Enabled</th></tr></thead>
+                                <tbody>
+                                {% for v in variables %}
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
+                                    <td class="py-2 pr-4 font-mono text-gray-900 dark:text-gray-100">{{ v.key|default:v.name|default:"—" }}</td>
+                                    <td class="py-2 pr-4 font-mono text-gray-700 dark:text-gray-300">{{ v.value|default:"—" }}</td>
+                                    <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">{{ v.type|default:"—" }}</td>
+                                    <td class="py-2 text-gray-600 dark:text-gray-400">{{ v.enabled|default:True }}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500 dark:text-gray-400">No collection variables.</p>
+                        {% endif %}
+                    </div>
+                    {% if collection.protocolProfileBehavior %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Protocol profile behavior</h3>
+                        <pre class="p-3 bg-white dark:bg-gray-800 rounded text-xs overflow-auto">{{ collection.protocolProfileBehavior }}</pre>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- Raw JSON Tab -->
             <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" id="tab-raw" role="tabpanel">

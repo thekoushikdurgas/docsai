@@ -23,7 +23,7 @@ A comprehensive Django application for managing documentation, API endpoints, an
 - **Documentation Management**: Create, edit, and manage documentation pages
 - **API Endpoint Management**: Import and manage API endpoints from Postman collections
 - **AI Integration**: AI-powered features with OpenAI and Google Gemini support
-- **Media Management**: Unified dashboard for managing files across local storage, S3, and GraphQL
+- **Media Management**: Unified dashboard for documentation resources; data stored in S3
 - **Media Manager Dashboard**: Service-based dashboard for managing documentation resources (pages, endpoints, relationships, Postman) with direct service calls
 - **Background Tasks**: Django-Q integration for async task processing
 - **REST API**: Comprehensive REST API with DRF
@@ -199,6 +199,10 @@ contact360/docsai/
 ```
 
 ## ⚙️ Configuration
+
+### Storage
+
+In all environments, **static and media assets** (CSS, JS, admin, rest_framework, etc.) are served only from local folders (`media/`, `static/`, `staticfiles/`) and are never served from S3. **Documentation data** (pages, endpoints, relationships, Postman configs) is read from and written to the **S3 bucket** when AWS credentials and `S3_BUCKET_NAME`, `S3_DATA_PREFIX` are configured. Local `media/pages`, `media/endpoints`, etc. are used by upload scripts or as optional fallback only.
 
 ### Required Environment Variables
 

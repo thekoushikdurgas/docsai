@@ -1,84 +1,18 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static custom_filters %}
 
 {% block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/components/form-responsive.css' %}?v=20260124d">
-<style>
-/* Tab button styles for link-based tabs */
-.tab-button {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-bottom: -2px;
-}
-.tab-button:hover {
-    color: #374151;
-    border-bottom-color: #d1d5db;
-}
-.tab-button.active {
-    color: #10b981;
-    border-bottom-color: #10b981;
-}
-.dark .tab-button {
-    color: #9ca3af;
-}
-.dark .tab-button:hover {
-    color: #e5e7eb;
-    border-bottom-color: #4b5563;
-}
-.dark .tab-button.active {
-    color: #34d399;
-    border-bottom-color: #34d399;
-}
-.tab-content {
-    display: none;
-}
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.2s ease-in;
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/components/tabs.css' %}?v=20260125">
 {% endblock %}
 
 {% block content %}
 <div class="w-full">
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-        <a href="{% url 'documentation:dashboard' %}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-        </a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <a href="{% url 'documentation:dashboard' %}?tab=relationships" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Relationships</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-xs">{{ relationship.relationship_id|default:"Unknown Relationship" }}</span>
-    </nav>
+    <div class="mb-4">
+        {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
+    </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <!-- Header -->
@@ -111,18 +45,14 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="{% url 'documentation:relationship_edit' relationship_id=relationship.relationship_id %}" class="inline-flex items-center px-4 py-2 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors font-medium text-sm shadow-sm">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit
-                    </a>
+                    {% url 'documentation:relationship_edit' relationship_id=relationship.relationship_id as relationship_edit_url %}
+                    {% include 'components/button.html' with href=relationship_edit_url text='Edit' type='success' size='sm' %}
                 </div>
             </div>
         </div>
 
         <!-- Tab Navigation -->
-        <div class="border-b border-gray-200 dark:border-gray-700 px-6">
+        <div class="border-b border-gray-200 dark:border-gray-700 px-6 tabs-detail tabs-relationships" data-tabs-theme="relationships">
             <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
                 <a href="?tab=overview" class="tab-button group {% if active_tab == 'overview' %}active{% endif %}" data-tab="overview" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,6 +91,18 @@
                     <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">{{ related_count }}</span>
                 </a>
                 {% endif %}
+                <a href="?tab=data_flow" class="tab-button group {% if active_tab == 'data_flow' %}active{% endif %}" data-tab="data_flow" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span>Data Flow</span>
+                </a>
+                <a href="?tab=postman_ref" class="tab-button group {% if active_tab == 'postman_ref' %}active{% endif %}" data-tab="postman_ref" role="tab">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Postman Ref</span>
+                </a>
                 <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -183,30 +125,65 @@
                             Basic Information
                         </h3>
                         <dl class="space-y-3">
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Relationship ID</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ relationship.relationship_id }}</dd>
+                            {% include 'components/key_value_row.html' with label='Internal ID (_id)' value=relationship._id format='mono' %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Relationship ID</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 font-mono text-right">{{ relationship.relationship_id }}</dd>
                             </div>
+                            {% include 'components/key_value_row.html' with label='State' value=relationship.state format='badge' %}
+                            {% include 'components/key_value_row.html' with label='API Version' value=relationship.api_version %}
+                            {% include 'components/key_value_row.html' with label='Created' value=relationship.created_at format='date' %}
+                            {% include 'components/key_value_row.html' with label='Updated' value=relationship.updated_at format='date' %}
                             {% if relationship.relationship_type %}
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Type</dt>
-                                <dd class="text-sm text-gray-900 dark:text-gray-100">{{ relationship.relationship_type }}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Type</dt>
+                                <dd class="text-sm text-gray-900 dark:text-gray-100 text-right">{{ relationship.relationship_type }}</dd>
                             </div>
                             {% endif %}
                             {% if relationship.usage_type %}
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Usage Type</dt>
-                                <dd>{% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_type|title %}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Usage Type</dt>
+                                <dd class="text-right">{% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_type|title %}</dd>
                             </div>
                             {% endif %}
                             {% if relationship.method %}
-                            <div class="flex justify-between">
-                                <dt class="text-sm text-gray-500 dark:text-gray-400">Method</dt>
-                                <dd>{% include 'components/badge.html' with type='method' method=relationship.method text=relationship.method %}</dd>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 dark:text-gray-400 shrink-0">Method</dt>
+                                <dd class="text-right">{% include 'components/badge.html' with type='method' method=relationship.method text=relationship.method %}</dd>
                             </div>
                             {% endif %}
                         </dl>
                     </div>
+
+                    <!-- Page reference sub-card -->
+                    {% if page_reference %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Page reference</h3>
+                        <dl class="space-y-2">
+                            {% for key, val in page_reference.items %}
+                            <div class="flex justify-between gap-4 text-sm">
+                                <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ key }}</dt>
+                                <dd class="text-gray-900 dark:text-gray-100 text-right font-mono break-all">{% if val|is_dict %}{{ val|length }} keys{% elif val|is_list %}{{ val|length }} items{% else %}{{ val|default:"—" }}{% endif %}</dd>
+                            </div>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
+
+                    <!-- Endpoint reference sub-card -->
+                    {% if endpoint_reference %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Endpoint reference</h3>
+                        <dl class="space-y-2">
+                            {% for key, val in endpoint_reference.items %}
+                            <div class="flex justify-between gap-4 text-sm">
+                                <dt class="text-gray-500 dark:text-gray-400 shrink-0">{{ key }}</dt>
+                                <dd class="text-gray-900 dark:text-gray-100 text-right font-mono break-all">{% if val|is_dict %}{{ val|length }} keys{% elif val|is_list %}{{ val|length }} items{% else %}{{ val|default:"—" }}{% endif %}</dd>
+                            </div>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
 
                     <!-- Connection Info -->
                     <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
@@ -534,6 +511,71 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Data Flow Tab -->
+            <div class="tab-content {% if active_tab == 'data_flow' %}active{% endif %}" id="tab-data_flow" role="tabpanel">
+                <div class="space-y-6">
+                    {% if relationship.connection %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Connection</h3>
+                        <dl class="space-y-2 text-sm">
+                            {% for key, val in relationship.connection.items %}
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400">{{ key }}</dt><dd class="text-gray-900 dark:text-gray-100 text-right">{{ val|default:"—" }}</dd></div>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
+                    {% if data_flow %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Data flow</h3>
+                        <dl class="space-y-2 text-sm">
+                            {% for key, val in data_flow.items %}
+                            <div><span class="font-medium text-gray-700 dark:text-gray-300">{{ key }}:</span> <span class="text-gray-600 dark:text-gray-400">{% if val|is_dict %}{{ val|length }} keys{% elif val|is_list %}{{ val|length }} items{% else %}{{ val|default:"—" }}{% endif %}</span></div>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
+                    {% if relationship.performance %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Performance</h3>
+                        <dl class="space-y-2 text-sm">
+                            {% for key, val in relationship.performance.items %}
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400">{{ key }}</dt><dd class="text-gray-900 dark:text-gray-100 text-right">{{ val|default:"—" }}</dd></div>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
+                    {% if relationship.dependencies %}
+                    <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Dependencies</h3>
+                        <ul class="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
+                            {% for dep in relationship.dependencies %}
+                            <li>{{ dep }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if not relationship.connection and not data_flow and not relationship.performance and not relationship.dependencies %}
+                    <p class="text-sm text-gray-500 dark:text-gray-400">No data flow or connection details.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Postman reference Tab -->
+            <div class="tab-content {% if active_tab == 'postman_ref' %}active{% endif %}" id="tab-postman_ref" role="tabpanel">
+                {% if relationship.postman_reference %}
+                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Postman reference</h3>
+                    <dl class="space-y-2 text-sm">
+                        {% for key, val in relationship.postman_reference.items %}
+                        <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400">{{ key }}</dt><dd class="text-gray-900 dark:text-gray-100 text-right font-mono">{{ val|default:"—" }}</dd></div>
+                        {% endfor %}
+                    </dl>
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-500 dark:text-gray-400">No Postman reference.</p>
+                {% endif %}
+            </div>
 
             <!-- Raw JSON Tab -->
             <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" id="tab-raw" role="tabpanel">

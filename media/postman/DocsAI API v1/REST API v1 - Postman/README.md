@@ -1,1 +1,0 @@
-REST API v1 - Postman API: list, statistics, format, by-state, detail, collection, environments, mappings, test-suites, access-control.

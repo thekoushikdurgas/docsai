@@ -1,1 +1,0 @@
-Format endpoints return JSON schema examples and S3 storage conventions

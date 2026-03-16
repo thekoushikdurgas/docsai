@@ -17,6 +17,15 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
 
+
+def _cache_key_value(value: Any) -> str:
+    """Convert a value to a memcached-safe cache key segment (no brackets, quotes, spaces)."""
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple)):
+        return ",".join(sorted(str(x) for x in value))
+    return str(value)
+
 # Note: Retry decorators are available in apps.documentation.utils.retry
 # Import them when needed:
 # from apps.documentation.utils.retry import retry_with_backoff, retry_on_network_error
@@ -77,7 +86,11 @@ class BaseService:
         if args:
             key_parts.extend(str(arg) for arg in args)
         if kwargs:
-            key_parts.extend(f"{k}={v}" for k, v in sorted(kwargs.items()))
+            for k, v in sorted(kwargs.items()):
+                if v is not None:
+                    seg = _cache_key_value(v)
+                    if seg:
+                        key_parts.append(f"{k}={seg}")
         return ":".join(key_parts)
     
     def _get_from_cache(self, cache_key: str) -> Optional[Any]:

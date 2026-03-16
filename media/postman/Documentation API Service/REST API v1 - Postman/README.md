@@ -1,1 +1,0 @@
-REST API v1 - Postman API: Configuration management, format/import/analyse endpoints, and statistics

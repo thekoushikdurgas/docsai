@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 from contextlib import contextmanager
 
 from django.conf import settings
@@ -120,34 +120,38 @@ class PagesRepository(BaseRepository):
     def list_all(
         self,
         page_type: Optional[str] = None,
+        page_types: Optional[Sequence[str]] = None,
         include_drafts: bool = True,
         include_deleted: bool = False,
         status: Optional[str] = None,
         page_state: Optional[str] = None,
         limit: Optional[int] = None,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """
         List all documentation pages with optional filters and pagination.
-        
+
         Args:
-            page_type: Optional page type filter
+            page_type: Optional single page type filter (ignored if page_types is set)
+            page_types: Optional list of page types to include (takes precedence over page_type)
             include_drafts: Whether to include draft pages (default: True)
             include_deleted: Whether to include deleted pages (default: False)
             status: Optional status filter
             page_state: Optional page state filter
             limit: Maximum number of results
             offset: Number of results to skip
-            
+
         Returns:
-            List of page data dictionaries
-            
+            Dict with 'pages' (list of page data) and 'total' (full filtered count for pagination).
+
         Raises:
             RepositoryError: If listing fails
         """
         try:
             filters = {}
-            if page_type:
+            if page_types:
+                filters["page_type"] = list(page_types)
+            elif page_type:
                 filters["page_type"] = page_type
             if status:
                 filters["status"] = status
@@ -157,6 +161,7 @@ class PagesRepository(BaseRepository):
             filters["include_deleted"] = include_deleted
             
             indexed_pages = self.index_manager.get_indexed_pages(filters)
+            total_count = len(indexed_pages)
             
             if limit is not None:
                 paginated_pages = indexed_pages[offset:offset + limit]
@@ -182,7 +187,7 @@ class PagesRepository(BaseRepository):
                 
                 result_pages.append(page_copy)
             
-            return result_pages
+            return {"pages": result_pages, "total": total_count}
             
         except Exception as e:
             error_msg = f"Failed to list pages: {str(e)}"
@@ -245,7 +250,8 @@ class PagesRepository(BaseRepository):
                 })
             return {"statistics": statistics, "total": stats_data.get("total", 0)}
         by_type = index_data.get("indexes", {}).get("by_type", {})
-        all_pages = self.list_all(limit=None, offset=0)
+        list_result = self.list_all(limit=None, offset=0)
+        all_pages = list_result.get("pages", []) if isinstance(list_result, dict) else list_result
         count_by_type_status = {}
         for page_type in PAGE_TYPES:
             count_by_type_status[page_type] = {"published": 0, "draft": 0, "deleted": 0, "total": 0}

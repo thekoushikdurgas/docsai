@@ -94,7 +94,11 @@ def require_super_admin(view_func):
                     request.appointment360_token = access_token
                 return view_func(request, *args, **kwargs)
             except Exception as e:
-                logger.warning(f"Failed to get user info when trusting middleware: {e}")
+                msg = str(e).lower()
+                if "not found" in msg or "404" in msg:
+                    logger.debug("User info not available when trusting middleware: %s", e)
+                else:
+                    logger.warning("Failed to get user info when trusting middleware: %s", e)
         
         if not access_token:
             is_browser = _is_browser_request(request)

@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'apps.analytics',
     'apps.ai_agent',
     'apps.codebase',
-    'apps.media',
     'apps.graph',
     'apps.roadmap',
     'apps.postman',
@@ -139,16 +138,33 @@ TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
+# Base path for static/media URLs (e.g. 'contact360/docsai' -> /contact360/docsai/static/, /contact360/docsai/media/)
+# Set BASE_PATH in .env when app is mounted under a subpath (e.g. contact360/docsai).
+BASE_PATH = (os.getenv('BASE_PATH', '') or '').strip().strip('/')
+
+# Static and media assets are always served from local folders in all environments; S3 is not
+# used for these. USE_LOCAL_STATIC_MEDIA is kept for compatibility; production no longer
+# switches to S3 for static/media.
+USE_LOCAL_STATIC_MEDIA = os.getenv('USE_LOCAL_STATIC_MEDIA', 'True').lower() == 'true'
+
+# Allowed media subdirs for asset listing (Media Manager "files" tab). Only these under
+# MEDIA_ROOT are shown as asset media; documentation data lives in S3 (data/pages, etc.).
+MEDIA_ASSET_SUBDIRS = ('admin', 'rest_framework', 'css', 'js')
+
+# Static files (CSS, JavaScript, Images) – from local folders static/ (source) and staticfiles/ (collected)
+_static_path = f'/{BASE_PATH}/static/' if BASE_PATH else '/static/'
+STATIC_URL = _static_path
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# Media files (User uploads)
-MEDIA_URL = '/media/'
+# Media files (user uploads, docs JSON) – from local folder media/
+_media_path = f'/{BASE_PATH}/media/' if BASE_PATH else '/media/'
+MEDIA_URL = _media_path
 MEDIA_ROOT = BASE_DIR / 'media'
+# Ensure MEDIA_ROOT exists (Django and apps expect it for local media)
+MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 # File upload limits
 DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('DATA_UPLOAD_MAX_MEMORY_SIZE', '10485760'))  # 10MB default
@@ -242,8 +258,8 @@ else:
         }
     }
 
-# Local JSON Files Configuration
-USE_LOCAL_JSON_FILES = os.getenv('USE_LOCAL_JSON_FILES', 'True').lower() == 'true'
+# Local JSON Files Configuration (default False = S3-only for documentation data)
+USE_LOCAL_JSON_FILES = os.getenv('USE_LOCAL_JSON_FILES', 'False').lower() == 'true'
 
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
@@ -252,6 +268,11 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME', 'contact360docs')
 S3_DATA_PREFIX = os.getenv('S3_DATA_PREFIX', 'data/')
 S3_DOCUMENTATION_PREFIX = os.getenv('S3_DOCUMENTATION_PREFIX', 'documentation/')
+
+# Unified storage (documentation: S3 → GraphQL fallback)
+# When True (default), S3/GraphQL errors are logged and None is returned (e.g. 404).
+# When False, S3/GraphQL failures raise RepositoryError so the real error is visible.
+UNIFIED_STORAGE_FALLBACK_ENABLED = os.getenv('UNIFIED_STORAGE_FALLBACK_ENABLED', 'True').lower() == 'true'
 
 # Lambda API Configuration
 # LAMBDA_DOCUMENTATION_API_* removed - services now use local/S3/GraphQL directly

@@ -178,12 +178,14 @@ class BaseRepository:
         try:
             index_data = self.index_manager.read_index(self.resource_name)
             resources = index_data.get(self.resource_name, [])
-            
-            # Apply filters
+
+            # Apply filters (skip None filter values = "no filter on this field")
             filtered = []
             for resource in resources:
                 match = True
                 for filter_key, filter_value in filters.items():
+                    if filter_value is None:
+                        continue
                     resource_value = resource.get(filter_key)
                     # Handle case-insensitive string comparison for method fields
                     if isinstance(resource_value, str) and isinstance(filter_value, str):
