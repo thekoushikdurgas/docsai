@@ -87,6 +87,13 @@ else
     echo "The service may fail to start without proper environment configuration"
 fi
 
+# Fix .env permissions if it exists (load_dotenv in base.py may read it; Gunicorn runs as ubuntu)
+if [ -f "$PROJECT_DIR/.env" ]; then
+    chown ubuntu:ubuntu "$PROJECT_DIR/.env"
+    chmod 600 "$PROJECT_DIR/.env"
+    echo "Fixed permissions for .env"
+fi
+
 # Verify Gunicorn config can be imported
 echo "Verifying Gunicorn configuration..."
 cd "$PROJECT_DIR"

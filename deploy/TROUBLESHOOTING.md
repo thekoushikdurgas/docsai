@@ -45,13 +45,21 @@ sudo systemctl restart gunicorn.service
 
 **Issue: Environment file not readable**
 ```bash
-# Fix permissions
+# Fix permissions for .env.prod (used by systemd)
 sudo chown ubuntu:ubuntu /home/ubuntu/docsai/.env.prod
 sudo chmod 600 /home/ubuntu/docsai/.env.prod
 
-# Verify ubuntu user can read it
-sudo -u ubuntu test -r /home/ubuntu/docsai/.env.prod && echo "OK" || echo "FAILED"
+# Fix permissions for .env (load_dotenv in base.py may read it)
+sudo chown ubuntu:ubuntu /home/ubuntu/docsai/.env
+sudo chmod 600 /home/ubuntu/docsai/.env
+
+# Verify ubuntu user can read them
+sudo -u ubuntu test -r /home/ubuntu/docsai/.env.prod && echo ".env.prod OK" || echo ".env.prod FAILED"
+sudo -u ubuntu test -r /home/ubuntu/docsai/.env && echo ".env OK" || echo ".env FAILED"
 ```
+
+**Issue: PermissionError on .env (load_dotenv)**
+If logs show `PermissionError: [Errno 13] Permission denied: '/home/ubuntu/docsai/.env'`, fix .env permissions as above. The codebase now handles this gracefully, but fixing permissions ensures env vars load correctly.
 
 **Issue: Type=notify not supported**
 If Gunicorn doesn't support systemd notifications, switch to Type=simple:

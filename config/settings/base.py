@@ -15,7 +15,12 @@ mimetypes.add_type("text/css", ".css", True)
 mimetypes.add_type("text/javascript", ".js", True)
 
 # Load environment variables from .env file
-load_dotenv()
+# In production, systemd provides vars via EnvironmentFile=.env.prod
+# If .env exists but is unreadable (e.g. wrong ownership), continue without it
+try:
+    load_dotenv()
+except (PermissionError, OSError):
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
