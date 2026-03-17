@@ -59,14 +59,17 @@ def _set_auth_cookies(response: HttpResponse, access_token: str, refresh_token: 
     """Set httpOnly cookies for access and refresh tokens."""
     # When remember_me=False use session cookie (omit max_age/expires). Never use expires=0 - it is
     # interpreted as Unix epoch and the cookie is discarded immediately, so the next request has no cookie.
+    # Use SECURE_SSL_REDIRECT for secure flag: HTTP-only deploy (e.g. http://34.201.10.84) needs secure=False
+    # so the browser stores cookies; HTTPS deploy needs secure=True.
     max_age = 86400 * 7 if remember_me else None  # 7 days if remember_me, session cookie otherwise
+    use_secure = getattr(settings, 'SECURE_SSL_REDIRECT', False)
     
     response.set_cookie(
         'access_token',
         access_token,
         max_age=max_age,
         httponly=True,
-        secure=not settings.DEBUG,  # Secure in production
+        secure=use_secure,
         samesite='Lax',
         path='/'
     )
@@ -75,7 +78,7 @@ def _set_auth_cookies(response: HttpResponse, access_token: str, refresh_token: 
         refresh_token,
         max_age=86400 * 30,  # 30 days for refresh token
         httponly=True,
-        secure=not settings.DEBUG,
+        secure=use_secure,
         samesite='Lax',
         path='/'
     )
@@ -165,6 +168,13 @@ def login_view(request):
             return response
             
         except Appointment360AuthError as e:
+            error_msg = str(e)
+            logger.warning(
+                "Login failed for %s: %s (graphql_url=%s)",
+                email,
+                error_msg,
+                getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', 'NOT SET'),
+            )
             fail_count = cache.get(fail_key, 0) + 1
             cache.set(fail_key, fail_count, timeout=900)
             if fail_count >= 5:
@@ -172,7 +182,6 @@ def login_view(request):
                 cache.delete(fail_key)
                 messages.error(request, 'Too many failed attempts. Please try again in 15 minutes.')
             else:
-                error_msg = str(e)
                 if 'Authentication failed' in error_msg:
                     messages.error(request, 'Invalid email or password.')
                 else:

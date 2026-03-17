@@ -120,6 +120,8 @@ Edit `/home/ubuntu/docsai/.env.prod` and set:
 - Database credentials (if using RDS or custom setup)
 - AWS S3 credentials (if using S3 storage)
 - API keys (OpenAI, Google Gemini, Lambda APIs, etc.)
+- `APPOINTMENT360_GRAPHQL_URL=http://api.contact360.io/graphql` (for login)
+- `SECURE_SSL_REDIRECT=false` (for HTTP-only deploy, so auth cookies work)
 
 ### 3. Verify Services
 
@@ -153,6 +155,13 @@ DATABASE_PASSWORD=your_db_password
 DATABASE_HOST=your-rds-endpoint.amazonaws.com
 DATABASE_PORT=5432
 ```
+
+### Login Shows "Invalid email or password"
+
+1. Ensure `.env.prod` has `APPOINTMENT360_GRAPHQL_URL=http://api.contact360.io/graphql`
+2. For HTTP-only deploy, set `SECURE_SSL_REDIRECT=false` for auth cookies to work
+3. Restart Gunicorn: `sudo systemctl restart gunicorn`
+4. Check logs: `sudo journalctl -u gunicorn -f` during login attempt (look for "Login failed for ...")
 
 ### Health Check Fails
 
