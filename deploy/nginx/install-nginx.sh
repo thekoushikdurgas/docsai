@@ -60,8 +60,6 @@ if [ "$HTTP_ONLY" = true ]; then
     echo "HTTP-only mode: serving on port 80. No SSL."
     echo "Health check: curl http://34.201.10.84/api/v1/health/"
 else
-    echo "Don't forget to:"
-    echo "1. Update server_name in docsai.conf with your domain"
-    echo "2. Update SSL certificate paths after running SSL setup"
-    echo "3. Run SSL setup script: bash deploy/ssl/setup-ssl.sh <domain> <email>"
+    echo "SSL mode: admin.contact360.io configured."
+    echo "Run SSL setup: sudo bash deploy/ssl/setup-ssl.sh admin.contact360.io admin@contact360.io"
 fi

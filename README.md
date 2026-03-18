@@ -372,7 +372,7 @@ For **EC2 Ubuntu** (e.g. **34.201.10.84**):
 1. Use the **[EC2 runbook](docs/deployment/DEPLOY_EC2_34.201.10.84.md)** for step-by-step setup (Gunicorn, Nginx, systemd, optional SSL).
 2. Copy **`.env.prod.example`** to **`.env.prod`** on the server and fill in production values.
 3. **HTTP-only** (no domain): `sudo ./deploy/deploy.sh --http-only`
-4. **With domain + SSL**: `sudo ./deploy/deploy.sh <domain> <email>`
+4. **With domain + SSL**: `sudo ./deploy/deploy.sh admin.contact360.io admin@contact360.io`
 5. **GitHub Actions**: Configure `EC2_SSH_PRIVATE_KEY`, `EC2_HOST`, `EC2_USER` secrets, then push to `main` or run **Deploy to EC2** manually. See **[GITHUB_ACTIONS_DEPLOY](docs/deployment/GITHUB_ACTIONS_DEPLOY.md)**.
 
 Health check: `curl http://34.201.10.84/api/v1/health/`

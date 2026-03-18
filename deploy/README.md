@@ -15,7 +15,7 @@ This directory contains deployment scripts for automating DocsAI deployment on E
 sudo bash deploy/deploy-to-ec2.sh --http-only --ip 34.201.10.84
 
 # With domain and SSL
-sudo bash deploy/deploy-to-ec2.sh --domain example.com --email admin@example.com
+sudo bash deploy/deploy-to-ec2.sh --domain admin.contact360.io --email admin@contact360.io
 
 # Interactive mode
 sudo bash deploy/deploy-to-ec2.sh --interactive
@@ -76,7 +76,7 @@ bash deploy/post-deployment-verify.sh
 sudo bash deploy/full-deploy.sh --http-only --ip 34.201.10.84
 
 # With domain and SSL
-sudo bash deploy/full-deploy.sh --domain example.com --email admin@example.com
+sudo bash deploy/full-deploy.sh --domain admin.contact360.io --email admin@contact360.io
 
 # Interactive mode
 sudo bash deploy/full-deploy.sh --interactive
@@ -109,7 +109,7 @@ sudo bash deploy/full-deploy.sh --interactive
 
 ```bash
 sudo ./deploy/deploy.sh --http-only
-sudo ./deploy/deploy.sh example.com admin@example.com
+sudo ./deploy/deploy.sh admin.contact360.io admin@contact360.io
 ```
 
 **Best for**: Re-deployments after initial setup.
@@ -261,7 +261,7 @@ sudo systemctl restart gunicorn
 
 ### Use Case 4: Production with SSL
 
-**Script**: `full-deploy.sh --domain example.com --email admin@example.com`
+**Script**: `full-deploy.sh --domain admin.contact360.io --email admin@contact360.io`
 
 - Full production setup
 - SSL certificate from Let's Encrypt

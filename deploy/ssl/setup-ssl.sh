@@ -6,7 +6,7 @@ EMAIL=$2
 
 if [ -z "$DOMAIN" ] || [ -z "$EMAIL" ]; then
     echo "Usage: ./setup-ssl.sh <domain> <email>"
-    echo "Example: ./setup-ssl.sh example.com admin@example.com"
+    echo "Example: ./setup-ssl.sh admin.contact360.io admin@contact360.io"
     exit 1
 fi
 
@@ -39,7 +39,7 @@ certbot certonly --webroot \
 
 # Update Nginx config with SSL paths and domain
 echo "Updating Nginx configuration..."
-sed -i "s|your-domain.com|$DOMAIN|g" /etc/nginx/sites-available/docsai.conf
+sed -i "s|admin.contact360.io|$DOMAIN|g" /etc/nginx/sites-available/docsai.conf
 
 # Test Nginx config
 echo "Testing Nginx configuration..."

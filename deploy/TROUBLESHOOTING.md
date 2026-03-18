@@ -269,14 +269,14 @@ sudo systemctl reload nginx
 #### 3. Check DNS
 ```bash
 # Verify DNS points to EC2 IP
-dig your-domain.com
-nslookup your-domain.com
+dig admin.contact360.io
+nslookup admin.contact360.io
 ```
 
 #### 4. Re-run SSL Setup
 ```bash
 cd /home/ubuntu/docsai
-sudo bash deploy/ssl/setup-ssl.sh your-domain.com admin@example.com
+sudo bash deploy/ssl/setup-ssl.sh admin.contact360.io admin@contact360.io
 ```
 
 ---
@@ -341,7 +341,7 @@ tail -f /home/ubuntu/docsai/logs/django.log
 ```bash
 curl http://34.201.10.84/api/v1/health/
 # or
-curl https://your-domain.com/api/v1/health/
+curl https://admin.contact360.io/api/v1/health/
 ```
 
 ### 4. Verify Firewall

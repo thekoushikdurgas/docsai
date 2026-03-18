@@ -21,7 +21,7 @@ if [ "$HTTP_ONLY" = false ] && { [ -z "$DOMAIN" ] || [ -z "$EMAIL" ]; }; then
     echo "Usage:"
     echo "  With SSL:   ./deploy/deploy.sh <domain> <email>"
     echo "  IP-only:    ./deploy/deploy.sh --http-only"
-    echo "Example:      ./deploy/deploy.sh example.com admin@example.com"
+    echo "Example:      ./deploy/deploy.sh admin.contact360.io admin@contact360.io"
     echo "              ./deploy/deploy.sh --http-only"
     exit 1
 fi

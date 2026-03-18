@@ -428,7 +428,7 @@ sudo systemctl status gunicorn.socket
 3. Verify PostgreSQL is running: `sudo systemctl status postgresql`
 
 ### SSL Certificate Issues
-1. Check DNS: `dig example.com`
+1. Check DNS: `dig admin.contact360.io`
 2. Verify cert: `sudo certbot certificates`
 3. Test renewal: `sudo certbot renew --dry-run`
 

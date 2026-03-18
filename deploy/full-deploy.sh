@@ -5,7 +5,7 @@
 # This script automates the complete deployment process from git clone onwards
 # Usage:
 #   HTTP-only:  sudo bash deploy/full-deploy.sh --http-only [--ip 34.201.10.84]
-#   With SSL:   sudo bash deploy/full-deploy.sh --domain example.com --email admin@example.com
+#   With SSL:   sudo bash deploy/full-deploy.sh --domain admin.contact360.io --email admin@contact360.io
 #   Interactive: sudo bash deploy/full-deploy.sh --interactive
 # ============================================================================
 
@@ -101,8 +101,8 @@ Usage:
 
 Options:
     --http-only              Deploy with HTTP only (no SSL, IP-based)
-    --domain DOMAIN         Domain name for SSL setup (e.g., example.com)
-    --email EMAIL           Email for SSL certificate (e.g., admin@example.com)
+    --domain DOMAIN         Domain name for SSL setup (e.g., admin.contact360.io)
+    --email EMAIL           Email for SSL certificate (e.g., admin@contact360.io)
     --ip IP                 EC2 IP address (default: auto-detect or prompt)
     --interactive           Interactive mode (prompts for all settings)
     --skip-db-setup         Skip database setup (use existing database)
@@ -114,7 +114,7 @@ Examples:
     sudo bash deploy/full-deploy.sh --http-only --ip 34.201.10.84
 
     # SSL deployment with domain
-    sudo bash deploy/full-deploy.sh --domain docsai.example.com --email admin@example.com
+    sudo bash deploy/full-deploy.sh --domain admin.contact360.io --email admin@contact360.io
 
     # Interactive mode
     sudo bash deploy/full-deploy.sh --interactive

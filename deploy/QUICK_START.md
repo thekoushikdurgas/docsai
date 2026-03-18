@@ -32,7 +32,7 @@ Runs pre-deployment validation, then full deployment, then post-deployment verif
 ```bash
 cd /home/ubuntu/docsai
 sudo bash deploy/deploy-to-ec2.sh --http-only --ip 34.201.10.84
-# or with SSL: sudo bash deploy/deploy-to-ec2.sh --domain docsai.example.com --email admin@example.com
+# or with SSL: sudo bash deploy/deploy-to-ec2.sh --domain admin.contact360.io --email admin@contact360.io
 # or interactive: sudo bash deploy/deploy-to-ec2.sh --interactive
 ```
 
@@ -47,7 +47,7 @@ sudo bash deploy/full-deploy.sh --http-only --ip 34.201.10.84
 
 ```bash
 cd /home/ubuntu/docsai
-sudo bash deploy/full-deploy.sh --domain docsai.example.com --email admin@example.com
+sudo bash deploy/full-deploy.sh --domain admin.contact360.io --email admin@contact360.io
 ```
 
 #### Option D: Interactive Mode (First time)
@@ -67,7 +67,7 @@ curl http://34.201.10.84/api/v1/health/
 bash deploy/post-deployment-verify.sh
 
 # Or with domain
-curl https://docsai.example.com/api/v1/health/
+curl https://admin.contact360.io/api/v1/health/
 ```
 
 ## What the Scripts Do
