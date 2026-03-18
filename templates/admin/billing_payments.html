@@ -52,10 +52,12 @@
           <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">{{ s.status }}</td>
           <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">{{ s.createdAt }}</td>
           <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">
-            {% if s3_enabled %}
+            {% if s.screenshotDownloadUrl %}
+              <a href="{{ s.screenshotDownloadUrl }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">View</a>
+            {% elif s3_enabled %}
               <button
                 type="button"
-                data-bucket="{{ s.userId }}"
+                data-bucket="{{ s.userBucket|default:s.userId }}"
                 data-key="{{ s.screenshotS3Key }}"
                 class="download-proof-btn"
               >

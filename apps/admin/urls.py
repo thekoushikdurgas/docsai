@@ -26,6 +26,7 @@ urlpatterns = [
     path('storage/delete/', views.storage_delete_view, name='storage_delete'),
     # Managed billing (manual UPI proofs)
     path('billing/payments/', views.billing_payments_view, name='billing_payments'),
+    path('billing/qr-upload/', views.billing_qr_upload_view, name='billing_qr_upload'),
     path('billing/payments/<str:submission_id>/approve/', views.billing_payment_approve_view, name='billing_payment_approve'),
     path('billing/payments/<str:submission_id>/decline/', views.billing_payment_decline_view, name='billing_payment_decline'),
     path('billing/settings/', views.billing_settings_view, name='billing_settings'),

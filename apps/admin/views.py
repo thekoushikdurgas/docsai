@@ -94,10 +94,84 @@ def billing_payment_decline_view(request, submission_id: str):
     return redirect("/admin/billing/payments/?status=pending")
 
 
+def _get_payment_qr_bucket(request):
+    """Resolve bucket for payment QR upload. PAYMENT_QR_BUCKET_ID or first from users."""
+    bucket = getattr(settings, "PAYMENT_QR_BUCKET_ID", None) or ""
+    if bucket:
+        return bucket
+    try:
+        client = _get_client(request)
+        users = client.list_users_with_buckets(limit=10)
+        for u in users:
+            b = u.get("bucket") or u.get("uuid")
+            if b:
+                return b
+    except Exception:
+        pass
+    return None
+
+
+@require_super_admin
+@require_http_methods(["POST"])
+def billing_qr_upload_view(request):
+    """Upload QR image to photo/ folder. Returns JSON {success, fileKey, bucketId, error?}."""
+    if not S3STORAGE_ENABLED:
+        return JsonResponse(
+            {"success": False, "error": "Storage is not configured"},
+            status=400,
+        )
+    bucket_id = _get_payment_qr_bucket(request)
+    if not bucket_id:
+        return JsonResponse(
+            {"success": False, "error": "No bucket available. Configure PAYMENT_QR_BUCKET_ID or ensure users have buckets."},
+            status=400,
+        )
+    file = request.FILES.get("file")
+    if not file:
+        return JsonResponse(
+            {"success": False, "error": "No file provided"},
+            status=400,
+        )
+    allowed = ("image/png", "image/jpeg", "image/jpg", "image/webp")
+    ct = getattr(file, "content_type", "") or ""
+    if ct.lower() not in allowed:
+        return JsonResponse(
+            {"success": False, "error": f"Invalid type. Allowed: {', '.join(allowed)}"},
+            status=400,
+        )
+    try:
+        s3_client = S3StorageClient()
+        result = s3_client.upload_photo(bucket_id=bucket_id, file=file)
+        file_key = result.get("fileKey", "")
+        return JsonResponse({
+            "success": True,
+            "fileKey": file_key,
+            "bucketId": bucket_id,
+        })
+    except LambdaAPIError as e:
+        logger.warning("Billing QR upload error: %s", e)
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=getattr(e, "status_code", 500),
+        )
+    except Exception as e:
+        logger.exception("Billing QR upload error")
+        return JsonResponse(
+            {"success": False, "error": str(e)},
+            status=500,
+        )
+
+
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_settings_view(request):
-    context = {"error": None, "success": None, "settings": None}
+    context = {
+        "error": None,
+        "success": None,
+        "settings": None,
+        "s3_enabled": S3STORAGE_ENABLED,
+        "payment_qr_bucket": _get_payment_qr_bucket(request),
+    }
     client = _get_client(request)
 
     if request.method == "POST":
@@ -105,13 +179,17 @@ def billing_settings_view(request):
         phone_number = (request.POST.get("phone_number") or "").strip()
         email = (request.POST.get("email") or "").strip()
         qr_code_s3_key = (request.POST.get("qr_code_s3_key") or "").strip() or None
+        qr_code_bucket_id = (request.POST.get("qr_code_bucket_id") or "").strip() or None
         try:
-            updated = client.update_payment_instructions({
+            payload = {
                 "upiId": upi_id,
                 "phoneNumber": phone_number,
                 "email": email,
                 "qrCodeS3Key": qr_code_s3_key,
-            })
+            }
+            if qr_code_bucket_id:
+                payload["qrCodeBucketId"] = qr_code_bucket_id
+            updated = client.update_payment_instructions(payload)
             context["settings"] = updated
             context["success"] = "Payment instructions updated."
         except GraphQLError as e:
@@ -123,7 +201,7 @@ def billing_settings_view(request):
 
     if context["settings"] is None:
         try:
-            context["settings"] = client.get_payment_instructions()
+            context["settings"] = client.get_payment_instructions() or {}
         except Exception as e:
             logger.exception("Admin billing settings load error")
             context["error"] = str(e)

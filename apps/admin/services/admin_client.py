@@ -393,6 +393,8 @@ class AdminGraphQLClient:
                 userEmail
                 amount
                 screenshotS3Key
+                userBucket
+                screenshotDownloadUrl
                 status
                 planTier
                 planPeriod
@@ -466,6 +468,7 @@ class AdminGraphQLClient:
               phoneNumber
               email
               qrCodeS3Key
+              qrCodeBucketId
             }
           }
         }
@@ -482,6 +485,7 @@ class AdminGraphQLClient:
               phoneNumber
               email
               qrCodeS3Key
+              qrCodeBucketId
             }
           }
         }

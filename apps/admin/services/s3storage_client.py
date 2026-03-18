@@ -146,3 +146,69 @@ class S3StorageClient:
             f"/api/v1/buckets/{bucket_id}/objects",
             params={"file_key": file_key},
         )
+
+    def upload_photo(
+        self,
+        bucket_id: str,
+        file,
+        filename: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Upload an image to the photo/ folder via s3storage.
+
+        Args:
+            bucket_id: Logical bucket ID
+            file: File-like object (e.g. Django UploadedFile)
+            filename: Optional filename override (defaults to file.name)
+
+        Returns:
+            Dict with fileKey, status
+        """
+        if not self.base_url:
+            raise LambdaAPIError(
+                "S3Storage is not configured (S3STORAGE_API_URL)",
+                endpoint="/api/v1/uploads/photo",
+                status_code=503,
+            )
+        name = filename or getattr(file, "name", "qr.png")
+        content_type = getattr(file, "content_type", None) or "image/png"
+        url = f"{self.base_url}/api/v1/uploads/photo"
+        params = {"bucket_id": bucket_id}
+        with httpx.Client(timeout=self.timeout) as client:
+            try:
+                resp = client.post(
+                    url,
+                    params=params,
+                    files={"file": (name, file, content_type)},
+                )
+                resp.raise_for_status()
+                data = resp.json() if resp.content else {}
+                if isinstance(data, dict):
+                    return data
+                raise LambdaAPIError(
+                    "Invalid response format",
+                    endpoint="/api/v1/uploads/photo",
+                    status_code=resp.status_code,
+                )
+            except httpx.HTTPStatusError as e:
+                detail = "Unknown error"
+                try:
+                    err_body = e.response.json()
+                    if isinstance(err_body, dict) and "detail" in err_body:
+                        detail = (
+                            err_body["detail"]
+                            if isinstance(err_body["detail"], str)
+                            else str(err_body["detail"])
+                        )
+                except Exception:
+                    detail = e.response.text or str(e)
+                raise LambdaAPIError(
+                    detail,
+                    endpoint="/api/v1/uploads/photo",
+                    status_code=e.response.status_code,
+                ) from e
+            except httpx.RequestError as e:
+                raise LambdaAPIError(
+                    str(e),
+                    endpoint="/api/v1/uploads/photo",
+                    status_code=503,
+                ) from e

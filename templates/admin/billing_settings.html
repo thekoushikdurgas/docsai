@@ -34,11 +34,27 @@
     </div>
 
     <div style="display: grid; gap: 6px;">
-      <label><strong>QR Code S3 Key (optional)</strong></label>
-      <input type="text" name="qr_code_s3_key" value="{{ settings.qrCodeS3Key|default:'' }}" placeholder="s3 key for qr image" />
-      <div style="font-size: 12px; opacity: 0.7;">
-        Upload the QR image via existing Storage tooling, then paste the S3 key here.
+      <label><strong>QR Code (optional)</strong></label>
+      <input type="text" name="qr_code_s3_key" id="qr_code_s3_key" value="{{ settings.qrCodeS3Key|default:'' }}" placeholder="photo/qr.png" />
+      <input type="hidden" name="qr_code_bucket_id" id="qr_code_bucket_id" value="{{ settings.qrCodeBucketId|default:payment_qr_bucket|default:'' }}" />
+      {% if s3_enabled and payment_qr_bucket %}
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <input type="file" id="qr_upload_input" accept="image/png,image/jpeg,image/jpg,image/webp" style="font-size: 13px;" />
+        <button type="button" id="qr_upload_btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Upload QR Photo</button>
+        <span id="qr_upload_status" style="font-size: 12px; color: #666;"></span>
       </div>
+      <div style="font-size: 12px; opacity: 0.7;">
+        Upload a QR image to the photo/ folder. The S3 key will be set automatically.
+      </div>
+      {% elif not s3_enabled %}
+      <div style="font-size: 12px; color: #b45309;">
+        Storage not configured. Set S3STORAGE_API_URL to enable QR upload.
+      </div>
+      {% else %}
+      <div style="font-size: 12px; color: #b45309;">
+        No bucket available. Set PAYMENT_QR_BUCKET_ID or ensure users have buckets.
+      </div>
+      {% endif %}
     </div>
 
     <div>
@@ -46,5 +62,51 @@
     </div>
   </form>
 </div>
+
+{% if s3_enabled and payment_qr_bucket %}
+<script>
+(function() {
+  var input = document.getElementById('qr_upload_input');
+  var btn = document.getElementById('qr_upload_btn');
+  var keyInput = document.getElementById('qr_code_s3_key');
+  var bucketInput = document.getElementById('qr_code_bucket_id');
+  var status = document.getElementById('qr_upload_status');
+  var csrf = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+  var uploadUrl = '{% url "admin:billing_qr_upload" %}';
+
+  if (!btn || !input) return;
+
+  btn.addEventListener('click', function() {
+    var file = input.files && input.files[0];
+    if (!file) {
+      status.textContent = 'Select a file first';
+      return;
+    }
+    status.textContent = 'Uploading...';
+    btn.disabled = true;
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('csrfmiddlewaretoken', csrf);
+    fetch(uploadUrl, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+      body: formData
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      btn.disabled = false;
+      if (data.success) {
+        keyInput.value = data.fileKey || '';
+        if (data.bucketId && bucketInput) bucketInput.value = data.bucketId;
+        status.textContent = 'Uploaded: ' + (data.fileKey || '');
+      } else {
+        status.textContent = 'Error: ' + (data.error || 'Upload failed');
+      }
+    }).catch(function() {
+      btn.disabled = false;
+      status.textContent = 'Upload failed';
+    });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}
 
