@@ -20,6 +20,7 @@ urlpatterns = [
     # Suppress 404 for *.worker.js.map (Swagger UI, Monaco, etc.) - return 204
     re_path(r'^.+\.worker\.js\.map$', worker_source_map_suppress),
     path('', include('apps.core.urls')),
+    path('legal/', include(('apps.core.legal_urls', 'legal'), namespace='legal')),
     path('docs/', include('apps.documentation.urls')),
     path('durgasman/', include('apps.durgasman.urls')),
     path('analytics/', include('apps.analytics.urls')),

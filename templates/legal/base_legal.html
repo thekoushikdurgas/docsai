@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - DocsAI Agent{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/components/legal-pages.css' %}">
+{% endblock %}
+
+{% block auth_content %}
+<div class="min-h-screen bg-primary dark:bg-gray-900 px-4 py-10">
+  <div class="max-w-6xl mx-auto space-y-6">
+    <div class="legal-header">
+      <div>
+        <h1 class="legal-header__title">{{ page_title }}</h1>
+        <p class="legal-header__subtitle">Contact360 • DocsAI</p>
+      </div>
+      <div class="legal-actions">
+        <span class="legal-badge">Last updated: {{ last_updated }}</span>
+        {% include 'components/button.html' with text='Print' type='secondary' size='sm' onclick='window.print()' %}
+        {% include 'components/button.html' with text='Back' type='ghost' size='sm' href='/' %}
+      </div>
+    </div>
+
+    <div class="legal-tabs">
+      <div class="legal-tabs__bar">
+        <nav class="tabs-underline" role="tablist" aria-label="Legal tabs">
+          <div class="tabs-list">
+            <a href="{% url 'legal:terms' %}"
+               class="tab-button {% if page_type == 'terms' %}active{% endif %}"
+               role="tab"
+               aria-selected="{% if page_type == 'terms' %}true{% else %}false{% endif %}">Terms</a>
+            <a href="{% url 'legal:privacy' %}"
+               class="tab-button {% if page_type == 'privacy' %}active{% endif %}"
+               role="tab"
+               aria-selected="{% if page_type == 'privacy' %}true{% else %}false{% endif %}">Privacy</a>
+            <a href="{% url 'legal:refund' %}"
+               class="tab-button {% if page_type == 'refund' %}active{% endif %}"
+               role="tab"
+               aria-selected="{% if page_type == 'refund' %}true{% else %}false{% endif %}">Refund</a>
+          </div>
+        </nav>
+      </div>
+
+      <div class="legal-tabs__content">
+        <div class="legal-shell">
+          <aside class="legal-toc" aria-label="Table of contents">
+            <div class="legal-toc__header">
+              <div class="legal-toc__title">On this page</div>
+              <div class="legal-toc__search">
+                <input id="legal-search" class="filter-input w-full" placeholder="Search sections..." />
+              </div>
+            </div>
+            <div id="legal-toc-links" class="legal-toc__links">
+              {% for item in toc %}
+                <a class="legal-toc__link" href="#{{ item.anchor }}">{{ item.heading }}</a>
+              {% endfor %}
+            </div>
+          </aside>
+
+          <section class="legal-content" aria-label="Legal content">
+            <p class="legal-intro">{{ intro }}</p>
+            {% block legal_content %}{% endblock %}
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const input = document.getElementById('legal-search');
+    if (!input) return;
+    const normalize = (s) => (s || '').toLowerCase().trim();
+    input.addEventListener('input', function() {
+      const q = normalize(input.value);
+      const sections = document.querySelectorAll('.legal-section');
+      sections.forEach((el) => {
+        const text = normalize(el.textContent);
+        el.style.display = q && !text.includes(q) ? 'none' : '';
+      });
+    });
+  })();
+</script>
+{% endblock %}
+
