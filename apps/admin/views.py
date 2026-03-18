@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 
 from apps.core.decorators.auth import require_super_admin, require_admin_or_super_admin
@@ -27,6 +28,107 @@ VALID_JOBS_LIMIT = (10, 25, 50, 100)
 
 def _get_client(request):
     return AdminGraphQLClient(request)
+
+
+@require_super_admin
+def billing_payments_view(request):
+    status_filter = (request.GET.get("status") or "").strip() or None
+    page = max(1, int(request.GET.get("page", 1)))
+    per_page = 25
+    offset = (page - 1) * per_page
+
+    context = {
+        "items": [],
+        "total": 0,
+        "error": None,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": 0,
+        "status": status_filter or "all",
+        "s3_enabled": S3STORAGE_ENABLED,
+    }
+
+    try:
+        client = _get_client(request)
+        result = client.list_payment_submissions(
+            status=status_filter if status_filter != "all" else None,
+            limit=per_page,
+            offset=offset,
+        )
+        context["items"] = result.get("items", [])
+        context["total"] = result.get("total", 0)
+        context["total_pages"] = max(1, (context["total"] + per_page - 1) // per_page)
+    except GraphQLError as e:
+        logger.warning("Admin billing payments GraphQL error: %s", e)
+        context["error"] = str(e)
+    except Exception as e:
+        logger.exception("Admin billing payments error")
+        context["error"] = str(e)
+
+    return render(request, "admin/billing_payments.html", context)
+
+
+@require_super_admin
+@require_http_methods(["POST"])
+def billing_payment_approve_view(request, submission_id: str):
+    try:
+        client = _get_client(request)
+        client.approve_payment_submission(submission_id=submission_id)
+    except Exception as e:
+        logger.exception("Approve payment submission error")
+        # fall through, redirect back with best-effort
+    return redirect("/admin/billing/payments/?status=pending")
+
+
+@require_super_admin
+@require_http_methods(["POST"])
+def billing_payment_decline_view(request, submission_id: str):
+    reason = (request.POST.get("reason") or "").strip()
+    if not reason:
+        reason = "Declined by admin"
+    try:
+        client = _get_client(request)
+        client.decline_payment_submission(submission_id=submission_id, reason=reason)
+    except Exception as e:
+        logger.exception("Decline payment submission error")
+    return redirect("/admin/billing/payments/?status=pending")
+
+
+@require_super_admin
+@require_http_methods(["GET", "POST"])
+def billing_settings_view(request):
+    context = {"error": None, "success": None, "settings": None}
+    client = _get_client(request)
+
+    if request.method == "POST":
+        upi_id = (request.POST.get("upi_id") or "").strip()
+        phone_number = (request.POST.get("phone_number") or "").strip()
+        email = (request.POST.get("email") or "").strip()
+        qr_code_s3_key = (request.POST.get("qr_code_s3_key") or "").strip() or None
+        try:
+            updated = client.update_payment_instructions({
+                "upiId": upi_id,
+                "phoneNumber": phone_number,
+                "email": email,
+                "qrCodeS3Key": qr_code_s3_key,
+            })
+            context["settings"] = updated
+            context["success"] = "Payment instructions updated."
+        except GraphQLError as e:
+            logger.warning("Admin billing settings GraphQL error: %s", e)
+            context["error"] = str(e)
+        except Exception as e:
+            logger.exception("Admin billing settings error")
+            context["error"] = str(e)
+
+    if context["settings"] is None:
+        try:
+            context["settings"] = client.get_payment_instructions()
+        except Exception as e:
+            logger.exception("Admin billing settings load error")
+            context["error"] = str(e)
+
+    return render(request, "admin/billing_settings.html", context)
 
 
 @require_super_admin

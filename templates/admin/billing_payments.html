@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto;">
+  <h1>Billing Payments (Manual UPI)</h1>
+
+  {% if error %}
+    <div style="padding: 12px; background: #fee; border: 1px solid #fbb; border-radius: 8px;">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <div style="display:flex; gap: 10px; margin: 16px 0; flex-wrap: wrap;">
+    <a href="/admin/billing/payments/?status=all">All</a>
+    <a href="/admin/billing/payments/?status=pending">Pending</a>
+    <a href="/admin/billing/payments/?status=approved">Approved</a>
+    <a href="/admin/billing/payments/?status=declined">Declined</a>
+  </div>
+
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">User</th>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">Amount</th>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">Credits</th>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">Item</th>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">Status</th>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">Created</th>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">Screenshot</th>
+        <th style="text-align:left; border-bottom: 1px solid #ddd; padding: 8px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in items %}
+        <tr>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">
+            <div><strong>{{ s.userEmail|default:"" }}</strong></div>
+            <div style="font-size: 12px; opacity: 0.7;">{{ s.userId }}</div>
+          </td>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">{{ s.amount }}</td>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">{{ s.creditsToAdd }}</td>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">
+            {% if s.planTier %}
+              Plan: {{ s.planTier }} ({{ s.planPeriod }})
+            {% elif s.addonPackageId %}
+              Add-on: {{ s.addonPackageId }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">{{ s.status }}</td>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">{{ s.createdAt }}</td>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">
+            {% if s3_enabled %}
+              <button
+                type="button"
+                data-bucket="{{ s.userId }}"
+                data-key="{{ s.screenshotS3Key }}"
+                class="download-proof-btn"
+              >
+                View
+              </button>
+            {% else %}
+              {{ s.screenshotS3Key }}
+            {% endif %}
+          </td>
+          <td style="border-bottom: 1px solid #f1f1f1; padding: 8px;">
+            {% if s.status == "pending" %}
+              <form method="post" action="/admin/billing/payments/{{ s.id }}/approve/" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Approve</button>
+              </form>
+              <form method="post" action="/admin/billing/payments/{{ s.id }}/decline/" style="display:inline;">
+                {% csrf_token %}
+                <input type="text" name="reason" placeholder="Reason" style="width: 160px;" />
+                <button type="submit">Decline</button>
+              </form>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="8" style="padding: 12px;">No submissions.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    (function () {
+      const buttons = document.querySelectorAll(".download-proof-btn");
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const bucketId = btn.getAttribute("data-bucket");
+          const fileKey = btn.getAttribute("data-key");
+          const url = `/admin/storage/download-url/?bucket_id=${encodeURIComponent(bucketId)}&file_key=${encodeURIComponent(fileKey)}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && data.downloadUrl) {
+            window.open(data.downloadUrl, "_blank");
+          } else {
+            alert(data && data.error ? data.error : "Failed to get download URL");
+          }
+        });
+      });
+    })();
+  </script>
+</div>
+{% endblock %}
+

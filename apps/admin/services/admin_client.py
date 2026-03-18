@@ -376,3 +376,117 @@ class AdminGraphQLClient:
             "status": h.get("status", "unknown"),
             "environment": h.get("environment", ""),
         }
+
+    def list_payment_submissions(
+        self,
+        status: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        query = """
+        query ListPaymentSubmissions($status: String, $limit: Int!, $offset: Int!) {
+          billing {
+            paymentSubmissions(status: $status, limit: $limit, offset: $offset) {
+              items {
+                id
+                userId
+                userEmail
+                amount
+                screenshotS3Key
+                status
+                planTier
+                planPeriod
+                addonPackageId
+                creditsToAdd
+                declineReason
+                reviewedBy
+                reviewedAt
+                createdAt
+              }
+              total
+              limit
+              offset
+              hasNext
+              hasPrevious
+            }
+          }
+        }
+        """
+        variables = {"status": status, "limit": limit, "offset": offset}
+        data = self.client.execute_query(query, variables=variables, use_cache=False)
+        conn = (data or {}).get("billing", {}).get("paymentSubmissions") or {}
+        return {
+            "items": conn.get("items", []) or [],
+            "total": conn.get("total", 0) or 0,
+            "limit": conn.get("limit", limit) or limit,
+            "offset": conn.get("offset", offset) or offset,
+        }
+
+    def approve_payment_submission(self, submission_id: str) -> Dict[str, Any]:
+        mutation = """
+        mutation ApprovePayment($id: String!) {
+          billing {
+            approvePayment(submissionId: $id) {
+              id
+              status
+            }
+          }
+        }
+        """
+        data = self.client.execute_query(
+            mutation, variables={"id": submission_id}, use_cache=False
+        )
+        return (data or {}).get("billing", {}).get("approvePayment") or {}
+
+    def decline_payment_submission(self, submission_id: str, reason: str) -> Dict[str, Any]:
+        mutation = """
+        mutation DeclinePayment($input: DeclinePaymentInput!) {
+          billing {
+            declinePayment(input: $input) {
+              id
+              status
+              declineReason
+            }
+          }
+        }
+        """
+        data = self.client.execute_query(
+            mutation,
+            variables={"input": {"submissionId": submission_id, "reason": reason}},
+            use_cache=False,
+        )
+        return (data or {}).get("billing", {}).get("declinePayment") or {}
+
+    def get_payment_instructions(self) -> Optional[Dict[str, Any]]:
+        query = """
+        query GetPaymentInstructions {
+          billing {
+            paymentInstructions {
+              upiId
+              phoneNumber
+              email
+              qrCodeS3Key
+            }
+          }
+        }
+        """
+        data = self.client.execute_query(query, use_cache=False)
+        return (data or {}).get("billing", {}).get("paymentInstructions")
+
+    def update_payment_instructions(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        mutation = """
+        mutation UpdatePaymentInstructions($input: UpdatePaymentInstructionsInput!) {
+          billing {
+            updatePaymentInstructions(input: $input) {
+              upiId
+              phoneNumber
+              email
+              qrCodeS3Key
+            }
+          }
+        }
+        """
+        data = self.client.execute_query(
+            mutation, variables={"input": input_data}, use_cache=False
+        )
+        return (data or {}).get("billing", {}).get("updatePaymentInstructions") or {}
