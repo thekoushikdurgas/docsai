@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import legal_views
+from . import legal_views
 
 app_name = "legal"
 
