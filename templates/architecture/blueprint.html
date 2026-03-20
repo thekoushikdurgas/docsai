@@ -1,18 +1,224 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Architecture Blueprint - DocsAI Agent{% endblock %}
+{% block title %}Contact360 Architecture - DocsAI Agent{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in duration-500">
-    <div class="p-8 border-b border-gray-100">
-        <h1 class="text-2xl font-bold text-gray-900">Architecture Blueprint</h1>
-        <p class="text-sm text-gray-500 mt-1">Visualize your system architecture</p>
-    </div>
-    
-    <div class="p-8">
-        <div class="h-[600px] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center">
-            <p class="text-gray-400 text-sm italic">Architecture diagram will be displayed here</p>
+<div class="space-y-8 animate-in fade-in duration-500 pb-20 dark:bg-gray-900 min-h-screen -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-6 rounded-3xl">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div class="p-8 border-b border-gray-100 dark:border-gray-700">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Contact360 Architecture</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">B2B SaaS for email finding and verification</p>
+        </div>
+
+        <div class="p-8 space-y-6">
+            <nav class="border-b border-gray-200 dark:border-gray-700 px-2 md:px-0">
+                <div class="flex flex-wrap gap-1 -mb-px">
+                    <a href="?tab=preview" class="tab-button group {% if active_tab == 'preview' %}active{% endif %}" role="tab">
+                        <span>Preview</span>
+                    </a>
+                    <a href="?tab=edit" class="tab-button group {% if active_tab == 'edit' %}active{% endif %}" role="tab">
+                        <span>Edit JSON</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="tab-content {% if active_tab == 'preview' %}active{% endif %}" id="tab-preview" role="tabpanel">
+                <div class="space-y-5">
+                    <div class="bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Architecture readiness</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    {{ architecture_sections_done }} / {{ architecture_sections_total }} sections complete ({{ architecture_progress_percent }}%)
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="badge whitespace-nowrap badge--status-success">{{ architecture_sections_done }} done</span>
+                                <span class="badge whitespace-nowrap badge--status-default">{{ architecture_sections_remaining }} remaining</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                            <div class="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-300 ease-out" style="width: {{ architecture_progress_percent }}%"></div>
+                        </div>
+                    </div>
+
+                    <form id="architecture-section-filter-form" method="get" class="flex flex-wrap items-center gap-6 bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+                        <input type="hidden" name="tab" value="preview" />
+                        <div class="min-w-[160px]">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Filter</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Show one architecture section</p>
+                        </div>
+
+                        {% include 'components/radio.html' with name='section' label='All' value='all' checked=section_checked_all %}
+                        {% include 'components/radio.html' with name='section' label='Structure' value='structure' checked=section_checked_structure %}
+                        {% include 'components/radio.html' with name='section' label='Services' value='services' checked=section_checked_services %}
+                        {% include 'components/radio.html' with name='section' label='Data flow' value='data_flow' checked=section_checked_data_flow %}
+                        {% include 'components/radio.html' with name='section' label='Tech stack' value='tech_stack' checked=section_checked_tech_stack %}
+                    </form>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const form = document.getElementById('architecture-section-filter-form');
+                            if (!form) return;
+                            form.querySelectorAll('input[name="section"]').forEach(function(el) {
+                                el.addEventListener('change', function() { form.submit(); });
+                            });
+                        });
+                    </script>
+
+                    <div class="space-y-12">
+                    <!-- Section 2: Project structure -->
+                    {% if structure %}
+                        <section>
+                            <h2 class="text-lg font-black text-gray-900 dark:text-gray-100 mb-4">Project structure</h2>
+                            <div class="space-y-3">
+                                {% for node in structure %}
+                                <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/50 p-4">
+                                    <div class="flex flex-wrap items-baseline gap-2">
+                                        <span class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">{{ node.name }}</span>
+                                        <span class="text-sm text-gray-600 dark:text-gray-300">{{ node.desc }}</span>
+                                    </div>
+                                    {% if node.children %}
+                                    <ul class="mt-3 ml-4 border-l-2 border-gray-200 dark:border-gray-600 pl-4 space-y-2">
+                                        {% for child in node.children %}
+                                        <li>
+                                            <span class="font-mono text-xs font-semibold text-gray-800 dark:text-gray-200">{{ child.name }}</span>
+                                            <span class="text-sm text-gray-600 dark:text-gray-400"> — {{ child.desc }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    {% endif %}
+
+                    <!-- Section 3: Services table -->
+                    {% if services %}
+                        <section>
+                            <h2 class="text-lg font-black text-gray-900 dark:text-gray-100 mb-4">Services</h2>
+                            <div class="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-gray-50 dark:bg-gray-800/80 text-left text-gray-500 dark:text-gray-400 uppercase text-[10px] tracking-wider">
+                                        <tr>
+                                            <th class="px-4 py-3 font-bold">Service</th>
+                                            <th class="px-4 py-3 font-bold">Location</th>
+                                            <th class="px-4 py-3 font-bold">Tech</th>
+                                            <th class="px-4 py-3 font-bold">Purpose</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                        {% for svc in services %}
+                                        <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/40">
+                                            <td class="px-4 py-3 font-semibold text-gray-900 dark:text-gray-100">{{ svc.name }}</td>
+                                            <td class="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-300">{{ svc.location }}</td>
+                                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ svc.tech }}</td>
+                                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ svc.purpose }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    {% endif %}
+
+                    <!-- Section 4: Data flow -->
+                    {% if data_flow %}
+                        <section>
+                            <h2 class="text-lg font-black text-gray-900 dark:text-gray-100 mb-4">Data flow</h2>
+                            <ul class="space-y-3">
+                                {% for step in data_flow %}
+                                <li class="flex flex-wrap items-center gap-2 text-sm text-gray-700 dark:text-gray-200 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800/60 px-4 py-3">
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ step.from_node }}</span>
+                                    <span class="text-gray-400" aria-hidden="true">→</span>
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ step.to_node }}</span>
+                                    <span class="text-gray-500 dark:text-gray-400 text-xs w-full sm:w-auto sm:ml-auto">({{ step.label }})</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </section>
+                    {% endif %}
+
+                    <!-- Section 5: Tech stack -->
+                    {% if tech_stack %}
+                        <section>
+                            <h2 class="text-lg font-black text-gray-900 dark:text-gray-100 mb-4">Tech stack</h2>
+                            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {% for layer_key, layer in tech_stack.items %}
+                                <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800/60 p-5 shadow-sm">
+                                    <h3 class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-3">{{ layer.title }}</h3>
+                                    <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                                        {% for item in layer.items %}
+                                        <li class="flex gap-2">
+                                            <span class="text-gray-400 shrink-0">•</span>
+                                            <span>{{ item }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    {% endif %}
+
+                    {% if not structure and not services and not data_flow and not tech_stack %}
+                        <div class="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700 rounded-2xl p-6">
+                            No section content available for the selected filter.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tab-content {% if active_tab == 'edit' %}active{% endif %}" id="tab-edit" role="tabpanel">
+                <div class="mt-4 bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Architecture JSON (S3 document)</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Save, reset to defaults, or delete the architecture JSON stored in S3.
+                        </p>
+                    </div>
+
+                    {% if form_error %}
+                        <div class="rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-900/20 p-4">
+                            <p class="text-sm font-semibold text-red-700 dark:text-red-300">Invalid input</p>
+                            <p class="text-sm text-red-700 dark:text-red-200 mt-1 whitespace-pre-wrap">{{ form_error }}</p>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" class="space-y-5">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" id="architecture-action" value="save" />
+                        <textarea name="architecture_json" id="architecture_json_hidden" class="hidden" aria-hidden="true">{{ architecture_json_str }}</textarea>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Structured editor</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                Edit the JSON tree. Save will validate required keys before writing to S3.
+                            </p>
+                            {% include 'components/json_tree_editor.html' with id='architecture-json-tree' data=architecture_json_data read_only='false' %}
+                        </div>
+
+                        <script>
+                            (function() {
+                                const hidden = document.getElementById('architecture_json_hidden');
+                                if (!hidden) return;
+                                window.onJSONTreeChange = function(data) {
+                                    hidden.value = JSON.stringify(data, null, 2);
+                                };
+                            })();
+                        </script>
+
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            {% include 'components/button.html' with text='Save to S3' type='primary' size='md' button_type='submit' onclick="document.getElementById('architecture-action').value='save'" %}
+                            {% include 'components/button.html' with text='Reset defaults' type='secondary' size='md' button_type='submit' onclick="document.getElementById('architecture-action').value='reset'" %}
+                            {% include 'components/button.html' with text='Copy JSON' type='secondary' size='md' button_type='button' onclick="(function(){const ta=document.getElementById('architecture_json_hidden'); if(!ta) return; navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(ta.value) : ta.select && ta.focus && document.execCommand && document.execCommand('copy');})()" %}
+                            {% include 'components/button.html' with text='Delete' type='danger' size='md' button_type='submit' onclick="if(!confirm('Delete architecture JSON from S3?')) return false; document.getElementById('architecture-action').value='delete'" %}
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

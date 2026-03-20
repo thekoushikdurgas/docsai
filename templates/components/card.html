@@ -18,38 +18,39 @@ Parameters:
 
 {% load static %}
 
-{% if variant == 'elevated' %}
-    {% with card_shadow="shadow-lg" card_border="" %}
-{% elif variant == 'outlined' %}
-    {% with card_shadow="shadow-none" card_border="border-2" %}
-{% elif variant == 'flat' %}
-    {% with card_shadow="shadow-none" card_border="border-0" %}
-{% else %}
-    {% with card_shadow="shadow-md" card_border="border" %}
-{% endif %}
-
-{% if resource_type == 'pages' %}
-    {% with resource_bg="bg-blue-50 dark:bg-blue-900/10" resource_border="border-blue-200 dark:border-blue-800" %}
-{% elif resource_type == 'endpoints' %}
-    {% with resource_bg="bg-purple-50 dark:bg-purple-900/10" resource_border="border-purple-200 dark:border-purple-800" %}
-{% elif resource_type == 'relationships' %}
-    {% with resource_bg="bg-green-50 dark:bg-green-900/10" resource_border="border-green-200 dark:border-green-800" %}
-{% elif resource_type == 'postman' %}
-    {% with resource_bg="bg-amber-50 dark:bg-amber-900/10" resource_border="border-amber-200 dark:border-amber-800" %}
-{% elif resource_type == 'graph' %}
-    {% with resource_bg="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10" resource_border="border-purple-200 dark:border-purple-800" %}
-{% elif resource_type == 'operations' %}
-    {% with resource_bg="bg-gray-50 dark:bg-gray-900/10" resource_border="border-gray-200 dark:border-gray-800" %}
-{% elif resource_type == 'workflow' %}
-    {% with resource_bg="bg-white dark:bg-gray-800" resource_border="border-gray-100 dark:border-gray-700" %}
-{% else %}
-    {% with resource_bg="bg-white dark:bg-gray-800" resource_border="border-gray-200 dark:border-gray-700" %}
-{% endif %}
-
-<div class="{{ resource_bg }} {{ resource_border }} rounded-xl {{ card_shadow }} {{ card_border }} overflow-hidden transition-all duration-200
+<div class="
+    {% if resource_type == 'pages' %}
+        bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800
+    {% elif resource_type == 'endpoints' %}
+        bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800
+    {% elif resource_type == 'relationships' %}
+        bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800
+    {% elif resource_type == 'postman' %}
+        bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800
+    {% elif resource_type == 'graph' %}
+        bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border-purple-200 dark:border-purple-800
+    {% elif resource_type == 'operations' %}
+        bg-gray-50 dark:bg-gray-900/10 border-gray-200 dark:border-gray-800
+    {% elif resource_type == 'workflow' %}
+        bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700
+    {% else %}
+        bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700
+    {% endif %}
+    rounded-xl
+    {% if variant == 'elevated' %}
+        shadow-lg
+    {% elif variant == 'outlined' %}
+        shadow-none border-2
+    {% elif variant == 'flat' %}
+        shadow-none border-0
+    {% else %}
+        shadow-md border
+    {% endif %}
+    overflow-hidden transition-all duration-200
     {% if hover %}hover:shadow-xl hover:-translate-y-1{% endif %}
     {% if loading %}opacity-50 pointer-events-none{% endif %}
-    {{ class|default:'' }}">
+    {{ class|default:'' }}
+">
     
     {% if loading %}
         <div class="px-8 py-6 animate-pulse">
@@ -78,6 +79,3 @@ Parameters:
         {% endif %}
     {% endif %}
 </div>
-
-{% endwith %}
-{% endwith %}

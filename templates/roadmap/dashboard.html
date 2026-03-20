@@ -1,34 +1,162 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}System Dev Roadmap - DocsAI Agent{% endblock %}
+{% block title %}{{ product }} Roadmap - DocsAI Agent{% endblock %}
 
 {% block content %}
-<div class="space-y-8 animate-in fade-in duration-500 pb-20">
-    <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex items-center justify-between">
+<div class="space-y-8 animate-in fade-in duration-500 pb-20 dark:bg-gray-900 min-h-screen -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-6 rounded-3xl">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div class="flex items-center gap-6">
-            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200 dark:shadow-blue-900/40 shrink-0">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </div>
             <div>
-                <h2 class="text-2xl font-black text-gray-900 tracking-tight">System Development Roadmap</h2>
-                <p class="text-sm text-gray-500 font-medium">12-Week Strategic Plan for Architecture Improvement</p>
+                <h2 class="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Contact360 Roadmap</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Version {{ version }} – MVP Feature Stages</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
             <div class="text-right mr-4">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Global Progress</p>
-                <p class="text-lg font-black text-blue-600">24.5%</p>
+                <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{{ product }}</p>
+                <p class="text-lg font-black text-blue-600 dark:text-blue-400">{{ stages|length }} stages</p>
             </div>
-            <button class="px-6 py-2 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all shadow-lg">Export Roadmap</button>
         </div>
     </div>
-    
-    <div class="space-y-4">
-        <!-- Roadmap phases will be displayed here -->
-        <p class="text-sm text-gray-500 text-center py-8">Roadmap phases will be displayed here.</p>
+
+    <div class="space-y-6">
+        <nav class="border-b border-gray-200 dark:border-gray-700 px-2 md:px-0">
+            <div class="flex flex-wrap gap-1 -mb-px">
+                <a href="?tab=preview" class="tab-button group {% if active_tab == 'preview' %}active{% endif %}" role="tab">
+                    <span>Preview</span>
+                </a>
+                <a href="?tab=edit" class="tab-button group {% if active_tab == 'edit' %}active{% endif %}" role="tab">
+                    <span>Edit JSON</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="tab-content {% if active_tab == 'preview' %}active{% endif %}" id="tab-preview" role="tabpanel">
+            <div class="space-y-5">
+                <div class="bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Roadmap progress</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {{ roadmap_completed_count }} / {{ roadmap_total_stages }} completed
+                                ({{ roadmap_progress_percent }}%)
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="badge whitespace-nowrap badge--status-success">{{ roadmap_completed_count }} completed</span>
+                            <span class="badge whitespace-nowrap badge--status-info">{{ roadmap_in_progress_count }} in progress</span>
+                            <span class="badge whitespace-nowrap badge--status-default">{{ roadmap_planned_count }} planned</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                        <div class="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300 ease-out" style="width: {{ roadmap_progress_percent }}%"></div>
+                    </div>
+                </div>
+
+                <form id="roadmap-status-filter-form" method="get" class="flex flex-wrap items-center gap-6 bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+                    <input type="hidden" name="tab" value="preview" />
+                    <div class="min-w-[140px]">
+                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Filter</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Roadmap by status</p>
+                    </div>
+
+                    {% include 'components/radio.html' with name='status' label='All' value='all' checked=status_checked_all inline='true' %}
+                    {% include 'components/radio.html' with name='status' label='Completed' value='completed' checked=status_checked_completed inline='true' %}
+                    {% include 'components/radio.html' with name='status' label='In progress' value='in_progress' checked=status_checked_in_progress inline='true' %}
+                    {% include 'components/radio.html' with name='status' label='Planned' value='planned' checked=status_checked_planned inline='true' %}
+                </form>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const form = document.getElementById('roadmap-status-filter-form');
+                        if (!form) return;
+                        form.querySelectorAll('input[name="status"]').forEach(function(el) {
+                            el.addEventListener('change', function() { form.submit(); });
+                        });
+                    });
+                </script>
+
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-1 xl:max-w-4xl">
+                    {% for stage in stages %}
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">{{ stage.stage }}</span>
+                            {% if stage.status == 'completed' %}
+                            <span class="badge whitespace-nowrap badge--status-success">{{ stage.status }}</span>
+                            {% elif stage.status == 'in_progress' %}
+                            <span class="badge whitespace-nowrap badge--status-info">{{ stage.status }}</span>
+                            {% else %}
+                            <span class="badge whitespace-nowrap badge--status-default">{{ stage.status }}</span>
+                            {% endif %}
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">{{ stage.title }}</h3>
+                        <ul class="list-disc list-inside space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                            {% for feature in stage.features %}
+                            <li>{{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content {% if active_tab == 'edit' %}active{% endif %}" id="tab-edit" role="tabpanel">
+            <div class="bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+                <div class="flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Roadmap JSON (S3 document)</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Save, reset to defaults, or delete the roadmap JSON stored in S3.
+                        </p>
+                    </div>
+                </div>
+
+                {% if form_error %}
+                    <div class="mt-4 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-900/20 p-4">
+                        <p class="text-sm font-semibold text-red-700 dark:text-red-300">Invalid input</p>
+                        <p class="text-sm text-red-700 dark:text-red-200 mt-1 whitespace-pre-wrap">{{ form_error }}</p>
+                    </div>
+                {% endif %}
+
+                <form method="post" class="mt-5 space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" id="roadmap-action" value="save" />
+                    <textarea name="roadmap_json" id="roadmap_json_hidden" class="hidden" aria-hidden="true">{{ roadmap_json_str }}</textarea>
+
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Structured editor</h4>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Edit the JSON tree. Save will validate status fields and required keys before writing to S3.
+                        </p>
+                        {% include 'components/json_tree_editor.html' with id='roadmap-json-tree' data=roadmap_json_data read_only='false' %}
+                    </div>
+
+                    <script>
+                        (function() {
+                            const hidden = document.getElementById('roadmap_json_hidden');
+                            if (!hidden) return;
+                            window.onJSONTreeChange = function(data) {
+                                hidden.value = JSON.stringify(data, null, 2);
+                            };
+                        })();
+                    </script>
+
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        {% include 'components/button.html' with text='Save to S3' type='primary' size='md' button_type='submit' onclick="document.getElementById('roadmap-action').value='save'" %}
+                        {% include 'components/button.html' with text='Reset defaults' type='secondary' size='md' button_type='submit' onclick="document.getElementById('roadmap-action').value='reset'" %}
+                        {% include 'components/button.html' with text='Copy JSON' type='secondary' size='md' button_type='button' onclick="(function(){const ta=document.getElementById('roadmap_json_hidden'); if(!ta) return; navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(ta.value) : ta.select && ta.focus && document.execCommand && document.execCommand('copy');})()" %}
+                        {% include 'components/button.html' with text='Delete' type='danger' size='md' button_type='submit' onclick="if(!confirm('Delete roadmap JSON from S3?')) return false; document.getElementById('roadmap-action').value='delete'" %}
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

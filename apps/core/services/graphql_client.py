@@ -37,6 +37,22 @@ class GraphQLError(Exception):
 
 class GraphQLClient:
     """Client for executing GraphQL queries and mutations."""
+
+    @staticmethod
+    def _is_token_invalid_or_expired_error(error_messages) -> bool:
+        """
+        Best-effort detection for auth/token expiry errors.
+
+        We intentionally avoid hard-coding a single GraphQL error shape because
+        upstream may vary message casing/wording; instead we match on common
+        "token"+"invalid/expired" markers.
+        """
+        if not error_messages:
+            return False
+        full = " ".join([str(m) for m in error_messages]).lower()
+        if "token" not in full:
+            return False
+        return ("invalid" in full) or ("expired" in full)
     
     def __init__(self, endpoint_url: Optional[str] = None, access_token: Optional[str] = None, request=None):
         """
@@ -188,7 +204,10 @@ class GraphQLClient:
                 if 'errors' in result:
                     errors = result['errors']
                     error_messages = [err.get('message', str(err)) for err in errors]
-                    logger.error(f"GraphQL errors: {error_messages}")
+                    # Invalid/expired tokens are an expected auth failure path,
+                    # so they should not spam ERROR logs.
+                    log_fn = logger.warning if self._is_token_invalid_or_expired_error(error_messages) else logger.error
+                    log_fn(f"GraphQL errors: {error_messages}")
                     # Attach first error's extensions per 01_AUTH_MODULE (code, statusCode, fieldErrors)
                     ext = (errors[0].get('extensions') or {}) if errors else {}
                     code = ext.get('code')
@@ -306,7 +325,10 @@ class GraphQLClient:
                 if 'errors' in result:
                     errors = result['errors']
                     error_messages = [err.get('message', str(err)) for err in errors]
-                    logger.error(f"GraphQL errors: {error_messages}")
+                    # Invalid/expired tokens are an expected auth failure path,
+                    # so they should not spam ERROR logs.
+                    log_fn = logger.warning if self._is_token_invalid_or_expired_error(error_messages) else logger.error
+                    log_fn(f"GraphQL errors: {error_messages}")
                     ext = (errors[0].get('extensions') or {}) if errors else {}
                     code = ext.get('code')
                     status_code = ext.get('statusCode')

@@ -57,7 +57,11 @@ def require_appointment360_auth(view_func):
                         pass
             
             if not user_info:
-                return _forbidden_response(request, "Invalid or expired token")
+                response = _forbidden_response(request, "Invalid or expired token")
+                # Prevent repeated refresh attempts on subsequent requests.
+                response.delete_cookie('access_token', path='/')
+                response.delete_cookie('refresh_token', path='/')
+                return response
             
             # Add user info to request
             request.appointment360_user = user_info

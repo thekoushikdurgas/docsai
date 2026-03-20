@@ -378,7 +378,12 @@ class Appointment360Client:
                 'pages': pages,
             }
         except GraphQLError as e:
-            logger.error(f"GraphQL error during token refresh: {e}")
+            msg = str(e).lower()
+            is_token_issue = ("token" in msg) and (("invalid" in msg) or ("expired" in msg))
+            if is_token_issue:
+                logger.warning(f"GraphQL error during token refresh (auth): {e}")
+            else:
+                logger.error(f"GraphQL error during token refresh: {e}")
             raise Appointment360AuthError(
                 str(e) or "Token refresh failed",
                 code=getattr(e, 'code', None),
