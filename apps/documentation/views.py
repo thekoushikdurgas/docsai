@@ -227,7 +227,27 @@ def delete_page_view(request, page_id):
         if isinstance(page, dict) and 'status' not in page:
             page['status'] = (page.get('metadata') or {}).get('status', 'draft')
         return_url = request.GET.get('return_url', '')
-        context = {'page': page, 'return_url': return_url}
+        from django.urls import reverse
+        breadcrumb_items = [
+            {'label': 'Dashboard', 'url': reverse('documentation:dashboard')},
+            {'label': 'Pages', 'url': reverse('documentation:dashboard_pages')},
+            {'label': page.get('title') or page.get('page_id', '')[:30], 'url': reverse('documentation:page_detail', kwargs={'page_id': page_id})},
+            {'label': 'Delete'},
+        ]
+        impact_analysis = None
+        if page.get('relationships_count') or page.get('endpoints_count'):
+            items = []
+            if page.get('relationships_count'):
+                items.append(f"• This page has {page['relationships_count']} relationship(s) that will be affected")
+            if page.get('endpoints_count'):
+                items.append(f"• This page references {page['endpoints_count']} endpoint(s)")
+            impact_analysis = {'title': 'Impact Analysis', 'items': items}
+        context = {
+            'page': page,
+            'return_url': return_url,
+            'breadcrumb_items': breadcrumb_items,
+            'impact_analysis': impact_analysis,
+        }
         return render(request, 'documentation/delete_confirm.html', context)
     except Exception as e:
         logger.error(f"Error loading page {page_id} for deletion: {e}", exc_info=True)

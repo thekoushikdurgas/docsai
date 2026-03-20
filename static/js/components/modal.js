@@ -37,9 +37,36 @@ class Modal {
         this.focusableElements = [];
         this.firstFocusable = null;
         this.lastFocusable = null;
-        
-        this.createModal();
+
+        // If an existing modal element is provided, use it instead of generating new markup.
+        // This allows us to standardize open/close behavior for "inline" modals already rendered in templates.
+        if (options.existingElement || options.existingId) {
+            this.useExistingModal(options);
+        } else {
+            this.createModal();
+        }
         this.attachEventListeners();
+    }
+
+    /**
+     * Use an already-rendered `.modal-container` element.
+     * Expected structure matches `static/css/components/modal.css`.
+     */
+    useExistingModal(options) {
+        const existing =
+            options.existingElement ||
+            document.getElementById(options.existingId);
+
+        if (!existing) {
+            throw new Error(`Modal: existing modal not found (id="${options.existingId || ''}")`);
+        }
+
+        this.modal = existing;
+        this.backdrop = this.modal.querySelector('.modal-backdrop');
+        this.dialog = this.modal.querySelector('.modal-dialog');
+        this.closeBtn = this.modal.querySelector('.modal-close');
+        this.cancelBtn = this.modal.querySelector('.modal-btn-cancel');
+        this.confirmBtn = this.modal.querySelector('.modal-btn-confirm');
     }
     
     /**
@@ -209,8 +236,8 @@ class Modal {
         // Store previous focus
         this.previousFocus = document.activeElement;
         
-        // Show modal
-        this.modal.style.display = 'block';
+        // Show modal (modal.css expects flex container)
+        this.modal.style.display = 'flex';
         this.modal.setAttribute('aria-hidden', 'false');
         
         // Trigger reflow for animation

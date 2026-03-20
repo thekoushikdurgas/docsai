@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layouts/operations-view.html' %}
 {% load static %}
 
 {% block title %}Tasks & History - Operations{% endblock %}
@@ -7,38 +7,23 @@
 <link rel="stylesheet" href="{% static 'css/components/badges.css' %}?v=20260125">
 {% endblock %}
 
-{% block content %}
-<div class="w-full max-w-6xl mx-auto">
-    <!-- Breadcrumb -->
-    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-        <a href="{% url 'documentation:dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-        </a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-        <a href="{% url 'documentation:operations_dashboard' %}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Operations</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-        <span class="text-gray-700 dark:text-gray-300 font-medium">Tasks & History</span>
-    </nav>
-
+{% block operations_content %}
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="section-card mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Documentation operations – Tasks & history</h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Recent runs for all operation flows (Analyze, Validate, Generate JSON, Postman, Upload, Seed) and overview graph.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <a href="{% url 'documentation:operations_history' %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors font-medium text-sm">
-                    View full history
-                </a>
+                {% url 'documentation:operations_history' as history_url %}
+                {% include 'components/button.html' with text='View full history' type='primary' size='md' href=history_url %}
             </div>
         </div>
     </div>
 
     <!-- Graph: Operations by type -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="section-card mb-6">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Operations by type (recent runs)</h2>
         <div id="tasks-graph-loading" class="text-sm text-gray-500 dark:text-gray-400">Loading…</div>
         <div id="tasks-graph-content" class="hidden space-y-3">
@@ -49,7 +34,7 @@
     </div>
 
     <!-- Operations history table -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="section-card mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent operations history</h2>
             <div class="flex items-center gap-2">
@@ -86,7 +71,6 @@
             <button type="button" id="tasks-history-load-more-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm">Load more</button>
         </div>
     </div>
-</div>
 
 <script>
 (function() {

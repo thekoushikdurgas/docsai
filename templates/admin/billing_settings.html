@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container" style="max-width: 900px; margin: 0 auto;">
-  <h1>Billing Settings (UPI)</h1>
+<div class="space-y-8 animate-in fade-in duration-500">
+  <div class="section-card mb-6">
+    {% include 'admin/_page_header.html' with title='Billing Settings (UPI)' subtitle='Configure manual UPI billing' %}
+  </div>
 
   {% if success %}
     <div style="padding: 12px; background: #ecfdf3; border: 1px solid #abefc6; border-radius: 8px; margin: 12px 0;">
@@ -20,27 +22,27 @@
     {% csrf_token %}
     <div style="display: grid; gap: 6px;">
       <label><strong>UPI ID</strong></label>
-      <input type="text" name="upi_id" value="{{ settings.upiId|default:'' }}" placeholder="example@upi" />
+      {% include 'components/input.html' with type='text' name='upi_id' value=settings.upiId|default:'' placeholder='example@upi' %}
     </div>
 
     <div style="display: grid; gap: 6px;">
       <label><strong>Phone Number</strong></label>
-      <input type="text" name="phone_number" value="{{ settings.phoneNumber|default:'' }}" placeholder="+91..." />
+      {% include 'components/input.html' with type='text' name='phone_number' value=settings.phoneNumber|default:'' placeholder='+91...' %}
     </div>
 
     <div style="display: grid; gap: 6px;">
       <label><strong>Email</strong></label>
-      <input type="text" name="email" value="{{ settings.email|default:'' }}" placeholder="billing@company.com" />
+      {% include 'components/input.html' with type='text' name='email' value=settings.email|default:'' placeholder='billing@company.com' %}
     </div>
 
     <div style="display: grid; gap: 6px;">
       <label><strong>QR Code (optional)</strong></label>
-      <input type="text" name="qr_code_s3_key" id="qr_code_s3_key" value="{{ settings.qrCodeS3Key|default:'' }}" placeholder="photo/qr.png" />
+      {% include 'components/input.html' with type='text' name='qr_code_s3_key' id='qr_code_s3_key' value=settings.qrCodeS3Key|default:'' placeholder='photo/qr.png' %}
       <input type="hidden" name="qr_code_bucket_id" id="qr_code_bucket_id" value="{{ settings.qrCodeBucketId|default:payment_qr_bucket|default:'' }}" />
       {% if s3_enabled and payment_qr_bucket %}
       <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
         <input type="file" id="qr_upload_input" accept="image/png,image/jpeg,image/jpg,image/webp" style="font-size: 13px;" />
-        <button type="button" id="qr_upload_btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">Upload QR Photo</button>
+        {% include 'components/button.html' with type='primary' size='md' button_type='button' id='qr_upload_btn' text='Upload QR Photo' %}
         <span id="qr_upload_status" style="font-size: 12px; color: #666;"></span>
       </div>
       <div style="font-size: 12px; opacity: 0.7;">
@@ -58,7 +60,7 @@
     </div>
 
     <div>
-      <button type="submit">Save</button>
+      {% include 'components/button.html' with type='primary' size='md' button_type='submit' text='Save' %}
     </div>
   </form>
 </div>

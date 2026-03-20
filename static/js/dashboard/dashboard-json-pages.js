@@ -63,9 +63,14 @@
     function openUploadJsonModal() {
         var modal = document.getElementById('upload-json-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadJsonPages) {
+            global.DashboardModals.uploadJsonPages.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
 
         _jsonUploadPages = [];
         _jsonUploadFileCount = 0;
@@ -112,6 +117,11 @@
     function closeUploadJsonModal() {
         var modal = document.getElementById('upload-json-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadJsonPages) {
+            global.DashboardModals.uploadJsonPages.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');

@@ -5,22 +5,20 @@
 
 {% block content %}
 <div class="space-y-8 animate-in fade-in duration-500">
-    <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="flex items-center justify-between section-card section-card--lg">
         <div>
             <h2 class="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">Knowledge Base</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">Store and manage code patterns, best practices, and documentation</p>
         </div>
         <div class="flex gap-3">
-            <a href="{% url 'knowledge:search' %}" class="px-6 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-gray-900 dark:text-gray-100">
-                Advanced Search
-            </a>
-            <a href="{% url 'knowledge:create' %}" class="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/50 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all">
-                Create New
-            </a>
+            {% url 'knowledge:search' as search_url %}
+            {% url 'knowledge:create' as create_url %}
+            {% include 'components/button.html' with text='Advanced Search' type='secondary' size='md' href=search_url %}
+            {% include 'components/button.html' with text='Create New' type='primary' size='md' href=create_url %}
         </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="section-card section-card--lg">
         <form method="get" class="space-y-4">
             <div class="flex items-center gap-3">
                 <input 
@@ -31,13 +29,10 @@
                     value="{{ search_query }}"
                 >
                 {% if search_query %}
-                    <a href="{% url 'knowledge:list' %}" class="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-gray-900 dark:text-gray-100">
-                        Clear
-                    </a>
+                    {% url 'knowledge:list' as list_url %}
+                    {% include 'components/button.html' with text='Clear' type='secondary' size='md' href=list_url %}
                 {% endif %}
-                <button type="submit" class="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/50 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all">
-                    Search
-                </button>
+                {% include 'components/button.html' with text='Search' type='primary' size='md' button_type='submit' %}
             </div>
             
             <div class="flex items-center gap-4 flex-wrap">
@@ -76,7 +71,7 @@
     <input type="hidden" id="viewModeInput" value="{{ view_mode }}">
     
     {% if page_obj %}
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <div class="section-card section-card--lg">
             <div class="mb-6">
                 <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ total_count }} results</p>
             </div>
@@ -131,7 +126,7 @@
             {% include 'components/pagination.html' with page_obj=page_obj %}
         </div>
     {% else %}
-        <div class="bg-white dark:bg-gray-800 rounded-[2rem] p-20 border border-gray-100 dark:border-gray-700 shadow-sm text-center flex flex-col items-center">
+        <div class="section-card section-card--lg p-20 text-center flex flex-col items-center">
             <div class="w-24 h-24 bg-gray-50 dark:bg-gray-700 rounded-[2rem] flex items-center justify-center text-gray-300 dark:text-gray-500 mb-6">
                 <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
@@ -139,9 +134,8 @@
             </div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">No knowledge items found</h2>
             <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">Get started by creating your first knowledge item.</p>
-            <a href="{% url 'knowledge:create' %}" class="mt-8 px-8 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/50 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all">
-                Create Knowledge Item
-            </a>
+            {% url 'knowledge:create' as create_url %}
+            {% include 'components/button.html' with text='Create Knowledge Item' type='primary' size='md' href=create_url class='mt-8' %}
         </div>
     {% endif %}
 </div>

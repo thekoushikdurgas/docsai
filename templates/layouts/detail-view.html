@@ -5,21 +5,8 @@
 {% block content %}
 <div class="w-full">
     <!-- Breadcrumb Navigation -->
-    {% if breadcrumbs %}
-    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4" aria-label="Breadcrumb">
-        {% for breadcrumb in breadcrumbs %}
-            {% if not forloop.last %}
-                <a href="{{ breadcrumb.url }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                    {{ breadcrumb.text }}
-                </a>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            {% else %}
-                <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-xs">{{ breadcrumb.text }}</span>
-            {% endif %}
-        {% endfor %}
-    </nav>
+    {% if breadcrumbs or breadcrumb_items %}
+    {% include 'components/breadcrumb.html' with items=breadcrumbs|default:breadcrumb_items %}
     {% endif %}
     
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -72,33 +59,18 @@
         
         <!-- Tab Navigation -->
         {% if tabs %}
-        <div class="border-b border-gray-200 dark:border-gray-700 px-6">
-            <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
-                {% for tab in tabs %}
-                <a href="?tab={{ tab.id }}" 
-                   class="tab-button group {% if tab.active or active_tab == tab.id %}active{% endif %}" 
-                   data-tab="{{ tab.id }}" 
-                   role="tab"
-                   aria-selected="{% if tab.active or active_tab == tab.id %}true{% else %}false{% endif %}">
-                    {% if tab.icon %}
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <use href="#icon-{{ tab.icon }}"></use>
-                    </svg>
-                    {% endif %}
-                    <span>{{ tab.label }}</span>
-                    {% if tab.badge %}
-                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">{{ tab.badge }}</span>
-                    {% endif %}
-                </a>
-                {% endfor %}
-            </nav>
-        </div>
+        {% include 'components/_tab_nav.html' with tabs=tabs active_tab=active_tab resource_type=resource_type %}
+        {% else %}
+        {% block detail_tabs %}{% endblock %}
         {% endif %}
         
         <!-- Content Area -->
         <div class="p-6">
             {% block detail_content %}{% endblock %}
         </div>
+        
+        <!-- Footer -->
+        {% block detail_footer %}{% endblock %}
     </div>
 </div>
 {% endblock %}

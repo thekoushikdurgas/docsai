@@ -51,9 +51,14 @@
     function openEndpointsUploadJsonModal() {
         var modal = document.getElementById('endpoints-upload-json-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadJsonEndpoints) {
+            global.DashboardModals.uploadJsonEndpoints.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         _endpointsJsonUploadItems = [];
         if (typeof global.createStepper === 'function' && !_endpointsJsonStepper) {
             _endpointsJsonStepper = global.createStepper({
@@ -86,6 +91,11 @@
     function closeEndpointsUploadJsonModal() {
         var modal = document.getElementById('endpoints-upload-json-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadJsonEndpoints) {
+            global.DashboardModals.uploadJsonEndpoints.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
@@ -251,9 +261,14 @@
     function openRelationshipsUploadJsonModal() {
         var modal = document.getElementById('relationships-upload-json-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadJsonRelationships) {
+            global.DashboardModals.uploadJsonRelationships.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         _relationshipsJsonUploadItems = [];
         if (typeof global.createStepper === 'function' && !_relationshipsJsonStepper) {
             _relationshipsJsonStepper = global.createStepper({
@@ -286,6 +301,11 @@
     function closeRelationshipsUploadJsonModal() {
         var modal = document.getElementById('relationships-upload-json-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadJsonRelationships) {
+            global.DashboardModals.uploadJsonRelationships.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
@@ -447,9 +467,14 @@
     function openPostmanUploadJsonModal() {
         var modal = document.getElementById('postman-upload-json-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadJsonPostman) {
+            global.DashboardModals.uploadJsonPostman.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         _postmanJsonUploadItems = [];
         if (typeof global.createStepper === 'function' && !_postmanJsonStepper) {
             _postmanJsonStepper = global.createStepper({
@@ -482,6 +507,11 @@
     function closePostmanUploadJsonModal() {
         var modal = document.getElementById('postman-upload-json-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadJsonPostman) {
+            global.DashboardModals.uploadJsonPostman.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');

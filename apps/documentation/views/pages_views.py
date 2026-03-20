@@ -126,6 +126,10 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
             {"label": "Pages", "url": reverse("documentation:dashboard") + "?tab=pages"},
             {"label": page_title, "url": None},
         ]
+        actions = [
+            {"text": "Edit", "url": reverse("documentation:page_edit", kwargs={"page_id": page_id}), "variant": "primary"},
+            {"text": "Delete", "url": reverse("documentation:page_delete", kwargs={"page_id": page_id}), "variant": "danger"},
+        ]
         context: Dict[str, Any] = {
             "page_internal_id": page.get("_id"),
             "page": page,
@@ -144,6 +148,9 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
             "demo_data": page.get("demo_data") or [],
             "access_control": page.get("access_control") or {},
             "breadcrumb_items": breadcrumb_items,
+            "resource_type": "pages",
+            "page_title": page_title,
+            "actions": actions,
         }
     except Http404:
         raise
@@ -308,6 +315,11 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
         "format_examples_json": format_examples_json,
         "format_analyse_payload_json": format_analyse_payload_json,
         "create_mode_generated": create_mode_generated,
+        "breadcrumb_items": [
+            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+            {"label": "Pages", "url": reverse("documentation:dashboard") + "?tab=pages"},
+            {"label": "Edit" if is_edit else "Create"},
+        ],
     }
     return render(request, template_name, context)
 
@@ -344,6 +356,11 @@ def _form_render(
         "format_examples_json": format_examples_json,
         "format_analyse_payload_json": format_analyse_payload_json,
         "create_mode_generated": create_mode_generated,
+        "breadcrumb_items": [
+            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+            {"label": "Pages", "url": reverse("documentation:dashboard") + "?tab=pages"},
+            {"label": "Edit" if is_edit else "Create"},
+        ],
     }
     return render(request, template_name, context)
 

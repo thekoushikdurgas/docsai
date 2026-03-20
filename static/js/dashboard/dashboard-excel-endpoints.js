@@ -22,9 +22,14 @@
     function openEndpointsDownloadExcelModal() {
         var modal = document.getElementById('endpoints-download-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.downloadExcelEndpoints) {
+            global.DashboardModals.downloadExcelEndpoints.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         var progressEl = document.getElementById('endpoints-download-excel-progress');
         var errorEl = document.getElementById('endpoints-download-excel-error');
         if (progressEl) progressEl.textContent = '';
@@ -34,6 +39,11 @@
     function closeEndpointsDownloadExcelModal() {
         var modal = document.getElementById('endpoints-download-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.downloadExcelEndpoints) {
+            global.DashboardModals.downloadExcelEndpoints.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
@@ -92,9 +102,14 @@
     function openEndpointsUploadExcelModal() {
         var modal = document.getElementById('endpoints-upload-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadExcelEndpoints) {
+            global.DashboardModals.uploadExcelEndpoints.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         _endpointsExcelUploadData = null;
         _endpointsExcelUploadMapping = null;
         if (typeof global.createStepper === 'function' && !_endpointsExcelStepper) {
@@ -132,6 +147,11 @@
     function closeEndpointsUploadExcelModal() {
         var modal = document.getElementById('endpoints-upload-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadExcelEndpoints) {
+            global.DashboardModals.uploadExcelEndpoints.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');

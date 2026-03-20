@@ -272,13 +272,13 @@
     function openDownloadExcelModal() {
         var modal = document.getElementById('download-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
-
-        var closeBtn = modal.querySelector('.modal-close');
-        if (closeBtn) {
-            closeBtn.onclick = closeDownloadExcelModal;
+        if (global.DashboardModals && global.DashboardModals.downloadExcelPages) {
+            global.DashboardModals.downloadExcelPages.open();
+        } else {
+            // Backward compatible fallback (if DashboardModals isn't initialized yet)
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
         }
 
         var typeCheckboxes = modal.querySelectorAll('input.download-excel-page-type-cb');
@@ -317,6 +317,11 @@
     function closeDownloadExcelModal() {
         var modal = document.getElementById('download-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.downloadExcelPages) {
+            global.DashboardModals.downloadExcelPages.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
@@ -410,9 +415,14 @@
     function openUploadExcelModal() {
         var modal = document.getElementById('upload-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadExcelPages) {
+            global.DashboardModals.uploadExcelPages.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
 
         _excelUploadData = null;
         _excelUploadMapping = null;
@@ -448,6 +458,11 @@
     function closeUploadExcelModal() {
         var modal = document.getElementById('upload-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadExcelPages) {
+            global.DashboardModals.uploadExcelPages.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layouts/detail-view.html' %}
 {% load static %}
 
 {% block title %}{{ collection_info.name|default:postman_id }} - Postman Collection{% endblock %}
@@ -8,43 +8,38 @@
 <link rel="stylesheet" href="{% static 'css/components/tabs.css' %}?v=20260125">
 {% endblock %}
 
-{% block content %}
-<div class="w-full">
-    <div class="mb-4">
-        {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
-    </div>
-
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <!-- Header -->
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-            <div class="flex items-start justify-between">
-                <div class="flex items-start space-x-4">
-                    <div class="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                        <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ collection_info.name|default:postman_id }}</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-mono mt-0.5">{{ postman_id }}</p>
-                        {% if collection_info.description %}
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">{{ collection_info.description|truncatewords:30 }}</p>
-                        {% endif %}
-                        <div class="flex items-center gap-2 mt-2 flex-wrap">
-                            {% if postman.state %}
-                            {% include 'components/badge.html' with type='status' status=postman.state text=postman.state|title %}
-                            {% endif %}
-                            {% if collection_info.schema %}
-                            {% include 'components/badge.html' with type='resource' resource_type='postman' text=collection_info.schema|truncatewords:1 size='sm' %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+{% block detail_header %}
+<div class="flex items-start justify-between">
+    <div class="flex items-start space-x-4">
+        {% if resource_type %}
+        <div class="p-3 rounded-lg
+            {% if resource_type == 'postman' %}bg-amber-100 dark:bg-amber-900/30{% endif %}">
+            <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        </div>
+        {% endif %}
+        <div>
+            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ page_title|default:collection_info.name|default:postman_id }}</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-mono mt-0.5">{{ postman_id }}</p>
+            {% if collection_info.description %}
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">{{ collection_info.description|truncatewords:30 }}</p>
+            {% endif %}
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+                {% if postman.state %}
+                {% include 'components/badge.html' with type='status' status=postman.state text=postman.state|title %}
+                {% endif %}
+                {% if collection_info.schema %}
+                {% include 'components/badge.html' with type='resource' resource_type='postman' text=collection_info.schema|truncatewords:1 size='sm' %}
+                {% endif %}
             </div>
         </div>
+    </div>
+</div>
+{% endblock %}
 
-        <!-- Tab Navigation -->
-        <div class="border-b border-gray-200 dark:border-gray-700 px-6 tabs-detail tabs-postman" data-tabs-theme="postman">
+{% block detail_tabs %}
+<div class="border-b border-gray-200 dark:border-gray-700 px-6 tabs-detail tabs-postman" data-tabs-theme="postman">
             <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
                 <a href="?tab=overview" class="tab-button group {% if active_tab == 'overview' %}active{% endif %}" data-tab="overview" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,8 +95,9 @@
                 </a>
             </nav>
         </div>
+{% endblock %}
 
-        <div class="p-6">
+{% block detail_content %}
             <!-- Overview Tab -->
             <div class="tab-content {% if active_tab == 'overview' %}active{% endif %}" id="tab-overview" role="tabpanel">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -513,8 +509,9 @@
                 </div>
             </div>
         </div>
+{% endblock %}
 
-        <!-- Footer -->
+{% block detail_footer %}
         <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
             <div class="flex items-center justify-between">
                 <a href="{% url 'documentation:dashboard' %}?tab=postman" class="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
@@ -532,8 +529,7 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
+{% endblock %}
 
 <script>
 // Tab switching functionality with URL state management

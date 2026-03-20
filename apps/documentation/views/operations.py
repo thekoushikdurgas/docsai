@@ -42,7 +42,7 @@ _upload_jobs_lock = threading.Lock()
 def operations_dashboard(request: HttpRequest) -> HttpResponse:
     """Operations dashboard view. GET /docs/operations/"""
     try:
-        return render(request, "documentation/operations/dashboard.html")
+        return render(request, "documentation/operations/dashboard.html", {"page_title": "Operations"})
     except Exception as e:
         logger.error("Error rendering operations dashboard: %s", e, exc_info=True)
         raise
@@ -89,7 +89,7 @@ def operations_history_api(request: HttpRequest) -> JsonResponse:
 def operations_history(request: HttpRequest) -> HttpResponse:
     """Operations history page. GET /docs/operations/history/"""
     try:
-        return render(request, "documentation/operations/history.html")
+        return render(request, "documentation/operations/history.html", {"page_title": "History"})
     except Exception as e:
         logger.error("Error rendering operations history: %s", e, exc_info=True)
         raise
@@ -193,7 +193,7 @@ def _analyze_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
 def analyze_docs_view(request: HttpRequest) -> HttpResponse:
     """Analyze documentation view. GET /docs/operations/analyze/ or POST to run analysis.
     GET with ?job_id=XXX shows report from a completed background analyze job."""
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any] = {"page_title": "Analyze"}
     job_id = (request.GET.get("job_id") or "").strip()
     if request.method == "GET" and job_id:
         with _analyze_jobs_lock:
@@ -316,7 +316,7 @@ def analyze_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
 def validate_docs_view(request: HttpRequest) -> HttpResponse:
     """Validate documentation view. GET /docs/operations/validate/ or POST to run validation.
     GET with ?job_id=XXX shows report from a completed background validate job (analyze start API with analysis_type=all)."""
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any] = {"page_title": "Validate"}
     parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
@@ -540,7 +540,7 @@ def generate_json_progress_api(request: HttpRequest, job_id: str) -> JsonRespons
 def generate_json_view(request: HttpRequest) -> HttpResponse:
     """Generate JSON view. GET /docs/operations/generate-json/ or POST to run index generation.
     GET with ?job_id=XXX shows report from a completed background generate-json job."""
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any] = {"page_title": "Generate JSON"}
     parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
@@ -627,7 +627,7 @@ def _postman_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
 @require_super_admin
 def generate_postman_view(request: HttpRequest) -> HttpResponse:
     """Generate Postman view. GET /docs/operations/generate-postman/ or POST to generate collection."""
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any] = {"page_title": "Generate Postman"}
     parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
@@ -1013,6 +1013,7 @@ def upload_docs_view(request: HttpRequest) -> HttpResponse:
             context["report"] = report
             if op_id:
                 context["operation_id"] = op_id
+    context["page_title"] = "Upload to S3"
     try:
         return render(request, "documentation/operations/upload.html", context)
     except Exception as e:
@@ -1070,7 +1071,7 @@ def _seed_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
 @require_super_admin
 def seed_documentation_view(request: HttpRequest) -> HttpResponse:
     """Seed documentation view. GET /docs/operations/seed/ or POST to run seeding."""
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any] = {"page_title": "Seed"}
     parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
@@ -1199,7 +1200,7 @@ def _run_pipeline_steps(request: HttpRequest) -> Dict[str, Any]:
 @require_super_admin
 def run_pipeline_view(request: HttpRequest) -> HttpResponse:
     """Run full pipeline view. GET /docs/operations/run-pipeline/ shows form; POST runs Analyze → Validate → Generate JSON → Upload."""
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any] = {"page_title": "Run Pipeline"}
     if request.method == "POST":
         try:
             result = _run_pipeline_steps(request)
@@ -1221,7 +1222,7 @@ def run_pipeline_view(request: HttpRequest) -> HttpResponse:
 def workflow_view(request: HttpRequest) -> HttpResponse:
     """Workflow view. GET /docs/operations/workflow/"""
     try:
-        return render(request, "documentation/operations/workflow.html")
+        return render(request, "documentation/operations/workflow.html", {"page_title": "Workflow"})
     except Exception as e:
         logger.error("Error rendering workflow view: %s", e, exc_info=True)
         raise
@@ -1229,7 +1230,7 @@ def workflow_view(request: HttpRequest) -> HttpResponse:
 
 def _get_docs_status_context() -> Dict[str, Any]:
     """Build context for docs status page: health status from health_checks."""
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any] = {"page_title": "Status"}
     try:
         from apps.documentation.utils.health_checks import get_comprehensive_health_status
         context["health_status"] = get_comprehensive_health_status()
@@ -1254,7 +1255,7 @@ def docs_status_view(request: HttpRequest) -> HttpResponse:
 def task_list_view(request: HttpRequest) -> HttpResponse:
     """Task list view. GET /docs/operations/tasks/"""
     try:
-        return render(request, "documentation/operations/task_list.html")
+        return render(request, "documentation/operations/task_list.html", {"page_title": "Tasks & History"})
     except Exception as e:
         logger.error("Error rendering task list view: %s", e, exc_info=True)
         raise
@@ -1269,7 +1270,18 @@ def task_detail_view(request: HttpRequest, task_id: str) -> HttpResponse:
         return redirect("documentation:operations_tasks")
 
     try:
-        context: Dict[str, Any] = {"task_id": task_id.strip()}
+        from django.urls import reverse
+        task_id_val = task_id.strip()
+        context: Dict[str, Any] = {
+            "task_id": task_id_val,
+            "page_title": f"Task: {task_id_val}",
+            "breadcrumb_items": [
+                {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                {"label": "Operations", "url": reverse("documentation:operations_dashboard")},
+                {"label": "Tasks", "url": reverse("documentation:operations_tasks")},
+                {"label": task_id_val, "url": None},
+            ],
+        }
         return render(request, "documentation/operations/task_detail.html", context)
     except Exception as e:
         logger.error("Error rendering task detail view for task_id %s: %s", task_id, e, exc_info=True)

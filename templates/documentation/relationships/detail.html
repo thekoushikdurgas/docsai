@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layouts/detail-view.html' %}
 {% load static custom_filters %}
 
 {% block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
@@ -8,51 +8,27 @@
 <link rel="stylesheet" href="{% static 'css/components/tabs.css' %}?v=20260125">
 {% endblock %}
 
-{% block content %}
-<div class="w-full">
-    <div class="mb-4">
-        {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
-    </div>
+{% block detail_subtitle %}
+<p class="text-sm text-gray-500 dark:text-gray-400 font-mono mt-0.5">
+    {% if relationship.page_id %}{{ relationship.page_id }}{% endif %}
+    {% if relationship.page_id and relationship.endpoint_path %} → {% endif %}
+    {% if relationship.endpoint_path %}{{ relationship.endpoint_path }}{% endif %}
+</p>
+<div class="flex items-center gap-2 mt-2 flex-wrap">
+    {% if relationship.usage_type %}
+    {% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_type|title size='sm' %}
+    {% endif %}
+    {% if relationship.method %}
+    {% include 'components/badge.html' with type='method' method=relationship.method text=relationship.method %}
+    {% endif %}
+    {% if relationship.usage_context %}
+    {% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_context_display|default:relationship.usage_context|title size='sm' %}
+    {% endif %}
+</div>
+{% endblock %}
 
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <!-- Header -->
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-            <div class="flex items-start justify-between">
-                <div class="flex items-start space-x-4">
-                    <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ relationship.relationship_id|default:"Unknown Relationship" }}</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-mono mt-0.5">
-                            {% if relationship.page_id %}{{ relationship.page_id }}{% endif %}
-                            {% if relationship.page_id and relationship.endpoint_path %} → {% endif %}
-                            {% if relationship.endpoint_path %}{{ relationship.endpoint_path }}{% endif %}
-                        </p>
-                        <div class="flex items-center gap-2 mt-2 flex-wrap">
-                            {% if relationship.usage_type %}
-                            {% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_type|title size='sm' %}
-                            {% endif %}
-                            {% if relationship.method %}
-                            {% include 'components/badge.html' with type='method' method=relationship.method text=relationship.method %}
-                            {% endif %}
-                            {% if relationship.usage_context %}
-                            {% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_context_display|default:relationship.usage_context|title size='sm' %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    {% url 'documentation:relationship_edit' relationship_id=relationship.relationship_id as relationship_edit_url %}
-                    {% include 'components/button.html' with href=relationship_edit_url text='Edit' type='success' size='sm' %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab Navigation -->
-        <div class="border-b border-gray-200 dark:border-gray-700 px-6 tabs-detail tabs-relationships" data-tabs-theme="relationships">
+{% block detail_tabs %}
+<div class="border-b border-gray-200 dark:border-gray-700 px-6 tabs-detail tabs-relationships" data-tabs-theme="relationships">
             <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
                 <a href="?tab=overview" class="tab-button group {% if active_tab == 'overview' %}active{% endif %}" data-tab="overview" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,8 +87,9 @@
                 </a>
             </nav>
         </div>
+{% endblock %}
 
-        <div class="p-6">
+{% block detail_content %}
             <!-- Overview Tab -->
             <div class="tab-content {% if active_tab == 'overview' %}active{% endif %}" id="tab-overview" role="tabpanel">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -592,9 +569,9 @@
                     <pre id="json-content" class="p-4 text-sm text-gray-300 overflow-x-auto max-h-96"><code>{{ relationship_json|default:"{}" }}</code></pre>
                 </div>
             </div>
-        </div>
+{% endblock %}
 
-        <!-- Footer -->
+{% block detail_footer %}
         <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
             <div class="flex items-center justify-between">
                 <a href="{% url 'documentation:dashboard' %}?tab=relationships" class="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
@@ -612,9 +589,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
 <script>
 // Tab switching functionality with URL state management
 document.addEventListener('DOMContentLoaded', function() {

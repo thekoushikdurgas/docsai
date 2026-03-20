@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from django.shortcuts import render
+from django.urls import reverse
 from apps.core.decorators.auth import require_super_admin
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -515,6 +516,54 @@ def documentation_dashboard(request: HttpRequest):
 
     from apps.documentation.constants import PAGE_TYPES, PAGE_TYPES_DISPLAY
 
+    # Quick Actions Dropdown (used by templates/documentation/dashboard.html)
+    pages_dropdown_items: List[Dict[str, Any]] = [
+        {"label": "Statistics", "url": "#stats-section"},
+        {"label": "Format Examples", "url": reverse("documentation:page_create") + "?tab=format"},
+        {"label": "By Type", "url": reverse("documentation:pages_types")},
+        {"label": "Docs Pages", "url": reverse("documentation:pages_by_type_docs")},
+        {"label": "Marketing Pages", "url": reverse("documentation:pages_by_type_marketing")},
+        {"label": "Dashboard Pages", "url": reverse("documentation:pages_by_type_dashboard")},
+        {"divider": True},
+        {"label": "Download in Excel", "onclick": "openDownloadExcelModal(); return false;"},
+        {"label": "Upload in Excel", "onclick": "openUploadExcelModal(); return false;"},
+        {"label": "Upload JSON", "onclick": "openUploadJsonModal(); return false;"},
+    ]
+    endpoints_dropdown_items: List[Dict[str, Any]] = [
+        {"label": "Statistics", "url": reverse("documentation:endpoints_statistics")},
+        {"label": "Format Examples", "url": reverse("documentation:endpoints_format")},
+        {"label": "API Versions", "url": reverse("documentation:endpoints_api_versions")},
+        {"label": "By Method", "url": reverse("documentation:endpoints_methods")},
+        {"label": "v1 Endpoints", "url": reverse("documentation:endpoints_by_api_version_v1")},
+        {"label": "v4 Endpoints", "url": reverse("documentation:endpoints_by_api_version_v4")},
+        {"label": "GraphQL Endpoints", "url": reverse("documentation:endpoints_by_api_version_graphql")},
+        {"divider": True},
+        {"label": "Download in Excel", "onclick": "openEndpointsDownloadExcelModal(); return false;"},
+        {"label": "Upload in Excel", "onclick": "openEndpointsUploadExcelModal(); return false;"},
+        {"label": "Upload JSON", "onclick": "openEndpointsUploadJsonModal(); return false;"},
+    ]
+    relationships_dropdown_items: List[Dict[str, Any]] = [
+        {"label": "Statistics", "url": reverse("documentation:relationships_statistics")},
+        {"label": "Graph View", "url": reverse("documentation:relationships_graph")},
+        {"label": "Format Examples", "url": reverse("documentation:relationships_format")},
+        {"label": "Usage Types", "url": reverse("documentation:relationships_usage_types")},
+        {"label": "Usage Contexts", "url": reverse("documentation:relationships_usage_contexts")},
+        {"label": "Primary Relationships", "url": reverse("documentation:relationships_by_usage_type_primary")},
+        {"label": "Slow Performance", "url": reverse("documentation:relationships_performance_slow")},
+        {"divider": True},
+        {"label": "Download in Excel", "onclick": "openRelationshipsDownloadExcelModal(); return false;"},
+        {"label": "Upload in Excel", "onclick": "openRelationshipsUploadExcelModal(); return false;"},
+        {"label": "Upload JSON", "onclick": "openRelationshipsUploadJsonModal(); return false;"},
+    ]
+    postman_dropdown_items: List[Dict[str, Any]] = [
+        {"label": "Statistics", "url": reverse("documentation:postman_statistics")},
+        {"label": "Format Examples", "url": reverse("documentation:postman_format")},
+        {"divider": True},
+        {"label": "Download in Excel", "onclick": "openPostmanDownloadExcelModal(); return false;"},
+        {"label": "Upload in Excel", "onclick": "openPostmanUploadExcelModal(); return false;"},
+        {"label": "Upload JSON", "onclick": "openPostmanUploadJsonModal(); return false;"},
+    ]
+
     # For Download Excel modal: list of {type, label, count} for page-type checkboxes
     page_types_export: List[Dict[str, Any]] = []
     for pt in stats_pages_types.get("types", []):
@@ -556,6 +605,11 @@ def documentation_dashboard(request: HttpRequest):
         "comprehensive_health_status": comprehensive_health_status,
         "service_info": service_info,
         "health_subtab": health_subtab,
+        # Quick Actions Dropdown menu items
+        "dropdown_items_pages": pages_dropdown_items,
+        "dropdown_items_endpoints": endpoints_dropdown_items,
+        "dropdown_items_relationships": relationships_dropdown_items,
+        "dropdown_items_postman": postman_dropdown_items,
     }
 
     return render(request, "documentation/dashboard.html", context)

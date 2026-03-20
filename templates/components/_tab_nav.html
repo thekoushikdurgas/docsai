@@ -1,0 +1,115 @@
+{#}
+Unified tab navigation partial.
+
+Supports:
+- URL-driven tabs (default): anchors link to `?tab=<id>` and keep optional `return_url`.
+- JS-driven tabs (mode='js'): renders buttons with `data-tab` and aria attributes; external JS can listen for clicks.
+
+Expected context:
+- tabs: list of tab objects [{'id','label','icon','badge','active'?}]
+- active_tab: current active tab id (string)
+- resource_type: 'pages' | 'endpoints' | 'relationships' | 'postman' (optional, used for accent styles)
+- return_url: optional string (only used for URL mode)
+#}
+
+{% load static %}
+{% with mode=tab_nav_mode|default:mode|default:'url' %}
+  {% with wrapper_class=wrapper_class|default:'border-b border-gray-200 dark:border-gray-700 px-6' %}
+  <div class="{{ wrapper_class }} tabs-detail tabs-{{ resource_type|default:'pages' }}">
+    <nav class="flex flex-wrap gap-1 -mb-px" role="tablist" aria-label="Tabs">
+      {% for tab in tabs %}
+        {% if mode == 'js' %}
+          {% if tab.active or active_tab == tab.id %}
+          <button
+            type="button"
+            class="tab-button group active"
+            data-tab="{{ tab.id }}"
+            role="tab"
+            aria-selected="true"
+            tabindex="0"
+            {% if tab_nav_container_id %}onclick="typeof switchTab === 'function' && switchTab('{{ tab_nav_container_id }}','{{ tab.id }}')"{% endif %}
+          >
+            {% if tab.icon %}
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <use href="#icon-{{ tab.icon }}"></use>
+            </svg>
+            {% endif %}
+            <span>{{ tab.label }}</span>
+            {% if tab.badge %}
+            <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">
+              {{ tab.badge }}
+            </span>
+            {% endif %}
+          </button>
+          {% else %}
+          <button
+            type="button"
+            class="tab-button group"
+            data-tab="{{ tab.id }}"
+            role="tab"
+            aria-selected="false"
+            tabindex="-1"
+            {% if tab_nav_container_id %}onclick="typeof switchTab === 'function' && switchTab('{{ tab_nav_container_id }}','{{ tab.id }}')"{% endif %}
+          >
+            {% if tab.icon %}
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <use href="#icon-{{ tab.icon }}"></use>
+            </svg>
+            {% endif %}
+            <span>{{ tab.label }}</span>
+            {% if tab.badge %}
+            <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">
+              {{ tab.badge }}
+            </span>
+            {% endif %}
+          </button>
+          {% endif %}
+        {% else %}
+          {% if tab.active or active_tab == tab.id %}
+          <a
+            href="?tab={{ tab.id }}{% if return_url %}&return_url={{ return_url|urlencode }}{% endif %}"
+            class="tab-button group active"
+            data-tab="{{ tab.id }}"
+            role="tab"
+            aria-selected="true"
+          >
+            {% if tab.icon %}
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <use href="#icon-{{ tab.icon }}"></use>
+            </svg>
+            {% endif %}
+            <span>{{ tab.label }}</span>
+            {% if tab.badge %}
+            <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">
+              {{ tab.badge }}
+            </span>
+            {% endif %}
+          </a>
+          {% else %}
+          <a
+            href="?tab={{ tab.id }}{% if return_url %}&return_url={{ return_url|urlencode }}{% endif %}"
+            class="tab-button group"
+            data-tab="{{ tab.id }}"
+            role="tab"
+            aria-selected="false"
+          >
+            {% if tab.icon %}
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <use href="#icon-{{ tab.icon }}"></use>
+            </svg>
+            {% endif %}
+            <span>{{ tab.label }}</span>
+            {% if tab.badge %}
+            <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-full">
+              {{ tab.badge }}
+            </span>
+            {% endif %}
+          </a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </nav>
+  </div>
+  {% endwith %}
+{% endwith %}
+

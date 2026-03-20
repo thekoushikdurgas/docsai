@@ -22,9 +22,14 @@
     function openRelationshipsDownloadExcelModal() {
         var modal = document.getElementById('relationships-download-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.downloadExcelRelationships) {
+            global.DashboardModals.downloadExcelRelationships.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         var progressEl = document.getElementById('relationships-download-excel-progress');
         var errorEl = document.getElementById('relationships-download-excel-error');
         if (progressEl) progressEl.textContent = '';
@@ -34,6 +39,11 @@
     function closeRelationshipsDownloadExcelModal() {
         var modal = document.getElementById('relationships-download-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.downloadExcelRelationships) {
+            global.DashboardModals.downloadExcelRelationships.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
@@ -93,9 +103,14 @@
     function openRelationshipsUploadExcelModal() {
         var modal = document.getElementById('relationships-upload-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadExcelRelationships) {
+            global.DashboardModals.uploadExcelRelationships.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         _relationshipsExcelUploadData = null;
         _relationshipsExcelUploadMapping = null;
         if (typeof global.createStepper === 'function' && !_relationshipsExcelStepper) {
@@ -133,6 +148,11 @@
     function closeRelationshipsUploadExcelModal() {
         var modal = document.getElementById('relationships-upload-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadExcelRelationships) {
+            global.DashboardModals.uploadExcelRelationships.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');

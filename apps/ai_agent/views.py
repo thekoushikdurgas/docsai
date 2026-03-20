@@ -224,9 +224,11 @@ def session_detail_view(request, session_id):
         for msg in messages_list
     ]
     
+    continue_chat_url = f"{reverse('ai_agent:chat')}?session_id={session_id}"
     context = {
         'session_id': session_id,
         'session': session,
-        'messages': formatted_messages
+        'messages': formatted_messages,
+        'continue_chat_url': continue_chat_url,
     }
     return render(request, 'ai_agent/session_detail.html', context)

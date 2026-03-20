@@ -144,6 +144,10 @@ def endpoint_detail_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
             {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
             {"label": endpoint.get("endpoint_id") or endpoint_id, "url": None},
         ]
+        actions = [
+            {"text": "Edit", "url": reverse("documentation:endpoint_edit", kwargs={"endpoint_id": endpoint_id}), "variant": "primary"},
+            {"text": "Delete", "url": reverse("documentation:endpoint_delete", kwargs={"endpoint_id": endpoint_id}), "variant": "danger"},
+        ]
         context = {
             'endpoint': endpoint,
             'endpoint_json': endpoint_json,
@@ -156,6 +160,9 @@ def endpoint_detail_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
             'endpoint_files': endpoint_files,
             'endpoint_methods_detail': endpoint_methods_detail,
             'breadcrumb_items': breadcrumb_items,
+            'resource_type': 'endpoints',
+            'page_title': endpoint.get("endpoint_id") or "Unknown Endpoint",
+            'actions': actions,
         }
     except Exception as e:
         logger.error(f"Error loading endpoint {endpoint_id}: {e}", exc_info=True)
@@ -183,6 +190,11 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                     logger.warning("Invalid JSON in endpoint form: %s", e)
                     messages.error(request, "Invalid form data format.")
                     _endpoint = endpoint if endpoint is not None else dict(SAFE_ENDPOINT_DEFAULT)
+                    _breadcrumbs = [
+                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+                        {"label": "Edit" if is_edit else "Create"},
+                    ]
                     return render(
                         request,
                         "documentation/endpoints/form_enhanced.html",
@@ -192,6 +204,7 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                             "is_edit": is_edit,
                             "active_tab": request.GET.get("tab", "basic"),
                             "return_url": request.GET.get("return_url"),
+                            "breadcrumb_items": _breadcrumbs,
                         },
                     )
             else:
@@ -217,6 +230,11 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                 if not endpoint_data.get("endpoint_id"):
                     messages.error(request, "Endpoint ID is required.")
                     _endpoint = endpoint if endpoint is not None else dict(SAFE_ENDPOINT_DEFAULT)
+                    _breadcrumbs = [
+                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+                        {"label": "Edit" if is_edit else "Create"},
+                    ]
                     return render(
                         request,
                         "documentation/endpoints/form_enhanced.html",
@@ -226,12 +244,18 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                             "is_edit": is_edit,
                             "active_tab": request.GET.get("tab", "basic"),
                             "return_url": request.GET.get("return_url"),
+                            "breadcrumb_items": _breadcrumbs,
                         },
                     )
 
                 if not endpoint_data.get("endpoint_path"):
                     messages.error(request, "Endpoint Path is required.")
                     _endpoint = endpoint if endpoint is not None else dict(SAFE_ENDPOINT_DEFAULT)
+                    _breadcrumbs = [
+                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+                        {"label": "Edit" if is_edit else "Create"},
+                    ]
                     return render(
                         request,
                         "documentation/endpoints/form_enhanced.html",
@@ -241,6 +265,7 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                             "is_edit": is_edit,
                             "active_tab": request.GET.get("tab", "basic"),
                             "return_url": request.GET.get("return_url"),
+                            "breadcrumb_items": _breadcrumbs,
                         },
                     )
 
@@ -302,6 +327,17 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
     # Convert endpoint to JSON string for JavaScript initialization
     endpoint_json = json.dumps(endpoint, indent=2, default=str) if endpoint else "{}"
 
+    breadcrumb_items: List[Dict[str, Any]] = [
+        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+    ]
+    if is_edit and endpoint.get("endpoint_id"):
+        breadcrumb_items.append({
+            "label": endpoint["endpoint_id"],
+            "url": reverse("documentation:endpoint_detail", kwargs={"endpoint_id": endpoint["endpoint_id"]}),
+        })
+    breadcrumb_items.append({"label": "Edit" if is_edit else "Create"})
+
     context: Dict[str, Any] = {
         "endpoint": endpoint,
         "endpoint_json": endpoint_json,
@@ -309,6 +345,7 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
         "active_tab": active_tab,
         "return_url": request.GET.get("return_url"),
         "create_mode_generated": create_mode_generated,
+        "breadcrumb_items": breadcrumb_items,
     }
 
     return render(request, template_name, context)
@@ -475,8 +512,28 @@ def endpoint_delete_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
         return redirect(_safe_redirect_url(request))
 
     return_url = request.GET.get("return_url", "")
-    context: Dict[str, Any] = {
+    breadcrumb_items = [
+        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+        {"label": "Endpoints", "url": reverse("documentation:dashboard_endpoints")},
+        {"label": (endpoint.get("endpoint_id") or "Unknown")[:30], "url": reverse("documentation:endpoint_detail", kwargs={"endpoint_id": validated_id})},
+        {"label": "Delete"},
+    ]
+    cancel_url = reverse("documentation:endpoint_detail", kwargs={"endpoint_id": validated_id})
+    impact_analysis = None
+    rel_count = endpoint.get("relationships_count")
+    if rel_count:
+        impact_analysis = {
+            "title": "Impact Analysis",
+            "items": [
+                f"• This endpoint has {rel_count} relationship(s) that will be affected",
+                "• Pages that reference this endpoint may lose their connection",
+            ],
+        }
+    context = {
         "endpoint": endpoint,
         "return_url": return_url,
+        "breadcrumb_items": breadcrumb_items,
+        "cancel_url": cancel_url,
+        "impact_analysis": impact_analysis,
     }
     return render(request, "documentation/endpoints/delete_confirm.html", context)

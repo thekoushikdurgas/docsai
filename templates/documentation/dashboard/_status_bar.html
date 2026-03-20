@@ -2,55 +2,55 @@
 <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md">
     <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">System Status</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <a href="{% url 'documentation:dashboard' %}?tab=health" class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-gray-600">
-            <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-            <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">S3 Storage</p>
-                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ health_status.s3_storage.status|default:"ok"|title }}</p>
-            </div>
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+        <a href="{% url 'documentation:dashboard' %}?tab=health" class="block no-underline">
+            {% include 'components/stat_card.html' with
+                label="S3 Storage"
+                value=health_status.s3_storage.status|default:"ok"|title
+                change=""
+                trend=""
+                resource_type="operations"
+                color="bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+                icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7L12 3 4 7v10l8 4 8-4V7Z" /></svg>' %}
         </a>
-        <a href="{% url 'documentation:dashboard' %}?tab=pages" class="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-all cursor-pointer border border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700">
-            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-            <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Pages</p>
-                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ overview_stats.total_pages|default:"0" }}</p>
-            </div>
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+        <a href="{% url 'documentation:dashboard' %}?tab=pages" class="block no-underline">
+            {% include 'components/stat_card.html' with
+                label="Pages"
+                value=overview_stats.total_pages|default:"0"
+                change=""
+                trend=""
+                resource_type="pages"
+                color="bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 11h10M7 15h6" /></svg>' %}
         </a>
-        <a href="{% url 'documentation:dashboard' %}?tab=endpoints" class="flex items-center gap-3 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/10 hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-all cursor-pointer border border-purple-200 dark:border-purple-800 hover:border-purple-300 dark:hover:border-purple-700">
-            <div class="w-3 h-3 rounded-full bg-purple-500"></div>
-            <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Endpoints</p>
-                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ overview_stats.total_endpoints|default:"0" }}</p>
-            </div>
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+        <a href="{% url 'documentation:dashboard' %}?tab=endpoints" class="block no-underline">
+            {% include 'components/stat_card.html' with
+                label="Endpoints"
+                value=overview_stats.total_endpoints|default:"0"
+                change=""
+                trend=""
+                resource_type="endpoints"
+                color="bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
+                icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' %}
         </a>
-        <a href="{% url 'documentation:dashboard' %}?tab=relationships" class="flex items-center gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/20 transition-all cursor-pointer border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700">
-            <div class="w-3 h-3 rounded-full bg-green-500"></div>
-            <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Relationships</p>
-                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ overview_stats.total_relationships|default:"0" }}</p>
-            </div>
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+        <a href="{% url 'documentation:dashboard' %}?tab=relationships" class="block no-underline">
+            {% include 'components/stat_card.html' with
+                label="Relationships"
+                value=overview_stats.total_relationships|default:"0"
+                change=""
+                trend=""
+                resource_type="relationships"
+                color="bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l-1.5 3.5L10 19l3.5-1.5L17 14l-3.5-1.5L10 10 7 7l3 0" /></svg>' %}
         </a>
-        <a href="{% url 'documentation:dashboard' %}?tab=postman" class="flex items-center gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-all cursor-pointer border border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700">
-            <div class="w-3 h-3 rounded-full bg-amber-500"></div>
-            <div class="flex-1">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Postman</p>
-                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ overview_stats.total_postman|default:"0" }}</p>
-            </div>
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+        <a href="{% url 'documentation:dashboard' %}?tab=postman" class="block no-underline">
+            {% include 'components/stat_card.html' with
+                label="Postman"
+                value=overview_stats.total_postman|default:"0"
+                change=""
+                trend=""
+                resource_type="postman"
+                color="bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
+                icon='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M12 9v6" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' %}
         </a>
     </div>
     <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">

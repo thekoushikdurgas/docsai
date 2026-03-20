@@ -124,6 +124,9 @@ def relationship_detail_view(request: HttpRequest, relationship_id: str) -> Http
             {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
             {"label": relationship.get("relationship_id") or validated_id, "url": None},
         ]
+        actions = [
+            {"text": "Edit", "url": reverse("documentation:relationship_edit", kwargs={"relationship_id": validated_id}), "variant": "primary"},
+        ]
         context = {
             'relationship': relationship,
             'relationship_json': relationship_json,
@@ -136,6 +139,9 @@ def relationship_detail_view(request: HttpRequest, relationship_id: str) -> Http
             'page_reference': page_reference,
             'endpoint_reference': endpoint_reference,
             'breadcrumb_items': breadcrumb_items,
+            'resource_type': 'relationships',
+            'page_title': relationship.get("relationship_id") or "Unknown Relationship",
+            'actions': actions,
         }
     except Exception as e:
         logger.error(f"Error loading relationship {relationship_id}: {e}", exc_info=True)
@@ -189,6 +195,11 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                 except json.JSONDecodeError as e:
                     logger.warning("Invalid JSON in relationship form: %s", e)
                     messages.error(request, "Invalid form data format.")
+                    _breadcrumbs = [
+                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                        {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                        {"label": "Edit" if is_edit else "Create"},
+                    ]
                     return render(
                         request,
                         "documentation/relationships/form_enhanced.html",
@@ -201,6 +212,7 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                             "available_pages": [],
                             "available_endpoints": [],
                             "create_mode_generated": create_mode_generated,
+                            "breadcrumb_items": _breadcrumbs,
                         },
                     )
             else:
@@ -224,6 +236,11 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
             # Validate required fields
             if not relationship_data.get("relationship_id"):
                 messages.error(request, "Relationship ID is required.")
+                _breadcrumbs = [
+                    {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                    {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                    {"label": "Edit" if is_edit else "Create"},
+                ]
                 return render(
                     request,
                     "documentation/relationships/form_enhanced.html",
@@ -236,11 +253,17 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                         "available_pages": [],
                         "available_endpoints": [],
                         "create_mode_generated": create_mode_generated,
+                        "breadcrumb_items": _breadcrumbs,
                     },
                 )
 
             if not relationship_data.get("page_id") and not relationship_data.get("page_path"):
                 messages.error(request, "Page ID or Page Path is required.")
+                _breadcrumbs = [
+                    {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                    {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                    {"label": "Edit" if is_edit else "Create"},
+                ]
                 return render(
                     request,
                     "documentation/relationships/form_enhanced.html",
@@ -253,6 +276,7 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                         "available_pages": [],
                         "available_endpoints": [],
                         "create_mode_generated": create_mode_generated,
+                        "breadcrumb_items": _breadcrumbs,
                     },
                 )
 
@@ -270,6 +294,11 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                         "available_pages": [],
                         "available_endpoints": [],
                         "create_mode_generated": create_mode_generated,
+                        "breadcrumb_items": [
+                            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                            {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                            {"label": "Edit" if is_edit else "Create"},
+                        ],
                     },
                 )
 
@@ -331,6 +360,17 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
         }
         relationship_json = json.dumps(relationship, indent=2, default=str)
 
+    breadcrumb_items: List[Dict[str, Any]] = [
+        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+        {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+    ]
+    if is_edit and relationship.get("relationship_id"):
+        breadcrumb_items.append({
+            "label": relationship["relationship_id"],
+            "url": reverse("documentation:relationship_detail", kwargs={"relationship_id": relationship["relationship_id"]}),
+        })
+    breadcrumb_items.append({"label": "Edit" if is_edit else "Create"})
+
     context: Dict[str, Any] = {
         "relationship": relationship,
         "relationship_json": relationship_json,
@@ -340,6 +380,7 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
         "available_pages": available_pages,
         "available_endpoints": available_endpoints,
         "create_mode_generated": create_mode_generated,
+        "breadcrumb_items": breadcrumb_items,
     }
 
     return render(request, template_name, context)
@@ -429,9 +470,19 @@ def relationship_delete_view(request: HttpRequest, relationship_id: str) -> Http
         return redirect(_safe_redirect_url(request))
 
     return_url = request.GET.get("return_url", "")
-    context: Dict[str, Any] = {
+    from django.urls import reverse
+    breadcrumb_items = [
+        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+        {"label": "Relationships", "url": reverse("documentation:dashboard_relationships")},
+        {"label": (relationship.get("relationship_id") or "Relationship")[:30], "url": reverse("documentation:relationship_detail", kwargs={"relationship_id": validated_id})},
+        {"label": "Delete"},
+    ]
+    cancel_url = reverse("documentation:relationship_detail", kwargs={"relationship_id": validated_id})
+    context = {
         "relationship": relationship,
         "return_url": return_url,
+        "breadcrumb_items": breadcrumb_items,
+        "cancel_url": cancel_url,
     }
     return render(request, "documentation/relationships/delete_confirm.html", context)
 

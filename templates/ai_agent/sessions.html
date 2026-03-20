@@ -5,20 +5,15 @@
 
 {% block content %}
 <div class="space-y-8 animate-in fade-in duration-500">
-    <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div class="flex items-center justify-between section-card section-card--lg">
         <div>
             <h2 class="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight">AI Learning Sessions</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">Manage your documentation discovery and architecture analysis sessions.</p>
         </div>
         <div class="flex gap-3">
-            <a href="{% url 'ai_agent:chat' %}" class="px-6 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all text-gray-900 dark:text-gray-100">Open Chat</a>
-            <a href="{% url 'ai_agent:chat' %}" class="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/50 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                New Session
-            </a>
+            {% url 'ai_agent:chat' as chat_url %}
+            {% include 'components/button.html' with text='Open Chat' type='secondary' size='md' href=chat_url %}
+            {% include 'components/button.html' with text='New Session' type='primary' size='md' href=chat_url %}
         </div>
     </div>
     
@@ -26,7 +21,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for session_data in sessions %}
                 {% with session=session_data.session %}
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all cursor-pointer group flex flex-col h-full" onclick="window.location.href='{% url 'ai_agent:session_detail' session_id=session.session_id %}'">
+                <div class="section-card section-card--lg hover:shadow-xl transition-all cursor-pointer group flex flex-col h-full" onclick="window.location.href='{% url 'ai_agent:session_detail' session_id=session.session_id %}'">
                     <div class="flex items-start justify-between mb-4">
                         <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

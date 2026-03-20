@@ -22,9 +22,14 @@
     function openPostmanDownloadExcelModal() {
         var modal = document.getElementById('postman-download-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.downloadExcelPostman) {
+            global.DashboardModals.downloadExcelPostman.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         var progressEl = document.getElementById('postman-download-excel-progress');
         var errorEl = document.getElementById('postman-download-excel-error');
         if (progressEl) progressEl.textContent = '';
@@ -34,6 +39,11 @@
     function closePostmanDownloadExcelModal() {
         var modal = document.getElementById('postman-download-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.downloadExcelPostman) {
+            global.DashboardModals.downloadExcelPostman.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
@@ -90,9 +100,14 @@
     function openPostmanUploadExcelModal() {
         var modal = document.getElementById('postman-upload-excel-modal');
         if (!modal) return;
-        modal.style.display = 'flex';
-        modal.setAttribute('aria-hidden', 'false');
-        modal.classList.add('modal-open');
+        if (global.DashboardModals && global.DashboardModals.uploadExcelPostman) {
+            global.DashboardModals.uploadExcelPostman.open();
+        } else {
+            // Backward compatible fallback
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('modal-open');
+        }
         _postmanExcelUploadData = null;
         _postmanExcelUploadMapping = null;
         if (typeof global.createStepper === 'function' && !_postmanExcelStepper) {
@@ -128,6 +143,11 @@
     function closePostmanUploadExcelModal() {
         var modal = document.getElementById('postman-upload-excel-modal');
         if (!modal) return;
+        if (global.DashboardModals && global.DashboardModals.uploadExcelPostman) {
+            global.DashboardModals.uploadExcelPostman.close();
+            return;
+        }
+        // Backward compatible fallback
         modal.classList.remove('modal-open');
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');

@@ -26,6 +26,37 @@
             if (el) document.body.appendChild(el);
         });
 
+        // Wrap existing inline modal DOM blocks with the standardized modal.js API.
+        // This lets feature scripts call `DashboardModals.<key>.open()/close()` instead
+        // of re-implementing show/hide + aria/class toggling.
+        var createExistingModal = function (id) {
+            var el = document.getElementById(id);
+            if (!el) return null;
+            try {
+                return new global.Modal({ existingId: id, id: id });
+            } catch (e) {
+                console.warn('Failed to init modal wrapper for:', id, e);
+                return null;
+            }
+        };
+        global.DashboardModals = {
+            downloadExcelPages: createExistingModal('download-excel-modal'),
+            uploadExcelPages: createExistingModal('upload-excel-modal'),
+            uploadJsonPages: createExistingModal('upload-json-modal'),
+
+            downloadExcelEndpoints: createExistingModal('endpoints-download-excel-modal'),
+            uploadExcelEndpoints: createExistingModal('endpoints-upload-excel-modal'),
+            uploadJsonEndpoints: createExistingModal('endpoints-upload-json-modal'),
+
+            downloadExcelRelationships: createExistingModal('relationships-download-excel-modal'),
+            uploadExcelRelationships: createExistingModal('relationships-upload-excel-modal'),
+            uploadJsonRelationships: createExistingModal('relationships-upload-json-modal'),
+
+            downloadExcelPostman: createExistingModal('postman-download-excel-modal'),
+            uploadExcelPostman: createExistingModal('postman-upload-excel-modal'),
+            uploadJsonPostman: createExistingModal('postman-upload-json-modal')
+        };
+
         // Statistics panel toggle functionality
         var toggleBtn = document.getElementById('stats-toggle-btn');
         var statsPanel = document.getElementById('stats-panels');

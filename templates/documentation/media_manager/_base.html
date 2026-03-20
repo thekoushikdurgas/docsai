@@ -1,0 +1,18 @@
+{% comment %}
+Media Manager base layout.
+Extends base.html and provides common structure for media manager pages.
+Override media_manager_content block. Context: page_title, breadcrumb_items (optional).
+{% endcomment %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="w-full max-w-7xl mx-auto">
+    {% if breadcrumb_items %}
+    <div class="mb-4">
+        {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
+    </div>
+    {% endif %}
+    {% block media_manager_content %}{% endblock %}
+</div>
+{% endblock %}

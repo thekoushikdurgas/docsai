@@ -2,8 +2,10 @@
 {% load static %}
 
 {% block content %}
-<div class="container" style="max-width: 1200px; margin: 0 auto;">
-  <h1>Billing Payments (Manual UPI)</h1>
+<div class="space-y-8 animate-in fade-in duration-500">
+  <div class="section-card mb-6">
+    {% include 'admin/_page_header.html' with title='Billing Payments (Manual UPI)' subtitle='Approve or decline manual UPI submissions' %}
+  </div>
 
   {% if error %}
     <div style="padding: 12px; background: #fee; border: 1px solid #fbb; border-radius: 8px;">
@@ -71,12 +73,12 @@
             {% if s.status == "pending" %}
               <form method="post" action="/admin/billing/payments/{{ s.id }}/approve/" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit">Approve</button>
+                {% include 'components/button.html' with type='success' size='sm' button_type='submit' text='Approve' %}
               </form>
               <form method="post" action="/admin/billing/payments/{{ s.id }}/decline/" style="display:inline;">
                 {% csrf_token %}
-                <input type="text" name="reason" placeholder="Reason" style="width: 160px;" />
-                <button type="submit">Decline</button>
+                {% include 'components/input.html' with type='text' name='reason' placeholder='Reason' class='w-40' %}
+                {% include 'components/button.html' with type='danger' size='sm' button_type='submit' text='Decline' %}
               </form>
             {% else %}
               —

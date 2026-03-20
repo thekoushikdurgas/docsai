@@ -1,140 +1,60 @@
-{% extends 'base.html' %}
+{% extends 'layouts/form-view.html' %}
 {% load static %}
 
 {% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} Relationship - Documentation{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/components/form-responsive.css' %}?v=20260124d">
-<style>
-/* Tab button styles for link-based tabs */
-.tab-button {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6b7280;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-bottom: -2px;
-}
-.tab-button:hover {
-    color: #374151;
-    border-bottom-color: #d1d5db;
-}
-.tab-button.active {
-    color: #10b981;
-    border-bottom-color: #10b981;
-}
-.dark .tab-button {
-    color: #9ca3af;
-}
-.dark .tab-button:hover {
-    color: #e5e7eb;
-    border-bottom-color: #4b5563;
-}
-.dark .tab-button.active {
-    color: #34d399;
-    border-bottom-color: #34d399;
-}
-.tab-content {
-    display: none;
-}
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.2s ease-in;
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/components/tabs.css' %}?v=20260125">
 {% endblock %}
 
-{% block content %}
-<div class="w-full">
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-        <a href="{% url 'documentation:dashboard' %}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-        </a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <a href="{% url 'documentation:dashboard' %}?tab=relationships" class="hover:text-green-600 dark:hover:text-green-400 transition-colors">Relationships</a>
-        {% if is_edit and relationship.relationship_id %}
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <a href="{% url 'documentation:relationship_detail' relationship_id=relationship.relationship_id %}" class="hover:text-green-600 dark:hover:text-green-400 transition-colors truncate max-w-xs">{{ relationship.relationship_id }}</a>
-        {% endif %}
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-        <span class="text-gray-700 dark:text-gray-300 font-medium">{% if is_edit %}Edit{% else %}Create{% endif %}</span>
-    </nav>
-
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <!-- Header -->
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {% if is_edit %}
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            {% else %}
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            {% endif %}
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">
-                            {% if is_edit %}Edit Relationship{% else %}Create New Relationship{% endif %}
-                        </h1>
-                        {% if is_edit and relationship.relationship_id %}
-                        <p class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ relationship.relationship_id }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-                {% if is_edit and relationship.relationship_id %}
-                <a href="{% url 'documentation:relationship_detail' relationship_id=relationship.relationship_id %}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Cancel
-                </a>
+{% block form_header %}
+<div class="flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+        <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {% if is_edit %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 {% else %}
-                <a href="{% url 'documentation:dashboard_relationships' %}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Cancel
-                </a>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 {% endif %}
-            </div>
+            </svg>
         </div>
+        <div>
+            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {% if is_edit %}Edit Relationship{% else %}Create New Relationship{% endif %}
+            </h1>
+            {% if is_edit and relationship.relationship_id %}
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ relationship.relationship_id }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% if is_edit and relationship.relationship_id %}
+    <a href="{% url 'documentation:relationship_detail' relationship_id=relationship.relationship_id %}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Cancel
+    </a>
+    {% else %}
+    <a href="{% url 'documentation:dashboard_relationships' %}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Cancel
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
 
-        <div class="p-6">
-        {% if create_mode_generated %}
-        <div class="mb-4 px-4 py-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-sm text-emerald-800 dark:text-emerald-200">
-            Creating from generated content – use the <strong>Connection</strong> tab to link page and endpoint.
-        </div>
-        {% endif %}
-        <!-- Tab Navigation -->
-        <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+{% block form_before %}
+<div class="px-6 pt-4 space-y-4">
+{% if create_mode_generated %}
+<div class="mb-4 px-4 py-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-sm text-emerald-800 dark:text-emerald-200">
+    Creating from generated content – use the <strong>Connection</strong> tab to link page and endpoint.
+</div>
+{% endif %}
+<div class="tabs-detail tabs-relationships border-b border-gray-200 dark:border-gray-700 mb-6">
             <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
                 <a href="?tab=basic{% if return_url %}&return_url={{ return_url|urlencode }}{% endif %}" class="tab-button group {% if active_tab == 'basic' %}active{% endif %}" data-tab="basic" role="tab">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,12 +83,16 @@
                 </a>
             </nav>
         </div>
-        
-        <form method="post" id="relationship-form" novalidate class="space-y-6">
+</div>
+{% endblock %}
+
+{% block form_extra_class %}space-y-6{% endblock %}
+{% block form_extra_attrs %}id="relationship-form" novalidate{% endblock %}
+
+{% block form_content %}
             {% if return_url %}
             <input type="hidden" name="return_url" value="{{ return_url }}">
             {% endif %}
-            {% csrf_token %}
             <input type="hidden" id="relationship_data" name="relationship_data" value="">
             
             <!-- Error Messages -->
@@ -506,37 +430,39 @@
                 </div>
             </div>
             
-            <!-- Form Actions -->
-            <div class="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center gap-4">
-                    <button 
-                        type="submit"
-                        class="inline-flex items-center px-6 py-2.5 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors font-medium shadow-sm"
-                    >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        {% if is_edit %}Update Relationship{% else %}Create Relationship{% endif %}
-                    </button>
-                    {% if is_edit and relationship.relationship_id %}
-                    <a href="{% url 'documentation:relationship_detail' relationship_id=relationship.relationship_id %}" class="inline-flex items-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        View Relationship
-                    </a>
-                    {% endif %}
-                    <a href="{% url 'documentation:dashboard_relationships' %}" class="inline-flex items-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
-                        Cancel
-                    </a>
-                </div>
-                <div id="form-status" class="text-xs text-gray-500 dark:text-gray-400"></div>
-            </div>
-        </form>
-    </div>
-</div>
+{% endblock %}
 
+{% block form_actions %}
+<div class="flex items-center justify-between w-full">
+    <div class="flex items-center gap-4">
+        <button 
+            type="submit"
+            class="inline-flex items-center px-6 py-2.5 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors font-medium shadow-sm"
+        >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            {% if is_edit %}Update Relationship{% else %}Create Relationship{% endif %}
+        </button>
+        {% if is_edit and relationship.relationship_id %}
+        <a href="{% url 'documentation:relationship_detail' relationship_id=relationship.relationship_id %}" class="inline-flex items-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            View Relationship
+        </a>
+        {% endif %}
+        <a href="{% if return_url %}{{ return_url }}{% else %}{% url 'documentation:dashboard_relationships' %}{% endif %}" class="inline-flex items-center px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
+            Cancel
+        </a>
+    </div>
+    <div id="form-status" class="text-xs text-gray-500 dark:text-gray-400"></div>
+</div>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const tabButtons = document.querySelectorAll('.tab-button');

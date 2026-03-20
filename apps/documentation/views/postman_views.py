@@ -71,10 +71,20 @@ def postman_delete_view(request: HttpRequest, postman_id: str) -> HttpResponse:
         return redirect(_safe_redirect_url(request))
 
     return_url = request.GET.get("return_url", "")
-    context: Dict[str, Any] = {
+    from django.urls import reverse
+    breadcrumb_items = [
+        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+        {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+        {"label": (postman_config.get("name") or validated_id)[:30], "url": reverse("documentation:postman_detail", kwargs={"postman_id": validated_id})},
+        {"label": "Delete"},
+    ]
+    cancel_url = reverse("documentation:postman_detail", kwargs={"postman_id": validated_id})
+    context = {
         "postman": postman_config,
         "postman_id": validated_id,
         "return_url": return_url,
+        "breadcrumb_items": breadcrumb_items,
+        "cancel_url": cancel_url,
     }
     return render(request, "documentation/postman/delete_confirm.html", context)
 
@@ -202,6 +212,8 @@ def postman_detail_view(request: HttpRequest, postman_id: str) -> HttpResponse:
             'related_endpoints': related_endpoints,
             'endpoints_count': len(related_endpoints),
             'breadcrumb_items': breadcrumb_items,
+            'resource_type': 'postman',
+            'page_title': collection_name,
         }
     except Exception as e:
         logger.error(f"Error loading Postman configuration {postman_id}: {e}", exc_info=True)
@@ -258,11 +270,17 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                 except json.JSONDecodeError as e:
                     logger.warning("Invalid JSON in postman form: %s", e)
                     messages.error(request, "Invalid form data format.")
+                    _breadcrumbs = [
+                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                        {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+                        {"label": "Edit" if is_edit else "Create"},
+                    ]
                     return render(
                         request,
                         "documentation/postman/form_enhanced.html",
                         {
                             "postman": postman_config,
+                            "postman_id": postman_id if is_edit else None,
                             "collection": collection,
                             "collection_json": collection_json,
                             "postman_json": postman_json,
@@ -272,6 +290,7 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                             "collection_info": {},
                             "variables": [],
                             "variables_count": 0,
+                            "breadcrumb_items": _breadcrumbs,
                         },
                     )
             else:
@@ -306,11 +325,17 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
             # Validate required fields
             if not collection_data.get("id") and not (is_edit and postman_id):
                 messages.error(request, "Collection ID is required.")
+                _breadcrumbs = [
+                    {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                    {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+                    {"label": "Edit" if is_edit else "Create"},
+                ]
                 return render(
                     request,
                     "documentation/postman/form_enhanced.html",
                     {
                         "postman": postman_config,
+                        "postman_id": postman_id if is_edit else None,
                         "collection": collection,
                         "collection_json": collection_json,
                         "postman_json": postman_json,
@@ -320,6 +345,7 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                         "collection_info": {},
                         "variables": [],
                         "variables_count": 0,
+                        "breadcrumb_items": _breadcrumbs,
                     },
                 )
 
@@ -330,11 +356,17 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
 
             if not collection_data.get("info", {}).get("name"):
                 messages.error(request, "Collection name is required.")
+                _breadcrumbs = [
+                    {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+                    {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+                    {"label": "Edit" if is_edit else "Create"},
+                ]
                 return render(
                     request,
                     "documentation/postman/form_enhanced.html",
                     {
                         "postman": postman_config,
+                        "postman_id": postman_id if is_edit else None,
                         "collection": collection,
                         "collection_json": collection_json,
                         "postman_json": postman_json,
@@ -344,6 +376,7 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                         "collection_info": {},
                         "variables": [],
                         "variables_count": 0,
+                        "breadcrumb_items": _breadcrumbs,
                     },
                 )
 
@@ -389,6 +422,17 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
     if collection and isinstance(collection, dict):
         variables = list(collection.get("variable", []))
 
+    breadcrumb_items: List[Dict[str, Any]] = [
+        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
+        {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+    ]
+    if is_edit and postman_id:
+        breadcrumb_items.append({
+            "label": collection_info.get("name") or postman_id,
+            "url": reverse("documentation:postman_detail", kwargs={"postman_id": postman_id}),
+        })
+    breadcrumb_items.append({"label": "Edit" if is_edit else "Create"})
+
     context: Dict[str, Any] = {
         "postman": postman_config,
         "postman_id": postman_id if is_edit else None,
@@ -401,6 +445,7 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
         "is_edit": is_edit,
         "active_tab": active_tab,
         "return_url": return_url,
+        "breadcrumb_items": breadcrumb_items,
     }
 
     return render(request, "documentation/postman/form_enhanced.html", context)
