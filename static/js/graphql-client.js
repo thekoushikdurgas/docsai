@@ -26,9 +26,20 @@ class GraphQLClient {
             }
 
             const result = await response.json();
-            
-            if (result.errors) {
-                throw new Error(result.errors.map(e => e.message).join(', '));
+
+            if (!result || typeof result !== 'object') {
+                throw new Error('GraphQL: invalid JSON response');
+            }
+
+            if (result.errors && Array.isArray(result.errors) && result.errors.length) {
+                const msg = result.errors.map(function (e) {
+                    return (e && e.message) ? e.message : String(e);
+                }).join(', ');
+                throw new Error(msg || 'GraphQL errors');
+            }
+
+            if (!Object.prototype.hasOwnProperty.call(result, 'data')) {
+                throw new Error('GraphQL: response missing data field');
             }
 
             return result.data;

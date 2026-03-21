@@ -1,0 +1,206 @@
+/**
+ * App shell — authenticated layout wrappers (BEM)
+ */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  background-color: var(--color-bg-primary);
+  transition: background-color var(--transition-base) var(--transition-ease);
+}
+
+[data-theme="dark"] .app-shell {
+  background-color: var(--color-gray-900);
+}
+
+.app-shell__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background-color: var(--color-bg-overlay);
+  display: none;
+}
+
+.app-shell__overlay.is-visible {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .app-shell__overlay {
+    display: none !important;
+  }
+}
+
+.app-shell__main-col {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  margin-left: 0;
+  transition: margin var(--transition-base) var(--transition-ease);
+}
+
+@media (min-width: 768px) {
+  .app-shell__main-col {
+    margin-left: 260px;
+  }
+}
+
+.app-shell__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-8);
+  background-color: var(--color-bg-primary);
+}
+
+[data-theme="dark"] .app-shell__content {
+  background-color: var(--color-gray-900);
+}
+
+.app-shell__inner {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: var(--spacing-20);
+}
+
+/* Flash messages */
+.app-flash-stack {
+  position: fixed;
+  top: 5rem;
+  right: var(--spacing-8);
+  z-index: 100;
+}
+
+.app-flash {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  border-width: 1px;
+  border-style: solid;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.app-flash--success {
+  background-color: var(--color-bg-primary);
+  border-color: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+[data-theme="dark"] .app-flash--success {
+  background-color: var(--color-gray-800);
+  border-color: var(--color-success-700);
+  color: var(--color-success-100);
+}
+
+.app-flash--error {
+  background-color: var(--color-bg-primary);
+  border-color: var(--color-error-100);
+  color: var(--color-error-700);
+}
+
+[data-theme="dark"] .app-flash--error {
+  background-color: var(--color-gray-800);
+  border-color: var(--color-error-700);
+  color: var(--color-error-100);
+}
+
+.app-flash--info {
+  background-color: var(--color-bg-primary);
+  border-color: var(--color-info-100);
+  color: var(--color-info-700);
+}
+
+[data-theme="dark"] .app-flash--info {
+  background-color: var(--color-gray-800);
+  border-color: var(--color-info-700);
+  color: var(--color-info-100);
+}
+
+.app-flash__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.app-flash__dot--success {
+  background-color: var(--color-success-500);
+}
+
+.app-flash__dot--error {
+  background-color: var(--color-error-500);
+}
+
+.app-flash__dot--info {
+  background-color: var(--color-info-500);
+}
+
+/* Floating AI chat FAB */
+.app-fab-chat {
+  position: fixed;
+  bottom: var(--spacing-6);
+  right: var(--spacing-6);
+  z-index: 50;
+}
+
+.app-fab-chat__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  transition: transform var(--transition-base) var(--transition-ease),
+    background-color var(--transition-base) var(--transition-ease);
+  background-color: var(--color-primary-600);
+  color: var(--color-text-inverse);
+}
+
+[data-theme="dark"] .app-fab-chat__btn {
+  background-color: var(--color-primary-500);
+}
+
+.app-fab-chat__btn:hover {
+  background-color: var(--color-primary-700);
+}
+
+[data-theme="dark"] .app-fab-chat__btn:hover {
+  background-color: var(--color-primary-600);
+}
+
+.app-fab-chat__btn:active {
+  transform: scale(0.9);
+}
+
+.app-fab-chat__btn--active {
+  background-color: var(--color-bg-primary);
+  color: var(--color-primary-600);
+  border: 1px solid var(--color-primary-100);
+}
+
+[data-theme="dark"] .app-fab-chat__btn--active {
+  background-color: var(--color-gray-800);
+  color: var(--color-primary-400);
+  border-color: var(--color-primary-800);
+}
+
+.auth-layout-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-gray-50);
+  transition: background-color var(--transition-base) var(--transition-ease);
+}
+
+[data-theme="dark"] .auth-layout-shell {
+  background-color: var(--color-gray-900);
+}

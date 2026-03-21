@@ -11,7 +11,7 @@ class SkeletonLoader {
     constructor(container, options = {}) {
         this.container = typeof container === 'string' ? document.querySelector(container) : container;
         this.options = {
-            type: options.type || 'default', // 'default', 'form', 'list', 'table', 'card'
+            type: options.type || 'default', // default, form, list, table, card, text, avatar, button (matches skeleton_loader.html)
             count: options.count || 1,
             ...options
         };
@@ -42,9 +42,33 @@ class SkeletonLoader {
                 return this.renderTableSkeleton();
             case 'card':
                 return this.renderCardSkeleton();
+            case 'text':
+                return this.renderTextSkeleton();
+            case 'avatar':
+                return this.renderAvatarSkeleton();
+            case 'button':
+                return this.renderButtonSkeleton();
             default:
                 return this.renderDefaultSkeleton();
         }
+    }
+
+    renderTextSkeleton() {
+        return Array(this.options.count).fill(0).map(() => `
+            <div class="skeleton-line h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+        `).join('');
+    }
+
+    renderAvatarSkeleton() {
+        return `
+            <div class="skeleton-circle w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+        `;
+    }
+
+    renderButtonSkeleton() {
+        return `
+            <div class="skeleton-line h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        `;
     }
     
     renderDefaultSkeleton() {

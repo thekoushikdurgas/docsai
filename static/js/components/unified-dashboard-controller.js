@@ -42,8 +42,22 @@ class UnifiedDashboardController {
         this.visibleRange = { start: 0, end: 50 };
         this.ITEMS_PER_PAGE = 50;
         this.VIRTUAL_SCROLL_THRESHOLD = 100; // Enable virtual scrolling for 100+ items
-        this.ROW_HEIGHT = 60; // Approximate row height in pixels (for file browser)
-        this.CARD_HEIGHT = 180; // Approximate card height in pixels (for list views)
+        this.ROW_HEIGHT = (function () {
+            try {
+                var v = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--docsai-row-height'), 10);
+                return !isNaN(v) && v > 0 ? v : 60;
+            } catch (e) {
+                return 60;
+            }
+        })();
+        this.CARD_HEIGHT = (function () {
+            try {
+                var v = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--docsai-card-height'), 10);
+                return !isNaN(v) && v > 0 ? v : 180;
+            } catch (e) {
+                return 180;
+            }
+        })();
         this.OVERSCAN = 5; // Render 5 extra rows above and below visible area
         this.scrollContainers = {}; // Track scroll containers per tab
         this.listScrollContainers = {}; // Track list view scroll containers

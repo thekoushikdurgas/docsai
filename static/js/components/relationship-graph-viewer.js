@@ -683,6 +683,13 @@ class RelationshipGraphViewer {
      */
     attachEventListeners() {
         window.addEventListener('resize', this.handleResize);
+
+        if (typeof ResizeObserver !== 'undefined' && this.container) {
+            this._resizeObserver = new ResizeObserver(() => {
+                this.handleResize();
+            });
+            this._resizeObserver.observe(this.container);
+        }
         
         // Clear selection on background click
         if (this.svg) {
@@ -698,6 +705,10 @@ class RelationshipGraphViewer {
      */
     destroy() {
         window.removeEventListener('resize', this.handleResize);
+        if (this._resizeObserver) {
+            this._resizeObserver.disconnect();
+            this._resizeObserver = null;
+        }
         
         if (this.simulation) {
             this.simulation.stop();

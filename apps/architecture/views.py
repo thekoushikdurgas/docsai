@@ -153,6 +153,19 @@ def architecture_view(request: HttpRequest) -> HttpResponse:
     section_checked_data_flow = section_filter == "data_flow"
     section_checked_tech_stack = section_filter == "tech_stack"
 
+    _arch_done = sum(
+        1
+        for done_check in [
+            bool(architecture_doc.get("structure")),
+            bool(architecture_doc.get("services")),
+            bool(architecture_doc.get("data_flow")),
+            bool(architecture_doc.get("tech_stack")),
+        ]
+        if done_check
+    )
+    _arch_pct = int((_arch_done / 4) * 100)
+    architecture_progress_meta = f"{_arch_done} / 4 sections complete ({_arch_pct}%)"
+
     context = {
         "section_filter": section_filter,
         "structure": architecture_doc.get("structure", []),
@@ -169,16 +182,7 @@ def architecture_view(request: HttpRequest) -> HttpResponse:
         "section_checked_tech_stack": section_checked_tech_stack,
         # Simple completeness/progress metric based on whether each major section has content.
         "architecture_sections_total": 4,
-        "architecture_sections_done": sum(
-            1
-            for done_check in [
-                bool(architecture_doc.get("structure")),
-                bool(architecture_doc.get("services")),
-                bool(architecture_doc.get("data_flow")),
-                bool(architecture_doc.get("tech_stack")),
-            ]
-            if done_check
-        ),
+        "architecture_sections_done": _arch_done,
         "architecture_sections_remaining": 4 - sum(
             1
             for done_check in [
@@ -189,22 +193,8 @@ def architecture_view(request: HttpRequest) -> HttpResponse:
             ]
             if done_check
         ),
-        "architecture_progress_percent": int(
-            (
-                sum(
-                    1
-                    for done_check in [
-                        bool(architecture_doc.get("structure")),
-                        bool(architecture_doc.get("services")),
-                        bool(architecture_doc.get("data_flow")),
-                        bool(architecture_doc.get("tech_stack")),
-                    ]
-                    if done_check
-                )
-                / 4
-            )
-            * 100
-        )
+        "architecture_progress_percent": _arch_pct,
+        "architecture_progress_meta": architecture_progress_meta,
     }
 
     # Apply section filter only to preview rendering.

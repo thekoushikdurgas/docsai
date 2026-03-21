@@ -1,51 +1,51 @@
-"""Hardcoded Contact360 architecture for DocsAI (no service API calls)."""
+"""Hardcoded Contact360 architecture mirror for DocsAI."""
 
 CONTACT360_PROJECT_STRUCTURE = [
     {
         "name": "contact360/",
-        "desc": "Frontend & tooling",
+        "desc": "Product applications: dashboard, marketing, DocsAI",
         "children": [
             {
                 "name": "dashboard/",
-                "desc": "Next.js 16, React 19, TypeScript – main app",
+                "desc": "Next.js 16, React 19, TypeScript - authenticated product UI",
             },
             {
                 "name": "marketing/",
-                "desc": "Next.js 16 – landing, pricing, product pages",
+                "desc": "Next.js 16 - marketing and docs-facing pages",
             },
             {
                 "name": "docsai/",
-                "desc": "Django – docs, admin, AI agent",
+                "desc": "Django - docs/admin tooling and internal control surfaces",
             },
         ],
     },
     {
         "name": "lambda/",
-        "desc": "Backend microservices",
+        "desc": "Backend services",
         "children": [
             {
                 "name": "appointment360/",
-                "desc": "FastAPI GraphQL backend (Python)",
+                "desc": "FastAPI GraphQL gateway and orchestration (Python)",
             },
             {
                 "name": "connectra/",
-                "desc": "Go – Contacts/Companies VQL API (Elasticsearch)",
+                "desc": "Go - Contacts/companies VQL API (Elasticsearch)",
             },
             {
                 "name": "emailapis/",
-                "desc": "Python – Email finder, verifier",
+                "desc": "Python - Email finder and verifier orchestration",
             },
             {
                 "name": "emailapigo/",
-                "desc": "Go – Email finder (Connectra, patterns, verification)",
+                "desc": "Go - High-throughput finder pipelines",
             },
             {
                 "name": "mailvetter/",
-                "desc": "Go – Email verification (DNS, SMTP, disposable)",
+                "desc": "Go - Email verification (DNS, SMTP, disposable checks)",
             },
             {
                 "name": "logs.api/",
-                "desc": "Python – Logging (MongoDB)",
+                "desc": "Python - Centralized logging and audit trails (MongoDB)",
             },
             {
                 "name": "s3storage/",
@@ -53,36 +53,31 @@ CONTACT360_PROJECT_STRUCTURE = [
             },
             {
                 "name": "salesnavigator/",
-                "desc": "Python – Sales Navigator scraping",
+                "desc": "Python - Sales Navigator integration and ingestion",
             },
             {
                 "name": "contact.ai/",
-                "desc": "Python – AI services (Gemini)",
+                "desc": "Python - AI workflows and Gemini-powered features",
             },
             {
                 "name": "tkdjob/",
-                "desc": "Python – Job scheduler (Kafka, DAG)",
+                "desc": "Python - Async scheduler and DAG jobs (Kafka)",
             },
         ],
     },
     {
-        "name": "extention/",
-        "desc": "Chrome extension",
+        "name": "extension/",
+        "desc": "Browser extension packages (may be omitted in minimal clones)",
         "children": [
             {
-                "name": "contact360/",
-                "desc": "Sidebar extension for Sales Navigator",
+                "name": "contact360360/",
+                "desc": "Chrome extension for Sales Navigator workflows (canonical path)",
             },
         ],
-    },
-    {
-        "name": "apis/",
-        "desc": "API gateways & shared API artifacts",
-        "children": [],
     },
     {
         "name": "docs/",
-        "desc": "Product documentation (roadmap, versioning, architecture)",
+        "desc": "Product documentation (architecture, roadmap, versioning)",
         "children": [],
     },
 ]
@@ -93,12 +88,14 @@ CONTACT360_SERVICES = [
         "location": "lambda/appointment360/",
         "tech": "FastAPI, GraphQL, Python",
         "purpose": "Core API and orchestration for domain operations",
+        "note": "Client-facing gateway is GraphQL-only; calls downstream lambdas via internal REST",
     },
     {
         "name": "Connectra",
         "location": "lambda/connectra/",
         "tech": "Go, Elasticsearch, VQL",
         "purpose": "Contacts/companies search and list API",
+        "note": "Uses Vivek Query Language (VQL) for query parsing and search translation",
     },
     {
         "name": "Email APIs",
@@ -110,7 +107,7 @@ CONTACT360_SERVICES = [
         "name": "Email API Go",
         "location": "lambda/emailapigo/",
         "tech": "Go",
-        "purpose": "High-throughput finder (Connectra, patterns, verification)",
+        "purpose": "High-throughput finder workers",
     },
     {
         "name": "Mailvetter",
@@ -181,6 +178,11 @@ CONTACT360_DATA_FLOW = [
         "to_node": "Kafka consumers & workers",
         "label": "Async batches & integrations",
     },
+    {
+        "from_node": "TKD Job",
+        "to_node": "emailapis / mailvetter",
+        "label": "Batch job email finder/verifier sub-calls",
+    },
 ]
 
 CONTACT360_TECH_STACK = {
@@ -188,7 +190,7 @@ CONTACT360_TECH_STACK = {
         "title": "Frontend",
         "items": [
             "Next.js 16, React 19, TypeScript",
-            "Tailwind CSS (dashboard & marketing)",
+            "Dashboard: modular custom CSS (`app/css/*`); Marketing: custom CSS (BEM-like naming)",
         ],
     },
     "backend": {
@@ -212,6 +214,7 @@ CONTACT360_TECH_STACK = {
             "S3 (CSV, exports, uploads)",
             "Elasticsearch (search)",
             "MongoDB (logs)",
+            "PostgreSQL (per-service relational DB)",
         ],
     },
     "ai": {

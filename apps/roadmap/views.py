@@ -172,6 +172,13 @@ def roadmap_view(request: HttpRequest) -> HttpResponse:
     status_checked_in_progress = status_filter == "in_progress"
     status_checked_planned = status_filter == "planned"
 
+    _stages = roadmap_doc.get("stages", [])
+    _completed = sum(1 for s in _stages if s.get("status") == "completed")
+    _pct = int((_completed / max(1, len(_stages))) * 100) if _stages else 0
+    roadmap_progress_meta = (
+        f"{_completed} / {len(_stages)} completed ({_pct}%)" if _stages else "0 / 0 completed (0%)"
+    )
+
     context = {
         "version": roadmap_doc.get("version", CONTACT360_VERSION),
         "product": roadmap_doc.get("product", CONTACT360_PRODUCT),
@@ -187,17 +194,8 @@ def roadmap_view(request: HttpRequest) -> HttpResponse:
         "status_checked_completed": status_checked_completed,
         "status_checked_in_progress": status_checked_in_progress,
         "status_checked_planned": status_checked_planned,
-        "roadmap_progress_percent": (
-            int(
-                (
-                    sum(1 for s in roadmap_doc.get("stages", []) if s.get("status") == "completed")
-                    / max(1, len(roadmap_doc.get("stages", [])))
-                )
-                * 100
-            )
-            if roadmap_doc.get("stages")
-            else 0
-        ),
+        "roadmap_progress_percent": _pct,
+        "roadmap_progress_meta": roadmap_progress_meta,
         # For JSONTreeEditor: a JS object literal (stringified JSON) embedded into the component.
         "roadmap_json_data": json.dumps(editor_doc, indent=2, ensure_ascii=False),
     }

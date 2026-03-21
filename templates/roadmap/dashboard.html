@@ -41,21 +41,14 @@
             <div class="space-y-5">
                 <div class="bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Roadmap progress</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                {{ roadmap_completed_count }} / {{ roadmap_total_stages }} completed
-                                ({{ roadmap_progress_percent }}%)
-                            </p>
+                        <div class="flex-1 min-w-0">
+                            {% include 'components/progress.html' with value=roadmap_progress_percent label='Roadmap progress' meta=roadmap_progress_meta animated=False %}
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="badge whitespace-nowrap badge--status-success">{{ roadmap_completed_count }} completed</span>
                             <span class="badge whitespace-nowrap badge--status-info">{{ roadmap_in_progress_count }} in progress</span>
                             <span class="badge whitespace-nowrap badge--status-default">{{ roadmap_planned_count }} planned</span>
                         </div>
-                    </div>
-                    <div class="mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                        <div class="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300 ease-out" style="width: {{ roadmap_progress_percent }}%"></div>
                     </div>
                 </div>
 

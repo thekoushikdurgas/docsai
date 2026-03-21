@@ -1,0 +1,25 @@
+{% comment %}
+Progress bar component (BEM: .progress)
+
+Usage:
+{% include 'components/progress.html' with value=75 label='Roadmap progress' meta='12 / 16 stages' variant='default' size='md' animated=False %}
+
+Parameters:
+- value: 0-100 (required)
+- label: optional heading text
+- meta: optional right-side text (counts, percent string)
+- variant: default | success | warning | danger | indigo
+- size: sm | md | lg
+- animated: boolean
+{% endcomment %}
+<div class="progress progress--{{ size|default:'md' }}{% if animated %} progress--animated{% endif %}{% if variant == 'success' %} progress--success{% elif variant == 'warning' %} progress--warning{% elif variant == 'danger' %} progress--danger{% elif variant == 'indigo' %} progress--indigo{% endif %}">
+    {% if label or meta %}
+    <div class="progress__header">
+        {% if label %}<span class="progress__label">{{ label }}</span>{% endif %}
+        {% if meta %}<span class="progress__meta">{{ meta }}</span>{% endif %}
+    </div>
+    {% endif %}
+    <div class="progress__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ value }}" {% if label %}aria-label="{{ label }}"{% endif %}>
+        <div class="progress__bar" style="width: {{ value }}%"></div>
+    </div>
+</div>

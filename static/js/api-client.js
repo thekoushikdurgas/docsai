@@ -18,6 +18,9 @@ class APIClient {
 
     async request(endpoint, options = {}) {
         const url = `${this.baseUrl}${endpoint}`;
+        const timeoutMs = options.timeoutMs !== undefined ? options.timeoutMs : 60000;
+        const signal = options.signal;
+
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
@@ -34,15 +37,37 @@ class APIClient {
             }
         };
 
-        if (options.body && typeof options.body === 'object') {
+        delete mergedOptions.timeoutMs;
+
+        let controller = null;
+        let timeoutId = null;
+        if (timeoutMs > 0 && !signal) {
+            controller = new AbortController();
+            mergedOptions.signal = controller.signal;
+            timeoutId = setTimeout(function () {
+                controller.abort();
+            }, timeoutMs);
+        }
+
+        if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
             mergedOptions.body = JSON.stringify(options.body);
         }
 
         try {
             const response = await fetch(url, mergedOptions);
-            return await response.json();
+            if (timeoutId) clearTimeout(timeoutId);
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                return await response.json();
+            }
+            const text = await response.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                return { raw: text, ok: response.ok, status: response.status };
+            }
         } catch (error) {
-            console.error('API request error:', error);
+            if (timeoutId) clearTimeout(timeoutId);
             throw error;
         }
     }

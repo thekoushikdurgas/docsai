@@ -29,6 +29,7 @@ class Modal {
             confirmText: options.confirmText || 'Confirm',
             cancelText: options.cancelText || 'Cancel',
             showCancel: options.showCancel !== false, // Default true
+            layout: options.layout || 'center', // center | drawer (drawer slides from right)
             ...options
         };
         
@@ -81,7 +82,9 @@ class Modal {
         
         const modal = document.createElement('div');
         modal.id = this.options.id;
-        modal.className = 'modal-container';
+        modal.className =
+            'modal-container' +
+            (this.options.layout === 'drawer' ? ' modal-container--drawer' : '');
         modal.setAttribute('role', 'dialog');
         modal.setAttribute('aria-modal', 'true');
         modal.setAttribute('aria-labelledby', `${this.options.id}-title`);
@@ -96,10 +99,15 @@ class Modal {
             '2xl': 'max-w-2xl',
             full: 'max-w-full mx-4'
         };
-        
+
+        const dialogClass =
+            this.options.layout === 'drawer'
+                ? 'modal-dialog modal-dialog--drawer'
+                : `modal-dialog ${sizeClasses[this.options.size] || sizeClasses.md}`;
+
         modal.innerHTML = `
             <div class="modal-backdrop"></div>
-            <div class="modal-dialog ${sizeClasses[this.options.size] || sizeClasses.md}">
+            <div class="${dialogClass.trim()}">
                 <div class="modal-content">
                     ${this.options.title ? `
                         <div class="modal-header">
