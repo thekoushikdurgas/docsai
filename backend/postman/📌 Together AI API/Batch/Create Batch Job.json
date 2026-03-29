@@ -1,0 +1,24 @@
+{
+  "name": "Create Batch Job",
+  "rank": "b1N",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/batches",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.job_id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"endpoint\": \"/v1/chat/completions\",\r\n    \"input_file_id\": \"{{temp.file_id}}\",\r\n    \"completion_window\": \"24h\",\r\n    \"priority\": 1,\r\n    \"model_id\": \"meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"endpoint\": \"/v1/chat/completions\",\r\n    \"input_file_id\": \"{{temp.file_id}}\",\r\n    \"completion_window\": \"24h\",\r\n    \"priority\": 1,\r\n    \"model_id\": \"meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

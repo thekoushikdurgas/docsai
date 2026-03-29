@@ -1,0 +1,1 @@
+REST API v1 - Pages API: 25+ endpoints with full CRUD, category filtering, format/import/analyse endpoints, statistics, and custom actions

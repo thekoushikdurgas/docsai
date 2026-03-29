@@ -1,0 +1,48 @@
+{
+  "name": "READ_ POST _contacts_ (VQL filter query)",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "Connectra API Key",
+        "dataType": "string"
+      },
+      {
+        "id": 2,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"country\": [\"united states\"],\n        \"seniority\": [\"senior\"]\n      }\n    }\n  },\n  \"select_columns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"title\"],\n  \"limit\": 25\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"country\": [\"united states\"],\n        \"seniority\": [\"senior\"]\n      }\n    }\n  },\n  \"select_columns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"title\"],\n  \"limit\": 25\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,138 @@
+﻿{
+  "info": {
+    "name": "Email Runtime (emailapis + emailapigo)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Direct runtime API checks for lambda/emailapis and lambda/emailapigo parity."
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{email_runtime_base_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finder",
+      "item": [
+        {
+          "name": "POST /email/finder/",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-api-key", "value": "{{email_runtime_api_key}}" }
+            ],
+            "url": "{{email_runtime_base_url}}/email/finder/?first_name={{first_name}}&last_name={{last_name}}&domain={{domain}}"
+          }
+        },
+        {
+          "name": "POST /email/finder/bulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-api-key", "value": "{{email_runtime_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"first_name\": \"{{first_name}}\", \"last_name\": \"{{last_name}}\", \"domain\": \"{{domain}}\" }\n  ]\n}"
+            },
+            "url": "{{email_runtime_base_url}}/email/finder/bulk"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verifier",
+      "item": [
+        {
+          "name": "POST /email/single/verifier/",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-api-key", "value": "{{email_runtime_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"provider\": \"{{provider}}\"\n}"
+            },
+            "url": "{{email_runtime_base_url}}/email/single/verifier/"
+          }
+        },
+        {
+          "name": "POST /email/bulk/verifier/",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-api-key", "value": "{{email_runtime_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emails\": [\"{{email}}\"],\n  \"provider\": \"{{provider}}\"\n}"
+            },
+            "url": "{{email_runtime_base_url}}/email/bulk/verifier/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patterns",
+      "item": [
+        {
+          "name": "POST /email-patterns/add",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-api-key", "value": "{{email_runtime_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_uuid\": \"{{company_uuid}}\",\n  \"domain\": \"{{domain}}\",\n  \"pattern_format\": \"first.last\",\n  \"pattern_string\": \"john.smith\"\n}"
+            },
+            "url": "{{email_runtime_base_url}}/email-patterns/add"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Web Search",
+      "item": [
+        {
+          "name": "POST /web/web-search",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-api-key", "value": "{{email_runtime_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"{{first_name}} {{last_name}}\",\n  \"company_domain\": \"{{domain}}\"\n}"
+            },
+            "url": "{{email_runtime_base_url}}/web/web-search"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "email_runtime_base_url", "value": "https://example.execute-api.us-east-1.amazonaws.com" },
+    { "key": "email_runtime_api_key", "value": "" },
+    { "key": "first_name", "value": "John" },
+    { "key": "last_name", "value": "Doe" },
+    { "key": "domain", "value": "example.com" },
+    { "key": "email", "value": "john.doe@example.com" },
+    { "key": "provider", "value": "truelist" },
+    { "key": "company_uuid", "value": "00000000-0000-0000-0000-000000000000" }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "Complex Company Search with must_not",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/companies/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "Connectra API Key",
+        "dataType": "string"
+      },
+      {
+        "id": 2,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"artificial intelligence\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true,\n          \"operator\": \"and\"\n        }\n      ],\n      \"must_not\": [\n        {\n          \"text_value\": \"consulting\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true\n        }\n      ]\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"industries\": [\"Software\", \"Technology\"],\n        \"technologies\": [\"Python\", \"Machine Learning\"]\n      },\n      \"must_not\": {\n        \"keywords\": [\"Legacy\", \"Outdated\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"annual_revenue\": {\n          \"gte\": 5000000\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"annual_revenue\",\n      \"order_direction\": \"desc\"\n    },\n    {\n      \"order_by\": \"id\",\n      \"order_direction\": \"asc\"\n    }\n  ],\n  \"select_columns\": [\"name\", \"employees_count\", \"industries\", \"annual_revenue\", \"facebook_url\", \"twitter_url\"],\n  \"page\": 1,\n  \"limit\": 50\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"artificial intelligence\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true,\n          \"operator\": \"and\"\n        }\n      ],\n      \"must_not\": [\n        {\n          \"text_value\": \"consulting\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true\n        }\n      ]\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"industries\": [\"Software\", \"Technology\"],\n        \"technologies\": [\"Python\", \"Machine Learning\"]\n      },\n      \"must_not\": {\n        \"keywords\": [\"Legacy\", \"Outdated\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"annual_revenue\": {\n          \"gte\": 5000000\n        }\n      }\n    }\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"annual_revenue\",\n      \"order_direction\": \"desc\"\n    },\n    {\n      \"order_by\": \"id\",\n      \"order_direction\": \"asc\"\n    }\n  ],\n  \"select_columns\": [\"name\", \"employees_count\", \"industries\", \"annual_revenue\", \"facebook_url\", \"twitter_url\"],\n  \"page\": 1,\n  \"limit\": 50\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

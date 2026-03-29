@@ -1,0 +1,48 @@
+{
+  "name": "Bulk Upsert Contacts",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/batch-upsert",
+    "scripts": {
+      "preRequest": "// Set request timestamp\nrq.environment.set('timestamp', new Date().toISOString());\n\n// Log request details\nconsole.log(`Request to: ${rq.request.url.toString()}`);\n\n// Check if API key exists\nconst apiKey = rq.collectionVariables.get('apiKey');\nif (!apiKey || apiKey === '') {\n    console.warn('No API key set. Please set the apiKey collection variable.');\n}",
+      "postResponse": "rq.test('Status code is successful', function () {\n    rq.expect(rq.response.code).to.be.oneOf([200, 201, 202, 204]);\n});\n\nrq.test('Response time is acceptable', function () {\n    rq.expect(rq.response.responseTime).to.be.below(10000);\n});\n\nrq.test('Response has correct structure', function () {\n    if (rq.response.code === 200 || rq.response.code === 201) {\n        const jsonData = rq.response.json();\n        rq.expect(jsonData).to.be.an('object');\n        rq.expect(jsonData.success).to.be.a('boolean');\n    }\n});\n\n// Save UUIDs from response if available\nif (rq.response.code === 200 || rq.response.code === 201) {\n    try {\n        const jsonData = rq.response.json();\n        const endpoint = rq.request.url.toString();\n        \n        // Save contact UUID\n        if (jsonData.data && jsonData.data.uuid && (endpoint.includes('contact') || jsonData.data.first_name || jsonData.data.last_name)) {\n            rq.collectionVariables.set('contact_uuid', jsonData.data.uuid);\n        }\n        // Save company UUID\n        if (jsonData.data && jsonData.data.uuid && (endpoint.includes('company') || jsonData.data.name)) {\n            rq.collectionVariables.set('company_uuid', jsonData.data.uuid);\n        }\n    } catch (e) {\n        // Response might not be JSON or might not have UUID\n    }\n}"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "Connectra API Key",
+        "dataType": "string"
+      },
+      {
+        "id": 2,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "[\n  {\n    \"first_name\": \"John\",\n    \"last_name\": \"Smith\",\n    \"email\": \"john.smith@example.com\",\n    \"company_id\": \"c0a8012e-1111-2222-3333-444455556666\",\n    \"title\": \"Senior Software Engineer\",\n    \"departments\": [\"Engineering\"],\n    \"seniority\": \"senior\",\n    \"linkedin_url\": \"https://linkedin.com/in/johnsmith\"\n  },\n  {\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"email\": \"jane.doe@example.com\",\n    \"company_id\": \"c0a8012e-2222-3333-4444-555566667777\",\n    \"title\": \"Engineering Manager\",\n    \"departments\": [\"Engineering\"],\n    \"seniority\": \"lead\",\n    \"linkedin_url\": \"https://linkedin.com/in/janedoe\"\n  }\n]",
+    "bodyContainer": {
+      "text": "[\n  {\n    \"first_name\": \"John\",\n    \"last_name\": \"Smith\",\n    \"email\": \"john.smith@example.com\",\n    \"company_id\": \"c0a8012e-1111-2222-3333-444455556666\",\n    \"title\": \"Senior Software Engineer\",\n    \"departments\": [\"Engineering\"],\n    \"seniority\": \"senior\",\n    \"linkedin_url\": \"https://linkedin.com/in/johnsmith\"\n  },\n  {\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"email\": \"jane.doe@example.com\",\n    \"company_id\": \"c0a8012e-2222-3333-4444-555566667777\",\n    \"title\": \"Engineering Manager\",\n    \"departments\": [\"Engineering\"],\n    \"seniority\": \"lead\",\n    \"linkedin_url\": \"https://linkedin.com/in/janedoe\"\n  }\n]"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

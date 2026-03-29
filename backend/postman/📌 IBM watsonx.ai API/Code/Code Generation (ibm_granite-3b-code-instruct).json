@@ -1,0 +1,33 @@
+{
+  "name": "Code Generation (ibm_granite-3b-code-instruct)",
+  "rank": "b1h",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/ml/v1/text/generation?version=2023-05-29",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [
+      {
+        "id": 0,
+        "key": "version",
+        "value": "2023-05-29",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "headers": [],
+    "body": "{\r\n    \"input\": \"Using the directions below, generate Python code for the given task.\\n\\nInput: # Write a Python function that prints 'Hello World!' string 'n' times.\\nOutput: def print_n_times(n):\\n    for i in range(n):\\n        print(\\\"Hello World!\\\")\\n\\n<end of code>\\n\\nInput: # Write a Python function, which generates sequence of prime numbers.\\n# The function 'primes' will take the argument 'n', an int. It will return a list which contains all primes less than 'n'.\\nOutput:\",\r\n    \"parameters\": {\r\n        \"decoding_method\": \"greedy\",\r\n        \"max_new_tokens\": 1000,\r\n        \"min_new_tokens\": 1,\r\n        \"stop_sequences\": [\r\n            \"<end of code>\"\r\n        ],\r\n        \"repetition_penalty\": 1\r\n    },\r\n    \"model_id\": \"ibm/granite-3b-code-instruct\",\r\n    \"project_id\": \"{{projectId}}\",\r\n    \"moderations\": {\r\n        \"hap\": {\r\n            \"input\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            },\r\n            \"output\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"input\": \"Using the directions below, generate Python code for the given task.\\n\\nInput: # Write a Python function that prints 'Hello World!' string 'n' times.\\nOutput: def print_n_times(n):\\n    for i in range(n):\\n        print(\\\"Hello World!\\\")\\n\\n<end of code>\\n\\nInput: # Write a Python function, which generates sequence of prime numbers.\\n# The function 'primes' will take the argument 'n', an int. It will return a list which contains all primes less than 'n'.\\nOutput:\",\r\n    \"parameters\": {\r\n        \"decoding_method\": \"greedy\",\r\n        \"max_new_tokens\": 1000,\r\n        \"min_new_tokens\": 1,\r\n        \"stop_sequences\": [\r\n            \"<end of code>\"\r\n        ],\r\n        \"repetition_penalty\": 1\r\n    },\r\n    \"model_id\": \"ibm/granite-3b-code-instruct\",\r\n    \"project_id\": \"{{projectId}}\",\r\n    \"moderations\": {\r\n        \"hap\": {\r\n            \"input\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            },\r\n            \"output\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

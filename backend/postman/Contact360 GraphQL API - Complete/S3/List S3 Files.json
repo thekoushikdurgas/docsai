@@ -1,0 +1,40 @@
+{
+  "name": "List S3 Files",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ListS3Files($prefix:String){ s3{ s3Files(prefix:$prefix){ files{ key filename size lastModified} total}}}\",\n\"variables\":{\n\"prefix\":\"exports/\"\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ListS3Files($prefix:String){ s3{ s3Files(prefix:$prefix){ files{ key filename size lastModified} total}}}\",\n\"variables\":{\n\"prefix\":\"exports/\"\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

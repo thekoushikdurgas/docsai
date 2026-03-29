@@ -1,0 +1,33 @@
+{
+  "name": "Named Entity Extraction (google_flan-ul2)",
+  "rank": "b1r",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/ml/v1/text/generation?version=2023-05-29",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [
+      {
+        "id": 0,
+        "key": "version",
+        "value": "2023-05-29",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "headers": [],
+    "body": "{\r\n    \"input\": \"Act as a webmaster who must extract structured information from emails. Read the below email and extract and categorize each entity.\\n\\nInput: \\\"Golden Bank is a competitor of Silver Bank in the US\\\" said John Doe.\\nNamed Entities: Golden Bank: company, Silver Bank: company, US: country, John Doe: person\\n\\nInput: Dear team, \\n\\nI hope this email finds you well. I wanted to share some outstanding achievements from our recent sales efforts.\\n\\nWe now have a multimillion dollar contract with Golden Retail, where we are providing cutting-edge software solution that streamlines inventory management for retail businesses. The customer was struggling with manual inventory tracking, leading to inefficiencies and errors. We have great testimonials from John Doe who is our contact at Golden Retail.\\n\\nBest regards,\\n\\nSarah\\nNamed Entities:\",\r\n    \"parameters\": {\r\n        \"decoding_method\": \"greedy\",\r\n        \"max_new_tokens\": 50,\r\n        \"min_new_tokens\": 1,\r\n        \"stop_sequences\": [],\r\n        \"repetition_penalty\": 1\r\n    },\r\n    \"model_id\": \"google/flan-ul2\",\r\n    \"project_id\": \"{{projectId}}\",\r\n    \"moderations\": {\r\n        \"hap\": {\r\n            \"input\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            },\r\n            \"output\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"input\": \"Act as a webmaster who must extract structured information from emails. Read the below email and extract and categorize each entity.\\n\\nInput: \\\"Golden Bank is a competitor of Silver Bank in the US\\\" said John Doe.\\nNamed Entities: Golden Bank: company, Silver Bank: company, US: country, John Doe: person\\n\\nInput: Dear team, \\n\\nI hope this email finds you well. I wanted to share some outstanding achievements from our recent sales efforts.\\n\\nWe now have a multimillion dollar contract with Golden Retail, where we are providing cutting-edge software solution that streamlines inventory management for retail businesses. The customer was struggling with manual inventory tracking, leading to inefficiencies and errors. We have great testimonials from John Doe who is our contact at Golden Retail.\\n\\nBest regards,\\n\\nSarah\\nNamed Entities:\",\r\n    \"parameters\": {\r\n        \"decoding_method\": \"greedy\",\r\n        \"max_new_tokens\": 50,\r\n        \"min_new_tokens\": 1,\r\n        \"stop_sequences\": [],\r\n        \"repetition_penalty\": 1\r\n    },\r\n    \"model_id\": \"google/flan-ul2\",\r\n    \"project_id\": \"{{projectId}}\",\r\n    \"moderations\": {\r\n        \"hap\": {\r\n            \"input\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            },\r\n            \"output\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

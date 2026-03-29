@@ -1,0 +1,40 @@
+{
+  "name": "Export LinkedIn Results",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation ExportLinkedIn($input:LinkedInExportInput!){ linkedin{ exportLinkedInResults(input:$input){ exportId downloadUrl contactCount companyCount}}}\",\n\"variables\":{\n\"input\":{\n\"urls\":[\n\"https://www.linkedin.com/in/johndoe\"\n]\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation ExportLinkedIn($input:LinkedInExportInput!){ linkedin{ exportLinkedInResults(input:$input){ exportId downloadUrl contactCount companyCount}}}\",\n\"variables\":{\n\"input\":{\n\"urls\":[\n\"https://www.linkedin.com/in/johndoe\"\n]\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

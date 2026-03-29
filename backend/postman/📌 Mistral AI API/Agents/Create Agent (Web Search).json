@@ -1,0 +1,41 @@
+{
+  "name": "Create Agent (Web Search)",
+  "rank": "b0P",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/agents",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.agent_id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n    \"model\": \"mistral-medium-2505\",\n    \"name\": \"Websearch Agent\",\n    \"description\": \"Agent able to search information over the web, such as news, weather, sport results...\",\n    \"instructions\": \"You have the ability to perform web searches with `web_search` to find up-to-date information.\",\n    \"tools\": [\n        {\n            \"type\": \"web_search\"\n        }\n    ],\n    \"completion_args\": {\n        \"temperature\": 0.3,\n        \"top_p\": 0.95\n    }\n}",
+    "bodyContainer": {
+      "text": "{\n    \"model\": \"mistral-medium-2505\",\n    \"name\": \"Websearch Agent\",\n    \"description\": \"Agent able to search information over the web, such as news, weather, sport results...\",\n    \"instructions\": \"You have the ability to perform web searches with `web_search` to find up-to-date information.\",\n    \"tools\": [\n        {\n            \"type\": \"web_search\"\n        }\n    ],\n    \"completion_args\": {\n        \"temperature\": 0.3,\n        \"top_p\": 0.95\n    }\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

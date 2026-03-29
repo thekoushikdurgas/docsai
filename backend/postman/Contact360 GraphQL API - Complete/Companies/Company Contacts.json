@@ -1,0 +1,40 @@
+{
+  "name": "Company Contacts",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query CompanyContacts($companyUuid:ID!){ companies{ companyContacts(companyUuid:$companyUuid){ items{ uuid firstName lastName email title} total}}}\",\n\"variables\":{\n\"companyUuid\":\"{{companyUuid}}\"\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query CompanyContacts($companyUuid:ID!){ companies{ companyContacts(companyUuid:$companyUuid){ items{ uuid firstName lastName email title} total}}}\",\n\"variables\":{\n\"companyUuid\":\"{{companyUuid}}\"\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

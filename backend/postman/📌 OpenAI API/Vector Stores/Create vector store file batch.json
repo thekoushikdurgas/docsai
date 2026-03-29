@@ -1,0 +1,33 @@
+{
+  "name": "Create vector store file batch",
+  "rank": "b2G",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/vector_stores/:vector_store_id/file_batches",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.vsfb_id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "OpenAI-Beta",
+        "value": "assistants=v2",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\r\n    \"file_ids\": [{{temp.file_id}}]\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"file_ids\": [{{temp.file_id}}]\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

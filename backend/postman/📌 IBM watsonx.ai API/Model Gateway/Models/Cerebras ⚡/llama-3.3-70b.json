@@ -1,0 +1,24 @@
+{
+  "name": "llama-3.3-70b",
+  "rank": "b0T",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/{{temp.cerebras_provider_id}}/models",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.model_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"alias\": \"cerebras/llama-3.3-70b\",\r\n    \"id\": \"llama-3.3-70b\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"alias\": \"cerebras/llama-3.3-70b\",\r\n    \"id\": \"llama-3.3-70b\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

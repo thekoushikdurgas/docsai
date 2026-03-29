@@ -1,0 +1,24 @@
+{
+  "name": "NVIDIA AI",
+  "rank": "b09",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/nim",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.nvidia_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"nvidia-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_nvidia}}\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"nvidia-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_nvidia}}\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

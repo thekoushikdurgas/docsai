@@ -1,0 +1,609 @@
+{
+	"info": {
+		"_postman_id": "contact-ai-service-collection-2026",
+		"name": "Contact AI Service",
+		"description": "Postman collection for the Contact AI FastAPI service (AWS Lambda + API Gateway HttpApi, or local uvicorn).\n\n**Base URL**: {{base_url}}\n**Example deployed URL**: https://aziwa531nl.execute-api.us-east-1.amazonaws.com\n**Local development**: http://localhost:8080 (see `PORT` in app settings)\n\n**Authentication**\n- `GET /api/v1/health`, `GET /health`, `GET /`: no auth\n- All other routes: `X-API-Key` (must match server `API_KEY`)\n- AI Chat routes (`/api/v1/ai-chats/...`): also require `X-User-ID`\n\n**API layout**\n- **Health / meta**: lightweight `GET /api/v1/health`; richer DB health on `GET /health`; service banner on `GET /`\n- **AI Chat** (`/api/v1/ai-chats`): CRUD, send message, SSE stream (7 operations)\n- **AI utilities** (`/api/v1/ai`): email risk, company summary, parse-filters via Hugging Face Inference (same router as chat; not under `/gemini`)\n\n**Stack notes**\n- Chat and utility AI calls use Hugging Face Inference Providers (`HFService`, OpenAI-compatible chat completions), not Google Gemini paths.\n- Chat model override values are the `ModelSelection` enum strings (e.g. `Qwen/Qwen2.5-7B-Instruct-1M:fastest`).\n\n**Usage**\n1. Set `base_url`, `api_key`, `user_id` (Postman collection variables or environment).\n2. Call `GET /health` or `GET /api/v1/health` to verify reachability.\n3. `POST /api/v1/ai-chats/` then message / stream endpoints as needed.\n4. Use `POST /api/v1/ai/...` for email, company summary, and filter parsing.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"health"
+							]
+						},
+						"description": "Check service health status. Returns service name, version, and status. No authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check (root, PostgreSQL cache)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Application-level health from `app.main`: returns cached PostgreSQL connectivity, diagnostics, and cache metadata. Triggers background refresh when stale. No authentication required.\n\nContrast with `GET /api/v1/health` (simple JSON from the v1 router)."
+					},
+					"response": []
+				},
+				{
+					"name": "Service root",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Root endpoint: service name, version, and status. No authentication required."
+					},
+					"response": []
+				}
+			],
+			"description": "Health and discovery (no authentication required). Prefer `GET /health` for database-aware status; use `GET /api/v1/health` for a minimal JSON probe."
+		},
+		{
+			"name": "AI Chat",
+			"item": [
+				{
+					"name": "List Chats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/?limit=25&offset=0&ordering=-created_at",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								""
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "25",
+									"description": "Number of results per page (1-100)",
+									"disabled": false
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Offset for pagination",
+									"disabled": false
+								},
+								{
+									"key": "ordering",
+									"value": "-created_at",
+									"description": "Order by field. Prepend '-' for descending. Valid: created_at, updated_at, -created_at, -updated_at",
+									"disabled": false
+								},
+								{
+									"key": "title",
+									"value": "",
+									"description": "Case-insensitive substring match against chat title",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "General-purpose search term",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "1-indexed page number (alternative to offset)",
+									"disabled": true
+								},
+								{
+									"key": "page_size",
+									"value": "25",
+									"description": "Explicit page size override",
+									"disabled": true
+								},
+								{
+									"key": "created_at_after",
+									"value": "",
+									"description": "ISO 8601 datetime — filter chats created on or after this time",
+									"disabled": true
+								},
+								{
+									"key": "created_at_before",
+									"value": "",
+									"description": "ISO 8601 datetime — filter chats created on or before this time",
+									"disabled": true
+								},
+								{
+									"key": "updated_at_after",
+									"value": "",
+									"description": "ISO 8601 datetime — filter chats updated on or after this time",
+									"disabled": true
+								},
+								{
+									"key": "updated_at_before",
+									"value": "",
+									"description": "ISO 8601 datetime — filter chats updated on or before this time",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get a paginated list of all AI chat conversations for a user. Only returns chats owned by the specified user (from X-User-ID header). Default ordering is by -created_at (newest first). If both the top-level `ordering` and filter-style params include `ordering`, the filter param object wins when present."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Chat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"My Chat Title\",\n  \"messages\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								""
+							]
+						},
+						"description": "Create a new AI chat conversation. The user_id is provided via X-User-ID header (set by appointment360). The chat ID is a UUID generated automatically. Messages can be empty initially and added later via update."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific AI chat conversation, including all messages. Only the chat owner can access their chats."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Chat",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Chat Title\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Update an existing AI chat conversation (typically to add new messages or update the title). All fields are optional - only provided fields will be updated (partial update). When updating messages, provide the complete messages array (it replaces existing messages). Only the chat owner can update their chats."
+					},
+					"response": []
+				},
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"Hello, how are you?\",\n  \"model\": \"Qwen/Qwen2.5-7B-Instruct-1M:fastest\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								"message"
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Send a message in a chat and get an AI reply. Persists the user message, calls Hugging Face chat completions (`HFService`), and returns the updated chat. Only the chat owner can send messages.\n\n**Request body**\n- `message` (required): non-empty string\n- `model` (optional): one of `ModelSelection` — `Qwen/Qwen2.5-7B-Instruct-1M:fastest`, `HuggingFaceH4/zephyr-7b-beta:fastest`, `mistralai/Mistral-7B-Instruct-v0.2:fastest`, `meta-llama/Meta-Llama-3.1-8B-Instruct:fastest`. Omit to use server default (`HF_CHAT_MODEL`)."
+					},
+					"response": []
+				},
+				{
+					"name": "Stream Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"Tell me about artificial intelligence\",\n  \"model\": \"Qwen/Qwen2.5-7B-Instruct-1M:fastest\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/message/stream",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								"message",
+								"stream"
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Stream the assistant reply over SSE (`text/event-stream`). Chunks are JSON lines prefixed with `data: `; stream ends with `data: [DONE]`. Same `model` options as non-streaming send. Only the chat owner can send messages.\n\n**Note:** Postman may buffer or truncate streams; use curl or an SSE client for full verification."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Chat",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							},
+							{
+								"key": "X-User-ID",
+								"value": "{{user_id}}",
+								"description": "User UUID for chat endpoints"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai-chats/:chat_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai-chats",
+								":chat_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "chat_id",
+									"value": "chat-uuid-here",
+									"description": "Chat UUID"
+								}
+							]
+						},
+						"description": "Delete an AI chat conversation. Only the chat owner can delete their chats. Deletion is permanent and cannot be undone."
+					},
+					"response": []
+				}
+			],
+			"description": "AI Chat endpoints for managing conversations (7 endpoints total)"
+		},
+		{
+			"name": "AI utilities (Hugging Face)",
+			"item": [
+				{
+					"name": "Email Risk Analysis",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai/email/analyze",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"email",
+								"analyze"
+							]
+						},
+						"description": "Analyze an email address for risk signals via `HFService.analyze_email_risk` (LLM JSON output). Requires `X-API-Key` only.\n\n**Request body**\n- `email` (required): valid email string (`EmailStr`)\n\n**Response**\n- `riskScore`, `analysis`, `isRoleBased`, `isDisposable`"
+					},
+					"response": []
+				},
+				{
+					"name": "Company Summary",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_name\": \"Google\",\n  \"industry\": \"Technology\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai/company/summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"company",
+								"summary"
+							]
+						},
+						"description": "Generate a short company summary from name + industry (`HFService.generate_company_summary`). Requires `X-API-Key` only.\n\n**Response**\n- `summary`: string"
+					},
+					"response": []
+				},
+				{
+					"name": "Parse Filters",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": \"Find software engineers in San Francisco with 5-10 years of experience\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/ai/parse-filters",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ai",
+								"parse-filters"
+							]
+						},
+						"description": "Parse natural language into structured contact filters (`HFService.parse_contact_filters`). Requires `X-API-Key` only.\n\n**Request body**\n- `query` (required): natural language string\n\n**Response**\n- Optional fields: `job_titles`, `company_names`, `industry`, `location`, `employees` (min/max tuple), `seniority`"
+					},
+					"response": []
+				}
+			],
+			"description": "Stateless AI helpers mounted at `/api/v1/ai` (`app.api.v1.endpoints.ai`). Implemented with Hugging Face Inference, not under `/gemini`."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://aziwa531nl.execute-api.us-east-1.amazonaws.com",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "contact-ai-api-key-change-me",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "user-uuid-here",
+			"type": "string"
+		}
+	]
+}

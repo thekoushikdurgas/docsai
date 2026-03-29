@@ -1,0 +1,1 @@
+Log CRUD operations - all endpoints require X-API-Key header

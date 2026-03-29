@@ -1,0 +1,24 @@
+{
+  "name": "gpt-4.1-nano",
+  "rank": "b0K",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/{{temp.openai_provider_id}}/models",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.model_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"alias\": \"openai/gpt-4.1-nano\",\r\n    \"id\": \"gpt-4.1-nano\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"alias\": \"openai/gpt-4.1-nano\",\r\n    \"id\": \"gpt-4.1-nano\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

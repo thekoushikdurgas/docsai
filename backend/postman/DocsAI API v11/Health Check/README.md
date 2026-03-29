@@ -1,0 +1,1 @@
+Health check and service info endpoints (no authentication required).

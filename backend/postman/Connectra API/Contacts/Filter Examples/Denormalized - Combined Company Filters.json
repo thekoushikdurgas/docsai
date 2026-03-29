@@ -1,0 +1,40 @@
+{
+  "name": "Denormalized - Combined Company Filters",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"company_industries\": [\"Software\", \"SaaS\"],\n        \"company_technologies\": [\"Python\", \"Go\", \"React\"],\n        \"company_country\": [\"united states\", \"canada\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"company_employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"company_annual_revenue\": {\n          \"gte\": 5000000\n        },\n        \"company_total_funding\": {\n          \"gte\": 5000000\n        }\n      }\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"seniority\": [\"senior\", \"lead\"],\n        \"departments\": [\"Engineering\"],\n        \"email_status\": [\"verified\"]\n      }\n    }\n  },\n  \"page\": 1,\n  \"limit\": 25\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"company_industries\": [\"Software\", \"SaaS\"],\n        \"company_technologies\": [\"Python\", \"Go\", \"React\"],\n        \"company_country\": [\"united states\", \"canada\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"company_employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"company_annual_revenue\": {\n          \"gte\": 5000000\n        },\n        \"company_total_funding\": {\n          \"gte\": 5000000\n        }\n      }\n    },\n    \"keyword_match\": {\n      \"must\": {\n        \"seniority\": [\"senior\", \"lead\"],\n        \"departments\": [\"Engineering\"],\n        \"email_status\": [\"verified\"]\n      }\n    }\n  },\n  \"page\": 1,\n  \"limit\": 25\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

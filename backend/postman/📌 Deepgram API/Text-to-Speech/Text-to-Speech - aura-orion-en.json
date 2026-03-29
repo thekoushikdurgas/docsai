@@ -1,0 +1,33 @@
+{
+  "name": "Text-to-Speech - aura-orion-en",
+  "rank": "b0D",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/speak?model=aura-orion-en",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "var template = `\r\n<style type=\"text/css\">\r\n    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}\r\n    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}\r\n    .tftable tr {background-color:#ffffff;}\r\n    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}\r\n    .tftable tr:hover {background-color:#e0ffff;}\r\n</style>\r\n\r\n<table class=\"tftable\" border=\"1\">\r\n    <tr>\r\n        <th>Status</th>\r\n        <th>Content-Type</th>\r\n        <th>Response</th>\r\n    </tr>\r\n    <tr>\r\n        <td>{{response.status}}</td>\r\n        <td>{{response.headers[\"content-type\"]}}</td>\r\n        <td>{{response.body}}</td>\r\n    </tr>\r\n</table>\r\n`;\r\n\r\nfunction constructVisualizerPayload() {\r\n    return { response: {\r\n        status: 200,\r\n        headers: { \"content-type\": \"audio/mpeg\" },\r\n        body: \"null\"\r\n    }}\r\n}\r\n\r\nrq.visualizer.set(template, constructVisualizerPayload());"
+    },
+    "method": "POST",
+    "queryParams": [
+      {
+        "id": 0,
+        "key": "model",
+        "value": "aura-orion-en",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "headers": [],
+    "body": "{\n    \"text\": \"Hello, how can I help you today?\"\n}",
+    "bodyContainer": {
+      "text": "{\n    \"text\": \"Hello, how can I help you today?\"\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

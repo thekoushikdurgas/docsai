@@ -1,0 +1,24 @@
+{
+  "name": "ibm-granite_granite-vision-3.2-2b",
+  "rank": "at",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/models/ibm-granite/granite-vision-3.2-2b/predictions",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"stream\": true,\r\n    \"input\": {\r\n        \"image\": \"https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg\",\r\n        \"prompt\": \"Describe this image\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"stream\": true,\r\n    \"input\": {\r\n        \"image\": \"https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg\",\r\n        \"prompt\": \"Describe this image\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Batches",
+  "rank": "b0A",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/batches",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.request_id', jsonResponse.id)\r\n"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n\t\"input_file_id\": \"{{temp.file_id}}\",\r\n\t\"endpoint\": \"/v1/chat/completions\",\r\n\t\"completion_window\": \"24h\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n\t\"input_file_id\": \"{{temp.file_id}}\",\r\n\t\"endpoint\": \"/v1/chat/completions\",\r\n\t\"completion_window\": \"24h\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

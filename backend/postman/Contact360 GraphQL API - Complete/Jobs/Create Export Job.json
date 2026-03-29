@@ -1,0 +1,40 @@
+{
+  "name": "Create Export Job",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation CreateExportJob($input:CreateExportJobInput!){ jobs{ createExportJob(input:$input){ uuid jobType status data createdAt}}}\",\n\"variables\":{\n\"input\":{\n\"service\":\"contact\",\n\"vql\":{\n\"where\":{\n\"keywordMatch\":{\n\"must\":{\n\"country\":[\n\"united states\"\n],\n\"title\":[\n\"VP\",\n\"Director\"\n]\n}\n}\n},\n\"selectColumns\":[\n\"first_name\",\n\"last_name\",\n\"email\",\n\"title\",\n\"uuid\"\n],\n\"orderBy\":[\n{\n\"orderBy\":\"created_at\",\n\"orderDirection\":\"desc\"\n}\n],\n\"limit\":500\n},\n\"s3Bucket\":\"my-bucket\",\n\"retryCount\":2\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation CreateExportJob($input:CreateExportJobInput!){ jobs{ createExportJob(input:$input){ uuid jobType status data createdAt}}}\",\n\"variables\":{\n\"input\":{\n\"service\":\"contact\",\n\"vql\":{\n\"where\":{\n\"keywordMatch\":{\n\"must\":{\n\"country\":[\n\"united states\"\n],\n\"title\":[\n\"VP\",\n\"Director\"\n]\n}\n}\n},\n\"selectColumns\":[\n\"first_name\",\n\"last_name\",\n\"email\",\n\"title\",\n\"uuid\"\n],\n\"orderBy\":[\n{\n\"orderBy\":\"created_at\",\n\"orderDirection\":\"desc\"\n}\n],\n\"limit\":500\n},\n\"s3Bucket\":\"my-bucket\",\n\"retryCount\":2\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

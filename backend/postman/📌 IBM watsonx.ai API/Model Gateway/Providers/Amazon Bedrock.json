@@ -1,0 +1,24 @@
+{
+  "name": "Amazon Bedrock",
+  "rank": "b07",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/bedrock",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.bedrock_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"bedrock-provider\",\r\n    \"data\": {\r\n        \"access_key_id\": \"{{aws_AccessKey}}\",\r\n        \"secret_access_key\": \"{{aws_SecretKey}}\",\r\n        \"region\": \"{{aws_Region}}\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"bedrock-provider\",\r\n    \"data\": {\r\n        \"access_key_id\": \"{{aws_AccessKey}}\",\r\n        \"secret_access_key\": \"{{aws_SecretKey}}\",\r\n        \"region\": \"{{aws_Region}}\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Get Contact",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query GetContact($uuid:ID!){ contacts{ contact(uuid:$uuid){ uuid firstName lastName email title companyUuid linkedinUrl city country company{ uuid name employeesCount industries address annualRevenue website linkedinUrl phoneNumber city state country}}}}\",\n\"variables\":{\n\"uuid\":\"{{contactUuid}}\"\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query GetContact($uuid:ID!){ contacts{ contact(uuid:$uuid){ uuid firstName lastName email title companyUuid linkedinUrl city country company{ uuid name employeesCount industries address annualRevenue website linkedinUrl phoneNumber city state country}}}}\",\n\"variables\":{\n\"uuid\":\"{{contactUuid}}\"\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

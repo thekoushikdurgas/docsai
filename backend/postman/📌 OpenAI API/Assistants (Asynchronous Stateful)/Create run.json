@@ -1,0 +1,33 @@
+{
+  "name": "Create run",
+  "rank": "b0c",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/threads/:thread_id/runs",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.run_id', jsonResponse.id)\r\n"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "OpenAI-Beta",
+        "value": "assistants=v2",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\r\n    \"assistant_id\": \"asst_ZfZRQscQklTzBr8s3MpKFc6L\",\r\n    \"instructions\": \"Please address the user as Jane Doe. The user has a premium account.\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"assistant_id\": \"asst_ZfZRQscQklTzBr8s3MpKFc6L\",\r\n    \"instructions\": \"Please address the user as Jane Doe. The user has a premium account.\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

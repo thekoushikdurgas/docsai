@@ -1,0 +1,1 @@
+Health check endpoint (no authentication required)

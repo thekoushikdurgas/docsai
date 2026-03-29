@@ -1,0 +1,24 @@
+{
+  "name": "Naive RAG (Question Answering)",
+  "rank": "b0I",
+  "request": {
+    "type": "http",
+    "url": "https://bstraehle-rag.hf.space/gradio_api/call/predict",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.event_id', jsonResponse.event_id)\r\n"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\n    \"data\": [\n\t    \"{{apiKey_openai}}\",\n        \"What is the GPT-4 API's cost and rate limit? Answer in English, Arabic, Chinese, Hindi, and Russian in JSON format.\",\n        \"LangChain\"\n    ]\n}",
+    "bodyContainer": {
+      "text": "{\n    \"data\": [\n\t    \"{{apiKey_openai}}\",\n        \"What is the GPT-4 API's cost and rate limit? Answer in English, Arabic, Chinese, Hindi, and Russian in JSON format.\",\n        \"LangChain\"\n    ]\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "NO_AUTH",
+      "authConfigStore": {}
+    }
+  }
+}

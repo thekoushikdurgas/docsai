@@ -1,0 +1,40 @@
+{
+  "name": "Update Saved Search",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation UpdateSavedSearch($id:ID!, $input:UpdateSavedSearchInput!){ savedSearches{ updateSavedSearch(id:$id, input:$input){ id name description type search_term filters sort_field sort_direction page_size updated_at}}}\",\n\"variables\":{\n\"id\":\"1\",\n\"input\":{\n\"name\":\"Updated Search Name\",\n\"description\":\"Updated description\",\n\"page_size\":100\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation UpdateSavedSearch($id:ID!, $input:UpdateSavedSearchInput!){ savedSearches{ updateSavedSearch(id:$id, input:$input){ id name description type search_term filters sort_field sort_direction page_size updated_at}}}\",\n\"variables\":{\n\"id\":\"1\",\n\"input\":{\n\"name\":\"Updated Search Name\",\n\"description\":\"Updated description\",\n\"page_size\":100\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

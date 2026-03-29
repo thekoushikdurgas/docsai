@@ -1,0 +1,28 @@
+{
+  "name": "Function Calling (OpenAI)",
+  "rank": "av",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl_openai}}/chat/completions",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"model\": \"gpt-4o\",\r\n    \"messages\": [\r\n        {\r\n            \"role\": \"user\",\r\n            \"content\": \"Generate a tool for collection {{collectionId}}, request {{requestId}}, language {{language}}, and framework {{agentFramework}}.\"\r\n        }\r\n    ],\r\n    \"tools\": [\r\n        {\r\n            \"type\": \"function\",\r\n            \"function\": {\r\n                \"name\": \"generate_tool\",\r\n                \"description\": \"Generate a tool using the Postman API.\",\r\n                \"parameters\": {\r\n                    \"type\": \"object\",\r\n                    \"properties\": {\r\n                        \"collection_id\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The ID of the collection to which the tool belongs.\"\r\n                        },\r\n                        \"request_id\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The ID of the request for which the tool is generated.\"\r\n                        },\r\n                        \"language\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The programming language for the generated tool.\"\r\n                        },\r\n                        \"agent_framework\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The agent framework to be used.\"\r\n                        }\r\n                    },\r\n                    \"required\": [\"collection_id\", \"request_id\"]\r\n                }\r\n            }\r\n        }\r\n    ]\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"model\": \"gpt-4o\",\r\n    \"messages\": [\r\n        {\r\n            \"role\": \"user\",\r\n            \"content\": \"Generate a tool for collection {{collectionId}}, request {{requestId}}, language {{language}}, and framework {{agentFramework}}.\"\r\n        }\r\n    ],\r\n    \"tools\": [\r\n        {\r\n            \"type\": \"function\",\r\n            \"function\": {\r\n                \"name\": \"generate_tool\",\r\n                \"description\": \"Generate a tool using the Postman API.\",\r\n                \"parameters\": {\r\n                    \"type\": \"object\",\r\n                    \"properties\": {\r\n                        \"collection_id\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The ID of the collection to which the tool belongs.\"\r\n                        },\r\n                        \"request_id\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The ID of the request for which the tool is generated.\"\r\n                        },\r\n                        \"language\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The programming language for the generated tool.\"\r\n                        },\r\n                        \"agent_framework\": {\r\n                            \"type\": \"string\",\r\n                            \"description\": \"The agent framework to be used.\"\r\n                        }\r\n                    },\r\n                    \"required\": [\"collection_id\", \"request_id\"]\r\n                }\r\n            }\r\n        }\r\n    ]\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "BEARER_TOKEN",
+      "authConfigStore": {
+        "BEARER_TOKEN": {
+          "bearer": "{{apiKey_openai}}"
+        }
+      }
+    }
+  }
+}

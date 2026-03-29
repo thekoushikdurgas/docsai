@@ -1,0 +1,40 @@
+{
+  "name": "Create Contact Export",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation CreateContactExport($input:CreateContactExportInput!){ exports{ createContactExport(input:$input){ exportId downloadUrl status}}}\",\n\"variables\":{\n\"input\":{\n\"contactUuids\":[\n\"{{contactUuid}}\"\n]\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation CreateContactExport($input:CreateContactExportInput!){ exports{ createContactExport(input:$input){ exportId downloadUrl status}}}\",\n\"variables\":{\n\"input\":{\n\"contactUuids\":[\n\"{{contactUuid}}\"\n]\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

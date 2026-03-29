@@ -1,0 +1,24 @@
+{
+  "name": "Tools (file search - rag)",
+  "rank": "b0I",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/responses",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"model\": \"gpt-4o\",\r\n    \"tools\": [\r\n        {\r\n            \"type\": \"file_search\",\r\n            \"vector_store_ids\": [\r\n                \"vs_r9TYb7Il6YNbtlJgMjA035O0\"\r\n            ],\r\n            \"max_num_results\": 20\r\n        }\r\n    ],\r\n    \"input\": \"What is GPT-4?\",\r\n    \"store\": false\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"model\": \"gpt-4o\",\r\n    \"tools\": [\r\n        {\r\n            \"type\": \"file_search\",\r\n            \"vector_store_ids\": [\r\n                \"vs_r9TYb7Il6YNbtlJgMjA035O0\"\r\n            ],\r\n            \"max_num_results\": 20\r\n        }\r\n    ],\r\n    \"input\": \"What is GPT-4?\",\r\n    \"store\": false\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

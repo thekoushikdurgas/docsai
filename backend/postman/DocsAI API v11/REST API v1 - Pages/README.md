@@ -1,0 +1,1 @@
+REST API v1 - Pages API: list, by-type, by-state, by user type, and page detail with sub-resources.

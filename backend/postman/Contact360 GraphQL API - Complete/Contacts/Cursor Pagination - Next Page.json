@@ -1,0 +1,40 @@
+{
+  "name": "Cursor Pagination - Next Page",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query NextPageContacts($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"country\",\n\"operator\":\"eq\",\n\"value\":\"united states\"\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"last_name\",\n\"orderDirection\":\"asc\"\n},\n{\n\"orderBy\":\"first_name\",\n\"orderDirection\":\"asc\"\n}\n],\n\"searchAfter\":[\n\"Smith\",\n\"John\"\n],\n\"limit\":25\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query NextPageContacts($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"country\",\n\"operator\":\"eq\",\n\"value\":\"united states\"\n}\n]\n},\n\"orderBy\":[\n{\n\"orderBy\":\"last_name\",\n\"orderDirection\":\"asc\"\n},\n{\n\"orderBy\":\"first_name\",\n\"orderDirection\":\"asc\"\n}\n],\n\"searchAfter\":[\n\"Smith\",\n\"John\"\n],\n\"limit\":25\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

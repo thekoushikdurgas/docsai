@@ -1,0 +1,24 @@
+{
+  "name": "Tools (web search)",
+  "rank": "b0H",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/responses",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n\t\"model\": \"gpt-4o\",\r\n\t\"tools\": [\r\n\t\t{\r\n\t\t\t\"type\": \"web_search_preview\"\r\n\t\t}\r\n\t],\r\n\t\"input\": \"What was a positive news story from today?\",\r\n\t\"store\": false\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n\t\"model\": \"gpt-4o\",\r\n\t\"tools\": [\r\n\t\t{\r\n\t\t\t\"type\": \"web_search_preview\"\r\n\t\t}\r\n\t],\r\n\t\"input\": \"What was a positive news story from today?\",\r\n\t\"store\": false\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

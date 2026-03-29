@@ -1,0 +1,41 @@
+{
+  "name": "Create Fine Tuning Job",
+  "rank": "b0l",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/fine_tuning/jobs",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n    \"model\": \"open-mistral-7b\",\n    \"training_files\": [\n        \"123f6eca-6276-4993-bfeb-53cbbbba6f08\"\n    ],\n    \"validation_files\": [\n        \"456f6eca-6276-4993-bfeb-53cbbbba6f08\"\n    ],\n    \"hyperparameters\": {\n        \"training_steps\": 1,\n        \"learning_rate\": 0.0001,\n        \"weight_decay\": 0.1,\n        \"warmup_fraction\": 0.05,\n        \"epochs\": 0,\n        \"fim_ratio\": 0.9,\n        \"seq_len\": 100\n    },\n    \"suffix\": \"string\",\n    \"integrations\": [\n        {\n            \"type\": \"wandb\",\n            \"project\": \"string\",\n            \"name\": \"string\",\n            \"api_key\": \"stringstringstringstringstringstringstri\",\n            \"run_name\": \"string\"\n        }\n    ],\n    \"repositories\": [],\n    \"auto_start\": true\n}",
+    "bodyContainer": {
+      "text": "{\n    \"model\": \"open-mistral-7b\",\n    \"training_files\": [\n        \"123f6eca-6276-4993-bfeb-53cbbbba6f08\"\n    ],\n    \"validation_files\": [\n        \"456f6eca-6276-4993-bfeb-53cbbbba6f08\"\n    ],\n    \"hyperparameters\": {\n        \"training_steps\": 1,\n        \"learning_rate\": 0.0001,\n        \"weight_decay\": 0.1,\n        \"warmup_fraction\": 0.05,\n        \"epochs\": 0,\n        \"fim_ratio\": 0.9,\n        \"seq_len\": 100\n    },\n    \"suffix\": \"string\",\n    \"integrations\": [\n        {\n            \"type\": \"wandb\",\n            \"project\": \"string\",\n            \"name\": \"string\",\n            \"api_key\": \"stringstringstringstringstringstringstri\",\n            \"run_name\": \"string\"\n        }\n    ],\n    \"repositories\": [],\n    \"auto_start\": true\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

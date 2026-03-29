@@ -1,0 +1,24 @@
+{
+  "name": "Create eval",
+  "rank": "b1Z",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/evals",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.eval_id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"IT Ticket Categorization\",\r\n    \"data_source_config\": {\r\n        \"type\": \"custom\",\r\n        \"item_schema\": {\r\n            \"type\": \"object\",\r\n            \"properties\": {\r\n                \"ticket_text\": {\r\n                    \"type\": \"string\"\r\n                },\r\n                \"correct_label\": {\r\n                    \"type\": \"string\"\r\n                }\r\n            },\r\n            \"required\": [\r\n                \"ticket_text\",\r\n                \"correct_label\"\r\n            ]\r\n        },\r\n        \"include_sample_schema\": true\r\n    },\r\n    \"testing_criteria\": [\r\n        {\r\n            \"type\": \"string_check\",\r\n            \"name\": \"Match output to human label\",\r\n            \"input\": \"{{ sample.output_text }}\",\r\n            \"operation\": \"eq\",\r\n            \"reference\": \"{{ item.correct_label }}\"\r\n        }\r\n    ]\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"IT Ticket Categorization\",\r\n    \"data_source_config\": {\r\n        \"type\": \"custom\",\r\n        \"item_schema\": {\r\n            \"type\": \"object\",\r\n            \"properties\": {\r\n                \"ticket_text\": {\r\n                    \"type\": \"string\"\r\n                },\r\n                \"correct_label\": {\r\n                    \"type\": \"string\"\r\n                }\r\n            },\r\n            \"required\": [\r\n                \"ticket_text\",\r\n                \"correct_label\"\r\n            ]\r\n        },\r\n        \"include_sample_schema\": true\r\n    },\r\n    \"testing_criteria\": [\r\n        {\r\n            \"type\": \"string_check\",\r\n            \"name\": \"Match output to human label\",\r\n            \"input\": \"{{ sample.output_text }}\",\r\n            \"operation\": \"eq\",\r\n            \"reference\": \"{{ item.correct_label }}\"\r\n        }\r\n    ]\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

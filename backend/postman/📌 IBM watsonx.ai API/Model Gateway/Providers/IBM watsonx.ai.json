@@ -1,0 +1,24 @@
+{
+  "name": "IBM watsonx.ai",
+  "rank": "b01",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/watsonxai",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.watsonxai_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"watsonxai-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey}}\",\r\n        \"project_id\": \"{{projectId}}\",\r\n        \"base_url\": \"{{baseUrl}}\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"watsonxai-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey}}\",\r\n        \"project_id\": \"{{projectId}}\",\r\n        \"base_url\": \"{{baseUrl}}\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

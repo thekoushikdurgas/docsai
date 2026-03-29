@@ -1,0 +1,40 @@
+{
+  "name": "List Users (Admin)",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ListUsers($filters:UserFilterInput){ admin{ users(filters:$filters){ items{ uuid email name profile{ role credits}} pageInfo{ total}}}}\",\n\"variables\":{\n\"query\":{\n\"limit\":50,\n\"offset\":0\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ListUsers($filters:UserFilterInput){ admin{ users(filters:$filters){ items{ uuid email name profile{ role credits}} pageInfo{ total}}}}\",\n\"variables\":{\n\"query\":{\n\"limit\":50,\n\"offset\":0\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

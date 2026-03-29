@@ -1,0 +1,33 @@
+{
+  "name": "Code Translation (codellama_codellama-34b-instruct-hf)",
+  "rank": "b1g",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/ml/v1/text/generation?version=2023-05-29",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [
+      {
+        "id": 0,
+        "key": "version",
+        "value": "2023-05-29",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "headers": [],
+    "body": "{\r\n    \"input\": \"Translate the following code from C++ to Python.\\n\\nC++: #include \\\"bits/stdc++.h\\\"\\nusing namespace std;\\nbool isPerfectSquare(long double x) {\\n  long double sr = sqrt(x);\\n  return ((sr - floor(sr)) == 0);\\n}\\nvoid checkSunnyNumber(int N) {\\n  if (isPerfectSquare(N + 1)) {\\n    cout << \\\"Yes\\n\\\";\\n  } else {\\n    cout << \\\"No\\n\\\";\\n  }\\n}\\nint main() {\\n  int N = 8;\\n  checkSunnyNumber(N);\\n  return 0;\\n}\\nPython: from math import *\\n \\ndef isPerfectSquare(x):\\n    sr = sqrt(x)\\n    return ((sr - floor(sr)) == 0)\\n \\ndef checkSunnyNumber(N):\\n    if (isPerfectSquare(N + 1)):\\n        print(\\\"Yes\\\")\\n    else:\\n        print(\\\"No\\\")\\n \\nif __name__ == '__main__':\\n    N = 8\\n    checkSunnyNumber(N)\\n\\n<end of code>\\n\\nC++: #include <bits/stdc++.h>\\nusing namespace std;\\nint countAPs(int S, int D) {\\n  S = S * 2;\\n  int answer = 0;\\n  for (int i = 1; i <= sqrt(S); i++) {\\n    if (S % i == 0) {\\n      if (((S / i) - D * i + D) % 2 == 0)\\n        answer++;\\n      if ((D * i - (S / i) + D) % 2 == 0)\\n        answer++;\\n    }\\n  }\\n  return answer;\\n}\\nint main() {\\n  int S = 12, D = 1;\\n  cout << countAPs(S, D);\\n  return 0;\\n}\\nPython:\",\r\n    \"parameters\": {\r\n        \"decoding_method\": \"greedy\",\r\n        \"max_new_tokens\": 300,\r\n        \"min_new_tokens\": 0,\r\n        \"stop_sequences\": [\r\n            \"<end of code>\"\r\n        ],\r\n        \"repetition_penalty\": 1\r\n    },\r\n    \"model_id\": \"codellama/codellama-34b-instruct-hf\",\r\n    \"project_id\": \"{{projectId}}\",\r\n    \"moderations\": {\r\n        \"hap\": {\r\n            \"input\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            },\r\n            \"output\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"input\": \"Translate the following code from C++ to Python.\\n\\nC++: #include \\\"bits/stdc++.h\\\"\\nusing namespace std;\\nbool isPerfectSquare(long double x) {\\n  long double sr = sqrt(x);\\n  return ((sr - floor(sr)) == 0);\\n}\\nvoid checkSunnyNumber(int N) {\\n  if (isPerfectSquare(N + 1)) {\\n    cout << \\\"Yes\\n\\\";\\n  } else {\\n    cout << \\\"No\\n\\\";\\n  }\\n}\\nint main() {\\n  int N = 8;\\n  checkSunnyNumber(N);\\n  return 0;\\n}\\nPython: from math import *\\n \\ndef isPerfectSquare(x):\\n    sr = sqrt(x)\\n    return ((sr - floor(sr)) == 0)\\n \\ndef checkSunnyNumber(N):\\n    if (isPerfectSquare(N + 1)):\\n        print(\\\"Yes\\\")\\n    else:\\n        print(\\\"No\\\")\\n \\nif __name__ == '__main__':\\n    N = 8\\n    checkSunnyNumber(N)\\n\\n<end of code>\\n\\nC++: #include <bits/stdc++.h>\\nusing namespace std;\\nint countAPs(int S, int D) {\\n  S = S * 2;\\n  int answer = 0;\\n  for (int i = 1; i <= sqrt(S); i++) {\\n    if (S % i == 0) {\\n      if (((S / i) - D * i + D) % 2 == 0)\\n        answer++;\\n      if ((D * i - (S / i) + D) % 2 == 0)\\n        answer++;\\n    }\\n  }\\n  return answer;\\n}\\nint main() {\\n  int S = 12, D = 1;\\n  cout << countAPs(S, D);\\n  return 0;\\n}\\nPython:\",\r\n    \"parameters\": {\r\n        \"decoding_method\": \"greedy\",\r\n        \"max_new_tokens\": 300,\r\n        \"min_new_tokens\": 0,\r\n        \"stop_sequences\": [\r\n            \"<end of code>\"\r\n        ],\r\n        \"repetition_penalty\": 1\r\n    },\r\n    \"model_id\": \"codellama/codellama-34b-instruct-hf\",\r\n    \"project_id\": \"{{projectId}}\",\r\n    \"moderations\": {\r\n        \"hap\": {\r\n            \"input\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            },\r\n            \"output\": {\r\n                \"enabled\": true,\r\n                \"threshold\": 0.5,\r\n                \"mask\": {\r\n                    \"remove_entity_value\": true\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

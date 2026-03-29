@@ -1,0 +1,48 @@
+{
+  "name": "Batch Upsert Companies",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/companies/batch-upsert",
+    "scripts": {
+      "preRequest": "// Set request timestamp\nrq.environment.set('timestamp', new Date().toISOString());\n\n// Log request details\nconsole.log(`Request to: ${rq.request.url.toString()}`);\n\n// Check if API key exists\nconst apiKey = rq.collectionVariables.get('apiKey');\nif (!apiKey || apiKey === '') {\n    console.warn('No API key set. Please set the apiKey collection variable.');\n}",
+      "postResponse": "rq.test('Status code is successful', function () {\n    rq.expect(rq.response.code).to.be.oneOf([200, 201, 202, 204]);\n});\n\nrq.test('Response time is acceptable', function () {\n    rq.expect(rq.response.responseTime).to.be.below(10000);\n});\n\nrq.test('Response has correct structure', function () {\n    if (rq.response.code === 200 || rq.response.code === 201) {\n        const jsonData = rq.response.json();\n        rq.expect(jsonData).to.be.an('object');\n        rq.expect(jsonData.success).to.be.a('boolean');\n    }\n});\n\n// Save UUIDs from response if available\nif (rq.response.code === 200 || rq.response.code === 201) {\n    try {\n        const jsonData = rq.response.json();\n        const endpoint = rq.request.url.toString();\n        \n        // Save contact UUID\n        if (jsonData.data && jsonData.data.uuid && (endpoint.includes('contact') || jsonData.data.first_name || jsonData.data.last_name)) {\n            rq.collectionVariables.set('contact_uuid', jsonData.data.uuid);\n        }\n        // Save company UUID\n        if (jsonData.data && jsonData.data.uuid && (endpoint.includes('company') || jsonData.data.name)) {\n            rq.collectionVariables.set('company_uuid', jsonData.data.uuid);\n        }\n    } catch (e) {\n        // Response might not be JSON or might not have UUID\n    }\n}"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "Connectra API Key",
+        "dataType": "string"
+      },
+      {
+        "id": 2,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "[\n  {\n    \"name\": \"Acme Corporation\",\n    \"employees_count\": 500,\n    \"industries\": [\"Technology\", \"Software\"],\n    \"keywords\": [\"SaaS\", \"B2B\", \"Enterprise\"],\n    \"address\": \"123 Main Street, Suite 100\",\n    \"annual_revenue\": 50000000,\n    \"total_funding\": 25000000,\n    \"technologies\": [\"React\", \"Node.js\", \"AWS\", \"PostgreSQL\"],\n    \"city\": \"San Francisco\",\n    \"state\": \"California\",\n    \"country\": \"United States\",\n    \"linkedin_url\": \"https://linkedin.com/company/acme-corp\",\n    \"website\": \"https://acme.com\",\n    \"facebook_url\": \"https://facebook.com/acmecorp\",\n    \"twitter_url\": \"https://twitter.com/acmecorp\",\n    \"company_name_for_emails\": \"Acme Corp\",\n    \"phone_number\": \"+1-555-000-1234\",\n    \"latest_funding\": \"Series B\",\n    \"latest_funding_amount\": 15000000,\n    \"last_raised_at\": \"2024-06-15\"\n  },\n  {\n    \"name\": \"TechStart Inc\",\n    \"employees_count\": 50,\n    \"industries\": [\"Technology\", \"AI\"],\n    \"keywords\": [\"Machine Learning\", \"Startup\"],\n    \"city\": \"Austin\",\n    \"state\": \"Texas\",\n    \"country\": \"United States\",\n    \"linkedin_url\": \"https://linkedin.com/company/techstart\",\n    \"website\": \"https://techstart.io\"\n  }\n]",
+    "bodyContainer": {
+      "text": "[\n  {\n    \"name\": \"Acme Corporation\",\n    \"employees_count\": 500,\n    \"industries\": [\"Technology\", \"Software\"],\n    \"keywords\": [\"SaaS\", \"B2B\", \"Enterprise\"],\n    \"address\": \"123 Main Street, Suite 100\",\n    \"annual_revenue\": 50000000,\n    \"total_funding\": 25000000,\n    \"technologies\": [\"React\", \"Node.js\", \"AWS\", \"PostgreSQL\"],\n    \"city\": \"San Francisco\",\n    \"state\": \"California\",\n    \"country\": \"United States\",\n    \"linkedin_url\": \"https://linkedin.com/company/acme-corp\",\n    \"website\": \"https://acme.com\",\n    \"facebook_url\": \"https://facebook.com/acmecorp\",\n    \"twitter_url\": \"https://twitter.com/acmecorp\",\n    \"company_name_for_emails\": \"Acme Corp\",\n    \"phone_number\": \"+1-555-000-1234\",\n    \"latest_funding\": \"Series B\",\n    \"latest_funding_amount\": 15000000,\n    \"last_raised_at\": \"2024-06-15\"\n  },\n  {\n    \"name\": \"TechStart Inc\",\n    \"employees_count\": 50,\n    \"industries\": [\"Technology\", \"AI\"],\n    \"keywords\": [\"Machine Learning\", \"Startup\"],\n    \"city\": \"Austin\",\n    \"state\": \"Texas\",\n    \"country\": \"United States\",\n    \"linkedin_url\": \"https://linkedin.com/company/techstart\",\n    \"website\": \"https://techstart.io\"\n  }\n]"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

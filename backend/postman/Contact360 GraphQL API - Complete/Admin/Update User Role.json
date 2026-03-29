@@ -1,0 +1,40 @@
+{
+  "name": "Update User Role",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation UpdateUserRole($input:UpdateUserRoleInput!){ admin{ updateUserRole(input:$input){ uuid profile{ role}}}}\",\n\"variables\":{\n\"input\":{\n\"userId\":\"{{userId}}\",\n\"role\":\"Admin\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation UpdateUserRole($input:UpdateUserRoleInput!){ admin{ updateUserRole(input:$input){ uuid profile{ role}}}}\",\n\"variables\":{\n\"input\":{\n\"userId\":\"{{userId}}\",\n\"role\":\"Admin\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

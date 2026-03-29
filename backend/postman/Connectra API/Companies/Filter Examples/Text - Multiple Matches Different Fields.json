@@ -1,0 +1,40 @@
+{
+  "name": "Text - Multiple Matches Different Fields",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/companies/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"tech\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true\n        },\n        {\n          \"text_value\": \"New York\",\n          \"filter_key\": \"address\",\n          \"search_type\": \"exact\",\n          \"slop\": 0\n        }\n      ]\n    }\n  },\n  \"page\": 1,\n  \"limit\": 25\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [\n        {\n          \"text_value\": \"tech\",\n          \"filter_key\": \"name\",\n          \"search_type\": \"shuffle\",\n          \"fuzzy\": true\n        },\n        {\n          \"text_value\": \"New York\",\n          \"filter_key\": \"address\",\n          \"search_type\": \"exact\",\n          \"slop\": 0\n        }\n      ]\n    }\n  },\n  \"page\": 1,\n  \"limit\": 25\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

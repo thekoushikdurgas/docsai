@@ -1,0 +1,1 @@
+[https://platform.openai.com/docs/guides/reasoning-best-practices#how-to-prompt-reasoning-models-effectively](https://platform.openai.com/docs/guides/reasoning-best-practices#how-to-prompt-reasoning-models-effectively)

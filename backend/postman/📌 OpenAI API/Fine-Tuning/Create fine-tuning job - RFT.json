@@ -1,0 +1,24 @@
+{
+  "name": "Create fine-tuning job - RFT",
+  "rank": "b1k",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/fine_tuning/jobs",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\n    \"training_file\": \"file-O0GdFr6cdo37xMla74YldYH9\",\n    \"validation_file\": \"file-1s7kraESIrnfpNuo8P1OXdNH\",\n    \"model\": \"o4-mini-2025-04-16\",\n    \"method\": {\n        \"type\": \"reinforcement\",\n        \"reinforcement\": {\n            \"grader\": {\n                \"type\": \"string_check\",\n                \"name\": \"Example string check grader\",\n                \"input\": \"{{sample.output_text}}\",\n                \"reference\": \"{{item.label}}\",\n                \"operation\": \"eq\"\n            },\n            \"hyperparameters\": {\n                \"reasoning_effort\": \"medium\"\n            }\n        }\n    }\n}",
+    "bodyContainer": {
+      "text": "{\n    \"training_file\": \"file-O0GdFr6cdo37xMla74YldYH9\",\n    \"validation_file\": \"file-1s7kraESIrnfpNuo8P1OXdNH\",\n    \"model\": \"o4-mini-2025-04-16\",\n    \"method\": {\n        \"type\": \"reinforcement\",\n        \"reinforcement\": {\n            \"grader\": {\n                \"type\": \"string_check\",\n                \"name\": \"Example string check grader\",\n                \"input\": \"{{sample.output_text}}\",\n                \"reference\": \"{{item.label}}\",\n                \"operation\": \"eq\"\n            },\n            \"hyperparameters\": {\n                \"reasoning_effort\": \"medium\"\n            }\n        }\n    }\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

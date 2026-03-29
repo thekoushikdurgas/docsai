@@ -1,0 +1,15 @@
+- c4ai-aya
+- command
+- command-light
+- command-light-nightly
+- command-nightly
+- command-r
+- embed-english-light-v2.0
+- embed-english-light-v3.0
+- embed-english-v2.0
+- embed-english-v3.0
+- embed-multilingual-light-v3.0
+- embed-multilingual-v2.0
+- embed-multilingual-v3.0
+- rerank-english-2
+- rerank-multilingual-2

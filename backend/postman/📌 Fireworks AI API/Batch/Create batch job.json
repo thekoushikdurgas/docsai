@@ -1,0 +1,33 @@
+{
+  "name": "Create batch job",
+  "rank": "b0f",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl2}}/accounts/{{accountId}}/batchInferenceJobs?batchInferenceJobId=my-batch-job",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [
+      {
+        "id": 0,
+        "key": "batchInferenceJobId",
+        "value": "my-batch-job",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "headers": [],
+    "body": "{\r\n    \"model\": \"accounts/fireworks/models/llama-v3p1-8b-instruct\",\r\n    \"inputDatasetId\": \"accounts/{{accountId}}/datasets/{{inputDataset}}\",\r\n    \"outputDatasetId\": \"accounts/{{accountId}}/datasets/{{outputDataset}}\",\r\n    \"inferenceParameters\": {\r\n        \"maxTokens\": 1024,\r\n        \"temperature\": 0.7,\r\n        \"topP\": 0.9\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"model\": \"accounts/fireworks/models/llama-v3p1-8b-instruct\",\r\n    \"inputDatasetId\": \"accounts/{{accountId}}/datasets/{{inputDataset}}\",\r\n    \"outputDatasetId\": \"accounts/{{accountId}}/datasets/{{outputDataset}}\",\r\n    \"inferenceParameters\": {\r\n        \"maxTokens\": 1024,\r\n        \"temperature\": 0.7,\r\n        \"topP\": 0.9\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

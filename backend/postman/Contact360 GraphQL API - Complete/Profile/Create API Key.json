@@ -1,0 +1,40 @@
+{
+  "name": "Create API Key",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation CreateAPIKey($input:CreateAPIKeyInput!){ profile{ createAPIKey(input:$input){ id name prefix key read_access write_access expires_at created_at}}}\",\n\"variables\":{\n\"input\":{\n\"name\":\"Production API Key\",\n\"read_access\":true,\n\"write_access\":false,\n\"expires_at\":\"2025-01-15T10:30:00Z\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation CreateAPIKey($input:CreateAPIKeyInput!){ profile{ createAPIKey(input:$input){ id name prefix key read_access write_access expires_at created_at}}}\",\n\"variables\":{\n\"input\":{\n\"name\":\"Production API Key\",\n\"read_access\":true,\n\"write_access\":false,\n\"expires_at\":\"2025-01-15T10:30:00Z\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

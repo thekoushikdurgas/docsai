@@ -1,0 +1,1 @@
+Notifications module - Queries and Mutations

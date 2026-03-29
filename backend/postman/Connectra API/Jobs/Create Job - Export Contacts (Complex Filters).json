@@ -1,0 +1,40 @@
+{
+  "name": "Create Job - Export Contacts (Complex Filters)",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/common/jobs/create",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"job_type\": \"export_csv_file\",\n  \"job_data\": {\n    \"service\": \"contact\",\n    \"vql\": {\n      \"where\": {\n        \"keyword_match\": {\n          \"must\": {\n            \"company_industries\": [\"Software\", \"SaaS\"],\n            \"company_country\": [\"united states\"],\n            \"seniority\": [\"senior\", \"lead\", \"principal\", \"executive\"],\n            \"email_status\": [\"verified\"]\n          }\n        },\n        \"range_query\": {\n          \"must\": {\n            \"company_annual_revenue\": {\n              \"gte\": 5000000\n            },\n            \"company_employees_count\": {\n              \"gte\": 100,\n              \"lte\": 1000\n            }\n          }\n        }\n      },\n      \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"email\", \"title\", \"departments\", \"seniority\", \"company_id\"],\n      \"order_by\": [\n        {\n          \"order_by\": \"uuid\",\n          \"order_direction\": \"desc\"\n        }\n      ],\n      \"limit\": 500\n    }\n  }\n}",
+    "bodyContainer": {
+      "text": "{\n  \"job_type\": \"export_csv_file\",\n  \"job_data\": {\n    \"service\": \"contact\",\n    \"vql\": {\n      \"where\": {\n        \"keyword_match\": {\n          \"must\": {\n            \"company_industries\": [\"Software\", \"SaaS\"],\n            \"company_country\": [\"united states\"],\n            \"seniority\": [\"senior\", \"lead\", \"principal\", \"executive\"],\n            \"email_status\": [\"verified\"]\n          }\n        },\n        \"range_query\": {\n          \"must\": {\n            \"company_annual_revenue\": {\n              \"gte\": 5000000\n            },\n            \"company_employees_count\": {\n              \"gte\": 100,\n              \"lte\": 1000\n            }\n          }\n        }\n      },\n      \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"email\", \"title\", \"departments\", \"seniority\", \"company_id\"],\n      \"order_by\": [\n        {\n          \"order_by\": \"uuid\",\n          \"order_direction\": \"desc\"\n        }\n      ],\n      \"limit\": 500\n    }\n  }\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

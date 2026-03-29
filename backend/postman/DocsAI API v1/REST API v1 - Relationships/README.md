@@ -1,0 +1,1 @@
+REST API v1 - Relationships API: list, graph, statistics, usage-types, usage-contexts, by-page, by-endpoint, by-usage-type, by-usage-context, by-state, by-lambda, performance, detail and sub-resources.

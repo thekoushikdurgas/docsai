@@ -1,0 +1,24 @@
+{
+  "name": "SQL Generation (amazon.titan-tg1-large)",
+  "rank": "b14",
+  "request": {
+    "type": "http",
+    "url": "https://bedrock-runtime.{{AWS_Region}}.amazonaws.com/model/:model_identifier/invoke",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\n    \"inputText\": \"Create SQL statement from instruction. \\n Database: Customers(CustomerID, CustomerName, ContactName, Address, City, PostalCode, Country) \\n Request: all the countries we have customers in without repetitions. \\n SQL statement: SELECT DISTINCT Country FROM Customers; \\n  ## \\n Create SQL statement from instruction. \\n Database: Orders(OrderID, CustomerID, EmployeeID, OrderDate, ShipperID) \\n Request: select all the orders from customer id 1. \\n SQL statement: SELECT * FROM Orders WHERE CustomerID = 1; \\n ## \\n Create SQL statement from instruction. Database: Products(ProductID, ProductName, SupplierID, CategoryID, Unit, Price) \\n Request: selects all products from categories 1 and 7 \\n SQL statement: SELECT * FROM Products WHERE CategoryID = 1 OR CategoryID = 7; \\n ## \\n Create SQL statement from instruction. \\n Database: Customers(CustomerID, CustomerName, ContactName, Address, City, PostalCode, Country) \\n Request: change the first customer's name to Alfred Schmidt who lives in Frankfurt city. \\n SQL statement: \",\n    \"textGenerationConfig\": {\n        \"maxTokenCount\": 4096,\n        \"stopSequences\": [],\n        \"temperature\": 0,\n        \"topP\": 0.9\n    }\n}",
+    "bodyContainer": {
+      "text": "{\n    \"inputText\": \"Create SQL statement from instruction. \\n Database: Customers(CustomerID, CustomerName, ContactName, Address, City, PostalCode, Country) \\n Request: all the countries we have customers in without repetitions. \\n SQL statement: SELECT DISTINCT Country FROM Customers; \\n  ## \\n Create SQL statement from instruction. \\n Database: Orders(OrderID, CustomerID, EmployeeID, OrderDate, ShipperID) \\n Request: select all the orders from customer id 1. \\n SQL statement: SELECT * FROM Orders WHERE CustomerID = 1; \\n ## \\n Create SQL statement from instruction. Database: Products(ProductID, ProductName, SupplierID, CategoryID, Unit, Price) \\n Request: selects all products from categories 1 and 7 \\n SQL statement: SELECT * FROM Products WHERE CategoryID = 1 OR CategoryID = 7; \\n ## \\n Create SQL statement from instruction. \\n Database: Customers(CustomerID, CustomerName, ContactName, Address, City, PostalCode, Country) \\n Request: change the first customer's name to Alfred Schmidt who lives in Frankfurt city. \\n SQL statement: \",\n    \"textGenerationConfig\": {\n        \"maxTokenCount\": 4096,\n        \"stopSequences\": [],\n        \"temperature\": 0,\n        \"topP\": 0.9\n    }\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Contact Query (VQL)",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ContactQuery($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"title\",\n\"operator\":\"contains\",\n\"value\":\"VP\"\n}\n]\n}\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ContactQuery($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"title\",\n\"operator\":\"contains\",\n\"value\":\"VP\"\n}\n]\n}\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,1 @@
+Statistics endpoints return index-based aggregated data

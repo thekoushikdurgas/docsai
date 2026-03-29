@@ -1,0 +1,1 @@
+Import/upsert endpoints accept JSON payloads and write to S3 with index updates

@@ -1,0 +1,24 @@
+{
+  "name": "Groq (OpenAI Compatible) ⚡",
+  "rank": "b04",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/openai",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.groq_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"groq-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_groq}}\",\r\n        \"base_url\": \"https://api.groq.com/openai/v1\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"groq-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_groq}}\",\r\n        \"base_url\": \"https://api.groq.com/openai/v1\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

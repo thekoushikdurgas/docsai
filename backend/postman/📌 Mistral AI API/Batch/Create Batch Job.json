@@ -1,0 +1,33 @@
+{
+  "name": "Create Batch Job",
+  "rank": "b0Y",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/batch/jobs",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Accept",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\r\n    \"input_files\": [\r\n        \"{{temp.file_id}}\"\r\n    ],\r\n    \"endpoint\": \"/v1/chat/completions\",\r\n    \"model\": \"string\",\r\n    \"metadata\": {\r\n        \"property1\": \"string\",\r\n        \"property2\": \"string\"\r\n    },\r\n    \"timeout_hours\": 24\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"input_files\": [\r\n        \"{{temp.file_id}}\"\r\n    ],\r\n    \"endpoint\": \"/v1/chat/completions\",\r\n    \"model\": \"string\",\r\n    \"metadata\": {\r\n        \"property1\": \"string\",\r\n        \"property2\": \"string\"\r\n    },\r\n    \"timeout_hours\": 24\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

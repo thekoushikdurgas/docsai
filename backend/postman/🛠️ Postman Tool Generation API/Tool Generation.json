@@ -1,0 +1,24 @@
+{
+  "name": "Tool Generation",
+  "rank": "au",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/postbot/generations/tool",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.toolGeneration', jsonResponse.data.text);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"collectionId\": \"{{collectionId}}\",\r\n    \"requestId\": \"{{requestId}}\",\r\n    \"config\": {\r\n        \"language\": \"{{language}}\",\r\n        \"agentFramework\": \"{{agentFramework}}\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"collectionId\": \"{{collectionId}}\",\r\n    \"requestId\": \"{{requestId}}\",\r\n    \"config\": {\r\n        \"language\": \"{{language}}\",\r\n        \"agentFramework\": \"{{agentFramework}}\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

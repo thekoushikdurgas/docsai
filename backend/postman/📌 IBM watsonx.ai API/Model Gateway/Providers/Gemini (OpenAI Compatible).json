@@ -1,0 +1,24 @@
+{
+  "name": "Gemini (OpenAI Compatible)",
+  "rank": "b03",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/openai",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.gemini_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"gemini-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_gemini}}\",\r\n        \"base_url\": \"https://generativelanguage.googleapis.com/v1beta/openai\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"gemini-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_gemini}}\",\r\n        \"base_url\": \"https://generativelanguage.googleapis.com/v1beta/openai\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

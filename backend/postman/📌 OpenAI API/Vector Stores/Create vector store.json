@@ -1,0 +1,33 @@
+{
+  "name": "Create vector store",
+  "rank": "b27",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/vector_stores",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.vs_id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "OpenAI-Beta",
+        "value": "assistants=v2",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\r\n    \"name\": \"Support FAQ\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"Support FAQ\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

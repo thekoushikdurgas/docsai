@@ -1,0 +1,33 @@
+{
+  "name": "Create Batch",
+  "rank": "ax",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl2}}/models/gemini-2.5-flash:batchGenerateContent",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.batch_name', jsonResponse.name)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "x-goog-api-key",
+        "value": "{{vault:gemini-api:value}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\r\n    \"batch\": {\r\n        \"display_name\": \"my-batch-requests\",\r\n        \"input_config\": {\r\n            \"requests\": {\r\n                \"requests\": [\r\n                    {\r\n                        \"request\": {\r\n                            \"contents\": [\r\n                                {\r\n                                    \"parts\": [\r\n                                        {\r\n                                            \"text\": \"Describe the process of photosynthesis.\"\r\n                                        }\r\n                                    ]\r\n                                }\r\n                            ]\r\n                        },\r\n                        \"metadata\": {\r\n                            \"key\": \"request-1\"\r\n                        }\r\n                    },\r\n                    {\r\n                        \"request\": {\r\n                            \"contents\": [\r\n                                {\r\n                                    \"parts\": [\r\n                                        {\r\n                                            \"text\": \"Describe the process of photosynthesis.\"\r\n                                        }\r\n                                    ]\r\n                                }\r\n                            ]\r\n                        },\r\n                        \"metadata\": {\r\n                            \"key\": \"request-2\"\r\n                        }\r\n                    }\r\n                ]\r\n            }\r\n        }\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"batch\": {\r\n        \"display_name\": \"my-batch-requests\",\r\n        \"input_config\": {\r\n            \"requests\": {\r\n                \"requests\": [\r\n                    {\r\n                        \"request\": {\r\n                            \"contents\": [\r\n                                {\r\n                                    \"parts\": [\r\n                                        {\r\n                                            \"text\": \"Describe the process of photosynthesis.\"\r\n                                        }\r\n                                    ]\r\n                                }\r\n                            ]\r\n                        },\r\n                        \"metadata\": {\r\n                            \"key\": \"request-1\"\r\n                        }\r\n                    },\r\n                    {\r\n                        \"request\": {\r\n                            \"contents\": [\r\n                                {\r\n                                    \"parts\": [\r\n                                        {\r\n                                            \"text\": \"Describe the process of photosynthesis.\"\r\n                                        }\r\n                                    ]\r\n                                }\r\n                            ]\r\n                        },\r\n                        \"metadata\": {\r\n                            \"key\": \"request-2\"\r\n                        }\r\n                    }\r\n                ]\r\n            }\r\n        }\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "NO_AUTH",
+      "authConfigStore": {}
+    }
+  }
+}

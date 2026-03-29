@@ -1,0 +1,40 @@
+{
+  "name": "Batch Create Contacts",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation BatchCreateContacts($input:BatchCreateContactsInput!){ contacts{ batchCreateContacts(input:$input){ uuid firstName lastName email}}}\",\n\"variables\":{\n\"input\":{\n\"contacts\":[\n{\n\"firstName\":\"John\",\n\"lastName\":\"Doe\",\n\"email\":\"john.doe@example.com\"\n},\n{\n\"firstName\":\"Jane\",\n\"lastName\":\"Smith\",\n\"email\":\"jane.smith@example.com\"\n}\n]\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation BatchCreateContacts($input:BatchCreateContactsInput!){ contacts{ batchCreateContacts(input:$input){ uuid firstName lastName email}}}\",\n\"variables\":{\n\"input\":{\n\"contacts\":[\n{\n\"firstName\":\"John\",\n\"lastName\":\"Doe\",\n\"email\":\"john.doe@example.com\"\n},\n{\n\"firstName\":\"Jane\",\n\"lastName\":\"Smith\",\n\"email\":\"jane.smith@example.com\"\n}\n]\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

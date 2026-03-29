@@ -1,0 +1,14 @@
+- mistral-embed
+- mistral-large-2402
+- mistral-large-latest
+- mistral-medium
+- mistral-medium-2312
+- mistral-medium-latest
+- mistral-small
+- mistral-small-2312
+- mistral-small-2402
+- mistral-small-latest
+- mistral-tiny
+- mistral-tiny-2312
+- open-mistral-7b
+- open-mixtral-8x7b

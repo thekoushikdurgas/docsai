@@ -1,0 +1,40 @@
+{
+  "name": "Disable 2FA",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"mutation Disable2FA($password:String, $backupCode:String){ twoFactor{ disable2FA(password:$password, backupCode:$backupCode)}}\",\n\"variables\":{\n\"password\":\"userpassword123\",\n\"backupCode\":\"A1B2C3D4\"\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"mutation Disable2FA($password:String, $backupCode:String){ twoFactor{ disable2FA(password:$password, backupCode:$backupCode)}}\",\n\"variables\":{\n\"password\":\"userpassword123\",\n\"backupCode\":\"A1B2C3D4\"\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

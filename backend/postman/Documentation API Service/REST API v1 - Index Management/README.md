@@ -1,0 +1,1 @@
+REST API v1 - Index Management API: Read, rebuild, and validate index.json files for all resources (pages, endpoints, relationships, postman). Indexes enable fast INDEX-ONLY list responses without reading individual files.

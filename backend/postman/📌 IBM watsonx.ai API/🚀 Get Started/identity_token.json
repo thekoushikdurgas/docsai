@@ -1,0 +1,59 @@
+{
+  "name": "identity_token",
+  "rank": "ay",
+  "request": {
+    "type": "http",
+    "url": "https://iam.cloud.ibm.com/identity/token",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('access_token', jsonResponse.access_token)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/x-www-form-urlencoded",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": [
+      {
+        "id": 1774197124234.9993,
+        "key": "grant_type",
+        "value": "urn:ibm:params:oauth:grant-type:apikey",
+        "isEnabled": true
+      },
+      {
+        "id": 1774197124234.4197,
+        "key": "apikey",
+        "value": "{{apiKey}}",
+        "isEnabled": true
+      }
+    ],
+    "bodyContainer": {
+      "form": [
+        {
+          "id": 1774197124234.9993,
+          "key": "grant_type",
+          "value": "urn:ibm:params:oauth:grant-type:apikey",
+          "isEnabled": true
+        },
+        {
+          "id": 1774197124234.4197,
+          "key": "apikey",
+          "value": "{{apiKey}}",
+          "isEnabled": true
+        }
+      ]
+    },
+    "contentType": "application/x-www-form-urlencoded",
+    "auth": {
+      "currentAuthType": "NO_AUTH",
+      "authConfigStore": {}
+    }
+  }
+}

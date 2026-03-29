@@ -1,0 +1,24 @@
+{
+  "name": "Anthropic",
+  "rank": "b06",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/anthropic",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.anthropic_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"anthropic-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_anthropic}}\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"anthropic-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_anthropic}}\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

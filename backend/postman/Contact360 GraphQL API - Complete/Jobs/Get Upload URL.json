@@ -1,0 +1,40 @@
+{
+  "name": "Get Upload URL",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query GetUploadUrl($filename:String!){ jobs{ uploadUrl(filename:$filename){ uploadUrl s3Key expiresIn}}}\",\n\"variables\":{\n\"filename\":\"contacts.csv\"\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query GetUploadUrl($filename:String!){ jobs{ uploadUrl(filename:$filename){ uploadUrl s3Key expiresIn}}}\",\n\"variables\":{\n\"filename\":\"contacts.csv\"\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

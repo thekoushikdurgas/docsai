@@ -1,0 +1,24 @@
+{
+  "name": "xAI (OpenAI Compatible)",
+  "rank": "b05",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/openai",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.xai_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"xai-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_xai}}\",\r\n        \"base_url\": \"https://api.x.ai/v1\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"xai-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_xai}}\",\r\n        \"base_url\": \"https://api.x.ai/v1\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "Create message",
+  "rank": "b0Y",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/threads/:thread_id/messages",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.msg_id', jsonResponse.id)\r\n"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "OpenAI-Beta",
+        "value": "assistants=v2",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\r\n    \"role\": \"user\",\r\n    \"content\": \"I need to solve the equation `3x + 11 = 14`. Can you help me?\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"role\": \"user\",\r\n    \"content\": \"I need to solve the equation `3x + 11 = 14`. Can you help me?\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Tenant",
+  "rank": "b00",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/tenant",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.tenant_id', jsonResponse.id);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"test\",\r\n    \"secrets_manager\": \"{{secretsManagerUrl}}\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"test\",\r\n    \"secrets_manager\": \"{{secretsManagerUrl}}\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

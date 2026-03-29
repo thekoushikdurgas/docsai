@@ -1,0 +1,40 @@
+{
+  "name": "Get S3 File Info",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query GetS3FileInfo($fileKey:String!){ s3{ s3FileInfo(fileKey:$fileKey){ key filename size lastModified contentType}}}\",\n\"variables\":{\n\"fileKey\":\"exports/file.csv\"\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query GetS3FileInfo($fileKey:String!){ s3{ s3FileInfo(fileKey:$fileKey){ key filename size lastModified contentType}}}\",\n\"variables\":{\n\"fileKey\":\"exports/file.csv\"\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

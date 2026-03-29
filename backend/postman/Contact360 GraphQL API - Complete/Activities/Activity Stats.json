@@ -1,0 +1,40 @@
+{
+  "name": "Activity Stats",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query ActivityStats($filters:ActivityStatsInput){ activities{ activityStats(filters:$filters){ totalActivities byServiceType byActionType byStatus recentActivities}}}\",\n\"variables\":{\n\"filters\":{\n\"startDate\":\"2024-01-01T00:00:00Z\",\n\"endDate\":\"2024-01-31T23:59:59Z\"\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query ActivityStats($filters:ActivityStatsInput){ activities{ activityStats(filters:$filters){ totalActivities byServiceType byActionType byStatus recentActivities}}}\",\n\"variables\":{\n\"filters\":{\n\"startDate\":\"2024-01-01T00:00:00Z\",\n\"endDate\":\"2024-01-31T23:59:59Z\"\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

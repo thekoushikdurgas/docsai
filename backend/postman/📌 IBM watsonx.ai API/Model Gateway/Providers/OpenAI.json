@@ -1,0 +1,24 @@
+{
+  "name": "OpenAI",
+  "rank": "b02",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/openai",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.openai_provider_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"name\": \"openai-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_openai}}\"\r\n    }\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"name\": \"openai-provider\",\r\n    \"data\": {\r\n        \"apikey\": \"{{apiKey_openai}}\"\r\n    }\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

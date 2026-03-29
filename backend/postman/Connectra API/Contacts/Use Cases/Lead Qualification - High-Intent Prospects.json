@@ -1,0 +1,40 @@
+{
+  "name": "Lead Qualification - High-Intent Prospects",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/contacts/",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "X-API-Key",
+        "value": "{{apiKey}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"company_industries\": [\"Software\", \"SaaS\"],\n        \"seniority\": [\"senior\", \"lead\", \"principal\", \"executive\"],\n        \"departments\": [\"Engineering\", \"Product\", \"Sales\"],\n        \"email_status\": [\"verified\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"company_annual_revenue\": {\n          \"gte\": 5000000\n        },\n        \"company_employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"created_at\": {\n          \"gte\": \"2023-01-01T00:00:00Z\"\n        }\n      }\n    }\n  },\n  \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"title\", \"email\", \"company_id\"],\n  \"company_config\": {\n    \"populate\": true,\n    \"select_columns\": [\"uuid\", \"name\", \"employees_count\", \"annual_revenue\", \"website\"]\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"company_annual_revenue\",\n      \"order_direction\": \"desc\"\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 50\n}",
+    "bodyContainer": {
+      "text": "{\n  \"where\": {\n    \"keyword_match\": {\n      \"must\": {\n        \"company_industries\": [\"Software\", \"SaaS\"],\n        \"seniority\": [\"senior\", \"lead\", \"principal\", \"executive\"],\n        \"departments\": [\"Engineering\", \"Product\", \"Sales\"],\n        \"email_status\": [\"verified\"]\n      }\n    },\n    \"range_query\": {\n      \"must\": {\n        \"company_annual_revenue\": {\n          \"gte\": 5000000\n        },\n        \"company_employees_count\": {\n          \"gte\": 100,\n          \"lte\": 1000\n        },\n        \"created_at\": {\n          \"gte\": \"2023-01-01T00:00:00Z\"\n        }\n      }\n    }\n  },\n  \"select_columns\": [\"id\", \"first_name\", \"last_name\", \"title\", \"email\", \"company_id\"],\n  \"company_config\": {\n    \"populate\": true,\n    \"select_columns\": [\"uuid\", \"name\", \"employees_count\", \"annual_revenue\", \"website\"]\n  },\n  \"order_by\": [\n    {\n      \"order_by\": \"company_annual_revenue\",\n      \"order_direction\": \"desc\"\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 50\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

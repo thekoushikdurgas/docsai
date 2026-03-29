@@ -1,0 +1,33 @@
+{
+  "name": "Create assistant",
+  "rank": "b0P",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/assistants",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)\r\n"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "OpenAI-Beta",
+        "value": "assistants=v2",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\r\n    \"instructions\": \"You are a personal math tutor. Write and run code to answer math questions.\",\r\n    \"name\": \"Math Tutor\",\r\n    \"tools\": [{\"type\": \"code_interpreter\"}],\r\n    \"model\": \"gpt-4o\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"instructions\": \"You are a personal math tutor. Write and run code to answer math questions.\",\r\n    \"name\": \"Math Tutor\",\r\n    \"tools\": [{\"type\": \"code_interpreter\"}],\r\n    \"model\": \"gpt-4o\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

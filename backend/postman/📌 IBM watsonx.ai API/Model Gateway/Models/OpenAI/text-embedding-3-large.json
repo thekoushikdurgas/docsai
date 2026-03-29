@@ -1,0 +1,24 @@
+{
+  "name": "text-embedding-3-large",
+  "rank": "b0L",
+  "request": {
+    "type": "http",
+    "url": "{{modelGatewayUrl}}/providers/{{temp.openai_provider_id}}/models",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.model_id', jsonResponse.uuid);"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"alias\": \"openai/text-embedding-3-large\",\r\n    \"id\": \"text-embedding-3-large\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"alias\": \"openai/text-embedding-3-large\",\r\n    \"id\": \"text-embedding-3-large\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

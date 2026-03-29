@@ -1,0 +1,24 @@
+{
+  "name": "Create Job",
+  "rank": "b1m",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/fine-tunes",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.id', jsonResponse.id)"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\r\n    \"n_epochs\": 1,\r\n    \"n_checkpoints\": 1,\r\n    \"n_evals\": 0,\r\n    \"batch_size\": 32,\r\n    \"learning_rate\": 0.00001,\r\n    \"lr_scheduler\": {\r\n        \"lr_scheduler_args\": {\r\n            \"min_lr_ratio\": 0\r\n        }\r\n    },\r\n    \"warmup_ratio\": 0,\r\n    \"max_grad_norm\": 1,\r\n    \"weight_decay\": 0,\r\n    \"train_on_inputs\": \"auto\",\r\n    \"training_type\": {\r\n        \"type\": \"Full\"\r\n    },\r\n    \"training_file\": \"training_file_id\",\r\n    \"validation_file\": \"validation_file_id\",\r\n    \"model\": \"model\"\r\n}",
+    "bodyContainer": {
+      "text": "{\r\n    \"n_epochs\": 1,\r\n    \"n_checkpoints\": 1,\r\n    \"n_evals\": 0,\r\n    \"batch_size\": 32,\r\n    \"learning_rate\": 0.00001,\r\n    \"lr_scheduler\": {\r\n        \"lr_scheduler_args\": {\r\n            \"min_lr_ratio\": 0\r\n        }\r\n    },\r\n    \"warmup_ratio\": 0,\r\n    \"max_grad_norm\": 1,\r\n    \"weight_decay\": 0,\r\n    \"train_on_inputs\": \"auto\",\r\n    \"training_type\": {\r\n        \"type\": \"Full\"\r\n    },\r\n    \"training_file\": \"training_file_id\",\r\n    \"validation_file\": \"validation_file_id\",\r\n    \"model\": \"model\"\r\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

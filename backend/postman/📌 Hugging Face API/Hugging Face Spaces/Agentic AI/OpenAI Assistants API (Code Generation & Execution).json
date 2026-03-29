@@ -1,0 +1,24 @@
+{
+  "name": "OpenAI Assistants API (Code Generation & Execution)",
+  "rank": "b0e",
+  "request": {
+    "type": "http",
+    "url": "https://bstraehle-openai-assistants.hf.space/call/chat",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": "const jsonResponse = rq.response.json();\r\nrq.collectionVariables.set('temp.event_id', jsonResponse.event_id)\r\n"
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [],
+    "body": "{\n    \"data\": [\n        \"First, execute with tools: Create a plot showing stock gain QTD for NVDA and AMD, x-axis is 'Day' and y-axis is 'Gain %'. Second, show the code.\",\n        \"\",\n        \"{{apiKey_openai}}\"\n    ]\n}",
+    "bodyContainer": {
+      "text": "{\n    \"data\": [\n        \"First, execute with tools: Create a plot showing stock gain QTD for NVDA and AMD, x-axis is 'Day' and y-axis is 'Gain %'. Second, show the code.\",\n        \"\",\n        \"{{apiKey_openai}}\"\n    ]\n}"
+    },
+    "contentType": "application/json",
+    "auth": {
+      "currentAuthType": "NO_AUTH",
+      "authConfigStore": {}
+    }
+  }
+}

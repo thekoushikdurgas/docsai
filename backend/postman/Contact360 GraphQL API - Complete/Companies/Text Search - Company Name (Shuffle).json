@@ -1,0 +1,40 @@
+{
+  "name": "Text Search - Company Name (Shuffle)",
+  "request": {
+    "type": "http",
+    "url": "{{baseUrl}}/graphql",
+    "scripts": {
+      "preRequest": "",
+      "postResponse": ""
+    },
+    "method": "POST",
+    "queryParams": [],
+    "headers": [
+      {
+        "id": 0,
+        "key": "Content-Type",
+        "value": "application/json",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      },
+      {
+        "id": 1,
+        "key": "Authorization",
+        "value": "Bearer{{accessToken}}",
+        "isEnabled": true,
+        "description": "",
+        "dataType": "string"
+      }
+    ],
+    "body": "{\n\"query\":\"query SearchCompanyName($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name employeesCount industries website} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"name\",\n\"operator\":\"contains\",\n\"value\":\"acme corporation\"\n}\n]\n},\n\"limit\":25,\n\"page\":1\n}\n}\n}",
+    "bodyContainer": {
+      "text": "{\n\"query\":\"query SearchCompanyName($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name employeesCount industries website} total}}}\",\n\"variables\":{\n\"query\":{\n\"filters\":{\n\"conditions\":[\n{\n\"field\":\"name\",\n\"operator\":\"contains\",\n\"value\":\"acme corporation\"\n}\n]\n},\n\"limit\":25,\n\"page\":1\n}\n}\n}"
+    },
+    "contentType": "text/plain",
+    "auth": {
+      "currentAuthType": "INHERIT",
+      "authConfigStore": {}
+    }
+  }
+}

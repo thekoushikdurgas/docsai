@@ -1,0 +1,1 @@
+FastAPI resumeai microservice (resume CRUD + AI via Hugging Face Inference API). Set baseUrl and apiKey; server needs HF_API_KEY for AI routes. Docs: docs/backend/apis/29_RESUME_AI_REST_SERVICE.md

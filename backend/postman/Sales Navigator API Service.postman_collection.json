@@ -1,0 +1,111 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Sales Navigator API Service",
+		"description": "Postman collection for Lambda Sales Navigator API Service deployed on AWS API Gateway.\n\n**Base URL**: {{base_url}}\n**Production URL**: (Update after deployment)\n**Local Development**: http://localhost:8080\n\n**Authentication**:\n- Health check and root endpoints: No authentication required\n- All other endpoints: X-API-Key header required\n- API Key: {{api_key}}\n\n## API Structure\n- **Health Check**: Service health and info endpoints (no auth)\n- **Save Profiles**: Save profiles array to Connectra (requires auth)\n  - `/v1/save-profiles` - Save profiles array to Connectra database\n\n## Features\n- Save Sales Navigator profiles to Connectra database\n- Bulk upsert operations for contacts and companies\n- Parallel processing (companies and contacts saved simultaneously)\n- Accurate save count reporting (contacts_created + contacts_updated)\n- Connectra integration for data persistence\n\n## Usage\n\n### Save Profiles\n1. Prepare profiles array with Sales Navigator profile data\n2. Send POST request to `/v1/save-profiles` with profiles in request body\n3. Receive response with success status and actual saved count from Connectra",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20572666"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Check service health status. Returns service name, version, and status. No authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Root Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Get service information (name, version, status). No authentication required."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check and service info endpoints (no authentication required)"
+		},
+		{
+			"name": "Save Profiles",
+			"item": [
+				{
+					"name": "Save Profiles",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"description": "API key for authentication"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"profiles\": [\n    {\n      \"name\": \"Jane Smith\",\n      \"title\": \"Senior Software Engineer\",\n      \"company\": \"Tech Corp\",\n      \"location\": \"San Francisco, CA\",\n      \"profile_url\": \"https://linkedin.com/in/janesmith\",\n      \"image_url\": \"https://media.licdn.com/...\",\n      \"connection_degree\": \"2nd\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/save-profiles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"save-profiles"
+							]
+						},
+						"description": "Save profiles array to Connectra database via bulk upsert operations.\n\n**Request Body:**\n- `profiles` (required): Array of profile objects to save (max 1000 per request)\n\n**Profile Object Structure:**\nEach profile object should contain Sales Navigator profile fields:\n- `name` (string): Full name\n- `title` (string, optional): Job title\n- `company` (string, optional): Company name\n- `location` (string, optional): Location string\n- `profile_url` (string, optional): LinkedIn profile URL\n- `image_url` (string, optional): Profile image URL\n- `connection_degree` (string, optional): Connection degree\n- Other Sales Navigator profile fields as available\n\n**Response:**\n- `success`: Whether the save operation was successful\n- `total_profiles`: Total number of profiles in the input array\n- `saved_count`: Number of contacts actually saved (contacts_created + contacts_updated from Connectra)\n- `errors`: Array of error messages (if any)\n\n**Note:** The `saved_count` reflects the actual number of contacts saved to Connectra (contacts_created + contacts_updated), not just the input length. Company and contact saves are performed in parallel for better performance."
+					},
+					"response": []
+				}
+			],
+			"description": "Save Sales Navigator profiles to Connectra database. Requires API key authentication via X-API-Key header."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "Base URL for the API. Use http://localhost:8080 for local development or update with production URL after deployment."
+		},
+		{
+			"key": "api_key",
+			"value": "change-me-in-production",
+			"type": "string",
+			"description": "API key for authentication. Update with actual API key from environment variables."
+		}
+	]
+}
