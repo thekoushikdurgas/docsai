@@ -1,0 +1,175 @@
+{
+  "info": {
+    "_postman_id": "auth-module-graphql",
+    "name": "GraphQL – Auth Module",
+    "description": "Auth module: me, session, login, register, logout, refreshToken. See lambda/appointment360/sql/apis/01_AUTH_MODULE.md.\n\nSetup: Set baseUrl, email, password. Run Login (or Register) then use accessToken for me/session/logout.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "email", "value": "" },
+    { "key": "password", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "me",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { auth { me { uuid email name profile { jobTitle bio role credits } } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Get current user. Returns null if not authenticated."
+          }
+        },
+        {
+          "name": "session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { auth { session { userUuid email isAuthenticated lastSignInAt } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Get current session. Requires auth."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Login($input: LoginInput!, $pageType: String) { auth { login(input: $input, pageType: $pageType) { accessToken refreshToken user { uuid email name role userType } pages { pageId title pageType route status } } } }\",\n  \"variables\": {\n    \"input\": {\n      \"email\": \"{{email}}\",\n      \"password\": \"{{password}}\"\n    },\n    \"pageType\": null\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Login. Optional pageType: docs, marketing, dashboard."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  const r = j.data?.auth?.login;",
+                  "  if (r) {",
+                  "    if (r.accessToken) pm.environment.set('accessToken', r.accessToken);",
+                  "    if (r.refreshToken) pm.environment.set('refreshToken', r.refreshToken);",
+                  "    if (r.user?.uuid) pm.environment.set('userId', r.user.uuid);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Register($input: RegisterInput!, $pageType: String) { auth { register(input: $input, pageType: $pageType) { accessToken refreshToken user { uuid email name role userType } pages { pageId title pageType route status } } } }\",\n  \"variables\": {\n    \"input\": {\n      \"name\": \"Test User\",\n      \"email\": \"{{email}}\",\n      \"password\": \"{{password}}\"\n    },\n    \"pageType\": null\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Register. Optional pageType."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  const r = j.data?.auth?.register;",
+                  "  if (r) {",
+                  "    if (r.accessToken) pm.environment.set('accessToken', r.accessToken);",
+                  "    if (r.refreshToken) pm.environment.set('refreshToken', r.refreshToken);",
+                  "    if (r.user?.uuid) pm.environment.set('userId', r.user.uuid);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Logout { auth { logout } }\",\n  \"variables\": {}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Logout and blacklist current access token."
+          }
+        },
+        {
+          "name": "refreshToken",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation RefreshToken($input: RefreshTokenInput!, $pageType: String) { auth { refreshToken(input: $input, pageType: $pageType) { accessToken refreshToken user { uuid email name role userType } pages { pageId title pageType route status } } } }\",\n  \"variables\": {\n    \"input\": { \"refreshToken\": \"{{refreshToken}}\" },\n    \"pageType\": null\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Refresh access token. Set refreshToken in env."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  const r = j.data?.auth?.refreshToken;",
+                  "  if (r) {",
+                  "    if (r.accessToken) pm.environment.set('accessToken', r.accessToken);",
+                  "    if (r.refreshToken) pm.environment.set('refreshToken', r.refreshToken);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

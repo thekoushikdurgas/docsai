@@ -1,0 +1,171 @@
+{
+  "info": {
+    "_postman_id": "b3a1c9f2-4f7a-4c4d-9c10-3a1b1b3c7a10",
+    "name": "Mailvaiter API (v1)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Mailvaiter API collection for local/dev/prod. Configure variables: baseUrl, apiKey.\n\nAuth: Authorization: Bearer {{apiKey}}\nBase: {{baseUrl}} defaults to http://localhost:8080/v1"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/v1", "type": "string" },
+    { "key": "apiKey", "value": "CHANGE_ME", "type": "string" },
+    { "key": "jobId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}", "type": "text" }
+            ],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Email Validation",
+      "item": [
+        {
+          "name": "POST /emails/validate (default)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"verify_smtp\": true,\n  \"check_disposable\": true,\n  \"full_details\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emails/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "validate"]
+            }
+          }
+        },
+        {
+          "name": "POST /emails/validate (full details)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"verify_smtp\": true,\n  \"check_disposable\": true,\n  \"full_details\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emails/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bulk Validation Jobs",
+      "item": [
+        {
+          "name": "POST /emails/validate-bulk",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 202', function () {",
+                  "  pm.response.to.have.status(202);",
+                  "});",
+                  "try {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.job_id) {",
+                  "    pm.collectionVariables.set('jobId', data.job_id);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emails\": [\n    \"user1@example.com\",\n    \"user2@gmail.com\",\n    \"user3@company.org\"\n  ],\n  \"verify_smtp\": true,\n  \"check_disposable\": true,\n  \"callback_url\": \"https://your-domain.com/webhook\",\n  \"callback_events\": [\"completed\", \"failed\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emails/validate-bulk",
+              "host": ["{{baseUrl}}"],
+              "path": ["emails", "validate-bulk"]
+            }
+          }
+        },
+        {
+          "name": "GET /jobs/{job_id}",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET /jobs/{job_id}/results (json)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/results?format=json&filter=all&page=1&limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "results"],
+              "query": [
+                { "key": "format", "value": "json" },
+                { "key": "filter", "value": "all" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "100" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /jobs/{job_id}/results (csv)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/results?format=csv&filter=all&page=1&limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "results"],
+              "query": [
+                { "key": "format", "value": "csv" },
+                { "key": "filter", "value": "all" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "100" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,160 @@
+{
+  "info": {
+    "_postman_id": "companies-module-graphql",
+    "name": "GraphQL – Companies Module",
+    "description": "Companies: company, companies, companyCount, companyContacts, filters, filterData; createCompany, updateCompany, exportCompanies. See 04_COMPANIES_MODULE.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "companyUuid", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "company",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetCompany($uuid: ID!) { companies { company(uuid: $uuid) { uuid name employeesCount industries address } } }\",\n  \"variables\": { \"uuid\": \"{{companyUuid}}\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "companies",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ListCompanies($query: VQLQueryInput) { companies { companies(query: $query) { items { uuid name employeesCount industries } pageInfo { total limit offset hasNext } } } }\",\n  \"variables\": { \"query\": { \"limit\": 20, \"offset\": 0 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "companyCount",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CompanyCount($query: VQLQueryInput) { companies { companyCount(query: $query) } }\",\n  \"variables\": { \"query\": {} }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "companyContacts",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CompanyContacts($companyUuid: ID!, $limit: Int, $offset: Int) { companies { companyContacts(companyUuid: $companyUuid, limit: $limit, offset: $offset) { items { uuid firstName lastName email } pageInfo { total } } } }\",\n  \"variables\": { \"companyUuid\": \"{{companyUuid}}\", \"limit\": 100, \"offset\": 0 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "filters",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CompanyFilters { companies { filters { items { filterKey filterType displayName key } } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "filterData",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CompanyFilterData($input: CompanyFilterDataInput!) { companies { filterData(input: $input) { items pageInfo { total } } } }\",\n  \"variables\": { \"input\": { \"filterKey\": \"industry\", \"searchText\": \"\", \"page\": 1, \"limit\": 50 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "createCompany",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CreateCompany($input: CreateCompanyInput!) { companies { createCompany(input: $input) { uuid name employeesCount industries } } }\",\n  \"variables\": { \"input\": { \"name\": \"Acme Inc\", \"employeesCount\": 100, \"industries\": [\"Technology\"] } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "updateCompany",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UpdateCompany($uuid: ID!, $input: UpdateCompanyInput!) { companies { updateCompany(uuid: $uuid, input: $input) { uuid name employeesCount } } }\",\n  \"variables\": { \"uuid\": \"{{companyUuid}}\", \"input\": { \"name\": \"Acme Corp\" } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "exportCompanies",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ExportCompanies($input: CreateContact360ExportInput!) { companies { exportCompanies(input: $input) { jobId status } } }\",\n  \"variables\": { \"input\": { \"outputPrefix\": \"companies_export\", \"service\": \"company\", \"vql\": {}, \"pageSize\": 500 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    }
+  ]
+}

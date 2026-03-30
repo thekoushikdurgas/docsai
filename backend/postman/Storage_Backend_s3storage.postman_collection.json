@@ -1,0 +1,548 @@
+{
+  "info": {
+    "_postman_id": "storage-backend-s3storage-appointment360",
+    "name": "Storage Backend (s3storage)",
+    "description": "REST API for the s3storage service used by Contact360/Appointment360. Set storage_base_url to your s3storage API URL (e.g. LAMBDA_S3STORAGE_API_URL or SAM S3StorageApiUrl). Task breakdown: sql/postman/TASK_BREAKDOWN_STORAGE_POSTMAN.md. Docs: lambda/s3storage/docs/API.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/health",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/health/info",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health",
+                "info"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Buckets",
+      "item": [
+        {
+          "name": "Create Bucket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bucket_id\": \"{{bucket_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/buckets",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "buckets"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "List Objects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/buckets/{{bucket_id}}/objects?prefix={{prefix}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "buckets",
+                "{{bucket_id}}",
+                "objects"
+              ],
+              "query": [
+                {
+                  "key": "prefix",
+                  "value": "{{prefix}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Object Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/buckets/{{bucket_id}}/objects/info?file_key={{file_key}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "buckets",
+                "{{bucket_id}}",
+                "objects",
+                "info"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{file_key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Download URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/buckets/{{bucket_id}}/objects/download-url?file_key={{file_key}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "buckets",
+                "{{bucket_id}}",
+                "objects",
+                "download-url"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{file_key}}"
+                },
+                {
+                  "key": "expires_in",
+                  "value": "{{expires_in}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Object",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/buckets/{{bucket_id}}/objects?file_key={{file_key}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "buckets",
+                "{{bucket_id}}",
+                "objects"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{file_key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Multipart Upload",
+      "item": [
+        {
+          "name": "Initiate CSV Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bucketId\": \"{{bucket_id}}\",\n  \"filename\": \"orders-2024-01.csv\",\n  \"fileSize\": 104857600,\n  \"contentType\": \"text/csv\"\n}"
+            },
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/uploads/initiate-csv",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "initiate-csv"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Presigned Part URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/uploads/{{upload_id}}/parts/{{part_number}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "parts",
+                "{{part_number}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Part",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etag\": \"\\\"part-etag-from-s3\\\"\"\n}"
+            },
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/uploads/{{upload_id}}/parts/{{part_number}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "parts",
+                "{{part_number}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete Upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/uploads/{{upload_id}}/complete?bucket_id={{bucket_id}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "complete"
+              ],
+              "query": [
+                {
+                  "key": "bucket_id",
+                  "value": "{{bucket_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Abort Upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/uploads/{{upload_id}}/abort",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "abort"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload CSV",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/uploads/csv?bucket_id={{bucket_id}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "csv"
+              ],
+              "query": [
+                {
+                  "key": "bucket_id",
+                  "value": "{{bucket_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analysis",
+      "item": [
+        {
+          "name": "Schema",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/analysis/{{bucket_id}}/schema?file_key={{file_key}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analysis",
+                "{{bucket_id}}",
+                "schema"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{file_key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Preview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/analysis/{{bucket_id}}/preview?file_key={{file_key}}&limit={{limit}}&offset={{offset}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analysis",
+                "{{bucket_id}}",
+                "preview"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{file_key}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "{{limit}}"
+                },
+                {
+                  "key": "offset",
+                  "value": "{{offset}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/analysis/{{bucket_id}}/stats?file_key={{file_key}}",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analysis",
+                "{{bucket_id}}",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "file_key",
+                  "value": "{{file_key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{storage_base_url}}/api/v1/analysis/{{bucket_id}}/metadata",
+              "host": [
+                "{{storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analysis",
+                "{{bucket_id}}",
+                "metadata"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "storage_base_url",
+      "value": "https://1ocgo5fst1.execute-api.us-east-1.amazonaws.com"
+    },
+    {
+      "key": "bucket_id",
+      "value": "tenant-123"
+    },
+    {
+      "key": "file_key",
+      "value": "upload/orders-2024-01.csv"
+    },
+    {
+      "key": "prefix",
+      "value": "upload/"
+    },
+    {
+      "key": "upload_id",
+      "value": "abc123"
+    },
+    {
+      "key": "part_number",
+      "value": "1"
+    },
+    {
+      "key": "expires_in",
+      "value": "3600"
+    },
+    {
+      "key": "limit",
+      "value": "100"
+    },
+    {
+      "key": "offset",
+      "value": "0"
+    }
+  ]
+}

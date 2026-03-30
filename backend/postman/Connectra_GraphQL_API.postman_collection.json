@@ -1,0 +1,4209 @@
+{
+  "info": {
+    "_postman_id": "connectra-graphql-via-appointment360",
+    "name": "Connectra GraphQL API (via Appointment360)",
+    "description": "GraphQL equivalent of Connectra REST API. Same folder structure. Setup: baseUrl, email, password. Run Auth > Login first. All requests use Authorization: Bearer {{accessToken}}. Variables: use camelCase. API docs: lambda/appointment360/sql/apis/ (03_CONTACTS_MODULE.md, 04_COMPANIES_MODULE.md).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "contactUuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "companyUuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobUuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uploadId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation Login($input:LoginInput!){ auth{ login(input:$input){ accessToken refreshToken user{ uuid email name}}}}\", \"variables\": {\"input\": {\"email\": \"{{email}}\", \"password\": \"{{password}}\"}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST Connectra uses X-API-Key; Appointment360 uses JWT. Run first."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200){",
+                  "const d = pm.response.json();",
+                  "const r = d.data?.auth?.login;",
+                  "if (r){ if(r.accessToken) pm.environment.set('accessToken',r.accessToken); if(r.refreshToken) pm.environment.set('refreshToken',r.refreshToken); if(r.user?.uuid) pm.environment.set('userId',r.user.uuid); }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query{ health{ apiHealth{ status environment}}}\", \"variables\": {}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: GET /health → GraphQL: health.apiHealth"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CRUD Operations",
+      "item": [
+        {
+          "name": "Contacts",
+          "item": [
+            {
+              "name": "CREATE: POST /contacts/batch-upsert (UPSERT)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"mutation BatchCreateContacts($input:BatchCreateContactsInput!){ contacts{ batchCreateContacts(input:$input){ uuid firstName lastName email}}}\", \"variables\": {\"input\": {\"contacts\": [{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"john.doe@acme.com\", \"companyUuid\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\", \"title\": \"Senior Software Engineer\", \"departments\": [\"Engineering\"], \"seniority\": \"senior\"}]}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/batch-upsert → GraphQL: contacts.batchCreateContacts"
+              }
+            },
+            {
+              "name": "READ: POST /contacts/ (VQL filter query)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query ContactQuery($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"seniority\", \"operator\": \"eq\", \"value\": \"senior\"}]}, \"selectColumns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"title\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ with VQL → GraphQL: contacts.contactQuery"
+              }
+            },
+            {
+              "name": "UPDATE: POST /contacts/batch-upsert (UPSERT by UUID)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"mutation UpdateContact($uuid:ID!,$input:UpdateContactInput!){ contacts{ updateContact(uuid:$uuid,input:$input){ uuid firstName lastName email title}}}\", \"variables\": {\"uuid\": \"{{contactUuid}}\", \"input\": {\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"john.doe@acme.com\", \"title\": \"Senior Engineering Manager\", \"departments\": [\"Engineering\", \"Product\"], \"seniority\": \"lead\"}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/batch-upsert with uuid → GraphQL: contacts.updateContact(uuid, input)"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Companies",
+          "item": [
+            {
+              "name": "CREATE: POST /companies/batch-upsert (UPSERT)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"mutation CreateCompany($input:CreateCompanyInput!){ companies{ createCompany(input:$input){ uuid name industries employeesCount website}}}\", \"variables\": {\"input\": {\"name\": \"Acme Corporation\", \"employeesCount\": 500, \"industries\": [\"Technology\", \"Software\"], \"keywords\": [\"SaaS\", \"B2B\", \"Enterprise\"]}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/batch-upsert → GraphQL: companies.createCompany"
+              }
+            },
+            {
+              "name": "READ: POST /companies/ (VQL filter query)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query CompanyQuery($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Technology\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 100}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 5000}]}, \"selectColumns\": [\"uuid\", \"name\", \"industries\", \"employees_count\", \"website\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ with VQL → GraphQL: companies.companyQuery"
+              }
+            },
+            {
+              "name": "UPDATE: POST /companies/batch-upsert (UPSERT by UUID)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"mutation UpdateCompany($uuid:ID!,$input:UpdateCompanyInput!){ companies{ updateCompany(uuid:$uuid,input:$input){ uuid name industries employeesCount}}}\", \"variables\": {\"uuid\": \"{{companyUuid}}\", \"input\": {\"name\": \"Acme Corporation\", \"employeesCount\": 750, \"industries\": [\"Technology\", \"Software\", \"AI\"]}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/batch-upsert with uuid → GraphQL: companies.updateCompany(uuid, input)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "Filter Examples",
+          "item": [
+            {
+              "name": "Basic - Simple Name Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"software\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Basic - Simple Name Search"
+              }
+            },
+            {
+              "name": "Combined - Multi-Criteria Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"technology\"}, {\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 1000}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 1000000}]}, \"orderBy\": [{\"orderBy\": \"employees_count\", \"orderDirection\": \"desc\"}], \"limit\": 25, \"page\": 1, \"selectColumns\": [\"name\", \"employees_count\", \"industries\", \"city\", \"country\"]}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Combined - Multi-Criteria Search"
+              }
+            },
+            {
+              "name": "Exact - Phrase Match with Slop",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"exact\", \"value\": \"artificial intelligence\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Exact - Phrase Match with Slop"
+              }
+            },
+            {
+              "name": "Search Companies - Shuffle with OR Operator",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"software technology saas\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Search Companies - Shuffle with OR Operator"
+              }
+            },
+            {
+              "name": "Search Companies by Name (Substring)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"starts_with\", \"value\": \"soft\"}]}, \"selectColumns\": [\"uuid\", \"name\", \"employees_count\"], \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Search Companies by Name (Substring)"
+              }
+            },
+            {
+              "name": "Complex Company Search with must_not",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"artificial intelligence\"}, {\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\"]}, {\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"Python\", \"Machine Learning\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 100}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 1000}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 5000000}]}, \"orderBy\": [{\"orderBy\": \"annual_revenue\", \"orderDirection\": \"desc\"}], \"limit\": 50, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Complex Company Search with must_not"
+              }
+            },
+            {
+              "name": "Get Companies with Cursor Pagination",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}]}, \"orderBy\": [{\"orderBy\": \"annual_revenue\", \"orderDirection\": \"desc\"}, {\"orderBy\": \"uuid\", \"orderDirection\": \"asc\"}], \"searchAfter\": [\"5000000\", \"123\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Get Companies with Cursor Pagination"
+              }
+            },
+            {
+              "name": "Keyword - Single Industry",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Single Industry"
+              }
+            },
+            {
+              "name": "Keyword - Multiple Industries",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\", \"SaaS\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Multiple Industries"
+              }
+            },
+            {
+              "name": "Keyword - Single Technology",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"Python\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Single Technology"
+              }
+            },
+            {
+              "name": "Keyword - Multiple Technologies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"Python\", \"Go\", \"React\", \"JavaScript\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Multiple Technologies"
+              }
+            },
+            {
+              "name": "Keyword - Single Keyword",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"keywords\", \"operator\": \"in\", \"value\": [\"AI\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Single Keyword"
+              }
+            },
+            {
+              "name": "Keyword - Multiple Keywords",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"keywords\", \"operator\": \"in\", \"value\": [\"AI\", \"Machine Learning\", \"Cloud Computing\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Multiple Keywords"
+              }
+            },
+            {
+              "name": "Keyword - Single Country",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Single Country"
+              }
+            },
+            {
+              "name": "Keyword - Multiple Countries",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\", \"canada\", \"united kingdom\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Multiple Countries"
+              }
+            },
+            {
+              "name": "Keyword - Industries & Technologies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"SaaS\"]}, {\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"Python\", \"Go\", \"React\"]}]}, \"orderBy\": [{\"orderBy\": \"annual_revenue\", \"orderDirection\": \"desc\"}], \"limit\": 50, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Industries & Technologies"
+              }
+            },
+            {
+              "name": "Keyword - Multiple Filters Combined",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\"]}, {\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"Python\", \"Go\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\", \"canada\"]}, {\"field\": \"keywords\", \"operator\": \"in\", \"value\": [\"AI\", \"Machine Learning\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Multiple Filters Combined"
+              }
+            },
+            {
+              "name": "Keyword - With must_not Exclusion",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - With must_not Exclusion"
+              }
+            },
+            {
+              "name": "Keyword - Company ID Filter",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"uuid\", \"operator\": \"in\", \"value\": [\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Keyword - Company ID Filter"
+              }
+            },
+            {
+              "name": "Range - Employees Count (gte only)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Employees Count (gte only)"
+              }
+            },
+            {
+              "name": "Range - Employees Count (Range)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 1000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Employees Count (Range)"
+              }
+            },
+            {
+              "name": "Range - Annual Revenue (gte only)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 1000000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Annual Revenue (gte only)"
+              }
+            },
+            {
+              "name": "Range - Annual Revenue (Range)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 1000000}, {\"field\": \"annual_revenue\", \"operator\": \"lte\", \"value\": 50000000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Annual Revenue (Range)"
+              }
+            },
+            {
+              "name": "Range - Total Funding (gte only)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"total_funding\", \"operator\": \"gte\", \"value\": 5000000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Total Funding (gte only)"
+              }
+            },
+            {
+              "name": "Range - Total Funding (Range)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"total_funding\", \"operator\": \"gte\", \"value\": 1000000}, {\"field\": \"total_funding\", \"operator\": \"lte\", \"value\": 100000000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Total Funding (Range)"
+              }
+            },
+            {
+              "name": "Range - Size & Revenue",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 500}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 1000000}]}, \"orderBy\": [{\"orderBy\": \"annual_revenue\", \"orderDirection\": \"desc\"}], \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Size & Revenue"
+              }
+            },
+            {
+              "name": "Range - All Numeric Ranges Combined",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 1000}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 1000000}, {\"field\": \"annual_revenue\", \"operator\": \"lte\", \"value\": 50000000}, {\"field\": \"total_funding\", \"operator\": \"gte\", \"value\": 5000000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - All Numeric Ranges Combined"
+              }
+            },
+            {
+              "name": "Range - Date Range (Created At)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"created_at\", \"operator\": \"gte\", \"value\": \"2023-01-01T00:00:00Z\"}, {\"field\": \"created_at\", \"operator\": \"lte\", \"value\": \"2024-12-31T23:59:59Z\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Date Range (Created At)"
+              }
+            },
+            {
+              "name": "Range - Date After (Created At)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"created_at\", \"operator\": \"gte\", \"value\": \"2024-01-01T00:00:00Z\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Date After (Created At)"
+              }
+            },
+            {
+              "name": "Range - Combined Numeric and Date",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 1000000}, {\"field\": \"created_at\", \"operator\": \"gte\", \"value\": \"2023-01-01T00:00:00Z\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Range - Combined Numeric and Date"
+              }
+            },
+            {
+              "name": "Geographic - Countries & States",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"state\", \"operator\": \"in\", \"value\": [\"california\", \"new york\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Geographic - Countries & States"
+              }
+            },
+            {
+              "name": "Funding-Based - Well-Funded Companies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"total_funding\", \"operator\": \"gte\", \"value\": 10000000}, {\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Funding-Based - Well-Funded Companies"
+              }
+            },
+            {
+              "name": "Text - Address Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"address\", \"operator\": \"contains\", \"value\": \"Main Street\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Address Search"
+              }
+            },
+            {
+              "name": "Text - Multiple Matches Same Field",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"tech\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Multiple Matches Same Field"
+              }
+            },
+            {
+              "name": "Text - Multiple Matches Different Fields",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"software\"}, {\"field\": \"address\", \"operator\": \"contains\", \"value\": \"San Francisco\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Multiple Matches Different Fields"
+              }
+            },
+            {
+              "name": "Text - Location Search (City)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"city\", \"operator\": \"contains\", \"value\": \"San Francisco\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Location Search (City)"
+              }
+            },
+            {
+              "name": "Text - Location Search (State)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"state\", \"operator\": \"contains\", \"value\": \"California\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Location Search (State)"
+              }
+            },
+            {
+              "name": "Text - Location Search (Country)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"contains\", \"value\": \"United States\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Location Search (Country)"
+              }
+            },
+            {
+              "name": "Text - LinkedIn URL Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"linkedin_url\", \"operator\": \"contains\", \"value\": \"linkedin.com/company\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - LinkedIn URL Search"
+              }
+            },
+            {
+              "name": "Text - Website Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"website\", \"operator\": \"contains\", \"value\": \"acme.com\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Website Search"
+              }
+            },
+            {
+              "name": "Text - Domain Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"normalized_domain\", \"operator\": \"contains\", \"value\": \"acme\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Domain Search"
+              }
+            },
+            {
+              "name": "Text - Exact with Fuzzy Matching",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"exact\", \"value\": \"artificial intelligence\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Exact with Fuzzy Matching"
+              }
+            },
+            {
+              "name": "Text - Shuffle with AND Operator",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"software technology\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Text - Shuffle with AND Operator"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Use Cases",
+          "item": [
+            {
+              "name": "Lead Generation - High-Value Software Companies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"software technology\"}, {\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"SaaS\", \"Technology\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\", \"canada\", \"united kingdom\"]}, {\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"Cloud\", \"AI\", \"Machine Learning\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 1000}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 1000000}, {\"field\": \"created_at\", \"operator\": \"gte\", \"value\": \"2020-01-01T00:00:00Z\"}]}, \"orderBy\": [{\"orderBy\": \"annual_revenue\", \"orderDirection\": \"desc\"}], \"limit\": 50, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Lead Generation - High-Value Software Companies"
+              }
+            },
+            {
+              "name": "Competitive Analysis - Find Competitors",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"name\", \"operator\": \"contains\", \"value\": \"cloud computing saas\"}, {\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"SaaS\", \"Cloud Computing\"]}, {\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"AWS\", \"Azure\", \"GCP\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 100}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 5000}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 10000000}]}, \"orderBy\": [{\"orderBy\": \"annual_revenue\", \"orderDirection\": \"desc\"}], \"limit\": 50, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Competitive Analysis - Find Competitors"
+              }
+            },
+            {
+              "name": "Partnership Opportunities - Potential Partners",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\"]}, {\"field\": \"technologies\", \"operator\": \"in\", \"value\": [\"Python\", \"Go\", \"React\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\", \"canada\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 50}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 500}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 5000000}, {\"field\": \"annual_revenue\", \"operator\": \"lte\", \"value\": 50000000}]}, \"orderBy\": [{\"orderBy\": \"employees_count\", \"orderDirection\": \"desc\"}], \"limit\": 50, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Partnership Opportunities - Potential Partners"
+              }
+            },
+            {
+              "name": "Market Research - Location and Size",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"address\", \"operator\": \"contains\", \"value\": \"Silicon Valley\"}, {\"field\": \"state\", \"operator\": \"in\", \"value\": [\"california\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 100}, {\"field\": \"employees_count\", \"operator\": \"lte\", \"value\": 1000}]}, \"orderBy\": [{\"orderBy\": \"employees_count\", \"orderDirection\": \"desc\"}], \"limit\": 50, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Market Research - Location and Size"
+              }
+            },
+            {
+              "name": "Investment Targeting - Well-Funded Companies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ companies{ companyQuery(query:$query){ items{ uuid name industries employeesCount annualRevenue totalFunding city country website} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Software\", \"Technology\", \"SaaS\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"total_funding\", \"operator\": \"gte\", \"value\": 10000000}, {\"field\": \"annual_revenue\", \"operator\": \"gte\", \"value\": 5000000}, {\"field\": \"employees_count\", \"operator\": \"gte\", \"value\": 100}]}, \"orderBy\": [{\"orderBy\": \"total_funding\", \"orderDirection\": \"desc\"}], \"limit\": 50, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /companies/ → GraphQL: companies.companyQuery. Investment Targeting - Well-Funded Companies"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Companies Count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query($query:VQLQueryInput){ companies{ companyCount(query:$query)}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"industries\", \"operator\": \"in\", \"value\": [\"Technology\"]}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}]}}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /companies/count → GraphQL: companies.companyCount"
+          }
+        },
+        {
+          "name": "Get Filters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query{ companies{ filters{ items{ filterKey filterType} total}}}\", \"variables\": {}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: GET /common/companies/filters → GraphQL: companies.filters"
+          }
+        },
+        {
+          "name": "Get Filter Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query($input:CompanyFilterDataInput!){ companies{ filterData(input:$input){ items{ value count} total}}}\", \"variables\": {\"input\": {\"filterKey\": \"industries\", \"searchText\": \"\", \"page\": 1, \"limit\": 100}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/companies/filters/data → GraphQL: companies.filterData(input)"
+          }
+        },
+        {
+          "name": "Batch Upsert Companies",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation($input:CreateCompanyInput!){ companies{ createCompany(input:$input){ uuid name industries employeesCount}}}\", \"variables\": {\"input\": {\"name\": \"Acme Corporation\", \"employeesCount\": 500, \"industries\": [\"Technology\", \"Software\"], \"keywords\": [\"SaaS\", \"B2B\"], \"address\": \"123 Main St\", \"annualRevenue\": 50000000, \"technologies\": [\"React\", \"Node.js\", \"AWS\"]}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /companies/batch-upsert → GraphQL: companies.createCompany (no batch; call per company)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "item": [
+        {
+          "name": "Filter Examples",
+          "item": [
+            {
+              "name": "Text - First Name Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"first_name\", \"operator\": \"contains\", \"value\": \"John\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - First Name Search"
+              }
+            },
+            {
+              "name": "Text - Last Name Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"last_name\", \"operator\": \"contains\", \"value\": \"Smith\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Last Name Search"
+              }
+            },
+            {
+              "name": "Text - Title Exact Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"title\", \"operator\": \"exact\", \"value\": \"software engineer\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Title Exact Search"
+              }
+            },
+            {
+              "name": "Text - Title Shuffle Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"title\", \"operator\": \"contains\", \"value\": \"engineer developer\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Title Shuffle Search"
+              }
+            },
+            {
+              "name": "Text - Multiple Matches (First + Last Name)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"first_name\", \"operator\": \"contains\", \"value\": \"John\"}, {\"field\": \"last_name\", \"operator\": \"contains\", \"value\": \"Smith\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Multiple Matches (First + Last Name)"
+              }
+            },
+            {
+              "name": "Text - Title and Name Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"title\", \"operator\": \"contains\", \"value\": \"engineer\"}, {\"field\": \"first_name\", \"operator\": \"contains\", \"value\": \"John\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Title and Name Search"
+              }
+            },
+            {
+              "name": "Text - Email Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"email\", \"operator\": \"contains\", \"value\": \"john.smith@acme.com\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Email Search"
+              }
+            },
+            {
+              "name": "Text - LinkedIn URL Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"linkedin_url\", \"operator\": \"contains\", \"value\": \"linkedin.com/in/johnsmith\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - LinkedIn URL Search"
+              }
+            },
+            {
+              "name": "Text - City Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"city\", \"operator\": \"contains\", \"value\": \"San Francisco\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - City Search"
+              }
+            },
+            {
+              "name": "Text - State Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"state\", \"operator\": \"contains\", \"value\": \"California\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - State Search"
+              }
+            },
+            {
+              "name": "Text - Country Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"contains\", \"value\": \"United States\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Country Search"
+              }
+            },
+            {
+              "name": "Text - Substring Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"title\", \"operator\": \"contains\", \"value\": \"eng\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Text - Substring Search"
+              }
+            },
+            {
+              "name": "Keyword - Single Department",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Single Department"
+              }
+            },
+            {
+              "name": "Keyword - Multiple Departments",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\", \"Sales\", \"Marketing\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Multiple Departments"
+              }
+            },
+            {
+              "name": "Keyword - Email Status (Verified)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"email_status\", \"operator\": \"eq\", \"value\": \"verified\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Email Status (Verified)"
+              }
+            },
+            {
+              "name": "Keyword - Email Status (Multiple)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"email_status\", \"operator\": \"in\", \"value\": [\"verified\", \"unverified\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Email Status (Multiple)"
+              }
+            },
+            {
+              "name": "Keyword - Seniority Levels",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\", \"lead\", \"principal\", \"executive\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Seniority Levels"
+              }
+            },
+            {
+              "name": "Keyword - Country Filter",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Country Filter"
+              }
+            },
+            {
+              "name": "Keyword - Multiple Countries",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\", \"canada\", \"united kingdom\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Multiple Countries"
+              }
+            },
+            {
+              "name": "Keyword - Combined Filters",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\", \"Product\"]}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\", \"lead\"]}, {\"field\": \"email_status\", \"operator\": \"eq\", \"value\": \"verified\"}, {\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - Combined Filters"
+              }
+            },
+            {
+              "name": "Keyword - With must_not Exclusion",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\"]}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\", \"lead\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Keyword - With must_not Exclusion"
+              }
+            },
+            {
+              "name": "Denormalized - Company Industries",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\", \"SaaS\"]}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\", \"lead\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Company Industries"
+              }
+            },
+            {
+              "name": "Denormalized - Company Employees Count",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_employees_count\", \"operator\": \"gte\", \"value\": 100}, {\"field\": \"company_employees_count\", \"operator\": \"lte\", \"value\": 1000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Company Employees Count"
+              }
+            },
+            {
+              "name": "Denormalized - Company Technologies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_technologies\", \"operator\": \"in\", \"value\": [\"Python\", \"AWS\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Company Technologies"
+              }
+            },
+            {
+              "name": "Denormalized - Company Annual Revenue",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_annual_revenue\", \"operator\": \"gte\", \"value\": 5000000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Company Annual Revenue"
+              }
+            },
+            {
+              "name": "Denormalized - Company Name (Substring)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_name\", \"operator\": \"contains\", \"value\": \"Acme\"}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Company Name (Substring)"
+              }
+            },
+            {
+              "name": "Denormalized - Company Country & State",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"company_state\", \"operator\": \"in\", \"value\": [\"california\"]}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Company Country & State"
+              }
+            },
+            {
+              "name": "Denormalized - Company Total Funding",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_total_funding\", \"operator\": \"gte\", \"value\": 10000000}]}, \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Company Total Funding"
+              }
+            },
+            {
+              "name": "Denormalized - Combined Company Filters",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\", \"SaaS\"]}, {\"field\": \"company_employees_count\", \"operator\": \"gte\", \"value\": 100}, {\"field\": \"company_annual_revenue\", \"operator\": \"gte\", \"value\": 5000000}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"Senior\", \"Lead\", \"Principal\", \"Executive\"]}, {\"field\": \"email_status\", \"operator\": \"eq\", \"value\": \"verified\"}]}, \"limit\": 100, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Denormalized - Combined Company Filters"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Standalone filters",
+          "item": [
+            {
+              "name": "Get Contacts by Filter",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\"]}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\"]}]}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Get Contacts by Filter"
+              }
+            },
+            {
+              "name": "Filter Contacts by Company Attributes (Denormalized Fields)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\"]}, {\"field\": \"company_employees_count\", \"operator\": \"gte\", \"value\": 100}]}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Filter Contacts by Company Attributes (Denormalized Fields)"
+              }
+            },
+            {
+              "name": "Search Contacts by Company Name (Substring)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_name\", \"operator\": \"contains\", \"value\": \"Acme\"}]}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Search Contacts by Company Name (Substring)"
+              }
+            },
+            {
+              "name": "Complex Contact Search with must_not",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\"]}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\"]}]}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Complex Contact Search with must_not"
+              }
+            },
+            {
+              "name": "Filter Contacts with Company Data (company_config)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"email_status\", \"operator\": \"eq\", \"value\": \"verified\"}]}, \"companyConfig\": {\"populate\": true, \"selectColumns\": [\"uuid\", \"name\", \"employees_count\"]}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Filter Contacts with Company Data (company_config)"
+              }
+            },
+            {
+              "name": "Company Config - Minimal Company Data",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"companyConfig\": {\"populate\": true, \"selectColumns\": [\"uuid\", \"name\"]}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Company Config - Minimal Company Data"
+              }
+            },
+            {
+              "name": "Company Config - Full Company Details",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"companyConfig\": {\"populate\": true, \"selectColumns\": [\"uuid\", \"name\", \"industries\", \"employees_count\", \"annual_revenue\", \"website\", \"city\", \"country\"]}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Company Config - Full Company Details"
+              }
+            },
+            {
+              "name": "Company Config - With Denormalized Filtering",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\"]}]}, \"companyConfig\": {\"populate\": true}, \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Company Config - With Denormalized Filtering"
+              }
+            },
+            {
+              "name": "Account-Based: High-Value Account Targeting",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_annual_revenue\", \"operator\": \"gte\", \"value\": 10000000}, {\"field\": \"company_employees_count\", \"operator\": \"gte\", \"value\": 500}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"executive\", \"lead\"]}]}, \"limit\": 50}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Account-Based: High-Value Account Targeting"
+              }
+            },
+            {
+              "name": "Account-Based: Technology Stack Targeting",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_technologies\", \"operator\": \"in\", \"value\": [\"AWS\", \"Python\"]}, {\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\"]}]}, \"limit\": 50}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Account-Based: Technology Stack Targeting"
+              }
+            },
+            {
+              "name": "Account-Based: Industry-Specific Targeting",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Healthcare\", \"FinTech\"]}, {\"field\": \"title\", \"operator\": \"contains\", \"value\": \"director\"}]}, \"limit\": 50}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Account-Based: Industry-Specific Targeting"
+              }
+            },
+            {
+              "name": "Account-Based: Geographic Targeting",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"company_state\", \"operator\": \"in\", \"value\": [\"california\", \"new york\"]}]}, \"limit\": 50}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Account-Based: Geographic Targeting"
+              }
+            },
+            {
+              "name": "Account-Based: Growth Stage Targeting",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_total_funding\", \"operator\": \"gte\", \"value\": 5000000}, {\"field\": \"company_employees_count\", \"operator\": \"lte\", \"value\": 500}]}, \"limit\": 50}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Account-Based: Growth Stage Targeting"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Use Cases",
+          "item": [
+            {
+              "name": "Email Campaign - Verified Contacts at Target Companies",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\", \"SaaS\"]}, {\"field\": \"email_status\", \"operator\": \"eq\", \"value\": \"verified\"}]}, \"limit\": 100}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Email Campaign - Verified Contacts at Target Companies"
+              }
+            },
+            {
+              "name": "Recruiting - Engineering Talent Search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\"]}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\", \"lead\", \"principal\"]}, {\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Technology\", \"Software\"]}]}, \"limit\": 100}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Recruiting - Engineering Talent Search"
+              }
+            },
+            {
+              "name": "ABM - Account-Based Marketing Targeting",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\", \"SaaS\"]}, {\"field\": \"company_employees_count\", \"operator\": \"gte\", \"value\": 100}, {\"field\": \"company_employees_count\", \"operator\": \"lte\", \"value\": 1000}, {\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"senior\", \"lead\", \"executive\"]}, {\"field\": \"email_status\", \"operator\": \"eq\", \"value\": \"verified\"}]}, \"limit\": 100}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. ABM - Account-Based Marketing Targeting"
+              }
+            },
+            {
+              "name": "Lead Qualification - High-Intent Prospects",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"title\", \"operator\": \"contains\", \"value\": \"director vp\"}, {\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Sales\", \"Marketing\"]}, {\"field\": \"company_annual_revenue\", \"operator\": \"gte\", \"value\": 10000000}]}, \"limit\": 100}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Lead Qualification - High-Intent Prospects"
+              }
+            },
+            {
+              "name": "Sales Outreach - Decision Makers at Target Accounts",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"seniority\", \"operator\": \"in\", \"value\": [\"executive\", \"lead\", \"principal\"]}, {\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\", \"Product\"]}, {\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\"]}, {\"field\": \"email_status\", \"operator\": \"eq\", \"value\": \"verified\"}]}, \"limit\": 100}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Sales Outreach - Decision Makers at Target Accounts"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pagination",
+          "item": [
+            {
+              "name": "Get Contacts with Cursor Pagination",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}]}, \"orderBy\": [{\"orderBy\": \"last_name\", \"orderDirection\": \"asc\"}, {\"orderBy\": \"uuid\", \"orderDirection\": \"asc\"}], \"searchAfter\": [\"smith\", \"abc-123\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Get Contacts with Cursor Pagination"
+              }
+            },
+            {
+              "name": "Pagination - Page-Based (First Page)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"limit\": 25, \"page\": 1, \"offset\": 0}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Pagination - Page-Based (First Page)"
+              }
+            },
+            {
+              "name": "Pagination - Page-Based (Multiple Sorts)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"orderBy\": [{\"orderBy\": \"seniority\", \"orderDirection\": \"desc\"}, {\"orderBy\": \"last_name\", \"orderDirection\": \"asc\"}], \"limit\": 25, \"page\": 1}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Pagination - Page-Based (Multiple Sorts)"
+              }
+            },
+            {
+              "name": "Pagination - Cursor with Multiple Sorts",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"departments\", \"operator\": \"in\", \"value\": [\"Engineering\"]}]}, \"orderBy\": [{\"orderBy\": \"seniority\", \"orderDirection\": \"desc\"}, {\"orderBy\": \"uuid\", \"orderDirection\": \"asc\"}], \"searchAfter\": [\"senior\", \"uuid-here\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Pagination - Cursor with Multiple Sorts"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Select Columns",
+          "item": [
+            {
+              "name": "Select Columns - Essential Fields Only",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"selectColumns\": [\"uuid\", \"first_name\", \"last_name\", \"email\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Select Columns - Essential Fields Only"
+              }
+            },
+            {
+              "name": "Select Columns - All Core Fields",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"selectColumns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"title\", \"departments\", \"seniority\", \"email_status\", \"company_id\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Select Columns - All Core Fields"
+              }
+            },
+            {
+              "name": "Select Columns - With Metadata Fields",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"selectColumns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"title\", \"created_at\", \"updated_at\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Select Columns - With Metadata Fields"
+              }
+            },
+            {
+              "name": "Select Columns - Companies Essential Fields",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"selectColumns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"company_id\", \"company_name\", \"company_employees_count\"], \"limit\": 25, \"filters\": {\"conditions\": [{\"field\": \"company_industries\", \"operator\": \"in\", \"value\": [\"Software\"]}]}}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Select Columns - Companies Essential Fields"
+              }
+            },
+            {
+              "name": "Select Columns - Companies All Fields",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"query\": \"query($query:VQLQueryInput!){ contacts{ contactQuery(query:$query){ items{ uuid firstName lastName email title departments seniority emailStatus} total limit offset}}}\", \"variables\": {\"query\": {\"selectColumns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"title\", \"company_id\", \"company_name\", \"company_industries\", \"company_employees_count\", \"company_annual_revenue\", \"company_country\"], \"limit\": 25}}}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/graphql",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "description": "REST: POST /contacts/ → GraphQL: contacts.contactQuery. Select Columns - Companies All Fields"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Contacts Count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query($query:VQLQueryInput){ contacts{ contactCount(query:$query)}}\", \"variables\": {\"query\": {\"filters\": {\"conditions\": [{\"field\": \"country\", \"operator\": \"in\", \"value\": [\"united states\"]}, {\"field\": \"seniority\", \"operator\": \"eq\", \"value\": \"senior\"}]}}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /contacts/count → GraphQL: contacts.contactCount"
+          }
+        },
+        {
+          "name": "Get Filters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query{ contacts{ filters{ items{ filterKey filterType} total}}}\", \"variables\": {}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: GET /common/contacts/filters → GraphQL: contacts.filters"
+          }
+        },
+        {
+          "name": "Get Filter Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query($input:ContactFilterDataInput!){ contacts{ filterData(input:$input){ items{ value count} total}}}\", \"variables\": {\"input\": {\"filterKey\": \"departments\", \"searchText\": \"\", \"page\": 1, \"limit\": 20}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/contacts/filters/data → GraphQL: contacts.filterData(input)"
+          }
+        },
+        {
+          "name": "Bulk Upsert Contacts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation BatchCreateContacts($input:BatchCreateContactsInput!){ contacts{ batchCreateContacts(input:$input){ uuid firstName lastName email}}}\", \"variables\": {\"input\": {\"contacts\": [{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"john.doe@acme.com\", \"title\": \"Senior Engineer\"}, {\"firstName\": \"Jane\", \"lastName\": \"Smith\", \"email\": \"jane.smith@tech.io\", \"title\": \"Product Manager\"}]}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /contacts/batch-upsert → GraphQL: contacts.batchCreateContacts"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Common",
+      "item": [
+        {
+          "name": "Batch Upsert (CSV Data)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation CreateContact360Import($input:CreateContact360ImportInput!){ jobs{ createContact360Import(input:$input){ id jobId jobType status createdAt}}}\", \"variables\": {\"input\": {\"s3Key\": \"uploads/{{userId}}/contacts_import_2024.csv\", \"outputPrefix\": \"imports/contact360/\", \"chunkCount\": 8, \"retryCount\": 3, \"retryInterval\": 5}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/batch-upsert (CSV) → GraphQL: jobs.createContact360Import. SuperAdmin only."
+          }
+        },
+        {
+          "name": "Get Upload URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation InitiateUpload($input:InitiateUploadInput!){ upload{ initiateUpload(input:$input){ uploadId fileKey}}}\", \"variables\": {\"input\": {\"filename\": \"contacts_import_2024.csv\", \"contentType\": \"text/csv\"}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: GET /common/upload-url → GraphQL: upload.initiateUpload. Then upload.presignedUrl(uploadId, partNumber) for each part."
+          }
+        },
+        {
+          "name": "Get Presigned URL (for multipart)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query PresignedUrl($uploadId:String!,$partNumber:Int!){ upload{ presignedUrl(uploadId:$uploadId,partNumber:$partNumber)}}\", \"variables\": {\"uploadId\": \"{{uploadId}}\", \"partNumber\": 1}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "For multipart upload: call after initiateUpload for each part."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Create Job - Import CSV File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation CreateContact360Import($input:CreateContact360ImportInput!){ jobs{ createContact360Import(input:$input){ id jobId jobType status createdAt}}}\", \"variables\": {\"input\": {\"s3Key\": \"uploads/contacts.csv\", \"outputPrefix\": \"imports/\", \"chunkCount\": 8, \"retryCount\": 3, \"retryInterval\": 5}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs/create (insert_csv_file) → GraphQL: jobs.createContact360Import"
+          }
+        },
+        {
+          "name": "Create Job - Export Contacts to CSV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation CreateContact360Export($input:CreateContact360ExportInput!){ contacts{ exportContacts(input:$input){ id jobId jobType status createdAt}}}\", \"variables\": {\"input\": {\"outputPrefix\": \"exports/contact360/\", \"service\": \"contact\", \"vql\": {\"where\": {\"keyword_match\": {\"must\": {\"country\": [\"united states\"], \"email_status\": [\"verified\"]}}}, \"select_columns\": [\"first_name\", \"last_name\", \"email\", \"title\", \"company_id\"], \"order_by\": [{\"order_by\": \"uuid\", \"order_direction\": \"desc\"}], \"limit\": 500}, \"sliceCount\": 4, \"pageSize\": 1000, \"retryCount\": 2}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs/create (export_csv_file, contact) → GraphQL: contacts.exportContacts"
+          }
+        },
+        {
+          "name": "Create Job - Export Companies to CSV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation CreateContact360Export($input:CreateContact360ExportInput!){ companies{ exportCompanies(input:$input){ id jobId jobType status createdAt}}}\", \"variables\": {\"input\": {\"outputPrefix\": \"exports/contact360/\", \"service\": \"company\", \"vql\": {\"where\": {\"keyword_match\": {\"must\": {\"industries\": [\"Software\", \"SaaS\"], \"country\": [\"united states\"]}}}, \"range_query\": {\"must\": {\"employees_count\": {\"gte\": 50, \"lte\": 1000}, \"annual_revenue\": {\"gte\": 1000000}}}, \"select_columns\": [\"uuid\", \"name\", \"employees_count\", \"annual_revenue\", \"industries\", \"country\", \"website\"], \"order_by\": [{\"order_by\": \"uuid\", \"order_direction\": \"desc\"}], \"limit\": 500}, \"sliceCount\": 4, \"pageSize\": 1000}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs/create (export_csv_file, company) → GraphQL: companies.exportCompanies"
+          }
+        },
+        {
+          "name": "List Jobs - All Jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query ListJobs($limit:Int,$offset:Int){ jobs{ jobs(limit:$limit,offset:$offset){ jobs{ id jobId jobType status createdAt} pageInfo{ total limit offset hasNext hasPrevious}}}}\", \"variables\": {\"limit\": 25, \"offset\": 0}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs → GraphQL: jobs.jobs"
+          }
+        },
+        {
+          "name": "List Jobs - Filter by Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query ListJobs($limit:Int,$offset:Int,$status:String){ jobs{ jobs(limit:$limit,offset:$offset,status:$status){ jobs{ id jobId jobType status} pageInfo{ total}}}}\", \"variables\": {\"limit\": 50, \"offset\": 0, \"status\": \"processing\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs with status filter"
+          }
+        },
+        {
+          "name": "List Jobs - Filter by Job Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query ListJobs($limit:Int,$offset:Int,$jobType:String,$status:String){ jobs{ jobs(limit:$limit,offset:$offset,jobType:$jobType,status:$status){ jobs{ id jobId jobType status} pageInfo{ total}}}}\", \"variables\": {\"limit\": 100, \"offset\": 0, \"jobType\": \"contact360_export_stream\", \"status\": \"completed\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs with job_type filter"
+          }
+        },
+        {
+          "name": "List Jobs - Failed Jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query ListJobs($limit:Int,$status:String){ jobs{ jobs(limit:$limit,status:$status){ jobs{ id jobId jobType status requestPayload responsePayload} pageInfo{ total}}}}\", \"variables\": {\"limit\": 100, \"status\": \"failed\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs with status failed"
+          }
+        },
+        {
+          "name": "Create Job - Import CSV (Default Bucket)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation CreateContact360Import($input:CreateContact360ImportInput!){ jobs{ createContact360Import(input:$input){ id jobId jobType status createdAt}}}\", \"variables\": {\"input\": {\"s3Key\": \"uploads/contacts_import_2024.csv\", \"outputPrefix\": \"imports/\", \"chunkCount\": 8, \"retryCount\": 3}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: POST /common/jobs/create without s3_bucket"
+          }
+        },
+        {
+          "name": "Create Job - Export Contacts (Complex Filters)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"mutation CreateContact360Export($input:CreateContact360ExportInput!){ contacts{ exportContacts(input:$input){ id jobId jobType status createdAt}}}\", \"variables\": {\"input\": {\"outputPrefix\": \"exports/\", \"service\": \"contact\", \"vql\": {\"where\": {\"keyword_match\": {\"must\": {\"company_industries\": [\"Software\", \"SaaS\"], \"company_country\": [\"united states\"], \"seniority\": [\"senior\", \"lead\", \"principal\", \"executive\"], \"email_status\": [\"verified\"]}}}, \"range_query\": {\"must\": {\"company_annual_revenue\": {\"gte\": 5000000}, \"company_employees_count\": {\"gte\": 100, \"lte\": 1000}}}, \"select_columns\": [\"uuid\", \"first_name\", \"last_name\", \"email\", \"title\", \"departments\", \"seniority\", \"company_id\"], \"order_by\": [{\"order_by\": \"uuid\", \"order_direction\": \"desc\"}], \"limit\": 500}, \"sliceCount\": 4, \"pageSize\": 1000}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: Export with denormalized company filters"
+          }
+        },
+        {
+          "name": "List Jobs - Active Jobs (Open + Processing)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query ListJobs($limit:Int,$status:String){ jobs{ jobs(limit:$limit,status:$status){ jobs{ id jobId jobType status} pageInfo{ total}}}}\", \"variables\": {\"limit\": 50, \"status\": \"processing\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: List active jobs"
+          }
+        },
+        {
+          "name": "List Jobs - Completed Exports Only",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query ListJobs($limit:Int,$jobType:String,$status:String){ jobs{ jobs(limit:$limit,jobType:$jobType,status:$status){ jobs{ id jobId jobType status} pageInfo{ total}}}}\", \"variables\": {\"limit\": 100, \"jobType\": \"contact360_export_stream\", \"status\": \"completed\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: List completed export jobs"
+          }
+        },
+        {
+          "name": "Get Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"query GetJob($jobId:ID!){ jobs{ job(jobId:$jobId){ id jobId userId jobType status requestPayload responsePayload statusPayload createdAt updatedAt}}}\", \"variables\": {\"jobId\": \"{{jobUuid}}\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "REST: Get single job by ID"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "info": {
+    "_postman_id": "users-module-graphql",
+    "name": "GraphQL – Users Module",
+    "description": "Users module: user, users, userStats, updateProfile, uploadAvatar, updateUser, promoteToAdmin, promoteToSuperAdmin. See 02_USERS_MODULE.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "userUuid", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "user",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetUser($uuid: ID!) { users { user(uuid: $uuid) { uuid email name isActive profile { jobTitle bio role credits subscriptionPlan } } } }\",\n  \"variables\": { \"uuid\": \"{{userUuid}}\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Get user by UUID."
+          }
+        },
+        {
+          "name": "users (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ListUsers($limit: Int, $offset: Int) { users { users(limit: $limit, offset: $offset) { uuid email name isActive createdAt } } }\",\n  \"variables\": { \"limit\": 100, \"offset\": 0 }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "List all users. Admin/SuperAdmin only."
+          }
+        },
+        {
+          "name": "userStats (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetUserStats { users { userStats { totalUsers activeUsers inactiveUsers usersByRole { role count } usersBySubscription { subscriptionPlan count } } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "User statistics. Admin/SuperAdmin only."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "updateProfile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UpdateProfile($input: UpdateProfileInput!) { users { updateProfile(input: $input) { userId jobTitle bio timezone role credits } } }\",\n  \"variables\": { \"input\": { \"jobTitle\": \"Senior Engineer\", \"bio\": \"Developer\", \"timezone\": \"America/New_York\" } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Update current user profile."
+          }
+        },
+        {
+          "name": "uploadAvatar",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UploadAvatar($input: UploadAvatarInput!) { users { uploadAvatar(input: $input) { userId avatarUrl role credits } } }\",\n  \"variables\": { \"input\": { \"fileData\": \"https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png\" } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Upload avatar. fileData: base64, URL, or file://."
+          }
+        },
+        {
+          "name": "updateUser",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UpdateUser($input: UpdateUserInput!) { users { updateUser(input: $input) { uuid email name } } }\",\n  \"variables\": { \"input\": { \"name\": \"Updated Name\" } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Update current user name/email."
+          }
+        },
+        {
+          "name": "promoteToAdmin (SuperAdmin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation PromoteToAdmin($input: PromoteToAdminInput!) { users { promoteToAdmin(input: $input) { uuid email profile { role } } } }\",\n  \"variables\": { \"input\": { \"userId\": \"{{userUuid}}\" } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Promote user to Admin. SuperAdmin only."
+          }
+        },
+        {
+          "name": "promoteToSuperAdmin (SuperAdmin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation PromoteToSuperAdmin($input: PromoteToSuperAdminInput!) { users { promoteToSuperAdmin(input: $input) { uuid email profile { role } } } }\",\n  \"variables\": { \"input\": { \"userId\": \"{{userUuid}}\" } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Promote user to SuperAdmin. SuperAdmin only."
+          }
+        }
+      ]
+    }
+  ]
+}

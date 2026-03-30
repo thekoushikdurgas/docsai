@@ -1,0 +1,336 @@
+{
+  "info": {
+    "_postman_id": "storage-graphql-api-appointment360",
+    "name": "Storage (GraphQL API)",
+    "description": "GraphQL API for storage-only operations: Auth, S3 (files, CSV upload, delete), and Upload (multipart status, presigned URL, register part, abort).\n\n**Setup:**\n1. Set baseUrl (e.g. http://localhost:8000), email, password.\n2. Run Auth > Login; copy accessToken (and optionally refreshToken, userId) into environment.\n3. All S3 and Upload requests use Authorization: Bearer {{accessToken}}.\n\n**CSV multipart flow:** s3.initiateCsvUpload → upload.presignedUrl (per part) → upload part to URL → upload.registerPart → s3.completeCsvUpload.\n\n**Variables:** Use camelCase (fileKey, uploadId, partNumber, fileSize). **Docs:** sql/apis/07_S3_MODULE.md, 10_UPLOAD_MODULE.md (Queries and mutations – parameters and variable types); sql/postman/README.md; TASK_BREAKDOWN_STORAGE_GRAPHQL_POSTMAN.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation Login($input: LoginInput!) { auth { login(input: $input) { accessToken refreshToken user { uuid email name } } } }\",\n  \"variables\": {\n    \"input\": {\n      \"email\": \"{{email}}\",\n      \"password\": \"{{password}}\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Login to get accessToken. Copy accessToken (and optionally refreshToken, userId) from response into environment. All other requests use Bearer {{accessToken}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  const auth = json.data && json.data.auth;",
+                  "  if (auth && auth.login) {",
+                  "    if (auth.login.accessToken) pm.environment.set('accessToken', auth.login.accessToken);",
+                  "    if (auth.login.refreshToken) pm.environment.set('refreshToken', auth.login.refreshToken);",
+                  "    if (auth.login.user && auth.login.user.uuid) pm.environment.set('userId', auth.login.user.uuid);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get me",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { auth { me { uuid email name } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Current user. Requires Authorization: Bearer {{accessToken}}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "S3",
+      "item": [
+        {
+          "name": "List S3 Files",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ListS3Files($prefix: String) { s3 { s3Files(prefix: $prefix) { files { key filename size lastModified contentType } total bucketDisplayName } } }\",\n  \"variables\": { \"prefix\": \"{{prefix}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "List CSV files. Optional prefix (e.g. upload/ or exports/). See 07_S3_MODULE.md."
+          }
+        },
+        {
+          "name": "Get S3 File Info",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetS3FileInfo($fileKey: String!) { s3 { s3FileInfo(fileKey: $fileKey) { key filename size lastModified contentType } } }\",\n  \"variables\": { \"fileKey\": \"{{fileKey}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Metadata for one file. See 07_S3_MODULE.md."
+          }
+        },
+        {
+          "name": "Get S3 File Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetS3FileData($fileKey: String!, $limit: Int!, $offset: Int) { s3 { s3FileData(fileKey: $fileKey, limit: $limit, offset: $offset) { fileKey rows { data } limit offset totalRows } } }\",\n  \"variables\": { \"fileKey\": \"{{fileKey}}\", \"limit\": 100, \"offset\": 0 }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Paginated CSV rows. limit 1-1000. See 07_S3_MODULE.md."
+          }
+        },
+        {
+          "name": "Get S3 File Download URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetS3FileDownloadUrl($fileKey: String!, $expiresIn: Int) { s3 { s3FileDownloadUrl(fileKey: $fileKey, expiresIn: $expiresIn) { downloadUrl expiresIn } } }\",\n  \"variables\": { \"fileKey\": \"{{fileKey}}\", \"expiresIn\": 3600 }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Presigned download URL. Optional expiresIn (seconds). See 07_S3_MODULE.md."
+          }
+        },
+        {
+          "name": "Get S3 File Schema",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetS3FileSchema($fileKey: String!) { s3 { s3FileSchema(fileKey: $fileKey) { name type nullable } } }\",\n  \"variables\": { \"fileKey\": \"{{fileKey}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Inferred CSV column schema. See 07_S3_MODULE.md."
+          }
+        },
+        {
+          "name": "Initiate Csv Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation InitiateCsvUpload($input: InitiateCsvUploadInput!) { s3 { initiateCsvUpload(input: $input) { uploadId fileKey chunkSize numParts } } }\",\n  \"variables\": { \"input\": { \"filename\": \"sample.csv\", \"file_size\": 1024 } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Start CSV multipart upload. Returns uploadId (use as upload_id for Upload steps), fileKey. Then use upload.presignedUrl, upload.registerPart, s3.completeCsvUpload. See 07_S3_MODULE.md."
+          }
+        },
+        {
+          "name": "Complete Csv Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CompleteCsvUpload($input: CompleteUploadInput!) { s3 { completeCsvUpload(input: $input) { status fileKey s3Url location } } }\",\n  \"variables\": { \"input\": { \"upload_id\": \"{{upload_id}}\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Complete CSV multipart upload. upload_id from s3.initiateCsvUpload. See 07_S3_MODULE.md."
+          }
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation DeleteFile($fileKey: String!) { s3 { deleteFile(fileKey: $fileKey) } }\",\n  \"variables\": { \"fileKey\": \"{{fileKey}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Delete a file by key. See 07_S3_MODULE.md."
+          }
+        }
+      ],
+      "description": "S3 module: list, info, data, download URL, schema, CSV initiate/complete, delete. See 07_S3_MODULE.md."
+    },
+    {
+      "name": "Upload",
+      "item": [
+        {
+          "name": "Get Upload Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetUploadStatus($upload_id: String!) { upload { uploadStatus(upload_id: $upload_id) { upload_id file_key file_size chunk_size uploaded_parts total_parts uploaded_bytes status } } }\",\n  \"variables\": { \"upload_id\": \"{{upload_id}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Multipart session status. upload_id from s3.initiateCsvUpload. See 10_UPLOAD_MODULE.md."
+          }
+        },
+        {
+          "name": "Get Presigned URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetPresignedUrl($uploadId: String!, $partNumber: Int!) { upload { presignedUrl(uploadId: $uploadId, partNumber: $partNumber) { presignedUrl partNumber alreadyUploaded etag } } }\",\n  \"variables\": { \"uploadId\": \"{{upload_id}}\", \"partNumber\": {{part_number}} }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Presigned URL for one part. Use upload_id as uploadId, then PUT part to URL; use returned etag in Register Part. See 10_UPLOAD_MODULE.md."
+          }
+        },
+        {
+          "name": "Register Part",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation RegisterPart($input: RegisterPartInput!) { upload { registerPart(input: $input) { status partNumber } } }\",\n  \"variables\": { \"input\": { \"uploadId\": \"{{upload_id}}\", \"partNumber\": {{part_number}}, \"etag\": \"{{etag}}\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Register uploaded part. uploadId = upload_id from initiate; partNumber; etag from PUT response. See 10_UPLOAD_MODULE.md."
+          }
+        },
+        {
+          "name": "Abort Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation AbortUpload($input: AbortUploadInput!) { upload { abortUpload(input: $input) { status upload_id } } }\",\n  \"variables\": { \"input\": { \"upload_id\": \"{{upload_id}}\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Abort multipart upload. See 10_UPLOAD_MODULE.md."
+          }
+        }
+      ],
+      "description": "Upload module: status, presigned URL, register part, abort. Used with s3.initiateCsvUpload and s3.completeCsvUpload for CSV flow. See 10_UPLOAD_MODULE.md."
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "email", "value": "", "type": "string" },
+    { "key": "password", "value": "", "type": "string" },
+    { "key": "prefix", "value": "upload/", "type": "string" },
+    { "key": "fileKey", "value": "", "type": "string" },
+    { "key": "upload_id", "value": "", "type": "string" },
+    { "key": "part_number", "value": "1", "type": "string" },
+    { "key": "etag", "value": "", "type": "string" }
+  ]
+}

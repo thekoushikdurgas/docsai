@@ -1,0 +1,269 @@
+name: Monorepo CI
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: ["main", "master"]
+
+jobs:
+  docs-and-structure-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required top-level directories
+        run: |
+          test -d "contact360.io"
+          test -d "lambda"
+          test -d "docs"
+
+      - name: Validate DocsAI constants exist
+        run: |
+          test -f "contact360.io/admin/apps/architecture/constants.py"
+          test -f "contact360.io/admin/apps/roadmap/constants.py"
+
+      # Paths match this repo: canonical hubs under docs/docs/; deep-dive copies under docs/analysis/ where noted.
+      - name: Validate core docs exist
+        run: |
+          test -f "docs/docs/architecture.md"
+          test -f "docs/docs/roadmap.md"
+          test -f "docs/docs/versions.md"
+          test -f "docs/VERSION Contact360.md"
+          test -f "docs/docs/docsai-sync.md"
+          test -f "docs/analysis/vql-filter-taxonomy.md"
+          test -f "docs/analysis/connectra-service.md"
+          test -f "docs/analysis/enrichment-dedup.md"
+          test -f "docs/analysis/dashboard-search-ux.md"
+          test -f "docs/analysis/extension-auth.md"
+          test -f "docs/analysis/sales-navigator-ingestion.md"
+          test -f "docs/analysis/extension-sync-integrity.md"
+          test -f "docs/analysis/extension-telemetry.md"
+          test -f "docs/analysis/ai-workflows.md"
+          test -f "docs/analysis/ai-cost-governance.md"
+          test -f "docs/analysis/slo-idempotency.md"
+          test -f "docs/analysis/queue-observability.md"
+          test -f "docs/analysis/performance-storage-abuse.md"
+          test -f "docs/analysis/reliability-rc-hardening.md"
+          test -f "docs/analysis/rbac-authz.md"
+          test -f "docs/docs/audit-compliance.md"
+          test -f "docs/analysis/tenant-security-observability.md"
+          test -f "docs/analysis/analytics-era-rc.md"
+          test -f "docs/analysis/integration-partner-governance.md"
+          test -f "docs/analysis/public-api-surface.md"
+          test -f "docs/analysis/webhooks-replay.md"
+          test -f "docs/analysis/connectors-commercial.md"
+          test -f "docs/analysis/integration-era-rc.md"
+          test -f "docs/analysis/analytics-platform.md"
+          test -f "docs/analysis/platform-productization.md"
+          test -f "docs/analysis/campaign-foundation.md"
+          test -f "docs/analysis/campaign-execution-engine.md"
+          test -f "docs/analysis/campaign-deliverability.md"
+          test -f "docs/analysis/campaign-observability-release.md"
+          test -f "docs/analysis/campaign-commercial-compliance.md"
+          test -f "docs/frontend/README.md"
+          test -f "docs/frontend/pages/README.md"
+          test -f "docs/frontend/excel/README.md"
+
+  migration-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: contact360_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d contact360_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install migration dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install alembic psycopg2-binary
+          pip install -r "backend(dev)/contact.ai/requirements.txt"
+          pip install -e "contact360.io/jobs"
+          pip install -e "contact360.io/api"
+
+      - name: Run jobs migrations on empty DB
+        env:
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/contact360_ci
+        run: |
+          alembic -c "contact360.io/jobs/alembic.ini" upgrade head
+
+      - name: Reset public schema
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d contact360_ci -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+      - name: Run appointment360 migrations on empty DB
+        env:
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/contact360_ci
+        run: |
+          alembic -c "contact360.io/api/alembic.ini" upgrade head
+
+      - name: Reset public schema again
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d contact360_ci -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+      - name: Run contact.ai migrations on empty DB
+        env:
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/contact360_ci
+          API_KEY: ci-key
+        run: |
+          alembic -c "backend(dev)/contact.ai/alembic.ini" upgrade head
+
+  health-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install health test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r "contact360.io/api/requirements.txt"
+          pip install -r "lambda/s3storage/requirements.txt"
+          pip install -r "backend(dev)/salesnavigator/requirements.txt"
+          pip install -r "backend(dev)/resumeai/requirements.txt"
+
+      - name: Run health endpoint smoke tests
+        env:
+          API_KEY: ci-key
+          X_API_KEY: ci-key
+          C360_API_KEY: ci-key
+          DATABASE_URL: sqlite+aiosqlite:///./ci_health.db
+        run: |
+          pytest -q "contact360.io/api/tests/test_health.py"
+          pytest -q "lambda/s3storage/tests/test_health.py"
+          pytest -q "backend(dev)/salesnavigator/tests/test_api.py" -k health_check
+          pytest -q "backend(dev)/resumeai/tests/test_api.py" -k health
+
+  lint-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Python syntax lint (compileall)
+        run: |
+          python -m compileall "contact360.io/api/app"
+          python -m compileall "contact360.io/jobs/app"
+          python -m compileall "lambda/emailapis/app"
+          python -m compileall "lambda/logs.api/app"
+          python -m compileall "lambda/s3storage/app"
+          python -m compileall "backend(dev)/salesnavigator/app"
+          python -m compileall "backend(dev)/contact.ai/app"
+          python -m compileall "backend(dev)/resumeai/app"
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Validates Dockerfiles still build after changes. ECR push on main is a follow-up (needs AWS_ROLE_ARN / registry auth).
+  joblevel-next-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install and build joblevel-next
+        working-directory: frontend(dev)/joblevel-next
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npm run build
+
+  docker-build-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: api, context: contact360.io/api }
+          - { name: sync, context: contact360.io/sync }
+          - { name: jobs, context: contact360.io/jobs }
+          - { name: root, context: contact360.io/root }
+          - { name: app, context: contact360.io/app }
+          - { name: email, context: contact360.io/email }
+          - { name: emailapigo, context: lambda/emailapigo }
+          - { name: s3storage, context: lambda/s3storage }
+          - { name: joblevel-next, context: frontend(dev)/joblevel-next }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (${{ matrix.name }})
+        run: docker build -f Dockerfile "${{ matrix.context }}"
+
+  # Legacy: SAM templates; Docker is canonical (see deploy/DEPRECATED_SAM.md). Does not block PR.
+  sam-validate-legacy:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Validate all lambda/service SAM templates
+        run: |
+          set -e
+          templates=(
+            "contact360.io/api/template.yaml"
+            "lambda/emailapis/template.yaml"
+            "lambda/emailapigo/template.yaml"
+            "lambda/logs.api/template.yaml"
+            "lambda/s3storage/template.yaml"
+            "backend(dev)/salesnavigator/template.yaml"
+            "backend(dev)/contact.ai/template.yaml"
+            "backend(dev)/resumeai/template.yaml"
+            "extension/contact360/template.yaml"
+          )
+          for tmpl in "${templates[@]}"; do
+            echo "Validating $tmpl"
+            sam validate --template-file "$tmpl" --lint
+          done
