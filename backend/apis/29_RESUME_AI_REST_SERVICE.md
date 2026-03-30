@@ -8,8 +8,8 @@ The **resumeai** microservice is a **FastAPI** application that exposes **REST**
 - **Resume** — CRUD metadata in the shared Postgres database; resume JSON is stored in **s3storage** under the user’s logical bucket at **`resume_data_key`** (see [Database — resume_documents](../database/tables/resume_documents.sql)).
 - **AI** — parse uploads, section enhancement, ATS scoring, LaTeX, photo enhancement, LinkedIn import (requires upstream AI keys on the service).
 
-**Codebase:** `backend(dev)/resumeai/`  
-**Deployment:** AWS SAM (`template.yaml`, `sam deploy`), HTTP API (API Gateway v2).  
+**Codebase:** `backend(dev)/resumeai/`
+**Deployment:** AWS SAM (`template.yaml`, `sam deploy`), HTTP API (API Gateway v2).
 **Contact360 integration:** The main GraphQL API proxies resume operations via `ResumeAIClient` and the `resume` module; clients may use GraphQL instead of calling resumeai directly.
 
 **Postman:** `backend(dev)/resumeai/postman/Resume_AI_Service.postman_collection.json` — see `postman/README.md`.

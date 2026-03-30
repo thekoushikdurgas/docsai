@@ -45,10 +45,10 @@ mutation { auth | users | contacts | companies | billing | linkedin | jobs | ema
 ### Request lifecycle
 
 ```text
-Request → CORS → TrustedHost → ExceptionGroupMiddleware → DatabaseCommitMiddleware → 
-  GraphQLIdempotencyMiddleware → GraphQLMutationAbuseGuardMiddleware → 
-  GraphQLRateLimitMiddleware → RequestIdMiddleware → TraceIdMiddleware → 
-  TimingMiddleware → REDMetricsMiddleware → GZip → GraphQLBodySizeMiddleware → 
+Request → CORS → TrustedHost → ExceptionGroupMiddleware → DatabaseCommitMiddleware →
+  GraphQLIdempotencyMiddleware → GraphQLMutationAbuseGuardMiddleware →
+  GraphQLRateLimitMiddleware → RequestIdMiddleware → TraceIdMiddleware →
+  TimingMiddleware → REDMetricsMiddleware → GZip → GraphQLBodySizeMiddleware →
   GraphQLRouter → get_context(JWT decode → User fetch) → Resolver execution
 ```
 

@@ -1,7 +1,7 @@
 # Sales Navigator — Era Task Pack Index
 
-**Service:** `backend(dev)/salesnavigator`  
-**GraphQL module:** `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`  
+**Service:** `backend(dev)/salesnavigator`
+**GraphQL module:** `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`
 **Codebase analysis:** `docs/codebases/salesnavigator-codebase-analysis.md`
 
 ---

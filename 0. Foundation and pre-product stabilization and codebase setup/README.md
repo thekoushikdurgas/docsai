@@ -91,6 +91,14 @@ Patch packet links:
 5. `0.6` async jobs baseline.
 6. `0.10` foundation exit hardening.
 
+## Stack references
+
+Framework and stack reference material (rename-safe paths under `docs/tech/`):
+
+- [Go/Gin — why & practices](../tech/tech-go-gin-why-practices.md)
+- [Next.js — why & practices](../tech/tech-nextjs-why-practices.md)
+
+
 ## Cross-links
 
 - [`docs/README.md`](../README.md)

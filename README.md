@@ -199,7 +199,7 @@ Run from `docs/` (`python cli.py …`). Policy and validation matrix: [`docs/doc
 | `python cli.py format-all [--apply] [--include-prose] [--write-latest]` | Format the same markdown scope as validate-all structure (optional prose dirs); optional `docs/result/format-latest.json`. |
 | `python cli.py optimize-docs report` | Read-only aggregate: scan + task audit + naming + unused count. |
 | `python cli.py optimize-docs fix-structure [--apply]` | Chain: `fill-tasks` + `dedup-tasks` + `rename-docs` (dry-run unless `--apply`). |
-| `python cli.py maintain-era --era N\|--all --action enrich\|fix-readme-links\|update-minors [--apply] [--dry-run]` | Dispatch era maintenance scripts under `docs/scripts/`. |
+| `python cli.py maintain-era --era N\|--all --action enrich\|fix-readme-links\|update-minors\|rename-tech-docs\|inject-arch-tasks\|inject-tech-links [--apply] [--dry-run]` | Dispatch era maintenance scripts under `docs/scripts/`. (`rename-tech-docs` is global; era optional.) |
 | `python cli.py docs-gen create-patches [--eras …] [--apply]` | Subprocess wrapper for `docs_patch_creator.py`. |
 | `python cli.py docs-gen flowcharts [--apply]` | Subprocess wrapper for `apply_unique_flowcharts.py`. |
 | `python cli.py frontend link-endpoint-specs` | Refresh endpoint link blocks in `frontend/pages/*_page.md`. |

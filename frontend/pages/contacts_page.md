@@ -402,7 +402,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `DeleteSavedSearch` | [mutation_delete_saved_search_graphql.md](../../backend/endpoints/mutation_delete_saved_search_graphql.md) | MUTATION | 9.x |
 | `CreateContactExport` | [mutation_create_contact_export_graphql.md](../../backend/endpoints/mutation_create_contact_export_graphql.md) | MUTATION | 3.x |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
 `graphql/ContactQuery`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

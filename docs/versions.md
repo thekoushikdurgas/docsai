@@ -1118,7 +1118,7 @@ Deep task decomposition reference: `docs/codebases/connectra-codebase-analysis.m
 
 ## Mailvetter (`backend(dev)/mailvetter`) execution spine
 
-**Service:** `backend(dev)/mailvetter` — verifier microservice (Go + Gin + Redis queue + PostgreSQL)  
+**Service:** `backend(dev)/mailvetter` — verifier microservice (Go + Gin + Redis queue + PostgreSQL)
 **Role:** Deep email verification engine for single and bulk verification flows, job tracking, and result export.
 
 **Era task pack index:**
@@ -1151,11 +1151,11 @@ Deep task decomposition reference: `docs/codebases/connectra-codebase-analysis.m
 | `9.x` | Ecosystem integration: webhook replay and partner connector reliability |
 | `10.x` | Campaign preflight verification and recipient-level compliance traceability |
 
-**Codebase analysis:** `docs/codebases/mailvetter-codebase-analysis.md`  
-**Task-pack index:** `docs/backend/apis/MAILVETTER_ERA_TASK_PACKS.md`  
-**Endpoint matrix:** `docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`  
-**Data lineage:** `docs/backend/database/mailvetter_data_lineage.md`  
-**Postman checklist:** `docs/backend/postman/README.md` → Mailvetter section  
+**Codebase analysis:** `docs/codebases/mailvetter-codebase-analysis.md`
+**Task-pack index:** `docs/backend/apis/MAILVETTER_ERA_TASK_PACKS.md`
+**Endpoint matrix:** `docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`
+**Data lineage:** `docs/backend/database/mailvetter_data_lineage.md`
+**Postman checklist:** `docs/backend/postman/README.md` → Mailvetter section
 **Era 8.x service reference:** `docs/8. Contact360 public and private apis and endpoints/mailvetter-service.md`
 
 ---

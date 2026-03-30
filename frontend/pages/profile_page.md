@@ -508,7 +508,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `UploadAvatar` | [mutation_upload_avatar_graphql.md](../../backend/endpoints/mutation_upload_avatar_graphql.md) | MUTATION | 2.x |
 | `Get2FAStatus` | [query_get_2fa_status_graphql.md](../../backend/endpoints/query_get_2fa_status_graphql.md) | QUERY | 0.x |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
 `graphql/InviteTeamMember`, `graphql/RemoveTeamMember`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

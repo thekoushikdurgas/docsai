@@ -195,8 +195,8 @@ flowchart TD
     gateway --> log
 ```
 
-**Components:** Email input row, `EmailVerifierResult`, `CreditBudgetAlerts`  
-**Hooks:** `useEmailFinderSingle`  
+**Components:** Email input row, `EmailVerifierResult`, `CreditBudgetAlerts`
+**Hooks:** `useEmailFinderSingle`
 **Services:** `emailService`
 
 ---
@@ -220,7 +220,7 @@ flowchart TD
     mode -->|bulk| bulk --> gql2 --> mailvetter --> result2
 ```
 
-**UI elements:** Progress bar (bulk), confidence bar (single), status badge  
+**UI elements:** Progress bar (bulk), confidence bar (single), status badge
 **Hooks:** `useEmailVerifierSingle`, `useEmailVerifierBulk`, `useNewExport`
 
 ---
@@ -249,7 +249,7 @@ flowchart TD
     toolbar -->|"search input"| table
 ```
 
-**Components:** `VQLQueryBuilder`, `ContactsFilters`, `FloatingActionBar`, `ExportModal`, `TablePagination`  
+**Components:** `VQLQueryBuilder`, `ContactsFilters`, `FloatingActionBar`, `ExportModal`, `TablePagination`
 **Hooks:** `useContactsPage`, `useContactsFilters`, `useSavedSearches`, `useContactExport`
 
 ---
@@ -277,7 +277,7 @@ flowchart TD
     polling -->|"completed"| output
 ```
 
-**UI elements:** File drag-and-drop, progress bar, radio buttons (job type), column mapping dropdowns, download button  
+**UI elements:** File drag-and-drop, progress bar, radio buttons (job type), column mapping dropdowns, download button
 **Hooks:** `useNewExport`, `useCsvUpload`, `useFilePreview`, `useJobs`
 
 ---
@@ -301,8 +301,8 @@ flowchart TD
     pending -->|"admin approves"| admin --> credited
 ```
 
-**Components:** `UpiPaymentModal`, plan cards  
-**UI elements:** File input, text input, submit button, progress indicator  
+**Components:** `UpiPaymentModal`, plan cards
+**UI elements:** File input, text input, submit button, progress indicator
 **Hooks:** `useBilling`, `useAdmin`
 
 ---
@@ -328,7 +328,7 @@ flowchart TD
     display --> confidence
 ```
 
-**UI elements:** Streaming text display, AI confidence badge, typing indicator, stop button  
+**UI elements:** Streaming text display, AI confidence badge, typing indicator, stop button
 **Components:** Chat message components, `EmailAssistantPanel`
 
 ---

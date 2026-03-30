@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .micro_gate_utils import ensure_architecture_row
+
 ERA = Path(__file__).resolve().parent.parent / "5. Contact360 AI workflows"
 
 MICRO_GATE = """### Micro-gate reference (apply at every `5.N.P`)
@@ -55,6 +57,8 @@ def process(path: Path) -> None:
         repl_pack,
         text,
     )
+
+    text = ensure_architecture_row(text)
 
     if text != orig:
         path.write_text(text, encoding="utf-8")

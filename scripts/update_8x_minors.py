@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .micro_gate_utils import ensure_architecture_row
+
 ERA = Path(__file__).resolve().parent.parent / "8. Contact360 public and private apis and endpoints"
 
 MICRO_GATE = """### Micro-gate reference (apply at every `8.N.P`)
@@ -27,9 +29,11 @@ def minor_id_from_name(name: str) -> str:
 
 
 def strip_master_task_checklist(text: str) -> str:
-    if "## Master Task Checklist" not in text or "## Patches" not in text:
+    if "## Master Task Checklist" not in text:
         return text
     before, mid = text.split("## Master Task Checklist", 1)
+    if "## Patches" not in mid:
+        return text
     _, after = mid.split("## Patches", 1)
     return before.rstrip() + "\n\n## Patches" + after
 
@@ -69,6 +73,8 @@ def process(path: Path) -> None:
         repl_pack,
         text,
     )
+
+    text = ensure_architecture_row(text)
 
     if text != orig:
         path.write_text(text, encoding="utf-8")

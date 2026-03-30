@@ -1,6 +1,6 @@
 # 0.x Foundation Exit Gate Sign-off
 
-Date: 2026-03-26  
+Date: 2026-03-26
 Status: Approved for `1.x` delivery
 
 ## Decision
@@ -56,5 +56,5 @@ Resolved in prior 0.x tasks (email campaign, s3storage, emailapigo, admin secret
 
 ## Sign-off statement
 
-All `0.x.x` exit gate requirements are met with implementation and documentation evidence.  
+All `0.x.x` exit gate requirements are met with implementation and documentation evidence.
 Contact360 is ready to begin `1.x` delivery.

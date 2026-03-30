@@ -766,7 +766,7 @@ curl -X GET http://localhost:8000/health/logging
   - Parses health response and extracts status, version, uptime
   - Handles ConnectraClient errors gracefully via `handle_connectra_error`
   - Returns unhealthy status with error message if health check fails
-- **Health Status Values**: 
+- **Health Status Values**:
   - `healthy`: Connectra is operational
   - `unhealthy`: Connectra is not operational or returned unexpected response
   - `unavailable`: Connectra is not configured (CONNECTRA_BASE_URL not set)

@@ -4,6 +4,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .micro_gate_utils import ensure_architecture_row
+
 ERA = Path(__file__).resolve().parent.parent / "4. Contact360 Extension and Sales Navigator maturity"
 
 MICRO_GATE = """### Micro-gate reference (apply at every `4.N.P`)
@@ -70,6 +72,8 @@ def process(path: Path) -> None:
     )
 
     text = text.replace("](../versions.md).\n## Scope", "](../versions.md).\n\n## Scope")
+
+    text = ensure_architecture_row(text)
 
     if text != orig:
         path.write_text(text, encoding="utf-8")

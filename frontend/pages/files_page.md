@@ -422,7 +422,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `CreateContact360Import` | *unresolved — add to endpoint index* | — | — |
 | `CreateAppointmentImport` | *unresolved — add to endpoint index* | — | — |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
 `graphql/ListBucketObjects`, `graphql/GetPresignedUploadUrl`, `graphql/DeleteS3File`, `graphql/CreateEmailFinderExport`, `graphql/CreateEmailVerifyExport`, `graphql/CreateContact360Import`, `graphql/CreateAppointmentImport`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

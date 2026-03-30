@@ -177,7 +177,7 @@ query GetUser($uuid: ID!) {
 
 **Authentication:** Required
 
-**Authorization:** 
+**Authorization:**
 
 - Regular users can only access their own user data
 - Admin/SuperAdmin can access any user
@@ -499,12 +499,12 @@ mutation UploadAvatar($input: UploadAvatarInput!) {
 - **Types:** JPEG, PNG, GIF, or WebP (detected automatically from file content)
 - **Maximum size:** 5MB
 - **Input Methods:**
-  - `fileData`: 
+  - `fileData`:
     - Base64-encoded file data (without data URI prefix like `data:image/jpeg;base64,`)
     - HTTP/HTTPS URL to an image (e.g., `https://example.com/image.png`)
     - file:// URL to a local file (e.g., `file:///C:/path/to/image.jpg` or `file:///path/to/image.jpg`)
   - `filePath`: Local file path on the server (e.g., `/path/to/image.jpg` or `C:\\path\\to\\image.jpg`)
-- **Note:** 
+- **Note:**
   - Either `fileData` OR `filePath` must be provided (not both)
   - Filename is auto-generated as `{user_id}.jpg` - no need to provide filename
   - File type is detected from file content (magic bytes), not from filename
@@ -796,7 +796,7 @@ input UploadAvatarInput {
 
 **Fields:**
 
-- `fileData` (String, optional): 
+- `fileData` (String, optional):
   - Base64-encoded file content (without data URI prefix like `data:image/jpeg;base64,`)
   - HTTP/HTTPS URL to an image (e.g., `https://example.com/image.png`)
   - file:// URL to a local file (e.g., `file:///C:/path/to/image.jpg`)

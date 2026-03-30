@@ -122,7 +122,7 @@ This model is aligned with Contact360 multi-surface file usage and downstream in
 #### 5) Test coverage gap
 
 - [ ] ⬜ Incomplete: only health tests exist; no multipart lifecycle, metadata worker, or failure-path integration tests.
- 
+
 #### 6) Contract parity and evidence gap
 
 - [ ] 🟡 In Progress: docs/runtime parity checks are partial; endpoint contract evidence is not yet fully closed.

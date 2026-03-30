@@ -477,7 +477,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `GetActivities` | [get_activities_graphql.md](../../backend/endpoints/get_activities_graphql.md) | QUERY | 0.x |
 | `GetEmailAssistantSuggestions` | *unresolved — add to endpoint index* | — | — |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
 `graphql/GetEmailAssistantSuggestions`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

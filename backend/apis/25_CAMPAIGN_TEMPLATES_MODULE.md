@@ -1,7 +1,7 @@
 # Campaign Templates Module
 
-**Service:** `backend(dev)/email campaign` (Go, Gin, S3)  
-**Gateway proxy:** Appointment360 GraphQL (`createCampaignTemplate`, `getCampaignTemplate`, `listCampaignTemplates`, `deleteCampaignTemplate`, `previewCampaignTemplate`, `generateCampaignTemplate`)  
+**Service:** `backend(dev)/email campaign` (Go, Gin, S3)
+**Gateway proxy:** Appointment360 GraphQL (`createCampaignTemplate`, `getCampaignTemplate`, `listCampaignTemplates`, `deleteCampaignTemplate`, `previewCampaignTemplate`, `generateCampaignTemplate`)
 **Direct REST routes:** `POST /templates`, `GET /templates`, `GET /templates/:id`, `DELETE /templates/:id`, `POST /templates/:id/preview`, `POST /templates/generate` (era `5.x`+)
 
 ---
@@ -24,7 +24,7 @@
 
 ### `POST /templates`
 
-**Auth:** JWT  
+**Auth:** JWT
 **Request:**
 
 ```json
@@ -51,15 +51,15 @@
 
 ### `POST /templates/:id/preview`
 
-**Auth:** JWT  
-**Request:** `{}` (uses sample TemplateData)  
+**Auth:** JWT
+**Request:** `{}` (uses sample TemplateData)
 **Response `200`:** Rendered HTML string with sample `FirstName`, `LastName`, `Email`, `UnsubscribeURL`.
 
 ---
 
 ### `POST /templates/generate` (era `5.x`+)
 
-**Auth:** JWT  
+**Auth:** JWT
 **Request:**
 
 ```json

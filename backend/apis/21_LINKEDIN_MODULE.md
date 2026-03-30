@@ -535,7 +535,7 @@ The LinkedIn module may raise the following errors:
 - **ValidationError** (422): Input validation failed
   - Code: `VALIDATION_ERROR`
   - Extensions: `fieldErrors` (field-specific errors)
-  - Occurs when: 
+  - Occurs when:
     - Empty URL or empty URL list
     - Invalid LinkedIn URL format (must start with `https://www.linkedin.com/`, `http://www.linkedin.com/`, `https://linkedin.com/`, or `http://linkedin.com/`)
     - URL exceeds maximum length (2048 characters)

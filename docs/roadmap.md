@@ -1,6 +1,6 @@
 # Contact360 Roadmap
 
-This roadmap defines staged delivery across major versions.  
+This roadmap defines staged delivery across major versions.
 Stage metadata standard for every stage:
 
 - **Status**
@@ -31,10 +31,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 1.1 - User and Authentication System
 
 **Status:** Completed
-**Depends on:** Foundation platform setup  
-**Risk:** Session handling regressions across dashboard and extension  
-**Definition of done:** User can register, sign in, and begin usage with starter credits  
-**KPI:** Successful signup-to-first-action conversion, auth failure rate  
+**Depends on:** Foundation platform setup
+**Risk:** Session handling regressions across dashboard and extension
+**Definition of done:** User can register, sign in, and begin usage with starter credits
+**KPI:** Successful signup-to-first-action conversion, auth failure rate
 **Ships in:** `1.0.0`
 
 - Email signup and login
@@ -48,10 +48,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 1.2 - Credit Management System (CORE)
 
 **Status:** Completed
-**Depends on:** Stage 1.1  
-**Risk:** Incorrect deduction and lapse behavior can block valid user actions  
-**Definition of done:** Finder deductions and entitlement checks behave correctly under standard flows  
-**KPI:** Credit ledger consistency, blocked-request correctness at zero balance  
+**Depends on:** Stage 1.1
+**Risk:** Incorrect deduction and lapse behavior can block valid user actions
+**Definition of done:** Finder deductions and entitlement checks behave correctly under standard flows
+**KPI:** Credit ledger consistency, blocked-request correctness at zero balance
 **Ships in:** `1.0.0`
 
 - Credit balance tracking
@@ -67,10 +67,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 1.3 - Billing and Payments
 
 **Status:** In progress
-**Depends on:** Stages 1.1, 1.2  
-**Risk:** Payment confirmation mismatch and delayed credit application  
-**Definition of done:** Users can purchase packs and receive credits through approved flow  
-**KPI:** Payment success-to-crediting time, failed payment flow rate  
+**Depends on:** Stages 1.1, 1.2
+**Risk:** Payment confirmation mismatch and delayed credit application
+**Definition of done:** Users can purchase packs and receive credits through approved flow
+**KPI:** Payment success-to-crediting time, failed payment flow rate
 **Ships in:** `1.1.0`
 
 - Credit purchase system
@@ -84,10 +84,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 1.4 - Analytics for the User (Minimal)
 
 **Status:** Planned
-**Depends on:** Stages 1.2, 1.3  
-**Risk:** Usage metrics mismatch with billing/credit records  
-**Definition of done:** Users can view basic usage and entitlement summary  
-**KPI:** Dashboard analytics view adoption, usage ledger consistency  
+**Depends on:** Stages 1.2, 1.3
+**Risk:** Usage metrics mismatch with billing/credit records
+**Definition of done:** Users can view basic usage and entitlement summary
+**KPI:** Dashboard analytics view adoption, usage ledger consistency
 **Ships in:** `1.2.0`
 
 - User logs
@@ -100,10 +100,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 1.5 - Notifications (Minimal)
 
 **Status:** Planned
-**Depends on:** Stages 1.3, 1.4  
-**Risk:** False/late notifications reduce trust  
-**Definition of done:** In-app low-credit and payment-success cues are present and reliable  
-**KPI:** Notification delivery correctness, low-credit action conversion  
+**Depends on:** Stages 1.3, 1.4
+**Risk:** False/late notifications reduce trust
+**Definition of done:** In-app low-credit and payment-success cues are present and reliable
+**KPI:** Notification delivery correctness, low-credit action conversion
 **Ships in:** `1.2.0`
 
 - Low credit warning (UI only)
@@ -116,10 +116,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 1.6 - Analytics Admin Panel (Basic Control)
 
 **Status:** Planned
-**Depends on:** Stages 1.2, 1.4  
-**Risk:** Admin actions without audit clarity  
-**Definition of done:** Admin can audit and adjust core user credit/package state  
-**KPI:** Admin correction turnaround time, audit completeness  
+**Depends on:** Stages 1.2, 1.4
+**Risk:** Admin actions without audit clarity
+**Definition of done:** Admin can audit and adjust core user credit/package state
+**KPI:** Admin correction turnaround time, audit completeness
 **Ships in:** `1.2.0`
 
 - View users (package and expiry)
@@ -133,10 +133,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 1.7 - Security (Basic Layer)
 
 **Status:** Planned
-**Depends on:** Stage 1.1 and service middleware rollout  
-**Risk:** Abuse or high-volume spam traffic  
-**Definition of done:** Baseline throttling and abuse controls active on core APIs  
-**KPI:** Rate-limited abuse attempts, API error profile stability  
+**Depends on:** Stage 1.1 and service middleware rollout
+**Risk:** Abuse or high-volume spam traffic
+**Definition of done:** Baseline throttling and abuse controls active on core APIs
+**KPI:** Rate-limited abuse attempts, API error profile stability
 **Ships in:** `1.2.0`
 
 - Basic rate limiting
@@ -150,10 +150,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 2.1 - Email Finder Engine
 
 **Status:** Completed
-**Depends on:** Stages 1.1, 1.2  
-**Risk:** Provider inconsistency can reduce candidate quality  
-**Definition of done:** Finder returns candidates with normalized metadata and logging  
-**KPI:** Finder success rate, median response latency  
+**Depends on:** Stages 1.1, 1.2
+**Risk:** Provider inconsistency can reduce candidate quality
+**Definition of done:** Finder returns candidates with normalized metadata and logging
+**KPI:** Finder success rate, median response latency
 **Ships in:** `2.0.0`
 
 - Predefined pattern generation (10 formats)
@@ -168,10 +168,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 2.2 - Email Verification Engine
 
 **Status:** Completed
-**Depends on:** Stage 2.1  
-**Risk:** External signal variability (DNS/SMTP/provider behavior)  
-**Definition of done:** Verification returns normalized statuses across single and bulk flows  
-**KPI:** Verification completion rate, invalid classification precision  
+**Depends on:** Stage 2.1
+**Risk:** External signal variability (DNS/SMTP/provider behavior)
+**Definition of done:** Verification returns normalized statuses across single and bulk flows
+**KPI:** Verification completion rate, invalid classification precision
 **Ships in:** `2.0.0`
 
 - Integrate external verifier provider (Mailvetter and/or configured provider)
@@ -184,10 +184,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 2.3 - Results Engine
 
 **Status:** Completed
-**Depends on:** Stages 2.1, 2.2  
-**Risk:** UI inconsistency in status/confidence representation  
-**Definition of done:** User sees best result plus auditable activity history  
-**KPI:** Result view completion rate, user action-to-result latency  
+**Depends on:** Stages 2.1, 2.2
+**Risk:** UI inconsistency in status/confidence representation
+**Definition of done:** User sees best result plus auditable activity history
+**KPI:** Result view completion rate, user action-to-result latency
 **Ships in:** `2.0.0`
 
 - Show best email and status with confidence when available
@@ -199,10 +199,10 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 ### Stage 2.4 - Bulk Processing — Validation
 
 **Status:** In progress
-**Depends on:** Stages 2.1, 2.2, 2.3  
-**Risk:** Partial failures in stream processors and resume flows  
-**Definition of done:** Upload, async processing, checkpoint resume, and output retrieval are reliable  
-**KPI:** Bulk job success rate, resume success rate, processing throughput  
+**Depends on:** Stages 2.1, 2.2, 2.3
+**Risk:** Partial failures in stream processors and resume flows
+**Definition of done:** Upload, async processing, checkpoint resume, and output retrieval are reliable
+**KPI:** Bulk job success rate, resume success rate, processing throughput
 **Ships in:** `2.1.0`
 
 - CSV upload (basic)
@@ -216,44 +216,44 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 3.1 - Advanced search filters (VQL)
 
-**Status:** Planned  
-**Depends on:** Connectra index quality and VQL parser support  
-**Risk:** Filter complexity causing query performance regressions  
-**Definition of done:** Advanced contacts/companies filters are available and stable  
-**KPI:** Filter query success and latency percentiles  
+**Status:** Planned
+**Depends on:** Connectra index quality and VQL parser support
+**Risk:** Filter complexity causing query performance regressions
+**Definition of done:** Advanced contacts/companies filters are available and stable
+**KPI:** Filter query success and latency percentiles
 **Ships in:** `3.0.0`
 
 ---
 
 ### Stage 3.2 - Enrichment and deduplication
 
-**Status:** Planned  
-**Depends on:** Stage 3.1  
-**Risk:** Duplicate profiles and confidence mismatch in enrichment  
-**Definition of done:** Enrichment quality improves with dedupe controls  
-**KPI:** Duplicate reduction rate, enrichment completeness  
+**Status:** Planned
+**Depends on:** Stage 3.1
+**Risk:** Duplicate profiles and confidence mismatch in enrichment
+**Definition of done:** Enrichment quality improves with dedupe controls
+**KPI:** Duplicate reduction rate, enrichment completeness
 **Ships in:** `3.0.0`
 
 ---
 
 ### Stage 3.3 - Search quality and performance
 
-**Status:** Planned  
-**Depends on:** Stages 3.1, 3.2  
-**Risk:** Index refresh and relevance tuning instability  
-**Definition of done:** Relevance and latency SLO targets are met  
-**KPI:** Search precision proxy score and P95 response time  
+**Status:** Planned
+**Depends on:** Stages 3.1, 3.2
+**Risk:** Index refresh and relevance tuning instability
+**Definition of done:** Relevance and latency SLO targets are met
+**KPI:** Search precision proxy score and P95 response time
 **Ships in:** `3.0.0`
 
 ---
 
 ### Stage 3.4 - Dashboard search UX expansion
 
-**Status:** Planned  
-**Depends on:** Stages 3.1, 3.3  
-**Risk:** UI complexity reducing discoverability  
-**Definition of done:** Advanced filtering flows are available in dashboard UX  
-**KPI:** Filter usage rate and successful search-to-export conversions  
+**Status:** Planned
+**Depends on:** Stages 3.1, 3.3
+**Risk:** UI complexity reducing discoverability
+**Definition of done:** Advanced filtering flows are available in dashboard UX
+**KPI:** Filter usage rate and successful search-to-export conversions
 **Ships in:** `3.0.0`
 
 ---
@@ -262,44 +262,44 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 4.1 - Extension auth/session hardening
 
-**Status:** Planned  
-**Depends on:** Appointment360 auth contracts  
-**Risk:** Session expiry and token refresh failures in browser context  
-**Definition of done:** Stable authenticated extension session lifecycle  
-**KPI:** Extension auth failure rate  
+**Status:** Planned
+**Depends on:** Appointment360 auth contracts
+**Risk:** Session expiry and token refresh failures in browser context
+**Definition of done:** Stable authenticated extension session lifecycle
+**KPI:** Extension auth failure rate
 **Ships in:** `4.0.0`
 
 ---
 
 ### Stage 4.2 - Sales Navigator ingestion optimization
 
-**Status:** Planned  
-**Depends on:** Stage 4.1 and `salesnavigator` backend updates  
-**Risk:** Source-side data variability  
-**Definition of done:** Ingestion accuracy and throughput targets are met  
-**KPI:** Records ingested per run, ingestion error rate  
+**Status:** Planned
+**Depends on:** Stage 4.1 and `salesnavigator` backend updates
+**Risk:** Source-side data variability
+**Definition of done:** Ingestion accuracy and throughput targets are met
+**KPI:** Records ingested per run, ingestion error rate
 **Ships in:** `4.0.0`
 
 ---
 
 ### Stage 4.3 - Sync integrity and conflict handling
 
-**Status:** Planned  
-**Depends on:** Stages 4.1, 4.2  
-**Risk:** Duplicate writes and state divergence  
-**Definition of done:** Deterministic sync conflict handling is in place  
-**KPI:** Sync conflict auto-resolution success rate  
+**Status:** Planned
+**Depends on:** Stages 4.1, 4.2
+**Risk:** Duplicate writes and state divergence
+**Definition of done:** Deterministic sync conflict handling is in place
+**KPI:** Sync conflict auto-resolution success rate
 **Ships in:** `4.0.0`
 
 ---
 
 ### Stage 4.4 - Extension telemetry and reliability
 
-**Status:** Planned  
-**Depends on:** Stage 4.3 and `logs.api` integration  
-**Risk:** Limited visibility into extension production failures  
-**Definition of done:** Extension telemetry and error observability are production-ready  
-**KPI:** Error triage time and telemetry coverage  
+**Status:** Planned
+**Depends on:** Stage 4.3 and `logs.api` integration
+**Risk:** Limited visibility into extension production failures
+**Definition of done:** Extension telemetry and error observability are production-ready
+**KPI:** Error triage time and telemetry coverage
 **Ships in:** `4.0.0`
 
 ---
@@ -308,44 +308,44 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 5.1 - Contact AI integration in dashboard journeys
 
-**Status:** Planned  
-**Depends on:** `contact.ai` API contracts and dashboard UX slots  
-**Risk:** UX friction from uncertain AI output quality  
-**Definition of done:** AI outputs are integrated into core user workflows  
-**KPI:** AI-assisted action adoption rate  
+**Status:** Planned
+**Depends on:** `contact.ai` API contracts and dashboard UX slots
+**Risk:** UX friction from uncertain AI output quality
+**Definition of done:** AI outputs are integrated into core user workflows
+**KPI:** AI-assisted action adoption rate
 **Ships in:** `5.0.0`
 
 ---
 
 ### Stage 5.2 - Confidence and explainability controls
 
-**Status:** Planned  
-**Depends on:** Stage 5.1  
-**Risk:** Low trust if confidence/explanations are unclear  
-**Definition of done:** Confidence and explanation metadata are exposed and usable  
-**KPI:** AI-output acceptance rate  
+**Status:** Planned
+**Depends on:** Stage 5.1
+**Risk:** Low trust if confidence/explanations are unclear
+**Definition of done:** Confidence and explanation metadata are exposed and usable
+**KPI:** AI-output acceptance rate
 **Ships in:** `5.0.0`
 
 ---
 
 ### Stage 5.3 - AI usage limits and cost controls
 
-**Status:** Planned  
-**Depends on:** Stages 1.2, 5.1  
-**Risk:** Unbounded model usage cost  
-**Definition of done:** Quotas and spending guardrails enforce expected limits  
-**KPI:** AI cost per active user and quota breach rate  
+**Status:** Planned
+**Depends on:** Stages 1.2, 5.1
+**Risk:** Unbounded model usage cost
+**Definition of done:** Quotas and spending guardrails enforce expected limits
+**KPI:** AI cost per active user and quota breach rate
 **Ships in:** `5.0.0`
 
 ---
 
 ### Stage 5.4 - Prompt/version governance
 
-**Status:** Planned  
-**Depends on:** Stages 5.1, 5.2  
-**Risk:** Prompt drift and regressions in production behavior  
-**Definition of done:** Prompt versioning and rollback governance are documented and operational  
-**KPI:** Prompt rollback time and AI regression incident count  
+**Status:** Planned
+**Depends on:** Stages 5.1, 5.2
+**Risk:** Prompt drift and regressions in production behavior
+**Definition of done:** Prompt versioning and rollback governance are documented and operational
+**KPI:** Prompt rollback time and AI regression incident count
 **Ships in:** `5.0.0`
 
 ---
@@ -354,99 +354,99 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 6.1 - Reliability baseline and SLO definition
 
-**Status:** Planned  
-**Depends on:** Stable 5.x AI/core APIs  
-**Risk:** Undefined reliability targets across services  
-**Definition of done:** SLOs and reliability error budgets are documented and monitored  
-**KPI:** SLO attainment rate  
+**Status:** Planned
+**Depends on:** Stable 5.x AI/core APIs
+**Risk:** Undefined reliability targets across services
+**Definition of done:** SLOs and reliability error budgets are documented and monitored
+**KPI:** SLO attainment rate
 **Ships in:** `6.1.0`
 
 ---
 
 ### Stage 6.2 - Idempotency and consistency hardening
 
-**Status:** Planned  
-**Depends on:** Stage 6.1  
-**Risk:** Duplicate writes in billing, jobs, and sync paths  
-**Definition of done:** All critical write paths enforce idempotency keys and reconciliation checks  
-**KPI:** Duplicate side-effect incident count  
+**Status:** Planned
+**Depends on:** Stage 6.1
+**Risk:** Duplicate writes in billing, jobs, and sync paths
+**Definition of done:** All critical write paths enforce idempotency keys and reconciliation checks
+**KPI:** Duplicate side-effect incident count
 **Ships in:** `6.2.0`
 
 ---
 
 ### Stage 6.3 - Queue and worker resilience
 
-**Status:** Planned  
-**Depends on:** Stage 6.2  
-**Risk:** Queue lag and worker poison-message failures  
-**Definition of done:** DLQ, replay, and retry controls are active for async workloads  
-**KPI:** Queue lag P95, successful replay rate  
+**Status:** Planned
+**Depends on:** Stage 6.2
+**Risk:** Queue lag and worker poison-message failures
+**Definition of done:** DLQ, replay, and retry controls are active for async workloads
+**KPI:** Queue lag P95, successful replay rate
 **Ships in:** `6.3.0`
 
 ---
 
 ### Stage 6.4 - Observability and diagnostics maturity
 
-**Status:** Planned  
-**Depends on:** Stage 6.3  
-**Risk:** Slow incident triage without end-to-end telemetry  
-**Definition of done:** Correlated logs/traces/alerts are available across critical paths  
-**KPI:** Mean time to detect and resolve incidents  
+**Status:** Planned
+**Depends on:** Stage 6.3
+**Risk:** Slow incident triage without end-to-end telemetry
+**Definition of done:** Correlated logs/traces/alerts are available across critical paths
+**KPI:** Mean time to detect and resolve incidents
 **Ships in:** `6.4.0`
 
 ---
 
 ### Stage 6.5 - Performance optimization wave
 
-**Status:** Planned  
-**Depends on:** Stage 6.4  
-**Risk:** Throughput bottlenecks in gateway/search/bulk paths  
-**Definition of done:** Top latency hotspots are tuned with measurable gains  
-**KPI:** API P95 latency, throughput at steady load  
+**Status:** Planned
+**Depends on:** Stage 6.4
+**Risk:** Throughput bottlenecks in gateway/search/bulk paths
+**Definition of done:** Top latency hotspots are tuned with measurable gains
+**KPI:** API P95 latency, throughput at steady load
 **Ships in:** `6.5.0`
 
 ---
 
 ### Stage 6.6 - Storage and artifact lifecycle hardening
 
-**Status:** Planned  
-**Depends on:** Stage 6.5  
-**Risk:** Artifact corruption/orphans and retention drift  
-**Definition of done:** Upload integrity, retention, and cleanup lifecycle are enforced  
-**KPI:** Artifact integrity success rate  
+**Status:** Planned
+**Depends on:** Stage 6.5
+**Risk:** Artifact corruption/orphans and retention drift
+**Definition of done:** Upload integrity, retention, and cleanup lifecycle are enforced
+**KPI:** Artifact integrity success rate
 **Ships in:** `6.6.0`
 
 ---
 
 ### Stage 6.7 - Cost reliability and budget guardrails
 
-**Status:** Planned  
-**Depends on:** Stage 6.6  
-**Risk:** Uncontrolled cost growth under traffic spikes  
-**Definition of done:** Cost guardrails and usage-based throttles are enforced  
-**KPI:** Cost per active tenant/user  
+**Status:** Planned
+**Depends on:** Stage 6.6
+**Risk:** Uncontrolled cost growth under traffic spikes
+**Definition of done:** Cost guardrails and usage-based throttles are enforced
+**KPI:** Cost per active tenant/user
 **Ships in:** `6.7.0`
 
 ---
 
 ### Stage 6.8 - Security and abuse resilience at scale
 
-**Status:** Planned  
-**Depends on:** Stage 6.7  
-**Risk:** Abuse and attack amplification as traffic grows  
-**Definition of done:** Rate-limit and abuse protections are active and monitored  
-**KPI:** Blocked abuse attempts without false-positive surge  
+**Status:** Planned
+**Depends on:** Stage 6.7
+**Risk:** Abuse and attack amplification as traffic grows
+**Definition of done:** Rate-limit and abuse protections are active and monitored
+**KPI:** Blocked abuse attempts without false-positive surge
 **Ships in:** `6.8.0`
 
 ---
 
 ### Stage 6.9 - Release candidate hardening for 7.0.0
 
-**Status:** Planned  
-**Depends on:** Stages 6.1–6.8  
-**Risk:** Regression risk before deployment era rollout  
-**Definition of done:** Reliability RC tests and runbooks are signed off  
-**KPI:** RC defect escape rate  
+**Status:** Planned
+**Depends on:** Stages 6.1–6.8
+**Risk:** Regression risk before deployment era rollout
+**Definition of done:** Reliability RC tests and runbooks are signed off
+**KPI:** RC defect escape rate
 **Ships in:** `6.9.0`
 
 ---
@@ -455,99 +455,99 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 7.1 - RBAC model and access control foundation
 
-**Status:** Planned  
-**Depends on:** Stage 6.9  
-**Risk:** Inconsistent authorization across surfaces  
-**Definition of done:** Role hierarchy and permission matrix are enforced in gateway and UI  
-**KPI:** Unauthorized access incident count  
+**Status:** Planned
+**Depends on:** Stage 6.9
+**Risk:** Inconsistent authorization across surfaces
+**Definition of done:** Role hierarchy and permission matrix are enforced in gateway and UI
+**KPI:** Unauthorized access incident count
 **Ships in:** `7.1.0`
 
 ---
 
 ### Stage 7.2 - Service-level authorization enforcement
 
-**Status:** Planned  
-**Depends on:** Stage 7.1  
-**Risk:** Internal service routes bypass policy checks  
-**Definition of done:** Service-to-service policy checks are standardized  
-**KPI:** Policy coverage across protected endpoints  
+**Status:** Planned
+**Depends on:** Stage 7.1
+**Risk:** Internal service routes bypass policy checks
+**Definition of done:** Service-to-service policy checks are standardized
+**KPI:** Policy coverage across protected endpoints
 **Ships in:** `7.2.0`
 
 ---
 
 ### Stage 7.3 - Admin governance controls
 
-**Status:** Planned  
-**Depends on:** Stage 7.2  
-**Risk:** High-impact admin actions without safeguards  
-**Definition of done:** Admin approvals/reason codes/audit trails are enforced  
-**KPI:** Audited admin action coverage  
+**Status:** Planned
+**Depends on:** Stage 7.2
+**Risk:** High-impact admin actions without safeguards
+**Definition of done:** Admin approvals/reason codes/audit trails are enforced
+**KPI:** Audited admin action coverage
 **Ships in:** `7.3.0`
 
 ---
 
 ### Stage 7.4 - Audit and compliance event model
 
-**Status:** Planned  
-**Depends on:** Stage 7.3  
-**Risk:** Missing forensic/compliance evidence  
-**Definition of done:** Immutable audit event model and query/report flows exist  
-**KPI:** Compliance evidence completeness  
+**Status:** Planned
+**Depends on:** Stage 7.3
+**Risk:** Missing forensic/compliance evidence
+**Definition of done:** Immutable audit event model and query/report flows exist
+**KPI:** Compliance evidence completeness
 **Ships in:** `7.4.0`
 
 ---
 
 ### Stage 7.5 - Data governance and lifecycle controls
 
-**Status:** Planned  
-**Depends on:** Stage 7.4  
-**Risk:** Retention/deletion policy drift across stores  
-**Definition of done:** Data classification and lifecycle controls are operational  
-**KPI:** Policy conformance rate  
+**Status:** Planned
+**Depends on:** Stage 7.4
+**Risk:** Retention/deletion policy drift across stores
+**Definition of done:** Data classification and lifecycle controls are operational
+**KPI:** Policy conformance rate
 **Ships in:** `7.5.0`
 
 ---
 
 ### Stage 7.6 - Tenant and policy isolation
 
-**Status:** Planned  
-**Depends on:** Stage 7.5  
-**Risk:** Cross-tenant leakage or policy overlap  
-**Definition of done:** Tenant isolation and policy scoping are validated end-to-end  
-**KPI:** Tenant isolation test pass rate  
+**Status:** Planned
+**Depends on:** Stage 7.5
+**Risk:** Cross-tenant leakage or policy overlap
+**Definition of done:** Tenant isolation and policy scoping are validated end-to-end
+**KPI:** Tenant isolation test pass rate
 **Ships in:** `7.6.0`
 
 ---
 
 ### Stage 7.7 - Security posture and secrets hardening
 
-**Status:** Planned  
-**Depends on:** Stage 7.6  
-**Risk:** Privileged access and secret management weakness  
-**Definition of done:** Secret rotation and privileged controls are hardened  
-**KPI:** Security control coverage  
+**Status:** Planned
+**Depends on:** Stage 7.6
+**Risk:** Privileged access and secret management weakness
+**Definition of done:** Secret rotation and privileged controls are hardened
+**KPI:** Security control coverage
 **Ships in:** `7.7.0`
 
 ---
 
 ### Stage 7.8 - Deployment observability and enterprise reporting
 
-**Status:** Planned  
-**Depends on:** Stage 7.7  
-**Risk:** Limited visibility for enterprise admins and support  
-**Definition of done:** Tenant-aware operational and governance reports are available  
-**KPI:** Enterprise report completeness  
+**Status:** Planned
+**Depends on:** Stage 7.7
+**Risk:** Limited visibility for enterprise admins and support
+**Definition of done:** Tenant-aware operational and governance reports are available
+**KPI:** Enterprise report completeness
 **Ships in:** `7.8.0`
 
 ---
 
 ### Stage 7.9 - Release candidate hardening for 8.0.0
 
-**Status:** Planned  
-**Depends on:** Stages 7.1–7.8  
-**Risk:** Governance regressions before API expansion  
-**Definition of done:** Deployment era RC validation is complete  
-**KPI:** RC audit/control failures  
+**Status:** Planned
+**Depends on:** Stages 7.1–7.8
+**Risk:** Governance regressions before API expansion
+**Definition of done:** Deployment era RC validation is complete
+**KPI:** RC audit/control failures
 **Ships in:** `7.9.0`
 
 ---
@@ -556,99 +556,99 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 8.1 - Analytics taxonomy and event instrumentation
 
-**Status:** Planned  
-**Depends on:** Stage 7.9  
-**Risk:** Inconsistent metrics semantics across teams  
-**Definition of done:** Canonical event/metric dictionary is adopted; core journeys emit correlated analytics events  
-**KPI:** Schema conformance rate, instrumentation coverage on priority flows  
+**Status:** Planned
+**Depends on:** Stage 7.9
+**Risk:** Inconsistent metrics semantics across teams
+**Definition of done:** Canonical event/metric dictionary is adopted; core journeys emit correlated analytics events
+**KPI:** Schema conformance rate, instrumentation coverage on priority flows
 **Ships in:** `8.1.0`
 
 ---
 
 ### Stage 8.2 - Analytics ingestion hardening and data quality
 
-**Status:** Planned  
-**Depends on:** Stage 8.1  
-**Risk:** Event loss, duplication, and schema drift  
-**Definition of done:** Reliable analytics ingestion with dedupe, DLQ, freshness, and quality controls  
-**KPI:** Event ingestion success rate, data quality score  
+**Status:** Planned
+**Depends on:** Stage 8.1
+**Risk:** Event loss, duplication, and schema drift
+**Definition of done:** Reliable analytics ingestion with dedupe, DLQ, freshness, and quality controls
+**KPI:** Event ingestion success rate, data quality score
 **Ships in:** `8.2.0`
 
 ---
 
 ### Stage 8.3 - Private API contracts and service-to-service surface
 
-**Status:** Planned  
-**Depends on:** Stage 8.2  
-**Risk:** Internal API drift and undocumented service contracts  
-**Definition of done:** Private API baseline is documented, versioned, and tested  
-**KPI:** Contract coverage and drift incidents  
+**Status:** Planned
+**Depends on:** Stage 8.2
+**Risk:** Internal API drift and undocumented service contracts
+**Definition of done:** Private API baseline is documented, versioned, and tested
+**KPI:** Contract coverage and drift incidents
 **Ships in:** `8.3.0`
 
 ---
 
 ### Stage 8.4 - Public API minimum surface
 
-**Status:** Planned  
-**Depends on:** Stage 8.3  
-**Risk:** Unstable external API behavior  
-**Definition of done:** Stable read/write public API baseline is published and tested  
-**KPI:** Public API success rate  
+**Status:** Planned
+**Depends on:** Stage 8.3
+**Risk:** Unstable external API behavior
+**Definition of done:** Stable read/write public API baseline is published and tested
+**KPI:** Public API success rate
 **Ships in:** `8.4.0`
 
 ---
 
 ### Stage 8.5 - API versioning and compatibility policy
 
-**Status:** Planned  
-**Depends on:** Stage 8.4  
-**Risk:** Breaking changes reaching partner consumers  
-**Definition of done:** Versioning policy and deprecation gate are enforced; compatibility test suite is active  
-**KPI:** Contract regression count per release  
+**Status:** Planned
+**Depends on:** Stage 8.4
+**Risk:** Breaking changes reaching partner consumers
+**Definition of done:** Versioning policy and deprecation gate are enforced; compatibility test suite is active
+**KPI:** Contract regression count per release
 **Ships in:** `8.5.0`
 
 ---
 
 ### Stage 8.6 - Webhook and event delivery platform v1
 
-**Status:** Planned  
-**Depends on:** Stage 8.5  
-**Risk:** Delivery failures and replay ambiguity  
-**Definition of done:** Signed webhooks with retry, DLQ, and delivery tracking are operational  
-**KPI:** Webhook delivery success rate  
+**Status:** Planned
+**Depends on:** Stage 8.5
+**Risk:** Delivery failures and replay ambiguity
+**Definition of done:** Signed webhooks with retry, DLQ, and delivery tracking are operational
+**KPI:** Webhook delivery success rate
 **Ships in:** `8.6.0`
 
 ---
 
 ### Stage 8.7 - Partner identity and tenant-safe access
 
-**Status:** Planned  
-**Depends on:** Stage 8.6  
-**Risk:** Over-permissioned or leaked partner credentials  
-**Definition of done:** Scoped partner auth and tenant isolation controls are live  
-**KPI:** Unauthorized partner access incidents  
+**Status:** Planned
+**Depends on:** Stage 8.6
+**Risk:** Over-permissioned or leaked partner credentials
+**Definition of done:** Scoped partner auth and tenant isolation controls are live
+**KPI:** Unauthorized partner access incidents
 **Ships in:** `8.7.0`
 
 ---
 
 ### Stage 8.8 - Analytics and reporting APIs
 
-**Status:** Planned  
-**Depends on:** Stage 8.7  
-**Risk:** Low adoption of analytics features and slow export cycles  
-**Definition of done:** User analytics views, admin analytics center, and scheduled reporting are operational  
-**KPI:** Analytics dashboard usage rate and report success rate  
+**Status:** Planned
+**Depends on:** Stage 8.7
+**Risk:** Low adoption of analytics features and slow export cycles
+**Definition of done:** User analytics views, admin analytics center, and scheduled reporting are operational
+**KPI:** Analytics dashboard usage rate and report success rate
 **Ships in:** `8.8.0`
 
 ---
 
 ### Stage 8.9 - Release candidate hardening for 9.0.0
 
-**Status:** Planned  
-**Depends on:** Stages 8.1–8.8  
-**Risk:** Breaking changes before ecosystem expansion  
-**Definition of done:** API and analytics RC validation is complete  
-**KPI:** RC partner regression count  
+**Status:** Planned
+**Depends on:** Stages 8.1–8.8
+**Risk:** Breaking changes before ecosystem expansion
+**Definition of done:** API and analytics RC validation is complete
+**KPI:** RC partner regression count
 **Ships in:** `8.9.0`
 
 ---
@@ -657,99 +657,99 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 9.1 - Integration contract governance
 
-**Status:** Planned  
-**Depends on:** Stage 8.9  
-**Risk:** API contract drift across partners  
-**Definition of done:** Versioned integration contract governance is adopted  
-**KPI:** Contract compatibility pass rate  
+**Status:** Planned
+**Depends on:** Stage 8.9
+**Risk:** API contract drift across partners
+**Definition of done:** Versioned integration contract governance is adopted
+**KPI:** Contract compatibility pass rate
 **Ships in:** `9.1.0`
 
 ---
 
 ### Stage 9.2 - Connector framework baseline
 
-**Status:** Planned  
-**Depends on:** Stage 9.1  
-**Risk:** Connector implementations diverge and become brittle  
-**Definition of done:** Shared connector lifecycle and SDK baseline is defined  
-**KPI:** Connector onboarding time  
+**Status:** Planned
+**Depends on:** Stage 9.1
+**Risk:** Connector implementations diverge and become brittle
+**Definition of done:** Shared connector lifecycle and SDK baseline is defined
+**KPI:** Connector onboarding time
 **Ships in:** `9.2.0`
 
 ---
 
 ### Stage 9.3 - Integration observability and commercial controls
 
-**Status:** Planned  
-**Depends on:** Stage 9.2  
-**Risk:** Slow partner issue triage and integration overuse without enforcement  
-**Definition of done:** Integration health views, support actions, and plan quotas are active  
-**KPI:** Partner issue MTTR, entitlement violation rate  
+**Status:** Planned
+**Depends on:** Stage 9.2
+**Risk:** Slow partner issue triage and integration overuse without enforcement
+**Definition of done:** Integration health views, support actions, and plan quotas are active
+**KPI:** Partner issue MTTR, entitlement violation rate
 **Ships in:** `9.3.0`
 
 ---
 
 ### Stage 9.4 - Tenant platform model standardization
 
-**Status:** Planned  
-**Depends on:** Stage 9.3  
-**Risk:** Tenant model inconsistencies across services  
-**Definition of done:** Canonical tenant model and propagation are standardized  
-**KPI:** Tenant context coverage  
+**Status:** Planned
+**Depends on:** Stage 9.3
+**Risk:** Tenant model inconsistencies across services
+**Definition of done:** Canonical tenant model and propagation are standardized
+**KPI:** Tenant context coverage
 **Ships in:** `9.4.0`
 
 ---
 
 ### Stage 9.5 - Self-serve workspace administration
 
-**Status:** Planned  
-**Depends on:** Stage 9.4  
-**Risk:** Support-heavy admin operations  
-**Definition of done:** Tenant self-serve admin controls are operational  
-**KPI:** Self-serve admin action completion rate  
+**Status:** Planned
+**Depends on:** Stage 9.4
+**Risk:** Support-heavy admin operations
+**Definition of done:** Tenant self-serve admin controls are operational
+**KPI:** Self-serve admin action completion rate
 **Ships in:** `9.5.0`
 
 ---
 
 ### Stage 9.6 - Plan entitlements and packaging engine
 
-**Status:** Planned  
-**Depends on:** Stage 9.5  
-**Risk:** Inconsistent runtime enforcement of product plans  
-**Definition of done:** Entitlement engine consistently gates capabilities  
-**KPI:** Entitlement enforcement accuracy  
+**Status:** Planned
+**Depends on:** Stage 9.5
+**Risk:** Inconsistent runtime enforcement of product plans
+**Definition of done:** Entitlement engine consistently gates capabilities
+**KPI:** Entitlement enforcement accuracy
 **Ships in:** `9.6.0`
 
 ---
 
 ### Stage 9.7 - SLA/SLO operations foundation
 
-**Status:** Planned  
-**Depends on:** Stage 9.6  
-**Risk:** Inability to prove service commitments  
-**Definition of done:** SLA/SLO operational reporting and alerting are active  
-**KPI:** SLA attainment rate  
+**Status:** Planned
+**Depends on:** Stage 9.6
+**Risk:** Inability to prove service commitments
+**Definition of done:** SLA/SLO operational reporting and alerting are active
+**KPI:** SLA attainment rate
 **Ships in:** `9.7.0`
 
 ---
 
 ### Stage 9.8 - Cost governance and capacity forecasting
 
-**Status:** Planned  
-**Depends on:** Stage 9.7  
-**Risk:** Capacity shortfalls and margin degradation  
-**Definition of done:** Cost attribution and capacity forecasting controls are operational  
-**KPI:** Forecast accuracy and cost variance  
+**Status:** Planned
+**Depends on:** Stage 9.7
+**Risk:** Capacity shortfalls and margin degradation
+**Definition of done:** Cost attribution and capacity forecasting controls are operational
+**KPI:** Forecast accuracy and cost variance
 **Ships in:** `9.8.0`
 
 ---
 
 ### Stage 9.9 - Release candidate hardening for 10.0.0
 
-**Status:** Planned  
-**Depends on:** Stages 9.1–9.8  
-**Risk:** Ecosystem regressions before campaign era  
-**Definition of done:** Ecosystem and productization RC checks are complete  
-**KPI:** RC production-blocking issues  
+**Status:** Planned
+**Depends on:** Stages 9.1–9.8
+**Risk:** Ecosystem regressions before campaign era
+**Definition of done:** Ecosystem and productization RC checks are complete
+**KPI:** RC production-blocking issues
 **Ships in:** `9.9.0`
 
 ---
@@ -758,66 +758,66 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 
 ### Stage 10.1 - Campaign foundation: entity model, policy gates, suppression, templates
 
-**Status:** Planned  
-**Depends on:** Stage 9.9  
-**Risk:** Policy and consent violations from unvalidated campaign sends  
-**Definition of done:** Campaign and audience entities, consent/region/content/rate-limit policy gates, suppression lists, and template system are operational  
-**KPI:** Policy gate coverage, suppression list accuracy  
+**Status:** Planned
+**Depends on:** Stage 9.9
+**Risk:** Policy and consent violations from unvalidated campaign sends
+**Definition of done:** Campaign and audience entities, consent/region/content/rate-limit policy gates, suppression lists, and template system are operational
+**KPI:** Policy gate coverage, suppression list accuracy
 **Ships in:** `10.1.0`
 
 ---
 
 ### Stage 10.2 - Campaign execution engine
 
-**Status:** Planned  
-**Depends on:** Stage 10.1  
-**Risk:** Duplicate sends from state machine failures or incomplete idempotency  
-**Definition of done:** Campaign state machine is stable; idempotent send, retry semantics, and pause/resume are reliable  
-**KPI:** Duplicate send rate, campaign completion rate  
+**Status:** Planned
+**Depends on:** Stage 10.1
+**Risk:** Duplicate sends from state machine failures or incomplete idempotency
+**Definition of done:** Campaign state machine is stable; idempotent send, retry semantics, and pause/resume are reliable
+**KPI:** Duplicate send rate, campaign completion rate
 **Ships in:** `10.2.0`
 
 ---
 
 ### Stage 10.3 - Campaign deliverability and safety
 
-**Status:** Planned  
-**Depends on:** Stage 10.2  
-**Risk:** High bounce rates and domain reputation degradation  
-**Definition of done:** Pre-send verification (Mailvetter), bounce handling, domain warmup, and safety checks are active  
-**KPI:** Bounce rate, inbox placement rate  
+**Status:** Planned
+**Depends on:** Stage 10.2
+**Risk:** High bounce rates and domain reputation degradation
+**Definition of done:** Pre-send verification (Mailvetter), bounce handling, domain warmup, and safety checks are active
+**KPI:** Bounce rate, inbox placement rate
 **Ships in:** `10.3.0`
 
 ---
 
 ### Stage 10.4 - Campaign observability, support bundles, and release automation
 
-**Status:** Planned  
-**Depends on:** Stage 10.3  
-**Risk:** Low visibility into campaign pipeline health and slow issue triage  
-**Definition of done:** Campaign metrics, structured logging, feature flags, and canary rollout controls are available  
-**KPI:** Mean time to detect campaign failures, feature flag coverage  
+**Status:** Planned
+**Depends on:** Stage 10.3
+**Risk:** Low visibility into campaign pipeline health and slow issue triage
+**Definition of done:** Campaign metrics, structured logging, feature flags, and canary rollout controls are available
+**KPI:** Mean time to detect campaign failures, feature flag coverage
 **Ships in:** `10.4.0`
 
 ---
 
 ### Stage 10.5 - Campaign commercial controls and compliance
 
-**Status:** Planned  
-**Depends on:** Stage 10.4  
-**Risk:** Unmetered send costs and PII/consent regulatory exposure  
-**Definition of done:** Send metering, PII retention policies, opt-out auditing, and contract freeze are enforced  
-**KPI:** Metering accuracy, opt-out audit completeness  
+**Status:** Planned
+**Depends on:** Stage 10.4
+**Risk:** Unmetered send costs and PII/consent regulatory exposure
+**Definition of done:** Send metering, PII retention policies, opt-out auditing, and contract freeze are enforced
+**KPI:** Metering accuracy, opt-out audit completeness
 **Ships in:** `10.5.0`
 
 ---
 
 ### Stage 10.9 - Contract freeze and final campaign release governance
 
-**Status:** Planned  
-**Depends on:** Stages 10.1–10.5  
-**Risk:** Late-breaking compliance and contract issues  
-**Definition of done:** Campaign era governance baseline and long-term release process are signed off  
-**KPI:** Final release readiness score  
+**Status:** Planned
+**Depends on:** Stages 10.1–10.5
+**Risk:** Late-breaking compliance and contract issues
+**Definition of done:** Campaign era governance baseline and long-term release process are signed off
+**KPI:** Final release readiness score
 **Ships in:** `10.9.0`
 
 ---

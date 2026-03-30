@@ -374,7 +374,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `S3FileDownloadUrl` | *unresolved — add to endpoint index* | — | — |
 | `CreateJob` | [mutation_create_job_graphql.md](../../backend/endpoints/mutation_create_job_graphql.md) | MUTATION | 4.x |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
 `graphql/RetryJob`, `graphql/S3FileDownloadUrl`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

@@ -689,7 +689,7 @@ mutation PromoteToAdmin($input: PromoteToAdminInput!) {
 **Validation:**
 - `user_id`: Required, must be valid UUID format
 
-**Authorization:** 
+**Authorization:**
 - SuperAdmin can promote any user
 - Any authenticated user can self-promote (not recommended for production)
 

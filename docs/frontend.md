@@ -1072,8 +1072,8 @@ extension/contact360/
 
 ## Sales Navigator service — UI/UX integration coverage
 
-**Service:** `backend(dev)/salesnavigator`  
-**Primary era:** `4.x`  
+**Service:** `backend(dev)/salesnavigator`
+**Primary era:** `4.x`
 **Deep reference:** `docs/frontend/salesnavigator-ui-bindings.md`
 
 ### Extension popup surface (4.x primary delivery)

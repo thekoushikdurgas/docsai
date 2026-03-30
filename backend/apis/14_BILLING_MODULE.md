@@ -1240,7 +1240,7 @@ mutation Cancel {
   - Transaction rollback on failure
   - Integrity errors are caught and converted to user-friendly errors
   - Database connection errors trigger fallback to hardcoded data (for addons)
-- **Business Logic Validation**: 
+- **Business Logic Validation**:
   - SuperAdmin/Admin cannot subscribe or purchase addons (unlimited credits)
   - Invalid tier/period combinations are rejected
   - Invalid package IDs are rejected

@@ -193,8 +193,8 @@ The following views/actions must emit or preserve audit-relevant evidence:
 ## `salesnavigator` service compliance controls by era
 
 ### Scope
-Service: `backend(dev)/salesnavigator`  
-Deployment: AWS Lambda (SAM)  
+Service: `backend(dev)/salesnavigator`
+Deployment: AWS Lambda (SAM)
 Data flows to: Connectra (PostgreSQL + Elasticsearch)
 
 ### Era-specific compliance notes

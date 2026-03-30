@@ -1,7 +1,7 @@
 # Sequences Module
 
-**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq)  
-**Gateway proxy:** Appointment360 GraphQL (`createSequence`, `getSequence`, `listSequences`, `triggerSequence`, `pauseSequence`)  
+**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq)
+**Gateway proxy:** Appointment360 GraphQL (`createSequence`, `getSequence`, `listSequences`, `triggerSequence`, `pauseSequence`)
 **Direct REST routes:** `POST /sequences`, `GET /sequences/:id`, `POST /sequences/:id/trigger`, `PATCH /sequences/:id/pause` (planned `10.x`)
 
 ---

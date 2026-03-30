@@ -46,6 +46,18 @@ Execution guide for Contact360 `7.x.x` era delivery.
 - `Task 5 - Ops`: verify CI, rollback path, secrets, and runbooks.
 - `Task 6 - Evidence`: close patch gates with links in era docs and versions index.
 
+## Stack references
+
+Framework and stack reference material (rename-safe paths under `docs/tech/`):
+
+- [Go/Gin — why & practices](../tech/tech-go-gin-why-practices.md)
+- [Go/Gin — 100-point checklist](../tech/tech-go-gin-checklist-100.md)
+- [Next.js — why & practices](../tech/tech-nextjs-why-practices.md)
+- [Next.js — 100-point checklist](../tech/tech-nextjs-checklist-100.md)
+- [Django — why & practices](../tech/tech-django-why-practices.md)
+- [Django — 100-point checklist](../tech/tech-django-checklist-100.md)
+
+
 ## Cross-links
 
 - [`docs/README.md`](../README.md)

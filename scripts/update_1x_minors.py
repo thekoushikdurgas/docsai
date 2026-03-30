@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .micro_gate_utils import ensure_architecture_row
+
 ERA = Path(__file__).resolve().parent.parent / "1. Contact360 user and billing and credit system"
 
 MICRO_GATE = """### Micro-gate reference (apply at every `1.N.P`)
@@ -85,6 +87,8 @@ def process(path: Path) -> None:
         f"with **Service task slices** on `{mid}.P` patch files.",
         text,
     )
+
+    text = ensure_architecture_row(text)
 
     if text != orig:
         path.write_text(text, encoding="utf-8")

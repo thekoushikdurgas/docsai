@@ -1,10 +1,10 @@
 # Contact AI — Cross-Era Task Pack Index
 
-**Service:** `backend(dev)/contact.ai`  
-**GraphQL module:** `17_AI_CHATS_MODULE.md`  
-**Deep analysis:** `docs/codebases/contact-ai-codebase-analysis.md`  
-**Data lineage:** `docs/backend/database/contact_ai_data_lineage.md`  
-**UI bindings:** `docs/frontend/contact-ai-ui-bindings.md`  
+**Service:** `backend(dev)/contact.ai`
+**GraphQL module:** `17_AI_CHATS_MODULE.md`
+**Deep analysis:** `docs/codebases/contact-ai-codebase-analysis.md`
+**Data lineage:** `docs/backend/database/contact_ai_data_lineage.md`
+**UI bindings:** `docs/frontend/contact-ai-ui-bindings.md`
 **Endpoint matrix:** `docs/backend/endpoints/contact_ai_endpoint_era_matrix.json`
 
 ---

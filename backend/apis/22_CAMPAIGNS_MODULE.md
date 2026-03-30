@@ -1,7 +1,7 @@
 # Campaigns Module
 
-**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq)  
-**Gateway proxy:** Appointment360 GraphQL (`createCampaign`, `getCampaign`, `listCampaigns`, `updateCampaign`, `deleteCampaign`)  
+**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq)
+**Gateway proxy:** Appointment360 GraphQL (`createCampaign`, `getCampaign`, `listCampaigns`, `updateCampaign`, `deleteCampaign`)
 **Direct REST routes:** `POST /campaign`, `GET /health`, `GET /unsub`
 
 ---
@@ -79,7 +79,7 @@ enum AudienceSource {
 
 ### `POST /campaign`
 
-**Auth:** JWT (Bearer token)  
+**Auth:** JWT (Bearer token)
 **Request body:**
 
 ```json
@@ -109,9 +109,9 @@ enum AudienceSource {
 
 ### `GET /unsub`
 
-**Auth:** JWT in query parameter (`?token=...`)  
-**Description:** Processes unsubscribe request; validates JWT, inserts to `suppression_list`, updates `recipients.status`.  
-**Response:** HTML confirmation page or JSON  
+**Auth:** JWT in query parameter (`?token=...`)
+**Description:** Processes unsubscribe request; validates JWT, inserts to `suppression_list`, updates `recipients.status`.
+**Response:** HTML confirmation page or JSON
 **Error:** `401` Invalid/expired token
 
 ---

@@ -89,6 +89,25 @@ def _import_and_main(mod_name: str) -> int:
     return 0
 
 
+def run_rename_tech_docs(*, dry_run: bool) -> int:
+    """Rename docs/tech/*.md to canonical slugs (era-agnostic)."""
+    from . import rename_tech_docs
+
+    return rename_tech_docs.main(apply=not dry_run)
+
+
+def run_inject_arch_tasks(era_idx: int, *, dry_run: bool) -> int:
+    from . import inject_arch_tasks
+
+    return inject_arch_tasks.run_era(era_idx, dry_run=dry_run)
+
+
+def _inject_tech_links_dispatch(era_idx: int, *, dry_run: bool) -> int:
+    from . import inject_tech_links
+
+    return inject_tech_links.run_era(era_idx, dry_run=dry_run)
+
+
 def run_maintain_era(
     era_idx: int,
     action: str,
@@ -96,11 +115,20 @@ def run_maintain_era(
     dry_run: bool,
 ) -> int:
     """
-    action: enrich | fix-readme-links | update-minors
+    action: enrich | fix-readme-links | update-minors | rename-tech-docs | inject-arch-tasks | inject-tech-links
     """
+    if action == "rename-tech-docs":
+        return run_rename_tech_docs(dry_run=dry_run)
+
     if era_idx < 0 or era_idx > 10:
         console.print("[red]Era must be 0-10[/red]")
         return 2
+
+    if action == "inject-arch-tasks":
+        return run_inject_arch_tasks(era_idx, dry_run=dry_run)
+
+    if action == "inject-tech-links":
+        return _inject_tech_links_dispatch(era_idx, dry_run=dry_run)
 
     if action == "enrich":
         mod = ENRICH_MODULES.get(era_idx)

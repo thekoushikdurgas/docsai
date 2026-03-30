@@ -7,6 +7,7 @@ This document is the **canonical** statement of how programming languages are us
 | Service | Role | Stack (canonical) |
 | --- | --- | --- |
 | **`contact360.io/api`** | **Appointment360** — sole GraphQL gateway for dashboard, extension, and orchestration | **Python** — FastAPI + Strawberry GraphQL, async SQLAlchemy, asyncpg |
+| **Customer web UIs** | Dashboard, marketing, mailbox, Joblevel — all call the gateway (GraphQL; REST only where documented) | **Next.js** — `contact360.io/app`, `root`, `email`, `joblevel-next`; no parallel non-Next customer stacks |
 
 This codebase is the **main backend**: auth, billing, credits, GraphQL modules, and downstream client orchestration. **There is no plan to replace it with Go** unless product/engineering explicitly launches a separate migration program (new GraphQL server in Go would be a multi-quarter program with contract freeze and dual-run).
 

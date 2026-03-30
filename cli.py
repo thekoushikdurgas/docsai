@@ -164,7 +164,14 @@ def build_parser() -> argparse.ArgumentParser:
     me.add_argument(
         "--action",
         required=True,
-        choices=["enrich", "fix-readme-links", "update-minors"],
+        choices=[
+            "enrich",
+            "fix-readme-links",
+            "update-minors",
+            "rename-tech-docs",
+            "inject-arch-tasks",
+            "inject-tech-links",
+        ],
         help="Which maintenance script family to run",
     )
     me.add_argument("--apply", action="store_true", help="Execute scripts (default is dry-run preview)")
@@ -897,6 +904,8 @@ def cmd_optimize_fix_structure(args: argparse.Namespace) -> int:
 def cmd_maintain_era_cli(args: argparse.Namespace) -> int:
     dry_run = not bool(getattr(args, "apply", False))
     action = args.action
+    if action == "rename-tech-docs":
+        return run_maintain_era(0, action, dry_run=dry_run)  # era ignored; single global rename
     if getattr(args, "all", False):
         rc = 0
         for ei in range(len(ERA_FOLDERS)):

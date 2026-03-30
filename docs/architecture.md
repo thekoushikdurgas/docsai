@@ -12,6 +12,8 @@ The compose file also runs **`joblevel`** (Next.js Joblevel app at `joblevel.con
 
 **Data stores (PostgreSQL-first, Redis scope):** **`docs/docs/data-stores-postgres.md`**.
 
+**Stack reference library:** Framework checklists and “why / best practices” notes for **Go/Gin, Next.js, Django, browser extension** live under **`docs/tech/`** (canonical filenames `tech-*-why-practices.md`, `tech-*-checklist-100.md`). Use them for era task planning; they are not release artifacts.
+
 **AWS system design (Route 53 → ALB/ACM → EC2 → Docker, plus RDS, OpenSearch, S3, optional MSK):** see **`deploy/aws/SYSTEM_DESIGN.md`**.
 
 ### Request paths (target)
@@ -196,7 +198,7 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 5. The job scheduler (`contact360.io/jobs`, TKD Job) runs asynchronous batch DAG workflows with API create/retry, scheduler enqueue, Kafka dispatch, consumer pull, worker pool execution, processor dispatch (`email_*_stream`, `contact360_*_stream`), and timeline events in `job_events`.
 6. `logs.api` and `s3storage` capture telemetry and file artifacts.
 
-**Simplified chain:**  
+**Simplified chain:**
 `Dashboard/Extension -> Appointment360 GraphQL -> Internal services -> PostgreSQL/Elasticsearch/S3 (+ jobs scheduler Postgres)`
 
 ---
