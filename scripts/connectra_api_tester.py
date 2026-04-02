@@ -78,7 +78,7 @@ class ConnectraTestConfig:
         self,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        timeout: int = 30,
+        timeout: int = 300,
         retry_max: int = 3,
         retry_backoff: float = 1.5,
         test_mode: str = "hybrid",

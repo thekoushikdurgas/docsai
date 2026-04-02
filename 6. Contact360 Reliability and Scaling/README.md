@@ -7,6 +7,10 @@ Execution guide for Contact360 `6.x.x` era delivery.
 - Define and deliver a stable era contract across Contract/Service/Surface/Data/Ops tracks.
 - Ensure every patch packet carries closeout evidence before release handoff.
 
+## As-is snapshot (reliability risks)
+
+- **`contact360.io/admin`:** In-memory job progress stores (`_analyze_jobs`, `_generate_json_jobs`, `_upload_jobs`, etc.) **lose state on process restart** — track migration to Redis/DB under this era (see [`contact360.io/root/docs/imported/analysis/jobs-reliability-scaling-task-pack.md`](../../contact360.io/root/docs/imported/analysis/jobs-reliability-scaling-task-pack.md) and [`docs/codebases/admin-codebase-analysis.md`](../codebases/admin-codebase-analysis.md)).
+
 ## Minor index
 
 | Minor | Title | Status | Doc |
@@ -61,27 +65,48 @@ Framework and stack reference material (rename-safe paths under `docs/tech/`):
 - [`docs/README.md`](../README.md)
 - [`docs/versions.md`](../versions.md)
 - [`docs/architecture.md`](../architecture.md)
-- [`docs/analysis/README.md`](../analysis/README.md)
+- [`contact360.io/root/docs/imported/analysis/README.md`](../../contact360.io/root/docs/imported/analysis/README.md)
 ## Tasks
 
 ### Contract
 
-- ✅ Completed: 📌 Planned: **[appointment360]** — Diff and document schema for operations like ConnectraClient, LAMBDA_AI_API_URL, LAMBDA_CONNECTRA_API_URL; align with roadmap | area: `backend-api` | files: `docs/backend/apis/*.md`, `contact360.io/api/app/graphql/schema.py` | reason: Keep GraphQL/REST contracts aligned for era 6.0 patch 0.0.0
+- ✅ Completed: ✅ Completed: 📌 Planned: **[appointment360]** — Diff and document schema for operations like ConnectraClient, LAMBDA_AI_API_URL, LAMBDA_CONNECTRA_API_URL; align with roadmap | area: `backend-api` | files: `docs/backend/apis/*.md`, `contact360.io/api/app/graphql/schema.py` | reason: Keep GraphQL/REST contracts aligned for era 6.0 patch 0.0.0
 
 ### Service
 
-- ✅ Completed: 📌 Planned: **[appointment360]** — Service slice: - [x] ✅ Completed: complexity/timeout, idempotency, abuse-guard, and RED/SLO middleware foundations. | area: `backend-api` | files: `contact360.io/api/app/graphql/modules/`, `contact360.io/api/app/clients/` | reason: Implement or verify runtime behavior for - [x] ✅ Completed: complexity/timeout, idempotency, abuse-guard, and RED/SLO mid
-- ✅ Completed: 📌 Planned: **[emailapis]** — Harden primary worker/gateway integration and failure envelopes | area: `backend-api` | files: `docs/codebases/emailapis-codebase-analysis.md` | reason: P0 band: critical path and idempotency
+- ✅ Completed: ✅ Completed: 📌 Planned: **[appointment360]** — Service slice: - [x] ✅ Completed: complexity/timeout, idempotency, abuse-guard, and RED/SLO middleware foundations. | area: `backend-api` | files: `contact360.io/api/app/graphql/modules/`, `contact360.io/api/app/clients/` | reason: Implement or verify runtime behavior for - [x] ✅ Completed: complexity/timeout, idempotency, abuse-guard, and RED/SLO mid
+- ✅ Completed: ✅ Completed: 📌 Planned: **[emailapis]** — Harden primary worker/gateway integration and failure envelopes | area: `backend-api` | files: `docs/codebases/emailapis-codebase-analysis.md` | reason: P0 band: critical path and idempotency
 
 ### Surface
 
-- ✅ Completed: 📌 Planned: **[connectra]** — Verify UX for route `/` and bindings (patch 0.0.0 band 0) | area: `frontend-page` | files: `contact360/dashboard/app/page.tsx` | reason: Dashboard/extension surface for era 6 must match gateway contracts
+- ✅ Completed: ✅ Completed: 📌 Planned: **[connectra]** — Verify UX for route `/` and bindings (patch 0.0.0 band 0) | area: `frontend-page` | files: `contact360/dashboard/app/page.tsx` | reason: Dashboard/extension surface for era 6 must match gateway contracts
 
 ### Data
 
-- ✅ Completed: 📌 Planned: **[appointment360]** — Update PostgreSQL/ES/S3 lineage notes if this patch touches persistence or exports | area: `data-lineage` | files: `docs/backend/database/`, `migrations/` | reason: Migrations, indexes, and lineage evidence for this patch
+- ✅ Completed: ✅ Completed: 📌 Planned: **[appointment360]** — Update PostgreSQL/ES/S3 lineage notes if this patch touches persistence or exports | area: `data-lineage` | files: `docs/backend/database/`, `migrations/` | reason: Migrations, indexes, and lineage evidence for this patch
 
 ### Ops
 
-- ✅ Completed: 📌 Planned: **[platform]** — Record smoke evidence, rollback, and alerts (patch band 0: charter/P0) | area: `ops` | files: `docs/commands/`, `.github/workflows/` | reason: Smoke, rollback, and observability for patch 0.0.0
+- ✅ Completed: ✅ Completed: 📌 Planned: **[platform]** — Record smoke evidence, rollback, and alerts (patch band 0: charter/P0) | area: `ops` | files: `docs/commands/`, `.github/workflows/` | reason: Smoke, rollback, and observability for patch 0.0.0
 
+## Flowchart
+
+Five-track delivery (contract / service / surface / data / ops) for this doc:
+
+```mermaid
+flowchart LR
+  contract[Contract]
+  service[Service]
+  surface[Surface]
+  data[Data]
+  ops[Ops]
+  gate[Release gate]
+
+  contract --> gate
+  service --> gate
+  surface --> gate
+  data --> gate
+  ops --> gate
+```
+
+**Master hub:** [`docs/docs/flowchart.md`](../docs/flowchart.md) — cross-system diagrams and era strip (`0.x` → `10.x`).

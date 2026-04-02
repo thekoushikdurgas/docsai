@@ -199,7 +199,15 @@ MENU_ENTRIES: list[CatalogEntry] = [
         "api",
         "python cli.py api-test email-single",
     ),
-    CatalogEntry("G5", "G. API & TESTS", "List all commands (catalog)", "read", "docs", "python cli.py list"),
+    CatalogEntry(
+        "G5",
+        "G. API & TESTS",
+        "API test — pattern generator",
+        "read",
+        "api",
+        'python cli.py api-test pattern-generator -- "<args>"',
+    ),
+    CatalogEntry("G6", "G. API & TESTS", "List all commands (catalog)", "read", "docs", "python cli.py list"),
 ]
 
 # Additional CLI verbs not tied to a menu id (shown with `list --include-scripts`).

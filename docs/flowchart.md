@@ -1,5 +1,11 @@
 # Contact360 Flowcharts
 
+**Docs hub:** Era work is filed under `docs/0. …` through `docs/10. …` (see [`docs/README.md`](../README.md#era-map-0xx-to-10xx)). Each **minor** markdown file in those folders includes a `## Flowchart` section; this page is the **master** cross-system view and includes the era progression strip below.
+
+**Sync contract:** After minors or API/UI changes, follow [`docs-sync-contract.md`](docs-sync-contract.md) (frontend pages, endpoint matrices, codebase analyses, admin observability).
+
+**Plan execution log:** codebase checkpoint after bulk plan work — see [`docs/codebases/ERA_IMPLEMENTATION_PROGRESS.md`](../codebases/ERA_IMPLEMENTATION_PROGRESS.md) and [`docs/codebases/P0_BLOCKERS_VERIFICATION.md`](../codebases/P0_BLOCKERS_VERIFICATION.md).
+
 **Implementation note:** The GraphQL hub is **`contact360.io/api` (Python)**; downstream services may be Go/Gin or Python per **`docs/docs/backend-language-strategy.md`**. Diagrams below describe logical flows, not a single runtime language.
 
 ## Core request flow
@@ -89,7 +95,7 @@ This section ties together three layers already documented above:
 - **Delivery:** [Stage execution decomposition flow](#stage-execution-decomposition-flow-per-minor) — contract / service / surface / data / ops tracks feeding a version entry and release gate (see [`docs/version-policy.md`](version-policy.md)).
 - **Era roadmap:** Long-horizon majors from Foundation through Email Campaign (see [`docs/version-policy.md`](version-policy.md) for full theme definitions).
 
-**Per-minor drill-down:** Each optional stub under [`docs/versions/`](versions/) includes a **Flowchart** section with (1) the five-track delivery diagram labeled for that minor and (2) an era-appropriate runtime diagram. Use those files for release planning detail; use this page for the full system picture.
+**Per-minor drill-down:** Canonical minors live under **`docs/0. Foundation …`** through **`docs/10. Contact360 email campaign`** (see [`docs/README.md`](../README.md) era index). Each minor markdown file (e.g. `1.0 — User Genesis.md`) includes a **## Flowchart** section with the five-track delivery diagram and a **### Runtime focus** diagram. Optional historical stubs under `docs/versions/version_*.md` are not required for execution. Use era folders for release planning detail; use this page for the full system picture.
 
 ### Era progression strip (`0.x` → `10.x`)
 
@@ -887,7 +893,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     ExtOrDash["Extension Popup or Dashboard\nSN Save Button / Sync CTA"]
-    ExtOrDash -->|"Profile array or raw HTML"| GQL["Appointment360\nGraphQL Gateway\nsaveSalesNavigatorProfiles"]
+    ExtOrDash -->|"Profile array or raw HTML + X-Request-ID"| GQL["Appointment360\nGraphQL Gateway\nsaveSalesNavigatorProfiles"]
     GQL -->|"POST /v1/save-profiles"| SNSVC["Sales Navigator Service\n(FastAPI Lambda)"]
     SNSVC --> Dedup["SaveService\nDeduplicate by profile_url\n(keep best completeness)"]
     Dedup --> Map["mappers.py\nSN fields → Contact/Company\nUUID5 generation\nseniority/departments inference"]
@@ -1101,8 +1107,8 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    extensionUI["Extension popup (missing)"] -->|"planned"| contentScript["Content script (planned)"]
-    contentScript -->|"planned"| bgWorker["Background service worker (planned)"]
+    extensionUI["Extension popup (implemented)"] --> contentScript["Content script scrape bridge (implemented)"]
+    contentScript --> bgWorker["Background service worker orchestration (implemented)"]
     bgWorker --> lambdaClient["lambdaClient.js (implemented)"]
     lambdaClient --> salesnavAPI["Sales Navigator Lambda (implemented)"]
 ```
@@ -1129,6 +1135,7 @@ flowchart TD
   A[User opens /inbox] --> B{activeAccount in ImapContext}
   B -->|missing| C[Prompt connect account in /account/{userId}]
   B -->|present| D[GET /api/emails/{folder}]
+  B -->|present| K[Send Authorization + mailbox session headers]
   D --> E[Render DataTable]
   E --> F[User clicks row]
   F --> G[Route /email/{mailId}?folder=...]
@@ -1143,7 +1150,8 @@ flowchart LR
   P --> R[GET /api/user/{userId}]
   R --> S[Update connectedAccounts list]
   S --> T[setActiveAccount in ImapContext]
-  T --> V[Persist mailhub_active_account in localStorage]
+  T --> V[localStorage: id/provider/email only]
+  T --> W[sessionStorage: mailbox session token]
 ```
 
 ## Admin runtime flow
@@ -1163,16 +1171,15 @@ flowchart TD
   Storage --> Resp
 ```
 
-## s3storage upload flow (current + risk)
+## s3storage upload flow (current)
 
 ```mermaid
 flowchart TD
-  Init[Initiate Upload] --> Sess[_MULTIPART_SESSIONS in-memory]
+  Init[Initiate Upload] --> Sess[multipart_sessions in Postgres]
   Sess --> Part[Register Part URLs]
   Part --> Complete[Complete Upload]
   Complete --> Worker[s3storage-metadata-worker invoke]
   Worker --> Meta[metadata.json update]
-  Sess --> Risk[Risk: non-durable session state]
 ```
 
 ## logs.api ingest flow

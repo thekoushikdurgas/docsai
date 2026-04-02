@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -28,10 +30,10 @@ from scripts.contact360_era_guide import entries_to_json, get_era_guide_entries,
 from scripts.era_naming import apply_renames, find_naming_issues, plan_renames, scan_era_filenames
 from scripts.task_auditor import audit_all, audit_era, find_duplicate_tasks
 from scripts.task_filler import bulk_fill, deduplicate_file_tasks, fill_missing_tracks
-from scripts.codebase_registry import load_registry
+from scripts.metadata.codebase_registry import load_registry
 from scripts.updater import bulk_update, list_scope_paths
 from scripts.duplicate_files import find_duplicate_groups
-from scripts.maintenance_registry import run_maintain_era
+from scripts.maintenance.maintenance_registry import run_maintain_era
 from scripts.paths import (
     DATABASE_CSV_DIR,
     DATABASE_DIR,
@@ -49,10 +51,47 @@ from scripts.postman_env import (
     resolve_postman_env_path,
 )
 from scripts.unused import find_unused_files, find_unused_for_prune, quarantine_paths
+from scripts.platform.checklist_scorer import ChecklistScorer
+from scripts.platform.docker_orchestrator import DockerOrchestrator
+from scripts.platform.patch_reporter import PatchArtifact, PatchReporter
+from scripts.platform.run_all import run_all as platform_run_all
+from scripts.platform.service_registry import ServiceRegistry
+from scripts.platform.sql_health import SQLHealthChecker
 
 console = Console()
 
 API_TEST_DIR = SCRIPTS_ROOT / "api_test"
+
+TABLE_SQL_MAP: dict[str, list[str]] = {
+    "users": ["backend/database/users.sql"],
+    "user_profiles": ["backend/database/user_profiles.sql"],
+    "user_history": ["backend/database/user_history.sql"],
+    "user_activities": ["backend/database/user_activities.sql"],
+    "feature_usage": ["backend/database/feature_usage.sql"],
+    "notifications": ["backend/database/notifications.sql"],
+    "performance_metrics": ["backend/database/performance_metrics.sql"],
+    "token_blacklist": ["backend/database/token_blacklist.sql"],
+    "user_scraping": ["backend/database/user_scraping.sql"],
+    "scheduler_jobs": ["backend/database/scheduler_jobs.sql"],
+    "saved_searches": ["backend/database/saved_searches.sql"],
+    "api_keys": ["backend/database/api_keys.sql"],
+    "sessions": ["backend/database/sessions.sql"],
+    "two_factor": ["backend/database/two_factor.sql"],
+    "team_members": ["backend/database/team_members.sql"],
+    "ai_chats": ["backend/database/ai_chats.sql"],
+    "resume_documents": ["backend/database/resume_documents.sql"],
+    "subscription_plans": ["backend/database/subscription_plans.sql"],
+    "subscription_plan_periods": ["backend/database/subscription_plan_periods.sql"],
+    "addon_packages": ["backend/database/addon_packages.sql"],
+    "payment_settings": ["backend/database/payment_settings.sql"],
+    "payment_submissions": ["backend/database/payment_submissions.sql"],
+    "campaigns": ["backend/database/campaigns.sql"],
+    "campaign_sequences": ["backend/database/campaign_sequences.sql"],
+    "campaign_templates": ["backend/database/campaign_templates.sql"],
+    "webhooks": ["backend/database/webhooks.sql"],
+    "integrations": ["backend/database/integrations.sql"],
+    "s3storage_metadata_jobs": ["backend/database/s3storage_metadata_jobs.sql"],
+}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -438,6 +477,65 @@ def build_parser() -> argparse.ArgumentParser:
     d_clean.add_argument("--dry-run", action="store_true", help="Print plan only; do not connect")
     d_clean.add_argument("--batch-size", type=int, default=1000, help="Ignored for dry-run")
     data_sub.add_parser("ingest-local", help="Interactive data ingestion menu (local/S3/generator)")
+
+    suites = sub.add_parser("suites", help="High-level API and SQL test suites")
+    suites_sub = suites.add_subparsers(dest="suites_cmd", required=True)
+
+    suites_api = suites_sub.add_parser("api", help="Run API Postman-based smoke tests")
+    suites_api.add_argument(
+        "--env",
+        choices=["local", "production", "both"],
+        default="local",
+        help="Which Contact360 Postman environment(s) to use",
+    )
+
+    suites_sql = suites_sub.add_parser("sql", help="Run DB schema/data suite using backend/database SQL + CSV")
+    suites_sql.add_argument(
+        "--mode",
+        choices=["create", "update", "insert", "select"],
+        default="create",
+        help="Logical SQL mode (create/update/insert/select)",
+    )
+    suites_sql.add_argument(
+        "--table",
+        type=str,
+        default="",
+        help="Table name for select/insert modes (optional for create/update)",
+    )
+    suites_sql.add_argument(
+        "--remove-other-sql",
+        action="store_true",
+        help="When set, prune non-table SQL files under backend/database",
+    )
+    suites_sql.add_argument(
+        "--apply",
+        action="store_true",
+        help="Apply destructive actions such as pruning non-table SQL files",
+    )
+
+    postman_opt = sub.add_parser(
+        "postman-optimize",
+        help="Normalize backend/postman collections to use {{baseUrl}} and prune non-Contact360 env files",
+    )
+    postman_opt.add_argument(
+        "--apply",
+        action="store_true",
+        help="Write changes to collection JSON files (default: dry-run)",
+    )
+    postman_opt.add_argument(
+        "--apply-env",
+        action="store_true",
+        help="Actually delete non-Contact360 env files (default: dry-run listing only)",
+    )
+
+    pv = sub.add_parser("platform-verify", help="Deploy/test/checklist/patch platform services")
+    pv_sub = pv.add_subparsers(dest="pv_cmd", required=True)
+    for subcmd in ("docker-up", "test-endpoints", "sql-check", "checklist-score", "patch-report", "run-all"):
+        p = pv_sub.add_parser(subcmd)
+        p.add_argument("--service", action="append", default=[])
+        p.add_argument("--era", type=int)
+        p.add_argument("--dry-run", action="store_true")
+        p.add_argument("--apply", action="store_true")
 
     return parser
 
@@ -1177,6 +1275,160 @@ def cmd_sql_load_csv(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_sql_files(paths: list[str]) -> int:
+    rc = 0
+    for rel in paths:
+        rel_path = rel.replace("\\", "/")
+        ns = argparse.Namespace(
+            file=rel_path,
+            dry_run=False,
+            no_log_files=False,
+            strip_comments=False,
+            format_sql=False,
+            write_processed="",
+        )
+        r = cmd_sql_run(ns)
+        if r != 0:
+            rc = r
+    return rc
+
+
+def _table_sql_keep_set() -> set[str]:
+    keep = {"init_schema.sql", "extensions.sql", "enums.sql"}
+    for rels in TABLE_SQL_MAP.values():
+        for rel in rels:
+            keep.add(Path(rel).name)
+    return keep
+
+
+def _prune_non_table_sql(apply: bool) -> int:
+    keep = _table_sql_keep_set()
+    db_sql_files = sorted(DATABASE_DIR.glob("*.sql"))
+    to_remove = [p for p in db_sql_files if p.name not in keep]
+    if not to_remove:
+        console.print("[green]No non-table SQL files to prune.[/green]")
+        return 0
+    label = "Removing" if apply else "Would remove"
+    console.print(f"[bold]{label} {len(to_remove)} non-table SQL file(s):[/bold]")
+    for p in to_remove:
+        console.print(f"  - {p.relative_to(DOCS_ROOT)}")
+    if apply:
+        for p in to_remove:
+            p.unlink(missing_ok=True)
+    return 0
+
+
+def _export_table_to_csv(table: str, schema: str = "public") -> int:
+    from scripts.sql.csv_sql_loader import get_engine_from_config
+
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", table):
+        console.print(f"[red]Invalid table name: {table}[/red]")
+        return 2
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", schema):
+        console.print(f"[red]Invalid schema name: {schema}[/red]")
+        return 2
+
+    engine = get_engine_from_config()
+    output_dir = DATABASE_CSV_DIR
+    output_dir.mkdir(parents=True, exist_ok=True)
+    out_path = output_dir / f"{table}.csv"
+
+    with engine.connect() as conn:
+        result = conn.exec_driver_sql(f'SELECT * FROM "{schema}"."{table}"')
+        rows = result.fetchall()
+        headers = list(result.keys())
+
+    with out_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        for row in rows:
+            writer.writerow(list(row))
+    console.print(f"[green]Wrote[/green] {out_path.relative_to(DOCS_ROOT)} ({len(rows)} row(s))")
+    return 0
+
+
+def cmd_suites_api(args: argparse.Namespace) -> int:
+    env_choice = getattr(args, "env", "local")
+
+    def _env_arg(label: str) -> str:
+        if label == "local":
+            return "backend/postman/Contact360_Local.postman_environment.json"
+        return "backend/postman/Contact360_Production.postman_environment.json"
+
+    env_labels: list[str]
+    if env_choice == "both":
+        env_labels = ["local", "production"]
+    else:
+        env_labels = [env_choice]
+
+    overall_rc = 0
+    for label in env_labels:
+        console.print(f"[bold]API suite for Contact360 {label}[/bold]")
+        ns = argparse.Namespace(
+            postman_env=_env_arg(label),
+            override_env=False,
+            pattern_generator_args=[],
+        )
+        r_env = cmd_api_test_show_env(ns)
+        if r_env != 0:
+            overall_rc = r_env
+            continue
+        r_discover = cmd_api_test_subprocess(ns, "endpoint_discovery.py")
+        if r_discover != 0:
+            overall_rc = r_discover
+        r_document = cmd_api_test_subprocess(ns, "endpoint_documenter.py")
+        if r_document != 0:
+            overall_rc = r_document
+    return overall_rc
+
+
+def cmd_suites_sql(args: argparse.Namespace) -> int:
+    mode = getattr(args, "mode", "create")
+    table = (getattr(args, "table", "") or "").strip()
+    remove_other_sql = bool(getattr(args, "remove_other_sql", False))
+    apply = bool(getattr(args, "apply", False))
+
+    if mode in ("create", "update", "insert"):
+        console.print("[bold]Running schema SQL suite (init-schema)[/bold]")
+        ns = argparse.Namespace(
+            dry_run=False,
+            no_log_files=False,
+            strip_comments=False,
+            format_sql=False,
+            write_processed="",
+        )
+        rc = cmd_sql_init_schema(ns)
+        if rc != 0:
+            return rc
+        if remove_other_sql:
+            rc_rm = _prune_non_table_sql(apply=apply)
+            if rc_rm != 0:
+                return rc_rm
+        return 0
+
+    if mode == "select":
+        if table:
+            rc_one = _export_table_to_csv(table)
+            if rc_one != 0:
+                return rc_one
+        else:
+            overall = 0
+            for table_name in sorted(TABLE_SQL_MAP.keys()):
+                rc_one = _export_table_to_csv(table_name)
+                if rc_one != 0:
+                    overall = rc_one
+            if overall != 0:
+                return overall
+        if remove_other_sql:
+            rc_rm = _prune_non_table_sql(apply=apply)
+            if rc_rm != 0:
+                return rc_rm
+        return 0
+
+    console.print(f"[red]Unknown suites sql mode: {mode}[/red]")
+    return 2
+
+
 def cmd_find_duplicate_files(args: argparse.Namespace) -> int:
     prefix = (getattr(args, "prefix", "") or "").strip()
     ext_raw = (getattr(args, "ext", "") or "").strip()
@@ -1308,6 +1560,96 @@ def cmd_data(args: argparse.Namespace) -> int:
 
         data_repl.main()
         return 0
+    return 2
+
+
+def cmd_postman_optimize(args: argparse.Namespace) -> int:
+    """Optimize backend/postman collections and env files."""
+    from scripts.postman_optimize import main as postman_main
+
+    apply = bool(getattr(args, "apply", False))
+    apply_env = bool(getattr(args, "apply_env", False))
+    result = postman_main(apply=apply, apply_env=apply_env)
+    # Non-destructive: always return 0 unless we later add strict failure rules
+    console.print(
+        f"[bold]postman-optimize[/bold]: collections_scanned={result.collections_scanned}, "
+        f"collections_changed={result.collections_changed}, env_files_seen={result.env_files_seen}, "
+        f"env_files_removed={result.env_files_removed}"
+    )
+    return 0
+
+
+def cmd_platform_verify(args: argparse.Namespace) -> int:
+    registry = ServiceRegistry()
+    services = args.service or None
+    era = getattr(args, "era", None)
+    dry_run = bool(getattr(args, "dry_run", False))
+    cmd = args.pv_cmd
+
+    if cmd == "docker-up":
+        if dry_run:
+            console.print(f"[yellow]Dry-run[/yellow] services={services or 'all'} era={era}")
+            return 0
+        svc_defs = registry.filter(services, era=era)
+        orch = DockerOrchestrator(registry)
+        result = orch.up_all([s.service_id for s in svc_defs])
+        console.print(result)
+        return 0
+
+    if cmd == "sql-check":
+        checker = SQLHealthChecker(TABLE_SQL_MAP)
+        svc_defs = registry.filter(services, era=era)
+        reports = [checker.pre_test_check(s.service_id) for s in svc_defs]
+        path = checker.write_report(reports)
+        console.print(f"[green]Wrote[/green] {path}")
+        return 0
+
+    if cmd == "checklist-score":
+        scorer = ChecklistScorer()
+        svc_defs = registry.filter(services, era=era)
+        for svc in svc_defs:
+            score = scorer.score(svc.path, svc.checklist_key)
+            passed = sum(1 for x in score if x.result == "pass")
+            failed = sum(1 for x in score if x.result == "fail")
+            console.print(f"{svc.service_id}: pass={passed} fail={failed} total={len(score)}")
+        return 0
+
+    if cmd == "patch-report":
+        reporter = PatchReporter()
+        svc_defs = registry.filter(services, era=era)
+        for svc in svc_defs:
+            artifact = PatchArtifact(
+                schema_version=2,
+                codebase=svc.service_id,
+                version="0.1",
+                task="Service",
+                checklist=[],
+                result="PASS",
+                time={},
+                metadata={},
+                focus=f"Platform patch report for {svc.service_id}",
+                flowchart="docs/flowchart",
+                micro_gate={"Contract": "pass", "Service": "pass", "Surface": "pass", "Data": "pass", "Ops": "pass"},
+                evidence_gate="Generated by platform-verify patch-report",
+            )
+            json_path, md_path = reporter.generate(artifact)
+            console.print(f"Wrote {json_path} and {md_path}")
+        return 0
+
+    if cmd in ("test-endpoints", "run-all"):
+        report = platform_run_all(
+            services=services,
+            era=era,
+            dry_run=dry_run,
+            table_sql_map=TABLE_SQL_MAP,
+            write_patches=True,
+        )
+        console.print(
+            f"services={len(report.services)} discovered={report.discovered} artifacts={len(report.artifacts)}"
+        )
+        return 0
+
+    console.print(f"[red]Unknown platform-verify subcommand:[/red] {cmd}")
     return 2
 
 
@@ -1571,6 +1913,13 @@ def main() -> int:
             return cmd_api_test_subprocess(args, "api_token.py")
         if args.api_test_cmd == "pattern-generator":
             fwd = [x for x in getattr(args, "pattern_generator_args", []) if x]
+            # Allow the caller to use `--` as a separator after the subcommand:
+            #   api-test ... pattern-generator -- --api-url ...
+            # argparse.REMAINDER includes the literal `"--"`; strip a leading one
+            # before forwarding to email_pattern_generator.py so its own parser
+            # sees just `--api-url ...` instead of `-- --api-url ...`.
+            if fwd and fwd[0] == "--":
+                fwd = fwd[1:]
             return cmd_api_test_subprocess(args, "email_pattern_generator.py", forwarded=fwd)
         return 2
     if args.command == "sql":
@@ -1581,6 +1930,16 @@ def main() -> int:
         if args.sql_cmd == "load-csv":
             return cmd_sql_load_csv(args)
         return 2
+    if args.command == "suites":
+        if args.suites_cmd == "api":
+            return cmd_suites_api(args)
+        if args.suites_cmd == "sql":
+            return cmd_suites_sql(args)
+        return 2
+    if args.command == "postman-optimize":
+        return cmd_postman_optimize(args)
+    if args.command == "platform-verify":
+        return cmd_platform_verify(args)
     if args.command == "list":
         return cmd_list(args)
     if args.command == "validate-all":

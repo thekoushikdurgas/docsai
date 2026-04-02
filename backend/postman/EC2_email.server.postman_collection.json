@@ -1,0 +1,113 @@
+{
+  "info": {
+    "_postman_id": "7b5f1117-8f95-4c72-8b29-30d5c32eb8f2",
+    "name": "EC2 email.server",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Runtime collection for EC2/email.server Gin API."
+  },
+  "variable": [
+    {"key": "email_runtime_base_url", "value": "http://localhost:3000"},
+    {"key": "email_runtime_api_key", "value": ""},
+    {"key": "job_id", "value": ""},
+    {"key": "provider", "value": "mailtester"},
+    {"key": "first_name", "value": "john"},
+    {"key": "last_name", "value": "doe"},
+    {"key": "domain", "value": "example.com"},
+    {"key": "email", "value": "john.doe@example.com"},
+    {"key": "company_uuid", "value": "11111111-1111-1111-1111-111111111111"},
+    {"key": "s3_bucket", "value": ""},
+    {"key": "input_csv_key", "value": "input/test.csv"},
+    {"key": "output_prefix", "value": "output/email-tests"}
+  ],
+  "item": [
+    {
+      "name": "00 Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{email_runtime_base_url}}/health"
+          },
+          "event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);","pm.expect(pm.response.responseTime).to.be.below(900);"], "type": "text/javascript"}}]
+        },
+        {
+          "name": "GET /",
+          "request": {"method": "GET", "header": [], "url": "{{email_runtime_base_url}}/"},
+          "event": [{"listen": "test", "script": {"exec": ["pm.response.to.have.status(200);","pm.expect(pm.response.responseTime).to.be.below(900);"], "type": "text/javascript"}}]
+        }
+      ]
+    },
+    {
+      "name": "01 Jobs",
+      "item": [
+        {
+          "name": "GET /jobs",
+          "request": {"method": "GET", "header": [{"key":"X-API-Key","value":"{{email_runtime_api_key}}"}], "url": "{{email_runtime_base_url}}/jobs"},
+          "event": [{"listen":"test","script":{"exec":["pm.response.to.have.status(200);"],"type":"text/javascript"}}]
+        },
+        {
+          "name": "GET /jobs/:id/status",
+          "request": {"method":"GET","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"}],"url":"{{email_runtime_base_url}}/jobs/{{job_id}}/status"},
+          "event": [{"listen":"test","script":{"exec":["pm.expect([200,404]).to.include(pm.response.code);"],"type":"text/javascript"}}]
+        }
+      ]
+    },
+    {
+      "name": "02 Finder",
+      "item": [
+        {
+          "name": "POST /email/finder/",
+          "request": {"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"}],"url":"{{email_runtime_base_url}}/email/finder/?first_name={{first_name}}&last_name={{last_name}}&domain={{domain}}"},
+          "event":[{"listen":"test","script":{"exec":["pm.expect([200,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]
+        },
+        {
+          "name":"POST /email/finder/bulk",
+          "request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/finder/bulk","body":{"mode":"raw","raw":"{\"items\":[{\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\"}]}"}} ,
+          "event":[{"listen":"test","script":{"exec":["pm.expect([200,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]
+        },
+        {
+          "name":"POST /email/finder/bulk/job",
+          "request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/finder/bulk/job","body":{"mode":"raw","raw":"{\"items\":[{\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\"}]}"}} ,
+          "event":[{"listen":"test","script":{"exec":["pm.response.to.have.status(202);","var b=pm.response.json(); if(b.job_id){pm.collectionVariables.set('job_id', b.job_id);}"],"type":"text/javascript"}}]
+        },
+        {
+          "name":"POST /email/finder/s3",
+          "request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/finder/s3","body":{"mode":"raw","raw":"{\"s3_bucket\":\"{{s3_bucket}}\",\"input_csv_key\":\"{{input_csv_key}}\",\"output_prefix\":\"{{output_prefix}}\",\"csv_columns\":{\"first_name\":\"first_name\",\"last_name\":\"last_name\",\"domain\":\"domain\"}}"}} ,
+          "event":[{"listen":"test","script":{"exec":["pm.expect([202,400,500]).to.include(pm.response.code);"],"type":"text/javascript"}}]
+        }
+      ]
+    },
+    {
+      "name":"03 Verifier",
+      "item":[
+        {"name":"POST /email/single/verifier/","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/single/verifier/","body":{"mode":"raw","raw":"{\"email\":\"{{email}}\",\"provider\":\"{{provider}}\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([200,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]},
+        {"name":"POST /email/bulk/verifier/","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/bulk/verifier/","body":{"mode":"raw","raw":"{\"provider\":\"{{provider}}\",\"emails\":[\"{{email}}\"]}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([200,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]},
+        {"name":"POST /email/bulk/verifier/job","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/bulk/verifier/job","body":{"mode":"raw","raw":"{\"provider\":\"{{provider}}\",\"emails\":[\"{{email}}\"]}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([202,400,500]).to.include(pm.response.code);","if (pm.response.code===202){var b=pm.response.json(); if(b.job_id){pm.collectionVariables.set('job_id', b.job_id);}}"],"type":"text/javascript"}}]},
+        {"name":"POST /email/verify/s3","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/verify/s3","body":{"mode":"raw","raw":"{\"s3_bucket\":\"{{s3_bucket}}\",\"input_csv_key\":\"{{input_csv_key}}\",\"output_prefix\":\"{{output_prefix}}\",\"csv_columns\":{\"email\":\"email\"},\"provider\":\"{{provider}}\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([202,400,500]).to.include(pm.response.code);"],"type":"text/javascript"}}]}
+      ]
+    },
+    {
+      "name":"04 Patterns",
+      "item":[
+        {"name":"POST /email-patterns/add","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/add","body":{"mode":"raw","raw":"{\"company_uuid\":\"{{company_uuid}}\",\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\",\"pattern_format\":\"first.last\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([201,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]},
+        {"name":"POST /email-patterns/add/bulk","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/add/bulk","body":{"mode":"raw","raw":"{\"items\":[{\"company_uuid\":\"{{company_uuid}}\",\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\",\"pattern_format\":\"first.last\"}]}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([201,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]}
+      ]
+    },
+    {
+      "name":"05 Web Search",
+      "item":[
+        {"name":"POST /web/web-search","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/web/web-search","body":{"mode":"raw","raw":"{\"full_name\":\"John Doe\",\"company_domain\":\"{{domain}}\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([200,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]}
+      ]
+    },
+    {
+      "name":"99 Negative Tests",
+      "item":[
+        {"name":"Missing API key","request":{"method":"GET","header":[],"url":"{{email_runtime_base_url}}/jobs"},"event":[{"listen":"test","script":{"exec":["pm.response.to.have.status(401);"],"type":"text/javascript"}}]},
+        {"name":"Invalid API key","request":{"method":"GET","header":[{"key":"X-API-Key","value":"invalid-key"}],"url":"{{email_runtime_base_url}}/jobs"},"event":[{"listen":"test","script":{"exec":["pm.response.to.have.status(401);"],"type":"text/javascript"}}]},
+        {"name":"Invalid provider","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email/single/verifier/","body":{"mode":"raw","raw":"{\"email\":\"{{email}}\",\"provider\":\"bad_provider\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([400,500]).to.include(pm.response.code);"],"type":"text/javascript"}}]}
+      ]
+    }
+  ]
+}

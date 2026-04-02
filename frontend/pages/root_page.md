@@ -200,7 +200,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:AuthRedirect] > [Q:LoadingAnim] -> {useAuth}
+**Composite layout:** Route shell — auth redirect or gate; pairs with [login_page](login_page.md) / [register_page](register_page.md) / [dashboard_page](dashboard_page.md).
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 

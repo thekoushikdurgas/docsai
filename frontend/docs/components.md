@@ -744,6 +744,7 @@ Each component entry should expose `era`, `introduced_in`, and `ui_elements` key
 - `components/email-list.tsx` — mailbox fetch orchestration, loading/error/empty state.
 - `components/data-table.tsx` — tabs, checkbox selection, pagination, row action dropdown.
 - `components/app-sidebar.tsx` — folder navigation and user bootstrap.
+- `components/nav-secondary.tsx` — secondary sidebar rail (folder/account shortcuts).
 - `components/nav-user.tsx` — account menu + logout.
 - `app/account/[userId]/page.tsx` — profile and IMAP account management.
 

@@ -3,7 +3,10 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-# Path to config.json (docs/scripts/config.json)
+# Path to optional config.json (docs/scripts/config.json).
+# This file should NOT contain real secrets in version control.
+# Use environment variables for live credentials, and treat config.json
+# as an optional local-only override.
 CONFIG_FILE = Path(__file__).parent.parent / "config.json"
 
 # Safe template defaults — no real credentials. Override via config.json or environment variables.
@@ -77,11 +80,6 @@ def load_defaults() -> Dict[str, Any]:
                 merged["s3"].update(file_cfg["s3"])
         except Exception as e:
             print(f"Error loading config.json: {e}. Using template defaults.")
-    else:
-        try:
-            save_defaults(merged)
-        except Exception as e:
-            print(f"Note: could not create initial config.json: {e}")
     _apply_env_overrides(merged)
     return merged
 

@@ -221,7 +221,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:DocDetail] > [Q:ContentPane] -> {useDocumentationPage}
+**Composite layout:** [H] > `[Q]` doc list or article `[C]` — search/nav; markdown/HTML body.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -235,12 +235,12 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/root` (marketing / public docs shell).
 
-**Typical inbound:** [docs_page.md](docs_page.md) list, SEO.
+**Typical inbound:** [landing_page.md](landing_page.md) nav/footer, SEO, `/docs` tree.
 
-**Typical outbound:** Cross-links to other docs, [api_docs_page.md](api_docs_page.md).
+**Typical outbound:** Sign in / Get started → **app** [login_page.md](login_page.md) / [register_page.md](register_page.md); product CTAs → same.
 
-**Cross-host:** Hand-off to `app` (authentication) for private docs access if required.
-**Backend:** Public documentation surface; uses `useDocumentationPage` for MD loading.
+**Cross-host:** No shared session with Mailhub unless integrated; dashboard uses separate GraphQL auth.
+**Backend:** Public/marketing shell — no first-party GraphQL host here; `AUTO:endpoint-links` tables apply only where this spec references `graphql/...` for cross-docs.
 
 
 

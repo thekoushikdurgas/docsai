@@ -162,6 +162,18 @@ jobs:
           pytest -q "backend(dev)/salesnavigator/tests/test_api.py" -k health_check
           pytest -q "backend(dev)/resumeai/tests/test_api.py" -k health
 
+      - name: Run Appointment360 docs/runtime parity tests
+        env:
+          API_KEY: ci-key
+          X_API_KEY: ci-key
+          C360_API_KEY: ci-key
+          DATABASE_URL: sqlite+aiosqlite:///./ci_health.db
+        run: |
+          pytest -q \
+            "contact360.io/api/tests/test_endpoint_docs_parity.py" \
+            "contact360.io/api/tests/test_endpoint_docs_operation_parity.py" \
+            "contact360.io/api/tests/test_endpoint_docs_metadata_parity.py"
+
   lint-smoke:
     runs-on: ubuntu-latest
     steps:

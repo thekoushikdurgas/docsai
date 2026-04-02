@@ -245,7 +245,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:MarketingPage] > [H:Header] + [G:HealthStatus] + [T:IncidentTimeline] (Planned)
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -259,12 +259,9 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** `Support Footers`, `External monitoring`, Dashboard error banners.
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** `Support Docs`, `Incident RSS/Email`.
-
-**Cross-host:** Reliability metrics shared between **app**, **root**, and **email** surfaces via global health monitoring.
-**Backend:** Appointment360 GraphQL gateway; real-time health and incident management services.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
 ## Backend API documentation
 

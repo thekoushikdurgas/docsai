@@ -1,7 +1,7 @@
 # Sales Navigator — Frontend UI Bindings
 
-**Service:** `backend(dev)/salesnavigator`  
-**GraphQL module:** `23_SALES_NAVIGATOR_MODULE.md`  
+**Ingest runtime:** `contact360.extension` (FastAPI — `POST /v1/scrape`, `POST /v1/save-profiles`). Legacy/alternate tree: `backend(dev)/salesnavigator`.  
+**GraphQL module:** `23_SALES_NAVIGATOR_MODULE.md` (Appointment360 proxies saves).  
 **Primary era:** `4.x` (Extension & Sales Navigator maturity)
 
 ---

@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List
 
@@ -182,7 +182,7 @@ class EndpointDocumenter:
                 by_status[result.status_code] = by_status.get(result.status_code, 0) + 1
         
         summary = {
-            "generated_at": datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+            "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "total_endpoints": total,
             "successful_tests": successful,
             "failed_tests": failed,

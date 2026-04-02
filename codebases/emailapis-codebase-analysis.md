@@ -1,4 +1,4 @@
-# emailapis / emailapigo codebase deep analysis (Contact360 eras 0.x-10.x)
+# emailapigo / EC2/email.server — Codebase Deep Analysis (Contact360 eras 0.x–10.x)
 
 ## Task status legend
 
@@ -7,241 +7,441 @@
 - [ ] 📌 Planned
 - [ ] ⬜ Incomplete
 
+---
+
 ## Service summary
 
-`lambda/emailapis` (Python FastAPI) and `lambda/emailapigo` (Go Gin) are Contact360's dual-runtime email execution services for finder, verifier, pattern add, and web-search fallback flows. They sit behind Appointment360 GraphQL and power both interactive and bulk email workloads.
+`EC2/email.server` (`github.com/ayan/emailapigo`) is the **canonical Go runtime** for Contact360's email operations: email finding, verification, pattern management, and web-search fallback. It is a **Gin HTTP API + Asynq/Redis worker pool** backed by PostgreSQL (GORM) and AWS S3 for large CSV batch flows.
+
+It is the Go counterpart to the retired `lambda/emailapis` Python FastAPI service and feeds the `contact360.io/api` (Python Strawberry GraphQL gateway) via `LambdaEmailClient` → `LAMBDA_EMAIL_API_URL`.
+
+---
 
 ## Runtime architecture
 
-- Python entrypoint: `lambda/emailapis/app/main.py`
-- Python router: `lambda/emailapis/app/api/v1/router.py`
-- Go entrypoint: `lambda/emailapigo/main.go`
-- Go router: `lambda/emailapigo/internal/api/router.go`
-- Finder services: `app/services/email_finder_service.py`, `internal/services/email_finder_service.go`
-- Verifier services: `app/services/email_verification_service.py`, `internal/services/email_verification_service.go`
-- Pattern services: `app/services/email_pattern_service.py`, `internal/services/email_pattern_service.go`
-- Data repositories: cache + pattern repositories in both runtimes
+```
+contact360.io/api (Python FastAPI + Strawberry GraphQL)
+        │  HTTP + X-API-Key (LambdaEmailClient)
+        ▼
+EC2/email.server  (Go, Gin, port 3000/8080 per .env)
+  ├── internal/api/router.go         (HTTP routes)
+  ├── internal/services/             (finder, verifier, pattern, S3CSV, web-search)
+  ├── internal/clients/              (Mailtester, Mailvetter, Connectra, Truelist, IcyPeas, OpenAI, DuckDuckGo)
+  ├── internal/repositories/         (email_patterns, email_finder_cache — PostgreSQL/GORM)
+  ├── internal/models/               (Job, EmailPattern, EmailFinderCache)
+  ├── internal/tasks/ + worker/      (Asynq queues: mailtester, mailvetter, email_finder, default)
+  └── internal/logging/              (batch logger → logs API Gateway)
 
-## API contract snapshot
+cmd/worker/main.go  →  4 asynq.Server instances (Redis)
+        ├── queue:mailtester    concurrency=5
+        ├── queue:mailvetter    concurrency=1
+        ├── queue:email_finder  concurrency=4
+        └── queue:default       concurrency=1
+```
 
-- `POST /email/finder/`
-- `POST /email/finder/bulk`
-- `POST /email/single/verifier/`
-- `POST /email/bulk/verifier/`
-- `POST /email-patterns/add`
-- `POST /email-patterns/add/bulk`
-- `POST /web/web-search`
-- `GET /health`, `GET /`
+---
 
-## Data model and persistence
+## All source files (45 files total)
 
-### `email_finder_cache`
+### Top-level
+| File | Role |
+|------|------|
+| `main.go` | Boot: godotenv → InitDB → SetupRouter → Lambda or http.Server on PORT |
+| `go.mod` | Module `github.com/ayan/emailapigo`, Go 1.24 |
+| `Dockerfile` | Builds `./main.go` → `/app/email-api`, exposes 3000 |
+| `Dockerfile.worker` | Builds `./cmd/worker/main.go` → `/app/email-worker` |
+| `docker-compose.yml` | Redis + api + worker |
+| `docker-compose.email.yml` | API port 8080:8080, worker Dockerfile.worker |
+| `Makefile` | Build/run helpers |
+| `template.yaml` | AWS SAM (Lambda+API Gateway fallback path) |
+| `.env.example` | All env vars documented |
 
-- Identity keys: `first_name`, `last_name`, `domain` (case-insensitive)
-- Result fields: `email_found`, `email_source`
-- Constraints: unique identity + lookup index
-- Role: short-path cache hit before provider fanout
+### `cmd/worker/`
+| File | Role |
+|------|------|
+| `cmd/worker/main.go` | Starts 4 asynq.Server instances; shared ServeMux |
 
-### `email_patterns`
+### `internal/api/`
+| File | Role |
+|------|------|
+| `internal/api/router.go` | All 16 HTTP routes; service/client wiring |
 
-- Keys: `uuid`, `company_uuid`, `domain`
-- Pattern fields: `pattern_format`, `pattern_string`
-- Metrics: `contact_count`, `success_rate`, `error_rate`
-- Role: learned pattern persistence used by finder flows
+### `internal/clients/`
+| File | Role |
+|------|------|
+| `internal/clients/connectra_client.go` | POST to Connectra `/contacts` |
+| `internal/clients/database.go` | GORM Postgres init + AutoMigrate gate |
+| `internal/clients/duckduckgo_client.go` | HTML scrape `https://html.duckduckgo.com/html/` |
+| `internal/clients/icypeas_client.go` | POST `/email-search`, `/bulk-single-searchs/read` |
+| `internal/clients/mailtester.go` | GET `{MAILTESTER_BASE_URL}/ninja?email&key` |
+| `internal/clients/mailvetter_client.go` | GET `{MAILVETTER_BASE_URL}/verify?email` + Bearer |
+| `internal/clients/openai_client.go` | POST `https://api.openai.com/v1/chat/completions` |
+| `internal/clients/truelist_client.go` | POST `{TRUELIST_BASE_URL}/api/v1/verify_inline?email` |
 
-## Provider orchestration and behavior
+### `internal/config/`
+| File | Role |
+|------|------|
+| `internal/config/config.go` | Singleton Config; caarlos0/env; 30 env vars |
 
-### Finder flow (both runtimes)
+### `internal/email_patterns/`
+| File | Role |
+|------|------|
+| `internal/email_patterns/detector.go` | Pattern type detection |
+| `internal/email_patterns/patterns.go` | Pattern name pieces |
+| `internal/email_patterns/renderer.go` | Pattern string renderer |
+| `internal/email_patterns/tokens.go` | Tokenizer for names/patterns |
 
-1. Cache lookup (`email_finder_cache`)
-2. Parallel provider candidates:
-   - Connectra
-   - Pattern service
-   - Generator
-3. Race verification of candidates
-4. Fallback discovery:
-   - Web search
-   - IcyPeas
-5. Return normalized list and source attribution
+### `internal/errors/`
+| File | Role |
+|------|------|
+| `internal/errors/errors.go` | Domain errors + HTTPStatus mapper |
 
-### Verifier flow
+### `internal/logging/`
+| File | Role |
+|------|------|
+| `internal/logging/batch_logger.go` | BatchLogHandler; forwards to logs API Gateway |
+| `internal/logging/logger.go` | ServiceLogger wrapper |
 
-- Python defaults commonly reference `truelist` + `icypeas`
-- Go health and runtime prefer `mailvetter` + `icypeas` (`mailvetter_configured` check)
-- Bulk paths use concurrency controls and stagger/timeout behavior
+### `internal/middleware/`
+| File | Role |
+|------|------|
+| `internal/middleware/auth.go` | APIKeyMiddleware: header X-API-Key |
+| `internal/middleware/monitoring.go` | MonitoringMiddleware: duration metrics |
 
-## Key findings and cross-service risks
+### `internal/models/`
+| File | Role |
+|------|------|
+| `internal/models/email_finder_cache.go` | GORM model → table `email_finder_cache` |
+| `internal/models/email_pattern.go` | GORM model → table `email_patterns` |
+| `internal/models/job.go` | Plain struct → table `emailapi_jobs` (raw SQL) |
 
-1. Provider drift risk: Python/docs often reference `truelist`; Go runtime prioritizes `mailvetter`.
-2. Status semantic drift risk: `valid`/`invalid`/`catchall`/`unknown` interpretation can differ across app, api, and runtime mapping.
-3. Observability gap: correlation across app -> api -> jobs -> lambda is not consistently documented with one trace contract.
-4. Contract drift risk: endpoint and payload assumptions in docs may lag runtime changes.
-5. Bulk correctness risk: partial-batch error mapping and retry semantics require explicit cross-layer contract tests.
+### `internal/repositories/`
+| File | Role |
+|------|------|
+| `internal/repositories/email_finder_cache_repository.go` | Upsert/lookup cache; ON CONFLICT composite |
+| `internal/repositories/email_pattern_repository.go` | CRUD + search for patterns |
 
-## Verified completion status from runtime
+### `internal/schemas/`
+| File | Role |
+|------|------|
+| `internal/schemas/requests.go` | 15 request structs (finder, verifier, pattern, S3CSV, web-search) |
+| `internal/schemas/responses.go` | 14 response structs + EmailVerificationStatus enum |
 
-- [x] ✅ Both Python (`emailapis`) and Go (`emailapigo`) runtimes are live with API-key protected email workflows.
-- [x] ✅ Core finder and verifier flows exist in both runtimes with provider fallback logic.
-- [x] ✅ Pattern/cache repositories are present in both stacks and wired into finder behavior.
-- [x] ✅ Both runtimes include batch logging handlers that can forward to centralized logs API.
-- [ ] 🟡 In Progress: full parity between Python and Go endpoint contracts is not complete (Go router includes TODO parity note).
+### `internal/services/`
+| File | Role |
+|------|------|
+| `internal/services/email_finder_service.go` | Finder orchestration: cache → Connectra → pattern → generate → race-verify |
+| `internal/services/email_generation_service.go` | Thin wrapper: generate email candidates |
+| `internal/services/email_pattern_service.go` | Pattern add/bulk/predict logic |
+| `internal/services/email_verification_service.go` | VerifySingle + VerifyParallel (5 concurrent, ~1.1s stagger) |
+| `internal/services/s3csv_service.go` | Stream S3 CSV → enqueue rows; merge results → S3 |
+| `internal/services/web_search_service.go` | DuckDuckGo scrape + OpenAI extraction |
 
-## Active risks and gap map
+### `internal/tasks/`
+| File | Role |
+|------|------|
+| `internal/tasks/queues.go` | Queue name constants |
+| `internal/tasks/types.go` | Task payload structs (EmailVerify, S3CSVVerify, EmailFind, S3CSVFind) |
 
-### Contract and provider drift
+### `internal/utils/`
+| File | Role |
+|------|------|
+| `internal/utils/cache_metrics.go` | In-process CacheMetrics (response time, hits, misses) |
+| `internal/utils/domain.go` | Domain normalisation helpers |
+| `internal/utils/email_generator.go` | Email candidate generator (prefix patterns) |
+| `internal/utils/logger.go` | slog helper |
+| `internal/utils/unmask_email.go` | Unmask obfuscated email strings |
 
-- [ ] ⬜ Incomplete: provider contract drift (`truelist` in Python/docs vs `mailvetter` in Go runtime schemas).
-- [ ] ⬜ Incomplete: status vocabulary mapping is not formally frozen across gateway/jobs/runtimes (`valid|invalid|catchall|unknown|risky`).
-- [ ] 🟡 In Progress: endpoint list parity exists for major paths, but full behavior/shape parity tests are partial.
+### `internal/worker/`
+| File | Role |
+|------|------|
+| `internal/worker/email_finder_worker.go` | Asynq task: email:find → finderSvc + store result in Redis hash |
+| `internal/worker/generic_worker.go` | Generic verify worker (mailvetter path) |
+| `internal/worker/mailtester_worker.go` | Asynq task: email:verify:mailtester → Mailtester + DB update |
+| `internal/worker/s3csv_finder_worker.go` | Asynq task: email:s3csv:find → per-row finder |
+| `internal/worker/s3csv_worker.go` | Asynq task: email:s3csv:verify:mailtester → per-row verify |
+| `internal/worker/server.go` | Queue constants + RegisterVerifyHandlers + RegisterFinderHandlers |
 
-### Security and deployment drift
+---
 
-- [ ] ⬜ Incomplete: wildcard CORS remains enabled in Python runtime.
-- [ ] ⬜ Incomplete: sensitive key examples appear in docs/sample commands and should be sanitized.
-- [ ] 🟡 In Progress: API key middleware exists in both runtimes, but rotation/secret-sourcing guidance is uneven.
+## HTTP routes (complete)
 
-### Reliability and observability gaps
+All auth-protected routes require **`X-API-Key`** header matching `API_KEY`.
 
-- [ ] ⬜ Incomplete: debug prints remain in critical code paths (`connectra_client.py`, batch log handlers).
-- [ ] ⬜ Incomplete: idempotency/replay contract is missing for bulk verifier/finder operations.
-- [ ] 🟡 In Progress: provider retry/backoff behavior exists, but circuit-breaker and degradation policy is not unified.
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/health` | Public | Diagnostics (all integrations configured?) |
+| GET | `/` | Public | Service info |
+| GET | `/metrics` | Public | Cache hit/miss, response time |
+| GET | `/jobs` | ✅ | List 50 most recent emailapi_jobs |
+| POST | `/email/finder/` | ✅ | Single email find (query params: first_name, last_name, domain) |
+| POST | `/email/finder/bulk` | ✅ | Bulk email find (JSON body); semaphore 15 goroutines |
+| POST | `/email/finder/bulk/job` | ✅ | Enqueue bulk find to Asynq; returns job_id |
+| POST | `/email/single/verifier/` | ✅ | Single email verify (JSON body; provider field) |
+| POST | `/email/bulk/verifier/` | ✅ | Parallel bulk verify (5 concurrent, 1.1s stagger) |
+| POST | `/email/bulk/verifier/job` | ✅ | Enqueue bulk verify to Asynq; returns job_id |
+| POST | `/email/verify/s3` | ✅ | Stream S3 CSV → verify per row (background goroutine) |
+| POST | `/email/finder/s3` | ✅ | Stream S3 CSV → find per row (background goroutine) |
+| POST | `/web/web-search` | ✅ | DuckDuckGo + OpenAI email discovery |
+| GET | `/jobs/:id/status` | ✅ | Job progress: PG + Redis hash polling |
+| POST | `/email-patterns/add` | ✅ | Add single email pattern (email or pattern_format) |
+| POST | `/email-patterns/add/bulk` | ✅ | Add batch email patterns |
 
-## Current execution packs (small tasks by status)
+**Missing vs docs contract (gaps):**
+- `POST /email-patterns/predict` — in requests.go but no route registered → ⬜ TODO
+- `POST /email-patterns/predict/bulk` — in requests.go but no route registered → ⬜ TODO
+- `POST /email/single/verifier/find` (SingleEmailVerifierFindResponse) — response type exists, no route → ⬜ TODO
+- `/health/db`, `/health/ready`, `/health/live` — not present; only `/health` → 🟡 partial
 
-### Contract pack
+---
 
-- [x] ✅ Base endpoint families and auth boundary are established in both runtimes.
-- [ ] 🟡 In Progress: align request/response schemas between Python and Go for all finder/verifier endpoints.
-- [ ] ⬜ Incomplete: freeze canonical provider set and migration policy (`truelist`/`mailvetter` interoperability).
-- [ ] ⬜ Incomplete: lock status vocabulary contract and unknown/risky mapping policy.
-- [ ] 📌 Planned: publish external/private contract versioning and deprecation policy for `8.x`.
+## Asynq worker pool
 
-### Service pack
+| Queue | Concurrency | Task type | Handler |
+|-------|-------------|-----------|---------|
+| `mailtester` | 5 | `email:verify:mailtester` | MailtesterWorker |
+| `mailtester` | 5 | `email:s3csv:verify:mailtester` | S3CSVWorker |
+| `mailvetter` | 1 | `email:verify:mailvetter` | GenericVerifyWorker |
+| `email_finder` | 4 | `email:find` | EmailFinderWorker |
+| `email_finder` | 4 | `email:s3csv:find` | S3CSVFinderWorker |
+| `default` | 1 | (unused) | — |
 
-- [x] ✅ Finder/verifier/pattern services and data repositories are implemented in both stacks.
-- [ ] 🟡 In Progress: improve bulk concurrency and timeout behavior consistency across Python and Go.
-- [ ] ⬜ Incomplete: remove debug print paths and replace with structured logger events.
-- [ ] ⬜ Incomplete: add bulk idempotency keys and replay-safe handling.
-- [ ] 📌 Planned: unify provider resilience controls (rate-limit strategy, circuit-breaker profile).
+---
 
-### Surface pack
+## Database tables
 
-- [x] ✅ Health/root and core email operation surfaces are available.
-- [ ] 🟡 In Progress: harmonize error envelopes and caller-facing retry hints.
-- [ ] ⬜ Incomplete: close parity gaps for Go routes marked as TODO and ensure docs/runtime consistency.
-- [ ] 📌 Planned: partner-safe docs/examples for public/private API consumption.
+| Table | Engine | Notes |
+|-------|--------|-------|
+| `email_finder_cache` | GORM model | Composite key `(first_name, last_name, domain)`; ON CONFLICT upsert |
+| `email_patterns` | GORM model | AutoMigrate in `development` ENV only |
+| `emailapi_jobs` | Raw SQL (GORM Exec/Raw) | NOT a GORM model; no AutoMigrate; must be created by migration |
 
-### Data pack
+**Critical gap:** `emailapi_jobs` table has **no migration file** in this repo. Rows are inserted/updated with raw SQL but the table DDL is absent — must exist in `contact360.io/api` or a shared migrations folder.
 
-- [x] ✅ Cache/pattern entities and persistence layers are present.
-- [ ] 🟡 In Progress: enforce lineage fields for request/user/trace across all writes and responses.
-- [ ] ⬜ Incomplete: stabilize metric field semantics (`success_rate`, `error_rate`) across runtimes.
-- [ ] 📌 Planned: add long-window rollups and evidence bundles for campaign/compliance flows.
+---
 
-### Ops pack
+## Redis key schema
 
-- [x] ✅ Runtime startup checks and diagnostics endpoints exist in both services.
-- [ ] ⬜ Incomplete: tighten CORS and secret hygiene in templates/docs.
-- [ ] ⬜ Incomplete: add integration/failure-path tests covering provider outages and fallback storms.
-- [ ] 🟡 In Progress: centralize observability via logs API adapters in both runtimes.
-- [ ] 📌 Planned: add SLO dashboards and error-budget release gates.
+| Key pattern | Type | TTL | Usage |
+|-------------|------|-----|-------|
+| `job:{id}:total` | string (int) | 1h (verify), 24h (S3) | Expected row count for completion check |
+| `job:{id}` | hash | indefinite | email → JSON result (bulk verifier / finder) |
+| `job:{id}:rows` | hash | indefinite | row_index → JSON result (S3 CSV verify / find) |
 
-## Era-by-era completion map (`0.x.x` to `10.x.x`)
+---
 
-### `0.x.x - Foundation and pre-product stabilization and codebase setup`
+## External service dependencies
 
-- [x] ✅ Completed: dual runtime foundations (Python/Go), auth middleware, and core endpoint surfaces are established.
-- [ ] 🟡 In Progress: remove foundational drift between Python and Go contracts.
-- [ ] ⬜ Incomplete: sanitize debug output and finalize baseline contract tests.
+| Service | Env var | Endpoint | Notes |
+|---------|---------|----------|-------|
+| **Mailtester.ninja** | `MAILTESTER_BASE_URL`, `MAILTESTER_API_KEY` | `GET /ninja?email&key` | Primary verifier; fallback to Mailvetter on "Limited" |
+| **Mailvetter** | `MAILVETTER_API_KEY`, `MAILVETTER_BASE_URL` | `GET /verify?email` + Bearer | Fallback verifier; bulk concurrency=1 |
+| **Truelist** | `TRUELIST_API_KEY`, `TRUELIST_BASE_URL` | `POST /api/v1/verify_inline?email` | Secondary verifier |
+| **IcyPeas** | `ICYPEAS_API_KEY`, `ICYPEAS_BASE_URL` | `POST /email-search` | Email finder provider |
+| **Connectra (sync.server)** | `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY` | `POST /contacts` | Candidate lookup in finder |
+| **OpenAI** | `OPENAI_API_KEY`, `OPENAI_MODEL` | `POST /v1/chat/completions` | Email extraction from web search |
+| **DuckDuckGo** | `PROXY_ADDR` | `POST https://html.duckduckgo.com/html/` | Web search HTML scrape |
+| **AWS S3** | `S3_BUCKET_NAME`, AWS SDK v2 | S3 get/put | CSV stream input/output |
+| **Logs API** | Hardcoded URL in `batch_logger.go` | `POST .../logs/batch` | Batch log forwarding |
+| **Redis** | `REDIS_ADDR` | `localhost:6379` default | Asynq queues + job result store |
+| **PostgreSQL** | `DATABASE_URL` | GORM Postgres driver | email_patterns, email_finder_cache, emailapi_jobs |
 
-### `1.x.x - Contact360 user and billing and credit system`
+---
 
-- [ ] 🟡 In Progress: credit-impact email operations are integrated through gateway flows.
-- [ ] ⬜ Incomplete: enforce deterministic credit lineage fields on all email operations.
-- [ ] 📌 Planned: add billing anomaly alerts tied to email operation outcomes.
+## Known bugs and issues
 
-### `2.x.x - Contact360 email system`
+1. **Port mismatch:** `config.go` defaults to `PORT=3000`, but `docker-compose.email.yml` maps `8080:8080`. The container listens on `:3000` while Docker exposes `:8080` → HTTP 000 on probes. → **Fix: align `PORT=8080` in `.env`/compose**.
+2. **`emailapi_jobs` DDL missing:** No CREATE TABLE in repo; service panics or silently corrupts if table absent.
+3. **`MAILVETTER_BASE_URL` default typo:** `mailvaiter.com` (not `mailvetter`); must be overridden in production.
+4. **`/email/bulk/verifier/job` queue selection bug:** only `mailtester` or `mailvetter`; `mailvetter` task type registered in `server.go` but `TypeEmailVerify+":mailvetter"` uses `GenericVerifyWorker` — confirm behavior parity with mailtester worker.
+5. **No test files:** zero `*_test.go` files — no unit, integration, or regression coverage.
+6. **`GET /jobs/:id/status` registered inside `webGroup` block but on `authGroup`** — code style inconsistency (works at runtime but confusing).
+7. **Batch logger URL hardcoded:** `https://c2cox8ij6c.execute-api.us-east-1.amazonaws.com/logs/batch` — should come from `LAMBDA_LOGS_API_URL` env var like other services use.
+8. **`WorkerConcurrency` config field missing:** `router.go` uses `cfg.WorkerConcurrency` but it is NOT in `config.go` → compile error if referenced elsewhere. (Currently only used in extension.server; confirm email.server compile is clean.)
 
-- [x] ✅ Completed: core finder/verifier and bulk endpoint capabilities are in production shape.
-- [ ] ⬜ Incomplete: freeze provider contract (`mailvetter` vs `truelist`) and status vocabulary.
-- [ ] ⬜ Incomplete: add idempotency/replay guarantees for bulk endpoints and retries.
+---
 
-### `3.x.x - Contact360 contact and company data system`
+## Integration with contact360.io/api
 
-- [ ] 🟡 In Progress: contact/company enrichment uses email service paths with Connectra coupling.
-- [ ] ⬜ Incomplete: add deterministic candidate merge and enrichment lineage evidence.
-- [ ] 📌 Planned: add drift detection between enrichment outputs and verification statuses.
+The Python gateway calls email.server through `app/clients/lambda_email_client.py` using env var `LAMBDA_EMAIL_API_URL`. Relevant gateway GraphQL operations that delegate to email.server:
 
-### `4.x.x - Contact360 Extension and Sales Navigator maturity`
+| Gateway mutation/query | Delegated path |
+|------------------------|----------------|
+| `FindEmail` | `POST /email/finder/` |
+| `BulkFindEmails` | `POST /email/finder/bulk` |
+| `VerifyEmail` | `POST /email/single/verifier/` |
+| `BulkVerifyEmails` | `POST /email/bulk/verifier/` |
+| `AddEmailPattern` | `POST /email-patterns/add` |
+| `AddEmailPatternBulk` | `POST /email-patterns/add/bulk` |
+| Job status polling | `GET /jobs/:id/status` |
+| S3 CSV verify | `POST /email/verify/s3` |
+| S3 CSV find | `POST /email/finder/s3` |
 
-- [ ] 📌 Planned: define extension-origin email metadata and source tags.
-- [ ] ⬜ Incomplete: implement extension-safe retry and diagnostics contracts across runtimes.
-- [ ] 📌 Planned: add replay/support runbooks for extension-triggered email failures.
+---
 
-### `5.x.x - Contact360 AI workflows`
+## Completion status from runtime
 
-- [ ] 📌 Planned: define AI-assisted payload boundaries for finder/ranking flows.
-- [ ] ⬜ Incomplete: add safe redaction/minimization for AI-context logging fields.
-- [ ] 📌 Planned: add confidence lineage for AI-assisted email decisions.
+- [x] ✅ Go API server boots, CORS, gzip, API key middleware working.
+- [x] ✅ Email finder (single + bulk + job) routes implemented.
+- [x] ✅ Email verifier (single + bulk + job) routes implemented.
+- [x] ✅ Email pattern add (single + bulk) routes implemented.
+- [x] ✅ S3 CSV finder and verifier routes implemented (background streaming).
+- [x] ✅ Asynq worker pool for all 4 queues is working.
+- [x] ✅ Redis job result store with hash per job_id.
+- [x] ✅ Finder flow: cache → Connectra → pattern → generate → race-verify.
+- [x] ✅ Web search route (DuckDuckGo + OpenAI) implemented.
+- [x] ✅ Batch logging forwarding to logs API.
+- [ ] 🟡 In Progress: port mismatch (3000 vs 8080) causing Docker probe failures.
+- [ ] ⬜ Incomplete: `emailapi_jobs` table DDL not in repo.
+- [ ] ⬜ Incomplete: `/email-patterns/predict` and `/email-patterns/predict/bulk` routes not wired.
+- [ ] ⬜ Incomplete: liveness/readiness health probes (`/health/live`, `/health/ready`, `/health/db`) absent.
+- [ ] ⬜ Incomplete: zero test coverage.
+- [ ] ⬜ Incomplete: batch logger URL hardcoded.
+- [ ] ⬜ Incomplete: status vocabulary (`valid|invalid|catchall|unknown|risky`) not frozen.
 
-### `6.x.x - Contact360 Reliability and Scaling`
+---
 
-- [ ] 🟡 In Progress: concurrency and retry controls exist but are runtime-specific.
-- [ ] ⬜ Incomplete: unify provider degradation strategy and circuit behavior.
-- [ ] ⬜ Incomplete: add SLO/error-budget metrics for bulk success, latency, and fallback rates.
+## Active risks
 
-### `7.x.x - Contact360 deployment`
+| Risk | Severity | Status |
+|------|----------|--------|
+| Port 3000 vs 8080 mismatch → Docker broken | P0 | ⬜ |
+| `emailapi_jobs` DDL missing → runtime SQL failure | P0 | ⬜ |
+| Mailvetter base URL typo `mailvaiter.com` | P0 | ⬜ |
+| No tests — regressions invisible | P1 | ⬜ |
+| Batch logger URL hardcoded vs env | P1 | ⬜ |
+| Provider contract (`mailvetter` vs `truelist`) not frozen | P1 | 🟡 |
+| Status vocab not canonical across gateway/emailapigo | P1 | ⬜ |
+| Predict endpoints (schema exists, route missing) | P2 | ⬜ |
+| CORS wildcard possible if `CORS_ALLOWED_ORIGINS` unset | P2 | 🟡 |
 
-- [x] ✅ Completed: env-driven configuration and health diagnostics exist in both runtimes.
-- [ ] ⬜ Incomplete: sanitize template/docs secret examples and tighten CORS defaults.
-- [ ] 🟡 In Progress: deployment parity checks for provider readiness and DB dependencies.
+---
 
-### `8.x.x - Contact360 public and private apis and endpotints`
+## Era-by-era completion map (0.x–10.x)
 
-- [ ] 🟡 In Progress: API surface is broad but versioned external contract is not fully frozen.
-- [ ] ⬜ Incomplete: finalize partner-safe error envelope and compatibility tests.
-- [ ] 📌 Planned: publish stable integration examples and SDK semantics.
+### `0.x.x — Foundation`
+- [x] ✅ Go Gin scaffold, config, CORS, API key, health, logging bootstrap.
+- [x] ✅ GORM DB init, email_patterns + email_finder_cache AutoMigrate.
+- [ ] ⬜ Fix port mismatch (`PORT=3000` default → should be `8080`).
+- [ ] ⬜ Add `emailapi_jobs` migration SQL file to repo.
+- [ ] ⬜ Move batch logger URL to env var.
+- [ ] ⬜ Add `/health/live`, `/health/ready`, `/health/db` endpoints.
+- [ ] ⬜ Add `WorkerConcurrency` to config struct.
+- [ ] ⬜ Fix Mailvetter base URL default typo.
 
-### `9.x.x - Contact360 Ecosystem integrations and Platform productization`
+### `1.x.x — User / billing / credit`
+- [ ] 🟡 Credit-impact fields (`user_id`, `tenant_id`) on all email operation responses.
+- [ ] ⬜ Propagate `X-User-ID` header from gateway to email.server; log per-user operations.
+- [ ] ⬜ Enforce per-user credit deduction lineage on finder/verifier paths.
 
-- [ ] 📌 Planned: add tenant-aware quotas/throttles and entitlement policy hooks.
-- [ ] ⬜ Incomplete: add cross-service trace correlation standards for partner investigations.
-- [ ] 📌 Planned: generate SLA evidence packs for ecosystem channels.
+### `2.x.x — Email system`
+- [x] ✅ Core finder/verifier/pattern endpoints live.
+- [x] ✅ Bulk endpoints with semaphore concurrency.
+- [x] ✅ Job-based async bulk (Asynq + Redis hash).
+- [x] ✅ S3 CSV stream verify + find.
+- [ ] ⬜ Wire `/email-patterns/predict` and `/email-patterns/predict/bulk` routes.
+- [ ] ⬜ Freeze status vocabulary (`valid|invalid|catchall|unknown|risky`) in `responses.go`.
+- [ ] ⬜ Align provider contract: `truelist` vs `mailvetter` → define priority order.
+- [ ] ⬜ Add idempotency keys to bulk verify/find (prevent double-enqueue).
+- [ ] ⬜ Add replay-safe bulk handler (dedup by job_id + index).
+- [ ] ⬜ Ensure `email:s3csv:verify:mailvetter` task type registered (only mailtester currently).
 
-### `10.x.x - Contact360 email campaign`
+### `3.x.x — Contact / company data`
+- [ ] 🟡 Connectra integration in finder tested end-to-end.
+- [ ] ⬜ Candidate merge strategy documented for when Connectra returns multiple contacts.
+- [ ] ⬜ Add lineage fields (`source`, `request_id`) to `email_finder_cache` rows.
 
-- [ ] 📌 Planned: define campaign verification contract and immutable evidence model.
-- [ ] ⬜ Incomplete: retain campaign compliance lineage and legal-hold compatible artifacts.
-- [ ] 📌 Planned: enforce campaign release gate tied to deliverability/compliance metrics.
+### `4.x.x — Extension / Sales Navigator`
+- [ ] 📌 Extension-origin email requests should carry `source: extension` metadata.
+- [ ] ⬜ Define extension-safe retry contract for `/email/finder/` calls from background.js.
 
-## Immediate execution queue (high impact)
+### `5.x.x — AI workflows`
+- [ ] 🟡 OpenAI client wired for web-search email extraction.
+- [ ] ⬜ Add structured confidence/scoring to AI-assisted email discovery results.
+- [ ] ⬜ Add safe logging redaction for AI context fields (PII minimisation).
+- [ ] 📌 Define AI fallback policy when OpenAI is unavailable.
 
-- [ ] ⬜ Incomplete: remove remaining debug prints and ad hoc console logging from runtime-critical paths.
-- [ ] ⬜ Incomplete: unify provider naming contract across Python/Go/docs (`mailvetter`/`truelist`) with migration notes.
-- [ ] ⬜ Incomplete: add bulk idempotency key support and replay tests for finder/verifier operations.
-- [ ] 🟡 In Progress: close Python-Go endpoint parity gaps and resolve Go router TODO scope.
-- [ ] ⬜ Incomplete: tighten CORS and sanitize secrets/examples in templates and API docs.
-- [ ] 🟡 In Progress: standardize logs API emission fields and trace IDs across both runtimes.
-- [ ] 📌 Planned: add SLO dashboards and provider degradation runbooks.
+### `6.x.x — Reliability / scaling`
+- [ ] ⬜ Add circuit breaker for each external provider (Mailtester, Mailvetter, Truelist, IcyPeas).
+- [ ] ⬜ Unified provider degradation strategy (fallback chain, backoff, dead-letter).
+- [ ] ⬜ Add SLO metrics: bulk success rate, per-provider latency p50/p95.
+- [ ] ⬜ Add `/metrics` Prometheus exporter (replace in-process CacheMetrics only approach).
+- [ ] ⬜ Redis connection pool sizing and backpressure controls.
+- [ ] ⬜ Add `MaxRetry` per-provider config (currently hardcoded `3`).
 
-## 2026 Gap Register (actionable)
+### `7.x.x — Deployment`
+- [ ] ⬜ Fix Docker port mismatch — `PORT=8080` in `.env.example` + compose.
+- [ ] ⬜ `go build ./...` CI gate in Makefile / GitHub Actions.
+- [ ] ⬜ Add `CORS_ALLOWED_ORIGINS` required-in-production validation.
+- [ ] ⬜ Add readiness probe path (`/health/ready`) checking Redis + DB + S3 connectivity.
+- [ ] ⬜ Add `emailapi_jobs` DDL to `db/` migrations folder.
+- [ ] ⬜ Remove stale `template.yaml` / SAM references or clearly document Lambda-fallback intent.
+
+### `8.x.x — Public/private APIs`
+- [ ] ⬜ Version prefix `/v1/` on all routes (currently flat paths).
+- [ ] ⬜ Freeze external contract; publish breaking-change policy.
+- [ ] ⬜ Partner-safe error envelope (no stack traces; standard `{ "error": { "code", "message" } }`).
+- [ ] 📌 Publish Postman collection `EC2_email.server.postman_collection.json` aligned with Go routes.
+
+### `9.x.x — Ecosystem integrations`
+- [ ] 📌 Tenant-aware throttling (`X-Tenant-ID` on queues).
+- [ ] ⬜ Cross-service trace correlation (`X-Request-ID`, `X-Trace-ID` propagation).
+- [ ] 📌 Partner usage quotas for bulk finder/verifier.
+
+### `10.x.x — Email campaign`
+- [ ] 📌 Campaign-triggered bulk verify path with immutable result storage.
+- [ ] ⬜ Campaign compliance lineage: retain verification evidence per campaign_id.
+- [ ] 📌 Campaign release gate: block send if bulk verify success rate < threshold.
+
+---
+
+## Immediate execution queue (P0 → P2)
+
+### P0 — must fix before production readiness
+
+- [ ] **FIX-1**: Set `PORT` default to `8080` in `config.go`; align `docker-compose.email.yml` and `.env.example`.
+- [ ] **FIX-2**: Create `db/migrations/001_emailapi_jobs.sql` with `emailapi_jobs` DDL matching `router.go` raw SQL columns.
+- [ ] **FIX-3**: Fix `MAILVETTER_BASE_URL` default from `mailvaiter.com` to correct host.
+- [ ] **FIX-4**: Move `batch_logger.go` hardcoded logs API URL to `LAMBDA_LOGS_API_URL` env var.
+
+### P1 — before Era 2.x sign-off
+
+- [ ] **FIX-5**: Wire `/email-patterns/predict` route using existing `EmailPatternPredictRequest` and `EmailPatternPredictResponse`.
+- [ ] **FIX-6**: Wire `/email-patterns/predict/bulk` route using existing `BulkEmailPatternPredictRequest`.
+- [ ] **FIX-7**: Add `WorkerConcurrency int` to `config.Config` (avoids potential compile error in shared usage).
+- [ ] **FIX-8**: Register `email:s3csv:verify:mailvetter` task type + handler for Mailvetter S3 CSV path parity.
+- [ ] **FIX-9**: Freeze `EmailVerificationStatus` values as const block; add `risky` and `unknown` handling policy.
+- [ ] **FIX-10**: Add `/health/db` (GORM ping) and `/health/ready` (Redis ping + DB ping) endpoints.
+
+### P2 — before Era 6.x sign-off
+
+- [ ] **FIX-11**: Add at least one `*_test.go` per service package (finder, verifier, pattern).
+- [ ] **FIX-12**: Provider priority config: `PROVIDER_PRIMARY` / `PROVIDER_FALLBACK` env vars instead of hardcoded logic.
+- [ ] **FIX-13**: Add `X-Request-ID` middleware; propagate to all provider HTTP calls and Redis writes.
+- [ ] **FIX-14**: Add Prometheus `/metrics` with `email_find_duration_ms_bucket`, `email_verify_duration_ms_bucket`.
+- [ ] **FIX-15**: Validate `CORS_ALLOWED_ORIGINS` non-empty when `APP_ENV=production`.
+
+---
+
+## 2026 Gap Register
 
 ### P0
-
-- [ ] ⬜ Incomplete: `EPA-0.1` Lock canonical endpoint inventory and remove Python/Go/docs drift.
-- [ ] ⬜ Incomplete: `EPA-0.2` Remove sensitive key examples and enforce secret-safe docs/templates.
-- [ ] ⬜ Incomplete: `EPA-0.3` Remove debug prints and dead code paths in critical services.
-- [ ] ⬜ Incomplete: `EPA-0.4` Align provider contract (`mailvetter` vs `truelist`) across runtimes.
+- [ ] `EMAILGO-0.1` Port + Docker compose fix (3000→8080).
+- [ ] `EMAILGO-0.2` `emailapi_jobs` DDL migration.
+- [ ] `EMAILGO-0.3` Mailvetter URL typo fix.
+- [ ] `EMAILGO-0.4` Batch logger URL env var.
 
 ### P1/P2
-
-- [ ] ⬜ Incomplete: `EPA-2.1` Freeze status vocabulary (`valid|invalid|catchall|unknown`) with policy for `risky`.
-- [ ] ⬜ Incomplete: `EPA-2.2` Add bulk idempotency contract and replay tests.
-- [ ] 🟡 In Progress: `EPA-2.3` Unify retry/backoff and provider degradation behavior.
-- [ ] 📌 Planned: `EPA-2.4` Add trace lineage contract (`tenant_id`, `request_id`, `trace_id`) across layers.
+- [ ] `EMAILGO-2.1` Predict endpoint routes.
+- [ ] `EMAILGO-2.2` Bulk idempotency keys.
+- [ ] `EMAILGO-2.3` Status vocabulary freeze.
+- [ ] `EMAILGO-2.4` Provider fallback chain config.
+- [ ] `EMAILGO-6.1` Circuit breaker per provider.
+- [ ] `EMAILGO-6.2` SLO metrics (Prometheus).
+- [ ] `EMAILGO-7.1` Readiness/liveness probes.
+- [ ] `EMAILGO-7.2` CI build gate.
 
 ### P3+
-
-- [ ] 📌 Planned: `EPA-3.1` Partner-safe API contract package and compatibility automation.
-- [ ] 📌 Planned: `EPA-3.2` Ecosystem SLA evidence and integration diagnostics.
-- [ ] 📌 Planned: `EPA-4.x` Campaign compliance evidence and immutable verification lineage.
+- [ ] `EMAILGO-8.1` API versioning `/v1/`.
+- [ ] `EMAILGO-9.1` Trace correlation headers.
+- [ ] `EMAILGO-10.1` Campaign verification evidence lineage.

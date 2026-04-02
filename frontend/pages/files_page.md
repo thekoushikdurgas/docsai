@@ -336,10 +336,8 @@ app page UI -> useFiles, useCsvUpload, useFilePreview, useFileStats -> s3Service
 
 This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):
 
-- **0.x** — Foundation — app layout, sidebar navigation, breadcrumb logic, toast system.
-- **3.x** — Contact & company data — CSV-to-job loop, column mapping, multipart uploads.
-- **6.x** — Reliability & scaling — background sync, progress bars, error handling, ConfirmModal patterns.
-- **8.x** — Public & private APIs — S3 secure retrieval, presigned link generation, object intelligence (Peek).
+- **3.x** — Contact & company data — VQL tables, export modals, files, prospect finder narrative.
+- **6.x** — Reliability & scaling — analytics, activities, jobs, status, error/retry/skeleton patterns.
 
 Other eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).
 
@@ -347,7 +345,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:CloudStorage] > [H:Header] + [T:Toolbar] + [S:Sidebar] + [Q:MainContent] > [V:DetailView] + [M:Modals] -> {useFiles, useFilePreview, useCsvUpload}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -361,12 +359,9 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions.
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** Sidebar peers; [jobs_page.md](jobs_page.md) (after job creation from file).
-
-**Cross-host:** S3-backed assets shared with **email** (Mailhub) for attachment handling.
-**Backend:** Appointment360 GraphQL gateway; S3 storage management and job creation services.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
 ## Backend API documentation
 
@@ -422,7 +417,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `CreateContact360Import` | *unresolved — add to endpoint index* | — | — |
 | `CreateAppointmentImport` | *unresolved — add to endpoint index* | — | — |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
 `graphql/ListBucketObjects`, `graphql/GetPresignedUploadUrl`, `graphql/DeleteS3File`, `graphql/CreateEmailFinderExport`, `graphql/CreateEmailVerifyExport`, `graphql/CreateContact360Import`, `graphql/CreateAppointmentImport`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

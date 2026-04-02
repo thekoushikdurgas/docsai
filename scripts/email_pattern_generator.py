@@ -14,6 +14,7 @@ Usage:
 import argparse
 import csv
 import json
+import os
 import re
 import sys
 import time
@@ -29,6 +30,8 @@ import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from api_token import get_tokens, refresh_token
+
+API_TIMEOUT_SECONDS = int(os.getenv("TIMEOUT_SECONDS", os.getenv("TIMEOUT", "300")))
 
 
 @dataclass
@@ -324,7 +327,7 @@ class EmailValidator:
             response = self.session.post(
                 self.api_url,
                 json=payload,
-                timeout=30,
+                timeout=API_TIMEOUT_SECONDS,
             )
             response_time_ms = (time.time() - start_time) * 1000
             
@@ -459,7 +462,7 @@ class PatternAPIClient:
         
         start_time = time.time()
         try:
-            response = self.session.post(url, json=payload, timeout=30)
+            response = self.session.post(url, json=payload, timeout=API_TIMEOUT_SECONDS)
             response_time_ms = (time.time() - start_time) * 1000
             
             # Check for 401
@@ -499,7 +502,7 @@ class PatternAPIClient:
         
         start_time = time.time()
         try:
-            response = self.session.put(url, json=updates, timeout=30)
+            response = self.session.put(url, json=updates, timeout=API_TIMEOUT_SECONDS)
             
             if response.status_code == 401:
                 if self.refresh_access_token():
@@ -528,7 +531,7 @@ class PatternAPIClient:
         url = f"{self.api_base_url}/api/v2/email-patterns/company/{company_uuid}"
         
         try:
-            response = self.session.get(url, timeout=30)
+            response = self.session.get(url, timeout=API_TIMEOUT_SECONDS)
             
             if response.status_code == 401:
                 if self.refresh_access_token():

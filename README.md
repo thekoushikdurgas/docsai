@@ -18,7 +18,10 @@ Canonical markdown hubs live under **`docs/docs/`** (not the repo root). CI vali
 - PostgreSQL vs Redis scope (canonical): `docs/docs/data-stores-postgres.md`
 - Python GraphQL spine vs Go/Gin satellite backends (canonical): `docs/docs/backend-language-strategy.md`
 - Version maturity hub (also for CI): `docs/VERSION Contact360.md`
-- Codebase TODO tag format (era/track/status): `docs/analysis/TODO-COMMENT-CONVENTION.md`
+- Codebase TODO tag format (era/track/status): `contact360.io/root/docs/imported/analysis/TODO-COMMENT-CONVENTION.md`
+- **Flowchart master + era strip:** `docs/docs/flowchart.md` (per-minor `## Flowchart` lives under each `docs/<0–10>. …/` era folder)
+- **Per-minor docs sync contract:** `contact360.io/api/docs/imported/analysis/docs-sync-contract.md` (imported from former `docs/analysis/`)
+- **Era × codebase snapshot (plan alignment):** `contact360.io/root/docs/imported/analysis/era-roadmap-snapshot.md`
 
 ## Era map (`0.x.x` to `10.x.x`)
 
@@ -78,12 +81,12 @@ Under each **## Tasks** (or **## Task tracks**) block, use five tracks so the CL
 
 ## Planning and support hubs
 
-- Deep analysis packs: `docs/analysis/README.md`
+- Deep analysis packs: `contact360.io/root/docs/imported/analysis/README.md` (migrated from `docs/analysis/`)
 - Service deep dives: `docs/codebases/README.md`
 - Command governance: `docs/commands/README.md`
 - Prompt library: `docs/promsts/README.md`
 - Incubation drafts: `docs/ideas/README.md`
-- Plan artifacts: `docs/plans/README.md`
+- Plan artifacts: `contact360.io/root/docs/imported/plans/README.md` (migrated from `docs/plans/`)
 
 ## Current execution focus
 

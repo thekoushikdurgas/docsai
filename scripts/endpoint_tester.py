@@ -37,6 +37,7 @@ class TestResult:
     error_message: Optional[str] = None
     requires_auth: bool = False
     requires_admin: bool = False
+    sla_gate_status: str = "unknown"
     test_timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
 
 
@@ -79,9 +80,17 @@ class RateLimiter:
 class EndpointTester:
     """Tests API endpoints and measures response times."""
     
-    def __init__(self, access_token: Optional[str] = None, admin_token: Optional[str] = None):
+    def __init__(
+        self,
+        access_token: Optional[str] = None,
+        admin_token: Optional[str] = None,
+        sla_gate: Optional[Any] = None,
+        service_id: str = "default",
+    ):
         self.access_token = access_token
         self.admin_token = admin_token
+        self.sla_gate = sla_gate
+        self.service_id = service_id
         self.rate_limiter = RateLimiter(RATE_LIMIT, RATE_LIMIT_WINDOW)
         
         # Create session with retry strategy
@@ -194,6 +203,12 @@ class EndpointTester:
         endpoint.requires_auth = result.requires_auth
         endpoint.requires_admin = result.requires_admin
         
+        if self.sla_gate is not None:
+            gate = self.sla_gate.check([result], self.service_id)
+            result.sla_gate_status = gate.status
+        else:
+            result.sla_gate_status = "pass"
+
         return result
     
     def _get_minimal_payload(self, endpoint: EndpointInfo) -> Dict[str, Any]:

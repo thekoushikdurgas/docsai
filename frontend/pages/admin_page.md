@@ -255,7 +255,15 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:Admin] > [H:Header] + [Q:AdminSummary] + [T:AdminTable] -> {useAdmin}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
+
+**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
+
+## Navigation (connections)
+
+- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)
+- **Registry row:** [index.md#all-pages](index.md#all-pages)
+- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)
 
 **Route (registry):** `/admin`
 

@@ -9,6 +9,12 @@ Deep codebase analyses for each core Contact360 runtime surface.
 - [ ] 📌 Planned
 - [ ] ⬜ Incomplete
 
+## Plan execution artifacts
+
+- [P0 blocker verification snapshot](./P0_BLOCKERS_VERIFICATION.md)
+- [EC2 / satellite `/health` index](./EC2_SATELLITE_HEALTH.md)
+- [Era implementation progress log](./ERA_IMPLEMENTATION_PROGRESS.md)
+
 ## Scope
 
 - Stores one primary deep-analysis file per major service or app surface.
@@ -70,4 +76,20 @@ Deep codebase analyses for each core Contact360 runtime surface.
 - `docs/architecture.md`
 - `docs/roadmap.md`
 - `docs/versions.md`
-- `docs/analysis/README.md`
+- `contact360.io/root/docs/imported/analysis/README.md`
+
+## Latest local execution evidence
+
+- 2026-03-30 service-by-service smoke artifacts were captured under `tmp/evidence/`.
+- Era patch evidence docs added:
+  - `docs/1. Contact360 user and billing and credit system/1.2.99 — Local gateway smoke evidence.md`
+  - `docs/2. Contact360 email system/2.4.99 — Local email stack smoke evidence.md`
+  - `docs/4. Contact360 Extension and Sales Navigator maturity/4.3.99 — Local extension sync smoke evidence.md`
+  - `docs/6. Contact360 Reliability and Scaling/6.4.99 — Local telemetry and readiness smoke evidence.md`
+  - `docs/7. Contact360 deployment/7.3.99 — Local deployment blocker evidence.md`
+- 2026-03-30 dockerized Go pass artifacts captured under `tmp/evidence/docker-go/`.
+- Docker patch evidence docs added:
+  - `docs/2. Contact360 email system/2.4.100 — Docker email stack blocker evidence.md`
+  - `docs/4. Contact360 Extension and Sales Navigator maturity/4.3.100 — Docker extension API smoke evidence.md`
+  - `docs/6. Contact360 Reliability and Scaling/6.4.100 — Docker Go readiness smoke evidence.md`
+  - `docs/7. Contact360 deployment/7.3.100 — Docker Go deployment smoke evidence.md`

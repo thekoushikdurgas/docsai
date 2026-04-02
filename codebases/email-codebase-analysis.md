@@ -18,7 +18,7 @@
 - Framework/runtime: Next.js 16 app-router, React 19, TypeScript.
 - UI stack: Tailwind + component wrappers (`button`, `table`, `tabs`, `sidebar`, alerts).
 - Data transport: direct `fetch` calls from components/pages.
-- Session/account state: local `userId` and IMAP active account stored in browser state/localStorage.
+- Session/account state: mailbox **identity** in `localStorage` (`id`, `provider`, `email` only); **mailbox session token** in `sessionStorage` (not persisted across browser restarts); passwords only sent to backend over HTTPS during connect.
 - Mail rendering: HTML body sanitized via `isomorphic-dompurify` before display.
 
 ---
@@ -36,10 +36,10 @@
 
 ### Security and credential handling
 
-- [ ] ⬜ Incomplete: active IMAP account (including password field) is persisted in localStorage via `mailhub_active_account`.
-- [ ] ⬜ Incomplete: mailbox fetches pass credentials in headers (`X-Email`, `X-Password`) from client runtime.
+- [x] ✅ Completed: password is not persisted; `mailhub_active_account` stores only public identity fields; session token uses `sessionStorage`.
+- [x] ✅ Completed: mailbox fetches no longer send raw `X-Email`/`X-Password` credentials from client runtime.
 - [ ] 🟡 In Progress: auth token strategy is partially commented/implicit in multiple files and not fully standardized.
-- [ ] ⬜ Incomplete: no clear short-lived mailbox session token abstraction replacing raw credential transport.
+- [ ] 🟡 In Progress: mailbox session token contract is introduced (`X-Mailbox-Session`) and now needs backend enforcement hardening.
 
 ### Product and feature completeness
 
@@ -201,7 +201,7 @@
 
 ## Immediate execution queue (high impact)
 
-- [ ] ⬜ Incomplete: remove IMAP password persistence and credential headers from client runtime (replace with tokenized mailbox session).
+- [x] ✅ Completed: remove IMAP password persistence and raw credential headers from client runtime (replace with tokenized mailbox session headers).
 - [ ] 🟡 In Progress: centralize API calls into typed service modules and shared error handling.
 - [ ] ⬜ Incomplete: wire compose/send flow and replace placeholder tool routes.
 - [ ] ⬜ Incomplete: connect table search + flagged behavior to real backend/state model.
@@ -211,7 +211,7 @@
 
 ### P0 - must close for release safety
 
-- [ ] ⬜ Incomplete: eliminate client-side credential persistence and raw credential transport.
+- [x] ✅ Completed: eliminate client-side credential persistence and raw credential transport.
 - [ ] ⬜ Incomplete: enforce secure auth/session handling consistently across all requests.
 
 ### P1/P2 - required for maturity

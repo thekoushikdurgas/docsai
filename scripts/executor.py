@@ -530,22 +530,6 @@ class TestExecutor:
             files = {}
             data = {}
             return self.session.post(url, files=files, data=data, headers=headers, params=params, timeout=self.config.timeout)
-    
-    def close(self):
-        """Close the session."""
-        self.session.close()
-
-
-    def close(self):
-        """Close the session."""
-        self.session.close()
-
-
-    def close(self):
-        """Close the session."""
-        self.session.close()
-
-
     def close(self):
         """Close the session."""
         self.session.close()

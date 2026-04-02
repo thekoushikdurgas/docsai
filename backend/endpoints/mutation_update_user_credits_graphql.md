@@ -28,8 +28,8 @@ Update a user's credit balance. Returns updated user profile with new credit bal
 | --- | --- |
 | created_at | 2026-01-20T00:00:00.000000+00:00 |
 | updated_at | 2026-03-29T00:00:00.000000+00:00 |
-| era | 0.x |
-| introduced_in | 0.5.0 |
+| era | 7.x |
+| introduced_in | 7.0.0 |
 
 
 ## Security & limits
@@ -37,7 +37,7 @@ Update a user's credit balance. Returns updated user profile with new credit bal
 | Field | Value |
 | --- | --- |
 | auth_required | True |
-| rbac_roles | user |
+| rbac_roles | superadmin |
 | rate_limited | False |
 
 
@@ -71,7 +71,7 @@ Update a user's credit balance. Returns updated user profile with new credit bal
 
 ## Era alignment (Contact360 0.x–10.x)
 
-- **Lifecycle `era` (metadata):** `0.x` — Foundation (Admin/Governance).
+- **Lifecycle `era` (metadata):** `7.x` — Deployment & Governance (Admin Credits).
 
 ## Database tables → SQL snapshots
 

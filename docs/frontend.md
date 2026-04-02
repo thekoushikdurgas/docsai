@@ -1205,6 +1205,7 @@ Mailvetter is backend-first; product UI consumes it through gateway email verifi
 - Rendering model: Django templates + Tailwind asset pipeline for admin/operator workflows.
 - Primary operational views: billing, users, logs, jobs, storage, settings.
 - Role controls: `require_super_admin` and `require_admin_or_super_admin` guards on privileged pages.
+- Scope note: `contact360.io/admin` is an **internal control plane only**, not a customer-facing product UI. No new product UX should be implemented using Django templates; all new customer surfaces belong in the Next.js apps (`contact360.io/app`, `contact360.io/root`, `contact360.io/email`).
 
 ### Admin view bindings
 

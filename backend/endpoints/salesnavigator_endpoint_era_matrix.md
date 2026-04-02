@@ -52,10 +52,10 @@ generator: json_to_markdown_endpoints.py
 
 - POST /v1/scrape-html-with-fetch documented but not implemented
 - README.md incorrectly states scraping is removed
-- Single global API_KEY — no per-tenant scoping until 7.x
+- Extension runtime now supports configurable `X-API-Key` fallback on `/v1/save-profiles`; per-tenant key governance remains pending until 7.x
 - No rate limiting implemented until 6.x
 - CORS wide-open (*) until 6.x
-- No X-Request-ID correlation header until 6.x
+- Browser extension background save flow now sends `X-Request-ID` for correlation on `/v1/save-profiles`
 - PLACEHOLDER_VALUE in linkedin_url for many SN contacts
 - employees_count, industries, annual_revenue always null for SN companies
 

@@ -401,7 +401,7 @@ Support campaign-scale artifact lifecycle with compliance-grade reproducibility.
 
 ## Immediate execution queue (high impact)
 
-- [x] ✅ Durable multipart session store (replace in-memory session map).
+- [x] ✅ Durable multipart session store (Postgres `multipart_sessions` only; in-process map removed from `EC2/s3storage.server` API).
 - [x] ✅ Environment-driven metadata worker function configuration.
 - [x] ✅ Concurrency-safe `metadata.json` update strategy.
 - [ ] ⬜ Incomplete: upload lifecycle idempotency contract (`X-Idempotency-Key`) for initiate/complete/abort.

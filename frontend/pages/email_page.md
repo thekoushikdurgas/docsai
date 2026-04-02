@@ -396,9 +396,7 @@ email UI tabs -> finder/verifier hooks -> GraphQL gateway -> email services pipe
 
 This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):
 
-- **0.x** — Foundation — baseline email search and verification primitives.
 - **2.x** — Email system — finder & verifier flows, bulk/jobs, Mailhub folders, product marketing pages.
-- **5.x** — AI workflows — AI Email Assistant for follow-up drafting and intent analysis.
 - **8.x** — Public & private APIs — API docs, integrations story, export contracts, developer surfaces.
 
 Other eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).
@@ -407,7 +405,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:Dashboard] > [H:Header] + [S:Tabs] + [Q:CreditsBanner] + [C:Card] > [St:SubTabs] + [U:PanelContent] + [M:Modals] -> {useEmailFinder, useEmailVerifier}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -477,7 +475,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `GetActivities` | [get_activities_graphql.md](../../backend/endpoints/get_activities_graphql.md) | QUERY | 0.x |
 | `GetEmailAssistantSuggestions` | *unresolved — add to endpoint index* | — | — |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
 `graphql/GetEmailAssistantSuggestions`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

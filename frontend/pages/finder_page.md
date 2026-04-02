@@ -276,12 +276,11 @@ app page UI -> useFinder -> emailService -> GraphQL gateway -> backend modules -
 
 <!-- AUTO:design-nav:start -->
 
-## Era coverage (Contact360 0.x–11.x)
+## Era coverage (Contact360 0.x–10.x)
 
 This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):
 
 - **2.x** — Email system — finder & verifier flows, bulk/jobs, Mailhub folders, product marketing pages.
-- **11.x** — Legacy — functionality consolidated into /email surface.
 - **Status** — Archived spec; prefer [email_page.md](email_page.md) for live `/email` UX.
 
 Other eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).
@@ -290,8 +289,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [Redirect] -> [email_page.md](email_page.md) (Finder Tab)
-SingleEmail, VerifyAndFind}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -301,16 +299,13 @@ SingleEmail, VerifyAndFind}
 - **Registry row:** [index.md#all-pages](index.md#all-pages)
 - **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)
 
-**Route (registry):** `/email` (Finder tab)
+**Route (registry):** `/email`
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions.
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** Sidebar peers; [contacts_page.md](contacts_page.md) (save result); [billing_page.md](billing_page.md) (credits).
-
-**Cross-host:** Lead data discovered here is shared with **email** (Mailhub) for direct outreach.
-**Backend:** Appointment360 GraphQL gateway; waterfall email discovery and verification services.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
 ## Backend API documentation
 

@@ -7,26 +7,50 @@
 
 ## Monorepo structure
 
+This table lists the **canonical service and app folders** for this workspace. Legacy paths are tracked separately below.
+
 | Path | Role | Primary tech | Primary API entry |
 | --- | --- | --- | --- |
-| `contact360.io/app/` | Authenticated product (dashboard) | Next.js 16, React 19, TypeScript | GraphQL |
-| `contact360.io/root/` | Public marketing site | Next.js | Mixed (static + GraphQL for forms where used) |
-| `contact360.io/admin/` | DocsAI — internal roadmap/architecture mirrors | Django | Internal / admin |
-| `contact360.io/email/` | Mailbox/email web surface | Next.js 16, React 19, TypeScript | Mixed (GraphQL + REST mailbox) |
-| `contact360.io/api/` | Appointment360 GraphQL gateway | FastAPI, Python | GraphQL |
-| `contact360.io/sync/` | Connectra search / VQL | Go, Elasticsearch | REST / internal |
-| `contact360.io/jobs/` | TKD Job scheduler and DAG workers | Python, Kafka | REST / internal |
-| `lambda/emailapis/` | Finder/verifier orchestration | Python | REST / internal |
-| `lambda/emailapigo/` | High-throughput finder (Go workers) | Go | REST / internal |
-| `lambda/logs.api/` | Logging/telemetry ingestion | Python, S3 CSV + in-memory cache | REST |
-| `lambda/s3storage/` | File lifecycle and object storage | Python, S3 | REST |
-| `backend(dev)/mailvetter/` | Verification engine | Go | REST / internal |
-| `backend(dev)/contact.ai/` | AI-driven workflows | Python | REST |
-| `backend(dev)/salesnavigator/` | Sales Navigator integration backend | Python | REST |
-| `backend(dev)/resumeai/` | Resume AI workflows | Python | REST |
-| `extension/contact360/` | Extension logic/transport layer | JavaScript (auth/session, Lambda client, profile merge); popup/content/manifest shell tracked separately | GraphQL + REST to satellites |
+| `contact360.io/app/` | Authenticated product (dashboard) | Next.js 16, React 19, TypeScript | GraphQL via `contact360.io/api` |
+| `contact360.io/root/` | Public marketing site | Next.js 16, React 19, TypeScript | Mixed (static + GraphQL for forms where used) |
+| `contact360.io/admin/` | DocsAI — internal roadmap/architecture mirrors and control plane | Django | Internal / admin (GraphQL → `contact360.io/api`) |
+| `contact360.io/email/` | Mailbox/email web surface | Next.js 16, React 19, TypeScript | Mixed (GraphQL auth + REST mailbox backend) |
+| `contact360.io/api/` | Appointment360 GraphQL gateway | FastAPI (Python), Strawberry GraphQL | GraphQL (`/graphql`) |
+| `contact360.io/sync/` | Connectra search / VQL data plane | Go (Gin), Elasticsearch | REST / internal |
+| `contact360.io/jobs/` | TKD Job scheduler and DAG workers | Python (gateway client) + Go (EC2 job server) | REST / internal |
+| `contact360.io/joblevel/` | Joblevel recruiting UI | Next.js App Router | GraphQL via `contact360.io/api` |
+| `EC2/ai.server/` | AI + resume AI service (`contact360.io/ai`) | Go (Gin) | REST / internal |
+| `EC2/email.server/` | Email APIs (finder/verifier) service (`contact360.io/emailapi`) | Go (Gin) | REST / internal |
+| `EC2/email campaign/` | Email campaign engine (`contact360.io/emailcampaign`) | Go (Gin), Asynq (Redis) | REST / internal |
+| `EC2/extension.server/` | Sales Navigator / extension façade (`contact360.io/extension`) | Go (Gin) | REST / internal |
+| `EC2/log.server/` | Logs API service (`contact360.io/logsapi`) | Go (Gin) | REST / internal |
+| `EC2/s3storage.server/` | S3 storage control plane (`contact360.io/s3storage`) | Go (Gin) | REST / internal |
+| `contact360.extension/` | Chrome extension codebase (MV3) | JavaScript / TypeScript | GraphQL via `contact360.io/api` + REST to satellites |
 
-**Legacy aliases:** older docs and full monorepos often use `contact360/dashboard`, `lambda/appointment360`, `lambda/connectra`, `lambda/tkdjob`, and `lambda/mailvetter/` — see **`docs/architecture.md`** → *Legacy / alternate names*.
+## Legacy and alternate paths
+
+Older docs and some historical monorepos use different folder layouts. Treat these as **aliases only**; new work should reference the canonical paths above.
+
+| Older / logical path | Typical role | Canonical in this workspace |
+| --- | --- | --- |
+| `contact360/dashboard/` | Dashboard app | `contact360.io/app/` |
+| `contact360/marketing/` | Marketing site | `contact360.io/root/` |
+| `contact360/docsai/` | Django DocsAI | `contact360.io/admin/` |
+| `lambda/appointment360/` | GraphQL gateway | `contact360.io/api/` |
+| `lambda/connectra/` | Connectra | `contact360.io/sync/` |
+| `lambda/tkdjob/` | Job scheduler | `contact360.io/jobs/` / `EC2/job.server/` |
+| `lambda/emailapis/` | Email APIs (Python orchestration) | `EC2/email.server/` (Go target) |
+| `lambda/emailapigo/` | Email APIs (Go workers) | `EC2/email.server/` |
+| `lambda/logs.api/` | Logs API (Python) | `EC2/log.server/` |
+| `lambda/s3storage/` | S3 storage (Python) | `EC2/s3storage.server/` |
+| `lambda/mailvetter/` | Mailvetter verifier | `backend(dev)/mailvetter/` (service tree) |
+| `backend(dev)/mailvetter/` | Verification engine | `backend(dev)/mailvetter/` (service tree) |
+| `backend(dev)/contact.ai/` | Contact AI service | `EC2/ai.server/` (Go target) |
+| `backend(dev)/resumeai/` | Resume AI service | `EC2/ai.server/` (Go target) |
+| `backend(dev)/salesnavigator/` | Sales Navigator backend | `EC2/extension.server/` (Go target) |
+| `extension/contact360/` | Extension logic/transport layer | `contact360.extension/` repo (extension codebase) |
+
+See **`docs/docs/architecture.md`** → *Service register (canonical)* for the full service inventory and status.
 
 **Service status:** see `docs/architecture.md` → *Service register (canonical)*.
 
@@ -523,10 +547,10 @@ Era task-pack index: era folders `0–10` each contain `mailvetter-*-task-pack.m
 
 
 ## Attached Analysis & Task Packs
-- [Appointment360 Foundation Task Pack](analysis/appointment360-foundation-task-pack (1).md)
-- [Appointment360 User Billing Task Pack](analysis/appointment360-user-billing-task-pack (1).md)
-- [Connectra Foundation Task Pack](analysis/connectra-foundation-task-pack (1).md)
-- [Contact AI Foundation Task Pack](analysis/contact-ai-foundation-task-pack (1).md)
-- [Contact360 E2E Architecture Flow](analysis/Contact360 End-to-End Architecture and Flow.md)
-- [Email APIs Foundation Task Pack](analysis/emailapis-foundation-task-pack (1).md)
-- [Sync Codebase Analysis](codebases/sync-codebase-analysis.md)
+- [Appointment360 Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/appointment360-foundation-task-pack.md)
+- [Appointment360 User Billing Task Pack](../../contact360.io/root/docs/imported/analysis/appointment360-user-billing-task-pack.md)
+- [Connectra Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/connectra-foundation-task-pack.md)
+- [Contact AI Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/contact-ai-foundation-task-pack.md)
+- [Contact360 E2E Architecture Flow](../../contact360.io/root/docs/imported/analysis/Contact360 End-to-End Architecture and Flow.md)
+- [Email APIs Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/emailapis-foundation-task-pack.md)
+- [Sync Codebase Analysis](../codebases/sync-codebase-analysis.md)

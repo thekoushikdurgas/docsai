@@ -256,7 +256,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L] > [H] > [K:Library] + [E:Editor] — {GQL ListTemplates, SaveTemplate, RenderPreview}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -270,12 +270,9 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** `Sidebar` / `MainLayout`, [campaign_builder_page.md](campaign_builder_page.md) (Step 3: Template).
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** Sidebar peers; [campaign_builder_page.md](campaign_builder_page.md) (Use in campaign).
-
-**Cross-host:** Templates are synchronized with **email** (Mailhub) for server-side rendering during campaign execution.
-**Backend:** Appointment360 GraphQL gateway; template versioning and liquid tag parsing services.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
 ## Backend API documentation
 

@@ -161,7 +161,7 @@ Deep reference: `docs/codebases/mailvetter-codebase-analysis.md`.
 
 ## `email campaign` backend track by era
 
-`backend(dev)/email campaign` — Go 1.24, Gin, Asynq/Redis, PostgreSQL, AWS S3. Two-binary deployment: API server + async worker.
+`EC2/email campaign` — Go 1.24, Gin, Asynq/Redis, PostgreSQL, AWS S3. Two-binary deployment: API server + async worker. Older docs may still reference `backend(dev)/email campaign`; treat the EC2 service as the canonical runtime path.
 
 | Era | Contract tasks | Service tasks | Data/Ops tasks |
 | --- | --- | --- | --- |
@@ -181,7 +181,7 @@ Deep reference: `docs/codebases/emailcampaign-codebase-analysis.md`.
 
 ## `contact.ai` backend track by era
 
-`backend(dev)/contact.ai` — FastAPI on AWS Lambda (Mangum), async SQLAlchemy, PostgreSQL `ai_chats` shared table, HF Inference Providers + Gemini fallback.
+`EC2/ai.server` (`contact360.io/ai`) — Go/Gin EC2 service (target canonical runtime) with parity to the historical `backend(dev)/contact.ai` FastAPI Lambda implementation. Owns AI chat and utility contracts, backed by PostgreSQL `ai_chats` and HF Inference Providers + Gemini.
 
 | Era | Contract tasks | Service tasks | Data/Ops tasks |
 | --- | --- | --- | --- |
@@ -201,7 +201,7 @@ Deep reference: `docs/codebases/contact-ai-codebase-analysis.md`.
 
 ## `salesnavigator` backend track by era
 
-`backend(dev)/salesnavigator` — FastAPI on AWS Lambda (Mangum), no local DB, all persistence via Connectra (`/contacts/bulk`, `/companies/bulk`). Stateless ingestion service with deterministic UUID5 strategy, HTML extraction pipeline, and deduplication.
+`EC2/extension.server` (`contact360.io/extension`) — Go/Gin EC2 façade for Sales Navigator ingestion, with parity to the historical `backend(dev)/salesnavigator` FastAPI Lambda implementation. Stateless ingestion service with deterministic UUID5 strategy, HTML extraction pipeline, and deduplication; all persistence via Connectra (`/contacts/bulk`, `/companies/bulk`).
 
 | Era | Contract tasks | Service tasks | Data/Ops tasks |
 | --- | --- | --- | --- |
@@ -253,16 +253,16 @@ Deep reference: `docs/codebases/appointment360-codebase-analysis.md`.
 
 ---
 
-## Extension backend track — `extension/contact360`
+## Extension backend track — `contact360.extension`
 
 ### Extension backend dependencies
 
 | Backend service | Endpoint | Protocol | Called from |
 | --- | --- | --- | --- |
 | Appointment360 (GraphQL gateway) | `POST /graphql` → `mutation { auth { refreshToken(...) } }` | GraphQL over HTTPS | `auth/graphqlSession.js` |
-| Lambda Sales Navigator API | `POST /v1/save-profiles` | REST/HTTPS | `utils/lambdaClient.js` |
-| Connectra (via Lambda relay) | `POST /contacts/bulk` | REST/HTTPS (internal) | Lambda SN API → Connectra |
-| Connectra (via Lambda relay) | `POST /companies/bulk` | REST/HTTPS (internal) | Lambda SN API → Connectra |
+| Extension/Sales Navigator façade (`EC2/extension.server`) | `POST /v1/save-profiles` | REST/HTTPS | `utils/lambdaClient.js` |
+| Connectra | `POST /contacts/bulk` | REST/HTTPS (internal) | Extension façade → Connectra |
+| Connectra | `POST /companies/bulk` | REST/HTTPS (internal) | Extension façade → Connectra |
 
 ### Extension per-era backend track
 

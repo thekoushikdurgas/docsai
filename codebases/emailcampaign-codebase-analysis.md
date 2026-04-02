@@ -31,7 +31,8 @@
 - [x] ✅ Schema includes `campaigns`, `recipients`, `templates`, and `suppression_list` tables.
 - [x] ✅ Recipient-level status updates (`sent`, `failed`, `unsubscribed`) are implemented in worker flow.
 - [x] ✅ Unsubscribe token validation and suppression-list insertion flow are implemented.
-- [x] ✅ SMTP authentication wiring exists (`smtp.PlainAuth`).
+- [x] ✅ SMTP authentication wiring exists (`smtp.PlainAuth`); submission ports **587/465/2525/2465** fail fast when credentials are missing (avoids `smtp.SendMail` with nil auth on providers that require LOGIN).
+- [x] ✅ `GetUnsubToken` uses `sqlx` `Get` (row scan) for `recipients.unsub_token` verification on unsubscribe.
 
 ## Active risks and gap map
 

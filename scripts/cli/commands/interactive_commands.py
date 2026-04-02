@@ -61,15 +61,15 @@ def repl(
                 continue
             
             if command.lower().startswith("get "):
-                _handle_get(command, cli_profile.base_url, session, headers)
+                _handle_get(command, cli_profile.base_url, session, headers, cli_profile.timeout)
             elif command.lower().startswith("post "):
-                _handle_post(command, cli_profile.base_url, session, headers)
+                _handle_post(command, cli_profile.base_url, session, headers, cli_profile.timeout)
             elif command.lower().startswith("put "):
-                _handle_put(command, cli_profile.base_url, session, headers)
+                _handle_put(command, cli_profile.base_url, session, headers, cli_profile.timeout)
             elif command.lower().startswith("delete "):
-                _handle_delete(command, cli_profile.base_url, session, headers)
+                _handle_delete(command, cli_profile.base_url, session, headers, cli_profile.timeout)
             elif command.lower() == "auth":
-                _handle_auth(cli_profile, headers)
+                _handle_auth(cli_profile, headers, cli_profile.timeout)
             elif command.lower() == "headers":
                 _show_headers(headers)
             else:
@@ -98,7 +98,7 @@ Available Commands:
     console.print(help_text)
 
 
-def _handle_get(command: str, base_url: str, session: requests.Session, headers: dict):
+def _handle_get(command: str, base_url: str, session: requests.Session, headers: dict, timeout: int):
     """Handle GET request."""
     parts = command.split(" ", 1)
     if len(parts) < 2:
@@ -113,13 +113,13 @@ def _handle_get(command: str, base_url: str, session: requests.Session, headers:
     url = f"{base_url}{endpoint}"
     
     try:
-        response = session.get(url, headers=headers, timeout=30)
+        response = session.get(url, headers=headers, timeout=timeout)
         _display_response(response)
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
 
 
-def _handle_post(command: str, base_url: str, session: requests.Session, headers: dict):
+def _handle_post(command: str, base_url: str, session: requests.Session, headers: dict, timeout: int):
     """Handle POST request."""
     parts = command.split(" ", 1)
     if len(parts) < 2:
@@ -152,13 +152,13 @@ def _handle_post(command: str, base_url: str, session: requests.Session, headers
             console.print("[yellow]Warning: Could not parse JSON, sending as-is[/yellow]")
     
     try:
-        response = session.post(url, headers=headers, json=json_data, timeout=30)
+        response = session.post(url, headers=headers, json=json_data, timeout=timeout)
         _display_response(response)
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
 
 
-def _handle_put(command: str, base_url: str, session: requests.Session, headers: dict):
+def _handle_put(command: str, base_url: str, session: requests.Session, headers: dict, timeout: int):
     """Handle PUT request."""
     parts = command.split(" ", 1)
     if len(parts) < 2:
@@ -190,13 +190,13 @@ def _handle_put(command: str, base_url: str, session: requests.Session, headers:
             pass
     
     try:
-        response = session.put(url, headers=headers, json=json_data, timeout=30)
+        response = session.put(url, headers=headers, json=json_data, timeout=timeout)
         _display_response(response)
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
 
 
-def _handle_delete(command: str, base_url: str, session: requests.Session, headers: dict):
+def _handle_delete(command: str, base_url: str, session: requests.Session, headers: dict, timeout: int):
     """Handle DELETE request."""
     parts = command.split(" ", 1)
     if len(parts) < 2:
@@ -211,13 +211,13 @@ def _handle_delete(command: str, base_url: str, session: requests.Session, heade
     url = f"{base_url}{endpoint}"
     
     try:
-        response = session.delete(url, headers=headers, timeout=30)
+        response = session.delete(url, headers=headers, timeout=timeout)
         _display_response(response)
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
 
 
-def _handle_auth(profile, headers: dict):
+def _handle_auth(profile, headers: dict, timeout: int):
     """Handle authentication."""
     if not profile.email or not profile.password:
         console.print("[red]Email and password not configured[/red]")
@@ -234,7 +234,7 @@ def _handle_auth(profile, headers: dict):
             "geolocation": None
         }
         
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=timeout)
         if response.status_code == 200:
             data = response.json()
             token = data.get("access_token")

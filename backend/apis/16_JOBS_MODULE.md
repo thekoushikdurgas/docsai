@@ -116,7 +116,7 @@ List scheduler jobs for the current user with pagination and optional filters.
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| s3Bucket | String! | Yes | - | S3 bucket (e.g. `appointment360uploads`) |
+| s3Bucket | String! | Yes | - | S3 bucket (e.g. `contact360uploads`) |
 | s3Key | String! | Yes | - | S3 object key (file path from Upload) |
 | outputPrefix | String | No | `imports/` | Output path prefix |
 | csvColumns | JSON | No | null | Column mapping, e.g. `{ "linkedin_url_column": "linkedin_url" }` |

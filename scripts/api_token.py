@@ -15,10 +15,18 @@ from typing import Any, Dict, Optional
 import requests
 
 _DEFAULT_API_BASE = "http://api.contact360.io:8000"
+_DEFAULT_GRAPHQL_URL = "http://api.contact360.io/graphql"
+_DEFAULT_API_TIMEOUT_SECONDS = int(os.getenv("TIMEOUT_SECONDS", os.getenv("TIMEOUT", "300")))
 
 
 def _auth_base_url() -> str:
     return os.getenv("API_BASE_URL", _DEFAULT_API_BASE).rstrip("/")
+
+
+def _graphql_url() -> str:
+    """GraphQL endpoint base URL (prefers env, falls back to production)."""
+    # Allow override from local env when testing against a different stack.
+    return os.getenv("GRAPHQL_URL", _DEFAULT_GRAPHQL_URL).rstrip("/")
 
 
 def login_url() -> str:
@@ -96,7 +104,7 @@ def login(
     geolocation: Optional[GeoLocation] = None,
     base_url: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Call the login endpoint and return the parsed JSON response.
+    """Call the REST login endpoint and return the parsed JSON response.
 
     Raises `requests.HTTPError` for non-2xx responses.
     """
@@ -116,7 +124,12 @@ def login(
         "Content-Type": "application/json",
     }
 
-    response = requests.post(base_url, headers=headers, json=payload, timeout=30)
+    response = requests.post(
+        base_url,
+        headers=headers,
+        json=payload,
+        timeout=_DEFAULT_API_TIMEOUT_SECONDS,
+    )
     try:
         response.raise_for_status()
     except requests.HTTPError as exc:
@@ -126,6 +139,67 @@ def login(
         ) from exc
 
     return response.json()
+
+
+def graphql_login(email: str, password: str, graphql_url: Optional[str] = None) -> Dict[str, Any]:
+    """Call the GraphQL login mutation and return the parsed JSON response.
+
+    Mirrors the curl example:
+
+    curl --request POST \\
+      --url http://api.contact360.io/graphql \\
+      --header 'Content-Type: application/json' \\
+      --data '{
+        "query": "mutation Login($input: LoginInput!, $pageType: String) { auth { login(input: $input, pageType: $pageType) { accessToken refreshToken user { uuid email name role userType } pages { pageId title pageType route status } } } }",
+        "variables": {
+          "input": {
+            "email": "...",
+            "password": "..."
+          },
+          "pageType": null
+        }
+      }'
+    """
+    if graphql_url is None:
+        graphql_url = _graphql_url()
+
+    query = (
+        "mutation Login($input: LoginInput!, $pageType: String) { "
+        "auth { login(input: $input, pageType: $pageType) { "
+        "accessToken refreshToken "
+        "user { uuid email name role userType } "
+        "pages { pageId title pageType route status } "
+        "} } }"
+    )
+    payload = {
+        "query": query,
+        "variables": {
+            "input": {
+                "email": email,
+                "password": password,
+            },
+            "pageType": None,
+        },
+    }
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    resp = requests.post(
+        graphql_url,
+        headers=headers,
+        json=payload,
+        timeout=_DEFAULT_API_TIMEOUT_SECONDS,
+    )
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError as exc:
+        raise requests.HTTPError(f"GraphQL login failed ({resp.status_code}): {resp.text}") from exc
+    data = resp.json()
+    if "errors" in data and data["errors"]:
+        # Surface first GraphQL error to caller.
+        raise ValueError(f"GraphQL login errors: {json.dumps(data['errors'])}")
+    return data
 
 
 def get_access_token(email: str, password: str) -> str:
@@ -139,12 +213,16 @@ def get_access_token(email: str, password: str) -> str:
     then we simply read `access_token`. If your response nests the token
     (e.g. `{"data": {"access": "..."}}`), update the code accordingly.
     """
-    data = login(email=email, password=password)
-
-    # Most common FastAPI/JWT pattern
-    token = data.get("access_token") or data.get("access")
+    # Prefer GraphQL login flow (Contact360 production pattern).
+    data = graphql_login(email=email, password=password)
+    auth = (
+        data.get("data", {})
+        .get("auth", {})
+        .get("login", {})
+    )
+    token = auth.get("accessToken") if isinstance(auth, dict) else None
     if not token:
-        raise ValueError(f"Could not find access token in login response: {json.dumps(data)}")
+        raise ValueError(f"Could not find access token in GraphQL login response: {json.dumps(data)}")
     return token
 
 
@@ -154,15 +232,22 @@ def get_tokens(email: str, password: str) -> tuple[str, str]:
     Returns:
         tuple: (access_token, refresh_token)
     """
-    data = login(email=email, password=password)
-    
-    access_token = data.get("access_token") or data.get("access")
-    refresh_token = data.get("refresh_token") or data.get("refresh")
-    
+    data = graphql_login(email=email, password=password)
+    auth = (
+        data.get("data", {})
+        .get("auth", {})
+        .get("login", {})
+    )
+    if not isinstance(auth, dict):
+        raise ValueError(f"Unexpected GraphQL login payload: {json.dumps(data)}")
+
+    access_token = auth.get("accessToken")
+    refresh_token = auth.get("refreshToken")
+
     if not access_token:
-        raise ValueError(f"Could not find access token in login response: {json.dumps(data)}")
+        raise ValueError(f"Could not find access token in GraphQL login response: {json.dumps(data)}")
     if not refresh_token:
-        raise ValueError(f"Could not find refresh token in login response: {json.dumps(data)}")
+        raise ValueError(f"Could not find refresh token in GraphQL login response: {json.dumps(data)}")
     
     return access_token, refresh_token
 
@@ -191,7 +276,12 @@ def refresh_token(refresh_token: str, base_url: Optional[str] = None) -> tuple[s
         "Content-Type": "application/json",
     }
     
-    response = requests.post(base_url, headers=headers, json=payload, timeout=30)
+    response = requests.post(
+        base_url,
+        headers=headers,
+        json=payload,
+        timeout=_DEFAULT_API_TIMEOUT_SECONDS,
+    )
     try:
         response.raise_for_status()
     except requests.HTTPError as exc:
@@ -219,8 +309,8 @@ def main() -> None:
     Uses TEST_USER_EMAIL / TEST_USER_PASSWORD (or API_BASE_URL) when set;
     otherwise falls back to placeholders for local experiments.
     """
-    email = os.getenv("TEST_USER_EMAIL", "user@example.com")
-    password = os.getenv("TEST_USER_PASSWORD", "password123")
+    email = "thekoushikdurgas@gmail.com"
+    password = "thekoushikdurgas"
 
     print(f"Logging in as {email} ...")
     try:

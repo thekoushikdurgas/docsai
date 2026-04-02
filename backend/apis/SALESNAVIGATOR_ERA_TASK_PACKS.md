@@ -41,7 +41,7 @@ This index maps the Sales Navigator ingestion service across all 11 Contact360 p
 | Service | Relationship |
 | --- | --- |
 | `appointment360` GraphQL | Calls `saveSalesNavigatorProfiles` → forwards to SN service |
-| `extension/contact360` | Browser extension passes scraped HTML or profile arrays |
+| `contact360.extension` | FastAPI ingest (`/v1/scrape`, `/v1/save-profiles`); JS transport (`lambdaClient.js`, `graphqlSession.js`, `profileMerger.js`). Browser shell (MV3) remains **4.5+** scope. |
 | `Connectra` | Downstream persistence target (`/contacts/bulk`, `/companies/bulk`) |
 | `contact.ai` | AI enrichment of SN-sourced contacts via `parse-filters`, `company/summary` |
 | `contact360.io/jobs` | Potential long-running job wrapper for large SN ingestion batches |
@@ -103,6 +103,10 @@ This index maps the Sales Navigator ingestion service across all 11 Contact360 p
 ## Delivery snapshot (through `4.2`)
 
 - `4.0` service ingestion baseline: **completed**.
-- `4.1` auth/session utility layer for extension transport: **in progress**.
-- `4.2` backend save/scrape ingestion path (`/v1/save-profiles`, `/v1/scrape`): **completed**.
-- Remaining `4.x` scope is extension shell/UI delivery (`manifest`, `background`, `content`, `popup`) and does not block backend ingestion completion status.
+- `4.1` auth/session utility layer for extension transport (`graphqlSession.js`, token storage): **completed**.
+- `4.2` backend save/scrape ingestion path (`/v1/save-profiles`, `/v1/scrape`) on `contact360.extension` FastAPI: **completed**.
+- Remaining `4.x` scope is the Chrome extension shell/UI (`manifest`, `background`/`service worker`, `content`, `popup`) and CSP/permissions hardening — tracked as **4.5+**; does not block backend ingest completion status.
+
+## Data lineage
+
+- Provenance and Connectra field mapping: [`docs/backend/database/salesnavigator_data_lineage.md`](../database/salesnavigator_data_lineage.md)

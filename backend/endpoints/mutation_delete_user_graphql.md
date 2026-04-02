@@ -28,8 +28,8 @@ Delete a user by UUID. Returns boolean indicating success.
 | --- | --- |
 | created_at | 2026-01-20T00:00:00.000000+00:00 |
 | updated_at | 2026-01-20T00:00:00.000000+00:00 |
-| era | 1.x |
-| introduced_in | 1.0.0 |
+| era | 7.x |
+| introduced_in | 7.0.0 |
 
 
 ## Security & limits
@@ -37,7 +37,7 @@ Delete a user by UUID. Returns boolean indicating success.
 | Field | Value |
 | --- | --- |
 | auth_required | True |
-| rbac_roles | user |
+| rbac_roles | superadmin |
 | rate_limited | False |
 
 
@@ -71,7 +71,7 @@ Delete a user by UUID. Returns boolean indicating success.
 
 ## Era alignment (Contact360 0.x–10.x)
 
-- **Lifecycle `era` (metadata):** `1.x` — User & Billing & Credit System.
+- **Lifecycle `era` (metadata):** `7.x` — Deployment & Governance (Privileged User Management).
 
 ## Database tables → SQL snapshots
 

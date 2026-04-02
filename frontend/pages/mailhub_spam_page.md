@@ -82,7 +82,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L] > [Q:Folders] + [Q:SpamList] + (btn:DeleteAll) — {REST}
+**Composite layout:** [L] Mailhub layout > [H] or folder chrome > `[Q]` message list / `[F]` account — `{REST}` IMAP-backed APIs; `(btn)` `(in)` `(cb)` per sections above; `(pb)` sync optional.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -94,14 +94,14 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Route (registry):** `/spam`
 
-**Codebase:** `contact360.io/email` (Mailhub client).
+**Codebase:** `contact360.io/email` (Mailhub, REST backend).
 
-**Typical inbound:** [mailhub_home_page.md](mailhub_home_page.md) redirect, sidebar.
+**Typical inbound:** folder nav from [mailhub_home_page.md](mailhub_home_page.md), auth from [mailhub_auth_login_page.md](mailhub_auth_login_page.md).
 
-**Typical outbound:** [mailhub_email_detail_page.md](mailhub_email_detail_page.md).
+**Typical outbound:** [mailhub_email_detail_page.md](mailhub_email_detail_page.md) from lists; account [mailhub_account_page.md](mailhub_account_page.md).
 
-**Cross-host:** Hand-off to `app` (Dashboard) via marketing header.
-**Backend:** IMAP-proxy REST API; see [emailapp_data_lineage.md](../../backend/database/emailapp_data_lineage.md).
+**Cross-host:** Deployed separately from dashboard; optional product links to **app** (integration TBD).
+**REST / data lineage (Mailhub):** [../../backend/database/emailapp_data_lineage.md](../../backend/database/emailapp_data_lineage.md) (not the dashboard GraphQL gateway).
 
 
 

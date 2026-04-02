@@ -231,12 +231,11 @@ app page UI -> useCampaignWizard -> campaignService -> GraphQL gateway -> backen
 
 <!-- AUTO:design-nav:start -->
 
-## Era coverage (Contact360 0.x–11.x)
+## Era coverage (Contact360 0.x–10.x)
 
 This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):
 
 - **10.x** — Email campaign — campaigns, sequences, templates, builder (planned routes).
-- **11.x** — Analytics — campaign performance metrics, A/B testing, heatmap overlays.
 - **Status** — Planned or spec-only; confirm `page.tsx` exists before treating as shipped.
 
 Other eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).
@@ -245,7 +244,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L] > [H] > [W:Wizard] — {GQL CreateCampaign, ScheduleCampaign}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -259,12 +258,9 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** [campaigns_page.md](campaigns_page.md) (New Campaign CTA).
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** [campaigns_page.md](campaigns_page.md) (Back or Completion); [campaign_templates_page.md](campaign_templates_page.md) (Step 3).
-
-**Cross-host:** Template selection and variable mapping are validated against **email** (Mailhub) schema definitions.
-**Backend:** Appointment360 GraphQL gateway; wizard state persistence and campaign validation logic.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
 ## Backend API documentation
 

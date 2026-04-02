@@ -9,12 +9,7 @@
 
 ## Service summary
 
-`extension/contact360` now contains two tightly-coupled surfaces:
-
-- Chrome extension shell/runtime (`manifest.json`, `background.js`, `content.js`, `popup.*`, auth/utils)
-- Sales Navigator ingestion API service (FastAPI under `app/`, SAM template, tests)
-
-Together they provide the LinkedIn/Sales Navigator capture channel for Contact360 contact/company ingestion.
+`contact360.extension` contains the **Chrome extension** only (MV3 shell, capture, `lambdaClient`, auth/utils). The **Sales Navigator ingestion API** (`/v1/save-profiles`, `/v1/scrape`, `/health`) is implemented in **`EC2/extension.server`** (Go). Together they provide the LinkedIn/Sales Navigator capture channel for Contact360 contact/company ingestion.
 
 ## Runtime architecture snapshot
 
@@ -23,40 +18,42 @@ Together they provide the LinkedIn/Sales Navigator capture channel for Contact36
   - auth/session helper: `auth/graphqlSession.js`
   - transport + batching: `utils/lambdaClient.js`
   - dedup/merge: `utils/profileMerger.js`
-- Backend service:
-  - FastAPI entrypoint: `app/main.py`
-  - routes + auth deps: `app/api/**`
-  - ingestion/mapping services: `app/services/save_service.py`, `app/services/mappers.py`
-  - Sales Navigator helpers: `app/services/sales_navigator/**`
-  - deployment: `template.yaml`
+- Backend service (**`EC2/extension.server`**):
+  - Gin router + API key middleware: `internal/api/router.go`
+  - flexible profile ingest: `internal/saveflex/`
+  - Sales Navigator HTML extract: `internal/scrapesn/`
+  - Connectra client + upsert-bulk: `internal/connectra/`, mapping under `internal/mapper/`
+  - deploy: Docker / `docker-compose.yml`, `.env.example`
 
 ## Verified completion status from runtime
 
 - [x] ✅ Extension shell artifacts exist (manifest, background service worker, content script, popup UI).
 - [x] ✅ MV3 storage/session path exists for access and refresh token handling.
 - [x] ✅ Batched profile submission client exists (`lambdaClient`) with queue/retry/adaptive timeout behavior.
-- [x] ✅ Backend API with API-key middleware and save profiles service is implemented.
+- [x] ✅ Backend API (Go extension.server) with API-key middleware and save profiles is implemented.
 - [x] ✅ Profile dedup/merge logic exists and test coverage files are present.
 
 ## Active risks and gap map
 
 ### Security and endpoint scope
 
-- [ ] ⬜ Incomplete: extension `host_permissions` are broad (`https://*/*`, `http://*/*`) and exceed least-privilege needs.
-- [ ] ⬜ Incomplete: backend CORS is wildcard in FastAPI service.
+- [ ] 🟡 In Progress: host permissions were reduced to explicit LinkedIn and Contact360 API origins; further route-level minimization is pending.
+- [x] ✅ Completed: backend CORS wildcard removed; service uses environment-scoped `CORS_ORIGINS` allowlist. Settings validation requires a non-empty allowlist when `APP_ENV` is `production` / `prod` (default `APP_ENV` is `development` for local runs).
 - [ ] 🟡 In Progress: API key auth exists but key lifecycle/rotation constraints are not fully governed in docs/runtime checks.
 
 ### Contract and product drift
 
 - [ ] ⬜ Incomplete: extension save endpoint contract and backend payload contract still need strict parity tests.
 - [ ] 🟡 In Progress: extension runtime references config/constants patterns that need single canonical source.
+- [x] ✅ Completed: `auth/graphqlSession.js` now uses non-module global runtime contract (no ES module export mismatch in MV3 load order).
+- [x] ✅ Completed: popup-configured gateway API key fallback is now wired to `/v1/save-profiles` requests (`X-API-Key`).
 - [ ] ⬜ Incomplete: trace correlation contract (extension event -> backend ingest -> Connectra write) is not fully formalized.
 
 ### Reliability and observability
 
 - [ ] 🟡 In Progress: `lambdaClient` has retry/backoff/queueing, but reliability SLOs and failure budgets are not defined.
 - [ ] ⬜ Incomplete: telemetry/log event taxonomy for extension operations is not normalized with `logs.api` conventions.
-- [ ] ⬜ Incomplete: content script bootstrap is minimal and lacks hardened extraction/guardrail instrumentation.
+- [ ] 🟡 In Progress: content script now supports runtime scrape bridge and background orchestration; extraction quality and guardrails still need hardening.
 
 ## Current execution packs (small tasks by status)
 
@@ -70,15 +67,17 @@ Together they provide the LinkedIn/Sales Navigator capture channel for Contact36
 
 ### Service pack
 
-- [x] ✅ Backend save/mapping pipeline and profile merge utilities are implemented.
+- [x] ✅ Go save/mapping pipeline (extension.server) and extension profile merge utilities are implemented.
 - [ ] 🟡 In Progress: harden retry behavior and unauthorized-refresh handling in `lambdaClient`.
 - [ ] ⬜ Incomplete: implement stronger extraction and validation guarantees in content/runtime flow.
 - [ ] ⬜ Incomplete: enforce stricter host permission and endpoint allowlist policies.
+- [x] ✅ Completed: extension.server env contract exists (`EC2/extension.server/.env.example`).
 - [ ] 📌 Planned: add queue backpressure controls and adaptive batch sizing based on API health.
 
 ### Surface pack
 
 - [x] ✅ Popup status surface and shell wiring are present.
+- [x] ✅ Popup now includes telemetry config controls for logs API URL/key used by background runtime event emission.
 - [ ] 🟡 In Progress: improve user-facing feedback for batch partial-failure and retry states.
 - [ ] ⬜ Incomplete: add deterministic UX contract for token-expired/unauthorized flows.
 - [ ] 📌 Planned: add extension diagnostics panel for sync status and error triage.
@@ -92,8 +91,8 @@ Together they provide the LinkedIn/Sales Navigator capture channel for Contact36
 
 ### Ops pack
 
-- [x] ✅ SAM deployment and service startup/shutdown paths are present.
-- [ ] ⬜ Incomplete: replace wildcard CORS and broad host permissions with environment-scoped policies.
+- [x] ✅ Extension.server Docker/local run paths are present (`EC2/extension.server`).
+- [ ] 🟡 In Progress: CORS allowlist is now environment-scoped; host-permission tightening in `manifest.json` is still pending.
 - [ ] ⬜ Incomplete: add release gates and smoke tests for extension package + backend API compatibility.
 - [ ] 🟡 In Progress: consolidate telemetry/logging behavior with centralized `logs.api` model.
 - [ ] 📌 Planned: define extension ingestion SLO dashboards and incident runbooks.
@@ -127,7 +126,7 @@ Together they provide the LinkedIn/Sales Navigator capture channel for Contact36
 ### `4.x.x - Contact360 Extension and Sales Navigator maturity`
 
 - [x] ✅ Completed: primary extension/SN integration surface is implemented.
-- [ ] 🟡 In Progress: strengthen runtime extraction/orchestration beyond minimal content bootstrap.
+- [ ] 🟡 In Progress: runtime extraction/orchestration bridge is implemented; schema quality, provenance, and diagnostics hardening remain.
 - [ ] ⬜ Incomplete: formalize extension support diagnostics and retry UX standards.
 
 ### `5.x.x - Contact360 AI workflows`
@@ -144,7 +143,7 @@ Together they provide the LinkedIn/Sales Navigator capture channel for Contact36
 
 ### `7.x.x - Contact360 deployment`
 
-- [x] ✅ Completed: backend SAM deployment artifacts and extension packaging files are present.
+- [x] ✅ Completed: extension.server container/deploy assets and extension packaging files are present (Python/SAM removed from extension repo).
 - [ ] ⬜ Incomplete: add signed release workflow and compatibility matrix for extension/backend versions.
 - [ ] 🟡 In Progress: deployment environment checks for API keys/URLs and runtime readiness.
 
@@ -180,8 +179,8 @@ Together they provide the LinkedIn/Sales Navigator capture channel for Contact36
 
 ### P0
 
-- [ ] ⬜ Incomplete: `EXT-0.1` Remove over-broad host permissions and enforce least privilege.
-- [ ] ⬜ Incomplete: `EXT-0.2` Replace wildcard CORS and tighten API security defaults.
+- [ ] 🟡 In Progress: `EXT-0.1` broad host permissions removed; least-privilege refinement for specific LinkedIn path subsets remains.
+- [ ] 🟡 In Progress: `EXT-0.2` CORS wildcard removal completed; remaining API security defaults hardening is pending.
 - [ ] ⬜ Incomplete: `EXT-0.3` Lock canonical save payload schema and parity tests.
 - [ ] 🟡 In Progress: `EXT-0.4` Normalize extension runtime + backend observability contract.
 

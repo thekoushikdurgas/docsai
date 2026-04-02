@@ -422,10 +422,11 @@ app page UI -> useProfilePage, useUserProfile, useAPIKeys, useSessions -> authSe
 
 <!-- AUTO:design-nav:start -->
 
-- **0.x** — Foundation — app layouts, vertical tabs, confirm modals, file upload patterns.
-- **1.x** — User / billing / credit — profile edits, team invitations, plan visibility.
-- **8.x** — Public/Private APIs — API key management, secret mask/copy patterns.
-- **9.x** — Security / Scaling — session audit trails, 2FA workflows, global logout.
+## Era coverage (Contact360 0.x–10.x)
+
+This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):
+
+- **1.x** — User / billing / credit — profile, usage, billing, register/login, credit UX, admin app stats.
 
 Other eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).
 
@@ -433,7 +434,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:Dashboard] > [H:Header] + [P:ProfileHero] + [S:StatsGrid] + [A:Actions] -> {useAuth}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -447,12 +448,11 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions.
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** Sidebar peers; [billing_page.md](billing_page.md) redirect via tab.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
-**Cross-host:** Hand-off from **root** (Marketing) auth links.
-**Backend:** Appointment360 GraphQL gateway; aggregates user identity, team, keys, and security services.
+## Backend API documentation
 
 - **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.
 - **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).
@@ -508,7 +508,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `UploadAvatar` | [mutation_upload_avatar_graphql.md](../../backend/endpoints/mutation_upload_avatar_graphql.md) | MUTATION | 2.x |
 | `Get2FAStatus` | [query_get_2fa_status_graphql.md](../../backend/endpoints/query_get_2fa_status_graphql.md) | QUERY | 0.x |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
 `graphql/InviteTeamMember`, `graphql/RemoveTeamMember`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

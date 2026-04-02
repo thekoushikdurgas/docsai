@@ -35,7 +35,7 @@
 
 ### GraphQL-only design
 
-Single endpoint `/graphql` (plus health probes). No REST feature routes. The schema (`schema.py`) is composed as a flat `Query` + `Mutation` root with 28 nested module namespaces:
+Single endpoint `/graphql` (plus health probes). No REST feature routes. The schema (`schema.py`) is composed as a flat `Query` + `Mutation` root with nested module namespaces (23 query roots including top-level `featureOverview`; mutations omit that field). Campaign modules under `app/graphql/modules/campaigns/` are scaffold-only and not mounted on the root schema yet.
 
 ```text
 query { auth | users | contacts | companies | email | jobs | usage | billing | analytics | activities | health | pages | s3 | upload | aiChats | notifications | salesNavigator | admin | savedSearches | twoFactor | profile | resume | featureOverview }
@@ -86,24 +86,24 @@ Per-request `Context` carries:
 | users | `UserQuery` | `user(uuid)`, `users()`, `userStats()` |
 | contacts | `ContactQuery` | `contact(uuid)`, `contacts(query)`, `contactCount(query)`, `contactQuery(query)`, `filters()`, `filterData(input)` |
 | companies | `CompanyQuery` | `company(uuid)`, `companies(query)`, `companyCount(query)`, `companyQuery(query)`, `companyContacts(company_uuid)`, `filters()`, `filterData(input)` |
-| email | `EmailQuery` | `findEmails`, `findEmailsBulk`, `verifySingleEmail`, `verifyEmailsBulk`, `createEmailFinderExportJob`, `createEmailVerifyExportJob`, `createEmailPatternImportJob` |
+| email | `EmailQuery` | `findEmails`, `createEmailFinderExportJob`, `createEmailVerifyExportJob`, `createEmailPatternImportJob`, `findEmailsBulk`, `verifySingleEmail`, `verifyEmailsBulk`, `exportEmails`, `verifyexportEmail` |
 | jobs | `JobQuery` | `job(jobId)`, `jobs(limit,offset,status,jobType)` |
 | usage | `UsageQuery` | `usage(feature)` |
 | featureOverview | `FeatureOverviewQuery` | `featureOverview()` |
-| billing | `BillingQuery` | `billingInfo`, `plans`, `invoices` |
-| activities | `ActivityQuery` | `activities(limit,offset,type)` |
-| analytics | `AnalyticsQuery` | `analytics(...)` |
-| health | `HealthQuery` | `health()` |
-| pages | `PagesQuery` | `page(id)`, `pages(type)` |
-| s3 | `S3Query` | `files(bucket,prefix)`, `fileContent(key)` |
-| upload | `UploadQuery` | `uploadStatus(sessionId)` |
+| billing | `BillingQuery` | `billing`, `plans`, `addons`, `invoices`, `paymentInstructions`, `paymentSubmissions` |
+| activities | `ActivityQuery` | `activities(...)`, `activityStats(...)` |
+| analytics | `AnalyticsQuery` | `performanceMetrics`, `aggregateMetrics` |
+| health | `HealthQuery` | `apiMetadata`, `apiHealth`, `vqlHealth`, `vqlStats`, `performanceStats` |
+| pages | `PagesQuery` | `page`, `pages`, `pageContent`, `pagesByType`, `pageTypes`, `pageStatistics`, `pagesByState`, `pagesByStateCount`, `pagesByUserType`, `pagesByDocsaiUserType`, `myPages`, `pageAccessControl`, `pageSections`, `pageComponents`, `pageEndpoints`, `pageVersions`, `dashboardPages`, `marketingPages` |
+| s3 | `S3Query` | `s3Files`, `s3FileData`, `s3FileInfo`, `s3FileDownloadUrl`, `s3FileSchema`, `s3FileStats`, `s3BucketMetadata` |
+| upload | `UploadQuery` | `uploadStatus`, `presignedUrl` |
 | aiChats | `AIChatQuery` | `aiChat(uuid)`, `aiChats()` |
-| notifications | `NotificationQuery` | `notifications()` |
-| salesNavigator | `SalesNavigatorQuery` | `salesNavigatorSearch()` |
-| admin | `AdminQuery` | `adminStats()`, `paymentSubmissions()`, `users()` |
-| savedSearches | `SavedSearchQuery` | `savedSearch(id)`, `savedSearches(type)` |
-| twoFactor | `TwoFactorQuery` | `twoFactorStatus()` |
-| profile | `ProfileQuery` | `apiKeys()`, `sessions()` |
+| notifications | `NotificationQuery` | `notifications`, `notification`, `unreadCount`, `notificationPreferences` |
+| salesNavigator | `SalesNavigatorQuery` | `salesNavigatorRecords(...)` |
+| admin | `AdminQuery` | `users`, `usersWithBuckets`, `userStats`, `userHistory`, `logStatistics`, `logs`, `searchLogs` |
+| savedSearches | `SavedSearchQuery` | `listSavedSearches(...)`, `getSavedSearch(...)` |
+| twoFactor | `TwoFactorQuery` | `get2FAStatus()` |
+| profile | `ProfileQuery` | `listAPIKeys()`, `listSessions()`, `listTeamMembers()` |
 | resume | `ResumeQuery` | `resumes()`, `resume(id)` |
 
 ### Mutation modules
@@ -111,25 +111,25 @@ Per-request `Context` carries:
 | Module | Class | Key operations |
 | --- | --- | --- |
 | auth | `AuthMutation` | `login`, `register`, `logout`, `refresh_token` |
-| users | `UserMutation` | `updateUser`, `deleteUser`, `promoteUser` |
-| contacts | `ContactMutation` | `createContact`, `batchCreateContacts`, `updateContact`, `deleteContact`, `exportContacts`, `batchUpsertContacts`, `upsertByLinkedinUrl`, `searchLinkedin`, `syncIntegration`, `saveLinkedinSearchResults` |
-| companies | `CompanyMutation` | `createCompany`, `batchCreateCompanies`, `updateCompany`, `deleteCompany`, `exportCompanies` |
+| users | `UserMutation` | `update_profile`, `upload_avatar`, `update_user`, `promote_to_admin`, `promote_to_super_admin` |
+| contacts | `ContactMutation` | `createContact`, `batchCreateContacts`, `importContacts`, `updateContact`, `deleteContact`, `exportContacts` |
+| companies | `CompanyMutation` | `createCompany`, `exportCompanies`, `importCompanies`, `updateCompany`, `deleteCompany` |
 | billing | `BillingMutation` | `subscribe`, `purchaseAddon`, `submitPaymentProof`, `approvePayment`, `declinePayment` |
-| linkedin | `LinkedInMutation` | `upsertByLinkedinUrl`, `searchLinkedin`, `exportLinkedinResults` |
+| linkedin | `LinkedInMutation` | `search`, `upsertByLinkedInUrl` |
 | jobs | `JobMutation` | `createEmailFinderExport`, `createEmailVerifyExport`, `createEmailPatternImport`, `createContact360Export`, `createContact360Import`, `createAppointmentImport`, `retryJob` |
 | email | `EmailMutation` | `addEmailPattern`, `addEmailPatternBulk` |
 | usage | `UsageMutation` | `trackUsage`, `resetUsage` |
-| upload | `UploadMutation` | `startMultipartUpload`, `uploadPart`, `completeMultipartUpload`, `abortMultipartUpload` |
-| s3 | `S3Mutation` | `startCsvMultipartUpload`, `uploadCsvPart`, `completeCsvUpload` |
-| analytics | `AnalyticsMutation` | `trackEvent` |
-| aiChats | `AIChatMutation` | `createAiChat`, `sendAiMessage`, `deleteAiChat`, `generateCompanySummary`, `analyzeEmailRisk`, `parseContactFilters` |
-| notifications | `NotificationMutation` | `markNotificationRead`, `markAllRead` |
-| salesNavigator | `SalesNavigatorMutation` | `saveSalesNavigatorProfiles`, `syncSalesNavigator` |
-| admin | `AdminMutation` | `creditUser`, `adjustCredits`, `approvePayment`, `declinePayment` |
-| savedSearches | `SavedSearchMutation` | `createSavedSearch`, `updateSavedSearch`, `deleteSavedSearch` |
-| twoFactor | `TwoFactorMutation` | `enableTwoFactor`, `verifyTwoFactor`, `disableTwoFactor` |
-| profile | `ProfileMutation` | `createApiKey`, `deleteApiKey`, `updateProfile` |
-| resume | `ResumeMutation` | `createResume`, `updateResume`, `deleteResume` |
+| upload | `UploadMutation` | `initiateUpload`, `registerPart`, `completeUpload`, `abortUpload` |
+| s3 | `S3Mutation` | `initiateCsvUpload`, `completeCsvUpload`, `deleteFile` |
+| analytics | `AnalyticsMutation` | `submitPerformanceMetric` |
+| aiChats | `AIChatMutation` | `createAIChat`, `updateAIChat`, `deleteAIChat`, `sendMessage`, `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters` |
+| notifications | `NotificationMutation` | `markNotificationAsRead`, `markNotificationsAsRead`, `deleteNotifications`, `updateNotificationPreferences` |
+| salesNavigator | `SalesNavigatorMutation` | `saveSalesNavigatorProfiles` |
+| admin | `AdminMutation` | `updateUserRole`, `updateUserCredits`, `deleteUser`, `promoteToAdmin`, `promoteToSuperAdmin`, `createLog`, `createLogsBatch`, `updateLog`, `deleteLog`, `deleteLogsBulk` |
+| savedSearches | `SavedSearchMutation` | `createSavedSearch`, `updateSavedSearch`, `deleteSavedSearch`, `updateSavedSearchUsage` |
+| twoFactor | `TwoFactorMutation` | `setup2FA`, `verify2FA`, `disable2FA`, `regenerateBackupCodes` |
+| profile | `ProfileMutation` | `createAPIKey`, `deleteAPIKey`, `revokeSession`, `revokeAllOtherSessions`, `inviteTeamMember`, `updateTeamMemberRole`, `removeTeamMember` |
+| resume | `ResumeMutation` | `saveResume`, `deleteResume` |
 
 ---
 
@@ -209,7 +209,8 @@ Critical environment variables by category:
 
 ### Security and configuration drift
 
-- [ ] ⬜ Incomplete: several service API keys/URLs have real-looking defaults in config and need secret-only policy.
+- [x] ✅ Completed: runtime service URL defaults are now removed from settings, and production enforces URL/API-key pairing for downstream dependencies.
+- [x] ✅ Completed: deployment env templates now sanitize real-looking API URLs/keys and replace token-like commented examples with redacted placeholders.
 - [ ] ⬜ Incomplete: production security depends on environment discipline; default values remain risky for misconfigured deploys.
 - [ ] 🟡 In Progress: idempotency guard exists, but strict enforcement (`IDEMPOTENCY_ENFORCE_GRAPHQL_MUTATIONS`) is optional and not always enabled.
 
@@ -221,9 +222,9 @@ Critical environment variables by category:
 
 ### Reliability and scale gaps
 
-- [ ] 🟡 In Progress: middleware-level controls are strong, but distributed state for abuse/idempotency remains incomplete across replicas.
-- [ ] ⬜ Incomplete: token blacklist and some anti-abuse controls need shared-store hardening for horizontal scale.
-- [ ] ⬜ Incomplete: residual debug/log artifact patterns must be removed from production paths.
+- [ ] 🟡 In Progress: production now enforces PostgreSQL backends for idempotency and upload sessions; abuse-guard/token shared-store state remains incomplete across replicas.
+- [ ] 🟡 In Progress: token blacklist checks are expiry-aware with eager stale-entry cleanup plus startup/shutdown and periodic lifecycle cleanup hooks (configurable cadence, production-enforced interval > 0), and health evidence is exposed via both REST (`/health/token-blacklist`) and GraphQL (`health.performanceStats.token_blacklist_cleanup`) with contract test coverage (`tests/graphql/test_health_performance_stats.py`); broader token-control scale hardening remains pending.
+- [x] ✅ Completed: resolver/client debug artifact patterns are removed and protected with regression guard tests (`tests/test_no_debug_artifacts.py`).
 
 ---
 
@@ -241,7 +242,7 @@ Critical environment variables by category:
 
 - [x] ✅ Core orchestration clients and service bridges are implemented.
 - [ ] 🟡 In Progress: harden distributed anti-abuse/idempotency behavior for multi-instance deployments.
-- [ ] ⬜ Incomplete: remove any remaining debug-file write and ad-hoc logging artifacts.
+- [x] ✅ Completed: add regression guard to block debug artifact patterns in historically risky resolver/client files.
 - [ ] ⬜ Incomplete: complete campaign service orchestration modules.
 - [ ] 📌 Planned: add policy-driven connector governance controls for ecosystem scale.
 
@@ -256,13 +257,13 @@ Critical environment variables by category:
 
 - [x] ✅ Async DB/session lifecycle and repository patterns are implemented.
 - [ ] 🟡 In Progress: strengthen trace/request lineage consistency across all module calls.
-- [ ] ⬜ Incomplete: shared-store strategy for blacklist/guard state at scale.
+- [ ] 🟡 In Progress: shared-store strategy is implemented for abuse/idempotency; token-blacklist reliability improved via expiry-aware checks and stale-entry cleanup.
 - [ ] 📌 Planned: campaign evidence and compliance lineage model.
 
 ### Ops pack
 
 - [x] ✅ Health checks, RED metrics, and SLO endpoints exist in runtime.
-- [ ] ⬜ Incomplete: remove insecure config defaults and enforce startup hard-fail for missing secrets in production.
+- [ ] 🟡 In Progress: startup now hard-fails in production for permissive wildcard CORS/trusted-host config (`ALLOWED_ORIGINS='*'` or `TRUSTED_HOSTS='*'`); remaining secret-default cleanup is pending.
 - [ ] ⬜ Incomplete: add stronger contract parity tests tied to docs and release gates.
 - [ ] 🟡 In Progress: rate-limit and abuse guard tuning per environment.
 - [ ] 📌 Planned: reliability promotion gates based on error budgets and multi-service dependency health.
@@ -272,7 +273,7 @@ Critical environment variables by category:
 ### `0.x.x - Foundation and pre-product stabilization and codebase setup`
 
 - [x] ✅ Completed: gateway bootstrap, middleware baseline, context/session lifecycle, and schema composition are implemented.
-- [ ] 🟡 In Progress: close foundational docs/runtime drift.
+- [x] ✅ Completed: foundational docs/runtime drift for Appointment360 — `appointment360_endpoint_era_matrix.md` aligned with resolvers, parity tests (`test_endpoint_docs_*.py`, `tests/doc_paths.py`), and CI (`docs/.github/workflows/ci.yml`).
 - [ ] ⬜ Incomplete: remove insecure default config values from baseline templates/settings.
 
 ### `1.x.x - Contact360 user and billing and credit system`
@@ -342,7 +343,7 @@ Critical environment variables by category:
 - [ ] ⬜ Incomplete: remove insecure service key defaults and enforce secret-only startup policy.
 - [ ] ⬜ Incomplete: complete campaign GraphQL modules (`campaigns`, `sequences`, `campaignTemplates`).
 - [ ] 🟡 In Progress: tune and enforce GraphQL rate limit and abuse guard settings per environment.
-- [ ] ⬜ Incomplete: add Redis-backed distributed state for idempotency/abuse/token controls.
+- [ ] 🟡 In Progress: PostgreSQL-backed distributed state is enforced for idempotency and abuse guard in production; token controls still need final scale hardening.
 - [ ] ⬜ Incomplete: add docs/runtime contract parity tests against backend API docs.
 - [ ] 🟡 In Progress: wire dependency-specific health visibility (including DocsAI readiness).
 - [ ] ⬜ Incomplete: remove residual debug file-write paths from resolver/client code.
@@ -376,17 +377,17 @@ Critical environment variables by category:
 
 ### P0
 
-- [ ] ⬜ Incomplete: `AP-0.1` Remove resolver/client debug file writes from production paths.
-- [ ] ⬜ Incomplete: `AP-0.2` Remove insecure API key defaults from runtime settings.
+- [x] ✅ Completed: `AP-0.1` Resolver/client debug artifact regression guard added (`tests/test_no_debug_artifacts.py`) and risky paths are clean.
+- [x] ✅ Completed: `AP-0.2` Production now fails closed on wildcard CORS/trusted-host settings and enforces downstream URL/API-key contracts (including DocsAI and Sales Navigator enablement checks).
 - [ ] ⬜ Incomplete: `AP-0.3` Campaign/sequences/templates GraphQL module completion for `10.x`.
-- [ ] 🟡 In Progress: `AP-0.4` Enforce environment-specific rate-limit/idempotency guard policy.
+- [x] ✅ Completed: `AP-0.4` Production now enforces strict GraphQL idempotency guard policy (`IDEMPOTENCY_ENFORCE_GRAPHQL_MUTATIONS=true`) plus postgres-backed idempotency/abuse/session backends.
 
 ### P1/P2
 
-- [ ] ⬜ Incomplete: `AP-1.2` Move idempotency/abuse-guard state to shared store for multi-instance safety.
-- [ ] 🟡 In Progress: `AP-1.3` Add mutation-level SLI exports for top heavy operations.
-- [ ] ⬜ Incomplete: `AP-2.1` Immutable audit events for billing/admin/high-risk mutations.
-- [ ] ⬜ Incomplete: `AP-2.2` Resolver-to-doc contract parity automation.
+- [x] ✅ Completed: `AP-1.2` Abuse guard now supports PostgreSQL-backed shared window state (`graphql_abuse_guard_events`) and production enforces `IDEMPOTENCY_BACKEND=postgres`, `UPLOAD_SESSION_BACKEND=postgres`, and `ABUSE_GUARD_BACKEND=postgres`.
+- [x] ✅ Completed: `AP-1.3` Guarded mutation SLI exports are now emitted via `/health/slo` (`guarded_mutation_sli`) with per-mutation request/success/error/rate-limited and latency metrics.
+- [ ] 🟡 In Progress: `AP-2.1` Immutable audit events — append-only `graphql_audit_events` (`app/models/graphql_audit_event.py`, `append_graphql_audit_event` in `app/services/graphql_audit_service.py`, migration `20260402_0004_graphql_audit_events.py`); wired for `updateUserCredits`, `approvePayment`, `declinePayment`. **Extend** to other admin/billing mutations and add read/query path or export as needed.
+- [x] ✅ Completed: `AP-2.2` Docs/runtime parity — health REST list vs `appointment360_endpoint_era_matrix.md`; `module_index` rows vs resolver sources (`test_endpoint_docs_parity.py`, `tests/doc_paths.py`, meta-test for full matrix coverage); high-risk and privileged mutation doc presence + metadata (`test_endpoint_docs_operation_parity.py`, `test_endpoint_docs_metadata_parity.py`, including users promote mutations); CI gate in `docs/.github/workflows/ci.yml` (**Run Appointment360 docs/runtime parity tests**). Follow-up: broader per-operation Markdown outside the matrix is optional.
 
 ### P3+
 

@@ -31,6 +31,8 @@ from datetime import datetime
 
 from api_token import get_access_token, get_tokens, refresh_token
 
+API_TIMEOUT_SECONDS = int(os.getenv("TIMEOUT_SECONDS", os.getenv("TIMEOUT", "300")))
+
 
 @dataclass
 class TestResult:
@@ -350,7 +352,7 @@ class EmailAPITester:
             response = self.session.post(
                 self.api_url,
                 json=payload,
-                timeout=30,
+                timeout=API_TIMEOUT_SECONDS,
             )
             response_time_ms = (time.time() - start_time) * 1000
             
@@ -423,7 +425,7 @@ class EmailAPITester:
             response = self.session.post(
                 self.verifier_url,
                 json=payload,
-                timeout=30,
+                timeout=API_TIMEOUT_SECONDS,
             )
             response_time_ms = (time.time() - start_time) * 1000
             

@@ -38,3 +38,14 @@ Markdown inventory for Contact360 **UI routes** across **app**, **root**, **emai
 
 - `docs/frontend/docs/`, `docs/frontend/components.md` (if present)
 - Era folders `docs/0.` … `docs/10.` for product-phase tasks
+
+## Local run note (2026-03-30)
+
+- Frontend smoke verification was blocked by local port conflicts and missing service binds during the execution pass:
+  - `:3000` occupied by `EC2/email.server` compose mapping
+  - `:3001`, `:3002`, `:3003` not bound at check time
+- Before next page-spec parity pass, reserve dedicated non-overlapping dev ports for:
+  - `contact360.io/app`
+  - `contact360.io/root`
+  - `contact360.io/email`
+  - `contact360.io/joblevel`

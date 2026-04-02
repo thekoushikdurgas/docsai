@@ -6,11 +6,11 @@
 
 ### Production Docker layout (EC2)
 
-The repository root ships **`docker-compose.prod.yml`**, which places all application containers on a single bridge network (`contact360`) with stable DNS names matching **`contact360.io/api/app/core/config.py`** defaults (`sync:8000`, `jobs:8000`, `emailapigo:8081`, `s3storage:8082`, `logs:8083`, `salesnavigator:8084`, `contact_ai:8085`, `emailcampaign:8086`, `mailvetter:8087`). **`nginx/nginx.prod.conf`** routes public hostnames (`contact360.io`, `app.contact360.io`, `api.contact360.io`, `email.contact360.io`, `admin.contact360.io`) to those containers. TLS is expected at **ALB/ACM** in front of Nginx.
+The repository root ships **`docker-compose.prod.yml`**, which places all application containers on a single bridge network (`contact360`) with stable DNS names matching **`contact360.io/api/app/core/config.py`** defaults (`sync:8000`, `jobs:8000`, `emailapigo:8086`, `s3storage:8087`, `logs:8091`, `salesnavigator:8092`, `contact_ai:8090`, `emailcampaign:8086`, `mailvetter:8087`). **`nginx/nginx.prod.conf`** routes public hostnames (`contact360.io`, `app.contact360.io`, `api.contact360.io`, `email.contact360.io`, `admin.contact360.io`, `joblevel.contact360.io`) to those containers. TLS is expected at **ALB/ACM** in front of Nginx.
 
-The compose file also runs **`joblevel`** (Next.js Joblevel app at `joblevel.contact360.io` via Nginx), **`redis`** (only for **Go** services: Asynq in the email campaign service and Mailvetter queues — not used by `contact360.io/api`), and an **`emailcampaign-worker`** container. RDS, MSK, and OpenSearch remain **managed AWS** services; populate `deploy/env/jobs.env` and root `.env` (`DATABASE_URL` for the GraphQL API) before bringing the stack up. AWS provisioning steps: **`deploy/aws/PHASE5_RUNBOOK.md`**.
+The compose file also runs **`joblevel`** (Next.js Joblevel app at `joblevel.contact360.io` via Nginx) and an **`emailcampaign-worker`** container. RDS, MSK, and OpenSearch remain **managed AWS** services; populate `deploy/env/jobs.env` and root `.env` (`DATABASE_URL` for the GraphQL API) before bringing the stack up. AWS provisioning steps: **`deploy/aws/PHASE5_RUNBOOK.md`**.
 
-**Data stores (PostgreSQL-first, Redis scope):** **`docs/docs/data-stores-postgres.md`**.
+**Data stores (PostgreSQL-first, no Redis):** **`docs/docs/data-stores-postgres.md`**.
 
 **Stack reference library:** Framework checklists and “why / best practices” notes for **Go/Gin, Next.js, Django, browser extension** live under **`docs/tech/`** (canonical filenames `tech-*-why-practices.md`, `tech-*-checklist-100.md`). Use them for era task planning; they are not release artifacts.
 
@@ -35,7 +35,7 @@ flowchart LR
   subgraph satellites [Go/Gin Satellite Services - EC2]
     Sync["EC2/sync.server\ncontact360.io/sync"]
     Jobs["EC2/job.server\ncontact360.io/jobs"]
-    Email["EC2/email.server\ngithub.com/ayan/emailapigo"]
+    Email["EC2/email.server\ncontact360.io/emailapigo"]
     Campaign["EC2/email campaign\ncontact360.io/emailcampaign"]
     S3["EC2/s3storage.server\ncontact360.io/s3storage"]
     AI["EC2/ai.server\ncontact360.io/ai"]
@@ -84,13 +84,14 @@ Product UI, the GraphQL gateway, Connectra, and the job scheduler live under **`
 | `contact360.io/app/` | Authenticated dashboard (Next.js; package name `contact360-dashboard`). |
 | `contact360.io/root/` | Marketing / public site (Next.js; package name `contact360-marketing`). |
 | `contact360.io/admin/` | Django DocsAI — roadmap/architecture mirrors, documentation CRUD, AI assistant, and operational admin surfaces (users, logs, jobs, billing, storage). |
-| `contact360.io/email/` | Email web app (Mailhub-style mailbox UI) with auth/account/mailbox routes over REST. |
+| `contact360.io/email/` | Email web app (Mailhub-style mailbox UI) with auth via GraphQL + mailbox/account routes over REST. |
 | `contact360.io/api/` | **Appointment360** — FastAPI GraphQL gateway (`/graphql`), `sql/apis/*.md`, `app/graphql/modules/*`. |
 | `contact360.io/sync/` | **Connectra** — Go search / VQL / Elasticsearch (see service `README.md`). |
 | `contact360.io/jobs/` | **TKD Job** — Python scheduler, Kafka consumers, DAG processors (`README.md`). |
-| `lambda/` | Deployable email/log/storage services (subset in minimal clones: `emailapis/`, `emailapigo/`, `logs.api/`, `s3storage/`). |
-| `backend(dev)/` | Extra service trees when present: `contact.ai/`, `mailvetter/`, `salesnavigator/`, `resumeai/`. |
-| `frontend(dev)/joblevel-next/` | **Joblevel** recruiting UI on Next.js App Router (bridge: `legacy-src/` from former Vite `joblevel/`). |
+| `EC2/log.server/`, `EC2/s3storage.server/`, `EC2/ai.server/`, `EC2/extension.server/`, `EC2/email campaign/` | Go Gin EC2 services for logs, S3 storage, AI, extension/SN ingestion, and email campaign engine. |
+| `lambda/` | Legacy email/log/storage services in some checkouts (`emailapis/`, `emailapigo/`, `logs.api/`, `s3storage/`); new work should target EC2 Go services. |
+| `backend(dev)/` | Legacy or auxiliary service trees when present: `contact.ai/`, `mailvetter/`, `salesnavigator/`, `resumeai/`. |
+| `contact360.io/joblevel/` | **Joblevel** recruiting UI on Next.js App Router. |
 | `extension/` | Browser extension packages (optional checkout). |
 | `docs/` | Product documentation (architecture, roadmap, versioning). |
 
@@ -180,9 +181,9 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 
 | Data store | Primary owners | Notes |
 | --- | --- | --- |
-| PostgreSQL | Appointment360 (and service-local relational modules) | Core transactional business entities |
+| PostgreSQL | Appointment360 (and service-local relational modules) | Core transactional business entities, idempotency tables, and all queue/rate-limit state (no Redis). |
 | Elasticsearch | Connectra | Contacts/companies search indexes and VQL query targets |
-| MongoDB | Logs API | Legacy reference only in some docs; primary logs.api runtime storage is S3 CSV |
+| MongoDB | — | **Removed (legacy only)** — older docs may still reference MongoDB for logs; canonical logs storage is S3 CSV. |
 | S3 | S3 Storage, TKD Job | CSV uploads, export artifacts, large object payloads |
 | Jobs scheduler Postgres (`DATABASE_URL`) | TKD Job | Scheduler-owned state (`job_node`, `edges`, `job_events`) |
 | Connectra filter metadata (`filters`, `filters_data`) | Connectra + Appointment360 | Filter taxonomy, facet hydration, and saved-search query compatibility |
@@ -221,15 +222,15 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 
 ## `contact.ai` data and service notes
 
-- **Contact AI** (`backend(dev)/contact.ai`) is a FastAPI service deployed on AWS Lambda via Mangum.
+- **Contact AI** is canonically deployed as **`EC2/ai.server`** (`contact360.io/ai`) — a Go/Gin EC2 service that preserves parity with the historical `backend(dev)/contact.ai` FastAPI Lambda implementation.
 - **Data store:** PostgreSQL `ai_chats` table (shared with appointment360); `user_id` FK references `users.uuid`.
 - **Inference:** Hugging Face Inference Providers for chat completions and JSON-mode tasks; Gemini as fallback.
 - **Auth:** `X-API-Key` (service-to-service) + `X-User-ID` (user-scoped chat ownership).
 - **Streaming:** Server-Sent Events (SSE) via `POST /api/v1/ai-chats/{id}/message/stream`.
 - **Utility endpoints:** `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters` — all stateless (no DB write).
 - **Era:** Operational baseline `0.x`; primary AI workflows `5.x`; full public API surface `8.x`.
-- **Cross-service dependency:** appointment360 calls contact.ai via `LambdaAIClient` (HTTP client); `LAMBDA_AI_API_URL` config key.
-- **Model selection:** `ModelSelection` enum in GraphQL maps to HF model IDs; `LambdaAIClient` must maintain the mapping shim.
+- **Cross-service dependency:** appointment360 calls Contact AI via an HTTP client; configuration is exposed as the AI service URL env var.
+- **Model selection:** `ModelSelection` enum in GraphQL maps to HF model IDs; the AI client must maintain the mapping shim.
 
 ---
 
@@ -453,7 +454,7 @@ Reference deep-dive and small-task decomposition: `docs/codebases/emailcampaign-
 
 ## `salesnavigator` execution spine by era
 
-`backend(dev)/salesnavigator` is the `4.x` Sales Navigator ingestion service. It is stateless (no local DB), forwarding all data to Connectra. It starts as a scaffold in `0.x` and evolves with auth governance, rate limiting, and campaign audience provenance in later eras.
+`EC2/extension.server` (`contact360.io/extension`) is the canonical `4.x` Sales Navigator ingestion façade, with parity to the historical `backend(dev)/salesnavigator` FastAPI Lambda implementation. It is stateless (no local DB), forwarding all data to Connectra. It starts as a scaffold in `0.x` and evolves with auth governance, rate limiting, and campaign audience provenance in later eras.
 
 | Era | Contract tasks | Service tasks | Data/Ops tasks |
 | --- | --- | --- | --- |
@@ -480,15 +481,15 @@ Reference deep-dive and small-task decomposition: `docs/codebases/salesnavigator
 
 | Surface | Path | Status | Notes |
 | --- | --- | --- | --- |
-| Email Frontend App | `contact360.io/email/` | active | Next.js 16 mailbox UI surface with auth, account, and folder routes |
-| Email Context Layer | `contact360.io/email/src/context/imap-context.tsx` | active | Active mailbox account context + localStorage persistence |
-| Email UI table layer | `contact360.io/email/src/components/data-table.tsx` | active | Folder tabs, checkbox row selection, pagination, row actions |
+| Email Frontend App | `contact360.io/email/` | active | Next.js 16 mailbox UI surface with GraphQL-based auth (via `api.contact360.io`) plus account and folder routes backed by mailbox REST APIs. |
+| Email Context Layer | `contact360.io/email/src/context/imap-context.tsx` | active | Active mailbox account context + localStorage persistence for folder/account state. |
+| Email UI table layer | `contact360.io/email/src/components/data-table.tsx` | active | Folder tabs, checkbox row selection, pagination, row actions. |
 
 ### Canonical ownership additions
 
 | Service | Path (this workspace) | Language | Owns |
 | --- | --- | --- | --- |
-| Email Frontend | `contact360.io/email/` | TypeScript/React | Mailbox UX, auth entry UI, IMAP account management UI, REST API consumption |
+| Email Frontend | `contact360.io/email/` | TypeScript/React | Mailbox UX, auth entry UX (GraphQL login/logout), IMAP account management UI, REST API consumption for mailbox data. |
 
 ## `mailvetter` execution spine by era
 

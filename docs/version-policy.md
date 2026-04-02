@@ -171,7 +171,7 @@ These sections are mandatory for new and existing minors and should contain conc
 
 | Era | Storage maturity theme | Key storage concern |
 | --- | --- | --- |
-| `0.x` | Bootstrap | Service wiring, endpoint baseline, key taxonomy |
+| `0.x` | Bootstrap | Service wiring, endpoint baseline, key taxonomy; **EC2 `s3storage.server`** (Gin + Postgres `pgqueue` + S3) documented in `docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md` |
 | `1.x` | User artifacts | Avatar/photo/payment-proof handling and validation |
 | `2.x` | Bulk file engine | Multipart upload durability and metadata readiness |
 | `3.x` | Data intelligence feed | Ingestion/export lineage and analysis quality |

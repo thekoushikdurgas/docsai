@@ -50,9 +50,8 @@ generator: json_to_markdown_endpoints.py
 
 ## known_gaps
 
-- ADM-0.3 permission map test coverage
-- ADM-0.4 idempotency on destructive admin actions
 - ADM-8.1 explicit public/private API split and versioning
+- ADM-1.1 resolved: billing payment review actions (`POST /admin/billing/payments/{id}/approve|decline`) now emit actor/reason/status transition/timestamp/request-id audit evidence
 
 <!-- AUTO:db-graph:start -->
 

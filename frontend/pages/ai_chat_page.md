@@ -291,9 +291,8 @@ app page UI -> useAiChat -> aiChatsService -> GraphQL gateway -> backend modules
 
 This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):
 
-- **0.x** — Foundation — app shell, generic sidebar, theme tokens, lottie basics, textarea patterns.
-- **5.x** — AI workflows — AI chat, live voice, AI email writer product, assistant panels, cognitive bridges.
-- **9.x** — Ecosystem & productization — integrations hub, platform marketing, encrypted tunnel UX.
+- **5.x** — AI workflows — AI chat, live voice, AI email writer product, assistant panels.
+- **9.x** — Ecosystem & productization — integrations hub, dynamic dashboard pages, platform marketing.
 
 Other eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).
 
@@ -301,7 +300,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:Dashboard] > [S:ChatSidebar] + [H:ChatHeader] + [Q:MessageList] + [F:ChatInput] -> {useAiChat}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -315,12 +314,9 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions.
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** Sidebar peers; [contacts_page.md](contacts_page.md) (via entity links); [companies_page.md](companies_page.md).
-
-**Cross-host:** Contextual AI insights shared with **email** (Mailhub) for automated reply generation.
-**Backend:** Appointment360 GraphQL gateway; Gemini-powered conversational intelligence services.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
 ## Backend API documentation
 

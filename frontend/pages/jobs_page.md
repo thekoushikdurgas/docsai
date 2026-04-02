@@ -291,10 +291,9 @@ app page UI -> useJobs, useExpandedJobDetails -> jobsService, s3Service -> Graph
 
 This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):
 
-- **0.x** — Foundation — app shell, generic sidebar, skeleton loaders, layout toggles.
-- **6.x** — Reliability & scaling — background jobs, polling, retry modals, pipeline throughput stats.
-- **8.x** — Public & private APIs — export contracts, S3 presigned downloads, backend binding parity.
-- **10.x** — Email campaign — campaign jobs, automated sequence processing hubs.
+- **6.x** — Reliability & scaling — analytics, activities, jobs, status, error/retry/skeleton patterns.
+- **8.x** — Public & private APIs — API docs, integrations story, export contracts, developer surfaces.
+- **10.x** — Email campaign — campaigns, sequences, templates, builder (planned routes).
 
 Other eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).
 
@@ -302,7 +301,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:Dashboard] > [H:Header] + [Q:JobSummary] + [T:JobTable] -> {useJobs}
+**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -316,12 +315,9 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).
 
-**Typical inbound:** `Sidebar` / `MainLayout`, [files_page.md](files_page.md) (after job creation).
+**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.
 
-**Typical outbound:** Sidebar peers; [files_page.md](files_page.md) (downloading result files).
-
-**Cross-host:** Job result metadata synced to **root** (Marketing) for public-facing success metrics if public.
-**Backend:** Appointment360 GraphQL gateway; background worker and S3 storage integrations.
+**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.
 
 ## Backend API documentation
 
@@ -374,7 +370,7 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 | `S3FileDownloadUrl` | *unresolved — add to endpoint index* | — | — |
 | `CreateJob` | [mutation_create_job_graphql.md](../../backend/endpoints/mutation_create_job_graphql.md) | MUTATION | 4.x |
 
-**Unresolved operations** (not found in `index.md` / `endpoints_index.md`):
+**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): 
 `graphql/RetryJob`, `graphql/S3FileDownloadUrl`
 
 *Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*

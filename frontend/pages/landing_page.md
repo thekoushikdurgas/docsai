@@ -596,7 +596,7 @@ Other eras may apply indirectly via shared layout/components documented in [../.
 
 Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
-**Composite layout:** [L:Landing] > [H:Navbar] + [Q:Hero] + [S:Features] + [P:Pricing] + [F:Footer]
+**Composite layout:** [P] public layout > [H] hero/title > [C] sections — `(btn)` CTAs, optional `(in)` newsletter; light `{REST}` or static content.
 
 **Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.
 
@@ -610,12 +610,12 @@ Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).
 
 **Codebase:** `contact360.io/root` (marketing / public docs shell).
 
-**Typical inbound:** SEO / External entry, [index.md](index.md) root navigation.
+**Typical inbound:** [landing_page.md](landing_page.md) nav/footer, SEO, `/docs` tree.
 
-**Typical outbound:** Sign in / Get started → **app** [login_page.md](login_page.md) / [register_page.md](register_page.md); product CTAs → same; Footer → `/about`, `/careers`, `/docs`.
+**Typical outbound:** Sign in / Get started → **app** [login_page.md](login_page.md) / [register_page.md](register_page.md); product CTAs → same.
 
-**Cross-host:** Hand-off to `app` (authentication) and `email` (Mailhub) via landing site CTAs.
-**Backend:** Public marketing surface; no first-party GraphQL host in `root`.
+**Cross-host:** No shared session with Mailhub unless integrated; dashboard uses separate GraphQL auth.
+**Backend:** Public/marketing shell — no first-party GraphQL host here; `AUTO:endpoint-links` tables apply only where this spec references `graphql/...` for cross-docs.
 
 
 

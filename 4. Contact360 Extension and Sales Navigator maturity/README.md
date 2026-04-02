@@ -63,27 +63,48 @@ Framework and stack reference material (rename-safe paths under `docs/tech/`):
 - [`docs/README.md`](../README.md)
 - [`docs/versions.md`](../versions.md)
 - [`docs/architecture.md`](../architecture.md)
-- [`docs/analysis/README.md`](../analysis/README.md)
+- [`contact360.io/root/docs/imported/analysis/README.md`](../../contact360.io/root/docs/imported/analysis/README.md)
 ## Tasks
 
 ### Contract
 
-- ✅ Completed: 📌 Planned: **[salesnavigator]** — Diff and document schema for operations like ConnectraClient, LAMBDA_AI_API_URL, LAMBDA_CONNECTRA_API_URL; align with roadmap | area: `backend-api` | files: `docs/backend/apis/*.md`, `contact360.io/api/app/graphql/schema.py` | reason: Keep GraphQL/REST contracts aligned for era 4.0 patch 0.0.0
+- ✅ Completed: ✅ Completed: 📌 Planned: **[salesnavigator]** — Diff and document schema for operations like ConnectraClient, LAMBDA_AI_API_URL, LAMBDA_CONNECTRA_API_URL; align with roadmap | area: `backend-api` | files: `docs/backend/apis/*.md`, `contact360.io/api/app/graphql/schema.py` | reason: Keep GraphQL/REST contracts aligned for era 4.0 patch 0.0.0
 
 ### Service
 
-- ✅ Completed: 📌 Planned: **[salesnavigator]** — Service slice: Era 4 scope per docs/codebases/salesnavigator-codebase-analysis.md | area: `backend-api` | files: `contact360.io/api/app/graphql/modules/`, `contact360.io/api/app/clients/` | reason: Implement or verify runtime behavior for Era 4 scope per docs/codebases/salesnavigator-codebase-analysis.md
-- ✅ Completed: 📌 Planned: **[appointment360]** — Harden primary worker/gateway integration and failure envelopes | area: `backend-api` | files: `docs/codebases/appointment360-codebase-analysis.md` | reason: P0 band: critical path and idempotency
+- ✅ Completed: ✅ Completed: 📌 Planned: **[salesnavigator]** — Service slice: Era 4 scope per docs/codebases/salesnavigator-codebase-analysis.md | area: `backend-api` | files: `contact360.io/api/app/graphql/modules/`, `contact360.io/api/app/clients/` | reason: Implement or verify runtime behavior for Era 4 scope per docs/codebases/salesnavigator-codebase-analysis.md
+- ✅ Completed: ✅ Completed: 📌 Planned: **[appointment360]** — Harden primary worker/gateway integration and failure envelopes | area: `backend-api` | files: `docs/codebases/appointment360-codebase-analysis.md` | reason: P0 band: critical path and idempotency
 
 ### Surface
 
-- ✅ Completed: 📌 Planned: **[extension]** — Verify UX for route `/email` and bindings (patch 0.0.0 band 0) | area: `frontend-page` | files: `contact360.io/app/...` | reason: Dashboard/extension surface for era 4 must match gateway contracts
+- ✅ Completed: ✅ Completed: 📌 Planned: **[extension]** — Verify UX for route `/email` and bindings (patch 0.0.0 band 0) | area: `frontend-page` | files: `contact360.io/app/...` | reason: Dashboard/extension surface for era 4 must match gateway contracts
 
 ### Data
 
-- ✅ Completed: 📌 Planned: **[salesnavigator]** — Update PostgreSQL/ES/S3 lineage notes if this patch touches persistence or exports | area: `data-lineage` | files: `docs/backend/database/`, `migrations/` | reason: Migrations, indexes, and lineage evidence for this patch
+- ✅ Completed: ✅ Completed: 📌 Planned: **[salesnavigator]** — Update PostgreSQL/ES/S3 lineage notes if this patch touches persistence or exports | area: `data-lineage` | files: `docs/backend/database/`, `migrations/` | reason: Migrations, indexes, and lineage evidence for this patch
 
 ### Ops
 
-- ✅ Completed: 📌 Planned: **[platform]** — Record smoke evidence, rollback, and alerts (patch band 0: charter/P0) | area: `ops` | files: `docs/commands/`, `.github/workflows/` | reason: Smoke, rollback, and observability for patch 0.0.0
+- ✅ Completed: ✅ Completed: 📌 Planned: **[platform]** — Record smoke evidence, rollback, and alerts (patch band 0: charter/P0) | area: `ops` | files: `docs/commands/`, `.github/workflows/` | reason: Smoke, rollback, and observability for patch 0.0.0
 
+## Flowchart
+
+Five-track delivery (contract / service / surface / data / ops) for this doc:
+
+```mermaid
+flowchart LR
+  contract[Contract]
+  service[Service]
+  surface[Surface]
+  data[Data]
+  ops[Ops]
+  gate[Release gate]
+
+  contract --> gate
+  service --> gate
+  surface --> gate
+  data --> gate
+  ops --> gate
+```
+
+**Master hub:** [`docs/docs/flowchart.md`](../docs/flowchart.md) — cross-system diagrams and era strip (`0.x` → `10.x`).

@@ -25,7 +25,7 @@ class CLIProfile:
     write_key: Optional[str] = None
     admin_email: Optional[str] = None
     admin_password: Optional[str] = None
-    timeout: int = 30
+    timeout: int = 300
     retry_max: int = 3
     retry_backoff: float = 1.5
     test_mode: str = "hybrid"
@@ -106,7 +106,7 @@ class ConfigManager:
                 write_key=os.getenv("WRITE_KEY"),
                 admin_email=os.getenv("ADMIN_EMAIL") or os.getenv("TEST_ADMIN_EMAIL"),
                 admin_password=os.getenv("ADMIN_PASSWORD") or os.getenv("TEST_ADMIN_PASSWORD"),
-                timeout=int(os.getenv("TIMEOUT", "30")),
+                timeout=int(os.getenv("TIMEOUT_SECONDS", os.getenv("TIMEOUT", "300"))),
                 retry_max=int(os.getenv("RETRY_MAX", "3")),
                 retry_backoff=float(os.getenv("RETRY_BACKOFF", "1.5")),
                 test_mode=os.getenv("TEST_MODE", "hybrid"),
@@ -114,6 +114,19 @@ class ConfigManager:
                 auto_create_test_user=os.getenv("AUTO_CREATE_TEST_USER", "true").lower() == "true"
             )
             self.config.profiles["default"] = default_profile
+            self.save_config()
+            return
+
+        # Migrate old default profile timeout (30s) to new 5-minute default
+        # when user has not explicitly provided TIMEOUT.
+        timeout_env = os.getenv("TIMEOUT_SECONDS") or os.getenv("TIMEOUT")
+        default_profile = self.config.profiles.get("default")
+        if (
+            default_profile
+            and default_profile.timeout == 30
+            and (timeout_env is None or not timeout_env.strip())
+        ):
+            default_profile.timeout = 300
             self.save_config()
     
     def save_config(self):

@@ -10,7 +10,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .scanner import DOCS_ROOT, ERA_FOLDERS
+from .paths import DOCS_ROOT
+from .scanner import ERA_FOLDERS
 
 # Canonical separator between version and title/codename
 EM_DASH = "\u2014"

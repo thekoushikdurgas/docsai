@@ -16,7 +16,8 @@ TEST_ADMIN_PASSWORD: Optional[str] = os.getenv("TEST_ADMIN_PASSWORD")
 
 # Testing configuration
 MAX_WORKERS: int = int(os.getenv("MAX_WORKERS", "5"))  # Parallel test threads
-TIMEOUT_SECONDS: int = int(os.getenv("TIMEOUT_SECONDS", "30"))
+# Default API timeout is 5 minutes; override via TIMEOUT_SECONDS (or legacy TIMEOUT).
+TIMEOUT_SECONDS: int = int(os.getenv("TIMEOUT_SECONDS", os.getenv("TIMEOUT", "300")))
 RATE_LIMIT: int = int(os.getenv("RATE_LIMIT", "20"))  # requests per minute
 RATE_LIMIT_WINDOW: int = 60  # seconds
 

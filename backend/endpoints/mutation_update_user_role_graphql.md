@@ -28,8 +28,8 @@ Update a user's role (FreeUser, ProUser, Admin, SuperAdmin). Returns updated use
 | --- | --- |
 | created_at | 2026-01-20T00:00:00.000000+00:00 |
 | updated_at | 2026-03-29T00:00:00.000000+00:00 |
-| era | 5.x |
-| introduced_in | 0.5.0 |
+| era | 7.x |
+| introduced_in | 7.0.0 |
 
 
 ## Security & limits
@@ -37,7 +37,7 @@ Update a user's role (FreeUser, ProUser, Admin, SuperAdmin). Returns updated use
 | Field | Value |
 | --- | --- |
 | auth_required | True |
-| rbac_roles | user |
+| rbac_roles | superadmin |
 | rate_limited | False |
 
 
@@ -71,7 +71,7 @@ Update a user's role (FreeUser, ProUser, Admin, SuperAdmin). Returns updated use
 
 ## Era alignment (Contact360 0.x–10.x)
 
-- **Lifecycle `era` (metadata):** `5.x` — Governance & RBAC (Role Management).
+- **Lifecycle `era` (metadata):** `7.x` — Deployment & Governance (Role Management).
 
 ## Database tables → SQL snapshots
 

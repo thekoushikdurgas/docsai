@@ -1,0 +1,466 @@
+{
+  "info": {
+    "_postman_id": "ec2-s3storage-server-contact360",
+    "name": "EC2 s3storage.server (Gin API)",
+    "description": "Postman collection for EC2/s3storage.server current Gin routes. Uses X-API-Key auth for protected routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /api/v1/health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/health",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/health/ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/health/ready",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health",
+                "ready"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Buckets",
+      "item": [
+        {
+          "name": "GET /api/v1/buckets/:name/ping",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/buckets/{{bucket}}/ping",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "buckets",
+                "{{bucket}}",
+                "ping"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "GET /api/v1/files",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/files",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "files"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/files?prefix=uploads/",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/files?prefix={{prefix}}",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "files"
+              ],
+              "query": [
+                {
+                  "key": "prefix",
+                  "value": "{{prefix}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/files?api_key=...",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/files?api_key={{s3storage_api_key}}",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "files"
+              ],
+              "query": [
+                {
+                  "key": "api_key",
+                  "value": "{{s3storage_api_key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "POST /api/v1/uploads/initiate-csv",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "key",
+                  "value": "{{upload_key}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/initiate-csv",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "initiate-csv"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/uploads/:id/parts/:n",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/{{upload_id}}/parts/{{part_number}}",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "parts",
+                "{{part_number}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/uploads/:id/complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parts\": [\n    {\n      \"part_number\": 1,\n      \"etag\": \"replace-with-part-etag\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/{{upload_id}}/complete",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "complete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /api/v1/uploads/:id/abort",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/{{upload_id}}/abort",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "abort"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analysis",
+      "item": [
+        {
+          "name": "GET /api/v1/analysis/schema?key=",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/analysis/schema?key={{analysis_key}}",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analysis",
+                "schema"
+              ],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "{{analysis_key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/analysis/stats?key=",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/analysis/stats?key={{analysis_key}}",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analysis",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "key",
+                  "value": "{{analysis_key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Avatars",
+      "item": [
+        {
+          "name": "GET /api/v1/avatars/:user?ext=png",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/avatars/{{avatar_user}}?ext={{avatar_ext}}",
+              "host": [
+                "{{s3storage_base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "avatars",
+                "{{avatar_user}}"
+              ],
+              "query": [
+                {
+                  "key": "ext",
+                  "value": "{{avatar_ext}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "s3storage_base_url",
+      "value": "http://127.0.0.1:8087"
+    },
+    {
+      "key": "s3storage_api_key",
+      "value": "change-me"
+    },
+    {
+      "key": "bucket",
+      "value": "your-bucket-name"
+    },
+    {
+      "key": "prefix",
+      "value": "uploads/"
+    },
+    {
+      "key": "idempotency_key",
+      "value": "test-idempotency-key-1"
+    },
+    {
+      "key": "upload_key",
+      "value": "uploads/postman-sample.csv"
+    },
+    {
+      "key": "upload_id",
+      "value": "replace-after-initiate"
+    },
+    {
+      "key": "part_number",
+      "value": "1"
+    },
+    {
+      "key": "analysis_key",
+      "value": "uploads/postman-sample.csv"
+    },
+    {
+      "key": "avatar_user",
+      "value": "test-user"
+    },
+    {
+      "key": "avatar_ext",
+      "value": "png"
+    }
+  ]
+}

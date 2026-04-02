@@ -4,6 +4,7 @@ Master index for backend contract, endpoint, lineage, and validation documentati
 
 ## Scope
 
+- Cross-service event baselines: [`contracts/log_server_era1_user_billing_events.md`](contracts/log_server_era1_user_billing_events.md) (Era 1.x → `EC2/log.server`).
 - Covers Appointment360 GraphQL, service APIs, endpoint metadata, data lineage, and Postman validation assets.
 - Aligns backend docs to era-based delivery (`0.x` to `10.x`).
 
@@ -32,16 +33,16 @@ Use this map when updating runtime code: start from the matching `docs/codebases
 | [sync-codebase-analysis.md](../codebases/sync-codebase-analysis.md) | `contact360.io/sync` (same service; normalized analysis) | Same row as Connectra; prefer this file for era-tagged gaps when both exist |
 | [contact-ai-codebase-analysis.md](../codebases/contact-ai-codebase-analysis.md) | `backend(dev)/contact.ai` | `apis/17_AI_CHATS_MODULE.md`, `contact_ai_endpoint_era_matrix.json`, `contact_ai_data_lineage.md`, `services.apis/contact.ai.api.md`, Postman: `docs/media/postman/Contact AI Service.postman_collection.json` |
 | [email-codebase-analysis.md](../codebases/email-codebase-analysis.md) | `contact360.io/email` (mailbox UI) | `apis/15_EMAIL_MODULE.md` (product email APIs), IMAP/security notes in `docs/docs/frontend.md` / mailbox docs; no separate GraphQL module for IMAP |
-| [emailapis-codebase-analysis.md](../codebases/emailapis-codebase-analysis.md) | `lambda/emailapis`, `lambda/emailapigo` | `apis/15_EMAIL_MODULE.md`, `emailapis_endpoint_era_matrix.json`, `emailapis_data_lineage.md` |
-| [emailcampaign-codebase-analysis.md](../codebases/emailcampaign-codebase-analysis.md) | `backend(dev)/email campaign` | `apis/22_CAMPAIGNS_MODULE.md`, `24_SEQUENCES_MODULE.md`, `25_CAMPAIGN_TEMPLATES_MODULE.md`, `emailcampaign_endpoint_era_matrix.json`, `emailcampaign_data_lineage.md`, `services.apis/emailcampaign.api.md` |
-| [extension-codebase-analysis.md](../codebases/extension-codebase-analysis.md) | `extension/contact360` | `apis/21_LINKEDIN_MODULE.md`, `apis/23_SALES_NAVIGATOR_MODULE.md`, related `endpoints/*graphql.json`, `salesnavigator_endpoint_era_matrix.json` |
+| [emailapis-codebase-analysis.md](../codebases/emailapis-codebase-analysis.md) | `EC2/email.server` (`contact360.io/emailapi`), legacy: `lambda/emailapis`, `lambda/emailapigo` | `apis/15_EMAIL_MODULE.md`, `emailapis_endpoint_era_matrix.json`, `emailapis_data_lineage.md` |
+| [emailcampaign-codebase-analysis.md](../codebases/emailcampaign-codebase-analysis.md) | `EC2/email campaign` (`contact360.io/emailcampaign`), legacy: `backend(dev)/email campaign` | `apis/22_CAMPAIGNS_MODULE.md`, `24_SEQUENCES_MODULE.md`, `25_CAMPAIGN_TEMPLATES_MODULE.md`, `emailcampaign_endpoint_era_matrix.json`, `emailcampaign_data_lineage.md`, `services.apis/emailcampaign.api.md` |
+| [extension-codebase-analysis.md](../codebases/extension-codebase-analysis.md) | `EC2/extension.server` (`contact360.io/extension`), legacy: `extension/contact360`, `backend(dev)/salesnavigator` | `apis/21_LINKEDIN_MODULE.md`, `apis/23_SALES_NAVIGATOR_MODULE.md`, related `endpoints/*graphql.json`, `salesnavigator_endpoint_era_matrix.json` |
 | [jobs-codebase-analysis.md](../codebases/jobs-codebase-analysis.md) | `contact360.io/jobs` | `apis/16_JOBS_MODULE.md`, `jobs_endpoint_era_matrix.json`, `jobs_data_lineage.md` |
-| [logsapi-codebase-analysis.md](../codebases/logsapi-codebase-analysis.md) | `lambda/logs.api` | Admin log queries in `apis/13_ADMIN_MODULE.md`, `logsapi_endpoint_era_matrix.json`, `logsapi_data_lineage.md` |
+| [logsapi-codebase-analysis.md](../codebases/logsapi-codebase-analysis.md) | `EC2/log.server` (`contact360.io/logsapi`), legacy: `lambda/logs.api` | Admin log queries in `apis/13_ADMIN_MODULE.md`, `logsapi_endpoint_era_matrix.json`, `logsapi_data_lineage.md` |
 | [mailvetter-codebase-analysis.md](../codebases/mailvetter-codebase-analysis.md) | `backend(dev)/mailvetter` | `apis/15_EMAIL_MODULE.md` (verifier integration), `mailvetter_endpoint_era_matrix.json`, `mailvetter_data_lineage.md`, `services.apis/mailvetter.api.md` |
 | [root-codebase-analysis.md](../codebases/root-codebase-analysis.md) | `contact360.io/root` (marketing) | `apis/19_PAGES_MODULE.md` (public pages), marketing GraphQL usage, `postman/` where marketing calls gateway |
-| [s3storage-codebase-analysis.md](../codebases/s3storage-codebase-analysis.md) | `lambda/s3storage`; **Target runtime: Go** `EC2/s3storage.server/` (`contact360.io/s3storage`) | `apis/07_S3_MODULE.md`, `apis/10_UPLOAD_MODULE.md`, `s3storage_endpoint_era_matrix.json`, `Storage_Backend_s3storage.postman_collection.json`, `services.apis/s3storage.api.md` |
-| [salesnavigator-codebase-analysis.md](../codebases/salesnavigator-codebase-analysis.md) | `backend(dev)/salesnavigator`; **Target runtime: Go** `EC2/extension.server/` (save-profiles / Connectra) | `apis/23_SALES_NAVIGATOR_MODULE.md`, `salesnavigator_endpoint_era_matrix.json`, `salesnavigator_data_lineage.md`, `services.apis/salesnavigator.api.md` |
-| *EC2 log / AI (see architecture)* | `EC2/log.server/` (`contact360.io/logsapi`), `EC2/ai.server/` (`contact360.io/ai`) | **Target runtime: Go** — parity with `lambda/logs.api` and `backend(dev)/contact.ai`; see `services.apis/logsapi.api.md`, `contact.ai.api.md` |
+| [s3storage-codebase-analysis.md](../codebases/s3storage-codebase-analysis.md) | `EC2/s3storage.server/` (`contact360.io/s3storage`), legacy: `lambda/s3storage` | `apis/07_S3_MODULE.md`, `apis/10_UPLOAD_MODULE.md`, `s3storage_endpoint_era_matrix.json`, `Storage_Backend_s3storage.postman_collection.json`, `services.apis/s3storage.api.md` |
+| [salesnavigator-codebase-analysis.md](../codebases/salesnavigator-codebase-analysis.md) | `EC2/extension.server/` (`contact360.io/extension`), legacy: `backend(dev)/salesnavigator` | `apis/23_SALES_NAVIGATOR_MODULE.md`, `salesnavigator_endpoint_era_matrix.json`, `salesnavigator_data_lineage.md`, `services.apis/salesnavigator.api.md` |
+| *EC2 AI (see architecture)* | `EC2/ai.server/` (`contact360.io/ai`) | **Target runtime: Go** — parity with `backend(dev)/contact.ai`; see `services.apis/contact.ai.api.md` |
 
 **Frontend-only surfaces** (no dedicated REST doc in `services.apis/`): `admin`, `app`, `root`, `email`, `extension` — still require backend contract updates when GraphQL modules, endpoint JSON, or Postman examples change.
 

@@ -16,6 +16,10 @@ Endpoint metadata and parity-tracking guide for backend API surfaces.
 - `endpoints_index.json` lists these matrices under `supplemental_indexes` (including `contact_ai_endpoint_era_matrix.json` and `salesnavigator_endpoint_era_matrix.json`) alongside the aggregated GraphQL inventory.
 - Endpoint-level files are release-gate artifacts and must stay in parity with runtime contracts.
 
+## Extension FastAPI (ingest) — `contact360.extension`
+
+- REST: `POST /v1/save-profiles`, `POST /v1/scrape` (see [contact360.extension/app/api/v1/endpoints/scrape.py](../../contact360.extension/app/api/v1/endpoints/scrape.py)). Track alongside `salesnavigator` / `extension` era matrices when enriching request metadata (`extension_trace_id`, `scrape_mode`).
+
 ## Parity with `docs/codebases/`
 
 - Registry: [docs/backend/README.md](../README.md#codebase-analysis-registry) maps each codebase analysis to matrices and GraphQL operation JSON here.
@@ -33,6 +37,7 @@ Endpoint metadata and parity-tracking guide for backend API surfaces.
 | `salesnavigator_endpoint_era_matrix.json` | `salesnavigator-codebase-analysis.md`, `extension-codebase-analysis.md` |
 | `mailvetter_endpoint_era_matrix.json` | `mailvetter-codebase-analysis.md` |
 | `emailcampaign_endpoint_era_matrix.json` | `emailcampaign-codebase-analysis.md` |
+| `emailapp_endpoint_era_matrix.json` | `email-codebase-analysis.md` (Mailhub `contact360.io/email` REST consumer) |
 
 ## Why this matters
 

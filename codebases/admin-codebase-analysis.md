@@ -68,66 +68,67 @@
 - [x] ✅ Django admin/governance surface is fully wired with route inventory and template-based UI shells.
 - [x] ✅ Privileged route access decorators are in place (`require_super_admin`, `require_admin_or_super_admin`).
 - [x] ✅ Admin operations integrate with `logs.api`, `s3storage`, `tkdjob`, and Appointment360 GraphQL clients.
-- [x] ✅ Idempotency guard tests exist for destructive delete flows in admin views.
+- [x] ✅ Idempotency guard tests exist for destructive/retry admin actions (logs delete, storage delete, billing approve/decline, job retry).
 - [x] ✅ Permission-map tests validate route inventory coverage against URL patterns.
 
 ## Active risks and gap map
 
 ### Security and configuration drift
 
-- [ ] ⬜ Incomplete: `LOGS_API_KEY` still has an insecure default fallback in settings.
-- [ ] ⬜ Incomplete: `S3StorageClient` path notes "No API key required" and needs alignment with stricter storage auth policy.
-- [ ] 🟡 In Progress: env validation exists, but secret hygiene in examples and production defaults remains uneven.
+- [x] ✅ Completed: insecure `LOGS_API_KEY` default fallback removed; key now requires explicit environment injection.
+- [x] ✅ Completed: baked-in external defaults for `LOGS_API_URL` and `LAMBDA_AI_API_URL` removed; endpoints are now env-explicit.
+- [x] ✅ Completed: `S3StorageClient` auth is aligned to API-key policy (`X-API-Key`, `S3STORAGE_API_KEY` required with URL).
+- [x] ✅ Completed: env example templates now avoid secret-like placeholder defaults and explicitly include paired URL/API-key entries for logs, scheduler, and storage integrations.
 
 ### Contract and governance drift
 
-- [ ] 🟡 In Progress: route inventory and decorators are tested, but full RBAC evidence mapping to docs is partial.
-- [ ] ⬜ Incomplete: some admin settings flows remain placeholder-oriented and not backed by durable config operations.
-- [ ] ⬜ Incomplete: docs/graph/navigation drift risk remains when constants and sidebar registry change.
+- [x] ✅ Completed: route inventory/decorator evidence now includes both `apps/admin/route_inventory.py` parity tests and cross-surface critical route scope checks in `apps/admin/tests/test_privileged_route_scopes.py`.
+- [x] ✅ Completed: settings surface now routes writable config changes through validated billing workflow with audit events (`billing_settings_view`) and runtime snapshot-only general settings page.
+- [x] ✅ Completed: navigation drift guard test now validates sidebar `app_name:url_name` entries resolve at runtime (`apps/core/tests/test_navigation_integrity.py`).
 
 ### Reliability and operations gaps
 
-- [ ] ⬜ Incomplete: documentation operations jobs use in-memory tracking maps and are not resilient across restarts.
-- [ ] 🟡 In Progress: logs and storage admin surfaces exist but cross-client trace propagation is not fully normalized.
-- [ ] ⬜ Incomplete: consolidated SLO/error-budget dashboards for admin-critical dependencies are not complete.
+- [x] ✅ Completed: documentation operations background jobs now persist runtime state in `OperationLog.metadata` (DB-backed), with in-memory fallback only.
+- [x] ✅ Completed: logs/storage/jobs/GraphQL paths now share `X-Request-ID` propagation for cross-client trace continuity.
+- [x] ✅ Completed: operations dashboard now exposes a dependency release gate (weighted uptime policy + block/pass state) for basic SLO/error-budget enforcement.
 
 ## Current execution packs (small tasks by status)
 
 ### Contract pack
 
 - [x] ✅ Core admin route inventory and permission scopes are formalized.
-- [ ] 🟡 In Progress: align RBAC and governance docs with decorator-enforced runtime behavior.
-- [ ] ⬜ Incomplete: define idempotency contract for all destructive admin mutations (not just deletes).
+- [x] ✅ Completed: RBAC/governance docs aligned with decorator-enforced runtime behavior and test evidence (`test_admin_guards.py`, `test_privileged_route_scopes.py`).
+- [x] ✅ Completed: idempotency contract extended across destructive/retry mutations (`test_admin_guards.py`) including billing approve/decline and job retry noop handling.
 - [ ] 📌 Planned: publish explicit public/private admin API boundary rules for `8.x`.
 
 ### Service pack
 
 - [x] ✅ Client bridges for GraphQL/logs/storage/jobs are active in admin views.
 - [ ] 🟡 In Progress: unify service client auth/error envelopes for consistent operator behavior.
-- [ ] ⬜ Incomplete: replace placeholder settings workflows with durable validated config pipelines.
-- [ ] ⬜ Incomplete: migrate volatile in-memory job tracking to persistent task backend.
+- [x] ✅ Completed: replaced placeholder settings workflow with validated billing settings pipeline (+ audit logging + tests) and non-writable runtime snapshot at `/admin/settings/`.
+- [x] ✅ Completed: migrated docs operation background job state from volatile in-memory maps to DB-backed runtime persistence in `apps/documentation/views/operations.py`.
 - [ ] 📌 Planned: add policy-aware controls for ecosystem and campaign operations.
 
 ### Surface pack
 
 - [x] ✅ Billing/users/logs/storage/jobs screens are present and routed.
-- [ ] 🟡 In Progress: strengthen operational health panels beyond placeholders.
+- [x] ✅ Operational health panel now consumes real probe-derived statuses and probe-weighted uptime (not static placeholder uptime).
 - [ ] ⬜ Incomplete: add richer provider/retry/failure visibility for email and ingestion operations.
 - [ ] 📌 Planned: campaign and integration control consoles for later eras.
 
 ### Data pack
 
 - [x] ✅ Graph/documentation repositories and admin data reads are wired.
-- [ ] 🟡 In Progress: improve actor/diff lineage fields for billing and privileged actions.
-- [ ] ⬜ Incomplete: enforce trace ID continuity across GraphQL/logs/storage/job client hops.
+- [x] ✅ Completed: billing approve/decline paths now emit structured actor/reason/status transition lineage evidence.
+- [x] ✅ Completed: trace ID continuity enforced across GraphQL/logs/storage/job client hops (`X-Request-ID` propagation plus tests in `apps/admin/tests/test_trace_propagation.py`).
 - [ ] 📌 Planned: compliance evidence overlays for campaign and ecosystem operations.
 
 ### Ops pack
 
 - [x] ✅ Route guard tests and idempotency tests exist for key admin delete paths.
-- [ ] ⬜ Incomplete: remove insecure secret defaults and tighten environment validation gates.
-- [ ] ⬜ Incomplete: add resilience tests for job-tracking restart scenarios and dependency outages.
-- [ ] 🟡 In Progress: standardize observability hooks to `logs.api` and dependency health panels.
+- [ ] 🟡 In Progress: remove insecure secret defaults and tighten environment validation gates (service URL/API-key startup validation now enforced for logs, scheduler, storage, and Lambda AI).
+- [x] ✅ Completed: resilience tests now cover dependency outages and restart-safe docs job polling (`apps/operations/tests/test_operations_resilience.py`, `apps/documentation/tests/test_operations_runtime_job_persistence.py`).
+- [ ] 🟡 In Progress: standardize observability hooks to `logs.api` and dependency health panels (scheduler health probe now runtime-checked, not config-only).
 - [ ] 📌 Planned: enforce release gates requiring admin governance evidence in each minor.
 
 ## Era-by-era completion map (`0.x.x` to `10.x.x`)
@@ -135,13 +136,13 @@
 ### `0.x.x - Foundation and pre-product stabilization and codebase setup`
 
 - [x] ✅ Completed: Django shell, auth decorators, base views, and navigation system are established.
-- [ ] 🟡 In Progress: lock foundational docs/runtime parity for route inventory and governance maps.
-- [ ] ⬜ Incomplete: remove insecure fallback defaults from baseline environment config.
+- [x] ✅ Completed: lock foundational docs/runtime parity for route inventory and governance maps with route-inventory tests plus sidebar navigation resolve guard.
+- [x] ✅ Completed: remove insecure fallback defaults from baseline environment templates (`.env.example`, `.env.prod.example`, `env.example`) and align key-pair contracts.
 
 ### `1.x.x - Contact360 user and billing and credit system`
 
 - [x] ✅ Completed: billing review and payment action views are implemented with privileged guards.
-- [ ] 🟡 In Progress: improve credit-change audit evidence (actor + reason + diff timeline).
+- [x] ✅ Completed: credit-change/payment review timeline now emits actor + reason + status transition + timestamp evidence.
 - [ ] ⬜ Incomplete: strengthen durable workflow backing for billing settings and QR flows.
 
 ### `2.x.x - Contact360 email system`
@@ -200,29 +201,29 @@
 
 ## Immediate execution queue (high impact)
 
-- [ ] ⬜ Incomplete: remove insecure `LOGS_API_KEY` fallback default and enforce secret-required startup checks.
-- [ ] ⬜ Incomplete: align admin `S3StorageClient` auth model with canonical `s3storage` API-key policy.
-- [ ] 🟡 In Progress: close route/RBAC docs parity and generate evidence mapping from route inventory tests.
-- [ ] ⬜ Incomplete: replace in-memory operation job tracking with durable backend storage/queue.
-- [ ] ⬜ Incomplete: finalize non-placeholder settings workflows with validation and audit logging.
-- [ ] 🟡 In Progress: normalize cross-client trace fields for logs/storage/jobs/GraphQL operations.
-- [ ] 📌 Planned: add SLO dashboard and error-budget release gate for admin dependency health.
+- [x] ✅ Completed: insecure `LOGS_API_KEY` fallback default removed; secret-required startup checks now validate URL/API-key pairs for logs, scheduler, storage, and Lambda AI dependencies.
+- [x] ✅ Completed: align admin `S3StorageClient` auth model with canonical `s3storage` API-key policy.
+- [x] ✅ Completed: close route/RBAC docs parity and map evidence from route inventory + critical cross-surface guard tests.
+- [x] ✅ Completed: replace in-memory docs operation job tracking with durable DB-backed runtime state (`OperationLog`) while preserving existing API contract.
+- [x] ✅ Completed: finalize non-placeholder settings workflows with validation and audit logging.
+- [x] ✅ Completed: normalize cross-client trace fields for logs/storage/jobs/GraphQL operations using per-request `X-Request-ID` propagation.
+- [x] ✅ Completed: add SLO/error-budget release gate for admin dependency health in operations dashboard context/UI.
 
 ## 2026 Gap Register (actionable)
 
 ### P0
 
-- [ ] ⬜ Incomplete: `ADM-0.1` Remove insecure secret fallback defaults (`LOGS_API_KEY` and similar).
-- [ ] 🟡 In Progress: `ADM-0.3` Permission-map test coverage for privileged routes (baseline done, extend to all critical actions).
-- [ ] ⬜ Incomplete: `ADM-0.4` Idempotency contract for all destructive admin actions.
-- [ ] ⬜ Incomplete: `ADM-0.5` Durable persistence for documentation operation jobs.
+- [x] ✅ Completed: `ADM-0.1` `LOGS_API_KEY` fallback removed and startup now enforces URL/API-key pairing across core dependency services.
+- [x] ✅ Completed: `ADM-0.3` Permission-map test coverage now includes admin route inventory parity plus critical non-admin super-admin route scope assertions.
+- [x] ✅ Completed: `ADM-0.4` Idempotency contract expanded beyond delete flows to billing approval/decline and job retry conflict/noop scenarios.
+- [x] ✅ Completed: `ADM-0.5` Durable persistence added for docs background analyze/generate/upload job state via `OperationLog` metadata.
 
 ### P1/P2
 
-- [ ] ⬜ Incomplete: `ADM-1.1` Credit-change audit timeline with actor and diff evidence.
+- [x] ✅ Completed: `ADM-1.1` Credit-change audit timeline now emits actor_user_id/reason/status transition/timestamp/request-id evidence from billing review actions.
 - [ ] ⬜ Incomplete: `ADM-2.1` Email operations panel expansion (provider/failure/retry visibility).
 - [ ] 🟡 In Progress: `ADM-5.1` AI workflow governance panel completion.
-- [ ] ⬜ Incomplete: `ADM-6.2` Cross-client trace ID propagation.
+- [x] ✅ Completed: `ADM-6.2` Cross-client trace ID propagation across admin GraphQL/logs/storage/job client calls.
 
 ### P3/P4
 

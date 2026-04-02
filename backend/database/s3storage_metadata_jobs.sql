@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS s3storage_metadata_jobs (
+  id BIGSERIAL PRIMARY KEY,
+  bucket TEXT NOT NULL,
+  key TEXT NOT NULL,
+  state TEXT NOT NULL DEFAULT 'queued',
+  available_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  attempts INT NOT NULL DEFAULT 0,
+  last_error TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

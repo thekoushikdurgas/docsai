@@ -74,7 +74,12 @@ python cli.py sql run --dry-run --no-log-files
 ```bash
 python cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json show-env
 python cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json discover
+python cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json pattern-generator -- --help
+# Forward args to the underlying script:
+python cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json pattern-generator -- --api-url http://localhost:8000
 ```
+
+**Timeout default:** API test scripts now default to **300 seconds (5 minutes)** per request. Override with `TIMEOUT_SECONDS` (and `TIMEOUT` for legacy CLI profile compatibility).
 
 **Interactive Docs Agent** (menus **A–G**; section **B** includes validate **B7–B9** and format **B10–B11**): `python main.py`.
 

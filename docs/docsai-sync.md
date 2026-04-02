@@ -234,6 +234,7 @@ DocsAI verification additions for contact.ai:
 ## Extension sync rules
 
 ### Rule EXT-1 — Extension module paths
+
 Any reference to extension auth, client, or merger modules must use the canonical path `extension/contact360/{auth|utils}/`:
 
 - `extension/contact360/auth/graphqlSession.js`
@@ -243,6 +244,7 @@ Any reference to extension auth, client, or merger modules must use the canonica
 If documentation references `extention/` (old spelling) or different module paths, it must be updated to the canonical form above.
 
 ### Rule EXT-2 — Lambda SN API endpoint
+
 All documentation of the profile save endpoint must use:
 ```
 POST /v1/save-profiles
@@ -250,6 +252,7 @@ POST /v1/save-profiles
 Do not document this as `/save-profiles`, `/profiles/save`, or any other variant without an explicit versioning note.
 
 ### Rule EXT-3 — Token storage keys
+
 Documentation of token storage must always refer to the two canonical keys:
 
 - `accessToken`
@@ -262,6 +265,7 @@ Both keys must be documented as stored in `chrome.storage.local` (never `storage
 - `docs/governance.md` (token security rules)
 
 ### Rule EXT-4 — Extension era tagging
+
 Extension contributions must be tagged with their primary era in all docs:
 
 - Auth/token lifecycle → era `1.x`
@@ -274,6 +278,7 @@ Extension contributions must be tagged with their primary era in all docs:
 ## Sales Navigator service sync rules
 
 ### Rule SN-1 — REST API contract drift
+
 If any route in `backend(dev)/salesnavigator/app/api/v1/endpoints/` changes (added, renamed, removed), update these docs atomically in the same PR:
 
 - `docs/codebases/salesnavigator-codebase-analysis.md`
@@ -282,9 +287,11 @@ If any route in `backend(dev)/salesnavigator/app/api/v1/endpoints/` changes (add
 - `backend(dev)/salesnavigator/docs/api.md` (the service's own API reference)
 
 ### Rule SN-2 — Docs drift prevention
+
 `docs/api.md` in the service repo must ONLY document routes that are actually implemented. If `POST /v1/scrape-html-with-fetch` is documented but not implemented, it must be removed from docs or implemented before the next release. This rule is a P0 gate for `4.x` release.
 
 ### Rule SN-3 — UUID contract
+
 Any change to `generate_contact_uuid()` or `generate_company_uuid()` in `app/services/sales_navigator/utils.py` must update:
 
 - `docs/backend/database/salesnavigator_data_lineage.md`
@@ -294,12 +301,14 @@ Any change to `generate_contact_uuid()` or `generate_company_uuid()` in `app/ser
 UUID contract changes are breaking — require migration evidence before production deployment.
 
 ### Rule SN-4 — Field mapping changes
+
 Any change to `app/services/mappers.py` (new fields, renamed fields, seniority/department logic) must update:
 
 - `docs/backend/database/salesnavigator_data_lineage.md` (field table)
 - `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md` (field mapping section)
 
 ### Rule SN-5 — Era task pack sync
+
 For every era task pack for `salesnavigator`, the corresponding era folder file must be consistent with `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`.
 
 DocsAI verification additions for salesnavigator:
@@ -313,6 +322,7 @@ DocsAI verification additions for salesnavigator:
 ## Email app sync rules
 
 ### Rule EMAIL-1 — Route inventory sync
+
 When routes are added/renamed in `contact360.io/email/src/app/`, update:
 
 - `docs/codebases/email-codebase-analysis.md`
@@ -320,6 +330,7 @@ When routes are added/renamed in `contact360.io/email/src/app/`, update:
 - relevant era task-pack docs
 
 ### Rule EMAIL-2 — Endpoint contract sync
+
 When fetch endpoints change in `contact360.io/email`, update:
 
 - `docs/backend/endpoints/emailapp_endpoint_era_matrix.json`
@@ -327,6 +338,7 @@ When fetch endpoints change in `contact360.io/email`, update:
 - `docs/backend/apis/EMAILAPP_ERA_TASK_PACKS.md`
 
 ### Rule EMAIL-3 — Security sync
+
 Any change to localStorage credential/session behavior in `imap-context.tsx` must update:
 
 - `docs/audit-compliance.md`
@@ -336,6 +348,7 @@ Any change to localStorage credential/session behavior in `imap-context.tsx` mus
 ## Mailvetter service sync rules
 
 ### Rule MV-1 — API contract drift
+
 If any route changes under `backend(dev)/mailvetter/app/mailvetter-bak/internal/api/` or handlers, update atomically in the same PR:
 
 - `docs/codebases/mailvetter-codebase-analysis.md`
@@ -344,9 +357,11 @@ If any route changes under `backend(dev)/mailvetter/app/mailvetter-bak/internal/
 - `docs/backend/apis/15_EMAIL_MODULE.md` (gateway verifier contract references)
 
 ### Rule MV-2 — Canonical path policy
+
 `/v1/*` is canonical for all new consumers. Legacy `/verify|/upload|/status|/results` are compatibility-only and must be marked deprecated in docs.
 
 ### Rule MV-3 — Scoring contract sync
+
 Any scoring/status change in `internal/validator/scoring.go` must update:
 
 - `docs/codebases/mailvetter-codebase-analysis.md`
@@ -354,6 +369,7 @@ Any scoring/status change in `internal/validator/scoring.go` must update:
 - `docs/frontend.md` verifier status mapping section
 
 ### Rule MV-4 — Data schema sync
+
 Any `jobs`/`results` schema change in `internal/store/db.go` must update:
 
 - `docs/backend/database/mailvetter_data_lineage.md`
@@ -363,6 +379,7 @@ Any `jobs`/`results` schema change in `internal/store/db.go` must update:
 ## Admin and service sync extensions
 
 ### Rule ADM-1 — Constants and canonical docs sync
+
 Any material update to admin architecture/roadmap behavior must synchronize:
 
 - `docs/architecture.md`
@@ -371,6 +388,7 @@ Any material update to admin architecture/roadmap behavior must synchronize:
 - `contact360.io/admin/apps/roadmap/constants.py`
 
 ### Rule EGO-1 — Endpoint matrix sync
+
 Any `lambda/emailapigo` endpoint contract change must update:
 
 - `docs/backend/endpoints/emailapigo_endpoint_era_matrix.json`
@@ -378,6 +396,7 @@ Any `lambda/emailapigo` endpoint contract change must update:
 - related era task packs in `docs/0...10/`
 
 ### Rule S3S-1 — Multipart contract sync
+
 Any multipart session/state contract update in `lambda/s3storage` must update:
 
 - `docs/codebases/s3storage-codebase-analysis.md`
@@ -385,6 +404,7 @@ Any multipart session/state contract update in `lambda/s3storage` must update:
 - `docs/backend/endpoints/s3storage_endpoint_era_matrix.json`
 
 ### Rule LOG-1 — Storage contract sync
+
 Any logs storage contract update in `lambda/logs.api` must update:
 
 - `docs/codebases/logsapi-codebase-analysis.md`
@@ -394,10 +414,4 @@ Any logs storage contract update in `lambda/logs.api` must update:
 
 ## AI Workspace Logs & Sync Activity
 
-- [Cursor Documentation File Ex](analysis/cursor_contact360_documentation_file_ex.md)
-- [Cursor Directory Exploration](analysis/cursor_directory_exploration_and_file_c.md)
-- [Cursor Content Retrieval 1](analysis/cursor_documentation_content_retrieval1.md)
-- [Cursor Content Retrieval](analysis/cursor_documentation_file_content_retri.md)
-- [Cursor Folder Exploration](analysis/cursor_documentation_folder_exploration.md)
-- [Cursor Structure Exploration](analysis/cursor_documentation_structure_explorat.md)
-- [Cursor File Content & Label](analysis/cursor_file_content_retrieval_and_label.md)
+Legacy Cursor session extracts (exploration notes, not canonical specs) may exist only in git history for paths formerly under `docs/analysis/_quarantine/`. Use [`contact360.io/root/docs/imported/analysis/README.md`](../../contact360.io/root/docs/imported/analysis/README.md) and era folders `docs/<0–10>. …/` for execution.

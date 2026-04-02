@@ -459,6 +459,7 @@ Use this checklist when reviewing root/app/admin UX parity:
 - `components/email-list.tsx` — mailbox fetch orchestration, loading/error/empty state.
 - `components/data-table.tsx` — tabs, checkbox selection, pagination, row action dropdown.
 - `components/app-sidebar.tsx` — folder navigation and user bootstrap.
+- `components/nav-secondary.tsx` — compact secondary nav rail aligned to Radix/shadcn patterns.
 - `components/nav-user.tsx` — account menu + logout.
 - `app/account/[userId]/page.tsx` — profile and IMAP account management.
 

@@ -18,7 +18,7 @@ import cli as cli_mod
 
 from scripts.models import Status
 from scripts.paths import DEFAULT_CONTACT360_POSTMAN_ENV, DOCS_ROOT
-from scripts.codebase_registry import load_registry
+from scripts.metadata.codebase_registry import load_registry
 from scripts.scanner import ERA_FOLDERS, scan_all, scan_era_only
 from scripts.contact360_era_guide import get_era_guide_entries, get_era_guide_entry
 from scripts.stats import (
@@ -618,6 +618,52 @@ def run_sql_menu() -> None:
     _hint("python cli.py sql run|init-schema|load-csv …")
 
 
+def run_api_suite_menu() -> None:
+    env_choice = Prompt.ask(
+        "Contact360 environment",
+        choices=["local", "production", "both"],
+        default="local",
+    )
+    ns = argparse.Namespace(command="suites", suites_cmd="api", env=env_choice)
+    rc = cli_mod.cmd_suites_api(ns)
+    if rc != 0:
+        console.print(f"[red]API suite exit code {rc}[/red]")
+    _hint("python cli.py suites api --env local|production|both")
+
+
+def run_sql_suite_menu() -> None:
+    mode = Prompt.ask(
+        "SQL suite mode",
+        choices=["create", "update", "insert", "select"],
+        default="create",
+    )
+    remove_other = Confirm.ask(
+        "Prune non-table SQL files under backend/database?",
+        default=False,
+    )
+    apply = False
+    if remove_other:
+        apply = Confirm.ask("Apply file removals now? (No = dry-run list only)", default=False)
+    table = ""
+    if mode == "select":
+        table = Prompt.ask("Table name for SELECT → CSV (blank = export all mapped tables)", default="").strip()
+    ns = argparse.Namespace(
+        command="suites",
+        suites_cmd="sql",
+        mode=mode,
+        table=table,
+        remove_other_sql=remove_other,
+        apply=apply,
+    )
+    rc = cli_mod.cmd_suites_sql(ns)
+    if rc != 0:
+        console.print(f"[red]SQL suite exit code {rc}[/red]")
+    _hint(
+        "python cli.py suites sql --mode create|update|insert|select "
+        "[--table TABLE] [--remove-other-sql] [--apply]"
+    )
+
+
 def run_api_discover_quick() -> None:
     raw = Prompt.ask("Postman env path (blank = default)", default="").strip()
     ns = argparse.Namespace(postman_env=raw, override_env=False, pattern_generator_args=[])
@@ -652,6 +698,19 @@ def run_api_email_single_quick() -> None:
     if rc != 0:
         console.print(f"[red]Exit code {rc}[/red]")
     _hint('python cli.py api-test --postman-env "<path>" email-single')
+
+
+def run_api_pattern_generator_quick() -> None:
+    raw = Prompt.ask("Postman env path (blank = default)", default="").strip()
+    args_raw = Prompt.ask(
+        "Args after -- for email_pattern_generator.py (blank = none)", default=""
+    ).strip()
+    forwarded = args_raw.split() if args_raw else []
+    ns = argparse.Namespace(postman_env=raw, override_env=False, pattern_generator_args=forwarded)
+    rc = cli_mod.cmd_api_test_subprocess(ns, "email_pattern_generator.py", forwarded=forwarded)
+    if rc != 0:
+        console.print(f"[red]Exit code {rc}[/red]")
+    _hint('python cli.py api-test --postman-env "<path>" pattern-generator -- <args>')
 
 
 def run_list_catalog_menu() -> None:
@@ -693,11 +752,14 @@ HANDLERS: dict[str, Callable[[], None]] = {
     "F3": run_data_clean_db,
     "F4": run_data_ingest_local,
     "F5": run_sql_menu,
+    "F6": run_sql_suite_menu,
     "G1": run_api_discover_quick,
     "G2": run_api_document_quick,
     "G3": run_api_login_quick,
     "G4": run_api_email_single_quick,
-    "G5": run_list_catalog_menu,
+    "G5": run_api_pattern_generator_quick,
+    "G6": run_api_suite_menu,
+    "G7": run_list_catalog_menu,
 }
 
 
