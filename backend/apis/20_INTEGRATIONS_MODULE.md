@@ -1,40 +1,21 @@
-# Integrations Module
+# Integrations (gateway status)
 
-The Integrations module manages external CRM and automation connector lifecycle.
-**Era:** `9.x`
-**Location:** `app/graphql/modules/integrations/`
+## Current state
 
-## Operations
+The Contact360 GraphQL gateway (`contact360.io/api`) **does not** implement an `integrations` module. There is **no** `app/graphql/modules/integrations/` package and no `integrations` field on the root `Query` / `Mutation` in `app/graphql/schema.py`.
+
+The historical operation list below is a **placeholder** for a future CRM connector surface.
+
+## Placeholder operations (not implemented)
 
 - `listIntegrations(input: ListIntegrationsInput): IntegrationConnection`
 - `connectIntegration(input: ConnectIntegrationInput!): Integration`
 - `disconnectIntegration(id: ID!): Boolean`
 - `syncContacts(input: SyncIntegrationInput!): IntegrationSyncJob`
 
-## Supported providers
+## Related
 
-- `salesforce`
-- `hubspot`
-- `zapier`
-- `pipedrive`
-- `close`
+- [06_WEBHOOKS_MODULE.md](06_WEBHOOKS_MODULE.md) — outbound webhooks not implemented on the gateway either.
+- [00_SERVICE_MESH_CONTRACTS.md](00_SERVICE_MESH_CONTRACTS.md) — HTTP clients that *do* exist today.
 
-## Security and tenancy
-
-- Token fields encrypted at rest
-- Tenant scope required for all reads and writes
-- OAuth callback state includes nonce and expiry
-
-## Documentation metadata
-
-- Era: `8.x`
-- Introduced in: `TBD` (fill with exact minor)
-- Frontend bindings: list page files from `docs/frontend/pages/*.json`
-- Data stores touched: PostgreSQL/Elasticsearch/MongoDB/S3 as applicable
-
-## Endpoint/version binding checklist
-
-- Add operation list with `introduced_in` / `deprecated_in` tags.
-- Map each operation to frontend page bindings and hook/service usage.
-- Record DB tables read/write for each operation.
-
+When an integrations module ships, replace this stub with: resolver paths, auth, `Settings` env vars, and data stores.

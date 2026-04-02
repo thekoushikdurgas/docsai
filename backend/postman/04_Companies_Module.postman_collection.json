@@ -8,7 +8,9 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8000" },
     { "key": "accessToken", "value": "" },
-    { "key": "companyUuid", "value": "" }
+    { "key": "companyUuid", "value": "" },
+    { "key": "fileKey", "value": "" },
+    { "key": "s3Bucket", "value": "tkdrawcsvdata" }
   ],
   "item": [
     {
@@ -57,6 +59,22 @@
               "raw": "{\n  \"query\": \"query CompanyCount($query: VQLQueryInput) { companies { companyCount(query: $query) } }\",\n  \"variables\": { \"query\": {} }\n}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "companyQuery",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CompanyVqlQuery($query: VQLQueryInput!) { companies { companyQuery(query: $query) { items { uuid name } pageInfo { total limit offset hasNext hasPrevious } } } }\",\n  \"variables\": { \"query\": { \"limit\": 20, \"offset\": 0 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Advanced company list via Connectra VQL."
           }
         },
         {
@@ -150,6 +168,37 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"query\": \"mutation ExportCompanies($input: CreateContact360ExportInput!) { companies { exportCompanies(input: $input) { jobId status } } }\",\n  \"variables\": { \"input\": { \"outputPrefix\": \"companies_export\", \"service\": \"company\", \"vql\": {}, \"pageSize\": 500 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "importCompanies",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ImportCompanies($input: CreateContact360ImportInput!) { companies { importCompanies(input: $input) { jobId jobType status } } } }\",\n  \"variables\": {\n    \"input\": {\n      \"s3Bucket\": \"{{s3Bucket}}\",\n      \"s3Key\": \"{{fileKey}}\",\n      \"outputPrefix\": \"imports/\",\n      \"chunkCount\": 4\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "SuperAdmin enforcement in job layer. Set s3Bucket/s3Key from upload complete response."
+          }
+        },
+        {
+          "name": "deleteCompany",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation DeleteCompany($uuid: ID!) { companies { deleteCompany(uuid: $uuid) } }\",\n  \"variables\": { \"uuid\": \"{{companyUuid}}\" }\n}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
           }

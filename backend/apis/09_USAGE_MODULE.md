@@ -10,13 +10,14 @@ The Usage module provides feature usage tracking functionality. It allows users 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
 | **Queries** | | | |
-| `usage` | `feature` | String | `UsageResponse` |
-| `featureOverview` | (optional filters) | — | feature overview type |
-| **Mutations** | | | |
-| `trackUsage` | `input` | TrackUsageInput! | `TrackUsageResponse` |
-| `resetUsage` | `input` | ResetUsageInput! | `ResetUsageResponse` |
+| `usage` (path: `usage { usage(...) }`) | `feature` | `String!` | `UsageResponse` |
+| `featureOverview` | _(root `Query` field)_ | `feature: String!` (e.g. `BULK_EXPORT`, `EMAIL_FINDER`) | `FeatureOverview` (usage slice, activities, jobs for that feature) |
 
-Use camelCase in variables. TrackUsageInput: `feature: String!`, `amount?: Int`. ResetUsageInput: `feature: String!`. Supported feature names: AI_CHAT, BULK_EXPORT, API_KEYS, EMAIL_FINDER, VERIFIER, LINKEDIN, BULK_VERIFICATION, etc. (see Supported Features below).
+| **Mutations** (path: `usage { ... }`) | | | |
+| `trackUsage` | `input` | `TrackUsageInput!` | `TrackUsageResponse` |
+| `resetUsage` | `input` | `ResetUsageInput!` | `ResetUsageResponse` |
+
+Use camelCase in variables. `TrackUsageInput`: `feature: String!`, optional `amount`. `ResetUsageInput`: `feature: String!`. Supported feature names: AI_CHAT, BULK_EXPORT, API_KEYS, EMAIL_FINDER, VERIFIER, LINKEDIN, BULK_VERIFICATION, etc. (see Supported Features below). Example: `query { featureOverview(feature: \"EMAIL_FINDER\") { feature usage { used limit } } }`.
 
 ## Types
 

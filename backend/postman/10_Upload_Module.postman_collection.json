@@ -1,1 +1,212 @@
-{"info":{"_postman_id":"upload-module-graphql","name":"GraphQL – Upload Module","description":"Upload: initiateUpload, uploadStatus (query), presignedUrl (query), registerPart (mutation), completeUpload, abortUpload. Variables: use camelCase (uploadId, partNumber, fileSize, contentType). Flow: initiateUpload → presignedUrl per part → PUT part → registerPart → completeUpload. See sql/apis/10_UPLOAD_MODULE.md (Queries and mutations – parameters and variable types).","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"variable":[{"key":"baseUrl","value":"http://localhost:8000"},{"key":"accessToken","value":""},{"key":"uploadId","value":""}],"item":[{"name":"Queries","item":[{"name":"uploadStatus","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query UploadStatus($uploadId: String!) { upload { uploadStatus(uploadId: $uploadId) { uploadId fileKey fileSize chunkSize uploadedParts totalParts uploadedBytes status } } }\",\"variables\":{\"uploadId\":\"{{uploadId}}\"}}"}},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"presignedUrl","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query PresignedUrl($uploadId: String!, $partNumber: Int!) { upload { presignedUrl(uploadId: $uploadId, partNumber: $partNumber) { presignedUrl partNumber alreadyUploaded etag } } }\",\"variables\":{\"uploadId\":\"{{uploadId}}\",\"partNumber\":1}"}},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]},{"name":"Mutations","item":[{"name":"initiateUpload","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation InitiateUpload($input: InitiateUploadInput!) { upload { initiateUpload(input: $input) { uploadId fileKey chunkSize numParts } } }\",\"variables\":{\"input\":{\"filename\":\"contacts_2026.csv\",\"fileSize\":1048576,\"contentType\":\"text/csv\"}}"}},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"registerPart","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation RegisterPart($input: RegisterPartInput!) { upload { registerPart(input: $input) { status partNumber } } }\",\"variables\":{\"input\":{\"uploadId\":\"{{uploadId}}\",\"partNumber\":1,\"etag\":\"\\\"abc123\\\"\"}}"}},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"completeUpload","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation CompleteUpload($input: CompleteUploadInput!) { upload { completeUpload(input: $input) { status fileKey s3Url location } } }\",\"variables\":{\"input\":{\"uploadId\":\"{{uploadId}}\"}}"}},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"abortUpload","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation AbortUpload($input: AbortUploadInput!) { upload { abortUpload(input: $input) { status uploadId } } }\",\"variables\":{\"input\":{\"uploadId\":\"{{uploadId}}\"}}"}},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]}]}
+{
+    "info": {
+        "_postman_id": "upload-module-graphql",
+        "name": "GraphQL – Upload Module",
+        "description": "Upload: initiateUpload, uploadStatus (query), presignedUrl (query), registerPart (mutation), completeUpload, abortUpload. Variables: use camelCase (uploadId, partNumber, fileSize, contentType). Flow: initiateUpload → presignedUrl per part → PUT part → registerPart → completeUpload. See sql/apis/10_UPLOAD_MODULE.md (Queries and mutations – parameters and variable types).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8000"
+        },
+        {
+            "key": "accessToken",
+            "value": ""
+        },
+        {
+            "key": "uploadId",
+            "value": ""
+        },
+        {
+            "key": "partNumber",
+            "value": "1"
+        }
+    ],
+    "item": [
+        {
+            "name": "Queries",
+            "item": [
+                {
+                    "name": "uploadStatus",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"query UploadStatus($uploadId: String!) { upload { uploadStatus(uploadId: $uploadId) { uploadId fileKey fileSize chunkSize uploadedParts totalParts uploadedBytes status } } }\",\"variables\":{\"uploadId\":\"{{uploadId}}\"}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "presignedUrl",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"query PresignedUrl($uploadId: String!, $partNumber: Int!) { upload { presignedUrl(uploadId: $uploadId, partNumber: $partNumber) { presignedUrl partNumber alreadyUploaded etag } } }\",\"variables\":{\"uploadId\":\"{{uploadId}}\",\"partNumber\":{{partNumber}}}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Mutations",
+            "item": [
+                {
+                    "name": "initiateUpload",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"mutation InitiateUpload($input: InitiateUploadInput!) { upload { initiateUpload(input: $input) { uploadId fileKey chunkSize numParts } } }\",\"variables\":{\"input\":{\"filename\":\"contacts_2026.csv\",\"fileSize\":1048576,\"contentType\":\"text/csv\"}}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "registerPart",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"mutation RegisterPart($input: RegisterPartInput!) { upload { registerPart(input: $input) { status partNumber } } }\",\"variables\":{\"input\":{\"uploadId\":\"{{uploadId}}\",\"partNumber\":1,\"etag\":\"\\\"abc123\\\"\"}}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "completeUpload",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"mutation CompleteUpload($input: CompleteUploadInput!) { upload { completeUpload(input: $input) { status fileKey s3Url location } } }\",\"variables\":{\"input\":{\"uploadId\":\"{{uploadId}}\"}}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "abortUpload",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"mutation AbortUpload($input: AbortUploadInput!) { upload { abortUpload(input: $input) { status uploadId } } }\",\"variables\":{\"input\":{\"uploadId\":\"{{uploadId}}\"}}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

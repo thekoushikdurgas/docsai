@@ -1,21 +1,34 @@
 # Campaigns Module
 
-**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq)
-**Gateway proxy:** Appointment360 GraphQL (`createCampaign`, `getCampaign`, `listCampaigns`, `updateCampaign`, `deleteCampaign`)
-**Direct REST routes:** `POST /campaign`, `GET /health`, `GET /unsub`
+## Contact360 gateway (actual — `contact360.io/api`)
+
+The satellite email-campaign service is optional. The gateway exposes a **read-only JSON** field on root `Query`:
+
+| GraphQL | Path | Auth | Return |
+| --- | --- | --- | --- |
+| `campaignSatellite.campaigns` | `query { campaignSatellite { campaigns } }` | required | `JSON` (list payload from satellite `GET /campaigns`, or `[]` if `CAMPAIGN_API_URL` unset) |
+
+- **Env:** `CAMPAIGN_API_URL`, `CAMPAIGN_API_KEY`, `CAMPAIGN_API_TIMEOUT` (`app/core/config.py`).
+- **Mutations** for create/update/delete campaigns are **not** implemented in `app/graphql/modules/campaigns/` today (only `CampaignModuleQuery` in `queries.py`).
+
+**Direct REST** (Go campaign service) may still expose write routes; call that service or add gateway resolvers if you need mutations from GraphQL.
 
 ---
 
-## GraphQL operations (gateway-proxied)
+## Planned / service-native GraphQL (not on gateway yet)
+
+The table below describes a **target** contract (e.g. era `10.x`); it is **not** shipped as Strawberry fields under `campaignSatellite` at the time of this doc sync.
 
 | Operation | Type | Description | Era |
 | --- | --- | --- | --- |
-| `createCampaign` | Mutation | Enqueue a new campaign send job | `10.x` |
-| `getCampaign` | Query | Get campaign by ID with full recipient/status detail | `10.x` |
-| `listCampaigns` | Query | Paginated list of campaigns for org | `10.x` |
-| `updateCampaign` | Mutation | Update campaign (pause, resume, reschedule) | `10.x` |
-| `deleteCampaign` | Mutation | Delete campaign and associated recipients | `10.x` |
-| `getCampaignStats` | Query | Aggregated open/click/unsubscribe rates | `10.x` |
+| `createCampaign` | Mutation | Enqueue a new campaign send job | `10.x` (planned) |
+| `getCampaign` | Query | Get campaign by ID with full recipient/status detail | `10.x` (planned) |
+| `listCampaigns` | Query | Paginated list of campaigns for org | overlaps read-only `campaignSatellite.campaigns` |
+| `updateCampaign` | Mutation | Update campaign (pause, resume, reschedule) | `10.x` (planned) |
+| `deleteCampaign` | Mutation | Delete campaign and associated recipients | `10.x` (planned) |
+| `getCampaignStats` | Query | Aggregated open/click/unsubscribe rates | `10.x` (planned) |
+
+**Typical direct REST (service):** `POST /campaign`, health, unsub — see service repo.
 
 ---
 

@@ -2,8 +2,10 @@
 
 ## Overview
 
-The Pages module provides a unified interface for accessing documentation, marketing, and dashboard pages. It replaces the separate Dashboard Pages, Documentation, and Marketing modules with a single, streamlined API. Pages are returned in authentication responses based on user role. **All Pages GraphQL queries are public**—no access key or authentication is required.
+The Pages module provides a unified interface for accessing documentation, marketing, and dashboard pages. It replaces the separate Dashboard Pages, Documentation, and Marketing modules with a single, streamlined API. Pages are returned in authentication responses based on user role. Most Pages queries are public (no access token). The `myPages` query requires authentication (current user’s pages).
 **Location:** `app/graphql/modules/pages/`
+
+GraphQL path: `query { pages { page(pageId: "...") { ... } pages { ... } dashboardPages { ... } ... } }` — all operations are fields on the root **`pages`** resolver type.
 
 **Replaces:**
 - `app/graphql/modules/dashboard_pages/` (deleted)
@@ -26,7 +28,7 @@ The Pages module provides a unified interface for accessing documentation, marke
 | `pageAccessControl`, `pageSections`, `pageComponents`, `pageEndpoints`, `pageVersions` | `pageId` | String! | various |
 | `dashboardPages`, `marketingPages` | — | — | pages |
 
-No mutations in this API (create/update/delete may be via DocsAI). All queries public except `myPages` (auth). Data from DocsAI. Use camelCase in variables.
+No mutations in this API (create/update/delete may be via DocsAI). Data is sourced from DocsAI when enabled. Use camelCase in variables.
 
 ## Types
 

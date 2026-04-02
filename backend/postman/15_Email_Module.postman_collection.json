@@ -1,1 +1,538 @@
-{"info":{"_postman_id":"email-module-graphql","name":"GraphQL – Email Module","description":"Email: findEmails, findEmailsBulk, verifySingleEmail, verifyEmailsBulk (queries); addEmailPattern, addEmailPatternBulk (mutations). Job creation delegates to Jobs module. Variables: use camelCase (firstName, lastName, domain, companyUuid). See sql/apis/15_EMAIL_MODULE.md (Queries and mutations – parameters and variable types).","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"variable":[{"key":"baseUrl","value":"http://localhost:8000"},{"key":"accessToken","value":""}],"item":[{"name":"Queries","item":[{"name":"findEmails","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query FindEmails($input: EmailFinderInput!) { email { findEmails(input: $input) { emails { uuid email source } total success } } }\",\"variables\":{\"input\":{\"firstName\":\"John\",\"lastName\":\"Doe\",\"domain\":\"example.com\"}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"verifySingleEmail","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query VerifySingleEmail($input: SingleEmailVerifierInput!) { email { verifySingleEmail(input: $input) { result { email status } success } } }\",\"variables\":{\"input\":{\"email\":\"john@example.com\"}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]},{"name":"Mutations","item":[{"name":"addEmailPattern","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation AddEmailPattern($input: EmailPatternAddInput!) { email { addEmailPattern(input: $input) { uuid companyUuid domain } } }\",\"variables\":{\"input\":{\"companyUuid\":\"\",\"email\":\"j@example.com\",\"firstName\":\"John\",\"lastName\":\"Doe\",\"domain\":\"example.com\"}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]}]}
+{
+  "info": {
+    "_postman_id": "email-module-graphql",
+    "name": "GraphQL – Email Module",
+    "description": "Root field `email`. Queries: findEmails (domain and/or website), findEmailsBulk, createEmailFinderExportJob, createEmailVerifyExportJob, createEmailPatternImportJob, verifySingleEmail, verifyEmailsBulk, emailJobStatus (async satellite jobs), webSearch, exportEmails/verifyexportEmail (stubs). Mutations: addEmailPattern, addEmailPatternBulk, createEmailFinderBulkJob (+ optional idempotency request), createEmailVerifyBulkJob. Variables: companyUuid, fileKey, emailJobId, idempotencyKey. Upstream: `LAMBDA_EMAIL_API_URL` on API server.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "companyUuid",
+      "value": ""
+    },
+    {
+      "key": "fileKey",
+      "value": ""
+    },
+    {
+      "key": "emailJobId",
+      "value": ""
+    },
+    {
+      "key": "idempotencyKey",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "findEmails",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query FindEmails($input: EmailFinderInput!) { email { findEmails(input: $input) { emails { uuid email source } total success } } }\",\n  \"variables\": { \"input\": { \"firstName\": \"John\", \"lastName\": \"Doe\", \"domain\": \"example.com\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "findEmails (website instead of domain)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query FindEmailsSite($input: EmailFinderInput!) { email { findEmails(input: $input) { emails { uuid email status source } total success } } }\",\n  \"variables\": { \"input\": { \"firstName\": \"John\", \"lastName\": \"Doe\", \"website\": \"https://www.example.com\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Provide `domain` and/or `website`; API requires at least one (maps to email.server finder)."
+          }
+        },
+        {
+          "name": "findEmailsBulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query FindBulk($input: BulkEmailFinderInput!) { email { findEmailsBulk(input: $input) { processedCount totalRequested totalSuccessful results { firstName lastName domain emails { uuid email } source total success error } } } }\",\n  \"variables\": {\n    \"input\": {\n      \"items\": [\n        { \"firstName\": \"John\", \"lastName\": \"Doe\", \"domain\": \"example.com\" }\n      ]\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "verifySingleEmail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query VerifyOne($input: SingleEmailVerifierInput!) { email { verifySingleEmail(input: $input) { result { email status emailState emailSubState certainty } success } } }\",\n  \"variables\": { \"input\": { \"email\": \"john@example.com\", \"provider\": \"truelist\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "verifyEmailsBulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query VerifyBulk($input: BulkEmailVerifierInput!) { email { verifyEmailsBulk(input: $input) { results { email status emailState } total validCount invalidCount catchallCount unknownCount success } } }\",\n  \"variables\": { \"input\": { \"emails\": [\"a@example.com\", \"b@example.com\"], \"provider\": \"truelist\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "createEmailFinderExportJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query EmailFinderExport($input: CreateEmailFinderExportInput!) { email { createEmailFinderExportJob(input: $input) { jobId jobType status } } }\",\n  \"variables\": {\n    \"input\": {\n      \"inputCsvKey\": \"{{fileKey}}\",\n      \"outputPrefix\": \"email_finder_out\",\n      \"rowLimit\": 100,\n      \"chunkSize\": 10\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "createEmailVerifyExportJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query EmailVerifyExport($input: CreateEmailVerifyExportInput!) { email { createEmailVerifyExportJob(input: $input) { jobId jobType status } } }\",\n  \"variables\": {\n    \"input\": {\n      \"inputCsvKey\": \"{{fileKey}}\",\n      \"outputPrefix\": \"email_verify_out\",\n      \"rowLimit\": 100\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "createEmailPatternImportJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query PatternImport($input: CreateEmailPatternImportInput!) { email { createEmailPatternImportJob(input: $input) { jobId jobType status } } }\",\n  \"variables\": {\n    \"input\": {\n      \"s3Bucket\": \"bucket-id\",\n      \"inputCsvKey\": \"{{fileKey}}\",\n      \"outputPrefix\": \"pattern_import\",\n      \"companyUuid\": \"{{companyUuid}}\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "SuperAdmin enforced in jobs layer."
+          }
+        },
+        {
+          "name": "emailJobStatus",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query EmailJob($jobId: String!) { email { emailJobStatus(jobId: $jobId) { jobId jobType status processedRows progressPercent outputCsvKey provider done } } }\",\n  \"variables\": { \"jobId\": \"{{emailJobId}}\" }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "webSearch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query WebSearch($input: WebSearchInput!) { email { webSearch(input: $input) } }\",\n  \"variables\": { \"input\": { \"fullName\": \"Jane Doe\", \"companyDomain\": \"example.com\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "exportEmails (coming soon)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { email { exportEmails { message endpoint } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "verifyexportEmail (coming soon)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { email { verifyexportEmail { message endpoint } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "addEmailPattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation AddPattern($input: EmailPatternAddInput!) { email { addEmailPattern(input: $input) { uuid companyUuid patternFormat patternString domain contactCount createdAt } } }\",\n  \"variables\": {\n    \"input\": {\n      \"companyUuid\": \"{{companyUuid}}\",\n      \"email\": \"john.doe@example.com\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"domain\": \"example.com\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "addEmailPatternBulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation AddPatternBulk($input: EmailPatternBulkAddInput!) { email { addEmailPatternBulk(input: $input) { results { uuid companyUuid domain } success } } }\",\n  \"variables\": {\n    \"input\": {\n      \"items\": [\n        {\n          \"companyUuid\": \"{{companyUuid}}\",\n          \"email\": \"j@example.com\",\n          \"firstName\": \"J\",\n          \"lastName\": \"Doe\",\n          \"domain\": \"example.com\"\n        }\n      ]\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "createEmailFinderBulkJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation FinderBulkJob($input: BulkEmailFinderJobInput!) { email { createEmailFinderBulkJob(input: $input) { jobId queued statusUrl idempotentReplay success } } }\",\n  \"variables\": {\n    \"input\": {\n      \"items\": [\n        { \"firstName\": \"John\", \"lastName\": \"Doe\", \"domain\": \"example.com\" }\n      ]\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "createEmailFinderBulkJob (idempotencyKey)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation FinderBulkJob($input: BulkEmailFinderJobInput!) { email { createEmailFinderBulkJob(input: $input) { jobId queued statusUrl idempotentReplay success } } }\",\n  \"variables\": {\n    \"input\": {\n      \"items\": [\n        { \"firstName\": \"John\", \"lastName\": \"Doe\", \"domain\": \"example.com\" }\n      ],\n      \"idempotencyKey\": \"{{idempotencyKey}}\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "Set `idempotencyKey` in environment (non-empty) before run; matches email.server `X-Idempotency-Key` flow."
+          }
+        },
+        {
+          "name": "createEmailVerifyBulkJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation VerifyBulkJob($input: BulkEmailVerifyJobInput!) { email { createEmailVerifyBulkJob(input: $input) { jobId queued statusUrl idempotentReplay success } } }\",\n  \"variables\": { \"input\": { \"emails\": [\"a@example.com\"], \"provider\": \"truelist\" } }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

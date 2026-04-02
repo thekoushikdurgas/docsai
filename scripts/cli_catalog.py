@@ -208,6 +208,38 @@ MENU_ENTRIES: list[CatalogEntry] = [
         'python cli.py api-test pattern-generator -- "<args>"',
     ),
     CatalogEntry("G6", "G. API & TESTS", "List all commands (catalog)", "read", "docs", "python cli.py list"),
+    CatalogEntry(
+        "H1",
+        "H. PINECONE SEARCH (read/write)",
+        "Ingest docs into Pinecone",
+        "write",
+        "docs",
+        "python cli.py pinecone ingest-docs",
+    ),
+    CatalogEntry(
+        "H2",
+        "H. PINECONE SEARCH (read/write)",
+        "Ingest API test results into Pinecone",
+        "write",
+        "api",
+        "python cli.py pinecone ingest-api --profile default --days 7",
+    ),
+    CatalogEntry(
+        "H3",
+        "H. PINECONE SEARCH (read/write)",
+        "Semantic search over docs",
+        "read",
+        "docs",
+        'python cli.py pinecone search "<question>" --namespace docs_global',
+    ),
+    CatalogEntry(
+        "H4",
+        "H. PINECONE SEARCH (read/write)",
+        "Pinecone healthcheck",
+        "read",
+        "docs",
+        "python cli.py pinecone status",
+    ),
 ]
 
 # Additional CLI verbs not tied to a menu id (shown with `list --include-scripts`).

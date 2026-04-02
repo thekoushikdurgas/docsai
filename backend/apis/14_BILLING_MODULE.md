@@ -9,21 +9,29 @@ The Billing module provides billing and subscription management functionality in
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
-| `billing` | — | — | `BillingInfo` (auth) |
-| `plans` | `category`? | String | [SubscriptionPlan] (public) |
-| `addons` | — | — | [AddonPackage] (public) |
-| `invoices` | `limit`, `offset` | Int, Int | invoice connection |
-| **Mutations** (auth) | | | |
-| `subscribe` | `input` | SubscribeInput! | subscription result |
-| `purchaseAddon` | `input` | PurchaseAddonInput! | result |
-| `cancelSubscription` | — | — | result |
-| **Admin mutations** (SuperAdmin) | | | |
-| `createPlan`, `updatePlan`, `deletePlan` | `input` | plan input! | Plan / result |
-| `createPlanPeriod`, `updatePlanPeriod`, `deletePlanPeriod` | `input` | period input! | result |
-| `createAddon`, `updateAddon`, `deleteAddon` | `input` | addon input! | result |
+| **Queries** (under `billing { ... }`) | | | |
+| `billing` | — | — | `BillingInfo` (authenticated) |
+| `plans` | `category` optional | `String` | `[SubscriptionPlan!]!` (public) |
+| `addons` | — | — | `[AddonPackage!]!` (public) |
+| `invoices` | `pagination` | `InvoicePaginationInput` (default limit/offset) | invoice connection (authenticated) |
+| `paymentInstructions` | — | — | `PaymentInstructions` or null (authenticated) |
+| `paymentSubmissions` | `limit`, `offset` | `Int`, `Int` | `PaymentSubmissionConnection` (authenticated) |
+| **Mutations** (under `billing { ... }`) — user | | | |
+| `subscribe` | `input` | `SubscribeInput!` — **`tier`**, **`period`** (not legacy `plan`) | subscription payload |
+| `purchaseAddon` | `input` | `PurchaseAddonInput!` — **`packageId`** (e.g. `small`, `basic`, `standard`, `plus`, `pro`, `advanced`, `premium`) | addon result |
+| `cancelSubscription` | — | — | cancel result |
+| `submitPaymentProof` | `input` | payment proof input | submission result |
+| `approvePayment` | `input` | admin payment input | result |
+| `declinePayment` | `input` | admin payment input | result |
+| **Mutations** (SuperAdmin) | | | |
+| `createPlan`, `updatePlan`, `deletePlan` | `input` | plan inputs | plan / boolean |
+| `createPlanPeriod`, `updatePlanPeriod`, `deletePlanPeriod` | `input` | period inputs | result |
+| `createAddon`, `updateAddon`, `deleteAddon` | `input` | addon inputs | result |
+| `updatePaymentInstructions` | `input` | payment settings input | `PaymentInstructions` / result |
 
-Use camelCase in variables. See Input Types and Admin Input Types for field-level details. Razorpay used for payments.
+**`SubscribeInput` valid values (resolver-enforced):** `tier`: `5k`, `25k`, `100k`, `500k`, `1M`, `5M`, `10M`; `period`: `monthly`, `quarterly`, `yearly`.
+
+Use camelCase in variables JSON. See Input Types and Admin Input Types for field-level details. Payment processor details may be Razorpay or manual proof flow depending on deployment.
 
 ## Types
 

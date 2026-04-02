@@ -1,6 +1,23 @@
 # GraphQL Modules Documentation
 
-Complete documentation for all GraphQL modules in the Appointment GraphQL API.
+Authoritative module docs for the **Contact360 GraphQL gateway** (`contact360.io/api`, Strawberry + FastAPI). Runtime names in `Settings` may still say “Appointment” for legacy compatibility—see `app/core/config.py` for actual `PROJECT_NAME` / env wiring.
+
+**Gateway environment:** Downstream URLs and keys are defined in `app/core/config.py` (e.g. `CONNECTRA_BASE_URL`, `TKDJOB_API_URL`, `LAMBDA_*`, `DOCSAI_*`, `CAMPAIGN_*`, `RESUME_AI_*`). A client-facing mesh summary lives in [00_SERVICE_MESH_CONTRACTS.md](00_SERVICE_MESH_CONTRACTS.md).
+
+## Doc sync task breakdown (maintenance)
+
+1. **Schema parity** — For each `NN_*_MODULE.md`, align operation names, argument names, and auth rules with `app/graphql/schema.py` and `app/graphql/modules/<module>/`.
+2. **REST vs GraphQL** — Document `GET /health*`, `GET /`, and `POST /graphql` in `08_HEALTH_MODULE.md` (and any other HTTP routes in `app/main.py`).
+3. **Env vars** — Keep [00_SERVICE_MESH_CONTRACTS.md](00_SERVICE_MESH_CONTRACTS.md) and billing/admin docs in sync with `Settings` fields; frontend public vars stay in [20_NEXT_PUBLIC_ENV_VARS.md](20_NEXT_PUBLIC_ENV_VARS.md).
+4. **Stubs** — [06_WEBHOOKS_MODULE.md](06_WEBHOOKS_MODULE.md) reflects “not implemented” until a module exists.
+
+## Root `Query` / `Mutation` fields (`app/graphql/schema.py`)
+
+Operations live under these namespaces (examples: `query { health { apiHealth { status } } }`, `mutation { auth { login(input: {...}) { accessToken } } }`):
+
+**Query:** `auth`, `users`, `contacts`, `companies`, `activities`, `analytics`, `billing`, `email`, `campaignSatellite`, `jobs`, `usage`, `featureOverview`, `pages`, `s3`, `upload`, `aiChats`, `notifications`, `salesNavigator`, `admin`, `health`, `savedSearches`, `twoFactor`, `profile`, `resume`.
+
+**Mutation:** `auth`, `users`, `contacts`, `companies`, `billing`, `linkedin`, `jobs`, `email`, `usage`, `upload`, `s3`, `analytics`, `aiChats`, `notifications`, `salesNavigator`, `admin`, `savedSearches`, `twoFactor`, `profile`, `resume`.
 
 ## Folder reality snapshot
 
@@ -30,7 +47,7 @@ Complete documentation for all GraphQL modules in the Appointment GraphQL API.
 | [03_CONTACTS_MODULE.md](03_CONTACTS_MODULE.md)               | Contacts        |
 | [04_COMPANIES_MODULE.md](04_COMPANIES_MODULE.md)             | Companies       |
 | [05_NOTIFICATIONS_MODULE.md](05_NOTIFICATIONS_MODULE.md)     | Notifications   |
-| [06_WEBHOOKS_MODULE.md](06_WEBHOOKS_MODULE.md)                 | Webhooks        |
+| [06_WEBHOOKS_MODULE.md](06_WEBHOOKS_MODULE.md)                 | Webhooks (stub — no GraphQL module in gateway yet) |
 | [07_S3_MODULE.md](07_S3_MODULE.md)                           | S3              |
 | [08_HEALTH_MODULE.md](08_HEALTH_MODULE.md)                   | Health          |
 | [09_USAGE_MODULE.md](09_USAGE_MODULE.md)                     | Usage           |
@@ -43,7 +60,7 @@ Complete documentation for all GraphQL modules in the Appointment GraphQL API.
 | [17_AI_CHATS_MODULE.md](17_AI_CHATS_MODULE.md)               | AI Chats        |
 | [18_ANALYTICS_MODULE.md](18_ANALYTICS_MODULE.md)             | Analytics       |
 | [19_PAGES_MODULE.md](19_PAGES_MODULE.md)                     | Pages           |
-| [20_INTEGRATIONS_MODULE.md](20_INTEGRATIONS_MODULE.md)         | Integrations    |
+| [20_INTEGRATIONS_MODULE.md](20_INTEGRATIONS_MODULE.md)         | Integrations (stub — no GraphQL module in gateway yet) |
 | [21_LINKEDIN_MODULE.md](21_LINKEDIN_MODULE.md)               | LinkedIn        |
 | [22_CAMPAIGNS_MODULE.md](22_CAMPAIGNS_MODULE.md)               | Campaigns       |
 | [23_SALES_NAVIGATOR_MODULE.md](23_SALES_NAVIGATOR_MODULE.md) | Sales Navigator |
@@ -174,7 +191,7 @@ Most modules require authentication. Use the Auth module to get an access token.
 - **UsageService**: Feature usage tracking (Usage module)
 - **BillingService**: Subscription and billing management (Billing module)
 - **NotificationService**: Notification management (Notifications module)
-- **S3StorageClient**: HTTP client for the `s3storage` service. All CSV file operations, multipart/single-shot uploads, avatars, and bucket metadata go through `s3storage` using per-user logical buckets stored in `users.bucket`, instead of calling S3 directly from Appointment360. The storage REST API and Postman collection are documented under External Services above.
+- **S3StorageClient**: HTTP client for the `s3storage` service. All CSV file operations, multipart/single-shot uploads, avatars, and bucket metadata go through `s3storage` using per-user logical buckets stored in `users.bucket`, instead of calling S3 directly from the Contact360 gateway. The storage REST API and Postman collection are documented under External Services above.
 
 ## Logging System
 
@@ -429,7 +446,7 @@ And ensure these references are synchronized in the same update:
 ## `email campaign` module maintenance requirements
 
 - REST service index: `docs/backend/services.apis/emailcampaign.api.md` (links modules, matrices, and runtime analysis).
-- **Gateway (`10.x`):** `campaigns`, `sequences`, and `campaignTemplates` are **not** mounted on `contact360.io/api` root schema yet; track proxy client work and schema wiring in [APPOINTMENT360_GATEWAY_TASK_BOARD.md](APPOINTMENT360_GATEWAY_TASK_BOARD.md) (section **10.x.x — Email campaign**).
+- **Gateway today:** Root `Query.campaignSatellite` exposes read-only `campaigns`, `sequences`, and `campaignTemplates` as `JSON` (see `22`–`25` module docs and `app/graphql/modules/campaigns/queries.py`). **Mutations** and richer typed campaign GraphQL remain **planned**; track in [APPOINTMENT360_GATEWAY_TASK_BOARD.md](APPOINTMENT360_GATEWAY_TASK_BOARD.md) (section **10.x.x — Email campaign**).
 - Keep `22_CAMPAIGNS_MODULE.md`, `24_SEQUENCES_MODULE.md`, and `25_CAMPAIGN_TEMPLATES_MODULE.md` aligned with the REST route surface in `backend(dev)/email campaign` (`api/handlers.go`, `template/handlers.go`).
 - Campaign status vocabulary (`pending`, `sending`, `completed`, `completed_with_errors`, `failed`, `paused`) must stay synchronized between these docs, the Go worker code (`worker/campaign_worker.go`), and all frontend status badge components.
 - Any template variable changes (e.g. adding `{{.Company}}`, `{{.Title}}`) must update `22_CAMPAIGNS_MODULE.md`, the Go `TemplateData` struct, and `docs/frontend.md` campaign UI section in the same change.
@@ -453,7 +470,7 @@ And ensure these references are synchronized in the same update:
 ## `appointment360` module maintenance requirements
 
 - **Era-level gateway tasks:** When scoping or closing `0.x.x`–`10.x.x` work for the GraphQL gateway, update [APPOINTMENT360_GATEWAY_TASK_BOARD.md](APPOINTMENT360_GATEWAY_TASK_BOARD.md) in the same change set as material schema or client edits; keep the mounted-vs-doc-only module table in [APPOINTMENT360_ERA_TASK_PACKS.md](APPOINTMENT360_ERA_TASK_PACKS.md) accurate.
-- All `contact360.io/api` GraphQL module doc files (`01_AUTH_MODULE.md` through `28_PROFILE_MODULE.md`) must stay synchronized with the actual Strawberry schema classes in `app/graphql/modules/`.
+- All `contact360.io/api` GraphQL module doc files (`01_AUTH_MODULE.md` through `29_RESUME_AI_REST_SERVICE.md` for gateway-facing ops) must stay synchronized with the actual Strawberry schema classes in `app/graphql/modules/` (and linked REST contracts where `29` applies).
 - **Schema composition rule:** any module added to `app/graphql/schema.py` must have a corresponding `NN_MODULE.md` file added to this folder in the same PR. Module numbers must not be reused.
 - **Downstream client rule:** any change to `app/clients/*.py` that changes request/response shape must update the relevant module doc and any associated endpoint JSON in `docs/backend/endpoints/`.
 - **Debug write rule (critical):** no inline `open(...)` file writes may remain in any `app/graphql/modules/` file. Each PR must include a static check or evidence of removal.
@@ -462,7 +479,7 @@ And ensure these references are synchronized in the same update:
 - Keep era mapping aligned with `docs/backend/endpoints/appointment360_endpoint_era_matrix.json` and per-era `docs/0...10/appointment360-*-task-pack.md`.
 - Keep data lineage references synchronized with `docs/backend/database/appointment360_data_lineage.md`.
 - Any new PostgreSQL table in the appointment360 DB must update `appointment360_data_lineage.md` and the relevant era task-pack in the same PR.
-- Keep UI binding docs synchronized with `docs/frontend.md` (Appointment360 gateway section).
+- Keep UI binding docs synchronized with `docs/frontend.md` (Contact360 gateway section).
 
 ## `mailvetter` module maintenance requirements
 

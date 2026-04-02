@@ -1,23 +1,29 @@
 # Sequences Module
 
-**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq)
-**Gateway proxy:** Appointment360 GraphQL (`createSequence`, `getSequence`, `listSequences`, `triggerSequence`, `pauseSequence`)
-**Direct REST routes:** `POST /sequences`, `GET /sequences/:id`, `POST /sequences/:id/trigger`, `PATCH /sequences/:id/pause` (planned `10.x`)
+## Contact360 gateway (actual)
+
+| GraphQL | Path | Auth | Return |
+| --- | --- | --- | --- |
+| `campaignSatellite.sequences` | `query { campaignSatellite { sequences } }` | required | `JSON` (from satellite `GET /sequences`, or `[]` if `CAMPAIGN_API_URL` unset) |
+
+No sequence **mutations** exist under `campaignSatellite` in the gateway codebase (`app/graphql/modules/campaigns/queries.py` only).
 
 ---
 
-## GraphQL operations (gateway-proxied)
+## Planned / service-native GraphQL (not on gateway yet)
+
+**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq). **Direct REST** may include `POST /sequences`, `GET /sequences/:id`, triggers, pause (era `10.x` planning).
 
 | Operation | Type | Description | Era |
 | --- | --- | --- | --- |
-| `createSequence` | Mutation | Create a new multi-step email sequence | `10.x` |
-| `getSequence` | Query | Get sequence with all steps | `10.x` |
-| `listSequences` | Query | List sequences for org | `10.x` |
-| `updateSequence` | Mutation | Modify sequence steps or schedule | `10.x` |
-| `deleteSequence` | Mutation | Delete sequence and its steps | `10.x` |
-| `triggerSequence` | Mutation | Start sequence for an audience | `10.x` |
-| `pauseSequence` | Mutation | Pause in-progress sequence | `10.x` |
-| `resumeSequence` | Mutation | Resume paused sequence | `10.x` |
+| `createSequence` | Mutation | Create a new multi-step email sequence | planned |
+| `getSequence` | Query | Get sequence with all steps | planned |
+| `listSequences` | Query | List sequences for org | overlaps read-only `campaignSatellite.sequences` |
+| `updateSequence` | Mutation | Modify sequence steps or schedule | planned |
+| `deleteSequence` | Mutation | Delete sequence and its steps | planned |
+| `triggerSequence` | Mutation | Start sequence for an audience | planned |
+| `pauseSequence` | Mutation | Pause in-progress sequence | planned |
+| `resumeSequence` | Mutation | Resume paused sequence | planned |
 
 ---
 

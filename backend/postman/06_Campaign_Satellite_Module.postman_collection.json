@@ -1,0 +1,79 @@
+{
+  "info": {
+    "_postman_id": "campaign-satellite-graphql",
+    "name": "GraphQL – Campaign Satellite Module",
+    "description": "Optional campaign API satellite (root field `campaignSatellite`). Queries: campaigns, sequences, campaignTemplates. Returns JSON from satellite HTTP — configure on the API host: `CAMPAIGN_API_URL`, `CAMPAIGN_API_KEY`, `CAMPAIGN_API_TIMEOUT` (see `contact360.io/api` `app/core/config.py`). Empty list when unset.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "campaigns",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CampaignSatelliteCampaigns { campaignSatellite { campaigns } }\",\n  \"variables\": {}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "List campaigns from the configured campaign satellite (JSON payload)."
+          }
+        },
+        {
+          "name": "sequences",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CampaignSatelliteSequences { campaignSatellite { sequences } }\",\n  \"variables\": {}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "List sequences from the campaign satellite (JSON payload)."
+          }
+        },
+        {
+          "name": "campaignTemplates",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query CampaignSatelliteTemplates { campaignSatellite { campaignTemplates } }\",\n  \"variables\": {}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": ["{{baseUrl}}"],
+              "path": ["graphql"]
+            },
+            "description": "List campaign templates from the campaign satellite (JSON payload)."
+          }
+        }
+      ]
+    }
+  ]
+}

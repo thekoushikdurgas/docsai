@@ -5,8 +5,10 @@ Import from ``scripts.core.scanner`` in new code.
 """
 from __future__ import annotations
 
+from .paths import DOCS_ROOT  # noqa: F401
 from .core.scanner import (  # noqa: F401
     ERA_FOLDERS,
+    TASK_SECTION_HEADERS,
     extract_service_task_slices,
     extract_track_sections,
     parse_file,

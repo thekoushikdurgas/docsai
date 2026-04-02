@@ -38,3 +38,5 @@ This is the production-facing environment variable list for Next.js web surfaces
 - `contact360.io/app/.env.example`
 - `contact360.io/app/.env.production.example`
 - `contact360.io/root/.env.example`
+
+**Server-side gateway (not `NEXT_PUBLIC`):** the FastAPI GraphQL host reads private env in `contact360.io/api/app/core/config.py` — see [00_SERVICE_MESH_CONTRACTS.md](00_SERVICE_MESH_CONTRACTS.md) for downstream URL/key names.

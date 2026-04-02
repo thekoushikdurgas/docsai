@@ -1,6 +1,9 @@
 """Core AI agent for intelligent endpoint operation and learning."""
 
 import json
+import os
+import hashlib
+import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -120,6 +123,11 @@ class AIAgent:
         # Update endpoint patterns
         self._update_endpoint_patterns(endpoint_key, result, endpoint)
         
+        # Optional Pinecone write: only index failures (success=False).
+        # Must be non-blocking: JSON persistence always remains the source of truth.
+        if not result.get("success", False):
+            self._try_pinecone_upsert_failure(result=result, endpoint=endpoint, endpoint_key=endpoint_key)
+
         # Auto-save periodically (every 10 learnings)
         # Use get() to safely access the list even if key doesn't exist yet
         response_count = len(self.response_patterns.get(endpoint_key, []))
@@ -294,8 +302,132 @@ class AIAgent:
                 recommendations.append(
                     f"Consistent error pattern detected: {list(unique_errors)[0][:100]}"
                 )
+
+        # Pinecone-enriched recommendations: retrieve similar historical failures.
+        pinecone_suggestions = self._try_retrieve_pinecone_failures(endpoint_key=endpoint_key, top_k=3)
+        for s in pinecone_suggestions:
+            recommendations.append(s)
         
         return recommendations
+
+    def _pinecone_enabled(self) -> bool:
+        # Trigger dotenv load + verify API key by attempting a real client init.
+        try:
+            from pinecone_integration import get_client
+
+            get_client()
+            return True
+        except Exception:
+            return False
+
+    def _pinecone_profile(self) -> str:
+        return os.getenv("PINECONE_PROFILE", "default").strip() or "default"
+
+    def _try_pinecone_upsert_failure(self, *, result: Dict[str, Any], endpoint: Dict[str, Any], endpoint_key: str) -> None:
+        if not self._pinecone_enabled():
+            return
+
+        error_msg = str(result.get("error_message", "") or "").strip()
+        if not error_msg:
+            return
+
+        try:
+            from pinecone_integration import get_api_index
+
+            index = get_api_index()
+            profile = self._pinecone_profile()
+            namespace = f"profile_{profile}"
+
+            method = str(result.get("method") or endpoint.get("method") or "").strip()
+            api_version = str(endpoint.get("api_version") or "v1").strip()
+            category = str(endpoint.get("category") or "Unknown").strip()
+            endpoint_path = str(result.get("endpoint") or endpoint.get("endpoint") or "").strip()
+            status_code = result.get("status_code", "")
+            success = bool(result.get("success", False))
+
+            test_timestamp = str(result.get("test_timestamp") or result.get("timestamp") or datetime.now().isoformat())
+            record_seed = f"{endpoint_key}::{test_timestamp}"
+            record_id = hashlib.sha256(record_seed.encode("utf-8")).hexdigest()
+
+            content = (
+                f"{method} {endpoint_path} - {status_code}. "
+                f"Category: {category}. API {api_version}. "
+                f"Error: {error_msg}"
+            ).strip()
+
+            record = {
+                "_id": record_id,
+                "content": content,
+                "text": content,
+                "endpoint_key": endpoint_key,
+                "method": method,
+                "api_version": api_version,
+                "category": category,
+                "status_code": str(status_code) if status_code is not None else "",
+                "success": success,
+                "profile": profile,
+            }
+
+            # Single record upsert (fits batch limits).
+            index.upsert_records(namespace, [record])
+        except Exception:
+            # Never break learning flow if Pinecone fails.
+            return
+
+    def retrieve_similar_failures(self, endpoint_key: str, error_msg: str, top_k: int = 5) -> List[str]:
+        """
+        Retrieve similar historical failures from Pinecone.
+
+        Returns a list of short string summaries suitable for embedding into recommendations.
+        """
+        if not self._pinecone_enabled():
+            return []
+
+        try:
+            from pinecone_integration import get_api_index
+            from pinecone_integration.search import search as pinecone_search
+
+            index = get_api_index()
+            profile = self._pinecone_profile()
+            namespace = f"profile_{profile}"
+
+            # Wait for eventual consistency after writes; mandatory for Pinecone usage.
+            query_text = f"{endpoint_key} {error_msg}".strip()
+            hits = pinecone_search(
+                index,
+                namespace=namespace,
+                query_text=query_text,
+                top_k=top_k,
+                wait_seconds=10,
+            )
+
+            out: List[str] = []
+            for hit in hits:
+                fields = getattr(hit, "fields", None)
+                if isinstance(fields, dict):
+                    content = fields.get("content", "") or ""
+                elif isinstance(hit, dict):
+                    content = (hit.get("fields") or {}).get("content", "") or ""
+                else:
+                    content = ""
+
+                content = str(content).strip()
+                if content:
+                    out.append(content[:180])
+
+            return out
+        except Exception:
+            return []
+
+    def _try_retrieve_pinecone_failures(self, *, endpoint_key: str, top_k: int = 3) -> List[str]:
+        errors = self.error_patterns.get(endpoint_key, [])
+        if not errors:
+            return []
+
+        # Prefer the most recent error message as a query seed.
+        error_msg = str(errors[-1]).strip()
+        similar = self.retrieve_similar_failures(endpoint_key, error_msg, top_k=top_k)
+        return [f"Pinecone similar failures: {s}" for s in similar[:top_k]]
     
     def _detect_anomalies(self, endpoint_key: str) -> List[Dict[str, Any]]:
         """Detect anomalies in endpoint behavior.

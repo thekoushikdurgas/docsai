@@ -2,26 +2,28 @@
 
 ## Overview
 
-The Jobs module provides GraphQL queries and mutations for creating and tracking long-running jobs via the Tkdjob (Job Scheduler) API. Appointment360 validates the user, calls the tkdjob REST API to create a job, and stores a local record in `scheduler_jobs` for ownership and listing.
+The Jobs module provides GraphQL queries and mutations for creating and tracking long-running jobs via the Tkdjob (Job Scheduler) API. The Contact360 gateway validates the user, calls the tkdjob REST API to create a job, and stores a local record in `scheduler_jobs` for ownership and listing.
 **Location:** `app/graphql/modules/jobs/`
 
-**Tkdjob API:** Configured via `TKDJOB_API_URL` and `TKDJOB_API_KEY`.
+**Tkdjob API:** Configured via `TKDJOB_API_URL` and `TKDJOB_API_KEY` (`app/core/config.py`).
+
+GraphQL paths: `query { jobs { job(jobId: ...) { ... } jobs(limit: ..., offset: ...) { ... } } }`, `mutation { jobs { createEmailFinderExport(input: ...) { ... } } }`.
 
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
-| `job` | `jobId` | ID! | `SchedulerJob` |
-| `jobs` | `limit`, `offset`, `status`, `jobType` | Int, Int, String, String | `JobConnection` |
-| **Mutations** | | | |
-| `createEmailFinderExport` | `input` | CreateEmailFinderExportInput! | `SchedulerJob` |
-| `createEmailVerifyExport` | `input` | CreateEmailVerifyExportInput! | `SchedulerJob` |
-| `createEmailPatternImport` | `input` | CreateEmailPatternImportInput! | `SchedulerJob` (SuperAdmin) |
-| `createContact360Export` | `input` | CreateContact360ExportInput! | `SchedulerJob` |
-| `createContact360Import` | `input` | CreateContact360ImportInput! | `SchedulerJob` (SuperAdmin) |
-| `createAppointmentImport` | `input` | CreateAppointmentImportInput! | `SchedulerJob` |
-| `retryJob` | `input` | RetryJobInput! | success |
+| **Queries** (under `jobs { ... }`) | | | |
+| `job` | `jobId` | `ID!` | `SchedulerJob` |
+| `jobs` | `limit`, `offset`, `status`, `jobType` | `Int`, `Int`, `String`, `String` | `JobConnection` |
+| **Mutations** (under `jobs { ... }`) | | | |
+| `createEmailFinderExport` | `input` | `CreateEmailFinderExportInput!` | `SchedulerJob` |
+| `createEmailVerifyExport` | `input` | `CreateEmailVerifyExportInput!` | `SchedulerJob` |
+| `createEmailPatternImport` | `input` | `CreateEmailPatternImportInput!` | `SchedulerJob` (SuperAdmin) |
+| `createContact360Export` | `input` | `CreateContact360ExportInput!` | `SchedulerJob` |
+| `createContact360Import` | `input` | `CreateContact360ImportInput!` | `SchedulerJob` (SuperAdmin) |
+| `createAppointmentImport` | `input` | `CreateAppointmentImportInput!` | `SchedulerJob` |
+| `retryJob` | `input` | `RetryJobInput!` | `JSON` (tkdjob retry response payload) |
 
 Use **camelCase** in variables (e.g. `inputCsvKey`, `outputPrefix`, `s3Bucket`, `retryCount`, `savedSearchId`). See Input Types and Variable naming below.
 
@@ -29,8 +31,8 @@ Use **camelCase** in variables (e.g. `inputCsvKey`, `outputPrefix`, `s3Bucket`, 
 
 1. Client uploads the input CSV to S3 via the **Upload module** (multipart upload) and receives an S3 `file_key` (S3 object key).
 2. Client calls a GraphQL mutation (e.g. `jobs.createEmailFinderExport`) with that key as `input.input_csv_key`.
-3. Appointment360 validates auth and (for some mutations) role (e.g. SuperAdmin).
-4. Appointment360 calls the tkdjob REST API (e.g. POST /api/v1/jobs/email-export).
+3. The gateway validates auth and (for some mutations) role (e.g. SuperAdmin).
+4. The gateway calls the tkdjob REST API (e.g. `POST /api/v1/jobs/email-export`).
 5. On success, a row is inserted into `scheduler_jobs` (job_id, user_id, job_type, status, request/response payload).
 6. The created `SchedulerJob` is returned; the client can poll status via `jobs.job(jobId)` or tkdjob directly.
 

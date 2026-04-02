@@ -15,9 +15,11 @@ The Health module provides health check and monitoring functionality including A
 | `apiHealth` | — | — | `ApiHealth` |
 | `vqlHealth` | — | — | `VQLHealth` |
 | `vqlStats` | — | — | `VQLStats` |
-| `performanceStats` | (filters if any) | — | `PerformanceStats` (SuperAdmin only) |
+| `performanceStats` | — | — | `PerformanceStats` (SuperAdmin only) |
 
-No mutations. All queries are public except `performanceStats` (SuperAdmin). REST: `GET /health`, `GET /health/db`, `GET /health/logging`.
+No mutations. **Auth:** `apiMetadata`, `apiHealth` are public. **`vqlHealth`** and **`vqlStats`** require an authenticated user (Connectra check uses `CONNECTRA_BASE_URL`). **`performanceStats`** requires **SuperAdmin**.
+
+**REST** (FastAPI, `app/main.py`): `GET /health`, `GET /health/db`, `GET /health/logging`, `GET /health/slo`, `GET /health/token-blacklist`. Also `GET /` (discovery JSON), `POST /graphql`.
 
 ## Types
 
@@ -220,7 +222,7 @@ query GetApiMetadata {
   "data": {
     "health": {
       "apiMetadata": {
-        "name": "Appointment GraphQL API",
+        "name": "<from settings.PROJECT_NAME; often still 'Appointment GraphQL API' in config>",
         "version": "0.1.0",
         "docs": "/docs"
       }

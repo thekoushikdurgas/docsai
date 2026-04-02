@@ -2,9 +2,11 @@
 
 ## Overview
 
-The Auth module provides authentication and session management functionality for the Appointment GraphQL API. It handles user registration, login, logout, token refresh, and session information retrieval.
+The Auth module provides authentication and session management for the **Contact360 GraphQL gateway**. It handles user registration, login, logout, token refresh, and session information retrieval.
 
 **Location:** `app/graphql/modules/auth/`
+
+GraphQL paths: `query { auth { me { ... } session { ... } } }`, `mutation { auth { login(input: ...) { ... } } }`.
 
 ## Queries and mutations – parameters and variable types
 

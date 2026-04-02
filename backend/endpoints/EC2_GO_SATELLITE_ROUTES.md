@@ -98,19 +98,19 @@ Worker: `ai:resume_parse`, `ai:ats_score` (Asynq).
 
 ## `contact360.io/emailapigo` (`EC2/email.server`)
 
-Module: `github.com/ayan/emailapigo` | Port: `8080` (production) / `3000` (config default — see FIX-1 in era task pack) | Auth: `X-API-Key`
+Module: `github.com/ayan/emailapigo` | **Canonical port: `8080`** (default `PORT` in `config.go`; Docker `EXPOSE 8080`) | Auth: `X-API-Key`
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
 | GET | `/health` | Public | Diagnostics (all providers + DB + Redis configured?) |
 | GET | `/` | Public | Service info |
 | GET | `/metrics` | Public | In-process cache hit/miss, response time counters |
-| GET | `/health/live` | Public | **TODO** Era 0 — not yet implemented |
-| GET | `/health/ready` | Public | **TODO** Era 0 — not yet implemented |
-| GET | `/health/db` | Public | **TODO** Era 0 — not yet implemented |
+| GET | `/health/live` | Public | Liveness (always `200` when process serves) |
+| GET | `/health/ready` | Public | Redis + Postgres ping |
+| GET | `/health/db` | Public | Postgres ping only |
 | GET | `/jobs` | ✅ | List 50 most recent emailapi_jobs |
 | GET | `/jobs/:id/status` | ✅ | Job progress from PG + Redis hash |
-| POST | `/email/finder/` | ✅ | Single find (query params: first_name, last_name, domain) |
+| POST | `/email/finder/` | ✅ | Single find (query params: `first_name`, `last_name`, **`domain` and/or `website`**) |
 | POST | `/email/finder/bulk` | ✅ | Bulk find; semaphore 15 goroutines |
 | POST | `/email/finder/bulk/job` | ✅ | Enqueue bulk find to Asynq; returns job_id |
 | POST | `/email/single/verifier/` | ✅ | Single verify (JSON body; provider) |
@@ -121,24 +121,20 @@ Module: `github.com/ayan/emailapigo` | Port: `8080` (production) / `3000` (confi
 | POST | `/web/web-search` | ✅ | DuckDuckGo + OpenAI email discovery |
 | POST | `/email-patterns/add` | ✅ | Add single email pattern |
 | POST | `/email-patterns/add/bulk` | ✅ | Add batch email patterns |
-| POST | `/email-patterns/predict` | **TODO** | Era 2 — schema exists, route not wired |
-| POST | `/email-patterns/predict/bulk` | **TODO** | Era 2 — schema exists, route not wired |
-| POST | `/email/single/verifier/find` | **TODO** | Era 2 — response type exists, route not wired |
+| POST | `/email-patterns/predict` | ✅ | Pattern suggestions for one person+domain (JSON body) |
+| POST | `/email-patterns/predict/bulk` | ✅ | Pattern suggestions for many triplets |
+| POST | `/email/single/verifier/find` | ✅ | Find-then-verify first candidate (JSON body; `domain` or `website`) |
 
 **Worker queues (Asynq/Redis):**
 
 | Queue | Concurrency | Task types |
 | --- | --- | --- |
 | `mailtester` | 5 | `email:verify:mailtester`, `email:s3csv:verify:mailtester` |
-| `mailvetter` | 1 | `email:verify:mailvetter` |
+| `mailvetter` | 1 | `email:verify:mailvetter`, `email:s3csv:verify:mailvetter` |
 | `email_finder` | 4 | `email:find`, `email:s3csv:find` |
 | `default` | 1 | (unused) |
 
-**Known issues (fix in Era 0):**
-- Port mismatch: container binds `:3000` but compose maps `8080:8080` → empty reply on probes.
-- `emailapi_jobs` DDL missing from repo (no migration file).
-- `MAILVETTER_BASE_URL` default has typo `mailvaiter.com`.
-- Batch logger URL hardcoded in `internal/logging/batch_logger.go`.
+**Era 0 hardening (done in repo):** SQL migrations under `EC2/email.server/db/migrations/`, `MAILVETTER_BASE_URL` default fixed, batch logger uses `LOGS_API_URL` / `LOGS_API_KEY`, `docker-compose.email.yml` maps `8080:8080`, `X-Request-ID` middleware enabled.
 
 **Era task pack:** `docs/backend/apis/EMAILAPIGO_ERA_TASK_PACKS.md`  
 **Codebase analysis:** `docs/codebases/emailapis-codebase-analysis.md`

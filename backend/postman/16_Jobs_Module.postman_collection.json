@@ -1,1 +1,168 @@
-{"info":{"_postman_id":"jobs-module-graphql","name":"GraphQL – Jobs Module","description":"Jobs: job, jobs; createEmailFinderExport, createContact360Export, createContact360Import, createAppointmentImport, retryJob. Variables: use camelCase (jobId, inputCsvKey, outputPrefix, s3Bucket, retryCount, savedSearchId, vql, pageSize). See sql/apis/16_JOBS_MODULE.md (Queries and mutations – parameters and variable types).","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"variable":[{"key":"baseUrl","value":"http://localhost:8000"},{"key":"accessToken","value":""},{"key":"jobId","value":""}],"item":[{"name":"Queries","item":[{"name":"job","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query GetJob($jobId: ID!) { jobs { job(jobId: $jobId) { id jobId jobType status statusPayload createdAt } } }\",\"variables\":{\"jobId\":\"{{jobId}}\"}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"jobs","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query ListJobs($limit: Int, $offset: Int) { jobs { jobs(limit: $limit, offset: $offset) { jobs { id jobId jobType status } pageInfo { total } } } }\",\"variables\":{\"limit\":20,\"offset\":0}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]},{"name":"Mutations","item":[{"name":"createEmailFinderExport","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation CreateEmailFinderExport($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { jobId status } } }\",\"variables\":{\"input\":{\"inputCsvKey\":\"upload/file.csv\",\"outputPrefix\":\"export\"}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"createContact360Export","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation CreateContact360Export($input: CreateContact360ExportInput!) { jobs { createContact360Export(input: $input) { jobId status } } }\",\"variables\":{\"input\":{\"outputPrefix\":\"export\",\"service\":\"contact\",\"vql\":{},\"pageSize\":500}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"retryJob","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation RetryJob($input: RetryJobInput!) { jobs { retryJob(input: $input) { jobId status } } }\",\"variables\":{\"input\":{\"jobId\":\"{{jobId}}\",\"retryCount\":3}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]}]}
+{
+  "info": {
+    "_postman_id": "jobs-module-graphql",
+    "name": "GraphQL – Jobs Module",
+    "description": "Tkdjob scheduler via root `jobs`. Queries: `job(jobId)`, `jobs(limit, offset, status, jobType)` → `JobConnection` with `pageInfo { total limit offset hasNext hasPrevious }`. On `SchedulerJob` request `statusPayload`, `timelinePayload`, `dagPayload` for live Tkdjob data. Mutations return `SchedulerJob` (`id`, `jobId`, `userId`, `jobType`, `status`, …). `retryJob` returns JSON (Tkdjob response), not a job object. `createContact360Import` and `createEmailPatternImport` require SuperAdmin. `CreateContact360ImportInput` requires `s3Bucket` + `s3Key`. Env: `{{jobUuid}}`, `{{s3Bucket}}`, `{{fileKey}}`. See `contact360.io/api` `app/graphql/modules/jobs/`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "jobUuid", "value": "" },
+    { "key": "s3Bucket", "value": "tkdrawcsvdata" },
+    { "key": "fileKey", "value": "" },
+    { "key": "companyUuid", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"query GetJob($jobId: ID!) { jobs { job(jobId: $jobId) { id jobId userId jobType status requestPayload responsePayload statusPayload createdAt updatedAt timelinePayload dagPayload } } }\",\"variables\":{\"jobId\":\"{{jobUuid}}\"}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Single scheduler job by Tkdjob uuid. `statusPayload`/`timelinePayload`/`dagPayload` hit Tkdjob when reachable."
+          }
+        },
+        {
+          "name": "jobs (list)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"query ListJobs($limit: Int, $offset: Int, $status: String, $jobType: String) { jobs { jobs(limit: $limit, offset: $offset, status: $status, jobType: $jobType) { jobs { id jobId jobType status createdAt } pageInfo { total limit offset hasNext hasPrevious } } } }\",\"variables\":{\"limit\":25,\"offset\":0,\"status\":null,\"jobType\":null}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "createEmailFinderExport",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation CreateEmailFinderExport($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"exports/email-finder/\",\"rowLimit\":100,\"chunkSize\":10,\"retryCount\":3,\"retryInterval\":5}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "`inputCsvKey` = fileKey from Upload module after completeUpload."
+          }
+        },
+        {
+          "name": "createEmailVerifyExport",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation CreateEmailVerifyExport($input: CreateEmailVerifyExportInput!) { jobs { createEmailVerifyExport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"exports/email-verify/\",\"rowLimit\":100,\"chunkSize\":10,\"retryCount\":3,\"retryInterval\":5}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "createEmailPatternImport",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation CreateEmailPatternImport($input: CreateEmailPatternImportInput!) { jobs { createEmailPatternImport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"imports/patterns/\",\"chunkCount\":8,\"companyUuid\":\"{{companyUuid}}\",\"batchSize\":50,\"retryCount\":3,\"retryInterval\":5}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "SuperAdmin only."
+          }
+        },
+        {
+          "name": "createContact360Export",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation CreateContact360Export($input: CreateContact360ExportInput!) { jobs { createContact360Export(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"outputPrefix\":\"exports/contact360/\",\"service\":\"contact\",\"vql\":{\"where\":{},\"selectColumns\":[\"first_name\",\"last_name\",\"email\"],\"limit\":1000},\"sliceCount\":4,\"pageSize\":1000,\"retryCount\":2,\"retryInterval\":5}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "createContact360Import",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation CreateContact360Import($input: CreateContact360ImportInput!) { jobs { createContact360Import(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"s3Key\":\"{{fileKey}}\",\"outputPrefix\":\"imports/contact360/\",\"chunkCount\":8,\"retryCount\":3,\"retryInterval\":5}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "SuperAdmin only. `s3Bucket` and `s3Key` are required."
+          }
+        },
+        {
+          "name": "createAppointmentImport",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation CreateAppointmentImport($input: CreateAppointmentImportInput!) { jobs { createAppointmentImport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Key\":\"{{fileKey}}\",\"outputPrefix\":\"appointments/imports/\",\"s3Bucket\":\"{{s3Bucket}}\",\"chunkCount\":8,\"retryCount\":3,\"retryInterval\":5}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "retryJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation RetryJob($input: RetryJobInput!) { jobs { retryJob(input: $input) } }\",\"variables\":{\"input\":{\"jobId\":\"{{jobUuid}}\",\"retryCount\":3,\"retryInterval\":5,\"runAfter\":null,\"priority\":null}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Returns scalar JSON (Tkdjob response). Do not select subfields."
+          }
+        }
+      ]
+    }
+  ]
+}

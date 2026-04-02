@@ -15,6 +15,9 @@ The Companies module exposes Connectra-backed company querying and mutation work
 - `updateCompany`
 - `exportCompanies`
 - `importCompanies`
+- `deleteCompany` (`Boolean`; Connectra/gateway may reject unsupported deletes — check runtime errors)
+
+GraphQL paths: `query { companies { ... } }`, `mutation { companies { ... } }`.
 
 ## Connectra REST mapping
 

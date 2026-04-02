@@ -2,10 +2,10 @@
 
 ## Overview
 
-The Email module provides email finder, verification, and pattern management via the Lambda Email API. It includes **4 queries** (finder single/bulk, verifier single/bulk) and **2 mutations** (add email pattern single/bulk). Long‑running export/import jobs are created via convenience fields that delegate to the [Jobs Module](16_JOBS_MODULE.md).
+The Email module provides email finder, verification, pattern management, optional **async satellite jobs**, and web discovery via the Lambda Email API (Go `email.server`). It includes **finder/verifier/pattern queries**, **pattern + async job mutations**, `emailJobStatus` and `webSearch` queries. Long‑running CSV export/import jobs still delegate to the [Jobs Module](16_JOBS_MODULE.md).
 **Location:** `app/graphql/modules/email/`
 
-**Lambda Email API:** `https://futbzxg5x8.execute-api.us-east-1.amazonaws.com`
+**Lambda Email API base URL:** from gateway env `LAMBDA_EMAIL_API_URL` (`app/core/config.py`). Do not hardcode stage URLs in clients.
 
 ## API Endpoints Mapping
 
@@ -15,13 +15,26 @@ The Email module provides email finder, verification, and pattern management via
 | `findEmailsBulk` | Lambda: POST `/email/finder/bulk` | Bulk find (1-50 contacts) |
 | `verifySingleEmail` | Lambda: POST `/email/single/verifier/` | Verify one email |
 | `verifyEmailsBulk` | Lambda: POST `/email/bulk/verifier/` | Verify 1-10,000 emails |
+| `emailJobStatus` | Lambda: GET `/jobs/:id/status` | Async email satellite job progress |
+| `webSearch` | Lambda: POST `/web/web-search` | Full-name + domain discovery JSON |
 | `addEmailPattern` | Lambda: POST `/email-patterns/add` | Add one email pattern for a company (mutation) |
 | `addEmailPatternBulk` | Lambda: POST `/email-patterns/add/bulk` | Add multiple email patterns (mutation) |
+| `createEmailFinderBulkJob` | Lambda: POST `/email/finder/bulk/job` | Enqueue async finder rows (mutation) |
+| `createEmailVerifyBulkJob` | Lambda: POST `/email/bulk/verifier/job` | Enqueue async verify rows (mutation) |
 | `createEmailFinderExportJob` | Tkdjob: POST `/api/v1/jobs/email-export` | Create an email finder export job (streaming CSV via S3) |
 | `createEmailVerifyExportJob` | Tkdjob: POST `/api/v1/jobs/email-verify` | Create an email verification export job (streaming CSV via S3) |
 | `createEmailPatternImportJob` | Tkdjob: POST `/api/v1/jobs/email-pattern-import` | Create an email pattern import job (SuperAdmin only) |
 
-> **Note:** Finder and verification are **queries** under `email`; pattern add are **mutations** under `mutation.email`. Job creation fields live under `email` (queries) but delegate to the Jobs module, which persists records in `scheduler_jobs`.
+> **Note:** Finder and verification are **queries** under `email`; pattern add and async bulk jobs are **mutations** under `mutation.email`. CSV export jobs still live under `email` (queries) but delegate to the Jobs module (`scheduler_jobs`).
+
+## Verifier provider matrix (gateway + satellite)
+
+| Provider | Single / bulk verify (GraphQL + REST) | Notes |
+| --- | --- | --- |
+| `truelist` | ✅ | Default |
+| `icypeas` | ✅ | |
+| `mailtester` | ✅ | Bulk async + S3 CSV task `email:s3csv:verify:mailtester` |
+| `mailvetter` | ✅ | Bulk async + S3 CSV task `email:s3csv:verify:mailvetter` |
 
 ## Endpoint metadata references (`docs/backend/endpoints`)
 
@@ -43,23 +56,29 @@ These metadata files must stay aligned with:
 
 ## Queries and mutations – parameters and variable types
 
+All fields live under `email { ... }` on `Query` / `Mutation`.
+
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
 | **Queries** | | | |
-| `findEmails` | `input` | EmailFinderInput! | `EmailFinderResponse` |
-| `findEmailsBulk` | `input` | BulkEmailFinderInput! | `BulkEmailFinderResponse` |
-| `verifySingleEmail` | `input` | SingleEmailVerifierInput! | `VerifiedEmailResult` |
-| `verifyEmailsBulk` | `input` | BulkEmailVerifierInput! | bulk verify result |
-| `createEmailFinderExportJob` | `input` | CreateEmailFinderExportInput! | `SchedulerJob` |
-| `createEmailVerifyExportJob` | `input` | CreateEmailVerifyExportInput! | `SchedulerJob` |
-| `createEmailPatternImportJob` | `input` | CreateEmailPatternImportInput! | `SchedulerJob` (SuperAdmin) |
-| `exportEmails` | — | — | (export info) |
-| `verifyexportEmail` | — | — | (verify-export info) |
+| `findEmails` | `input` | `EmailFinderInput!` | `EmailFinderResponse` |
+| `findEmailsBulk` | `input` | `BulkEmailFinderInput!` | `BulkEmailFinderResponse` |
+| `verifySingleEmail` | `input` | `SingleEmailVerifierInput!` | `VerifiedEmailResult` |
+| `verifyEmailsBulk` | `input` | `BulkEmailVerifierInput!` | bulk verify result type |
+| `emailJobStatus` | `jobId` | `String!` | `EmailJobStatus` (async bulk job progress) |
+| `webSearch` | `input` | `WebSearchInput!` | `JSON` (upstream discovery payload) |
+| `createEmailFinderExportJob` | `input` | `CreateEmailFinderExportInput!` | `SchedulerJob` (tkdjob) |
+| `createEmailVerifyExportJob` | `input` | `CreateEmailVerifyExportInput!` | `SchedulerJob` |
+| `createEmailPatternImportJob` | `input` | `CreateEmailPatternImportInput!` | `SchedulerJob` (SuperAdmin) |
+| `exportEmails` | — | — | `ComingSoonResponse` (stub) |
+| `verifyexportEmail` | — | — | `ComingSoonResponse` (stub) |
 | **Mutations** | | | |
-| `addEmailPattern` | `input` | AddEmailPatternInput! | result |
-| `addEmailPatternBulk` | `input` | AddEmailPatternBulkInput! | result |
+| `addEmailPattern` | `input` | `AddEmailPatternInput!` | pattern result |
+| `addEmailPatternBulk` | `input` | `AddEmailPatternBulkInput!` | bulk pattern result |
+| `createEmailFinderBulkJob` | `input` | `BulkEmailFinderJobInput!` | `EmailJobQueuedResponse` |
+| `createEmailVerifyBulkJob` | `input` | `BulkEmailVerifyJobInput!` | `EmailJobQueuedResponse` |
 
-Use camelCase in variables. Credit deduction (1 per find/verify for FreeUser/ProUser); SuperAdmin/Admin unlimited. Input types: see Input Types section and Jobs module for job inputs.
+Use camelCase in variables. Credit deduction (1 per find/verify for typical paid tiers); SuperAdmin/Admin often unlimited—see resolver. Input types: see Input Types section and [16_JOBS_MODULE.md](16_JOBS_MODULE.md) for export/import job inputs.
 
 ## Types
 

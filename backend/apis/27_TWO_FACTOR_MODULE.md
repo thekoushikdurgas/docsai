@@ -11,15 +11,17 @@ The Two-Factor Authentication (2FA) module provides functionality for setting up
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
+| **Queries** (under `twoFactor { ... }`) | | | |
 | `get2FAStatus` | — | — | `TwoFactorStatus` |
-| **Mutations** | | | |
+| **Mutations** (under `twoFactor { ... }`) | | | |
 | `setup2FA` | — | — | `TwoFactorSetupResponse` |
-| `verify2FA` | `code` | String! | `Verify2FAResponse` |
-| `disable2FA` | — | — | result |
+| `verify2FA` | `code` | `String!` | `Verify2FAResponse` |
+| `disable2FA` | `password`, `backupCode` | optional `String`, optional `String` | `Boolean` |
 | `regenerateBackupCodes` | — | — | `RegenerateBackupCodesResponse` |
 
-Use camelCase in variables. two_factor table (secret_hash, verified, enabled, backup_codes_hash). Auth required for all.
+GraphQL paths: `query { twoFactor { get2FAStatus { ... } } }`, `mutation { twoFactor { setup2FA { ... } } }`.
+
+Use camelCase in variables (`backupCode`). two_factor table (secret_hash, verified, enabled, backup_codes_hash). Auth required for all.
 
 ## Types
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AI Chats module exposes GraphQL operations for AI chat threads and for utility AI calls (email risk, company summary, natural language filter parsing). Resolvers use **`LambdaAIClient`** (`app/clients/lambda_ai_client.py`) to call the **Contact AI** REST microservice — codebase **`backend(dev)/contact.ai`** (FastAPI on AWS Lambda). That service persists chats in PostgreSQL table **`ai_chats`** (shared with appointment360) and runs inference through **Hugging Face Inference Providers** (OpenAI-compatible chat completions and JSON tasks), not Google Gemini.
+The AI Chats module exposes GraphQL operations for AI chat threads and for utility AI calls (email risk, company summary, natural language filter parsing). Resolvers use **`LambdaAIClient`** (`app/clients/lambda_ai_client.py`) to call the **Contact AI** REST microservice — codebase **`backend(dev)/contact.ai`** (FastAPI on AWS Lambda). That service persists chats in PostgreSQL table **`ai_chats`** (same database cluster as the Contact360 gateway app) and runs inference through **Hugging Face Inference Providers** (OpenAI-compatible chat completions and JSON tasks), not Google Gemini.
 
 **Location (GraphQL):** `app/graphql/modules/ai_chats/`
 
@@ -10,23 +10,25 @@ The AI Chats module exposes GraphQL operations for AI chat threads and for utili
 
 **Contract note:** The Contact AI API uses routes under `/api/v1/ai-chats/…` and `/api/v1/ai/…`. Ensure `LambdaAIClient` base URL and paths match the deployed service (utility endpoints were historically documented as `/gemini/…`; the canonical service uses `/api/v1/ai/…`).
 
+GraphQL paths: `query { aiChats { aiChats(filters: { ... }) { ... } aiChat(chatId: "...") { ... } } }`, `mutation { aiChats { createAIChat(...) sendMessage(...) } }`.
+
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
-| `aiChats` | `limit`, `offset` | Int, Int | AIChat list / connection |
-| `aiChat` | `id` | ID! | `AIChat` |
-| **Mutations** | | | |
-| `createAIChat` | `input` | CreateAIChatInput! | `AIChat` |
-| `updateAIChat` | `id`, `input` | ID!, UpdateAIChatInput! | `AIChat` |
-| `deleteAIChat` | `id` | ID! | result |
-| `sendMessage` | `input` | SendMessageInput! | message result |
-| `analyzeEmailRisk` | `input` | AnalyzeEmailRiskInput! | analysis result |
-| `generateCompanySummary` | `input` | GenerateCompanySummaryInput! | summary result |
-| `parseContactFilters` | `input` | ParseContactFiltersInput! | parsed filters |
+| **Queries** (under `aiChats { ... }`) | | | |
+| `aiChats` | `filters` | `AIChatFilterInput` (optional; `limit`, `offset`, `title`, `search`, `createdAtAfter`, `createdAtBefore`, `ordering`, …) | `AIChatConnection` |
+| `aiChat` | `chatId` | `String!` | `AIChat` |
+| **Mutations** (under `aiChats { ... }`) | | | |
+| `createAIChat` | `input` | `CreateAIChatInput!` | `AIChat` |
+| `updateAIChat` | `chatId`, `input` | `String!`, `UpdateAIChatInput!` | `AIChat` |
+| `deleteAIChat` | `chatId` | `String!` | `Boolean` |
+| `sendMessage` | `input` | `SendMessageInput!` | message / chat result (see schema) |
+| `analyzeEmailRisk` | `input` | `AnalyzeEmailRiskInput!` | analysis result |
+| `generateCompanySummary` | `input` | `GenerateCompanySummaryInput!` | summary result |
+| `parseContactFilters` | `input` | `ParseContactFiltersInput!` | parsed filters |
 
-Use camelCase in variables. Chat and message operations call the Contact AI service via `LambdaAIClient`; `sendMessage` and analysis mutations use the same client. See Input Types for each input's fields.
+Use camelCase in variables (`chatId`, `createdAtAfter`, …). Chat and message operations call the Contact AI service via `LambdaAIClient`. See Input Types for each input's fields.
 
 ## Types
 
@@ -1098,7 +1100,7 @@ mutation DeleteChat {
   - Each message text: max 10,000 characters
 - **Chat operations**: All chat operations go through `LambdaAIClient` to Contact AI
   - Create, update, delete, list, get, send message
-  - **Persistence:** Chats are stored in PostgreSQL table **`ai_chats`** by the Contact AI service (same database as appointment360; `user_id` references `users.uuid`)
+  - **Persistence:** Chats are stored in PostgreSQL table **`ai_chats`** by the Contact AI service (same database as the Contact360 gateway; `user_id` references `users.uuid`)
 
 ### AI analysis operations (stateless REST)
 

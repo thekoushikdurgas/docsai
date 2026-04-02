@@ -2,12 +2,22 @@
   "info": {
     "_postman_id": "notifications-module-graphql",
     "name": "GraphQL – Notifications Module",
-    "description": "Notifications module: notifications, notification, unreadCount, notificationPreferences; markNotificationAsRead, markNotificationsAsRead, markAllNotificationsAsRead, deleteNotification, deleteNotifications, updateNotificationPreferences. See 05_NOTIFICATIONS_MODULE.md.",
+    "description": "Root field `notifications`. Queries: notifications, notification, unreadCount, notificationPreferences. Mutations: markNotificationAsRead, markNotificationsAsRead, deleteNotifications, updateNotificationPreferences.\n\nThere is no mark-all or single-delete mutation in the API — use markNotificationsAsRead / deleteNotifications with id list from List notifications.\n\nEnv: notificationId, accessToken, baseUrl.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8000" },
-    { "key": "accessToken", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -18,15 +28,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"query ListNotifications($filters: NotificationFilterInput) { notifications { notifications(filters: $filters) { items { id type priority title message read createdAt } pageInfo { total limit offset hasNext hasPrevious } } } }\",\n  \"variables\": {\n    \"filters\": {\n      \"unreadOnly\": false,\n      \"limit\": 20,\n      \"offset\": 0\n    }\n  }\n}"
+              "raw": "{\n  \"query\": \"query ListNotifications($filters: NotificationFilterInput) { notifications { notifications(filters: $filters) { items { id type priority title message read readAt createdAt } pageInfo { total limit offset hasNext hasPrevious } } } }\",\n  \"variables\": {\n    \"filters\": {\n      \"unreadOnly\": false,\n      \"limit\": 20,\n      \"offset\": 0\n    }\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "List notifications with optional filters (type: SYSTEM, SECURITY, etc.)."
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
           }
         },
         {
@@ -34,15 +57,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"query GetNotification($notificationId: ID!) { notifications { notification(notificationId: $notificationId) { id type priority title message read readAt createdAt } } }\",\n  \"variables\": { \"notificationId\": \"1\" }\n}"
+              "raw": "{\n  \"query\": \"query GetNotification($notificationId: ID!) { notifications { notification(notificationId: $notificationId) { id type priority title message read readAt createdAt metadata } } }\",\n  \"variables\": { \"notificationId\": \"{{notificationId}}\" }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Get notification by ID."
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
           }
         },
         {
@@ -50,15 +86,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"query\": \"query GetUnreadCount { notifications { unreadCount { count } } }\",\n  \"variables\": {}\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Unread notification count."
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
           }
         },
         {
@@ -66,15 +115,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"query\": \"query GetPreferences { notifications { notificationPreferences { emailDigest newLeads securityAlerts marketing billingUpdates pushEnabled emailEnabled } } }\",\n  \"variables\": {}\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Get notification preferences."
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
           }
         }
       ]
@@ -87,15 +149,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation MarkAsRead($notificationId: ID!) { notifications { markNotificationAsRead(notificationId: $notificationId) { id read readAt } } }\",\n  \"variables\": { \"notificationId\": \"1\" }\n}"
+              "raw": "{\n  \"query\": \"mutation MarkAsRead($notificationId: ID!) { notifications { markNotificationAsRead(notificationId: $notificationId) { id read readAt } } }\",\n  \"variables\": { \"notificationId\": \"{{notificationId}}\" }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Mark one notification as read."
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
           }
         },
         {
@@ -103,47 +178,29 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation MarkMultipleAsRead($input: MarkReadInput!) { notifications { markNotificationsAsRead(input: $input) { count } } }\",\n  \"variables\": { \"input\": { \"notificationIds\": [\"1\", \"2\"] } }\n}"
+              "raw": "{\n  \"query\": \"mutation MarkMultipleAsRead($input: MarkReadInput!) { notifications { markNotificationsAsRead(input: $input) { count } } }\",\n  \"variables\": { \"input\": { \"notificationIds\": [\"{{notificationId}}\"] } }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Mark multiple as read (max 1000)."
-          }
-        },
-        {
-          "name": "markAllNotificationsAsRead",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation MarkAllAsRead { notifications { markAllNotificationsAsRead { count } } }\",\n  \"variables\": {}\n}"
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Mark all as read."
-          }
-        },
-        {
-          "name": "deleteNotification",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation DeleteNotification($notificationId: ID!) { notifications { deleteNotification(notificationId: $notificationId) } }\",\n  \"variables\": { \"notificationId\": \"1\" }\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Delete one notification."
+            "description": "Replace notificationIds with real ids, e.g. [\"1\",\"2\"]."
           }
         },
         {
@@ -151,15 +208,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation DeleteNotifications($input: DeleteNotificationsInput!) { notifications { deleteNotifications(input: $input) { count } } }\",\n  \"variables\": { \"input\": { \"notificationIds\": [\"1\", \"2\"] } }\n}"
+              "raw": "{\n  \"query\": \"mutation DeleteNotifications($input: DeleteNotificationsInput!) { notifications { deleteNotifications(input: $input) { count } } }\",\n  \"variables\": { \"input\": { \"notificationIds\": [\"{{notificationId}}\"] } }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Delete multiple (max 1000)."
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
           }
         },
         {
@@ -167,15 +237,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"query\": \"mutation UpdatePreferences($input: UpdateNotificationPreferencesInput!) { notifications { updateNotificationPreferences(input: $input) { emailDigest newLeads securityAlerts marketing billingUpdates pushEnabled emailEnabled } } }\",\n  \"variables\": {\n    \"input\": {\n      \"emailDigest\": true,\n      \"newLeads\": true,\n      \"securityAlerts\": true,\n      \"marketing\": false,\n      \"billingUpdates\": true,\n      \"pushEnabled\": false,\n      \"emailEnabled\": true\n    }\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Update notification preferences."
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
           }
         }
       ]

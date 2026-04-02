@@ -6,22 +6,24 @@ The Users module provides user management functionality including user queries, 
 
 **Location:** `app/graphql/modules/users/`
 
+GraphQL paths: `query { users { user(uuid: ...) { ... } } }`, `mutation { users { updateProfile(...) { ... } } }`.
+
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
+| **Queries** (under `users { ... }`) | | | |
 | `user` | `uuid` | `ID!` | `User` |
 | `users` | `limit`, `offset`, `isActive`, `role`, `search` | `Int`, `Int`, `Boolean`, `String`, `String` | `UserConnection` |
 | `userStats` | — | — | `UserStats` (Admin/SuperAdmin) |
-| **Mutations** | | | |
+| **Mutations** (under `users { ... }`) | | | |
 | `updateProfile` | `input` | `UpdateProfileInput!` | `User` |
 | `uploadAvatar` | `input` | `UploadAvatarInput!` | `User` |
 | `updateUser` | `input` | `UpdateUserInput!` | `User` |
 | `promoteToAdmin` | `input` | `PromoteToAdminInput!` | `User` (SuperAdmin) |
 | `promoteToSuperAdmin` | `input` | `PromoteToSuperAdminInput!` | `User` (SuperAdmin) |
 
-Use camelCase in the `variables` JSON (e.g. `userId`, `jobTitle`). See Input Types section for field-level types.
+Use camelCase in the `variables` JSON (e.g. `uuid` for `user(uuid:)`, `jobTitle` in profile inputs). See Input Types section for field-level types.
 
 ## Types
 

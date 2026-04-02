@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "contact360-graphql-api-complete",
     "name": "Contact360 GraphQL API - Complete",
-    "description": "Complete GraphQL API collection for Contact360 Appointment360 service.\n\n**Setup:**\n1. Import this collection\n2. Set collection or environment variables: baseUrl (e.g. http://localhost:8000), email, password\n3. Run Auth > Login to get tokens; copy accessToken (and optionally refreshToken, userId) into environment\n4. All other requests use Authorization: Bearer {{accessToken}}\n\n**Structure:** 27 folders covering all GraphQL roots (auth, users, contacts, companies, jobs, pages, upload, s3, billing, etc.). Imports/Exports requests use the jobs root; Dashboard Pages, Documentation, and Marketing use the pages root.\n\n**Required variables:** baseUrl, accessToken, refreshToken, userId, email, password\n\n**Variables:** Use camelCase in request variables (e.g. inputCsvKey, outputPrefix, pageType). See sql/apis/README.md for task breakdown and per-module docs (Queries and mutations – parameters and variable types).\n\n**Docs:** See sql/postman/README.md in this repo for folder→root mapping and setup details.",
+    "description": "Complete GraphQL API collection for Contact360 (GraphQL-only FastAPI backend).\n\n**Setup:**\n1. Import this collection and `Contact360_Local` or `Contact360_Production` environment\n2. Set `baseUrl` (or `graphqlUrl` for POST body URL override), `email`, `password`, `name` (optional for register), `s3Bucket` for import jobs, `jobUuid` / `emailJobId` after async operations\n3. Run Auth > Login; tests persist accessToken, refreshToken, userId\n4. Authenticated requests use `Authorization: Bearer {{accessToken}}`\n\n**Server `.env` (not sent by Postman):** the API uses `LAMBDA_EMAIL_API_URL` / `LAMBDA_EMAIL_API_KEY` (email + webSearch), `TKDJOB_API_URL` / `TKDJOB_API_KEY` (scheduler jobs), `CAMPAIGN_API_URL` / `CAMPAIGN_API_KEY` (`campaignSatellite`), `CONNECTRA_BASE_URL` / `CONNECTRA_API_KEY` (VQL). Matching keys are listed in the environment file as empty placeholders for your notes only.\n\n**REST:** Health checks under `GET {{baseUrl}}/health`, `/health/db`, etc. — see Health folder.\n\n**Roots:** auth, users, contacts, companies, activities, analytics, billing, email, campaignSatellite, jobs, usage, featureOverview, pages, s3, upload, aiChats, notifications, salesNavigator, admin, health, savedSearches, twoFactor, profile, resume; mutations: linkedin.\n\n**GraphQL variables:** camelCase (`fileSize`, `contentType`, `inputCsvKey`, `s3Bucket`, `s3Key`, …). See per-module JSON in `docs/backend/postman/`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -578,6 +578,36 @@
           }
         },
         {
+          "name": "VQL Stats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"query{ health{ vqlStats{ message note}}}\",\n\"variables\":{}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "VQL stats placeholder fields (authenticated)."
+          }
+        },
+        {
           "name": "Performance Stats",
           "request": {
             "method": "POST",
@@ -605,6 +635,107 @@
               ]
             },
             "description": "Performance Stats - Query"
+          }
+        },
+        {
+          "name": "GET / (root)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Non-GraphQL root — returns graphql_endpoint and version."
+          }
+        },
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /health/db",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "db"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /health/logging",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/logging",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "logging"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /health/slo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/slo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "slo"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /health/token-blacklist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/token-blacklist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health",
+                "token-blacklist"
+              ]
+            }
           }
         }
       ],
@@ -809,7 +940,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation CreateContact360Import($input: CreateContact360ImportInput!) { jobs { createContact360Import(input: $input) { id jobId jobType status createdAt } } }\",\n  \"variables\": {\n    \"input\": {\n      \"s3Key\": \"uploads/{{userId}}/contacts.csv\",\n      \"outputPrefix\": \"imports/contact360/\",\n      \"chunkCount\": 8,\n      \"retryCount\": 3,\n      \"retryInterval\": 5\n    }\n  }\n}"
+              "raw": "{\n  \"query\": \"mutation CreateContact360Import($input: CreateContact360ImportInput!) { jobs { createContact360Import(input: $input) { id jobId jobType status createdAt } } }\",\n  \"variables\": {\n    \"input\": {\n      \"s3Bucket\": \"{{s3Bucket}}\",\n      \"s3Key\": \"uploads/{{userId}}/contacts.csv\",\n      \"outputPrefix\": \"imports/contact360/\",\n      \"chunkCount\": 8,\n      \"retryCount\": 3,\n      \"retryInterval\": 5\n    }\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -869,7 +1000,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation InitiateUpload($input: InitiateUploadInput!) { upload { initiateUpload(input: $input) { uploadId fileKey chunkSize numParts } } }\",\n  \"variables\": {\n    \"input\": {\n      \"filename\": \"contacts.csv\",\n      \"file_size\": 1000000,\n      \"content_type\": \"text/csv\"\n    }\n  }\n}"
+              "raw": "{\n  \"query\": \"mutation InitiateUpload($input: InitiateUploadInput!) { upload { initiateUpload(input: $input) { uploadId fileKey chunkSize numParts } } }\",\n  \"variables\": {\n    \"input\": {\n      \"filename\": \"contacts.csv\",\n      \"fileSize\": 1000000,\n      \"contentType\": \"text/csv\"\n    }\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -995,7 +1126,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation CreateContact360Import($input: CreateContact360ImportInput!) { jobs { createContact360Import(input: $input) { id jobId jobType status createdAt } } }\",\n  \"variables\": {\n    \"input\": {\n      \"s3Key\": \"uploads/user_uuid/contacts.csv\",\n      \"outputPrefix\": \"imports/\",\n      \"chunkCount\": 8,\n      \"retryCount\": 3,\n      \"retryInterval\": 5\n    }\n  }\n}"
+              "raw": "{\n  \"query\": \"mutation CreateContact360Import($input: CreateContact360ImportInput!) { jobs { createContact360Import(input: $input) { id jobId jobType status createdAt } } }\",\n  \"variables\": {\n    \"input\": {\n      \"s3Bucket\": \"{{s3Bucket}}\",\n      \"s3Key\": \"uploads/user_uuid/contacts.csv\",\n      \"outputPrefix\": \"imports/\",\n      \"chunkCount\": 8,\n      \"retryCount\": 3,\n      \"retryInterval\": 5\n    }\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -2925,8 +3056,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "description": "Add one email pattern for a company (Lambda POST /email-patterns/add). Requires auth. See sql/apis/15_EMAIL_MODULE.md#addemailpattern."
           }
@@ -2951,8 +3086,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
-              "host": ["{{baseUrl}}"],
-              "path": ["graphql"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
             },
             "description": "Add multiple email patterns (Lambda POST /email-patterns/add/bulk). Requires auth. See sql/apis/15_EMAIL_MODULE.md#addemailpatternbulk."
           }
@@ -3367,7 +3506,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\"query\":\"mutation Subscribe($input:SubscribeInput!){ billing{ subscribe(input:$input){ message subscriptionPlan credits}}}\",\n\"variables\":{\n\"input\":{\n\"tier\":\"pro\",\n\"period\":\"monthly\"\n}\n}\n}"
+              "raw": "{\n\"query\":\"mutation Subscribe($input:SubscribeInput!){ billing{ subscribe(input:$input){ message subscriptionPlan credits}}}\",\n\"variables\":{\n\"input\":{\n\"tier\":\"5k\",\n\"period\":\"monthly\"\n}\n}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -3397,7 +3536,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\"query\":\"mutation PurchaseAddon($input:PurchaseAddonInput!){ billing{ purchaseAddon(input:$input){ message creditsAdded totalCredits}}}\",\n\"variables\":{\n\"input\":{\n\"packageId\":\"addon_1000_credits\"\n}\n}\n}"
+              "raw": "{\n\"query\":\"mutation PurchaseAddon($input:PurchaseAddonInput!){ billing{ purchaseAddon(input:$input){ message creditsAdded totalCredits}}}\",\n\"variables\":{\n\"input\":{\n\"packageId\":\"basic\"\n}\n}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -5333,6 +5472,253 @@
       "description": "Profile module - Queries and Mutations"
     },
     {
+      "name": "Resume (resumeai)",
+      "item": [
+        {
+          "name": "List resumes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"query{ resume{ resumes{ id userId resumeData createdAt updatedAt}}}\",\n\"variables\":{}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Requires resume AI service configured on the API. First resume id can be copied to resumeId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const rows = pm.response.json()?.data?.resume?.resumes;",
+                  "  if (Array.isArray(rows) && rows[0]?.id) {",
+                  "    pm.environment.set('resumeId', rows[0].id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get resume by id",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"query GetResume($id:ID!){ resume{ resume(id:$id){ id userId resumeData createdAt updatedAt}}}\",\n\"variables\":{\"id\":\"{{resumeId}}\"}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "saveResume (create)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"mutation SaveResume($input:SaveResumeInput!){ resume{ saveResume(input:$input){ id userId resumeData createdAt updatedAt}}}\",\n\"variables\":{\"input\":{\"resumeData\":{\"title\":\"Sample\",\"sections\":[]}}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const id = pm.response.json()?.data?.resume?.saveResume?.id;",
+                  "  if (id) pm.environment.set('resumeId', id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "deleteResume",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"mutation DeleteResume($id:ID!){ resume{ deleteResume(id:$id)}}\",\n\"variables\":{\"id\":\"{{resumeId}}\"}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Resume module — proxied to resumeai (see 29_Resume_Module collection)."
+    },
+    {
+      "name": "Campaign satellite",
+      "item": [
+        {
+          "name": "campaigns",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"query{ campaignSatellite{ campaigns}}\",\n\"variables\":{}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Requires CAMPAIGN_API_URL; returns [] if unset."
+          }
+        },
+        {
+          "name": "sequences",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"query{ campaignSatellite{ sequences}}\",\n\"variables\":{}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        },
+        {
+          "name": "campaignTemplates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"query{ campaignSatellite{ campaignTemplates}}\",\n\"variables\":{}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Optional campaign service (see 06_Campaign_Satellite_Module)."
+    },
+    {
       "name": "Upload",
       "item": [
         {
@@ -5381,7 +5767,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\"query\":\"query GetPresignedUrl($uploadId:String!, $partNumber:Int!){ upload{ presignedUrl(uploadId:$uploadId, partNumber:$partNumber){ url partNumber expiresAt}}}\",\n\"variables\":{\n\"uploadId\":\"{{uploadId}}\",\n\"partNumber\":1\n}\n}"
+              "raw": "{\n\"query\":\"query GetPresignedUrl($uploadId:String!, $partNumber:Int!){ upload{ presignedUrl(uploadId:$uploadId, partNumber:$partNumber){ presignedUrl partNumber alreadyUploaded etag}}}\",\n\"variables\":{\n\"uploadId\":\"{{uploadId}}\",\n\"partNumber\":{{partNumber}}\n}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -5411,7 +5797,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\"query\":\"mutation InitiateUpload($input:InitiateUploadInput!){ upload{ initiateUpload(input:$input){ uploadId fileKey totalParts partSize}}}\",\n\"variables\":{\n\"input\":{\n\"filename\":\"large-file.zip\",\n\"fileSize\":10485760,\n\"contentType\":\"application/zip\"\n}\n}\n}"
+              "raw": "{\n\"query\":\"mutation InitiateUpload($input:InitiateUploadInput!){ upload{ initiateUpload(input:$input){ uploadId fileKey s3UploadId chunkSize numParts}}}\",\n\"variables\":{\n\"input\":{\n\"filename\":\"large-file.zip\",\n\"fileSize\":10485760,\n\"contentType\":\"application/zip\"\n}\n}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -5423,6 +5809,36 @@
               ]
             },
             "description": "Initiate Upload - Mutation"
+          }
+        },
+        {
+          "name": "Register Part",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"mutation RegisterPart($input:RegisterPartInput!){ upload{ registerPart(input:$input){ status partNumber}}}\",\n\"variables\":{\n\"input\":{\n\"uploadId\":\"{{uploadId}}\",\n\"partNumber\":1,\n\"etag\":\"\\\"etag-from-s3\\\"\"\n}\n}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "After PUT to presigned URL, register ETag for this part."
           }
         },
         {
@@ -5441,7 +5857,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n\"query\":\"mutation CompleteUpload($input:CompleteUploadInput!){ upload{ completeUpload(input:$input){ uploadId fileKey fileUrl}}}\",\n\"variables\":{\n\"input\":{\n\"uploadId\":\"{{uploadId}}\",\n\"parts\":[\n{\n\"partNumber\":1,\n\"etag\":\"etag1\"\n}\n]\n}\n}\n}"
+              "raw": "{\n\"query\":\"mutation CompleteUpload($input:CompleteUploadInput!){ upload{ completeUpload(input:$input){ status fileKey s3Url location}}}\",\n\"variables\":{\n\"input\":{\n\"uploadId\":\"{{uploadId}}\"\n}\n}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/graphql",
@@ -5453,6 +5869,36 @@
               ]
             },
             "description": "Complete Upload - Mutation"
+          }
+        },
+        {
+          "name": "Abort Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\"query\":\"mutation AbortUpload($input:AbortUploadInput!){ upload{ abortUpload(input:$input){ status uploadId}}}\",\n\"variables\":{\n\"input\":{\n\"uploadId\":\"{{uploadId}}\"\n}\n}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Cancel multipart upload and clean up session."
           }
         }
       ],
@@ -5501,7 +5947,52 @@
       "type": "string"
     },
     {
+      "key": "emailJobId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "s3Bucket",
+      "value": "tkdrawcsvdata",
+      "type": "string"
+    },
+    {
+      "key": "featureName",
+      "value": "BULK_EXPORT",
+      "type": "string"
+    },
+    {
       "key": "exportId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uploadId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resumeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "twoFactorCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "name",
+      "value": "Test User",
+      "type": "string"
+    },
+    {
+      "key": "partNumber",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "idempotencyKey",
       "value": "",
       "type": "string"
     }

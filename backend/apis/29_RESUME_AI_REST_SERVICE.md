@@ -10,7 +10,16 @@ The **resumeai** microservice is a **FastAPI** application that exposes **REST**
 
 **Codebase:** `backend(dev)/resumeai/`
 **Deployment:** AWS SAM (`template.yaml`, `sam deploy`), HTTP API (API Gateway v2).
-**Contact360 integration:** The main GraphQL API proxies resume operations via `ResumeAIClient` and the `resume` module; clients may use GraphQL instead of calling resumeai directly.
+**Contact360 integration:** The main GraphQL API proxies resume operations via `ResumeAIClient` / `resume_ai_request` and the **`resume`** module (`app/graphql/modules/resume/`). Gateway env: `RESUME_AI_BASE_URL` (include `/v1` in the base path as configured), `RESUME_AI_API_KEY`, `RESUME_AI_TIMEOUT`.
+
+**GraphQL (gateway)** — path `resume { ... }`:
+
+| Operation | Type | Parameters | Return |
+| --- | --- | --- | --- |
+| `resumes` | Query | — | `[ResumeRecord!]!` |
+| `resume` | Query | `id: ID!` | `ResumeRecord` |
+| `saveResume` | Mutation | `input: SaveResumeInput!` (`id` optional; `resumeData` JSON) | `ResumeRecord` |
+| `deleteResume` | Mutation | `id: ID!` | `Boolean` |
 
 **Postman:** `backend(dev)/resumeai/postman/Resume_AI_Service.postman_collection.json` — see `postman/README.md`.
 

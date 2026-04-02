@@ -2,33 +2,36 @@
 
 ## Overview
 
-The Admin module provides administrative operations for user management, statistics, logs, and system monitoring. Most operations require Admin or SuperAdmin role.
+The Admin module provides administrative operations for user management, statistics, logs, and system monitoring. **RBAC is enforced per field** (SuperAdmin vs Admin+); see table.
 **Location:** `app/graphql/modules/admin/`
+
+GraphQL paths: `query { admin { users(filters: { ... }) { ... } } }`, `mutation { admin { deleteUser(input: { ... }) } }`.
 
 ## Queries and mutations – parameters and variable types
 
-| Operation | Parameter(s) | Variable type (GraphQL) | Return type |
-|-----------|---------------|-------------------------|-------------|
-| **Queries** (Admin/SuperAdmin) | | | |
-| `users` | `limit`, `offset`, `isActive`, `role`, `search` | Int, Int, Boolean, String, String | `UserConnection` |
-| `userStats` | — | — | `UserStats` |
-| `userHistory` | `userUuid`, `limit`, `offset` | ID!, Int, Int | `UserHistoryConnection` |
-| `logStatistics` | `input` | LogStatisticsInput | log stats type |
-| `logs` | `limit`, `offset`, `level`, `logger`, `userId`, etc. | Int, Int, String, String, ID, ... | logs connection |
-| `searchLogs` | `input` | SearchLogsInput! | search result |
-| **Mutations** | | | |
-| `updateUserRole` | `input` | UpdateUserRoleInput! | User |
-| `updateUserCredits` | `input` | UpdateUserCreditsInput! | User |
-| `deleteUser` | `input` | DeleteUserInput! | result |
-| `promoteToAdmin` | `input` | PromoteToAdminInput! | User |
-| `promoteToSuperAdmin` | `input` | PromoteToSuperAdminInput! | User |
-| `createLog` | `input` | CreateLogInput! | result |
-| `createLogsBatch` | `input` | CreateLogsBatchInput! | result |
-| `updateLog` | `input` | UpdateLogInput! | result |
-| `deleteLog` | `input` | DeleteLogInput! | result |
-| `deleteLogsBulk` | `input` | DeleteLogsBulkInput! | DeleteLogsBulkResponse |
+| Operation | Parameter(s) | Variable type (GraphQL) | Return type | Auth |
+|-----------|---------------|-------------------------|-------------|------|
+| **Queries** (under `admin { ... }`) | | | | |
+| `users` | `filters` | `UserFilterInput` (optional; carries `limit`, `offset`, etc.) | `UserConnection` | **SuperAdmin** |
+| `usersWithBuckets` | `filters` | `UserFilterInput` (optional) | `UserConnection` (items include bucket metadata where applicable) | **Admin or SuperAdmin** |
+| `userStats` | — | — | `AdminUserStats` | **Admin or SuperAdmin** |
+| `userHistory` | `filters` | `UserHistoryFilterInput` (optional; e.g. `userId`, `limit`, `offset`, `eventType`) | `UserHistoryConnection` | **SuperAdmin** |
+| `logStatistics` | `timeRange` | `String` (optional, default `24h`; allowed: `1h`, `24h`, `7d`, `30d`) | `LogStatistics` | **SuperAdmin** |
+| `logs` | `filters` | `LogQueryFilterInput` (optional; `limit`, `offset`, `level`, `logger`, `userId`, `requestId`, …) | `LogConnection` | **SuperAdmin** |
+| `searchLogs` | `input` | `LogSearchInput!` (full-text query + pagination) | `LogSearchConnection` | **SuperAdmin** |
+| **Mutations** (under `admin { ... }`) | | | | |
+| `updateUserRole` | `input` | `UpdateUserRoleInput!` | `User` | SuperAdmin |
+| `updateUserCredits` | `input` | `UpdateUserCreditsInput!` | `User` | SuperAdmin |
+| `deleteUser` | `input` | `DeleteUserInput!` | `Boolean` | SuperAdmin |
+| `promoteToAdmin` | `input` | `PromoteToAdminInput!` | `User` | see resolver (self-promote / SuperAdmin) |
+| `promoteToSuperAdmin` | `input` | `PromoteToSuperAdminInput!` | `User` | SuperAdmin |
+| `createLog` | `input` | `CreateLogInput!` | `LogEntry` | SuperAdmin |
+| `createLogsBatch` | `input` | `CreateLogsBatchInput!` | batch result | SuperAdmin |
+| `updateLog` | `input` | `UpdateLogInput!` | `LogEntry` | SuperAdmin |
+| `deleteLog` | `input` | `DeleteLogInput!` | `Boolean` | SuperAdmin |
+| `deleteLogsBulk` | `input` | `DeleteLogsBulkInput!` | `DeleteLogsBulkResponse` | SuperAdmin |
 
-Use camelCase in variables. Logs operations call Lambda Logs API (MongoDB). See Input Types for each input's fields.
+Use camelCase in variables (e.g. `timeRange`, `userId` inside filter inputs). Log querying/search integrates with the Lambda Logs API where configured. See Input Types for each input's fields.
 
 ## Types
 
@@ -43,12 +46,12 @@ type UserConnection {
 }
 ```
 
-### UserStats
+### AdminUserStats
 
-User statistics for admin dashboard.
+User statistics for admin dashboard (`userStats` query). Schema name may appear as `AdminUserStats`.
 
 ```graphql
-type UserStats {
+type AdminUserStats {
   totalUsers: Int!
   activeUsers: Int!
   usersByRole: JSON!

@@ -2,13 +2,13 @@
   "info": {
     "_postman_id": "users-module-graphql",
     "name": "GraphQL – Users Module",
-    "description": "Users module: user, users, userStats, updateProfile, uploadAvatar, updateUser, promoteToAdmin, promoteToSuperAdmin. See 02_USERS_MODULE.md.",
+    "description": "Root field `users`. Queries: user(uuid), users(limit,offset), userStats. Mutations: updateProfile, uploadAvatar, updateUser, promoteToAdmin, promoteToSuperAdmin. Set userId from Auth login (or use userUuid — same value). Admin/SuperAdmin gates apply per resolver.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8000" },
     { "key": "accessToken", "value": "" },
-    { "key": "userUuid", "value": "" }
+    { "key": "userId", "value": "" }
   ],
   "item": [
     {
@@ -24,7 +24,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"query GetUser($uuid: ID!) { users { user(uuid: $uuid) { uuid email name isActive profile { jobTitle bio role credits subscriptionPlan } } } }\",\n  \"variables\": { \"uuid\": \"{{userUuid}}\" }\n}"
+              "raw": "{\n  \"query\": \"query GetUser($uuid: ID!) { users { user(uuid: $uuid) { uuid email name isActive profile { jobTitle bio role credits subscriptionPlan } } } }\",\n  \"variables\": { \"uuid\": \"{{userId}}\" }\n}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
             "description": "Get user by UUID."
@@ -125,7 +125,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation PromoteToAdmin($input: PromoteToAdminInput!) { users { promoteToAdmin(input: $input) { uuid email profile { role } } } }\",\n  \"variables\": { \"input\": { \"userId\": \"{{userUuid}}\" } }\n}"
+              "raw": "{\n  \"query\": \"mutation PromoteToAdmin($input: PromoteToAdminInput!) { users { promoteToAdmin(input: $input) { uuid email profile { role } } } }\",\n  \"variables\": { \"input\": { \"userId\": \"{{userId}}\" } }\n}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
             "description": "Promote user to Admin. SuperAdmin only."
@@ -141,7 +141,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"query\": \"mutation PromoteToSuperAdmin($input: PromoteToSuperAdminInput!) { users { promoteToSuperAdmin(input: $input) { uuid email profile { role } } } }\",\n  \"variables\": { \"input\": { \"userId\": \"{{userUuid}}\" } }\n}"
+              "raw": "{\n  \"query\": \"mutation PromoteToSuperAdmin($input: PromoteToSuperAdminInput!) { users { promoteToSuperAdmin(input: $input) { uuid email profile { role } } } }\",\n  \"variables\": { \"input\": { \"userId\": \"{{userId}}\" } }\n}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
             "description": "Promote user to SuperAdmin. SuperAdmin only."

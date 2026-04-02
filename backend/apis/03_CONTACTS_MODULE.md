@@ -11,19 +11,22 @@ The Contacts module is the core Contact360 GraphQL surface for querying and muta
 
 ## Query and mutation index
 
+All operations are under the **`contacts`** namespace (`query { contacts { ... } }` / `mutation { contacts { ... } }`).
+
 | Operation | Variable type | Return | Auth |
 |---|---|---|---|
 | `contact` | `uuid: ID!` | `Contact` | required |
 | `contacts` | `query: VQLQueryInput` | `ContactConnection` | required |
 | `contactCount` | `query: VQLQueryInput` | `Int` | required |
 | `contactQuery` | `query: VQLQueryInput!` | `ContactConnection` | required |
-| `filters` | none | `ContactFilterConnection` | required |
+| `filters` | — | `ContactFilterConnection` | required |
 | `filterData` | `input: ContactFilterDataInput!` | `ContactFilterDataConnection` | required |
 | `createContact` | `input: CreateContactInput!` | `Contact` | required |
 | `updateContact` | `uuid: ID!, input: UpdateContactInput!` | `Contact` | required |
-| `batchCreateContacts` | `input: BatchCreateContactsInput!` | `BatchCreateContactsResult` | required |
+| `deleteContact` | `uuid: ID!` | `Boolean` | required |
+| `batchCreateContacts` | `input: BatchCreateContactsInput!` | `[Contact!]!` | required |
 | `exportContacts` | `input: CreateContact360ExportInput!` | `SchedulerJob` | required |
-| `importContacts` | `input: CreateContact360ImportInput!` | `SchedulerJob` | superadmin |
+| `importContacts` | `input: CreateContact360ImportInput!` | `SchedulerJob` | SuperAdmin (enforced on delegated jobs mutation) |
 
 ## Connectra REST mapping
 

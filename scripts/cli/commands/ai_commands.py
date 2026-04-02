@@ -15,10 +15,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from cli.intelligence.ai_agent import AIAgent
 from cli.config import ConfigManager
-from cli.commands.test_commands import load_endpoints_from_csv, filter_endpoints
 
 app = typer.Typer(name="ai", help="AI agentic commands for intelligent endpoint operation")
 console = Console()
+
+# Pinecone sub-commands (mounted under: `ai pinecone ...`)
+from cli.commands.pinecone_commands import app as pinecone_app
+
+app.add_typer(pinecone_app, name="pinecone")
 
 
 @app.command()
@@ -90,6 +94,8 @@ def analyze(
         analysis = agent.analyze_endpoint(endpoint)
         _display_analysis(analysis)
     elif category:
+        from cli.commands.test_commands import load_endpoints_from_csv, filter_endpoints
+
         # Analyze all endpoints in category
         csv_directory = Path(__file__).parent.parent.parent / "csv"
         all_endpoints = []
@@ -124,6 +130,8 @@ def optimize(
     agent = AIAgent()
     
     # Load endpoint details
+    from cli.commands.test_commands import load_endpoints_from_csv
+
     csv_directory = Path(__file__).parent.parent.parent / "csv"
     all_endpoints = []
     for csv_file in csv_directory.glob("*.csv"):
@@ -192,6 +200,8 @@ def suggest(
     """Get AI suggestions for test case improvements."""
     agent = AIAgent()
     
+    from cli.commands.test_commands import load_endpoints_from_csv, filter_endpoints
+
     csv_directory = Path(__file__).parent.parent.parent / "csv"
     all_endpoints = []
     for csv_file in csv_directory.glob("*.csv"):

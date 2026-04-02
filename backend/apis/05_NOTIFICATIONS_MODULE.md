@@ -9,18 +9,18 @@ The Notifications module provides notification management functionality includin
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
-| `notifications` | `limit`, `offset`, `read`, `type` | `Int`, `Int`, `Boolean`, `NotificationType` | `NotificationConnection` |
-| `notification` | `id` | ID! | `Notification` |
-| `unreadCount` | — | — | `UnreadCountResponse` (count: Int!) |
+| **Queries** (under `notifications { ... }`) | | | |
+| `notifications` | `filters` | `NotificationFilterInput` (optional; includes `limit`, `offset`, `read`, `type`, etc.) | `NotificationConnection` |
+| `notification` | `id` | `ID!` | `Notification` |
+| `unreadCount` | — | — | `UnreadCountResponse` |
 | `notificationPreferences` | — | — | `NotificationPreferences` |
-| **Mutations** | | | |
-| `markNotificationAsRead` | `id` | ID! | `Notification` |
-| `markNotificationsAsRead` | `ids` | [ID!]! | batch result |
-| `deleteNotifications` | `ids` | [ID!]! | delete result |
-| `updateNotificationPreferences` | `input` | UpdateNotificationPreferencesInput! | `NotificationPreferences` |
+| **Mutations** (under `notifications { ... }`) | | | |
+| `markNotificationAsRead` | `notificationId` | `ID!` | `Notification` |
+| `markNotificationsAsRead` | `input` | `MarkReadInput!` (`notificationIds: [ID!]!`) | `MarkReadResponse` |
+| `deleteNotifications` | `input` | `DeleteNotificationsInput!` (`notificationIds: [ID!]!`) | `DeleteNotificationsResponse` |
+| `updateNotificationPreferences` | `input` | `UpdateNotificationPreferencesInput!` | `NotificationPreferences` |
 
-Use camelCase in variables. NotificationType enum: SYSTEM, SECURITY, ACTIVITY, MARKETING, BILLING. See Input Types for UpdateNotificationPreferencesInput fields.
+Use camelCase in variables. `NotificationType` enum: SYSTEM, SECURITY, ACTIVITY, MARKETING, BILLING. See Input Types for filter and preference fields.
 
 ## Types
 

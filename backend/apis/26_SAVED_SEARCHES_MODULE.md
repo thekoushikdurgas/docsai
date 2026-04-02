@@ -5,20 +5,22 @@
 The Saved Searches module provides functionality for saving and managing search queries including search terms, filters, sorting, and pagination settings. Users can save frequently used searches for quick access and track usage statistics.
 **Location:** `app/graphql/modules/saved_searches/`
 
+GraphQL paths: `query { savedSearches { listSavedSearches(...) { ... } getSavedSearch(id: ...) { ... } } }`, `mutation { savedSearches { createSavedSearch(...) { ... } } }`.
+
 > **Integration:** Saved searches can be used as the source for Contact360 exports. When exporting contacts or companies via `contacts.exportContacts` / `companies.exportCompanies`, an optional `savedSearchId` can be passed to `createContact360Export`, and is stored on the corresponding `scheduler_jobs` record for auditability.
 
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
-| `listSavedSearches` | `type`, `limit`, `offset` | String, Int, Int | `SavedSearchList` |
-| `getSavedSearch` | `id` | ID! | `SavedSearch` |
-| **Mutations** | | | |
-| `createSavedSearch` | `input` | CreateSavedSearchInput! | `SavedSearch` |
-| `updateSavedSearch` | `id`, `input` | ID!, UpdateSavedSearchInput! | `SavedSearch` |
-| `deleteSavedSearch` | `id` | ID! | result |
-| `updateSavedSearchUsage` | `id` | ID! | result |
+| **Queries** (under `savedSearches { ... }`) | | | |
+| `listSavedSearches` | `type`, `limit`, `offset` | `String`, `Int`, `Int` (defaults: limit 100, offset 0) | `SavedSearchList` |
+| `getSavedSearch` | `id` | `ID!` | `SavedSearch` |
+| **Mutations** (under `savedSearches { ... }`) | | | |
+| `createSavedSearch` | `input` | `CreateSavedSearchInput!` | `SavedSearch` |
+| `updateSavedSearch` | `id`, `input` | `ID!`, `UpdateSavedSearchInput!` | `SavedSearch` |
+| `deleteSavedSearch` | `id` | `ID!` | `Boolean` |
+| `updateSavedSearchUsage` | `id` | `ID!` | `Boolean` |
 
 Use camelCase in variables. Type filter: "contact", "company", or "all". saved_searches table; user isolation by user_id.
 

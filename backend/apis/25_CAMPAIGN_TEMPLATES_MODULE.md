@@ -1,22 +1,28 @@
 # Campaign Templates Module
 
-**Service:** `backend(dev)/email campaign` (Go, Gin, S3)
-**Gateway proxy:** Appointment360 GraphQL (`createCampaignTemplate`, `getCampaignTemplate`, `listCampaignTemplates`, `deleteCampaignTemplate`, `previewCampaignTemplate`, `generateCampaignTemplate`)
-**Direct REST routes:** `POST /templates`, `GET /templates`, `GET /templates/:id`, `DELETE /templates/:id`, `POST /templates/:id/preview`, `POST /templates/generate` (era `5.x`+)
+## Contact360 gateway (actual)
+
+| GraphQL | Path | Auth | Return |
+| --- | --- | --- | --- |
+| `campaignSatellite.campaignTemplates` | `query { campaignSatellite { campaignTemplates } }` | required | `JSON` (from satellite `GET /campaign-templates`, or `[]` if `CAMPAIGN_API_URL` unset) |
+
+Field name in GraphQL is **`campaignTemplates`** (camelCase). There are **no** template CRUD mutations on the gateway’s `campaignSatellite` type today.
 
 ---
 
-## GraphQL operations (gateway-proxied)
+## Planned / service-native GraphQL (not on gateway yet)
+
+**Service:** `backend(dev)/email campaign` (Go, Gin, S3). **Direct REST** may include template upload/list/preview/generate (see service `API.md`).
 
 | Operation | Type | Description | Era |
 | --- | --- | --- | --- |
-| `createCampaignTemplate` | Mutation | Upload HTML template to S3 + create DB record | `10.x` |
-| `getCampaignTemplate` | Query | Get template metadata and HTML body | `10.x` |
-| `listCampaignTemplates` | Query | List all templates for org | `10.x` |
-| `updateCampaignTemplate` | Mutation | Update template HTML/metadata | `10.x` |
-| `deleteCampaignTemplate` | Mutation | Delete template from S3 and DB | `10.x` |
-| `previewCampaignTemplate` | Query | Render template with sample data | `10.x` |
-| `generateCampaignTemplate` | Mutation | AI-generate HTML template from prompt | `5.x`+ |
+| `createCampaignTemplate` | Mutation | Upload HTML template to S3 + create DB record | planned |
+| `getCampaignTemplate` | Query | Get template metadata and HTML body | planned |
+| `listCampaignTemplates` | Query | List templates | overlaps read-only `campaignSatellite.campaignTemplates` |
+| `updateCampaignTemplate` | Mutation | Update template HTML/metadata | planned |
+| `deleteCampaignTemplate` | Mutation | Delete template from S3 and DB | planned |
+| `previewCampaignTemplate` | Query | Render template with sample data | planned |
+| `generateCampaignTemplate` | Mutation | AI-generate HTML template from prompt | planned |
 
 ---
 

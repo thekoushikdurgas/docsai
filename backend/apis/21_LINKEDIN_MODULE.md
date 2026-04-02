@@ -5,14 +5,16 @@
 The LinkedIn module provides LinkedIn URL search and export functionality. It allows users to search for contacts and companies by LinkedIn URLs and export results to CSV.
 **Location:** `app/graphql/modules/linkedin/`
 
+GraphQL paths: `mutation { linkedin { search(input: { ... }) { ... } upsertByLinkedInUrl(input: { ... }) { ... } } }`.
+
 ## Mutations – parameters and variable types
 
 | Mutation | Parameter(s) | Variable type (GraphQL) | Return type |
 |----------|---------------|-------------------------|-------------|
-| `search` | `input` | LinkedInSearchInput! | `LinkedInSearchResponse` |
-| `upsertByLinkedInUrl` | `input` | LinkedInUpsertInput! | upsert result |
+| `search` | `input` | `LinkedInSearchInput!` | `LinkedInSearchResponse` |
+| `upsertByLinkedInUrl` | `input` | `LinkedInUpsertInput!` | `LinkedInUpsertResponse` |
 
-No queries under root `linkedin` (search/export are mutations). Use camelCase in variables. 1 credit per URL for FreeUser/ProUser; validate_linkedin_url. See Input Types for LinkedInSearchInput and LinkedInUpsertInput fields.
+No queries under **`linkedin`** on the root `Query` type (operations are **mutations only**). Use camelCase in variables. Credit usage and URL validation follow resolver rules. See Input Types for `LinkedInSearchInput` and `LinkedInUpsertInput`.
 
 ## Types
 

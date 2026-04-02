@@ -22,6 +22,10 @@ This contract freezes identity generation semantics for Sales Navigator ingestio
 3. Same logical profile payload must produce the same UUID values across retries/chunks.
 4. UUID generation logic must remain backward compatible for existing records.
 
+## GraphQL gateway
+
+Browser/extension flows can call `mutation { salesNavigator { saveSalesNavigatorProfiles(...) } }` on the Contact360 gateway; Connectra upserts still follow this UUID5 contract when the downstream `salesnavigator` service processes payloads. Resolver-level fields and env wiring: [23_SALES_NAVIGATOR_MODULE.md](23_SALES_NAVIGATOR_MODULE.md).
+
 ## Evidence
 
 - Sales Navigator service save pipeline:

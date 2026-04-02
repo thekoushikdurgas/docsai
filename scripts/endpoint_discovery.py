@@ -7,14 +7,26 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-from endpoint_test_config import (
-    API_ENDPOINTS_DIR,
-    API_V1_PREFIX,
-    API_V2_PREFIX,
-    API_V3_PREFIX,
-    API_V4_PREFIX,
-    BACKEND_DIR,
-)
+try:
+    # When imported as part of the `scripts.*` package (e.g. from `docs/main.py`)
+    from scripts.endpoint_test_config import (  # type: ignore
+        API_ENDPOINTS_DIR,
+        API_V1_PREFIX,
+        API_V2_PREFIX,
+        API_V3_PREFIX,
+        API_V4_PREFIX,
+        BACKEND_DIR,
+    )
+except Exception:
+    # When executed directly from `docs/scripts` (legacy behavior)
+    from endpoint_test_config import (  # type: ignore
+        API_ENDPOINTS_DIR,
+        API_V1_PREFIX,
+        API_V2_PREFIX,
+        API_V3_PREFIX,
+        API_V4_PREFIX,
+        BACKEND_DIR,
+    )
 
 
 @dataclass

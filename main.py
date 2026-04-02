@@ -719,6 +719,50 @@ def run_list_catalog_menu() -> None:
     _hint("python cli.py list [--json] [--category docs|data|api|scripts|all]")
 
 
+def run_pinecone_ingest_docs_menu() -> None:
+    era_raw = Prompt.ask("Era filter (0-10, blank=all)", default="").strip()
+    era = era_raw if era_raw else None
+    dry = Confirm.ask("Dry-run only (no upsert)?", default=True)
+    from scripts.cli.commands import pinecone_commands
+
+    pinecone_commands.ingest_docs(era=era, dry_run=dry)
+    _hint(f'python api_cli.py ai pinecone ingest-docs {"--era "+str(era) if era is not None else ""} {"--dry-run" if dry else ""}'.strip())
+
+
+def run_pinecone_ingest_api_menu() -> None:
+    profile = Prompt.ask("Profile name", default="default").strip()
+    days = int(Prompt.ask("Days back", default="7"))
+    dry = Confirm.ask("Dry-run only (no upsert)?", default=True)
+    from scripts.cli.commands import pinecone_commands
+
+    pinecone_commands.ingest_api(profile=profile, days=days, dry_run=dry)
+    _hint(
+        (
+            f"python api_cli.py ai pinecone ingest-api --profile {profile} --days {days} "
+            + ("--dry-run" if dry else "")
+        ).strip()
+    )
+
+
+def run_pinecone_search_menu() -> None:
+    question = Prompt.ask("Search question / query text")
+    namespace = Prompt.ask("Namespace", default="docs_global").strip()
+    top_k = int(Prompt.ask("Top-K", default="5"))
+    from scripts.cli.commands import pinecone_commands
+
+    pinecone_commands.search(question=question, namespace=namespace, top_k=top_k)
+    _hint(
+        f'python api_cli.py ai pinecone search "{question}" --namespace {namespace} --top-k {top_k}'
+    )
+
+
+def run_pinecone_status_menu() -> None:
+    from scripts.cli.commands import pinecone_commands
+
+    pinecone_commands.status()
+    _hint("python api_cli.py ai pinecone status")
+
+
 HANDLERS: dict[str, Callable[[], None]] = {
     "A1": show_dashboard,
     "A2": browse_by_era,
@@ -760,6 +804,10 @@ HANDLERS: dict[str, Callable[[], None]] = {
     "G5": run_api_pattern_generator_quick,
     "G6": run_api_suite_menu,
     "G7": run_list_catalog_menu,
+    "H1": run_pinecone_ingest_docs_menu,
+    "H2": run_pinecone_ingest_api_menu,
+    "H3": run_pinecone_search_menu,
+    "H4": run_pinecone_status_menu,
 }
 
 
@@ -789,6 +837,7 @@ def print_command_catalog_help() -> None:
         "  Data: [cyan]python cli.py data analyze-company-names[/cyan] | comprehensive-analysis | clean-db | ingest-local\n"
         "  SQL:  [cyan]python cli.py sql run[/cyan] | init-schema | load-csv\n"
         "  API:  [cyan]python scripts/api_cli.py test run[/cyan] (Typer API CLI from [cyan]docs/scripts/[/cyan])\n"
+        "  Pinecone: [cyan]python cli.py pinecone setup-index[/cyan] | ingest-docs | ingest-api | search | status\n"
     )
 
 

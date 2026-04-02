@@ -2,14 +2,16 @@
 
 Sales Navigator ingestion and synchronization endpoints for profile capture and Connectra upsert.
 
-## Operations (GraphQL)
+## Operations (GraphQL gateway)
 
-| Operation | Type | Description |
-| --- | --- | --- |
-| `salesNavigatorRecords` | Query | List SN-sourced contacts (from Connectra with `source=sales_navigator` filter) |
-| `saveSalesNavigatorProfiles` | Mutation | Save SN profile array to Contact360 via Sales Navigator service |
-| `getSyncStatus` | Query | Get status of a SN sync session |
-| `listSyncJobs` | Query | List past SN sync sessions with statistics |
+Paths: `query { salesNavigator { salesNavigatorRecords(filters: { limit, offset }) { ... } } }`, `mutation { salesNavigator { saveSalesNavigatorProfiles(input: { profiles: [...] }) { ... } } }`.
+
+| Operation | Type | Parameters | Description |
+| --- | --- | --- | --- |
+| `salesNavigatorRecords` | Query | `filters`: `SalesNavigatorFilterInput` (optional; **pagination** `limit` / `offset` via input base) | Paginated **user scraping metadata** rows (`UserScrapingConnection`), not arbitrary Connectra VQL |
+| `saveSalesNavigatorProfiles` | Mutation | `input`: `SaveProfilesInput!` (`profiles`: `[JSON!]!`, max 1000) | Proxies to Sales Navigator / Connectra save flow; returns `SaveProfilesResponse` |
+
+There are **no** gateway fields named `getSyncStatus` or `listSyncJobs` in `app/graphql/modules/sales_navigator/` — remove those from client code or treat any doc references as **planned/future**.
 
 ---
 

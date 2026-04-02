@@ -1,7 +1,9 @@
 # Upload Module
 
-The Upload module provides GraphQL operations for **multipart uploads** via the dedicated `s3storage` service. Appointment360 never talks to S3 directly; instead it delegates to `s3storage`, which stores files in a single physical S3 bucket using per-user logical buckets and key prefixes.
+The Upload module provides GraphQL operations for **multipart uploads** via the dedicated `s3storage` service. The Contact360 gateway never talks to S3 directly; it delegates to `s3storage`, which stores files in a single physical S3 bucket using per-user logical buckets and key prefixes.
 **Location:** `app/graphql/modules/upload/`
+
+GraphQL paths: `query { upload { uploadStatus(uploadId: ...) { ... } presignedUrl(uploadId: ..., partNumber: ...) { ... } } }`, `mutation { upload { initiateUpload(...) { ... } } }`.
 
 ## Overview
 - Supports large file uploads via multipart sessions
@@ -32,7 +34,7 @@ The Upload module provides GraphQL operations for **multipart uploads** via the 
 |-----------|---------------|-------------------------|-------------|
 | **Queries** | | | |
 | `uploadStatus` | `uploadId` | String! | upload status type |
-| `presignedUrl` | `uploadId`, `partNumber`, (contentType?) | String!, Int!, String? | presigned URL type |
+| `presignedUrl` | `uploadId`, `partNumber` | `String!`, `Int!` | `PresignedUrlResponse` |
 | **Mutations** | | | |
 | `initiateUpload` | `input` | InitiateUploadInput! | init result (includes `uploadId`, `fileKey`) |
 | `registerPart` | `input` | RegisterPartInput! | result (part registered) |

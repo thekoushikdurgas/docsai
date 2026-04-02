@@ -1,1 +1,211 @@
-{"info":{"_postman_id":"contacts-module-graphql","name":"GraphQL – Contacts Module","description":"Contacts: contact, contacts, contactCount, contactQuery, filters, filterData; createContact, updateContact, batchCreateContacts, exportContacts. See 03_CONTACTS_MODULE.md.","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"variable":[{"key":"baseUrl","value":"http://localhost:8000"},{"key":"accessToken","value":""},{"key":"contactUuid","value":""}],"item":[{"name":"Queries","item":[{"name":"contact","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query GetContact($uuid: ID!) { contacts { contact(uuid: $uuid) { uuid firstName lastName email title company { uuid name } } } }\",\"variables\":{\"uuid\":\"{{contactUuid}}\"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"contacts","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query ListContacts($query: VQLQueryInput) { contacts { contacts(query: $query) { items { uuid firstName lastName email title } pageInfo { total limit offset hasNext } } } }\",\"variables\":{\"query\":{\"limit\":20,\"offset\":0}}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"contactCount","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query ContactCount($query: VQLQueryInput) { contacts { contactCount(query: $query) } }\",\"variables\":{\"query\":{}}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"filters","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query ContactFilters { contacts { filters { items { filterKey filterType displayName key } } } }\",\"variables\":{}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]},{"name":"Mutations","item":[{"name":"createContact","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation CreateContact($input: CreateContactInput!) { contacts { createContact(input: $input) { uuid firstName lastName email title } } }\",\"variables\":{\"input\":{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"title\":\"Engineer\"}}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"updateContact","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation UpdateContact($uuid: ID!, $input: UpdateContactInput!) { contacts { updateContact(uuid: $uuid, input: $input) { uuid firstName lastName email } } }\",\"variables\":{\"uuid\":\"{{contactUuid}}\",\"input\":{\"title\":\"Senior Engineer\"}}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"exportContacts","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation ExportContacts($input: CreateContact360ExportInput!) { contacts { exportContacts(input: $input) { jobId status } } }\",\"variables\":{\"input\":{\"outputPrefix\":\"contacts_export\",\"service\":\"contact\",\"vql\":{},\"pageSize\":500}}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]}]}
+{
+  "info": {
+    "_postman_id": "contacts-module-graphql",
+    "name": "GraphQL – Contacts Module",
+    "description": "Root field `contacts`. Queries: contact, contacts, contactCount, contactQuery, filters, filterData. Mutations: createContact, updateContact, deleteContact, batchCreateContacts, exportContacts, importContacts (SuperAdmin path via job). Variables: contactUuid, companyUuid, fileKey.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "contactUuid", "value": "" },
+    { "key": "companyUuid", "value": "" },
+    { "key": "fileKey", "value": "" },
+    { "key": "s3Bucket", "value": "tkdrawcsvdata" }
+  ],
+  "item": [
+    {
+      "name": "Queries",
+      "item": [
+        {
+          "name": "contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query GetContact($uuid: ID!) { contacts { contact(uuid: $uuid) { uuid firstName lastName email title company { uuid name } } } }\",\n  \"variables\": { \"uuid\": \"{{contactUuid}}\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "contacts",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ListContacts($query: VQLQueryInput) { contacts { contacts(query: $query) { items { uuid firstName lastName email title } pageInfo { total limit offset hasNext hasPrevious } } } }\",\n  \"variables\": { \"query\": { \"limit\": 20, \"offset\": 0 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "contactCount",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ContactCount($query: VQLQueryInput) { contacts { contactCount(query: $query) } }\",\n  \"variables\": { \"query\": {} }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "contactQuery",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ContactVql($query: VQLQueryInput!) { contacts { contactQuery(query: $query) { items { uuid firstName lastName email } pageInfo { total limit offset hasNext hasPrevious } } } }\",\n  \"variables\": { \"query\": { \"limit\": 20, \"offset\": 0 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "filters",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ContactFilters { contacts { filters { items { filterKey filterType displayName key } } } } }\",\n  \"variables\": {}\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "filterData",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query ContactFilterData($input: ContactFilterDataInput!) { contacts { filterData(input: $input) { items { value displayValue count } total } } }\",\n  \"variables\": { \"input\": { \"filterKey\": \"industry\", \"limit\": 20 } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Use a valid filterKey from `filters`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mutations",
+      "item": [
+        {
+          "name": "createContact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation CreateContact($input: CreateContactInput!) { contacts { createContact(input: $input) { uuid firstName lastName email title } } }\",\n  \"variables\": {\n    \"input\": {\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"title\": \"Engineer\",\n      \"companyUuid\": \"{{companyUuid}}\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "updateContact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation UpdateContact($uuid: ID!, $input: UpdateContactInput!) { contacts { updateContact(uuid: $uuid, input: $input) { uuid firstName lastName email title } } }\",\n  \"variables\": { \"uuid\": \"{{contactUuid}}\", \"input\": { \"title\": \"Senior Engineer\" } }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "deleteContact",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation DeleteContact($uuid: ID!) { contacts { deleteContact(uuid: $uuid) } }\",\n  \"variables\": { \"uuid\": \"{{contactUuid}}\" }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "batchCreateContacts",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation BatchCreate($input: BatchCreateContactsInput!) { contacts { batchCreateContacts(input: $input) { uuid firstName lastName email } } }\",\n  \"variables\": {\n    \"input\": {\n      \"contacts\": [\n        { \"firstName\": \"A\", \"lastName\": \"One\", \"email\": \"a@example.com\" },\n        { \"firstName\": \"B\", \"lastName\": \"Two\", \"email\": \"b@example.com\" }\n      ]\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Returns a list of Contact; selection applies per item."
+          }
+        },
+        {
+          "name": "exportContacts",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ExportContacts($input: CreateContact360ExportInput!) { contacts { exportContacts(input: $input) { jobId jobType status } } }\",\n  \"variables\": {\n    \"input\": {\n      \"outputPrefix\": \"contacts_export\",\n      \"service\": \"contact\",\n      \"vql\": {},\n      \"pageSize\": 500\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "importContacts",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"mutation ImportContacts($input: CreateContact360ImportInput!) { contacts { importContacts(input: $input) { jobId jobType status } } }\",\n  \"variables\": {\n    \"input\": {\n      \"s3Bucket\": \"{{s3Bucket}}\",\n      \"s3Key\": \"{{fileKey}}\",\n      \"outputPrefix\": \"imports/\"\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "SuperAdmin enforced in job service. Align s3Bucket with deployment."
+          }
+        }
+      ]
+    }
+  ]
+}

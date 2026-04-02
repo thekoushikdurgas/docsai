@@ -5,14 +5,16 @@
 The Activities module provides comprehensive user activity tracking and statistics across all application modules. It allows users to view their activity history, filter activities by service type and action type, and get activity statistics. Activities are automatically logged for all user operations across Jobs, Imports, Contacts, Companies, Email, AI Chats, LinkedIn, and Sales Navigator modules.
 **Location:** `app/graphql/modules/activities/`
 
+GraphQL paths: `query { activities { activities(filters: { ... }) { ... } activityStats(filters: { ... }) { ... } } }`.
+
 ## Queries – parameters and variable types
 
 | Query | Parameter(s) | Variable type (GraphQL) | Return type |
 |-------|---------------|-------------------------|-------------|
-| `activities` | `limit`, `offset`, `serviceType`, `actionType`, `status`, `startDate`, `endDate` | Int, Int, String, String, String, DateTime, DateTime | `ActivityConnection` |
-| `activityStats` | `input` | ActivityStatsInput | `ActivityStats` |
+| `activities` | `filters` | `ActivityFilterInput` (optional; `serviceType`, `actionType`, `status`, `startDate`, `endDate`, `limit`, `offset`) | `ActivityConnection` |
+| `activityStats` | `filters` | `ActivityStatsInput` (optional; `startDate`, `endDate` only) | `ActivityStats` |
 
-No mutations (activities are logged by other modules). Use camelCase in variables. ActivityStatsInput: optional `startDate`, `endDate` (startDate must be before endDate if both set). Pagination: limit 1–1000, offset ≥ 0.
+No mutations (activities are logged by other modules). Use camelCase in variables (e.g. `serviceType`, `startDate`). `ActivityStatsInput`: optional date range; `startDate` must be before `endDate` when both set. List pagination: `limit` 1–1000, `offset` ≥ 0 (enforced on `ActivityFilterInput`).
 
 ## Types
 

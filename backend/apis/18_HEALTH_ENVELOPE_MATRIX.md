@@ -11,7 +11,9 @@ This document freezes the expected `/health` response families across the 11 cor
 
 | Service | Family | Health endpoint | Required fields |
 | --- | --- | --- | --- |
-| Appointment360 (`contact360.io/api`) | FastAPI gateway | `/health` | `status`, `service`, `version` |
+| Contact360 gateway (`contact360.io/api`) | FastAPI gateway | `/health` | `status`, `service`, `version` |
+
+On success, the gateway sets `status` to `"healthy"` (not `"ok"`); see `app/main.py` `health_check`. Failure responses may use `status: "unhealthy"` with extra fields.
 | Connectra (`contact360.io/sync`) | Go/Gin | `/health` | `status` |
 | TKD Job (`contact360.io/jobs`) | FastAPI jobs | `/health` | `status` |
 | Email APIs (`lambda/emailapis`) | FastAPI lambda-style | `/health` | `status`, `service`, `version` |

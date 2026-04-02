@@ -1,48 +1,25 @@
-# Webhooks Module
+# Webhooks (gateway status)
 
-The Webhooks module defines outbound event subscriptions for tenant-safe, signed callback delivery.
-**Era:** `8.x` (Public and private APIs)
-**Location:** `app/graphql/modules/webhooks/`
+## Current state
 
-## Overview
+The Contact360 GraphQL gateway (`contact360.io/api`) **does not** expose a `webhooks` module under `app/graphql/modules/`. There are **no** webhook subscription queries or mutations in the Strawberry schema, and **no** HTTP webhook receiver routes in `app/main.py`.
 
-- Register callback URLs and event subscriptions per user/workspace
-- Sign each delivery with an HMAC secret
-- Retry failures with exponential backoff and DLQ handoff
-- Enforce strict ownership and secret rotation rules
+Shared code exists only for **outbound signing helpers** (for potential future use), e.g. `app/utils/webhook_signature.py`.
 
-## Queries and mutations - parameters and return types
+## Implications for docs and clients
 
-| Operation | Parameters | Variable type | Required | Return type | Description |
-|---|---|---|---|---|---|
-| `listWebhooks` | `input` | `ListWebhooksInput` | No | `WebhookConnection` | Returns paginated webhook subscriptions for current user. |
-| `subscribeWebhook` | `input` | `CreateWebhookInput!` | Yes | `Webhook` | Creates a new webhook subscription and returns signing secret once. |
-| `deleteWebhook` | `id` | `ID!` | Yes | `Boolean` | Soft-deletes webhook and disables future deliveries. |
-| `replayWebhookEvent` | `input` | `ReplayWebhookInput!` | Yes | `WebhookReplayResult` | Replays delivery for audit-safe recovery flows. |
+- Do **not** expect GraphQL operations such as `listWebhooks` or `subscribeWebhook` on this service until a module is added and registered in `app/graphql/schema.py`.
+- Product integrations that consume events should follow **`20_INTEGRATIONS_MODULE.md`** and any service-specific contracts; this file documents **gateway reality only**.
 
-## Delivery Contract
+## If / when a module is introduced
 
-- Header `X-Contact360-Signature: sha256=<hmac>`
-- Header `X-Contact360-Event: <event_type>`
-- Header `X-Contact360-Delivery-Id: <uuid>`
-- Retry schedule: `1m`, `5m`, `15m`, `1h`, `6h` (max 5 attempts)
-- After max retry: move to DLQ and emit `webhook.delivery.failed`
+Document here:
 
-## Related Modules
+- Root field name (`Query` / `Mutation` namespace).
+- Env vars (secrets, HMAC, retry).
+- Delivery headers and retry policy.
 
-- `20_INTEGRATIONS_MODULE.md` (connector event consumers)
-- `18_ANALYTICS_MODULE.md` (delivery dashboards)
+## Related
 
-## Documentation metadata
-
-- Era: `8.x`
-- Introduced in: `TBD` (fill with exact minor)
-- Frontend bindings: list page files from `docs/frontend/pages/*.json`
-- Data stores touched: PostgreSQL/Elasticsearch/MongoDB/S3 as applicable
-
-## Endpoint/version binding checklist
-
-- Add operation list with `introduced_in` / `deprecated_in` tags.
-- Map each operation to frontend page bindings and hook/service usage.
-- Record DB tables read/write for each operation.
-
+- `00_SERVICE_MESH_CONTRACTS.md` — downstream HTTP clients and env vars.
+- `20_INTEGRATIONS_MODULE.md` — integration-facing contracts.

@@ -5,17 +5,19 @@
 The Analytics module provides performance metrics tracking and aggregation functionality. It allows users to submit performance metrics (such as Core Web Vitals) and query aggregated statistics.
 **Location:** `app/graphql/modules/analytics/`
 
+GraphQL paths: `query { analytics { performanceMetrics(input: { ... }) { ... } aggregateMetrics(input: { ... }) { ... } } }`, `mutation { analytics { submitPerformanceMetric(input: { ... }) { ... } } }`.
+
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
-| `performanceMetrics` | `metricName`, `startDate`, `endDate`, `limit`, `offset` | String, DateTime, DateTime, Int, Int | metrics connection |
-| `aggregateMetrics` | `input` | AggregateMetricsInput! | MetricAggregation / list |
-| **Mutations** | | | |
-| `submitPerformanceMetric` | `input` | SubmitPerformanceMetricInput! | result |
+| **Queries** (under `analytics { ... }`) | | | |
+| `performanceMetrics` | `input` | `GetMetricsInput` (optional; `metricName`, `startDate`, `endDate`, `limit` default 100, max 1000) | `[PerformanceMetric!]!` (list, not a connection) |
+| `aggregateMetrics` | `input` | `AggregateMetricsInput!` (`metricName`, `startDate`, `endDate`) | `MetricAggregation` |
+| **Mutations** (under `analytics { ... }`) | | | |
+| `submitPerformanceMetric` | `input` | `SubmitPerformanceMetricInput!` (`name`, `value`, **`timestamp` as Unix ms (BigInt/int)**, optional `metadata`) | `PerformanceMetricResponse` |
 
-Use camelCase in variables. submitPerformanceMetric is non-blocking (failures logged, don't fail response). performance_metrics table.
+Use camelCase in variables. **`timestamp` must be epoch milliseconds** (resolver validates positive number, converts to `DateTime`). `submitPerformanceMetric` uses a best-effort persistence path (see resolver). Data stored via `performance_metrics` / `PerformanceMetricsRepository`.
 
 ## Types
 

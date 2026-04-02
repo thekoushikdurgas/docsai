@@ -5,22 +5,24 @@
 The Profile module provides functionality for managing API keys, active sessions, and team members. It allows users to create and manage API keys for programmatic access, view and manage active sessions, and invite/manage team members for collaborative work.
 **Location:** `app/graphql/modules/profile/`
 
+GraphQL paths: `query { profile { listAPIKeys { ... } } }`, `mutation { profile { deleteAPIKey(id: ...) } }`.
+
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
+| **Queries** (under `profile { ... }`) | | | |
 | `listAPIKeys` | — | — | `APIKeyList` |
 | `listSessions` | — | — | `SessionList` |
 | `listTeamMembers` | — | — | team member list |
-| **Mutations** | | | |
-| `createAPIKey` | `input` | CreateAPIKeyInput! | `APIKey` (with `key` once) |
-| `deleteAPIKey` | `id` | ID! | result |
-| `revokeSession` | `id` | ID! | result |
-| `revokeAllOtherSessions` | — | — | result |
-| `inviteTeamMember` | `input` | InviteTeamMemberInput! | result |
-| `updateTeamMemberRole` | `input` | UpdateTeamMemberRoleInput! | result |
-| `removeTeamMember` | `input` | RemoveTeamMemberInput! | result |
+| **Mutations** (under `profile { ... }`) | | | |
+| `createAPIKey` | `input` | `CreateAPIKeyInput!` | `APIKey` (with `key` once) |
+| `deleteAPIKey` | `id` | `ID!` | `Boolean` |
+| `revokeSession` | `id` | `ID!` | `Boolean` |
+| `revokeAllOtherSessions` | — | — | `Boolean` |
+| `inviteTeamMember` | `input` | `InviteTeamMemberInput!` | result |
+| `updateTeamMemberRole` | `input` | `UpdateTeamMemberRoleInput!` | result |
+| `removeTeamMember` | `input` | `RemoveTeamMemberInput!` | result |
 
 Use camelCase in variables. Tables: api_keys, sessions, team_members. User isolation for all operations.
 

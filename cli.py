@@ -8,6 +8,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -537,7 +538,152 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--dry-run", action="store_true")
         p.add_argument("--apply", action="store_true")
 
+    # Pinecone (docs RAG + API failure memory)
+    pc = sub.add_parser(
+        "pinecone",
+        help="Pinecone: setup indexes, ingest docs/test failures, semantic search (namespaces + rerank enforced)",
+    )
+    pc_sub = pc.add_subparsers(dest="pinecone_cmd", required=True)
+
+    pc_sub.add_parser("setup-index", help="Create indexes if missing (integrated embeddings + field_map text=content)")
+
+    pc_ing_docs = pc_sub.add_parser("ingest-docs", help="Ingest markdown docs into Pinecone (docs_* namespaces)")
+    pc_ing_docs.add_argument("--era", type=str, default="", help="Only ingest one era (0-10).")
+    pc_ing_docs.add_argument("--dry-run", action="store_true", help="Chunk only; do not upsert.")
+
+    pc_ing_api = pc_sub.add_parser("ingest-api", help="Ingest API test failures into Pinecone (profile_* namespaces)")
+    pc_ing_api.add_argument("--profile", type=str, default="default", help="CLI profile name")
+    pc_ing_api.add_argument("--days", type=int, default=7, help="Only ingest reports from last N days")
+    pc_ing_api.add_argument("--dry-run", action="store_true", help="Compute records only; do not upsert.")
+
+    pc_search = pc_sub.add_parser("search", help="Semantic search over docs stored in Pinecone")
+    pc_search.add_argument("question", type=str, help="Query text")
+    pc_search.add_argument("--namespace", type=str, default="docs_global", help="Docs namespace (docs_global, docs_era_N, ...)")
+    pc_search.add_argument("--top-k", type=int, default=5, help="Top-K hits to display")
+
+    pc_sub.add_parser("status", help="Healthcheck: upsert, wait, fetch (docs + api indexes)")
+
     return parser
+
+
+def cmd_pinecone(args: argparse.Namespace) -> int:
+    cmd = getattr(args, "pinecone_cmd", "")
+
+    if cmd == "setup-index":
+        from scripts.pinecone_integration.setup_index import main as setup_main
+
+        return int(setup_main())
+
+    if cmd == "ingest-docs":
+        from scripts.pinecone_integration.ingest_docs import ingest_docs
+
+        era = (getattr(args, "era", "") or "").strip() or None
+        dry = bool(getattr(args, "dry_run", False))
+        result = ingest_docs(era=era, dry_run=dry)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+
+    if cmd == "ingest-api":
+        from scripts.pinecone_integration.ingest_api import ingest_api
+
+        profile = (getattr(args, "profile", "") or "default").strip() or "default"
+        days = getattr(args, "days", None)
+        dry = bool(getattr(args, "dry_run", False))
+        result = ingest_api(profile=profile, days=days, dry_run=dry)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+
+    if cmd == "search":
+        from scripts.pinecone_integration.client import get_docs_index
+        from scripts.pinecone_integration.search import search as pc_search
+
+        question = (getattr(args, "question", "") or "").strip()
+        namespace = (getattr(args, "namespace", "") or "").strip() or "docs_global"
+        top_k = int(getattr(args, "top_k", 5) or 5)
+        idx = get_docs_index()
+        hits = pc_search(idx, namespace=namespace, query_text=question, top_k=top_k)
+
+        rows: list[dict] = []
+        for h in hits[:top_k]:
+            try:
+                score = float(h["_score"])  # SDK hit objects are dict-like
+            except Exception:
+                score = None
+            fields = getattr(h, "fields", None)
+            if not isinstance(fields, dict) and isinstance(h, dict):
+                fields = h.get("fields")
+            if not isinstance(fields, dict):
+                fields = {}
+            rows.append(
+                {
+                    "score": score,
+                    "doc_path": fields.get("doc_path", ""),
+                    "heading": fields.get("heading", ""),
+                    "content": fields.get("content", ""),
+                }
+            )
+        print(json.dumps(rows, indent=2, ensure_ascii=False))
+        return 0
+
+    if cmd == "status":
+        from scripts.pinecone_integration.client import get_api_index, get_docs_index
+
+        ok: list[str] = []
+        fail: list[str] = []
+        for label, index in [("docs", get_docs_index()), ("api", get_api_index())]:
+            try:
+                rec_id = f"health_{label}_{int(datetime.now(timezone.utc).timestamp())}"
+                try:
+                    stats_before = index.describe_index_stats()
+                    console.print(f"[dim]{label} stats_before:[/dim] {stats_before}")
+                except Exception as e:
+                    console.print(f"[yellow]{label} stats_before error:[/yellow] {e}")
+                    stats_before = None
+                index.upsert_records(
+                    "_healthcheck",
+                    [
+                        {
+                            "_id": rec_id,
+                            "content": f"healthcheck {label}",
+                            "text": f"healthcheck {label}",
+                            "kind": "healthcheck",
+                        }
+                    ],
+                )
+                try:
+                    time.sleep(10)
+                    stats_after = index.describe_index_stats()
+                    console.print(f"[dim]{label} stats_after:[/dim] {stats_after}")
+                except Exception as e:
+                    console.print(f"[yellow]{label} stats_after error:[/yellow] {e}")
+                    stats_after = None
+
+                # Success criteria: namespace vector_count increases (more reliable than fetch
+                # across mixed index configurations).
+                before_n = (
+                    (stats_before or {}).get("namespaces", {}).get("_healthcheck", {}).get("vector_count")
+                    if isinstance(stats_before, dict)
+                    else None
+                )
+                after_n = (
+                    (stats_after or {}).get("namespaces", {}).get("_healthcheck", {}).get("vector_count")
+                    if isinstance(stats_after, dict)
+                    else None
+                )
+                if before_n is not None and after_n is not None and int(after_n) > int(before_n):
+                    ok.append(label)
+                else:
+                    fail.append(f"{label}: _healthcheck vector_count did not increase (before={before_n}, after={after_n})")
+            except Exception as e:
+                fail.append(f"{label}: {e}")
+        if fail:
+            console.print(f"[red]Pinecone status failed:[/red] {fail}")
+            return 1
+        console.print(f"[green]Pinecone status OK:[/green] {ok}")
+        return 0
+
+    console.print(f"[red]Unknown pinecone subcommand:[/red] {cmd}")
+    return 2
 
 
 def _status(value: str) -> Status:
@@ -1940,6 +2086,8 @@ def main() -> int:
         return cmd_postman_optimize(args)
     if args.command == "platform-verify":
         return cmd_platform_verify(args)
+    if args.command == "pinecone":
+        return cmd_pinecone(args)
     if args.command == "list":
         return cmd_list(args)
     if args.command == "validate-all":

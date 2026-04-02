@@ -1,1 +1,204 @@
-{"info":{"_postman_id":"profile-module-graphql","name":"GraphQL – Profile Module","description":"Profile: listAPIKeys, listSessions, listTeamMembers; createAPIKey, deleteAPIKey, revokeSession, revokeAllOtherSessions, inviteTeamMember, updateTeamMemberRole, removeTeamMember. Variables: use camelCase. See sql/apis/28_PROFILE_MODULE.md (Queries and mutations – parameters and variable types).","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"variable":[{"key":"baseUrl","value":"http://localhost:8000"},{"key":"accessToken","value":""}],"item":[{"name":"Queries","item":[{"name":"listAPIKeys","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query ListAPIKeys { profile { listAPIKeys { keys { id name prefix created_at read_access write_access } total } } }\",\"variables\":{}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"listSessions","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query ListSessions { profile { listSessions { sessions { id ip_address created_at last_activity is_current } total } } }\",\"variables\":{}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"listTeamMembers","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"query ListTeamMembers { profile { listTeamMembers { members { id email name role status invited_at } total } } }\",\"variables\":{}}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]},{"name":"Mutations","item":[{"name":"createAPIKey","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation CreateAPIKey($input: CreateAPIKeyInput!) { profile { createAPIKey(input: $input) { id name prefix key read_access write_access created_at } } }\",\"variables\":{\"input\":{\"name\":\"My API Key\",\"read_access\":true,\"write_access\":false}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"revokeAPIKey","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation RevokeAPIKey($id: ID!) { profile { revokeAPIKey(id: $id) { success } } }\",\"variables\":{\"id\":\"1\"}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}},{"name":"inviteTeamMember","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{accessToken}}"}],"body":{"mode":"raw","raw":"{\"query\":\"mutation InviteTeamMember($input: InviteTeamMemberInput!) { profile { inviteTeamMember(input: $input) { id email role status } } }\",\"variables\":{\"input\":{\"email\":\"member@example.com\",\"role\":\"Member\"}}"}"},"url":{"raw":"{{baseUrl}}/graphql","host":["{{baseUrl}}"],"path":["graphql"]}}}]}]}
+{
+    "info": {
+        "_postman_id": "profile-module-graphql",
+        "name": "GraphQL – Profile Module",
+        "description": "Profile: listAPIKeys, listSessions, listTeamMembers; createAPIKey, deleteAPIKey, revokeSession, revokeAllOtherSessions, inviteTeamMember, updateTeamMemberRole, removeTeamMember. Variables: use camelCase. See sql/apis/28_PROFILE_MODULE.md (Queries and mutations – parameters and variable types).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8000"
+        },
+        {
+            "key": "accessToken",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Queries",
+            "item": [
+                {
+                    "name": "listAPIKeys",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"query ListAPIKeys { profile { listAPIKeys { keys { id name prefix created_at read_access write_access } total } } }\",\"variables\":{}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "listSessions",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"query ListSessions { profile { listSessions { sessions { id ip_address created_at last_activity is_current } total } } }\",\"variables\":{}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "listTeamMembers",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"query ListTeamMembers { profile { listTeamMembers { members { id email name role status invited_at } total } } }\",\"variables\":{}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Mutations",
+            "item": [
+                {
+                    "name": "createAPIKey",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"mutation CreateAPIKey($input: CreateAPIKeyInput!) { profile { createAPIKey(input: $input) { id name prefix key read_access write_access created_at } } }\",\"variables\":{\"input\":{\"name\":\"My API Key\",\"read_access\":true,\"write_access\":false}}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "revokeAPIKey",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"mutation RevokeAPIKey($id: ID!) { profile { revokeAPIKey(id: $id) { success } } }\",\"variables\":{\"id\":\"1\"}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "inviteTeamMember",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"query\":\"mutation InviteTeamMember($input: InviteTeamMemberInput!) { profile { inviteTeamMember(input: $input) { id email role status } } }\",\"variables\":{\"input\":{\"email\":\"member@example.com\",\"role\":\"Member\"}}}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/graphql",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "graphql"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

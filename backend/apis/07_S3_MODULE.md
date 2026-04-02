@@ -5,7 +5,9 @@
 The S3 module provides file operations for listing, reading, and getting metadata about CSV files stored via the `s3storage` microservice, plus **mutations for multipart CSV upload** that return a logical **file_key**. It is used for accessing export files, uploading CSVs for jobs, and downloading via presigned URLs.
 **Location:** `app/graphql/modules/s3/`
 
-**Mutations:** `s3.initiateCsvUpload`, `s3.completeCsvUpload` (multipart CSV upload; both return `file_key`), and `s3.deleteFile(fileKey)` (delete a file). Use `upload.presignedUrl` and `upload.registerPart` for each part between initiate and complete.
+GraphQL paths: `query { s3 { s3Files(...) { ... } } }`, `mutation { s3 { initiateCsvUpload(...) { ... } completeCsvUpload(...) { ... } deleteFile(...) } }`.
+
+**Mutations:** `initiateCsvUpload` / `completeCsvUpload` reuse upload-session types: `InitiateCsvUploadInput` plus **`CompleteUploadInput`** (same shape as `upload.completeUpload`) for completion. Use `upload.presignedUrl` and `upload.registerPart` for each part between initiate and complete. `deleteFile(fileKey: String!)` returns `Boolean`.
 
 ## Queries and mutations – parameters and variable types
 
@@ -688,7 +690,7 @@ query ReadNextPage {
   - **Avatars:** `upload_avatar`, `get_avatar_download_url` (used by Users module). Avatar key pattern: `avatar/{user_id}.jpg`.
   - **Health:** `health()`, `health_info()`, `root()` for monitoring.
 - **Logical Buckets**: The logical bucket id for a user is stored in `users.bucket` (defaulting to their UUID). GraphQL resolvers pass this as `bucket_id` on all s3storage calls; `complete_upload` receives it so the storage API can run the metadata worker.
-- **Physical Bucket Configuration**: The underlying S3 bucket and prefix layout are configured in the `s3storage` service (see its `template.yaml` and API.md), not in Appointment360.
+- **Physical Bucket Configuration**: The underlying S3 bucket and prefix layout are configured in the `s3storage` service (see its `template.yaml` and API.md), not in the Contact360 gateway.
 - **REST API reference:** `lambda/s3storage/docs/API.md`. A Postman collection for the storage backend is in `sql/postman/Storage_Backend_s3storage.postman_collection.json`.
 
 ### CSV File Operations

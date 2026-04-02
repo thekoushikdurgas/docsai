@@ -2,6 +2,8 @@
 
 This document freezes the required CI checks for foundation release gating.
 
+Job IDs below match the `jobs:` keys in [`docs/.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (monorepo CI). If workflows move or rename jobs, update this list in the same change.
+
 ## Required checks
 
 1. `docs-and-structure-check`

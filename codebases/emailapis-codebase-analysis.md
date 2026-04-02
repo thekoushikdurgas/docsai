@@ -1,5 +1,7 @@
 # emailapigo / EC2/email.server — Codebase Deep Analysis (Contact360 eras 0.x–10.x)
 
+@EC2/email.server  read this codebase and this codebase is go gin framework and it has a worker pool with workers where you worker job related jobs api like job list and job status and job retry and job delete or block or terminated with redis queue and mailtester.ninja and mailvetter as provider where my project storage section will be managed by this codebase like @EC2/sync.server @EC2/email.server @EC2/job.server  , so to completed my codebase breaks the tasks in 0-10 era minor 121 files so the codebase ready for my project because it connect to  @contact360.io/api  codebase and track logs ans status ans full system will be track in @contact360.io/admin  codebase and track all dependences of my codebase and also track all endpoints from @docs/backend/endpoints  and postman @docs/backend/postman  and database @docs/backend/database  and all tech @docs/tech  and flowchart @docs/flowchart  and codebase @docs/codebases  and other docs @docs/docs , Learn, understand, and analyse this deeply, and then break your tasks into smaller tasks
+
 ## Task status legend
 
 - [x] ✅ Completed
