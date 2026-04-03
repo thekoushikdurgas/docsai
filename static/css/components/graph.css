@@ -14,8 +14,9 @@
     height: 600px;
     position: relative;
     background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-tertiary) 100%);
-    border-radius: 1rem;
+    border-radius: var(--card-border-radius, 0.75rem); /* kit: $border-radius 0.75rem */
     overflow: hidden;
+    box-shadow: var(--shadow-kit); /* kit: $shadow */
 }
 
 [data-theme="dark"] .graph-container {
@@ -124,17 +125,17 @@
 }
 
 .graph-legend-dot.page {
-    background: #3b82f6;
+    background: var(--color-primary-500, #3b82f6);
 }
 
 .graph-legend-dot.endpoint {
-    background: #8b5cf6;
+    background: var(--color-accent-500, #8b5cf6);
 }
 
 .graph-legend-line {
     width: 24px;
     height: 2px;
-    background: #94a3b8;
+    background: var(--color-gray-400, #94a3b8);
 }
 
 /* ==========================================================================
@@ -157,19 +158,19 @@
 }
 
 .graph-node-circle.page {
-    fill: #3b82f6;
+    fill: var(--color-primary-500, #3b82f6); /* kit: page nodes = primary blue */
 }
 
 .graph-node-circle.endpoint {
-    fill: #8b5cf6;
+    fill: var(--color-accent-500, #8b5cf6); /* kit: endpoint nodes = accent purple */
 }
 
 .graph-node-circle.endpoint-query {
-    fill: #3b82f6;
+    fill: var(--color-primary-500, #3b82f6);
 }
 
 .graph-node-circle.endpoint-mutation {
-    fill: #8b5cf6;
+    fill: var(--color-accent-500, #8b5cf6);
 }
 
 .graph-node-circle:hover {
@@ -178,7 +179,7 @@
 }
 
 .graph-node-circle.highlighted {
-    stroke: #fbbf24;
+    stroke: var(--color-warning-500, #fbbf24); /* kit: warning amber for highlight */
     stroke-width: 4px;
 }
 
@@ -199,7 +200,7 @@
    ========================================================================== */
 
 .graph-link {
-    stroke: #94a3b8;
+    stroke: var(--color-gray-400, #94a3b8);
     stroke-opacity: 0.4;
     stroke-width: 1.5px;
     fill: none;
@@ -207,22 +208,22 @@
 }
 
 [data-theme="dark"] .graph-link {
-    stroke: #475569;
+    stroke: var(--color-gray-600, #475569);
 }
 
 .graph-link.highlighted {
-    stroke: #3b82f6;
+    stroke: var(--color-primary-500, #3b82f6);
     stroke-opacity: 1;
     stroke-width: 2.5px;
 }
 
 .graph-link.primary {
-    stroke: #22c55e;
+    stroke: var(--color-success-500, #22c55e); /* primary (main) relationships */
     stroke-opacity: 0.6;
 }
 
 .graph-link.secondary {
-    stroke: #f59e0b;
+    stroke: var(--color-warning-500, #f59e0b); /* secondary/optional relationships */
     stroke-opacity: 0.5;
     stroke-dasharray: 5, 3;
 }
@@ -234,10 +235,10 @@
 .graph-tooltip {
     position: absolute;
     padding: 0.75rem 1rem;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    background: var(--color-bg-primary, white);
+    border: 1px solid var(--color-border-light, #e2e8f0);
+    border-radius: var(--card-border-radius, 0.75rem); /* kit: $border-radius */
+    box-shadow: var(--shadow-kit); /* kit: $shadow */
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s;
