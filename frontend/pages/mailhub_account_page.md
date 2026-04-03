@@ -19,7 +19,8 @@ generator: json_to_markdown.py
 
 ### UI components (metadata)
 
-- **UserAccount** — `src/app/account/[userId]/page.tsx`
+- **UserAccount** — `src/app/account/[userId]/page.tsx` — uses `accountService` for IMAP config, `logger` for telemetry
+- **accountService** — `src/services/accountService.ts` — zod-validated IMAP config DTOs, REST via `mailhubFetch`
 - **Avatar** — `components/ui/avatar.tsx`
 - **Button** — `components/ui/button.tsx`
 - **Input** — `components/ui/input.tsx`
@@ -28,6 +29,7 @@ generator: json_to_markdown.py
 - **Alert** — `components/ui/alert.tsx`
 - **SidebarInset** — `components/ui/sidebar.tsx`
 - **Icons** — `lucide-react` (Camera, Trash2, Mail, Save, etc.)
+- **logger** — `src/lib/logger.ts` — routes errors to logs.api
 
 ## Metadata
 

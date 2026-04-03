@@ -9,7 +9,7 @@
 
 ## Purpose and role
 
-`contact360.io/api` (Appointment360) is Contact360's **primary GraphQL gateway and orchestrator**. It is the only entry point through which the dashboard (`contact360.io/app`) and extension reach all backend capability. It translates GraphQL operations into downstream REST calls to Connectra, tkdjob, lambda email, S3 storage, DocsAI, contact.ai, and logs.api. All user authentication, credit deduction, activity logging, usage tracking, and entitlement enforcement pass through this service.
+`contact360.io/api` (Appointment360) is Contact360's **primary GraphQL gateway and orchestrator**. It is the only entry point through which the dashboard (`contact360.io/app`) and extension reach all backend capability. It translates GraphQL operations into downstream REST calls to Connectra, **email.server** (async email jobs + finder/verifier), **sync.server** (CSV import/export jobs), lambda email (direct API), S3 storage, DocsAI, contact.ai, and logs.api. All user authentication, credit deduction, activity logging, usage tracking, and entitlement enforcement pass through this service.
 
 ---
 
@@ -27,7 +27,7 @@
 | Config | Pydantic `BaseSettings` with `.env` + env vars |
 | Middleware | Custom Starlette middleware stack (8 layers) |
 | Deploy targets | EC2 (uvicorn), AWS Lambda (Mangum), Docker |
-| Query routing | `app/clients/` — ConnectraClient, TkdjobClient, LambdaEmailClient, LambdaAIClient, etc. |
+| Query routing | `app/clients/` — ConnectraClient, EmailServerJobsClient, LambdaEmailClient, LambdaAIClient, etc. |
 
 ---
 
@@ -65,8 +65,8 @@ Per-request `Context` carries:
 
 | Client | Calls | Auth |
 | --- | --- | --- |
-| `ConnectraClient` | Connectra REST (VQL queries, batch upsert, jobs, filters) | `X-API-Key` header |
-| `TkdjobClient` | TKD Job scheduler REST (create/list/status/retry jobs) | `X-API-Key` header |
+| `ConnectraClient` | Connectra REST (VQL queries, batch upsert, `/common/jobs/*`, filters) | `X-API-Key` header |
+| `EmailServerJobsClient` | Email satellite job APIs (S3 finder/verify, pause/resume/terminate, status) | API key (`LAMBDA_EMAIL_*`) |
 | `LambdaEmailClient` | Lambda Email API (finder, verifier, bulk, patterns) | API key |
 | `LambdaAIClient` | Contact AI REST (chats, Gemini) | API key |
 | `LambdaS3StorageClient` | S3 Storage API (list, preview, download) | API key |
@@ -86,8 +86,8 @@ Per-request `Context` carries:
 | users | `UserQuery` | `user(uuid)`, `users()`, `userStats()` |
 | contacts | `ContactQuery` | `contact(uuid)`, `contacts(query)`, `contactCount(query)`, `contactQuery(query)`, `filters()`, `filterData(input)` |
 | companies | `CompanyQuery` | `company(uuid)`, `companies(query)`, `companyCount(query)`, `companyQuery(query)`, `companyContacts(company_uuid)`, `filters()`, `filterData(input)` |
-| email | `EmailQuery` | `findEmails`, `createEmailFinderExportJob`, `createEmailVerifyExportJob`, `createEmailPatternImportJob`, `findEmailsBulk`, `verifySingleEmail`, `verifyEmailsBulk`, `exportEmails`, `verifyexportEmail` |
-| jobs | `JobQuery` | `job(jobId)`, `jobs(limit,offset,status,jobType)` |
+| email | `EmailQuery` | `findEmails`, `createEmailFinderExportJob`, `createEmailVerifyExportJob`, `findEmailsBulk`, `verifySingleEmail`, `verifyEmailsBulk`, `exportEmails`, `verifyexportEmail` |
+| jobs | `JobQuery` | `job(jobId)`, `jobs(limit,offset,status,jobType,jobFamily)` |
 | usage | `UsageQuery` | `usage(feature)` |
 | featureOverview | `FeatureOverviewQuery` | `featureOverview()` |
 | billing | `BillingQuery` | `billing`, `plans`, `addons`, `invoices`, `paymentInstructions`, `paymentSubmissions` |
@@ -169,8 +169,7 @@ Critical environment variables by category:
 | GraphQL | `GRAPHQL_COMPLEXITY_LIMIT`, `GRAPHQL_QUERY_TIMEOUT`, `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE`, `GRAPHQL_MAX_BODY_BYTES` |
 | DB | `POSTGRES_USER/PASS/HOST/PORT/DB`, `DATABASE_POOL_SIZE` (25), `DATABASE_MAX_OVERFLOW` (50) |
 | Connectra | `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY`, `CONNECTRA_TIMEOUT` |
-| tkdjob | `TKDJOB_API_URL`, `TKDJOB_API_KEY`, `TKDJOB_API_TIMEOUT` |
-| Lambda email | `LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY` |
+| Lambda email | `LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY`, `LAMBDA_EMAIL_API_TIMEOUT` (jobs + finder/verifier) |
 | Lambda AI | `LAMBDA_AI_API_URL`, `LAMBDA_AI_API_KEY` |
 | S3 storage | `LAMBDA_S3STORAGE_API_URL`, `LAMBDA_S3STORAGE_API_KEY` |
 | Logs | `LAMBDA_LOGS_API_URL`, `LAMBDA_LOGS_API_KEY` |
@@ -201,7 +200,7 @@ Critical environment variables by category:
 
 - [x] ✅ GraphQL gateway architecture is fully established with modular query/mutation namespaces.
 - [x] ✅ Security middleware exists for idempotency, mutation abuse guard, tracing, and body-size limits.
-- [x] ✅ Multi-service client integration exists (`email`, `s3storage`, `logs.api`, `tkdjob`, `connectra`, `docsai`, `ai`).
+- [x] ✅ Multi-service client integration exists (`email`, `s3storage`, `logs.api`, email/sync job satellites, `connectra`, `docsai`, `ai`).
 - [x] ✅ Health endpoints include DB/logging/SLO visibility.
 - [x] ✅ Upload/session Redis options and operational config toggles are already present.
 
@@ -366,7 +365,7 @@ Critical environment variables by category:
 | `app/graphql/modules/*/queries.py` | Per-module query resolvers |
 | `app/graphql/modules/*/mutations.py` | Per-module mutation resolvers |
 | `app/clients/connectra_client.py` | Connectra REST client |
-| `app/clients/tkdjob_client.py` | tkdjob scheduler client |
+| `app/clients/email_server_client.py` | Email satellite job client (S3 jobs, status, pause/resume/terminate) |
 | `app/db/session.py` | Engine, session factory, pool monitoring |
 | `app/services/` | Business logic: billing, usage, credit, activity, pages, notification |
 | `app/repositories/` | Data access: user, profile, scheduler_job, token_blacklist, saved_search |

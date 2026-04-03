@@ -735,7 +735,67 @@ Each component entry should expose `era`, `introduced_in`, and `ui_elements` key
 | `contact360.io/app` | React TSX components | Import `hooks/` and `services/` |
 | `contact360.io/root` | React TSX 3D components | BEM CSS + `context/` |
 | `contact360.io/admin` | Django Jinja2 templates | Static CSS + D3/Cytoscape JS |
-| `extension/contact360` | JS utility modules | `auth/` + `utils/` imported by popup/content scripts |
+| `contact360.extension` | Vanilla HTML/CSS/JS | `auth/` + `utils/` imported by popup/content scripts |
+
+---
+
+## Extension surface — `contact360.extension`
+
+### Popup UI (`popup.html` / `popup.css` / `popup.js`)
+
+Two-tab layout (Status | Settings). All visual styles come from `popup.css` design tokens (`--c360-*` prefix, kit-aligned dark palette).
+
+#### Status tab components
+
+| Component | Class | Purpose |
+|---|---|---|
+| Token status badge | `.c360-status` + `--ok / --warn / --bad / --unknown` | Auth state machine display |
+| Gateway status badge | `.c360-status` + variants | Health check result |
+| Batch feedback row | `.c360-batch-feedback` + `__dot--saved/retry/failed` | Capture result counters |
+| Progress bar | `.c360-progress` + `--indeterminate` | Capture in-progress indicator |
+| Capture button | `.c360-popup__button` | Triggers `C360_CAPTURE_AND_SAVE` message to background |
+| Recheck button | `.c360-popup__button--ghost` | Re-runs `refreshTokenStatus` + `checkGateway` |
+
+#### Settings tab components
+
+| Component | Class | Purpose |
+|---|---|---|
+| Gateway URL input | `.c360-popup__input` (type url) | `chrome.storage.local` → `c360_gateway_base_url` |
+| Gateway API Key input | `.c360-popup__input` (type password) | `c360_gateway_api_key` |
+| Logs URL input | `.c360-popup__input` (type url) | `c360_logs_api_base_url` |
+| Logs API Key input | `.c360-popup__input` (type password) | `c360_logs_api_key` |
+| Telemetry checkbox | `.c360-checkbox` + `.c360-checkbox-group` | `c360_telemetry_enabled` |
+| Save Settings button | `.c360-popup__button` | Persists all settings + re-checks gateway |
+
+#### Shared components
+
+| Component | Class | Description |
+|---|---|---|
+| Tab nav | `.c360-tabs` + `.c360-tabs__tab[aria-selected]` | Keyboard-navigable tab bar (ArrowLeft/ArrowRight) |
+| Tab panels | `.c360-tab-panel` | Toggled via `hidden` attribute |
+| Toast | `.c360-toast` + `--show / --success / --warn` | `aria-live="polite"` notification |
+| Header | `.c360-popup__header` | App title + "Ext" badge |
+
+### JS utility modules
+
+#### `auth/graphqlSession.js`
+- `ensureAccessToken(opts)` — proactive refresh, buffer = 60 s before exp
+- `createChromeStorageAdapter()` — `chrome.storage.local` adapter for popup + background
+- `decodeJwtPayload(token)` — base64url decode
+- **Global:** `globalThis.Contact360GraphQLSession`
+- **Full contract:** [extension-graphql-session.md](../../backend/micro.services.apis/extension-graphql-session.md)
+
+#### `utils/telemetryClient.js`
+- `window.Contact360Telemetry.emit(eventType, payload?)` — best-effort POST to Logs API
+- Log body: `{ logs: [{ level, service_type: "extension", action_type, metadata }] }`
+- **Full schema:** [extension-telemetry-schema.md](../../backend/micro.services.apis/extension-telemetry-schema.md)
+
+### Design system and UX profile
+- **Dark palette** (Slate-950 base) — designed for compact overlay popup (~320 px wide)
+- **8-pt grid** (`--c360-space-*` tokens: 4/8/12/16/24 px)
+- **Kit-aligned radius:** `--c360-radius-lg: 8px` (matches kit `0.75 rem` at 16-px base)
+- **Font:** `system-ui, -apple-system, "Segoe UI", Roboto` — Roboto is the kit font fallback
+- **Transitions:** 150 ms `cubic-bezier(0.4, 0, 0.2, 1)`
 ---
 
 ## Email app docs pack — `contact360.io/email`

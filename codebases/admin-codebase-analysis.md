@@ -67,7 +67,7 @@
 
 - [x] ✅ Django admin/governance surface is fully wired with route inventory and template-based UI shells.
 - [x] ✅ Privileged route access decorators are in place (`require_super_admin`, `require_admin_or_super_admin`).
-- [x] ✅ Admin operations integrate with `logs.api`, `s3storage`, `tkdjob`, and Appointment360 GraphQL clients.
+- [x] ✅ Admin operations integrate with `logs.api`, `s3storage`, and Appointment360 GraphQL clients (job state via gateway `jobs` + satellites).
 - [x] ✅ Idempotency guard tests exist for destructive/retry admin actions (logs delete, storage delete, billing approve/decline, job retry).
 - [x] ✅ Permission-map tests validate route inventory coverage against URL patterns.
 

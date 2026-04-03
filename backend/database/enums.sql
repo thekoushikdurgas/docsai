@@ -125,20 +125,11 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- Scheduler Job Types (tkdjob job_type values)
-DO $$ BEGIN
-    CREATE TYPE scheduler_job_type AS ENUM (
-        'email_finder_export_stream',
-        'email_verify_export_stream',
-        'email_pattern_import_stream',
-        'contact360_import_prepare',
-        'contact360_export_stream'
-    );
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- scheduler_job_type ENUM: removed in favor of TEXT column `scheduler_jobs.job_type`
+-- (Alembic revision 20260410_0005 on existing DBs). Greenfield installs: do not create
+-- scheduler_job_type; use TEXT in scheduler_jobs.sql.
 
--- Scheduler Job Status (tkdjob status values)
+-- Scheduler Job Status (gateway + satellite job lifecycle)
 DO $$ BEGIN
     CREATE TYPE scheduler_job_status AS ENUM (
         'open',

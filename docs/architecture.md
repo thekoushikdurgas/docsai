@@ -33,9 +33,8 @@ flowchart LR
     GQL["contact360.io/api\nFastAPI + Strawberry\nGraphQL"]
   end
   subgraph satellites [Go/Gin Satellite Services - EC2]
-    Sync["EC2/sync.server\ncontact360.io/sync"]
-    Jobs["EC2/job.server\ncontact360.io/jobs"]
-    Email["EC2/email.server\ncontact360.io/emailapigo"]
+    Sync["EC2/sync.server\nConnectra VQL + /common/jobs"]
+    Email["EC2/email.server\nfinder/verifier + async jobs"]
     Campaign["EC2/email campaign\ncontact360.io/emailcampaign"]
     S3["EC2/s3storage.server\ncontact360.io/s3storage"]
     AI["EC2/ai.server\ncontact360.io/ai"]
@@ -43,7 +42,6 @@ flowchart LR
     Ext["EC2/extension.server\ncontact360.io/extension"]
   end
   subgraph workers [Background Workers]
-    JobWorker["job.server consumer"]
     CampaignWorker["emailcampaign-worker"]
     S3Worker["s3storage-worker"]
     AIWorker["ai-worker"]
@@ -58,14 +56,12 @@ flowchart LR
   Extension -->|"save-profiles REST"| Ext
   DocsAI --> GQL
   GQL --> Sync
-  GQL --> Jobs
   GQL --> Email
   GQL --> Campaign
   GQL --> S3
   GQL --> AI
   GQL --> Logs
   GQL --> Ext
-  Jobs --> JobWorker
   Campaign --> CampaignWorker
   S3 --> S3Worker
   AI --> AIWorker
@@ -77,7 +73,7 @@ flowchart LR
 
 ## Repository layout (this monorepo)
 
-Product UI, the GraphQL gateway, Connectra, and the job scheduler live under **`contact360.io/`**. Shared email/log/storage microservices often live under **`lambda/`**. Additional backend checkouts in this workspace use **`backend(dev)/`** (AI, Mailvetter, Sales Navigator, Resume AI). **`docs/`** holds markdown source of truth; **DocsAI** Django constants are under **`contact360.io/admin/`** (not a separate `contact360/docsai/` tree in this layout).
+Product UI, the GraphQL gateway, Connectra, and async job satellites (**email.server**, **sync.server**) live under **`contact360.io/`** and **`EC2/`**. Shared email/log/storage microservices often live under **`lambda/`**. Additional backend checkouts in this workspace use **`backend(dev)/`** (AI, Mailvetter, Sales Navigator, Resume AI). **`docs/`** holds markdown source of truth; **DocsAI** Django constants are under **`contact360.io/admin/`** (not a separate `contact360/docsai/` tree in this layout).
 
 | Path | Purpose |
 | --- | --- |
@@ -87,7 +83,7 @@ Product UI, the GraphQL gateway, Connectra, and the job scheduler live under **`
 | `contact360.io/email/` | Email web app (Mailhub-style mailbox UI) with auth via GraphQL + mailbox/account routes over REST. |
 | `contact360.io/api/` | **Appointment360** — FastAPI GraphQL gateway (`/graphql`), `sql/apis/*.md`, `app/graphql/modules/*`. |
 | `contact360.io/sync/` | **Connectra** — Go search / VQL / Elasticsearch (see service `README.md`). |
-| `contact360.io/jobs/` | **TKD Job** — Python scheduler, Kafka consumers, DAG processors (`README.md`). |
+| *(removed)* `contact360.io/jobs/` / `EC2/job.server` | **Replaced** by gateway-orchestrated jobs against **email.server** + **sync.server**; see `docs/backend/apis/16_JOBS_MODULE.md`. |
 | `EC2/log.server/`, `EC2/s3storage.server/`, `EC2/ai.server/`, `EC2/extension.server/`, `EC2/email campaign/` | Go Gin EC2 services for logs, S3 storage, AI, extension/SN ingestion, and email campaign engine. |
 | `lambda/` | Legacy email/log/storage services in some checkouts (`emailapis/`, `emailapigo/`, `logs.api/`, `s3storage/`); new work should target EC2 Go services. |
 | `backend(dev)/` | Legacy or auxiliary service trees when present: `contact.ai/`, `mailvetter/`, `salesnavigator/`, `resumeai/`. |
@@ -104,7 +100,7 @@ Product UI, the GraphQL gateway, Connectra, and the job scheduler live under **`
 | `contact360/docsai/` | Django DocsAI | `contact360.io/admin/` |
 | `lambda/appointment360/` | GraphQL gateway | `contact360.io/api/` |
 | `lambda/connectra/` | Connectra | `contact360.io/sync/` |
-| `lambda/tkdjob/` | Job scheduler | `contact360.io/jobs/` |
+| *(legacy)* `lambda/tkdjob/` | Archived job scheduler | Superseded by email + sync satellites |
 | `lambda/mailvetter/` | Verifier | Often `backend(dev)/mailvetter/` here, or `lambda/mailvetter/` in other checkouts |
 
 **Naming note:** historical docs used `extention/contact360` and `extension/contact360`. Current canonical extension package folder is **`extension/contact360/`**.
@@ -145,7 +141,7 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 | Sales Navigator | `backend(dev)/salesnavigator/` (or `lambda/salesnavigator/`); **Go target:** `EC2/extension.server/` (`contact360.io/extension`) for save-profiles / Connectra | active | SN ingestion workflows |
 | Contact AI | `backend(dev)/contact.ai/` (or `lambda/contact.ai/`); **Go target:** `EC2/ai.server/` (`contact360.io/ai`) | active | AI workflows (e.g. Gemini) |
 | Resume AI | `backend(dev)/resumeai/` | active | Resume-related AI workflows (when checkout present) |
-| TKD Job | `contact360.io/jobs/` (Python); **Go implementation:** `EC2/job.server/` (`contact360.io/jobs`) | active | Async jobs, Kafka, DAGs; older docs reference `lambda/tkdjob/` |
+| Async jobs | `EC2/email.server/`, `EC2/sync.server/` (via gateway) | active | Bulk email jobs + CSV import/export; legacy `contact360.io/jobs` / `EC2/job.server` **removed** |
 | Extension (Chrome) | `extension/contact360/` | active (optional checkout) | Sales Navigator extension surface; folder may be absent in minimal clones — path is still canonical |
 | Extension Auth | `extension/contact360/auth/graphqlSession.js` | active | JWT decode+expiry check, proactive token refresh via Appointment360 `auth.refreshToken`; `chrome.storage.local` adapter (MV3 compliant) |
 | Extension Lambda Client | `extension/contact360/utils/lambdaClient.js` | active | Batched REST client for `POST /v1/save-profiles`; retry+jitter, adaptive timeouts, payload compression, chunked batching |
@@ -155,7 +151,7 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 
 - `extention/` — old folder spelling; canonical is `extension/`.
 - `extention/contact360` — old extension package path; canonical is `extension/contact360/`.
-- `lambda/1/` — may appear as a **nested bundle** (older copies or experiments of services under a numeric folder). **Canonical services live directly under `lambda/<service>/`** (for example `lambda/emailapis/`, `lambda/tkdjob/`). Do not treat `lambda/1/*` as the primary deployment root without an explicit integration note.
+- `lambda/1/` — may appear as a **nested bundle** (older copies or experiments of services under a numeric folder). **Canonical services live directly under `lambda/<service>/`** (for example `lambda/emailapis/`). Do not treat `lambda/1/*` as the primary deployment root without an explicit integration note.
 
 ---
 
@@ -173,7 +169,7 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 | Sales Navigator | `backend(dev)/salesnavigator/` | Python → **Go** `EC2/extension.server/` (ingestion façade) | Sales Navigator ingestion workflows |
 | Contact AI | `backend(dev)/contact.ai/` | Python → **Go** `EC2/ai.server/` | AI pipeline logic and model integration |
 | Resume AI | `backend(dev)/resumeai/` | Python → **Go** `EC2/ai.server/` worker tasks | Resume AI features (when present) |
-| TKD Job | `contact360.io/jobs/` / `EC2/job.server/` | Python (monorepo) + **Go** (EC2 satellite) | Job orchestration, queue consumers, DAG execution |
+| Email / Sync job satellites | `EC2/email.server/`, `EC2/sync.server/` | Go | Async jobs via gateway (`scheduler_jobs`) |
 
 ---
 
@@ -184,8 +180,8 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 | PostgreSQL | Appointment360 (and service-local relational modules) | Core transactional business entities, idempotency tables, and all queue/rate-limit state (no Redis). |
 | Elasticsearch | Connectra | Contacts/companies search indexes and VQL query targets |
 | MongoDB | — | **Removed (legacy only)** — older docs may still reference MongoDB for logs; canonical logs storage is S3 CSV. |
-| S3 | S3 Storage, TKD Job | CSV uploads, export artifacts, large object payloads |
-| Jobs scheduler Postgres (`DATABASE_URL`) | TKD Job | Scheduler-owned state (`job_node`, `edges`, `job_events`) |
+| S3 | S3 Storage, job workers | CSV uploads, export artifacts, large object payloads |
+| `scheduler_jobs` (PostgreSQL) | Appointment360 | Gateway-owned job rows for dashboard listing; satellite-specific queues live in worker DBs |
 | Connectra filter metadata (`filters`, `filters_data`) | Connectra + Appointment360 | Filter taxonomy, facet hydration, and saved-search query compatibility |
 
 ---
@@ -193,10 +189,10 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 ## Data flow (conceptual)
 
 1. `contact360.io/app` (dashboard) and `extension/contact360` send authenticated requests to **Appointment360** GraphQL (`contact360.io/api`).
-2. Appointment360 orchestrates downstream REST calls to `emailapis`, `emailapigo` (when used), `mailvetter`, Connectra (`contact360.io/sync`), the job service (`contact360.io/jobs`), `s3storage`, `salesnavigator`, and `contact.ai`.
+2. Appointment360 orchestrates downstream REST calls to `emailapis`, `emailapigo` (when used), `mailvetter`, Connectra (`contact360.io/sync`), **email.server** and **sync.server** job endpoints, `s3storage`, `salesnavigator`, and `contact.ai`.
 3. Connectra serves search from Elasticsearch.
 4. `mailvetter` and email services execute DNS/SMTP/external verification checks.
-5. The job scheduler (`contact360.io/jobs`, TKD Job) runs asynchronous batch DAG workflows with API create/retry, scheduler enqueue, Kafka dispatch, consumer pull, worker pool execution, processor dispatch (`email_*_stream`, `contact360_*_stream`), and timeline events in `job_events`.
+5. Long-running work runs on **email.server** (bulk finder/verifier, Redis/Asynq) and **sync.server** (CSV import/export queue); the gateway stores ownership in `scheduler_jobs` and calls satellite HTTP APIs for create/status.
 6. `logs.api` and `s3storage` capture telemetry and file artifacts.
 
 **Simplified chain:**
@@ -217,7 +213,7 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 - **Hugging Face Inference Providers** (chat completions + JSON tasks) for `contact.ai` primary LLM inference.
 - **Google Gemini** (fallback LLM) for `contact.ai` when HF inference is unavailable.
 - External email verification signals (DNS, SMTP, third-party verification providers).
-- Kafka for asynchronous queue-based job execution in `tkdjob`.
+- Kafka may be used inside legacy or worker stacks; the primary job paths above use **email.server** / **sync.server** queues.
 - AWS S3 object storage for file lifecycle.
 
 ## `contact.ai` data and service notes
@@ -242,13 +238,13 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 - **Context lifecycle:** Per-request `Context` carries: `db` (AsyncSession), `user` (JWT-decoded `User | None`), `user_uuid`, `dataloaders`. `DatabaseCommitMiddleware` ensures the session commits after every successful request.
 - **Auth model:** HS256 JWT — `Authorization: Bearer <token>`. Token blacklist in PostgreSQL `token_blacklist` table. Optional in-process TTL user cache (`ENABLE_USER_CACHE`); **no Redis** in appointment360.
 - **Orchestration pattern:** Appointment360 does NOT own contact/company data — it proxies all search/filter/export calls to Connectra via `ConnectraClient`. It owns user, billing, credits, activities, saved searches, notifications, and API key data in its PostgreSQL DB.
-- **Downstream clients:** `ConnectraClient` (contact data), `TkdjobClient` (job scheduler), `LambdaEmailClient` (email finder/verifier), `LambdaAIClient` (AI chats), `ResumeAIClient` (resume), `LambdaS3StorageClient` (files), `LambdaLogsClient` (audit), `DocsAIClient` (pages content).
+- **Downstream clients:** `ConnectraClient` (contact data + sync jobs), `EmailServerJobsClient` (email satellite jobs), `LambdaEmailClient` (email finder/verifier), `LambdaAIClient` (AI chats), `ResumeAIClient` (resume), `LambdaS3StorageClient` (files), `LambdaLogsClient` (audit), `DocsAIClient` (pages content).
 - **Middleware chain (8 layers):** GZip → REDMetrics → Timing → RequestId → TraceId → GraphQLBodySize → GraphQLIdempotency → GraphQLMutationAbuseGuard → GraphQLRateLimit → DatabaseCommit.
 - **Extensions:** `QueryComplexityExtension` (limit 100) + `QueryTimeoutExtension` (30s).
 - **Lambda:** Mangum handler for AWS Lambda execution; uvicorn for EC2. Both targets supported via same codebase.
 - **Era:** Bootstrap `0.x`; user/billing `1.x`; email system `2.x`; contacts/companies `3.x`; SN/extension `4.x`; AI workflows `5.x`; reliability guards `6.x`; deployment hardening `7.x`; public API surface + pages `8.x`; ecosystem/notifications `9.x`; campaigns/sequences/templates `10.x`.
 - **Known gaps:** Inline debug file writes in `email/queries.py` and `jobs/mutations.py` must be removed. No `campaigns`/`sequences`/`templates` GraphQL modules yet (10.x work). Rate limit disabled by default. SQL schema files missing from local checkout.
-- **Cross-service dependency chain:** `appointment360 → connectra → elasticsearch/postgres | appointment360 → tkdjob → kafka/workers | appointment360 → lambda email/AI/S3/logs → AWS Lambda`.
+- **Cross-service dependency chain:** `appointment360 → connectra → elasticsearch/postgres | appointment360 → email.server / sync.server (jobs) | appointment360 → lambda email/AI/S3/logs → AWS Lambda`.
 
 ### Appointment360 execution spine (era-aligned)
 
@@ -256,7 +252,7 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 | --- | --- | --- | --- | --- |
 | `0.x` | Schema root, health endpoints, settings model | FastAPI app, middleware stack bootstrap, DB session lifecycle, Mangum | `users`, `token_blacklist` tables | `.env.example`, Docker, logging baseline |
 | `1.x` | Auth mutations (login/register/refresh/logout), billing/usage queries, credit model | JWT auth, credit deduction, billing service, abuse guard wiring for billing | `credits`, `plans`, `subscriptions`, `payment_submissions`, `activities` | Token TTL config, idempotency for billing mutations |
-| `2.x` | Email module (finder/verifier), jobs module (create/list/status) | `LambdaEmailClient`, `TkdjobClient` wiring, remove debug writes | `scheduler_jobs` activity entries | Lambda email + tkdjob env vars, Postman tests |
+| `2.x` | Email module (finder/verifier), jobs module (create/list/status) | `LambdaEmailClient`, `EmailServerJobsClient` / `ConnectraClient`, remove debug writes | `scheduler_jobs` activity entries | `LAMBDA_EMAIL_*`, `CONNECTRA_*` env vars, Postman tests |
 | `3.x` | Contacts/companies module, VQL input type | `ConnectraClient` wiring, `vql_converter.py`, `connectra_mappers.py`, DataLoaders | Contacts/companies in Connectra only; `saved_searches` in appointment360 DB | Connectra env vars, contract tests |
 | `4.x` | LinkedIn/SN module, extension session auth | `sales_navigator_client.py`, `upsertByLinkedinUrl`, extension token guard | SN results → Connectra; `sessions` table | SN env config, abuse guard for `upsertByLinkedinUrl` |
 | `5.x` | AI chats module, resume module, Gemini routing | `LambdaAIClient`, `ResumeAIClient`, AI credit deduction | `ai_chats`, `ai_chat_messages`, `resumes` | AI API env vars, credit cost config |
@@ -272,7 +268,7 @@ Use this table to resolve **what exists in-repo** vs **historical aliases**. Upd
 
 - Frontend apps (`contact360.io/app`, `contact360.io/root`): SSR/static deployment target.
 - DocsAI (`contact360.io/admin`): Django app with reverse-proxy deployment.
-- GraphQL gateway (`contact360.io/api`), Connectra (`contact360.io/sync`), jobs (`contact360.io/jobs`), and `lambda/*` / `backend(dev)/*` services: per-service deployment pipelines.
+- GraphQL gateway (`contact360.io/api`), Connectra (`contact360.io/sync`), EC2 **email** / **sync** satellites, and `lambda/*` / `backend(dev)/*` services: per-service deployment pipelines.
 - Datastores: environment-scoped **PostgreSQL** (appointment360, Connectra, jobs, mailvetter, campaign DBs), **OpenSearch/Elasticsearch**, **S3**, and **Redis only in Go worker paths** (email campaign Asynq, Mailvetter — see **`docs/docs/data-stores-postgres.md`**). (MongoDB references in older docs are legacy — canonical logs.api storage is S3 CSV; see data ownership table.)
 
 ---
@@ -318,11 +314,11 @@ Strategic eras do **not** block near-term releases. Promote a `7.x`+ era into ac
 | `3.x` | Contact/company data | VQL, enrichment, deduplication, search | `contact360.io/sync` (Connectra), `contact360.io/api` | VQL filter and search contracts |
 | `4.x` | Extension and Sales Navigator | Extension auth, SN ingestion, sync, telemetry | `salesnavigator`, `contact360.io/api`, `extension/contact360` | Extension auth and sync contracts |
 | `5.x` | AI workflows | HF streaming, Gemini, confidence, cost governance | `contact.ai`, `contact360.io/api` | AI chat/utility API and cost contracts |
-| `6.x` | Reliability and Scaling | SLO, idempotency, queue resilience, observability | All core services, `contact360.io/api`, `tkdjob`, `logs.api` | SLO, idempotency, and observability contracts |
+| `6.x` | Reliability and Scaling | SLO, idempotency, queue resilience, observability | All core services, `contact360.io/api`, job satellites, `logs.api` | SLO, idempotency, and observability contracts |
 | `7.x` | Deployment | RBAC, audit, governance, security posture | `contact360.io/api`, `docsai`, all services | RBAC, audit, and governance contracts |
-| `8.x` | Public and private APIs | Analytics instrumentation, API surface, webhooks | `contact360.io/api`, `tkdjob`, `logs.api` | External API/webhook/analytics contracts |
+| `8.x` | Public and private APIs | Analytics instrumentation, API surface, webhooks | `contact360.io/api`, `logs.api` | External API/webhook/analytics contracts |
 | `9.x` | Ecosystem + Productization | Connectors, tenant model, entitlements, SLA ops | All services + integration adapters, `docsai` | Tenant, entitlement, and connector contracts |
-| `10.x` | Email campaign | Campaign execution, deliverability, compliance | `contact360.io/api`, `tkdjob`, `emailapis`, `logs.api` | Campaign execution and compliance contracts |
+| `10.x` | Email campaign | Campaign execution, deliverability, compliance | `contact360.io/api`, `emailapis`, `logs.api` | Campaign execution and compliance contracts |
 
 ### Small-task architecture checklist per minor
 
@@ -530,7 +526,7 @@ Reference deep-dive and small-task decomposition: `docs/codebases/mailvetter-cod
 
 ### Control-plane boundary note
 
-`contact360.io/api` remains the GraphQL gateway, while `contact360.io/admin` is the operational control surface that orchestrates privileged actions through clients to `appointment360`, `logs.api`, `tkdjob`, and `s3storage`.
+`contact360.io/api` remains the GraphQL gateway, while `contact360.io/admin` is the operational control surface that orchestrates privileged actions through clients to `appointment360`, `logs.api`, and `s3storage` (job state via gateway).
 
 
 ## Operations & Runbooks

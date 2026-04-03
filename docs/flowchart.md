@@ -20,7 +20,7 @@ flowchart LR
     emailApp["Next.js email app"]
     verify["mailvetter"]
     search["connectra EC2"]
-    jobs["jobs EC2 / tkdjob"]
+    jobs["email.server + sync.server\n(async jobs)"]
     files["s3storage EC2"]
     logs["logs EC2"]
     ai["ai.server EC2"]
@@ -216,7 +216,7 @@ flowchart TD
     single["EmailVerifierSingle\n(submit form)"]
     bulk["FilesUploadModal\n→ FilesCreateJobModal"]
     gql1["emailService\nVerifyEmail"]
-    gql2["jobsService\nCreateJob → tkdjob"]
+    gql2["jobsService\n→ email / sync satellites"]
     mailvetter["mailvetter\n(DNS/SMTP/SPF/DMARC)"]
     result1["EmailVerifierResult\n(status badge + confidence bar)"]
     result2["JobsCard / JobsTable\n(progress bar + status polling)"]
@@ -271,15 +271,15 @@ flowchart TD
     createJob["FilesCreateJobModal\n(job type: finder / verifier)"]
     mapping["EmailMappingModal\n(column → field mapping)"]
     jobApi["jobsService\nCreateJob"]
-    tkdjob["tkdjob\n(stream processor)"]
+    satellite["email.server /\nsync.server worker"]
     polling["JobsCard / JobsTable\n(progress bar + status)"]
     output["FilesDownloadModal\n(download CSV result)"]
 
     upload --> s3 --> preview
     preview --> schema
     preview --> createJob
-    createJob --> mapping --> jobApi --> tkdjob
-    tkdjob -->|"progress updates"| polling
+    createJob --> mapping --> jobApi --> satellite
+    satellite -->|"progress updates"| polling
     polling -->|"completed"| output
 ```
 
@@ -952,7 +952,7 @@ flowchart TD
     Context --> Extensions["QueryComplexityExtension\nQueryTimeoutExtension"]
     Extensions --> Resolver["Resolver execution\n(module query / mutation)"]
     Resolver -->|contacts / companies| Connectra["ConnectraClient\nGET /contacts/query\nGET /companies/query"]
-    Resolver -->|jobs create / status| TKDJob["TkdjobClient\nPOST /jobs/create\nGET /jobs/:id"]
+    Resolver -->|jobs create / status| JobClients["EmailServerJobsClient /\nConnectraClient"]
     Resolver -->|email finder/verifier| LambdaEmail["LambdaEmailClient\nPOST /find-email\nPOST /verify-email"]
     Resolver -->|AI chats| LambdaAI["LambdaAIClient\nPOST /ai-chats\nPOST /message/stream"]
     Resolver -->|files / exports| S3Storage["LambdaS3StorageClient\nGET /files\nPOST /upload"]
@@ -1001,7 +1001,7 @@ flowchart TD
 flowchart LR
     era0["0.x: App + middleware bootstrap\nDB session lifecycle\nHealth endpoints"]
     era0 --> era1["1.x: Auth + billing + credits\nJWT issue/blacklist\nCredit deduction"]
-    era1 --> era2["2.x: Email module\nJobs module\nLambdaEmailClient + TkdjobClient"]
+    era1 --> era2["2.x: Email module\nJobs module\nLambdaEmail + job satellites"]
     era2 --> era3["3.x: Contacts + companies\nConnectraClient + VQL converter\nDataLoaders"]
     era3 --> era4["4.x: LinkedIn + Sales Navigator\nExtension session auth\nSN credit deduction"]
     era4 --> era5["5.x: AI chats + resume\nLambdaAIClient + ResumeAIClient"]
@@ -1163,7 +1163,7 @@ flowchart TD
   RoleMW --> View[Admin View Handler]
   View --> GQL[Appointment360 GraphQL Client]
   View --> Logs[logs.api Client]
-  View --> Jobs[tkdjob Client]
+  View --> Jobs[jobs GraphQL + satellites]
   View --> Storage[s3storage Client]
   GQL --> Resp[HTTP Response]
   Logs --> Resp

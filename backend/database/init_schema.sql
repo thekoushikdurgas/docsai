@@ -48,6 +48,24 @@
 \i subscription_plan_periods.sql
 \i addon_packages.sql
 
+-- Payments & manual proof (billing UX)
+\i payment_settings.sql
+\i payment_submissions.sql
+
+-- Campaigns (templates before campaigns; sequences after campaigns)
+\i campaign_templates.sql
+\i campaigns.sql
+\i campaign_sequences.sql
+
+-- Integrations & outbound webhooks
+\i webhooks.sql
+\i integrations.sql
+
+-- s3storage async metadata reconciliation (worker queue)
+\i s3storage_metadata_jobs.sql
+
 -- ============================================================================
 -- Schema initialization complete
 -- ============================================================================
+-- Optional seed data (dev/staging): `seed_user_profiles.sql` — not part of minimal DDL.
+-- One-off migrations: see `migrations/` (e.g. `migrate_resume_documents_to_s3_keys.sql`).

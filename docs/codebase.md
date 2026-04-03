@@ -38,7 +38,7 @@ Older docs and some historical monorepos use different folder layouts. Treat the
 | `contact360/docsai/` | Django DocsAI | `contact360.io/admin/` |
 | `lambda/appointment360/` | GraphQL gateway | `contact360.io/api/` |
 | `lambda/connectra/` | Connectra | `contact360.io/sync/` |
-| `lambda/tkdjob/` | Job scheduler | `contact360.io/jobs/` / `EC2/job.server/` |
+| `EC2/email.server`, `EC2/sync.server` | Async jobs (finder/verify/import/export) | Satellites behind gateway `jobs` module (`scheduler_jobs`) |
 | `lambda/emailapis/` | Email APIs (Python orchestration) | `EC2/email.server/` (Go target) |
 | `lambda/emailapigo/` | Email APIs (Go workers) | `EC2/email.server/` |
 | `lambda/logs.api/` | Logs API (Python) | `EC2/log.server/` |
@@ -308,11 +308,11 @@ High-level entry points for engineers mapping features to code. For API shapes, 
 - **Deep reference:** `docs/codebases/salesnavigator-codebase-analysis.md`.
 - **Era task packs:** `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`.
 
-### tkdjob (`contact360.io/jobs/`)
+### Async jobs (email.server + sync.server)
 
-- **Components:** Scheduler, Kafka consumers, HTTP API for job CRUD/status.
-- **DAG:** State machine for export pipelines (`email_finder_export_stream`, `email_verify_export_stream`, …).
-- **Known gaps:** Jobs may remain `processing` if a consumer dies mid-flight — mitigations documented in service README or ops runbooks (reaper/timeout).
+- **Gateway:** `contact360.io/api` GraphQL **jobs** module + `scheduler_jobs` table; clients `EmailServerJobsClient`, `ConnectraClient`.
+- **Satellites:** `EC2/email.server` (S3 bulk finder/verifier, pause/resume), `EC2/sync.server` (CSV import/export queue).
+- **Legacy:** Standalone Python `contact360.io/jobs` / `EC2/job.server` removed from monorepo — see `docs/codebases/jobs-codebase-analysis.md` archive note.
 
 ### resumeai (`backend(dev)/resumeai/`)
 
@@ -420,7 +420,7 @@ Appointment360 is the GraphQL-only gateway. Single `/graphql` endpoint. 28 modul
 - **Schema:** `app/graphql/schema.py` — flat composition: `Query` + `Mutation` assembled from 28 module class imports.
 - **Context:** `app/graphql/context.py` — per-request `Context` with `db` (AsyncSession), `user` (JWT decode), `user_uuid`, `dataloaders`.
 - **Extensions:** `app/graphql/extensions.py` — `QueryComplexityExtension` (limit 100) + `QueryTimeoutExtension` (30s).
-- **Downstream clients:** `app/clients/connectra_client.py`, `tkdjob_client.py`, `lambda_email_client.py`, `lambda_ai_client.py`, `resume_ai_client.py`, `lambda_s3storage_client.py`, `lambda_logs_client.py`, `docsai_client.py`.
+- **Downstream clients:** `app/clients/connectra_client.py`, `email_server_client.py`, `lambda_email_client.py`, `lambda_ai_client.py`, `resume_ai_client.py`, `lambda_s3storage_client.py`, `lambda_logs_client.py`, `docsai_client.py`.
 - **Module resolvers:** `app/graphql/modules/*/queries.py` and `app/graphql/modules/*/mutations.py` — one folder per GraphQL module (auth, users, contacts, companies, email, jobs, billing, usage, aiChats, resume, salesNavigator, admin, savedSearches, profile, twoFactor, notifications, analytics, pages, s3, upload, featureOverview, etc.).
 - **Services:** `app/services/` — billing, credit, activity, notification, analytics, pages business logic.
 - **Repositories:** `app/repositories/` — user, profile, saved_search, scheduler_job, token_blacklist data access.
@@ -543,7 +543,7 @@ Era task-pack index: era folders `0–10` each contain `mailvetter-*-task-pack.m
 
 - `backend(dev)/email campaign` depends on Redis + PostgreSQL + SMTP + S3 templates; schema parity and unsubscribe query path remain P0 blockers.
 - `lambda/emailapigo` and `lambda/emailapis` share provider-network responsibilities and must keep status vocabulary + cache contracts aligned.
-- `contact360.io/admin` integrates with `appointment360` (GraphQL), `logs.api`, `tkdjob`, and `s3storage`; missing API-key forwarding in some client calls is tracked.
+- `contact360.io/admin` integrates with `appointment360` (GraphQL), `logs.api`, and `s3storage` (job visibility via gateway); missing API-key forwarding in some client calls is tracked.
 
 
 ## Attached Analysis & Task Packs

@@ -37,6 +37,8 @@ Canonical markdown hubs live under **`docs/docs/`** (not the repo root). CI vali
 - `9.x.x` Ecosystem/productization: `docs/9. Contact360 Ecosystem integrations and Platform productization/README.md`
 - `10.x.x` Email campaign: `docs/10. Contact360 email campaign/README.md`
 
+**Strategic planning (eras `6.x`–`10.x` five-track focus):** [`STRATEGIC_ERAS_6-10_MASTER_PLAN_five_tracks.md`](STRATEGIC_ERAS_6-10_MASTER_PLAN_five_tracks.md)
+
 ### Where tasks live in each era folder
 
 Work is planned in **every** era directory `docs/<0–10>. …/`, not only in `README.md`:

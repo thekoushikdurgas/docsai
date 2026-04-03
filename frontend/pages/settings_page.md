@@ -19,14 +19,18 @@ generator: json_to_markdown.py
 
 ### UI components (metadata)
 
-- **SettingsPage** — `app/(dashboard)/settings/page.tsx` (Redirects to `/profile`)
-- **ProfilePage** — `app/(dashboard)/profile/page.tsx` (Target destination)
+- **SettingsPage** — `app/(dashboard)/settings/page.tsx` (Tabbed hub: Account, Security, Notifications, API Keys, Integrations)
+- **SettingsAccountTab** — `src/components/settings/SettingsAccountTab.tsx`
+- **SettingsSecurityTab** — `src/components/settings/SettingsSecurityTab.tsx`
+- **SettingsNotificationsTab** — `src/components/settings/SettingsNotificationsTab.tsx`
+- **SettingsApiKeysTab** — `src/components/settings/SettingsApiKeysTab.tsx`
+- **SettingsIntegrationsTab** — `src/components/settings/SettingsIntegrationsTab.tsx`
 
 ## Metadata
 
 - **route:** /settings
 - **file_path:** contact360.io/app/app/(dashboard)/settings/page.tsx
-- **purpose:** Settings redirect: Unified entry point that routes to /profile for account management.
+- **purpose:** Settings hub: tabbed layout covering Account, Security, Notifications, API Keys, and Integrations.
 - **status:** shipped
 - **authentication:** Required (protected by useSessionGuard in layout)
 - **authorization:** None

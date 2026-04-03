@@ -88,7 +88,7 @@ All requests are `POST {{baseUrl}}/graphql` with JSON body `{ "query": "...", "v
 | Auth                       | `auth`         | me, session, login, register, logout, refreshToken |
 | Users                      | `users`        | get user, list, stats, update profile, avatar, promote |
 | Health                     | `health`       | metadata, API health, VQL health, performance stats |
-| Jobs                       | `jobs`         | job, jobs, retryJob; job includes statusPayload, timelinePayload, dagPayload (live Tkdjob status/timeline/DAG); upload URL → **upload**; export download → **s3** |
+| Jobs                       | `jobs`         | job, jobs (`jobFamily` filter), pause/resume/terminate (email jobs), retryJob; `statusPayload` from email satellite or DB; timeline/dag null; upload URL → **upload**; export download → **s3** |
 | Imports                    | `jobs`         | list jobs (jobType filter), job(jobId), createContact360Import, retryJob |
 | Contacts                   | `contacts`     | contact, contacts, contactQuery, filters, CRUD, batch |
 | Companies                  | `companies`    | company, companies, companyQuery, CRUD |
@@ -115,7 +115,7 @@ All requests are `POST {{baseUrl}}/graphql` with JSON body `{ "query": "...", "v
 
 ## Important alignments
 
-- **Imports / Exports**: There is no `imports` or `exports` root. All operations use the **jobs** root: `jobs.job(jobId)`, `jobs.jobs(limit, offset, jobType)`, `jobs.createContact360Import(input)`, `jobs.createContact360Export(input)`, `jobs.retryJob(input)`. Request `statusPayload` in job query for live Tkdjob status.
+- **Imports / Exports**: There is no `imports` or `exports` root. All operations use the **jobs** root: `jobs.job(jobId)`, `jobs.jobs(limit, offset, jobType, jobFamily)`, `jobs.createContact360Import(input)`, `jobs.createContact360Export(input)`, `jobs.retryJob(input)`. Request `statusPayload` for email satellite live status or stored sync progress.
 - **Dashboard Pages, Documentation, Marketing**: There is no `dashboardPages`, `documentation`, or `marketing` root. All use the **pages** root: `pages.page(pageId, pageType)`, `pages.dashboardPages`, `pages.pagesByType("docs")`, `pages.pageContent(pageId)`, `pages.marketingPages`. The pages module is **query-only** in the current schema; create/update/delete for pages may be via DocsAI/Lambda API.
 - **Get Upload URL** (in Jobs folder): Use **upload.initiateUpload(input)** (or **s3.initiateCsvUpload(input)** for CSV-specific flows) then **upload.presignedUrl(uploadId, partNumber)** for each part.
 - **Get Export Download URL** (in Jobs folder): Use **s3.s3FileDownloadUrl(fileKey)**; `fileKey` is the S3 key (e.g. from job output stored via the S3/s3storage pipeline).

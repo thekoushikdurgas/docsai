@@ -14,7 +14,7 @@ generator: json_to_markdown_endpoints.py
 | codebase | contact360.io/api |
 | runtime | FastAPI + Strawberry GraphQL + asyncpg + PostgreSQL |
 | primary_endpoint | POST /graphql |
-| description | GraphQL-only gateway. All dashboard and extension requests enter through /graphql. No REST feature routes. 29 nested GraphQL namespaces in schema (plus 10.x campaign modules scaffold-only). Orchestrates Connectra, tkdjob, Lambda Email, Lambda AI, Resume AI, S3 Storage, Logs API, DocsAI. |
+| description | GraphQL-only gateway. All dashboard and extension requests enter through /graphql. No REST feature routes. 29 nested GraphQL namespaces in schema (plus 10.x campaign modules scaffold-only). Orchestrates Connectra, email.server/sync.server job APIs (via gateway clients), Lambda Email, Lambda AI, Resume AI, S3 Storage, Logs API, DocsAI. |
 | data_lineage_reference | docs/backend/database/appointment360_data_lineage.md |
 | era_task_packs | docs/backend/apis/APPOINTMENT360_ERA_TASK_PACKS.md |
 | codebase_analysis | docs/codebases/appointment360-codebase-analysis.md |
@@ -67,8 +67,8 @@ generator: json_to_markdown_endpoints.py
 | 11 | activities | 1.x | 11_ACTIVITIES_MODULE.md | ['activities', 'activityStats'] | [] |
 | 13 | admin | 7.x | 13_ADMIN_MODULE.md | ['users', 'usersWithBuckets', 'userStats', 'userHistory', 'logStatistics', 'logs', 'searchLogs'] | ['updateUserRole', 'updateUserCredits', 'deleteUser', 'promoteToAdmin', 'promoteToSuperAdmin', 'createLog', 'createLogsBatch', 'updateLog', 'deleteLog', 'deleteLogsBulk'] |
 | 14 | billing | 1.x | 14_BILLING_MODULE.md | ['billing', 'plans', 'addons', 'invoices', 'paymentInstructions', 'paymentSubmissions'] | ['subscribe', 'purchaseAddon', 'submitPaymentProof', 'approvePayment', 'declinePayment'] |
-| 15 | email | 2.x | 15_EMAIL_MODULE.md | ['findEmails', 'createEmailFinderExportJob', 'createEmailVerifyExportJob', 'createEmailPatternImportJob', 'findEmailsBulk', 'verifySingleEmail', 'verifyEmailsBulk', 'exportEmails', 'verifyexportEmail'] | ['addEmailPattern', 'addEmailPatternBulk'] |
-| 16 | jobs | 2.x | 16_JOBS_MODULE.md | ['job', 'jobs'] | ['createEmailFinderExport', 'createEmailVerifyExport', 'createEmailPatternImport', 'createContact360Export', 'createContact360Import', 'createAppointmentImport', 'retryJob'] |
+| 15 | email | 2.x | 15_EMAIL_MODULE.md | ['findEmails', 'createEmailFinderExportJob', 'createEmailVerifyExportJob', 'findEmailsBulk', 'verifySingleEmail', 'verifyEmailsBulk', 'exportEmails', 'verifyexportEmail'] | ['addEmailPattern', 'addEmailPatternBulk'] |
+| 16 | jobs | 2.x | 16_JOBS_MODULE.md | ['job', 'jobs'] | ['createEmailFinderExport', 'createEmailVerifyExport', 'createContact360Export', 'createContact360Import', 'pauseJob', 'resumeJob', 'terminateJob', 'retryJob'] |
 | 17 | aiChats | 5.x | 17_AI_CHATS_MODULE.md | ['aiChat', 'aiChats'] | ['createAIChat', 'updateAIChat', 'deleteAIChat', 'sendMessage', 'analyzeEmailRisk', 'generateCompanySummary', 'parseContactFilters'] |
 | 18 | analytics | 6.x | 18_ANALYTICS_MODULE.md | ['performanceMetrics', 'aggregateMetrics'] | ['submitPerformanceMetric'] |
 | 19 | pages | 8.x | 19_PAGES_MODULE.md | ['page', 'pages', 'pageContent', 'pagesByType', 'pageTypes', 'pageStatistics', 'pagesByState', 'pagesByStateCount', 'pagesByUserType', 'pagesByDocsaiUserType', 'myPages', 'pageAccessControl', 'pageSections', 'pageComponents', 'pageEndpoints', 'pageVersions', 'dashboardPages', 'marketingPages'] | [] |
@@ -162,7 +162,7 @@ generator: json_to_markdown_endpoints.py
 **downstream_clients_added**
 
 - LambdaEmailClient
-- TkdjobClient
+- EmailServerJobsClient
 
 - **behavioral_changes:** Email find/verify credit deduction. Job polling UI via query job(jobId).
 **bugs_to_fix**
@@ -173,8 +173,8 @@ generator: json_to_markdown_endpoints.py
 
 - LAMBDA_EMAIL_API_URL
 - LAMBDA_EMAIL_API_KEY
-- TKDJOB_API_URL
-- TKDJOB_API_KEY
+- CONNECTRA_BASE_URL
+- CONNECTRA_API_KEY
 
 
 ### 3.x

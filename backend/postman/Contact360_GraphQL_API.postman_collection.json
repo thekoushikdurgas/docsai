@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "contact360-graphql-api-complete",
     "name": "Contact360 GraphQL API - Complete",
-    "description": "Complete GraphQL API collection for Contact360 (GraphQL-only FastAPI backend).\n\n**Setup:**\n1. Import this collection and `Contact360_Local` or `Contact360_Production` environment\n2. Set `baseUrl` (or `graphqlUrl` for POST body URL override), `email`, `password`, `name` (optional for register), `s3Bucket` for import jobs, `jobUuid` / `emailJobId` after async operations\n3. Run Auth > Login; tests persist accessToken, refreshToken, userId\n4. Authenticated requests use `Authorization: Bearer {{accessToken}}`\n\n**Server `.env` (not sent by Postman):** the API uses `LAMBDA_EMAIL_API_URL` / `LAMBDA_EMAIL_API_KEY` (email + webSearch), `TKDJOB_API_URL` / `TKDJOB_API_KEY` (scheduler jobs), `CAMPAIGN_API_URL` / `CAMPAIGN_API_KEY` (`campaignSatellite`), `CONNECTRA_BASE_URL` / `CONNECTRA_API_KEY` (VQL). Matching keys are listed in the environment file as empty placeholders for your notes only.\n\n**REST:** Health checks under `GET {{baseUrl}}/health`, `/health/db`, etc. — see Health folder.\n\n**Roots:** auth, users, contacts, companies, activities, analytics, billing, email, campaignSatellite, jobs, usage, featureOverview, pages, s3, upload, aiChats, notifications, salesNavigator, admin, health, savedSearches, twoFactor, profile, resume; mutations: linkedin.\n\n**GraphQL variables:** camelCase (`fileSize`, `contentType`, `inputCsvKey`, `s3Bucket`, `s3Key`, …). See per-module JSON in `docs/backend/postman/`.",
+    "description": "Complete GraphQL API collection for Contact360 (GraphQL-only FastAPI backend).\n\n**Setup:**\n1. Import this collection and `Contact360_Local` or `Contact360_Production` environment\n2. Set `baseUrl` (or `graphqlUrl` for POST body URL override), `email`, `password`, `name` (optional for register), `s3Bucket` for import jobs, `jobUuid` / `emailJobId` after async operations\n3. Run Auth > Login; tests persist accessToken, refreshToken, userId\n4. Authenticated requests use `Authorization: Bearer {{accessToken}}`\n\n**Server `.env` (not sent by Postman):** the API uses `LAMBDA_EMAIL_API_URL` / `LAMBDA_EMAIL_API_KEY` (email satellite + async jobs), `CONNECTRA_BASE_URL` / `CONNECTRA_API_KEY` (VQL + sync jobs), `CAMPAIGN_API_URL` / `CAMPAIGN_API_KEY` (`campaignSatellite`). Matching keys are listed in the environment file as empty placeholders for your notes only.\n\n**REST:** Health checks under `GET {{baseUrl}}/health`, `/health/db`, etc. — see Health folder.\n\n**Roots:** auth, users, contacts, companies, activities, analytics, billing, email, campaignSatellite, jobs, usage, featureOverview, pages, s3, upload, aiChats, notifications, salesNavigator, admin, health, savedSearches, twoFactor, profile, resume; mutations: linkedin.\n\n**GraphQL variables:** camelCase (`fileSize`, `contentType`, `inputCsvKey`, `s3Bucket`, `s3Key`, …). See per-module JSON in `docs/backend/postman/`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -801,7 +801,7 @@
                 "graphql"
               ]
             },
-            "description": "Get scheduler job by jobId. Includes statusPayload (live status from Tkdjob: progress_percent, processed_rows, runtime_errors). User can only access own jobs unless Admin/SuperAdmin. See sql/apis/16_JOBS_MODULE.md#job."
+            "description": "Get scheduler job by jobId. Includes statusPayload (email.server live status when sourceService=email_server; DB/sync otherwise). User can only access own jobs unless Admin/SuperAdmin. See docs/backend/apis/16_JOBS_MODULE.md."
           }
         },
         {
@@ -831,7 +831,7 @@
                 "graphql"
               ]
             },
-            "description": "Create email finder export job (tkdjob email-export). Requires auth. Use camelCase variables: inputCsvKey, outputPrefix, s3Bucket, csvColumns {firstName, lastName, domain}, etc. First upload CSV via upload.initiateUpload/completeUpload, pass fileKey as inputCsvKey. Tracks BULK_EXPORT usage."
+            "description": "Create email finder export job (email.server S3). Requires auth. Use camelCase variables: inputCsvKey, outputPrefix, s3Bucket, csvColumns {firstName, lastName, domain}, etc. First upload CSV via upload.initiateUpload/completeUpload, pass fileKey as inputCsvKey. Tracks BULK_EXPORT usage."
           }
         },
         {
@@ -861,7 +861,7 @@
                 "graphql"
               ]
             },
-            "description": "Create email verify export job (tkdjob email-verify). Requires auth. Upload CSV first, pass fileKey as inputCsvKey. Tracks BULK_VERIFICATION usage."
+            "description": "Create email verify export job (email.server S3). Requires auth. Upload CSV first, pass fileKey as inputCsvKey. Tracks BULK_VERIFICATION usage."
           }
         },
         {
@@ -891,7 +891,7 @@
                 "graphql"
               ]
             },
-            "description": "Create email pattern import job (tkdjob email-pattern-import). SuperAdmin only. Logs JOBS/IMPORT activity."
+            "description": "Removed: `createEmailPatternImport` (legacy). Use supported import/export flows under jobs/email."
           }
         },
         {
@@ -921,7 +921,7 @@
                 "graphql"
               ]
             },
-            "description": "Create Contact360 export job (tkdjob contact360-export). Requires auth. Optional savedSearchId links to Saved Searches. Tracks BULK_EXPORT usage."
+            "description": "Create Contact360 export job (sync.server via Connectra). Requires auth. Optional savedSearchId links to Saved Searches. Tracks BULK_EXPORT usage."
           }
         },
         {
@@ -951,7 +951,7 @@
                 "graphql"
               ]
             },
-            "description": "Create Contact360 import job (tkdjob contact360-import). SuperAdmin only. First use upload.initiateUpload/completeUpload, pass fileKey as s3Key."
+            "description": "Create Contact360 import job (sync.server via Connectra). Role-gated. First use upload.initiateUpload/completeUpload, pass fileKey as s3Key."
           }
         },
         {
@@ -981,7 +981,7 @@
                 "graphql"
               ]
             },
-            "description": "Retry a failed job via Tkdjob PUT /api/v1/jobs/{jobId}/retry. User must own job or be Admin/SuperAdmin. Returns Tkdjob response (success, data with status, try_count, etc.)."
+            "description": "Retry a failed job (gateway jobs.retryJob). Behavior depends on sourceService (email vs sync). User must own job or be Admin/SuperAdmin. Returns JSON payload from resolver."
           }
         },
         {
@@ -1045,7 +1045,7 @@
           }
         }
       ],
-      "description": "Jobs (scheduler) module - Tkdjob integration. Queries: job(jobId), jobs(limit, offset, status, jobType). Request statusPayload, timelinePayload, dagPayload on job for live Tkdjob status/timeline/DAG. Mutations: createEmailFinderExport, createEmailVerifyExport, createEmailPatternImport (SuperAdmin), createContact360Export, createContact360Import (SuperAdmin), retryJob (optional priority). See sql/apis/16_JOBS_MODULE.md."
+      "description": "Jobs (scheduler) module — email.server + sync.server via gateway. Queries: job(jobId), jobs(..., jobFamily). statusPayload; timeline/dag null. Mutations: createEmailFinderExport, createEmailVerifyExport, createContact360Export, createContact360Import, pause/resume/terminate (email), retryJob. See docs/backend/apis/16_JOBS_MODULE.md."
     },
     {
       "name": "Imports",

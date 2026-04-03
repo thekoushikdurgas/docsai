@@ -51,7 +51,16 @@ Endpoint metadata and parity-tracking guide for backend API surfaces.
 2. Update contract and metadata fields (`era`, `introduced_in`, `deprecated_in`).
 3. Verify security fields (`auth_required`, `rbac_roles`, rate-limit flags).
 4. Update lineage fields (`db_tables_read`, `db_tables_write`, storage touchpoints).
-5. Sync related docs (`apis`, `database`, `postman`, and frontend bindings).
+5. Sync related docs (`graphql.modules`, `database`, `postman`, and frontend bindings).
+
+## Topology & database linking (read next)
+
+Keep **generated** artifacts (`index.md`, `endpoints_index.md`, `*_endpoint_era_matrix.md`, per-operation `*_graphql.md`) as produced by `json_to_markdown_endpoints.py`. For **human-authored** navigation, use these two hubs:
+
+- **[SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md)** — service registry (gateway, Connectra, workers), request-flow diagram, links from each surface to its era matrix and **data lineage** doc.
+- **[ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md)** — how GraphQL ops map to `index.md`, how `db_tables_read` / `db_tables_write` reference gateway snapshots vs **Connectra-owned** stores (`connectra_data_lineage.md`), and conventions for external stores.
+
+Do **not** fold the full topology or linking spec into this README; that duplicates the hubs and goes stale. Summaries above are intentionally short.
 
 ## Markdown generation (JSON → MD)
 
@@ -78,6 +87,6 @@ Canonical route list for **`EC2/*.server/`** implementations (Gin, not yet fully
 - `docs/README.md`
 - `docs/backend/README.md`
 - `docs/codebases/README.md`
-- `docs/backend/apis/README.md`
+- `docs/backend/graphql.modules/README.md`
 - `docs/backend/database/README.md`
 - `docs/backend/postman/README.md`

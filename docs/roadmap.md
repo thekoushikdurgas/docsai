@@ -836,15 +836,15 @@ Delivery is currently centered on **billing and payments (Stage 1.3)** and **bul
 | 2.1 | Email finder | `emailapis`, `emailapigo`, `appointment360` | `dashboard` | PostgreSQL, S3 | `2.0.0` |
 | 2.2 | Email verifier | `mailvetter`, `emailapis`, `appointment360` | `dashboard` | PostgreSQL | `2.0.0` |
 | 2.3 | Results engine | `appointment360` | `dashboard` | PostgreSQL | `2.0.0` |
-| 2.4 | Bulk processing | `tkdjob`, `s3storage`, `emailapis`, `mailvetter` | `dashboard` | S3, PostgreSQL | `2.1.0` |
+| 2.4 | Bulk processing | `email.server`, `sync.server`, `s3storage`, `emailapis`, `mailvetter` | `dashboard` | S3, PostgreSQL | `2.1.0` |
 | 3.1–3.4 | Contact/company data | `connectra`, `appointment360` | `dashboard` | Elasticsearch, PostgreSQL | `3.0.0` |
 | 4.1–4.4 | Extension and Sales Navigator | `salesnavigator`, `appointment360`, `logs.api` | `extension/contact360` | PostgreSQL, Elasticsearch, S3 (CSV) | `4.0.0` |
 | 5.1–5.4 | AI workflows | `contact.ai`, `appointment360` | `dashboard` | PostgreSQL | `5.0.0` |
-| 6.1–6.9 | Reliability and scaling | `tkdjob`, `logs.api`, `s3storage`, `appointment360`, all core services | `dashboard`, `docsai`, `extension/contact360` | PostgreSQL, S3, Elasticsearch | `6.1.0`–`6.9.0` |
+| 6.1–6.9 | Reliability and scaling | job satellites, `logs.api`, `s3storage`, `appointment360`, all core services | `dashboard`, `docsai`, `extension/contact360` | PostgreSQL, S3, Elasticsearch | `6.1.0`–`6.9.0` |
 | 7.1–7.9 | Deployment | `appointment360`, `docsai`, `logs.api`, all services | `dashboard`, `docsai`, `extension/contact360` | PostgreSQL, S3 (CSV) | `7.1.0`–`7.9.0` |
-| 8.1–8.9 | Public and private APIs | `appointment360`, `tkdjob`, `logs.api`, reporting pipelines | `dashboard`, `docsai`, external API consumers | PostgreSQL, S3, Elasticsearch | `8.1.0`–`8.9.0` |
+| 8.1–8.9 | Public and private APIs | `appointment360`, `logs.api`, reporting pipelines | `dashboard`, `docsai`, external API consumers | PostgreSQL, S3, Elasticsearch | `8.1.0`–`8.9.0` |
 | 9.1–9.9 | Ecosystem integrations + productization | `appointment360`, `docsai`, entitlement/policy modules, integration adapters, all services | `dashboard`, `docsai`, `extension/contact360`, external consumers | PostgreSQL, S3, Elasticsearch | `9.1.0`–`9.9.0` |
-| 10.1–10.9 | Email campaign | `appointment360`, `tkdjob`, `emailapis`, `logs.api` | `dashboard`, `docsai` | PostgreSQL, S3, Elasticsearch | `10.1.0`–`10.9.0` |
+| 10.1–10.9 | Email campaign | `appointment360`, `emailapis`, `logs.api` | `dashboard`, `docsai` | PostgreSQL, S3, Elasticsearch | `10.1.0`–`10.9.0` |
 
 ---
 

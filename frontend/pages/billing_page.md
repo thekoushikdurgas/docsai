@@ -1,5 +1,6 @@
 ---
 title: Billing Page
+page_id: billing_page
 status: published
 ---
 

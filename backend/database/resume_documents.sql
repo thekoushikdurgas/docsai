@@ -17,3 +17,12 @@ CREATE INDEX IF NOT EXISTS ix_resume_documents_user_id ON resume_documents (user
 COMMENT ON TABLE resume_documents IS 'Resume metadata; JSON body in s3storage at resume_data_key; service: resumeai FastAPI';
 COMMENT ON COLUMN resume_documents.storage_bucket_id IS 'Logical s3storage bucket (typically users.bucket or users.uuid)';
 COMMENT ON COLUMN resume_documents.resume_data_key IS 'Object key within the logical bucket, e.g. resume/{id}.json';
+
+-- Lineage: resume JSON schema (opaque in Postgres; body in S3)
+-- Q1 2026 — extended Education and Certificate shapes in the stored JSON (no ALTER TABLE on resume_documents).
+-- Education: optional legacy `duration`; added fieldOfStudy, startDate, endDate, isCurrent,
+--   activities[], skills[], media[] alongside existing description[] and score.
+-- Certificate: added issuingOrganization, issueDate, hasExpiry, expirationDate, credentialId,
+--   credentialUrl, skills[], media[] alongside name.
+-- Existing stored JSON remains valid; missing keys deserialize with defaults on read.
+-- Historical migration note: see also `migrations/migrate_resume_documents_to_s3_keys.sql` for JSONB→S3 key moves.

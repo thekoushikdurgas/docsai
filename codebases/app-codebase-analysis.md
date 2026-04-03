@@ -31,7 +31,7 @@
 - [x] ✅ Email workflows are implemented for finder/verifier (single + bulk) and export/import job creation.
 - [x] ✅ Contact/company modules exist with search/filter/import and saved-search interactions.
 - [x] ✅ S3 upload/download frontends are wired through GraphQL (`s3Service`) rather than direct browser AWS SDK usage.
-- [x] ✅ Jobs/files surfaces exist with status, retries, previews, and csv upload orchestration.
+- [x] ✅ Jobs/files surfaces exist with status, retries, previews, and csv upload orchestration; **job taxonomy** (`jobFamily`, `jobSubtype`, `sourceService`) and shared UI (`UnifiedJobProgress`, `RecentJobsStrip`, `JobFamilyTabs`) align with email.server + sync.server orchestration in the API.
 - [x] ✅ Admin area has SuperAdmin gating and user list/refresh/delete flow.
 
 ## Active risks and gap map

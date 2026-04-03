@@ -1,15 +1,15 @@
 ---
 title: "Contact360 frontend page registry"
 source: docs/frontend/pages (markdown inventory)
-version: "2.4"
-last_updated: "2026-03-29"
+version: "2.6"
+last_updated: "2026-04-03"
 ---
 
 # Page registry
 
-- **Version:** 2.4
-- **Last updated:** 2026-03-29
-- **Total pages:** 56 (`*_page.md` + [admin_surface.md](admin_surface.md))
+- **Version:** 2.6
+- **Last updated:** 2026-04-03
+- **Total pages:** 62 (`*_page.md` + [admin_surface.md](admin_surface.md) + extension popup pages)
 - **Symbol glossary:** [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md)
 
 ## Description
@@ -22,6 +22,7 @@ Canonical page registry for the Contact360 ecosystem. All routes are host-specif
 | Marketing / Docs | `root` | `contact360.io/root` | Public-facing acquisition and DocsAI content. |
 | Mailhub Client | `email` | `contact360.io/email` | Multimodal IMAP interface for lead sentiment. |
 | Operational Admin | `admin` | `contact360.io/admin` | Django-based super-admin and backend governance. |
+| Chrome Extension | `extension` | `contact360.extension` | Popup + content script; SN harvest, capture, telemetry. |
 
 Spec files in this folder describe **app**, **root**, and **email** as `*_page.md`. **Admin** routes are summarized below and in ops docs; add dedicated `admin_*_page.md` files later if you want parity.
 
@@ -232,12 +233,18 @@ Add per-route `admin_*_page.md` files when you need the same depth as app pages.
 | ui_page | root | /ui | marketing | marketing | 0.x, 9.x | published | [ui_page.md](ui_page.md) |
 | usage_page | app | /usage | dashboard | dashboard | 1.x | published | [usage_page.md](usage_page.md) |
 | verifier_page | app | /email | dashboard | dashboard | 2.x | archived | [verifier_page.md](verifier_page.md) |
+| extension_popup_status | extension | popup.html#status | extension | extension | 0.x, 4.x, 6.x | published | — |
+| extension_popup_settings | extension | popup.html#settings | extension | extension | 0.x, 4.x, 6.x | published | — |
 
 ## Index: by page type
 
 ### dashboard
 
 `activities_page`, `admin_page`, `ai_chat_page`, `analytics_page`, `billing_page`, `campaign_builder_page`, `campaign_templates_page`, `campaigns_page`, `companies_page`, `contacts_page`, `dashboard_page`, `dashboard_pageid_page`, `deployment_page`, `email_page`, `export_page`, `files_page`, `finder_page`, `jobs_page`, `linkedin_page`, `live_voice_page`, `login_page`, `mailhub_*`, `profile_page`, `register_page`, `sequences_page`, `settings_page`, `usage_page`, `verifier_page`
+
+### extension
+
+`extension_popup_status`, `extension_popup_settings`
 
 ### docs
 
@@ -276,6 +283,10 @@ Add per-route `admin_*_page.md` files when you need the same depth as app pages.
 ### `root`
 
 `about_page`, `ai_email_writer_page`, `api_docs_page`, `careers_page`, `cfo_email_list_page`, `chrome_extension_page`, `docs_page`, `docs_pageid_page`, `email_finder_page`, `email_verifier_page`, `integrations_page`, `landing_page`, `privacy_page`, `prospect_finder_page`, `refund_page`, `terms_page`, `ui_page`
+
+### `extension`
+
+`extension_popup_status`, `extension_popup_settings`
 
 ---
 

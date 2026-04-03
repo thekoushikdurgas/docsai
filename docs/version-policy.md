@@ -119,15 +119,15 @@ Reference strategic-era breakdown: `docs/roadmap.md` (stages `7.x`–`10.x`) and
 | --- | --- | --- | --- |
 | `0.x` | Foundation | All (setup) | Repo + CI baseline |
 | `1.x` | User, billing, credit | `appointment360`, `logs.api` | User/credit/billing GraphQL contracts |
-| `2.x` | Email system | `emailapis`, `emailapigo`, `mailvetter`, `appointment360`, `tkdjob` | Finder/verifier API contract |
-| `3.x` | Contact/company data | `connectra`, `appointment360`, `tkdjob` | VQL filter and search contracts |
-| `4.x` | Extension and Sales Navigator | `salesnavigator`, `appointment360`, `extension`, `tkdjob` | Extension auth and sync contracts |
-| `5.x` | AI workflows | `contact.ai`, `appointment360`, `tkdjob` | AI chat/utility API and cost contracts |
-| `6.x` | Reliability and Scaling | All core services, `tkdjob` | SLO, idempotency, and observability contracts |
-| `7.x` | Deployment | `appointment360`, `docsai`, all services, `tkdjob` | RBAC, audit, and governance contracts |
-| `8.x` | Public and private APIs | `appointment360`, `tkdjob`, `logs.api` | External API/webhook/analytics contracts |
+| `2.x` | Email system | `emailapis`, `emailapigo`, `mailvetter`, `appointment360`, `email.server`, `sync.server` | Finder/verifier API contract |
+| `3.x` | Contact/company data | `connectra`, `appointment360`, `sync.server` | VQL filter and search contracts |
+| `4.x` | Extension and Sales Navigator | `salesnavigator`, `appointment360`, `extension`, `sync.server` | Extension auth and sync contracts |
+| `5.x` | AI workflows | `contact.ai`, `appointment360`, `sync.server` | AI chat/utility API and cost contracts |
+| `6.x` | Reliability and Scaling | All core services, `email.server`, `sync.server` | SLO, idempotency, and observability contracts |
+| `7.x` | Deployment | `appointment360`, `docsai`, all services | RBAC, audit, and governance contracts |
+| `8.x` | Public and private APIs | `appointment360`, `logs.api` | External API/webhook/analytics contracts |
 | `9.x` | Ecosystem + Productization | All services + integrations | Tenant, entitlement, and connector contracts |
-| `10.x` | Email campaign | `appointment360`, `tkdjob`, `emailapis`, `logs.api` | Campaign execution and compliance contracts |
+| `10.x` | Email campaign | `appointment360`, `emailapis`, `logs.api` | Campaign execution and compliance contracts |
 
 ---
 
@@ -199,7 +199,7 @@ These sections are mandatory for new and existing minors and should contain conc
 | `9.x` | Tenant/platform integration governance trail |
 | `10.x` | Campaign compliance-grade immutable audit events |
 
-## Jobs maturity matrix (`contact360.io/jobs`)
+## Jobs maturity matrix (gateway `scheduler_jobs` + satellites)
 
 | Era | Jobs maturity theme | Key dependency |
 | --- | --- | --- |
@@ -237,13 +237,13 @@ Service: FastAPI Lambda — HF Inference + Gemini fallback — `ai_chats` Postgr
 
 | Era | Services active |
 | --- | --- |
-| `0.x` | appointment360, connectra, emailapis, logs.api, s3storage, tkdjob (skeleton), contact.ai (skeleton) |
+| `0.x` | appointment360, connectra, emailapis, logs.api, s3storage, email.server/sync job path (skeleton), contact.ai (skeleton) |
 | `1.x` | + billing module, contact.ai (FK validation) |
-| `2.x` | + emailapigo, mailvetter, tkdjob (email processors), contact.ai (analyzeEmailRisk) |
-| `3.x` | + connectra (VQL), tkdjob (import/export), contact.ai (parseFilters + companySummary) |
+| `2.x` | + emailapigo, mailvetter, email.server (email jobs), contact.ai (analyzeEmailRisk) |
+| `3.x` | + connectra (VQL), sync.server (import/export), contact.ai (parseFilters + companySummary) |
 | `4.x` | + salesnavigator (full extension UX, HTML extraction, Connectra ingest), extension, contact.ai (SN JSONB compat) |
-| `5.x` | + contact.ai (full), resumeai, tkdjob (AI batch) |
-| `6.x` | All core services + SLO, contact.ai (reliability), tkdjob (idempotency) |
+| `5.x` | + contact.ai (full), resumeai, sync.server (batch jobs) |
+| `6.x` | All core services + SLO, contact.ai (reliability), job idempotency (gateway + workers) |
 | `7.x` | All + RBAC/audit across all services including contact.ai |
 | `8.x` | All + public API surface including contact.ai scoped keys |
 | `9.x` | All + ecosystem connectors including contact.ai webhook delivery |

@@ -439,6 +439,115 @@ Related template + JS pairings:
 - D3 graph: `contact360.io/admin/static/js/components/relationship-graph-viewer.js`
 - Cytoscape graph: `contact360.io/admin/static/js/components/graph.js`
 
+## Cross-surface token contract (Dashboard UI Kit alignment)
+
+This section is the **single reference table** mapping the Dashboard UI Kit's design tokens to every codebase's native token prefix. All UI work across eras should use these values, not ad-hoc hex literals.
+
+### Kit source tokens (`docs/frontend/ideas/Dashboard ui kit/scss/abstracts/`)
+
+| Kit SCSS variable | Kit value | Role |
+| --- | --- | --- |
+| `$font-family-base` | `'Roboto', sans-serif` | Base font |
+| `$body-bg` | `#f9f9f9` | Page background (light) |
+| `$body-color` | `#7e7e7e` | Default body text |
+| `$border-radius` | `0.75rem` (12px) | Default card/button radius |
+| `$blue` (primary) | `#5e72e4` | Primary brand blue |
+| `$green` (success) | `#297F00` | Success semantic color |
+| `$red` (danger) | `#EE3232` | Danger/error semantic color |
+| `$orange` (warning) | `#ff9900` | Warning semantic color |
+| `$shadow` | `0px 0px 40px 0px rgba(82,63,105,0.1)` | Card shadow |
+| `$border` | `#f0f1f5` | Border color |
+| `$d-bg` | `#181f39` | Dark mode background |
+| `$dark-card` | `#1e2746` | Dark mode card surface |
+
+### Per-codebase token mapping
+
+| Design token role | Kit reference | `app` — `--c360-*` | `root` — `--color-*` | `admin` — `--color-*` | `extension` — `--c360-color-*` |
+| --- | --- | --- | --- | --- | --- |
+| **Primary** | `#5e72e4` | `--c360-primary` = `--c360-indigo-600` (`#4f46e5`) | `--color-primary` = `#7c3aed` (marketing purple) | `--color-primary-600` = `#2563eb` | `--c360-color-primary` = `#2563eb` |
+| **Primary hover** | darker blue | `--c360-primary-hover` = `--c360-indigo-700` | `--color-primary-hover` = `#6d28d9` | `--color-primary-700` = `#1d4ed8` | `--c360-color-primary-hover` = `#1d4ed8` |
+| **Success** | `#297F00` | `--c360-success` = `#16a34a` | `--color-emerald-500` = `#10b981` | `--color-success-600` = `#16a34a` | `--c360-color-success-fg` = `#86efac` |
+| **Warning** | `#ff9900` | `--c360-warning` = `#ca8a04` | `--color-amber-500` = `#f59e0b` | `--color-warning-600` = `#d97706` | `--c360-color-warn-fg` = `#fcd34d` |
+| **Danger** | `#EE3232` | `--c360-danger` = `#dc2626` | `--color-rose-500` = `#f43f5e` | `--color-error-600` = `#dc2626` | `--c360-color-danger-fg` = `#fca5a5` |
+| **Page background** | `#f9f9f9` | `--c360-bg` = `--c360-slate-50` (`#f8fafc`) | `--color-surface` = `#0f172a` (dark/glass) | `--color-gray-50` = `#f9fafb` | `--c360-color-bg` = `#0f172a` |
+| **Surface / card** | `#ffffff` | `--c360-bg-elevated` = `#ffffff` | glass `rgba(255,255,255,0.1)` | `--color-gray-100` = `#f3f4f6` | `--c360-color-surface` = `#1e293b` |
+| **Border** | `#f0f1f5` | `--c360-border` = `--c360-slate-200` (`#e2e8f0`) | `--color-glass-border` = `rgba(255,255,255,0.2)` | `--color-gray-200` = `#e5e7eb` | `--c360-color-border` = `#334155` |
+| **Body text** | `#7e7e7e` | `--c360-text` = `--c360-slate-900` | `--color-slate-100` = `#f1f5f9` | `--color-gray-900` = `#111827` | `--c360-color-text` = `#f1f5f9` |
+| **Muted text** | — | `--c360-text-muted` = `--c360-slate-500` | `--color-slate-400` = `#94a3b8` | `--color-gray-500` = `#6b7280` | `--c360-color-text-secondary` = `#94a3b8` |
+| **Card radius** | `0.75rem` (12px) | `--c360-radius-lg` = `1rem` → **align to `0.75rem`** | `--radius-lg` varies | `--radius-lg` = `12px` | `--c360-radius-lg` = `8px` → target `12px` |
+| **Card shadow** | `0px 0px 40px 0px rgba(82,63,105,0.1)` | Level 1: `0 1px 3px rgba(0,0,0,0.08)` | glass shadow | `box-shadow` in `cards.css` | `box-shadow: 0 2px 8px rgba(0,0,0,0.4)` |
+| **Font stack** | Roboto / system | `system-ui, -apple-system, sans-serif` | `system-ui, sans-serif` | `system-ui, sans-serif` | `system-ui, Roboto, sans-serif` |
+
+### Alignment decisions (locked)
+
+| Codebase | Decision |
+| --- | --- |
+| `contact360.io/app` | Keep indigo-600 primary. Adjust `--c360-radius-lg` from `1rem` → `0.75rem` to match kit card radius. Adopt kit body-bg feel via `--c360-slate-50`. |
+| `contact360.io/root` | Keeps purple `#7c3aed` primary for brand identity. For `/docs` and `/api-docs` subpages only: inherit kit neutral palette (slate-50 bg, gray text, `0.75rem` radius). |
+| `contact360.io/admin` | `--color-primary-600: #2563eb` already closest to kit. Verify body bg `#f9f9f9` equivalent is applied via Tailwind `bg-gray-50` / `design-tokens.css`. |
+| `contact360.extension` | Blue-600 primary matches admin. `popup.css` already documents 8pt grid kit alignment. Increase `--c360-radius-lg` from `8px` → `12px` for toasts/popup card. |
+
+### Component parity matrix
+
+| UI control | Kit demo page | `app` primitive | `root` primitive | `admin` CSS + template | `extension` CSS |
+| --- | --- | --- | --- | --- | --- |
+| Button | `ui-button.html` | `Button.tsx` → `c360-btn--*` | `Button3D.tsx` | `static/css/components/button.css` | `.c360-popup__button` |
+| Input | `form-element.html` | `Input.tsx` → `c360-input` | `Input3D.tsx` | `static/css/components/form-inputs.css` | `.c360-popup__input` |
+| Checkbox | `form-element.html` | `Checkbox.tsx` → `c360-checkbox` | `Checkbox3D.tsx` | `form-inputs.css` `.form-checkbox` | `.c360-checkbox` |
+| Radio | `form-element.html` | `Radio.tsx` → `c360-radio` | `Radio3D.tsx` | `form-inputs.css` `.form-radio-group` | — (planned `c360-radio`) |
+| Progress | `ui-progressbar.html` | `Progress.tsx` → `c360-progress--*` | `Progress3D.tsx` | `static/css/components/progress.css` | `.c360-progress` |
+| Tabs | `ui-tab.html` | `Tabs.tsx` / `tabs/Tabs.tsx` | `TabGroup.tsx` / `Tabs3D.tsx` | `static/css/components/tabs.css` + `dashboard-tabs.js` | planned two-tab layout |
+| Badge | `ui-badge.html` | `Badge.tsx` → `c360-badge--*` | `Badge3D.tsx` | `static/css/components/badges.css` | `.c360-status--*` |
+| Alert / Toast | `ui-alert.html`, `uc-toastr.html` | `Alert.tsx`, `sonner` | `Toast3D.tsx` | flash messages in `base.html` + `app-flash--*` | `.c360-toast` |
+| Modal | `ui-modal.html` | `Modal.tsx`, `ConfirmModal.tsx` | `Modal3D.tsx` | `static/css/components/modal.css` + `modal.js` | — (planned confirm) |
+| Pagination | `ui-pagination.html` | `Pagination.tsx`, `TablePagination.tsx` | — | `static/css/components/pagination.css` | — |
+| Wizard / steps | `form-wizard.html` | multi-step React state | — | `templates/partials/stepper.html` | — |
+| Chart (line) | `chart-chartjs.html` | `DashboardLineChart.tsx` (Recharts) | `RechartsChart.tsx` | D3 `graph.js` | — |
+
+### Spacing system (8pt grid — shared across all surfaces)
+
+| Step | Value | Kit equiv (`$spacer * N`) | `--c360-spacing-*` | `--space-*` (docs convention) |
+| --- | --- | --- | --- | --- |
+| 1 | 4px | — | `--c360-spacing-1` | `--space-1` |
+| 2 | 8px | `$spacer * 0.5` | `--c360-spacing-2` | `--space-2` |
+| 3 | 12px | — | `--c360-spacing-3` | `--space-3` |
+| 4 | 16px | `$spacer` (1rem) | `--c360-spacing-4` | `--space-4` |
+| 6 | 24px | `$spacer * 1.5` | `--c360-spacing-6` | `--space-6` |
+| 8 | 32px | `$spacer * 2` | `--c360-spacing-8` | `--space-8` |
+| 12 | 48px | `$spacer * 3` | `--c360-spacing-12` | `--space-12` |
+
+### Typography scale (all surfaces)
+
+| Level | Kit (`$h*-font-size`) | Product value | Usage |
+| --- | --- | --- | --- |
+| h1 | `2.25rem` (36px) | 36px bold | Hero / page title (marketing) |
+| h2 | `1.875rem` (30px) | 24px semibold | Page title (dashboard) |
+| h3 | `1.5rem` (24px) | 20px semibold | Section heading |
+| h4 | `1.125rem` (18px) | 18px semibold | Card title, modal title |
+| h5 | `1rem` (16px) | 16px medium | Sub-heading, tab label |
+| body | `0.875rem` (14px) | 14px regular | Data rows, descriptions |
+| small | `0.75rem` (12px) | 12px regular | Captions, metadata, timestamps |
+| mono | — | 13px monospace | Email addresses, API keys |
+
+### Border radius scale (kit-aligned)
+
+| Token | Kit equiv | `app` `--c360-radius-*` | `admin` `--radius-*` | `extension` `--c360-radius-*` |
+| --- | --- | --- | --- | --- |
+| xs / sm | — | `--c360-radius-sm: 6px` | — | `--c360-radius-sm: 4px` |
+| md | — | `--c360-radius-md: 10px` | `--radius-md` | `--c360-radius: 6px` |
+| lg (card) | `$border-radius: 0.75rem` | `--c360-radius-lg: 0.75rem` **← update** | `--radius-lg: 12px` | `--c360-radius-lg: 12px` **← update** |
+| full / pill | — | `--c360-radius-full: 9999px` | — | `--c360-radius-pill: 999px` |
+
+### Shadow scale (kit-aligned)
+
+| Level | Kit reference | `app` | `admin` | `extension` |
+| --- | --- | --- | --- | --- |
+| Card | `0px 0px 40px 0px rgba(82,63,105,0.1)` | `0 1px 3px rgba(0,0,0,0.08)` + adjust | `card.css` shadow | `0 2px 8px rgba(0,0,0,0.4)` |
+| Dropdown | `0 4px 12px rgba(0,0,0,0.12)` | Level 2 | — | — |
+| Modal | `0 8px 24px rgba(0,0,0,0.16)` | Level 3 | `modal.css` | — |
+
+---
+
 ## Cross-surface control consistency checklist
 
 Use this checklist when reviewing root/app/admin UX parity:

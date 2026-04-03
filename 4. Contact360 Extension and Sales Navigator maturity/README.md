@@ -7,6 +7,10 @@ Execution guide for Contact360 `4.x.x` era delivery.
 - Define and deliver a stable era contract across Contract/Service/Surface/Data/Ops tracks.
 - Ensure every patch packet carries closeout evidence before release handoff.
 
+## Master plan artifact (`4.0`–`4.6`)
+
+- [`MINORS_4.0-4.6_MASTER_PLAN_five_tracks.md`](MINORS_4.0-4.6_MASTER_PLAN_five_tracks.md) — scoped keys, rate limits, idempotency called out.
+
 ## Minor index
 
 | Minor | Title | Status | Doc |

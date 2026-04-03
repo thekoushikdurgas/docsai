@@ -67,11 +67,17 @@ Framework and stack reference material (rename-safe paths under `docs/tech/`):
 - [`docs/versions.md`](../versions.md)
 - [`docs/architecture.md`](../architecture.md)
 - [`contact360.io/root/docs/imported/analysis/README.md`](../../contact360.io/root/docs/imported/analysis/README.md)
+
+## Master plan artifacts (`3.0`–`3.6`)
+
+- [`MINORS_3.0-3.6_MASTER_PLAN_five_tracks.md`](MINORS_3.0-3.6_MASTER_PLAN_five_tracks.md) — five-track matrix across Twin Ledger → SN ingestion.
+- [`connectra-contact-company-task-pack.index.md`](connectra-contact-company-task-pack.index.md) — pointers to the Connectra contact/company task pack.
+
 ## Tasks
 
 ### Contract
 
-- ✅ Completed: ✅ Completed: 📌 Planned: **[connectra]** — Diff and document schema for operations like ConnectraClient, LAMBDA_AI_API_URL, LAMBDA_CONNECTRA_API_URL; align with roadmap | area: `backend-api` | files: `docs/backend/apis/*.md`, `contact360.io/api/app/graphql/schema.py` | reason: Keep GraphQL/REST contracts aligned for era 3.0 patch 0.0.0
+- ✅ Completed: ✅ Completed: 📌 Planned: **[connectra]** — Diff and document schema for operations like ConnectraClient, LAMBDA_AI_API_URL, LAMBDA_CONNECTRA_API_URL; align with roadmap | area: `backend-api` | files: `docs/backend/graphql.modules/*.md`, `contact360.io/api/app/graphql/schema.py` | reason: Keep GraphQL/REST contracts aligned for era 3.0 patch 0.0.0
 
 ### Service
 

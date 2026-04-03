@@ -15,7 +15,7 @@ This hub ties together the **GraphQL gateway** (`appointment360`), **downstream 
 | **S3 storage** | Lambda / storage layer | AWS S3 APIs | Presigned upload, object reads | [s3storage_endpoint_era_matrix.md](s3storage_endpoint_era_matrix.md) | [../database/s3storage_data_lineage.md](../database/s3storage_data_lineage.md) |
 | **Logs API** | Logging pipeline | HTTP ingest | Log batch endpoints | [logsapi_endpoint_era_matrix.md](logsapi_endpoint_era_matrix.md) | [../database/logsapi_data_lineage.md](../database/logsapi_data_lineage.md) |
 | **Email APIs** (finder/verify) | Email workers | Lambda / Go paths | Job-driven + GraphQL delegation | [emailapis_endpoint_era_matrix.md](emailapis_endpoint_era_matrix.md) | [../database/emailapis_data_lineage.md](../database/emailapis_data_lineage.md) |
-| **Jobs** (tkdjob / exports) | Async jobs | Workers + DB | Job CRUD, retries | [jobs_endpoint_era_matrix.md](jobs_endpoint_era_matrix.md) | [../database/jobs_data_lineage.md](../database/jobs_data_lineage.md) |
+| **Jobs** (email + sync satellites) | `EC2/email.server`, `EC2/sync.server` | Workers + `scheduler_jobs` | GraphQL jobs module, retries | [jobs_endpoint_era_matrix.md](jobs_endpoint_era_matrix.md) | [../database/jobs_data_lineage.md](../database/jobs_data_lineage.md) |
 | **Email campaign** | Campaign engine | Service + DB | Sequences, templates | [emailcampaign_endpoint_era_matrix.md](emailcampaign_endpoint_era_matrix.md) | [../database/emailcampaign_data_lineage.md](../database/emailcampaign_data_lineage.md) |
 | **Mailvetter** | Verification | SMTP/DNS pipeline | Verify endpoints | [mailvetter_endpoint_era_matrix.md](mailvetter_endpoint_era_matrix.md) | [../database/mailvetter_data_lineage.md](../database/mailvetter_data_lineage.md) |
 | **Contact AI** | AI orchestration | HF / Gemini utilities | AI chat & tools | [contact_ai_endpoint_era_matrix.md](contact_ai_endpoint_era_matrix.md) | [../database/contact_ai_data_lineage.md](../database/contact_ai_data_lineage.md) |
@@ -23,7 +23,7 @@ This hub ties together the **GraphQL gateway** (`appointment360`), **downstream 
 | **Email app (Mailhub)** | `contact360.io/email` | Next + REST / IMAP | Folder & message APIs | [emailapp_endpoint_era_matrix.md](emailapp_endpoint_era_matrix.md) | [../database/emailapp_data_lineage.md](../database/emailapp_data_lineage.md) |
 | **Admin (Django)** | `contact360.io/admin` | Django + DRF | HTML + JSON admin | [admin_endpoint_era_matrix.md](admin_endpoint_era_matrix.md) | [../database/admin_data_lineage.md](../database/admin_data_lineage.md) |
 
-**EC2 Go satellites (Gin):** In-repo counterparts under `EC2/*.server/` (jobs, s3storage, ai, logsapi, extension) are reached **via the Python gateway** in the target architecture, not by browsers directly. HTTP route inventory and parity notes: **[EC2_GO_SATELLITE_ROUTES.md](EC2_GO_SATELLITE_ROUTES.md)**.
+**EC2 Go satellites (Gin):** In-repo counterparts under `EC2/*.server/` (e.g. **email**, **sync**, s3storage, ai, logsapi, extension) are reached **via the Python gateway** in the target architecture, not by browsers directly. HTTP route inventory and parity notes: **[EC2_GO_SATELLITE_ROUTES.md](EC2_GO_SATELLITE_ROUTES.md)**.
 
 ## Request flow (dashboard & extension)
 

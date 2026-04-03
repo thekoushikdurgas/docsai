@@ -15,6 +15,24 @@ Eras `6.x`–`10.x` patches embed **Micro-gate** + **Service task slices** (thro
 
 ## Unreleased (next cut)
 
+- **Target:** `1.2.0`
+- **Status:** in_progress
+- **Target date:** 2026-Q2
+- **Summary:** Frontend surface hardening across all five codebases — design token pass, new UI primitives, service layer, telemetry pipeline.
+- **Planned stage mapping:** Surface/UX across `0.x`–`10.x` eras
+- **Owner:** Product + Platform Engineering
+- **Docs / infra note (2026-04-03):**
+  - `root` — brand tokens, 3D primitives (`Progress3D`, `Radio3D`), `/ui` gallery, `logService` → logs.api.
+  - `app` — `Checkbox`, `Radio`, `Progress`, `Card` primitives; `/settings` tabbed hub; `useMutationWithRetry`; `/campaigns/*` stubs; `logger` → logs.api.
+  - `admin` — button variants, form-inputs (checkbox/radio/switch), progress.css; dense list + stepper partials; governance consoles (email_ops, api_boundary, ecosystem_sla, campaign_ops).
+  - `email` — C360 brand tokens, `RadioGroup`, `Progress` (indeterminate), Checkbox (indeterminate), `mailService`/`accountService` (zod DTOs), `logger` → logs.api; all `console.error` replaced.
+  - `extension` — 20-token CSS var system, button hierarchy, radio/checkbox primitives, progress bar; auth state machine, batch feedback UI; telemetry opt-in flag; idempotency key on save-profiles; manifest host_permissions update.
+  - Page registry index updated to v2.5 (60 pages).
+
+---
+
+## Previous (1.1.0)
+
 - **Target:** `1.1.0`
 - **Status:** released
 - **Released on:** 2026-03-27
@@ -1075,7 +1093,7 @@ Deep task decomposition reference: `docs/codebases/connectra-codebase-analysis.m
 ## Appointment360 (`contact360.io/api`) execution spine
 
 **Service:** `contact360.io/api` — Appointment360 GraphQL gateway (FastAPI + Strawberry GraphQL + asyncpg + PostgreSQL)
-**Role:** Sole API entry point for all dashboard and extension requests. 28 GraphQL modules, single `/graphql` endpoint. Orchestrates Connectra, tkdjob, Lambda Email, Lambda AI, Resume AI, S3 Storage, Logs API, DocsAI.
+**Role:** Sole API entry point for all dashboard and extension requests. 28 GraphQL modules, single `/graphql` endpoint. Orchestrates Connectra, email/sync job satellites, Lambda Email, Lambda AI, Resume AI, S3 Storage, Logs API, DocsAI.
 
 **Era task pack index:**
 

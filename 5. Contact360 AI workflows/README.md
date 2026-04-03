@@ -10,7 +10,11 @@ Execution guide for Contact360 `5.x.x` era delivery.
 ## As-is snapshot (surfaces)
 
 - **`contact360.io/admin` (DocsAI):** AI assistant and related ops flows are **wired and usable** for admins.
-- **`contact360.io/app` dashboard AI chat:** Treat as **not product-complete** until it calls Appointment360 **`aiChat` / `sendAiMessage`** (or equivalent) instead of any **mock** client — confirm against [`docs/codebases/app-codebase-analysis.md`](../codebases/app-codebase-analysis.md) before marking Era **5.x** chat UX done.
+- **`contact360.io/app` dashboard AI chat:** Production code paths use GraphQL via **`aiChatService.ts`** (`aiChats`, `createAIChat`, **`sendAiMessage`**) — see `app/(dashboard)/ai-chat/page.tsx`. Remaining **`5.x`** work is **guardrails, spend, batch, and ops maturity** (not replacing mocks). Cross-check [`app-codebase-analysis.md`](../codebases/app-codebase-analysis.md) when closing minors.
+
+## Master plan artifact (`5.0`–`5.6`)
+
+- [`MINORS_5.0-5.6_MASTER_PLAN_five_tracks.md`](MINORS_5.0-5.6_MASTER_PLAN_five_tracks.md)
 
 ## Minor index
 

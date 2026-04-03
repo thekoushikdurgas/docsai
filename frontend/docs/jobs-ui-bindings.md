@@ -1,7 +1,7 @@
 # jobs UI bindings
 
 ## Purpose
-Map `contact360.io/jobs` to dashboard surfaces including pages, tabs, components, inputs/controls, hooks, contexts, and end-to-end execution flow.
+Map GraphQL **`jobs`** (gateway + `scheduler_jobs`) to dashboard surfaces including pages, tabs, components, inputs/controls, hooks, contexts, and end-to-end execution flow. Work runs on **email.server** and **sync.server**, not a separate `contact360.io/jobs` service.
 
 ## Binding matrix
 | Era | Pages/tabs | Components | Inputs/controls | Hooks/services/contexts |
@@ -33,4 +33,4 @@ Map `contact360.io/jobs` to dashboard surfaces including pages, tabs, components
 
 ## End-to-end binding graph
 
-`UI component -> Hook -> GraphQL jobs module -> Tkdjob client -> jobs REST endpoints -> Scheduler -> Kafka -> Consumer -> WorkerPool -> Processor -> Postgres/S3/OpenSearch`
+`UI component -> Hook -> GraphQL jobs module -> EmailServerJobsClient / ConnectraClient -> email.server or sync.server HTTP APIs -> worker queues -> Postgres/S3/OpenSearch`

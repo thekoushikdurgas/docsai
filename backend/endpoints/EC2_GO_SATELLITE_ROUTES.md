@@ -4,33 +4,14 @@
 
 | Module path | Code path | Base URL (typical) | Notes |
 | --- | --- | --- | --- |
-| `contact360.io/jobs` | `EC2/job.server/` | `:8000` | Legacy group `/jobs/*`; v1 group `/api/v1/jobs/*` |
 | `contact360.io/s3storage` | `EC2/s3storage.server/` | `S3STORAGE_PORT` (default `8087`) | `/api/v1/*`; pgqueue (Postgres) `s3storage_metadata_jobs`; Asynq/Redis not used in this service |
 | `contact360.io/ai` | `EC2/ai.server/` | `AI_PORT` (default `8090`) | Root-mounted `/health`, `/ai/*`, `/ai-chats/*` |
 | `contact360.io/logsapi` | `EC2/log.server/` | `LOGSAPI_PORT` (default `8091`) | `/logs*`; Asynq `logs:flush`, `logs:sweep` |
 | `contact360.io/extension` | `EC2/extension.server/` | `EXTENSION_PORT` (default `8092`) | `/v1/save-profiles`; scrape **not** on server |
 
-**Deep links:** [jobs](#ec2-jobs) · [s3storage](#ec2-s3storage) · [ai](#ec2-ai) · [logsapi](#ec2-logsapi) · [extension](#ec2-extension)
+**Deep links:** [s3storage](#ec2-s3storage) · [ai](#ec2-ai) · [logsapi](#ec2-logsapi) · [extension](#ec2-extension)
 
-<a id="ec2-jobs"></a>
-
-## `contact360.io/jobs` (`EC2/job.server`)
-
-| Method | Path | Description |
-| --- | --- | --- |
-| GET | `/health` | Liveness-style OK |
-| GET | `/health/live` | Alive |
-| GET | `/health/ready` | PostgreSQL ping |
-| GET | `/metrics` | Prometheus (**not** under `/api/v1` in current Go image) |
-| GET | `/api/v1/jobs/:uuid` | Single job |
-| POST | `/api/v1/jobs/email-export` | DAG insert |
-| POST | `/api/v1/jobs/contact360-import` | DAG insert |
-| POST | `/api/v1/jobs/contact360-export` | DAG insert |
-| POST | `/jobs/bulk-insert/complete-graph` | Bulk DAG |
-| PUT | `/jobs/:uuid/retry` | Retry |
-| GET | `/jobs/` | List / filter |
-
-**Parity gaps vs `jobs_endpoint_era_matrix` (Python):** timeline, DAG detail, `email-verify`, `email-pattern-import`, `validate/vql`, `/api/v1/metrics` paths — track in era tasks before marking matrix green for Go-only cutover.
+> **2026-04:** `EC2/job.server` was removed from the monorepo. Async jobs are orchestrated by **`contact360.io/api`** (GraphQL) against **`EC2/email.server`** (email finder/verifier/S3 jobs) and **`EC2/sync.server`** (`/common/jobs/*` import/export). See `docs/backend/apis/16_JOBS_MODULE.md`.
 
 <a id="ec2-s3storage"></a>
 
@@ -154,7 +135,6 @@ Module: `github.com/ayan/emailapigo` | **Canonical port: `8080`** (default `PORT
   - OpenSearch refused on `:9200`
   - S3 key invalid
   - `NewTicker` panic on non-positive interval
-- `EC2/job.server` requires `.env` in service root; boot fails without it.
 - `EC2/s3storage.server` readiness requires `S3STORAGE_BUCKET`; `/health/ready` returns `503` when missing.
 - `EC2/ai.server` readiness requires `HF_API_KEY`; `/health/ready` returns `503` when missing.
 - `EC2/extension.server` behavior confirmed:
@@ -166,7 +146,6 @@ Module: `github.com/ayan/emailapigo` | **Canonical port: `8080`** (default `PORT
 
 - Docker images built successfully for:
   - `EC2/sync.server`
-  - `EC2/job.server`
   - `EC2/s3storage.server`
   - `EC2/ai.server`
   - `EC2/log.server`
@@ -174,7 +153,6 @@ Module: `github.com/ayan/emailapigo` | **Canonical port: `8080`** (default `PORT
   - `EC2/email campaign`
 - Docker runtime probes:
   - `sync` container exits on startup (`HTTP 000`, `2.246460s`) with postgres/socket + elastic + S3 config failures and `NewTicker` panic.
-  - `job.server` container exits on startup (`HTTP 000`, `2.240538s`) because `.env` is not found in `/app`.
   - `s3storage` responds `GET /api/v1/health => 200` (`0.033908s`), but `GET /api/v1/health/ready => 503` (`0.012579s`) when `S3STORAGE_BUCKET` is missing.
   - `ai` responds `GET /health => 200` (`0.019502s`), but `GET /health/ready => 503` (`0.014414s`) when `HF_API_KEY` is missing.
   - `logsapi` responds `GET /health => 200` (`0.020882s`) and `GET /logs?limit=5 => 200` (`0.024331s`, empty data).

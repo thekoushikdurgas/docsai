@@ -2,14 +2,14 @@
   "info": {
     "_postman_id": "jobs-module-graphql",
     "name": "GraphQL – Jobs Module",
-    "description": "Tkdjob scheduler via root `jobs`. Queries: `job(jobId)`, `jobs(limit, offset, status, jobType)` → `JobConnection` with `pageInfo { total limit offset hasNext hasPrevious }`. On `SchedulerJob` request `statusPayload`, `timelinePayload`, `dagPayload` for live Tkdjob data. Mutations return `SchedulerJob` (`id`, `jobId`, `userId`, `jobType`, `status`, …). `retryJob` returns JSON (Tkdjob response), not a job object. `createContact360Import` and `createEmailPatternImport` require SuperAdmin. `CreateContact360ImportInput` requires `s3Bucket` + `s3Key`. Env: `{{jobUuid}}`, `{{s3Bucket}}`, `{{fileKey}}`. See `contact360.io/api` `app/graphql/modules/jobs/`.",
+    "description": "Scheduler jobs via root `jobs`. Email jobs: `LAMBDA_EMAIL_*` (email.server). Import/export: `CONNECTRA_*` (sync.server). Queries: `job(jobId)`, `jobs(limit, offset, status, jobType, jobFamily)`. On `SchedulerJob` request `statusPayload`, `sourceService`, `jobFamily`, `jobSubtype`. `timelinePayload`/`dagPayload` are null. Mutations: create exports/imports, `pauseJob`/`resumeJob`/`terminateJob` (email only), `retryJob`. Env: `{{jobUuid}}`, `{{s3Bucket}}`, `{{fileKey}}`. See `contact360.io/api` `app/graphql/modules/jobs/`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8000" },
     { "key": "accessToken", "value": "" },
     { "key": "jobUuid", "value": "" },
-    { "key": "s3Bucket", "value": "tkdrawcsvdata" },
+    { "key": "s3Bucket", "value": "contact360uploads" },
     { "key": "fileKey", "value": "" },
     { "key": "companyUuid", "value": "" }
   ],
@@ -27,10 +27,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"query\":\"query GetJob($jobId: ID!) { jobs { job(jobId: $jobId) { id jobId userId jobType status requestPayload responsePayload statusPayload createdAt updatedAt timelinePayload dagPayload } } }\",\"variables\":{\"jobId\":\"{{jobUuid}}\"}}"
+              "raw": "{\"query\":\"query GetJob($jobId: ID!) { jobs { job(jobId: $jobId) { id jobId userId jobType status sourceService jobFamily jobSubtype requestPayload responsePayload statusPayload createdAt updatedAt timelinePayload dagPayload } } }\",\"variables\":{\"jobId\":\"{{jobUuid}}\"}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Single scheduler job by Tkdjob uuid. `statusPayload`/`timelinePayload`/`dagPayload` hit Tkdjob when reachable."
+            "description": "Single scheduler job. statusPayload from email satellite or DB depending on sourceService."
           }
         },
         {
@@ -43,7 +43,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"query\":\"query ListJobs($limit: Int, $offset: Int, $status: String, $jobType: String) { jobs { jobs(limit: $limit, offset: $offset, status: $status, jobType: $jobType) { jobs { id jobId jobType status createdAt } pageInfo { total limit offset hasNext hasPrevious } } } }\",\"variables\":{\"limit\":25,\"offset\":0,\"status\":null,\"jobType\":null}}"
+              "raw": "{\"query\":\"query ListJobs($limit: Int, $offset: Int, $status: String, $jobType: String, $jobFamily: String) { jobs { jobs(limit: $limit, offset: $offset, status: $status, jobType: $jobType, jobFamily: $jobFamily) { jobs { id jobId jobType status sourceService jobFamily jobSubtype createdAt } pageInfo { total limit offset hasNext hasPrevious } } } }\",\"variables\":{\"limit\":25,\"offset\":0,\"status\":null,\"jobType\":null,\"jobFamily\":null}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
           }
@@ -63,7 +63,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"query\":\"mutation CreateEmailFinderExport($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"exports/email-finder/\",\"rowLimit\":100,\"chunkSize\":10,\"retryCount\":3,\"retryInterval\":5}}}"
+              "raw": "{\"query\":\"mutation CreateEmailFinderExport($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { id jobId jobType status sourceService jobFamily jobSubtype createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"exports/email-finder/\",\"rowLimit\":100,\"chunkSize\":10,\"retryCount\":3,\"retryInterval\":5}}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
             "description": "`inputCsvKey` = fileKey from Upload module after completeUpload."
@@ -79,25 +79,9 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"query\":\"mutation CreateEmailVerifyExport($input: CreateEmailVerifyExportInput!) { jobs { createEmailVerifyExport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"exports/email-verify/\",\"rowLimit\":100,\"chunkSize\":10,\"retryCount\":3,\"retryInterval\":5}}}"
+              "raw": "{\"query\":\"mutation CreateEmailVerifyExport($input: CreateEmailVerifyExportInput!) { jobs { createEmailVerifyExport(input: $input) { id jobId jobType status sourceService jobFamily jobSubtype createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"exports/email-verify/\",\"rowLimit\":100,\"chunkSize\":10,\"retryCount\":3,\"retryInterval\":5}}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
-          }
-        },
-        {
-          "name": "createEmailPatternImport",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"query\":\"mutation CreateEmailPatternImport($input: CreateEmailPatternImportInput!) { jobs { createEmailPatternImport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"inputCsvKey\":\"{{fileKey}}\",\"outputPrefix\":\"imports/patterns/\",\"chunkCount\":8,\"companyUuid\":\"{{companyUuid}}\",\"batchSize\":50,\"retryCount\":3,\"retryInterval\":5}}}"
-            },
-            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "SuperAdmin only."
           }
         },
         {
@@ -110,7 +94,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"query\":\"mutation CreateContact360Export($input: CreateContact360ExportInput!) { jobs { createContact360Export(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"outputPrefix\":\"exports/contact360/\",\"service\":\"contact\",\"vql\":{\"where\":{},\"selectColumns\":[\"first_name\",\"last_name\",\"email\"],\"limit\":1000},\"sliceCount\":4,\"pageSize\":1000,\"retryCount\":2,\"retryInterval\":5}}}"
+              "raw": "{\"query\":\"mutation CreateContact360Export($input: CreateContact360ExportInput!) { jobs { createContact360Export(input: $input) { id jobId jobType status sourceService jobFamily jobSubtype createdAt } } }\",\"variables\":{\"input\":{\"outputPrefix\":\"exports/contact360/\",\"service\":\"contact\",\"vql\":{\"where\":{},\"selectColumns\":[\"first_name\",\"last_name\",\"email\"],\"limit\":1000},\"sliceCount\":4,\"pageSize\":1000,\"retryCount\":2,\"retryInterval\":5}}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
           }
@@ -125,14 +109,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"query\":\"mutation CreateContact360Import($input: CreateContact360ImportInput!) { jobs { createContact360Import(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"s3Key\":\"{{fileKey}}\",\"outputPrefix\":\"imports/contact360/\",\"chunkCount\":8,\"retryCount\":3,\"retryInterval\":5}}}"
+              "raw": "{\"query\":\"mutation CreateContact360Import($input: CreateContact360ImportInput!) { jobs { createContact360Import(input: $input) { id jobId jobType status sourceService jobFamily jobSubtype createdAt } } }\",\"variables\":{\"input\":{\"s3Bucket\":\"{{s3Bucket}}\",\"s3Key\":\"{{fileKey}}\",\"importTarget\":\"contact\",\"outputPrefix\":\"imports/contact360/\",\"chunkCount\":8,\"retryCount\":3,\"retryInterval\":5}}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "SuperAdmin only. `s3Bucket` and `s3Key` are required."
+            "description": "Role-gated. `s3Bucket` and `s3Key` required. `importTarget`: contact | company."
           }
         },
         {
-          "name": "createAppointmentImport",
+          "name": "pauseJob",
           "request": {
             "method": "POST",
             "header": [
@@ -141,7 +125,38 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"query\":\"mutation CreateAppointmentImport($input: CreateAppointmentImportInput!) { jobs { createAppointmentImport(input: $input) { id jobId jobType status createdAt } } }\",\"variables\":{\"input\":{\"s3Key\":\"{{fileKey}}\",\"outputPrefix\":\"appointments/imports/\",\"s3Bucket\":\"{{s3Bucket}}\",\"chunkCount\":8,\"retryCount\":3,\"retryInterval\":5}}}"
+              "raw": "{\"query\":\"mutation PauseJob($input: PauseJobInput!) { jobs { pauseJob(input: $input) { id jobId status sourceService } } }\",\"variables\":{\"input\":{\"jobId\":\"{{jobUuid}}\"}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
+            "description": "Email satellite jobs only (sourceService=email_server)."
+          }
+        },
+        {
+          "name": "resumeJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation ResumeJob($input: ResumeJobInput!) { jobs { resumeJob(input: $input) { id jobId status sourceService } } }\",\"variables\":{\"input\":{\"jobId\":\"{{jobUuid}}\"}}}"
+            },
+            "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
+          }
+        },
+        {
+          "name": "terminateJob",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"mutation TerminateJob($input: TerminateJobInput!) { jobs { terminateJob(input: $input) { id jobId status sourceService } } }\",\"variables\":{\"input\":{\"jobId\":\"{{jobUuid}}\"}}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] }
           }
@@ -159,7 +174,7 @@
               "raw": "{\"query\":\"mutation RetryJob($input: RetryJobInput!) { jobs { retryJob(input: $input) } }\",\"variables\":{\"input\":{\"jobId\":\"{{jobUuid}}\",\"retryCount\":3,\"retryInterval\":5,\"runAfter\":null,\"priority\":null}}}"
             },
             "url": { "raw": "{{baseUrl}}/graphql", "host": ["{{baseUrl}}"], "path": ["graphql"] },
-            "description": "Returns scalar JSON (Tkdjob response). Do not select subfields."
+            "description": "Returns scalar JSON. Do not select subfields."
           }
         }
       ]

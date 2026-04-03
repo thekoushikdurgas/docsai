@@ -425,7 +425,7 @@ Required evidence for deployment-related doc updates:
 - Secret handling must be env-only; insecure fallback secrets are release blockers.
 - Privileged routes require explicit permission-map tests (`super_admin`, `admin_or_super_admin`, public exceptions).
 - Destructive admin actions must support idempotency keys and immutable audit events.
-- Outbound integration clients (`appointment360`, `logs.api`, `tkdjob`, `s3storage`) must enforce auth header correctness per service contract.
+- Outbound integration clients (`appointment360`, `logs.api`, `s3storage`, job satellites via gateway) must enforce auth header correctness per service contract.
 
 ## Admin CI baseline checks
 
