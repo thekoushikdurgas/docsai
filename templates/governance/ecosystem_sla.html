@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ecosystem SLA — DocsAI{% endblock %}
+
+{% block content %}
+{# ADM-9.1 — Partner/ecosystem SLA evidence #}
+<div class="page-header mb-6">
+  <h1 class="page-title">Ecosystem SLA</h1>
+  <p class="page-subtitle">Partner integrations and SLA evidence — era 9.x</p>
+</div>
+
+{# SLA overview cards #}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  {% for partner in partners %}
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm font-semibold text-primary">{{ partner.name }}</p>
+      <span class="badge {% if partner.sla_met %}badge-success{% else %}badge-danger{% endif %}">
+        {% if partner.sla_met %}SLA Met{% else %}SLA Breached{% endif %}
+      </span>
+    </div>
+    <div class="flex gap-4 text-xs text-secondary mb-3">
+      <span>Uptime: <strong>{{ partner.uptime|default:'—' }}%</strong></span>
+      <span>P99: <strong>{{ partner.p99_ms|default:'—' }}ms</strong></span>
+    </div>
+    <div class="progress">
+      <div class="progress__track">
+        <div class="progress__bar {% if partner.uptime >= 99 %}progress--success{% elif partner.uptime >= 95 %}{% else %}progress--danger{% endif %}"
+             style="width:{{ partner.uptime|default:0 }}%"
+             role="progressbar" aria-valuenow="{{ partner.uptime|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card p-6 col-span-3 text-center text-secondary">
+    No partners configured — ecosystem integrations coming in era 9.x.
+  </div>
+  {% endfor %}
+</div>
+
+{# Evidence log #}
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">SLA Evidence Log</h2>
+  </div>
+  <div class="card-body p-0">
+    {% include 'components/table.html' with
+        id='sla-evidence-table'
+        columns=evidence_columns
+        rows=evidence_rows
+        hoverable=True
+        compact=True
+        empty_message='No SLA evidence entries. Collect evidence via integration health checks.'
+    %}
+  </div>
+</div>
+{% endblock %}

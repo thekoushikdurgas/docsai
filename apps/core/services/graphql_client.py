@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+import uuid
 from typing import Optional, Dict, Any
 from django.conf import settings
 from django.core.cache import cache
@@ -66,6 +67,7 @@ class GraphQLClient:
         self.endpoint = endpoint_url or getattr(settings, 'APPOINTMENT360_GRAPHQL_URL', 'https://100.53.186.109/graphql')
         self.request = request
         self.access_token = access_token or self._extract_token_from_request()
+        self.request_id = self._extract_request_id_from_request()
         self.timeout = getattr(settings, 'GRAPHQL_TIMEOUT', 30)
         self.max_retries = getattr(settings, 'GRAPHQL_MAX_RETRIES', 3)
         self.retry_delay = getattr(settings, 'GRAPHQL_RETRY_DELAY', 1)  # seconds
@@ -127,11 +129,26 @@ class GraphQLClient:
         
         if token:
             headers['Authorization'] = f'Bearer {token}'
+        if self.request_id:
+            headers['X-Request-ID'] = self.request_id
         
         if additional_headers:
             headers.update(additional_headers)
         
         return headers
+
+    def _extract_request_id_from_request(self) -> str:
+        """Get stable request correlation id from request, or generate one."""
+        if self.request:
+            rid = (
+                self.request.META.get("HTTP_X_REQUEST_ID")
+                or self.request.META.get("HTTP_X_CORRELATION_ID")
+                or self.request.headers.get("X-Request-ID")
+                or self.request.headers.get("X-Correlation-ID")
+            )
+            if rid:
+                return str(rid)
+        return str(uuid.uuid4())
     
     def _get_cache_key(self, query: str, variables: Optional[Dict] = None) -> str:
         """Generate cache key for query."""

@@ -1,10 +1,11 @@
 """
 S3Storage API Client - HTTP client for lambda/s3storage REST endpoints.
 
-No API key required. When S3STORAGE_API_URL is configured, admin storage files page
-fetches from the s3storage API.
+Uses X-API-Key authentication. When S3STORAGE_API_URL and S3STORAGE_API_KEY are
+configured, admin storage files page fetches from the s3storage API.
 """
 import logging
+import uuid
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -21,18 +22,26 @@ class S3StorageClient:
     def __init__(
         self,
         base_url: Optional[str] = None,
+        api_key: Optional[str] = None,
         timeout: Optional[int] = None,
+        request_id: Optional[str] = None,
     ):
         self.base_url = (
             base_url or getattr(settings, "S3STORAGE_API_URL", "") or ""
         ).rstrip("/")
+        self.api_key = api_key or getattr(settings, "S3STORAGE_API_KEY", "") or ""
         self.timeout = timeout or getattr(settings, "S3STORAGE_API_TIMEOUT", 30)
+        self.request_id = request_id or str(uuid.uuid4())
 
     def _headers(self) -> Dict[str, str]:
-        return {
+        headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
+        if self.api_key:
+            headers["X-API-Key"] = self.api_key
+        headers["X-Request-ID"] = self.request_id
+        return headers
 
     def _request(
         self,
@@ -177,6 +186,7 @@ class S3StorageClient:
             try:
                 resp = client.post(
                     url,
+                    headers={"X-Request-ID": self.request_id, **({"X-API-Key": self.api_key} if self.api_key else {})},
                     params=params,
                     files={"file": (name, file, content_type)},
                 )

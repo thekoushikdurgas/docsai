@@ -6,6 +6,7 @@ from apps.core.decorators.auth import require_super_admin
 @require_super_admin
 def page_builder_view(request):
     """Visual page builder."""
+    # TODO[C360-9.0|surface|incomplete]: Implement drag-and-drop, persist, and preview — current view only loads page_data and static component list.
     from apps.documentation.services.pages_service import PagesService
     
     page_id = request.GET.get('page_id')

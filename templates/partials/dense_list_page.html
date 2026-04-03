@@ -1,0 +1,122 @@
+{% comment %}
+Partial: Dense list page archetype
+Usage:
+  {% include 'partials/dense_list_page.html' with
+      page_title="Users"
+      page_subtitle="Manage platform users and roles"
+      search_placeholder="Search users..."
+      export_url=export_url
+      new_url=new_url
+      new_label="New User"
+      columns=columns
+      rows=rows
+      filter_fields=filter_fields
+  %}
+
+Produces: toolbar (search + filter + export + new button) + card-wrapped table.
+{% endcomment %}
+
+<div class="dense-list-page">
+  <!-- Toolbar row -->
+  <div class="dense-list-page__toolbar">
+    <div class="dense-list-page__search-wrap">
+      <svg class="dense-list-page__search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+      </svg>
+      <input
+        type="search"
+        class="filter-input filter-input-search"
+        placeholder="{{ search_placeholder|default:'Search...' }}"
+        id="{{ table_id|default:'list' }}-search"
+        oninput="denseListSearch('{{ table_id|default:'list' }}', this.value)"
+      />
+    </div>
+
+    <div class="dense-list-page__filters">
+      {% for field in filter_fields %}
+      <select
+        class="filter-select"
+        onchange="denseListFilter('{{ table_id|default:'list' }}', '{{ field.key }}', this.value)"
+        aria-label="{{ field.label }}"
+      >
+        <option value="">{{ field.label }}</option>
+        {% for opt in field.options %}
+        <option value="{{ opt.value }}">{{ opt.label }}</option>
+        {% endfor %}
+      </select>
+      {% endfor %}
+    </div>
+
+    <div class="dense-list-page__actions">
+      {% if export_url %}
+      <a href="{{ export_url }}" class="btn btn-ghost btn-sm">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Export
+      </a>
+      {% endif %}
+      {% if new_url %}
+      <a href="{{ new_url }}" class="btn btn-primary btn-sm">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        {{ new_label|default:'New' }}
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Table card -->
+  <div class="card dense-list-page__card">
+    {% include 'components/table.html' with
+        id=table_id|default:'list'
+        columns=columns
+        rows=rows
+        hoverable=True
+        selectable=selectable|default:False
+        compact=True
+    %}
+    {% if pagination %}
+    {% include 'components/pagination.html' with pagination=pagination %}
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.dense-list-page { display: flex; flex-direction: column; gap: 1rem; }
+.dense-list-page__toolbar {
+  display: flex; flex-wrap: wrap; gap: 0.75rem;
+  align-items: center;
+}
+.dense-list-page__search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 320px; }
+.dense-list-page__search-icon {
+  position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+  width: 1.25rem; height: 1.25rem; color: var(--color-text-tertiary); pointer-events: none;
+}
+.dense-list-page__filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.dense-list-page__actions { display: flex; gap: 0.5rem; margin-left: auto; }
+.dense-list-page__card { padding: 0; overflow: hidden; }
+</style>
+
+<script>
+function denseListSearch(tableId, value) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const rows = table.querySelectorAll('tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(value.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function denseListFilter(tableId, key, value) {
+  // Emit a custom event so parent controllers can handle server-side filtering
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  table.dispatchEvent(new CustomEvent('dense-filter', {
+    detail: { key, value },
+    bubbles: true
+  }));
+}
+</script>

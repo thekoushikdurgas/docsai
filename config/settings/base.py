@@ -3,6 +3,10 @@ Base Django settings for docsai project.
 
 This file contains all common settings shared across all environments.
 Environment-specific settings are in development.py, production.py, and testing.py.
+
+TODO[C360-0.3|ops|incomplete]: P0 — do not commit .env with AWS_ACCESS_KEY_ID/SECRET; rotate leaked keys; keep secrets in SSM or env injection only.
+TODO[C360-0.3|data|incomplete]: db.sqlite3 must not be committed — add to .gitignore and use PostgreSQL in shared environments.
+TODO[C360-0.3|ops|incomplete]: .env.prod must include SECRET_KEY, ALLOWED_HOSTS, DEBUG=False, GRAPHQL_*, Django-Q, AWS — expand beyond minimal two-line samples.
 """
 
 import os
@@ -70,6 +74,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'apps.core.middleware.request_id_middleware.RequestIdMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -264,6 +269,7 @@ else:
     }
 
 # Local JSON Files Configuration (default False = S3-only for documentation data)
+# TODO[C360-7.0|ops|incomplete]: USE_LOCAL_JSON_FILES=True serves docs from local disk — incompatible with stateless cloud deploys; default to False in production and use S3.
 USE_LOCAL_JSON_FILES = os.getenv('USE_LOCAL_JSON_FILES', 'False').lower() == 'true'
 
 # AWS S3 Configuration
@@ -282,7 +288,7 @@ UNIFIED_STORAGE_FALLBACK_ENABLED = os.getenv('UNIFIED_STORAGE_FALLBACK_ENABLED',
 # Lambda API Configuration
 # LAMBDA_DOCUMENTATION_API_* removed - services now use local/S3/GraphQL directly
 # Only AI API settings remain (used by AI agent)
-LAMBDA_AI_API_URL = os.getenv('LAMBDA_AI_API_URL', 'https://aziwa531nl.execute-api.us-east-1.amazonaws.com')
+LAMBDA_AI_API_URL = os.getenv('LAMBDA_AI_API_URL', '')
 LAMBDA_AI_API_KEY = os.getenv('LAMBDA_AI_API_KEY', '')
 
 # OpenAI Configuration
@@ -324,8 +330,8 @@ GRAPHQL_AUTH_ENABLED = os.getenv('GRAPHQL_AUTH_ENABLED', 'True').lower() == 'tru
 S3_AUTH_STORAGE_ENABLED = os.getenv('S3_AUTH_STORAGE_ENABLED', 'False').lower() == 'true'
 
 # Lambda Logs API Configuration
-LOGS_API_URL = os.getenv('LOGS_API_URL', 'https://adusbfi8ce.execute-api.us-east-1.amazonaws.com')
-LOGS_API_KEY = os.getenv('LOGS_API_KEY', 'bc7a0177de676a8e8bd98c2a0e6f96152b7b1ae1e72eb3d108ed13d5f01fd9bd')
+LOGS_API_URL = os.getenv('LOGS_API_URL', '')
+LOGS_API_KEY = os.getenv('LOGS_API_KEY', '')
 LOGS_API_ENABLED = bool(LOGS_API_URL and LOGS_API_KEY)
 LOGS_API_TIMEOUT = int(os.getenv('LOGS_API_TIMEOUT', '30'))
 
@@ -337,8 +343,9 @@ JOB_SCHEDULER_ENABLED = bool(JOB_SCHEDULER_API_URL and JOB_SCHEDULER_API_KEY)
 
 # S3 Storage (lambda/s3storage)
 S3STORAGE_API_URL = os.getenv('S3STORAGE_API_URL', '')
+S3STORAGE_API_KEY = os.getenv('S3STORAGE_API_KEY', '')
 S3STORAGE_API_TIMEOUT = int(os.getenv('S3STORAGE_API_TIMEOUT', '30'))
-S3STORAGE_ENABLED = bool(S3STORAGE_API_URL)
+S3STORAGE_ENABLED = bool(S3STORAGE_API_URL and S3STORAGE_API_KEY)
 
 
 def validate_logs_api_config():
@@ -353,6 +360,30 @@ def validate_logs_api_config():
     if LOGS_API_URL and LOGS_API_TIMEOUT < 1:
         errors.append(f"LOGS_API_TIMEOUT must be >= 1. Got: {LOGS_API_TIMEOUT}")
     return len(errors) == 0, errors
+
+
+def _validate_service_url_key_pair(service_name: str, service_url: str, service_key: str):
+    """Validate URL/key pair semantics for API-backed dependencies."""
+    errors = []
+    warnings_list = []
+
+    if service_url and not (
+        service_url.startswith('http://') or service_url.startswith('https://')
+    ):
+        errors.append(
+            f"{service_name}_URL must start with http:// or https://. Got: {service_url}"
+        )
+
+    if service_url and not service_key:
+        errors.append(
+            f"{service_name}_KEY is required when {service_name}_URL is configured."
+        )
+    elif service_key and not service_url:
+        warnings_list.append(
+            f"{service_name}_KEY is set but {service_name}_URL is missing; this secret is unused."
+        )
+
+    return errors, warnings_list
 
 # SuperAdmin Middleware Configuration
 SUPER_ADMIN_ONLY_ENABLED = os.getenv('SUPER_ADMIN_ONLY_ENABLED', 'True').lower() == 'true'
@@ -627,16 +658,22 @@ def validate_startup_config():
         # Note: GraphQL authentication now uses JWT tokens from authenticated sessions
         # No API key is required - tokens are extracted from request cookies/headers
     
-    # Lambda API URL validation
+    # API-backed service URL/key pair validation
     # LAMBDA_DOCUMENTATION_API_* validation removed - no longer used
-    
-    if LAMBDA_AI_API_URL:
-        if not (LAMBDA_AI_API_URL.startswith('http://') or LAMBDA_AI_API_URL.startswith('https://')):
-            errors.append(
-                f"LAMBDA_AI_API_URL must start with http:// or https://. Got: {LAMBDA_AI_API_URL}"
-            )
-        if not LAMBDA_AI_API_KEY:
-            warnings_list.append("LAMBDA_AI_API_KEY is missing. Lambda AI API calls may fail.")
+    service_pairs = [
+        ("LOGS_API", LOGS_API_URL, LOGS_API_KEY),
+        ("JOB_SCHEDULER_API", JOB_SCHEDULER_API_URL, JOB_SCHEDULER_API_KEY),
+        ("S3STORAGE_API", S3STORAGE_API_URL, S3STORAGE_API_KEY),
+        ("LAMBDA_AI_API", LAMBDA_AI_API_URL, LAMBDA_AI_API_KEY),
+    ]
+    for service_name, service_url, service_key in service_pairs:
+        pair_errors, pair_warnings = _validate_service_url_key_pair(
+            service_name=service_name,
+            service_url=service_url,
+            service_key=service_key,
+        )
+        errors.extend(pair_errors)
+        warnings_list.extend(pair_warnings)
     
     # AI service validation
     openai_key = os.getenv('OPENAI_API_KEY', '')

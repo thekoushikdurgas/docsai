@@ -1,0 +1,103 @@
+{% comment %}
+Partial: Reusable wizard stepper
+Usage:
+  {% include 'partials/stepper.html' with steps=steps current_step=1 %}
+  steps = [
+    {'label': 'Details', 'icon': 'info', 'description': 'Enter basic info'},
+    {'label': 'Configure', 'icon': 'settings', 'description': 'Set options'},
+    {'label': 'Review', 'icon': 'check', 'description': 'Confirm and submit'},
+  ]
+{% endcomment %}
+
+<nav class="stepper" aria-label="Progress steps">
+  <ol class="stepper__list">
+    {% for step in steps %}
+    {% with step_num=forloop.counter %}
+    <li class="stepper__step
+        {% if step_num < current_step %}stepper__step--done
+        {% elif step_num == current_step %}stepper__step--active
+        {% else %}stepper__step--pending{% endif %}">
+
+      <span class="stepper__indicator" aria-hidden="true">
+        {% if step_num < current_step %}
+          <!-- Done checkmark -->
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+        {% else %}
+          {{ step_num }}
+        {% endif %}
+      </span>
+
+      <span class="stepper__label">{{ step.label }}</span>
+      {% if step.description %}
+      <span class="stepper__description">{{ step.description }}</span>
+      {% endif %}
+
+      {% if not forloop.last %}
+      <span class="stepper__connector" aria-hidden="true"></span>
+      {% endif %}
+    </li>
+    {% endwith %}
+    {% endfor %}
+  </ol>
+</nav>
+
+<style>
+.stepper { padding: 0; }
+.stepper__list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 0;
+}
+
+.stepper__step {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; position: relative; text-align: center;
+}
+
+.stepper__connector {
+  position: absolute; top: 14px; left: calc(50% + 18px);
+  right: calc(-50% + 18px); height: 2px;
+  background: var(--color-border);
+  z-index: 0;
+}
+.stepper__step--done .stepper__connector { background: var(--color-primary-500); }
+
+.stepper__indicator {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700;
+  border: 2px solid var(--color-border-medium);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  position: relative; z-index: 1;
+  transition: all var(--transition-base);
+}
+.stepper__step--active .stepper__indicator {
+  border-color: var(--color-primary-600); background: var(--color-primary-600); color: #fff;
+}
+.stepper__step--done .stepper__indicator {
+  border-color: var(--color-primary-600); background: var(--color-primary-600); color: #fff;
+}
+
+.stepper__label {
+  margin-top: 6px; font-size: 0.75rem; font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.stepper__step--active .stepper__label { color: var(--color-primary-600); }
+.stepper__step--done .stepper__label { color: var(--color-text-primary); }
+
+.stepper__description {
+  font-size: 0.6875rem; color: var(--color-text-tertiary); margin-top: 2px;
+  display: none;
+}
+
+@media (min-width: 640px) { .stepper__description { display: block; } }
+
+@media (max-width: 480px) {
+  .stepper__list { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .stepper__connector { display: none; }
+  .stepper__step { flex-direction: row; align-items: center; gap: 10px; text-align: left; }
+  .stepper__label { margin-top: 0; }
+}
+</style>

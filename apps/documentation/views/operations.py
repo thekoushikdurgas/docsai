@@ -19,6 +19,7 @@ from apps.core.decorators.auth import require_super_admin
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+from apps.operations.models import OperationLog
 
 from apps.documentation.utils.paths import get_postman_dir
 from apps.documentation.services import docs_operations_logger as ops_logger
@@ -36,6 +37,107 @@ _generate_json_jobs_lock = threading.Lock()
 # In-memory store for upload-to-S3 jobs (job_id -> { progress_path, report, error, done })
 _upload_jobs: Dict[str, Dict[str, Any]] = {}
 _upload_jobs_lock = threading.Lock()
+
+
+def _runtime_job_name(kind: str) -> str:
+    return f"Docs background job ({kind})"
+
+
+def _runtime_job_payload(
+    kind: str,
+    progress_path: str | None = None,
+    report_path: str | None = None,
+    report: Dict[str, Any] | None = None,
+    error: str | None = None,
+    done: bool = False,
+) -> Dict[str, Any]:
+    return {
+        "runtime_job_kind": kind,
+        "progress_path": progress_path,
+        "report_path": report_path,
+        "report": report,
+        "error": error,
+        "done": done,
+    }
+
+
+def _persist_runtime_job(job_id: str, payload: Dict[str, Any]) -> None:
+    """Persist background job state in DB for restart durability."""
+    try:
+        op = OperationLog.objects.filter(operation_id=job_id).first()
+        defaults = {
+            "operation_type": "documentation_sync",
+            "name": _runtime_job_name(payload.get("runtime_job_kind", "unknown")),
+            "status": "completed" if payload.get("done") else "running",
+            "progress": 100 if payload.get("done") else 0,
+            "metadata": payload,
+            "error_message": payload.get("error") or "",
+        }
+        if op:
+            for key, value in defaults.items():
+                setattr(op, key, value)
+            op.save(update_fields=["operation_type", "name", "status", "progress", "metadata", "error_message"])
+            return
+        OperationLog.objects.create(operation_id=job_id, **defaults)
+    except Exception:
+        # Non-fatal: in-memory fallback still works.
+        logger.debug("Runtime job persistence failed for %s", job_id, exc_info=True)
+
+
+def _load_runtime_job(job_id: str, memory_store: Dict[str, Dict[str, Any]], lock: threading.Lock) -> Dict[str, Any] | None:
+    try:
+        op = OperationLog.objects.filter(operation_id=job_id).first()
+        meta = (op.metadata if op else None) or {}
+        if meta.get("runtime_job_kind"):
+            return {
+                "progress_path": meta.get("progress_path"),
+                "report_path": meta.get("report_path"),
+                "report": meta.get("report"),
+                "error": meta.get("error"),
+                "done": bool(meta.get("done", False)),
+            }
+    except Exception:
+        logger.debug("Runtime job load failed for %s", job_id, exc_info=True)
+    with lock:
+        return memory_store.get(job_id)
+
+
+def _save_runtime_job(
+    job_id: str,
+    kind: str,
+    memory_store: Dict[str, Dict[str, Any]],
+    lock: threading.Lock,
+    progress_path: str | None = None,
+    report_path: str | None = None,
+    report: Dict[str, Any] | None = None,
+    error: str | None = None,
+    done: bool = False,
+) -> None:
+    payload = _runtime_job_payload(
+        kind=kind,
+        progress_path=progress_path,
+        report_path=report_path,
+        report=report,
+        error=error,
+        done=done,
+    )
+    with lock:
+        existing = memory_store.get(job_id, {})
+        merged = {
+            "progress_path": payload.get("progress_path", existing.get("progress_path")),
+            "report_path": payload.get("report_path", existing.get("report_path")),
+            "report": payload.get("report", existing.get("report")),
+            "error": payload.get("error", existing.get("error")),
+            "done": payload.get("done", existing.get("done", False)),
+        }
+        memory_store[job_id] = merged
+    _persist_runtime_job(
+        job_id,
+        {
+            "runtime_job_kind": kind,
+            **memory_store[job_id],
+        },
+    )
 
 
 @require_super_admin
@@ -156,16 +258,24 @@ def _run_analyze_job(job_id: str, analysis_type: str, progress_path: str, report
     """Background thread: run analyze script with progress, then store report in _analyze_jobs."""
     try:
         report = _run_analyze_script(analysis_type, progress_path=progress_path, report_path=report_path)
-        with _analyze_jobs_lock:
-            if job_id in _analyze_jobs:
-                _analyze_jobs[job_id]["report"] = report
-                _analyze_jobs[job_id]["done"] = True
+        _save_runtime_job(
+            job_id,
+            kind="analyze",
+            memory_store=_analyze_jobs,
+            lock=_analyze_jobs_lock,
+            report=report,
+            done=True,
+        )
     except Exception as e:
         logger.exception("Analyze job %s failed: %s", job_id, e)
-        with _analyze_jobs_lock:
-            if job_id in _analyze_jobs:
-                _analyze_jobs[job_id]["error"] = str(e)
-                _analyze_jobs[job_id]["done"] = True
+        _save_runtime_job(
+            job_id,
+            kind="analyze",
+            memory_store=_analyze_jobs,
+            lock=_analyze_jobs_lock,
+            error=str(e),
+            done=True,
+        )
     finally:
         try:
             Path(progress_path).unlink(missing_ok=True)
@@ -196,8 +306,7 @@ def analyze_docs_view(request: HttpRequest) -> HttpResponse:
     context: Dict[str, Any] = {"page_title": "Analyze"}
     job_id = (request.GET.get("job_id") or "").strip()
     if request.method == "GET" and job_id:
-        with _analyze_jobs_lock:
-            job = _analyze_jobs.get(job_id)
+        job = _load_runtime_job(job_id, _analyze_jobs, _analyze_jobs_lock)
         if job and job.get("done") and job.get("report") is not None:
             context["report"] = job["report"]
             context["analysis_type"] = "all"
@@ -251,14 +360,17 @@ def analyze_start_api(request: HttpRequest) -> JsonResponse:
     fd_report, report_path = tempfile.mkstemp(suffix=".report.json")
     os.close(fd_report)
     try:
-        with _analyze_jobs_lock:
-            _analyze_jobs[job_id] = {
-                "progress_path": progress_path,
-                "report_path": report_path,
-                "report": None,
-                "error": None,
-                "done": False,
-            }
+        _save_runtime_job(
+            job_id,
+            kind="analyze",
+            memory_store=_analyze_jobs,
+            lock=_analyze_jobs_lock,
+            progress_path=progress_path,
+            report_path=report_path,
+            report=None,
+            error=None,
+            done=False,
+        )
         thread = threading.Thread(
             target=_run_analyze_job,
             args=(job_id, analysis_type, progress_path, report_path),
@@ -280,8 +392,7 @@ def analyze_start_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def analyze_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
     """GET /docs/api/operations/analyze-progress/<job_id>/ – return progress JSON; when done, include report."""
-    with _analyze_jobs_lock:
-        job = _analyze_jobs.get(job_id)
+    job = _load_runtime_job(job_id, _analyze_jobs, _analyze_jobs_lock)
     if not job:
         return JsonResponse({"error": "Job not found", "done": True}, status=404)
     if job.get("done"):
@@ -322,8 +433,7 @@ def validate_docs_view(request: HttpRequest) -> HttpResponse:
         context["parent_operation_id"] = parent_id
     job_id = (request.GET.get("job_id") or "").strip()
     if request.method == "GET" and job_id:
-        with _analyze_jobs_lock:
-            job = _analyze_jobs.get(job_id)
+        job = _load_runtime_job(job_id, _analyze_jobs, _analyze_jobs_lock)
         if job and job.get("done") and job.get("report") is not None:
             context["report"] = job["report"]
     if request.method == "POST":
@@ -414,17 +524,25 @@ def _run_generate_json_job(job_id: str, selected: list[str], progress_path: str)
             if not part.get("success"):
                 all_ok = False
         report = {"success": all_ok, "results": results}
-        with _generate_json_jobs_lock:
-            if job_id in _generate_json_jobs:
-                _generate_json_jobs[job_id]["report"] = report
-                _generate_json_jobs[job_id]["done"] = True
+        _save_runtime_job(
+            job_id,
+            kind="generate_json",
+            memory_store=_generate_json_jobs,
+            lock=_generate_json_jobs_lock,
+            report=report,
+            done=True,
+        )
     except Exception as e:
         logger.exception("Generate JSON job %s failed: %s", job_id, e)
-        with _generate_json_jobs_lock:
-            if job_id in _generate_json_jobs:
-                _generate_json_jobs[job_id]["error"] = str(e)
-                _generate_json_jobs[job_id]["report"] = {"success": False, "results": results}
-                _generate_json_jobs[job_id]["done"] = True
+        _save_runtime_job(
+            job_id,
+            kind="generate_json",
+            memory_store=_generate_json_jobs,
+            lock=_generate_json_jobs_lock,
+            error=str(e),
+            report={"success": False, "results": results},
+            done=True,
+        )
     finally:
         try:
             if progress_path:
@@ -476,13 +594,16 @@ def generate_json_start_api(request: HttpRequest) -> JsonResponse:
     fd_progress, progress_path = tempfile.mkstemp(suffix=".generate_json.progress.json")
     os.close(fd_progress)
     try:
-        with _generate_json_jobs_lock:
-            _generate_json_jobs[job_id] = {
-                "progress_path": progress_path,
-                "report": None,
-                "error": None,
-                "done": False,
-            }
+        _save_runtime_job(
+            job_id,
+            kind="generate_json",
+            memory_store=_generate_json_jobs,
+            lock=_generate_json_jobs_lock,
+            progress_path=progress_path,
+            report=None,
+            error=None,
+            done=False,
+        )
         thread = threading.Thread(
             target=_run_generate_json_job,
             args=(job_id, selected, progress_path),
@@ -503,8 +624,7 @@ def generate_json_start_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def generate_json_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
     """GET /docs/api/operations/generate-json-progress/<job_id>/ – return progress JSON; when done, include report."""
-    with _generate_json_jobs_lock:
-        job = _generate_json_jobs.get(job_id)
+    job = _load_runtime_job(job_id, _generate_json_jobs, _generate_json_jobs_lock)
     if not job:
         return JsonResponse({"error": "Job not found", "done": True}, status=404)
     if job.get("done"):
@@ -546,8 +666,7 @@ def generate_json_view(request: HttpRequest) -> HttpResponse:
         context["parent_operation_id"] = parent_id
     job_id = (request.GET.get("job_id") or "").strip()
     if request.method == "GET" and job_id:
-        with _generate_json_jobs_lock:
-            job = _generate_json_jobs.get(job_id)
+        job = _load_runtime_job(job_id, _generate_json_jobs, _generate_json_jobs_lock)
         if job and job.get("done") and job.get("report") is not None:
             context["report"] = job["report"]
             if job.get("error"):
@@ -831,17 +950,25 @@ def _run_upload_job(job_id: str, selected: list[str], progress_path: str) -> Non
                 results[name] = {"success": False, "error": str(e), "success_files": [], "error_details": []}
                 all_ok = False
         report = {"success": all_ok, "results": results}
-        with _upload_jobs_lock:
-            if job_id in _upload_jobs:
-                _upload_jobs[job_id]["report"] = report
-                _upload_jobs[job_id]["done"] = True
+        _save_runtime_job(
+            job_id,
+            kind="upload",
+            memory_store=_upload_jobs,
+            lock=_upload_jobs_lock,
+            report=report,
+            done=True,
+        )
     except Exception as e:
         logger.exception("Upload job %s failed: %s", job_id, e)
-        with _upload_jobs_lock:
-            if job_id in _upload_jobs:
-                _upload_jobs[job_id]["error"] = str(e)
-                _upload_jobs[job_id]["report"] = {"success": False, "results": results}
-                _upload_jobs[job_id]["done"] = True
+        _save_runtime_job(
+            job_id,
+            kind="upload",
+            memory_store=_upload_jobs,
+            lock=_upload_jobs_lock,
+            error=str(e),
+            report={"success": False, "results": results},
+            done=True,
+        )
     finally:
         try:
             if progress_path:
@@ -915,13 +1042,16 @@ def upload_start_api(request: HttpRequest) -> JsonResponse:
     fd_progress, progress_path = tempfile.mkstemp(suffix=".upload.progress.json")
     os.close(fd_progress)
     try:
-        with _upload_jobs_lock:
-            _upload_jobs[job_id] = {
-                "progress_path": progress_path,
-                "report": None,
-                "error": None,
-                "done": False,
-            }
+        _save_runtime_job(
+            job_id,
+            kind="upload",
+            memory_store=_upload_jobs,
+            lock=_upload_jobs_lock,
+            progress_path=progress_path,
+            report=None,
+            error=None,
+            done=False,
+        )
         thread = threading.Thread(
             target=_run_upload_job,
             args=(job_id, selected, progress_path),
@@ -942,8 +1072,7 @@ def upload_start_api(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def upload_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
     """GET /docs/api/operations/upload-progress/<job_id>/ – return progress JSON; when done, include report."""
-    with _upload_jobs_lock:
-        job = _upload_jobs.get(job_id)
+    job = _load_runtime_job(job_id, _upload_jobs, _upload_jobs_lock)
     if not job:
         return JsonResponse({"error": "Job not found", "done": True}, status=404)
     if job.get("done"):
@@ -985,8 +1114,7 @@ def upload_docs_view(request: HttpRequest) -> HttpResponse:
         context["parent_operation_id"] = parent_id
     job_id = (request.GET.get("job_id") or "").strip()
     if request.method == "GET" and job_id:
-        with _upload_jobs_lock:
-            job = _upload_jobs.get(job_id)
+        job = _load_runtime_job(job_id, _upload_jobs, _upload_jobs_lock)
         if job and job.get("done") and job.get("report") is not None:
             context["report"] = job["report"]
             if job.get("error"):

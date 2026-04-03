@@ -1,13 +1,19 @@
 """Admin views - users, stats, history, logs, system status, settings."""
 import json
 import logging
+import re
+import uuid
+from datetime import datetime, timezone
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 
 from apps.core.decorators.auth import require_super_admin, require_admin_or_super_admin
+from apps.core.middleware.request_id_middleware import REQUEST_ID_ATTR
 from apps.core.clients.appointment360_client import Appointment360Client
 from apps.core.exceptions import LambdaAPIError
 from apps.core.services.graphql_client import GraphQLError
@@ -28,6 +34,112 @@ VALID_JOBS_LIMIT = (10, 25, 50, 100)
 
 def _get_client(request):
     return AdminGraphQLClient(request)
+
+
+def _is_idempotent_noop_error(exc: Exception) -> bool:
+    """Treat not-found/conflict responses as already-applied no-op."""
+    status_code = getattr(exc, "status_code", None)
+    if status_code in (404, 409):
+        return True
+    message = str(exc).lower()
+    markers = ("not found", "already deleted", "already declined", "already approved")
+    return any(marker in message for marker in markers)
+
+
+def _request_trace_id(request) -> str:
+    cached = getattr(request, REQUEST_ID_ATTR, None)
+    if cached:
+        return cached
+    return (
+        request.META.get("HTTP_X_REQUEST_ID")
+        or request.META.get("HTTP_X_CORRELATION_ID")
+        or str(uuid.uuid4())
+    )
+
+
+def _audit_settings_event(request, action: str, success: bool, details: dict | None = None) -> None:
+    """Emit structured audit log for admin settings workflows."""
+    user_id = None
+    user = getattr(request, "user", None)
+    if user and getattr(user, "is_authenticated", False):
+        user_id = str(getattr(user, "pk", "") or "")
+    logger.info(
+        "admin_settings_event action=%s success=%s user_id=%s request_id=%s details=%s",
+        action,
+        success,
+        user_id,
+        _request_trace_id(request),
+        details or {},
+    )
+
+
+def _audit_billing_review_event(
+    request,
+    submission_id: str,
+    action: str,
+    success: bool,
+    reason: str | None = None,
+    status_before: str | None = None,
+    status_after: str | None = None,
+) -> None:
+    """Emit structured audit evidence for payment review transitions."""
+    request_id = _request_trace_id(request)
+    user_id = None
+    user = getattr(request, "user", None)
+    if user and getattr(user, "is_authenticated", False):
+        user_id = str(getattr(user, "pk", "") or "")
+    payload = {
+        "request_id": request_id,
+        "actor_user_id": user_id,
+        "submission_id": submission_id,
+        "action": action,
+        "status_before": status_before or "pending",
+        "status_after": status_after or ("approved" if action == "approve" else "declined"),
+        "reason": reason or "",
+        "success": success,
+        "event_at": datetime.now(timezone.utc).isoformat(),
+    }
+    logger.info(
+        "billing_review_event actor=%s request_id=%s payload=%s",
+        user_id,
+        request_id,
+        payload,
+    )
+
+
+def _validate_billing_settings_input(
+    upi_id: str,
+    phone_number: str,
+    email: str,
+    qr_code_s3_key: str | None,
+) -> list[str]:
+    errors = []
+    if not upi_id:
+        errors.append("UPI ID is required.")
+    elif not re.match(r"^[A-Za-z0-9._-]{2,256}@[A-Za-z]{2,64}$", upi_id):
+        errors.append("UPI ID format is invalid.")
+
+    if phone_number:
+        normalized = phone_number.replace(" ", "").replace("-", "")
+        if normalized.startswith("+"):
+            normalized = normalized[1:]
+        if not normalized.isdigit() or not (8 <= len(normalized) <= 15):
+            errors.append("Phone number must be 8-15 digits (optional leading +).")
+
+    if email:
+        try:
+            validate_email(email)
+        except ValidationError:
+            errors.append("Email format is invalid.")
+
+    if qr_code_s3_key:
+        key = qr_code_s3_key.strip()
+        if ".." in key or key.startswith("/") or key.endswith("/"):
+            errors.append("QR key path is invalid.")
+        if key and not key.startswith("photo/"):
+            errors.append("QR key must be under photo/ prefix.")
+
+    return errors
 
 
 @require_super_admin
@@ -74,7 +186,43 @@ def billing_payment_approve_view(request, submission_id: str):
     try:
         client = _get_client(request)
         client.approve_payment_submission(submission_id=submission_id)
+        _audit_billing_review_event(
+            request,
+            submission_id=submission_id,
+            action="approve",
+            success=True,
+            status_before="pending",
+            status_after="approved",
+        )
+    except LambdaAPIError as e:
+        if _is_idempotent_noop_error(e):
+            _audit_billing_review_event(
+                request,
+                submission_id=submission_id,
+                action="approve",
+                success=True,
+                status_before="approved",
+                status_after="approved",
+            )
+            logger.info(
+                "Approve payment submission noop (already applied): submission_id=%s",
+                submission_id,
+            )
+        else:
+            _audit_billing_review_event(
+                request,
+                submission_id=submission_id,
+                action="approve",
+                success=False,
+            )
+            logger.warning("Approve payment submission API error: %s", e)
     except Exception as e:
+        _audit_billing_review_event(
+            request,
+            submission_id=submission_id,
+            action="approve",
+            success=False,
+        )
         logger.exception("Approve payment submission error")
         # fall through, redirect back with best-effort
     return redirect("/admin/billing/payments/?status=pending")
@@ -89,7 +237,47 @@ def billing_payment_decline_view(request, submission_id: str):
     try:
         client = _get_client(request)
         client.decline_payment_submission(submission_id=submission_id, reason=reason)
+        _audit_billing_review_event(
+            request,
+            submission_id=submission_id,
+            action="decline",
+            success=True,
+            reason=reason,
+            status_before="pending",
+            status_after="declined",
+        )
+    except LambdaAPIError as e:
+        if _is_idempotent_noop_error(e):
+            _audit_billing_review_event(
+                request,
+                submission_id=submission_id,
+                action="decline",
+                success=True,
+                reason=reason,
+                status_before="declined",
+                status_after="declined",
+            )
+            logger.info(
+                "Decline payment submission noop (already applied): submission_id=%s",
+                submission_id,
+            )
+        else:
+            _audit_billing_review_event(
+                request,
+                submission_id=submission_id,
+                action="decline",
+                success=False,
+                reason=reason,
+            )
+            logger.warning("Decline payment submission API error: %s", e)
     except Exception as e:
+        _audit_billing_review_event(
+            request,
+            submission_id=submission_id,
+            action="decline",
+            success=False,
+            reason=reason,
+        )
         logger.exception("Decline payment submission error")
     return redirect("/admin/billing/payments/?status=pending")
 
@@ -140,7 +328,7 @@ def billing_qr_upload_view(request):
             status=400,
         )
     try:
-        s3_client = S3StorageClient()
+        s3_client = S3StorageClient(request_id=_request_trace_id(request))
         result = s3_client.upload_photo(bucket_id=bucket_id, file=file)
         file_key = result.get("fileKey", "")
         return JsonResponse({
@@ -180,6 +368,21 @@ def billing_settings_view(request):
         email = (request.POST.get("email") or "").strip()
         qr_code_s3_key = (request.POST.get("qr_code_s3_key") or "").strip() or None
         qr_code_bucket_id = (request.POST.get("qr_code_bucket_id") or "").strip() or None
+        errors = _validate_billing_settings_input(
+            upi_id=upi_id,
+            phone_number=phone_number,
+            email=email,
+            qr_code_s3_key=qr_code_s3_key,
+        )
+        if errors:
+            context["error"] = " ".join(errors)
+            _audit_settings_event(
+                request,
+                action="billing_settings_update",
+                success=False,
+                details={"reason": "validation_failed", "error_count": len(errors)},
+            )
+            return render(request, "admin/billing_settings.html", context)
         try:
             payload = {
                 "upiId": upi_id,
@@ -192,12 +395,33 @@ def billing_settings_view(request):
             updated = client.update_payment_instructions(payload)
             context["settings"] = updated
             context["success"] = "Payment instructions updated."
+            _audit_settings_event(
+                request,
+                action="billing_settings_update",
+                success=True,
+                details={
+                    "updated_fields": [k for k, v in payload.items() if v],
+                    "has_qr_bucket_id": bool(qr_code_bucket_id),
+                },
+            )
         except GraphQLError as e:
             logger.warning("Admin billing settings GraphQL error: %s", e)
             context["error"] = str(e)
+            _audit_settings_event(
+                request,
+                action="billing_settings_update",
+                success=False,
+                details={"reason": "graphql_error"},
+            )
         except Exception as e:
             logger.exception("Admin billing settings error")
             context["error"] = str(e)
+            _audit_settings_event(
+                request,
+                action="billing_settings_update",
+                success=False,
+                details={"reason": "unexpected_error"},
+            )
 
     if context["settings"] is None:
         try:
@@ -318,7 +542,7 @@ def logs_view(request):
 
     try:
         if LOGS_API_ENABLED:
-            logs_client = LogsApiClient()
+            logs_client = LogsApiClient(request_id=_request_trace_id(request))
             context["log_stats"] = logs_client.get_statistics(
                 time_range=time_range, period="hourly"
             )
@@ -407,7 +631,7 @@ def log_update_view(request, log_id):
                 {"success": False, "error": "Provide at least message or context"},
                 status=400,
             )
-        client = LogsApiClient()
+        client = LogsApiClient(request_id=_request_trace_id(request))
         log = client.update_log(log_id=log_id, message=message, context=context)
         return JsonResponse({"success": True, "data": log})
     except LambdaAPIError as e:
@@ -434,10 +658,12 @@ def log_delete_view(request, log_id):
             status=400,
         )
     try:
-        client = LogsApiClient()
+        client = LogsApiClient(request_id=_request_trace_id(request))
         client.delete_log(log_id=log_id)
         return JsonResponse({"success": True, "message": "Log deleted successfully"})
     except LambdaAPIError as e:
+        if _is_idempotent_noop_error(e):
+            return JsonResponse({"success": True, "message": "Log already deleted"})
         logger.warning("Admin log delete error: %s", e)
         return JsonResponse(
             {"success": False, "error": str(e)},
@@ -470,7 +696,7 @@ def logs_bulk_delete_view(request):
         end_time = body.get("end_time") or None
         if time_range and not start_time and not end_time:
             start_time, end_time = time_range_to_iso(time_range)
-        client = LogsApiClient()
+        client = LogsApiClient(request_id=_request_trace_id(request))
         result = client.delete_logs_bulk(
             level=level,
             logger=logger_filter,
@@ -485,6 +711,10 @@ def logs_bulk_delete_view(request):
             "message": result.get("message"),
         })
     except LambdaAPIError as e:
+        if _is_idempotent_noop_error(e):
+            return JsonResponse(
+                {"success": True, "deleted_count": 0, "status": "noop", "message": "No matching logs to delete"}
+            )
         logger.warning("Admin logs bulk delete error: %s", e)
         return JsonResponse(
             {"success": False, "error": str(e)},
@@ -552,7 +782,7 @@ def jobs_view(request):
         return render(request, "admin/jobs.html", context)
 
     try:
-        client = TkdJobClient()
+        client = TkdJobClient(request_id=_request_trace_id(request))
         result = client.list_jobs(
             status=status_list if status_list else None,
             uuid=uuid_filter or None,
@@ -610,7 +840,7 @@ def job_detail_view(request, job_uuid):
             status=400,
         )
     try:
-        client = TkdJobClient()
+        client = TkdJobClient(request_id=_request_trace_id(request))
         job = client.get_job(job_uuid)
         status_data = client.get_job_status(job_uuid)
         timeline_data = client.get_job_timeline(job_uuid)
@@ -647,7 +877,7 @@ def job_retry_view(request, job_uuid):
         )
     try:
         body = json.loads(request.body) if request.body else {}
-        client = TkdJobClient()
+        client = TkdJobClient(request_id=_request_trace_id(request))
         job = client.retry_job(
             job_uuid,
             data=body.get("data"),
@@ -658,6 +888,15 @@ def job_retry_view(request, job_uuid):
         )
         return JsonResponse({"success": True, "data": job})
     except LambdaAPIError as e:
+        if _is_idempotent_noop_error(e):
+            return JsonResponse(
+                {
+                    "success": True,
+                    "status": "noop",
+                    "message": "Job retry already applied",
+                    "data": {"uuid": job_uuid},
+                }
+            )
         logger.warning("Admin job retry error: %s", e)
         return JsonResponse(
             {"success": False, "error": str(e)},
@@ -708,7 +947,7 @@ def storage_files_view(request):
         return render(request, "admin/storage_files.html", context)
 
     try:
-        client = S3StorageClient()
+        client = S3StorageClient(request_id=_request_trace_id(request))
         context["files"] = client.list_objects(bucket_id=bucket_id, prefix=prefix)
     except LambdaAPIError as e:
         logger.warning("Admin storage files error: %s", e)
@@ -735,7 +974,7 @@ def storage_download_url_view(request):
             status=400,
         )
     try:
-        client = S3StorageClient()
+        client = S3StorageClient(request_id=_request_trace_id(request))
         result = client.get_download_url(bucket_id=bucket_id, file_key=file_key)
         return JsonResponse({
             "success": True,
@@ -777,10 +1016,12 @@ def storage_delete_view(request):
                 {"success": False, "error": "bucket_id and file_key are required"},
                 status=400,
             )
-        client = S3StorageClient()
+        client = S3StorageClient(request_id=_request_trace_id(request))
         client.delete_object(bucket_id=bucket_id, file_key=file_key)
         return JsonResponse({"success": True, "message": "File deleted"})
     except LambdaAPIError as e:
+        if _is_idempotent_noop_error(e):
+            return JsonResponse({"success": True, "message": "File already deleted"})
         logger.warning("Admin storage delete error: %s", e)
         return JsonResponse(
             {"success": False, "error": str(e)},
@@ -796,7 +1037,7 @@ def storage_delete_view(request):
 
 @require_admin_or_super_admin
 def settings_view(request):
-    """Admin Settings - Admin or SuperAdmin. Placeholder forms."""
+    """Admin Settings - Admin or SuperAdmin. Runtime configuration surface."""
     is_super_admin = False
     try:
         token = request.COOKIES.get("access_token") or (
@@ -807,5 +1048,14 @@ def settings_view(request):
             is_super_admin = client.is_super_admin(token)
     except Exception:
         pass
-    context = {"is_super_admin": is_super_admin, "error": None}
+    context = {
+        "is_super_admin": is_super_admin,
+        "error": None,
+        "settings_snapshot": {
+            "logs_api_enabled": bool(LOGS_API_ENABLED),
+            "job_scheduler_enabled": bool(JOB_SCHEDULER_ENABLED),
+            "s3storage_enabled": bool(S3STORAGE_ENABLED),
+            "graphql_url_configured": bool(getattr(settings, "APPOINTMENT360_GRAPHQL_URL", "")),
+        },
+    }
     return render(request, "admin/settings.html", context)

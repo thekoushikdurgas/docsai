@@ -19,42 +19,38 @@
     </div>
     {% endif %}
 
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm">
-        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-6">{% if is_super_admin %}System Configuration{% else %}Team Configuration{% endif %}</h3>
-        <form class="space-y-4 max-w-md">
-            {% if is_super_admin %}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">System Name</label>
-                <input type="text" placeholder="HyperDash 3D" class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-4xl border border-gray-100 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">Runtime Configuration</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+            This surface shows active dependency wiring. Writable settings are handled in dedicated workflows with validation and audit logs.
+        </p>
+        <div class="grid gap-3 max-w-xl">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                <span class="text-sm">Logs API</span>
+                <span class="text-sm font-medium">{{ settings_snapshot.logs_api_enabled|yesno:"enabled,disabled" }}</span>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Support Email</label>
-                <input type="email" placeholder="support@example.com" class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                <span class="text-sm">Job Scheduler</span>
+                <span class="text-sm font-medium">{{ settings_snapshot.job_scheduler_enabled|yesno:"enabled,disabled" }}</span>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Users</label>
-                <input type="number" placeholder="1000" class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                <span class="text-sm">S3 Storage API</span>
+                <span class="text-sm font-medium">{{ settings_snapshot.s3storage_enabled|yesno:"enabled,disabled" }}</span>
             </div>
-            {% else %}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Team Name</label>
-                <input type="text" placeholder="My Team" class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
+            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                <span class="text-sm">GraphQL Endpoint</span>
+                <span class="text-sm font-medium">{{ settings_snapshot.graphql_url_configured|yesno:"configured,missing" }}</span>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Team Email</label>
-                <input type="email" placeholder="team@example.com" class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Team Members</label>
-                <input type="number" placeholder="50" class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
-            </div>
-            {% endif %}
-            {% include 'components/button.html' with type='primary' size='md' button_type='button' text='Save Settings' %}
-        </form>
+        </div>
+        <div class="mt-6">
+            <a href="/admin/billing/settings/" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 inline-block">
+                Open Billing Settings Workflow
+            </a>
+        </div>
     </div>
 
     {% if is_super_admin %}
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-red-200 dark:border-red-800 shadow-sm">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-4xl border border-red-200 dark:border-red-800 shadow-sm">
         <h3 class="text-lg font-bold text-red-700 dark:text-red-300 mb-4">Danger Zone</h3>
         <div class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
             <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Reset all system data. This action cannot be undone.</p>

@@ -1,5 +1,7 @@
 """N8n Workflow Library Service - discovers and lists n8n workflows from media directory."""
 
+# TODO[C360-5.0|service|incomplete]: Reading from local media/n8n breaks in stateless containers — migrate to S3 or DB-backed workflow library.
+
 import json
 import logging
 from pathlib import Path

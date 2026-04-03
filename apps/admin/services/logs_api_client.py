@@ -5,6 +5,7 @@ Uses X-API-Key authentication. When LOGS_API_URL and LOGS_API_KEY are configured
 admin logs page fetches from Lambda logs.api instead of GraphQL.
 """
 import logging
+import uuid
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -23,18 +24,21 @@ class LogsApiClient:
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         timeout: Optional[int] = None,
+        request_id: Optional[str] = None,
     ):
         self.base_url = (base_url or getattr(settings, "LOGS_API_URL", "") or "").rstrip(
             "/"
         )
         self.api_key = api_key or getattr(settings, "LOGS_API_KEY", "") or ""
         self.timeout = timeout or getattr(settings, "LOGS_API_TIMEOUT", 30)
+        self.request_id = request_id or str(uuid.uuid4())
 
     def _headers(self) -> Dict[str, str]:
         return {
             "Content-Type": "application/json",
             "Accept": "application/json",
             "X-API-Key": self.api_key,
+            "X-Request-ID": self.request_id,
         }
 
     def _request(

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Campaign Operations — DocsAI{% endblock %}
+
+{% block content %}
+{# ADM-10.1 — Campaign ops + compliance + incident tooling #}
+<div class="page-header mb-6">
+  <h1 class="page-title">Campaign Operations</h1>
+  <p class="page-subtitle">Campaign health, compliance, and incident tooling — era 10.x</p>
+</div>
+
+{# Stats row #}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-primary">{{ total_campaigns|default:'—' }}</p>
+    <p class="text-xs text-secondary mt-1">Total campaigns</p>
+  </div>
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-success">{{ active_campaigns|default:'—' }}</p>
+    <p class="text-xs text-secondary mt-1">Active</p>
+  </div>
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-warning">{{ pending_review|default:'—' }}</p>
+    <p class="text-xs text-secondary mt-1">Pending compliance review</p>
+  </div>
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-danger">{{ incidents|default:'—' }}</p>
+    <p class="text-xs text-secondary mt-1">Open incidents</p>
+  </div>
+</div>
+
+{# Compliance checklist #}
+<div class="card mb-6">
+  <div class="card-header">
+    <h2 class="card-title">Compliance Checklist</h2>
+  </div>
+  <div class="card-body">
+    <ul class="compliance-list">
+      {% for item in compliance_items %}
+      <li class="compliance-list__item">
+        <span class="compliance-list__status
+          {% if item.status == 'passed' %}text-success
+          {% elif item.status == 'failed' %}text-danger
+          {% else %}text-secondary{% endif %}"
+          aria-hidden="true">
+          {% if item.status == 'passed' %}✓
+          {% elif item.status == 'failed' %}✗
+          {% else %}◉{% endif %}
+        </span>
+        <span class="compliance-list__label">{{ item.label }}</span>
+        {% if item.note %}
+        <span class="compliance-list__note text-secondary text-xs">{{ item.note }}</span>
+        {% endif %}
+      </li>
+      {% empty %}
+      <li class="text-secondary text-sm">Compliance checks run when 10.x campaign module is active.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{# Active campaigns table #}
+<div class="card mb-6">
+  <div class="card-header">
+    <h2 class="card-title">Active Campaigns</h2>
+  </div>
+  <div class="card-body p-0">
+    {% include 'components/table.html' with
+        id='campaign-ops-table'
+        columns=campaign_columns
+        rows=campaign_rows
+        hoverable=True
+        compact=True
+        empty_message='No active campaigns — backend module 22_CAMPAIGNS_MODULE required.'
+    %}
+  </div>
+</div>
+
+{# Open incidents #}
+<div class="card">
+  <div class="card-header flex items-center justify-between">
+    <h2 class="card-title">Open Incidents</h2>
+    <a href="{{ new_incident_url|default:'#' }}" class="btn btn-danger btn-sm">Report Incident</a>
+  </div>
+  <div class="card-body p-0">
+    {% include 'components/table.html' with
+        id='incident-table'
+        columns=incident_columns
+        rows=incident_rows
+        hoverable=True
+        compact=True
+        empty_message='No open incidents'
+    %}
+  </div>
+</div>
+
+<style>
+.compliance-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.compliance-list__item { display: flex; align-items: center; gap: 0.75rem; }
+.compliance-list__status { font-size: 1rem; width: 20px; flex-shrink: 0; }
+.compliance-list__label { font-size: 0.875rem; font-weight: 500; color: var(--color-text-primary); }
+.compliance-list__note { margin-left: auto; }
+</style>
+{% endblock %}

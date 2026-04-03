@@ -113,6 +113,7 @@ def login_view(request):
             pass  # Token might be invalid, continue with login
     
     # Check if appointment360 is enabled
+    # TODO[C360-1.0|service|incomplete]: Align GRAPHQL_ENABLED vs GRAPHQL_AUTH_ENABLED — login gates on GRAPHQL_ENABLED but ops/docs reference GRAPHQL_AUTH_ENABLED; set both or unify naming.
     if not getattr(settings, 'GRAPHQL_ENABLED', False):
         messages.error(request, 'Authentication service is not available. Please contact support.')
         return render(request, 'core/login.html', {'next': request.GET.get('next')})

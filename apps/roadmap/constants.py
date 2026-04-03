@@ -2,6 +2,9 @@
 
 CONTACT360_VERSION = "1.1.0 (in_progress)"
 CONTACT360_PRODUCT = "Contact360"
+CONTACT360_CURRENT_FOCUS = (
+    "Billing and payments (Stage 1.3) and bulk validation hardening (Stage 2.4)."
+)
 
 CONTACT360_ROADMAP_STAGES = [
     {
@@ -243,6 +246,22 @@ CONTACT360_ROADMAP_STAGES = [
         ],
     },
     {
+        "id": "2.5",
+        "stage": "Stage 2.5",
+        "title": "Email app credential security hardening",
+        "status": "in_progress",
+        "depends_on": "Stage 2.4 and mailbox API session contract",
+        "risk": "Plaintext IMAP credential exposure in frontend runtime",
+        "definition_of_done": "Email app uses tokenized mailbox sessions and removes plaintext credential transport/storage",
+        "kpi": "Credential exposure incidents",
+        "ships_in": "2.0.0",
+        "features": [
+            "Replace X-Email/X-Password transport with token exchange",
+            "Remove localStorage mailbox credential persistence",
+            "Server-managed mailbox secret boundary",
+        ],
+    },
+    {
         "id": "3.1",
         "stage": "Stage 3.1",
         "title": "Extension auth and session hardening",
@@ -363,6 +382,23 @@ CONTACT360_ROADMAP_STAGES = [
         ],
     },
     {
+        "id": "4.5",
+        "stage": "Stage 4.5",
+        "title": "Extension shell delivery",
+        "status": "planned",
+        "depends_on": "Stage 3.4 and Sales Navigator backend completion",
+        "risk": "Backend-ready extension flow remains non-operational without browser shell",
+        "definition_of_done": "Manifest, background worker, content script, and popup UI are production-ready",
+        "kpi": "Sales Navigator capture success rate",
+        "ships_in": "4.5.0",
+        "features": [
+            "manifest.json with CSP and permissions",
+            "background/service worker wiring",
+            "content script extraction flow",
+            "popup progress and error handling UI",
+        ],
+    },
+    {
         "id": "5.1",
         "stage": "Stage 5.1",
         "title": "Reliability baseline and SLO definition",
@@ -373,6 +409,22 @@ CONTACT360_ROADMAP_STAGES = [
         "kpi": "SLO attainment rate",
         "ships_in": "5.1.0",
         "features": ["Service SLOs", "Reliability dashboards"],
+    },
+    {
+        "id": "5.0",
+        "stage": "Stage 5.0",
+        "title": "Dashboard AI chat runtime wiring",
+        "status": "in_progress",
+        "depends_on": "Stage 4.2 and Appointment360 aiChat contract",
+        "risk": "AI chat UX remains mock-backed and cannot produce real responses",
+        "definition_of_done": "Dashboard AI chat calls live Appointment360 aiChat mutation with auth and error handling",
+        "kpi": "AI chat successful response rate",
+        "ships_in": "5.0.0",
+        "features": [
+            "Replace mockSend path with GraphQL aiChat integration",
+            "Wire loading/error states to runtime responses",
+            "Persist basic chat session metadata",
+        ],
     },
     {
         "id": "5.2",

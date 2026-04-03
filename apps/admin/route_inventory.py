@@ -1,0 +1,25 @@
+"""Canonical admin route inventory for guard/parity checks."""
+
+ADMIN_ROUTE_INVENTORY = [
+    {"name": "index", "path": "", "methods": ["GET"], "permission": "public"},
+    {"name": "users", "path": "users/", "methods": ["GET"], "permission": "super_admin"},
+    {"name": "user_history", "path": "user-history/", "methods": ["GET"], "permission": "super_admin"},
+    {"name": "statistics", "path": "statistics/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "logs", "path": "logs/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "logs_bulk_delete", "path": "logs/bulk-delete/", "methods": ["POST"], "permission": "admin_or_super_admin"},
+    {"name": "log_update", "path": "logs/<str:log_id>/update/", "methods": ["POST"], "permission": "admin_or_super_admin"},
+    {"name": "log_delete", "path": "logs/<str:log_id>/delete/", "methods": ["POST"], "permission": "admin_or_super_admin"},
+    {"name": "system_status", "path": "system-status/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "settings", "path": "settings/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "jobs", "path": "jobs/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "job_detail", "path": "jobs/<str:job_uuid>/detail/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "job_retry", "path": "jobs/<str:job_uuid>/retry/", "methods": ["POST"], "permission": "admin_or_super_admin"},
+    {"name": "storage_files", "path": "storage/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "storage_download_url", "path": "storage/download-url/", "methods": ["GET"], "permission": "admin_or_super_admin"},
+    {"name": "storage_delete", "path": "storage/delete/", "methods": ["POST"], "permission": "admin_or_super_admin"},
+    {"name": "billing_payments", "path": "billing/payments/", "methods": ["GET"], "permission": "super_admin"},
+    {"name": "billing_qr_upload", "path": "billing/qr-upload/", "methods": ["POST"], "permission": "super_admin"},
+    {"name": "billing_payment_approve", "path": "billing/payments/<str:submission_id>/approve/", "methods": ["POST"], "permission": "super_admin"},
+    {"name": "billing_payment_decline", "path": "billing/payments/<str:submission_id>/decline/", "methods": ["POST"], "permission": "super_admin"},
+    {"name": "billing_settings", "path": "billing/settings/", "methods": ["GET", "POST"], "permission": "super_admin"},
+]

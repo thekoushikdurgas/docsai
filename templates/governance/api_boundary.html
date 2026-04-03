@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}API Boundary — DocsAI{% endblock %}
+
+{% block content %}
+{# ADM-8.1 — Public/private API boundary + versioning screen #}
+<div class="page-header mb-6">
+  <h1 class="page-title">API Boundary</h1>
+  <p class="page-subtitle">Public vs private endpoint registry and versioning — era 8.x</p>
+</div>
+
+{# Stats row #}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-primary">{{ public_count|default:'—' }}</p>
+    <p class="text-xs text-secondary mt-1">Public endpoints</p>
+  </div>
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-primary">{{ private_count|default:'—' }}</p>
+    <p class="text-xs text-secondary mt-1">Private endpoints</p>
+  </div>
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-primary">{{ deprecated_count|default:'—' }}</p>
+    <p class="text-xs text-secondary mt-1">Deprecated</p>
+  </div>
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-primary">{{ version|default:'v3' }}</p>
+    <p class="text-xs text-secondary mt-1">Current API version</p>
+  </div>
+</div>
+
+{# Endpoint registry table #}
+<div class="card mb-6">
+  <div class="card-header flex items-center justify-between">
+    <h2 class="card-title">Endpoint Registry</h2>
+    <div class="flex gap-2">
+      <select class="filter-select" onchange="filterEndpoints(this.value, 'visibility')" aria-label="Visibility">
+        <option value="">All visibility</option>
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+        <option value="deprecated">Deprecated</option>
+      </select>
+      <select class="filter-select" onchange="filterEndpoints(this.value, 'version')" aria-label="Version">
+        <option value="">All versions</option>
+        <option value="v3">v3</option>
+        <option value="v2">v2 (legacy)</option>
+        <option value="v1">v1 (deprecated)</option>
+      </select>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% include 'components/table.html' with
+        id='api-boundary-table'
+        columns=endpoint_columns
+        rows=endpoint_rows
+        hoverable=True
+        compact=True
+        empty_message='No endpoints registered — run link_endpoint_specs.py to populate'
+    %}
+  </div>
+</div>
+
+{# Versioning timeline #}
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Version Timeline</h2>
+  </div>
+  <div class="card-body">
+    <div class="stepper-horizontal">
+      {% for ver in version_timeline %}
+      <div class="version-stage {% if ver.current %}version-stage--current{% endif %}">
+        <span class="version-stage__badge badge {% if ver.current %}badge-primary{% elif ver.deprecated %}badge-danger{% else %}badge-neutral{% endif %}">
+          {{ ver.version }}
+        </span>
+        <p class="version-stage__label">{{ ver.label }}</p>
+        <p class="version-stage__date text-xs text-secondary">{{ ver.sunset_date|default:'Active' }}</p>
+      </div>
+      {% empty %}
+      <p class="text-secondary text-sm">No version timeline data. Update docs/docs/versions.md to populate.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+function filterEndpoints(value, key) {
+  const table = document.getElementById('api-boundary-table');
+  if (!table) return;
+  table.dispatchEvent(new CustomEvent('dense-filter', {
+    detail: { key, value },
+    bubbles: true
+  }));
+}
+</script>
+{% endblock %}

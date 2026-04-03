@@ -144,6 +144,7 @@ def require_super_admin(view_func):
         
         return view_func(request, *args, **kwargs)
     
+    _wrapped_view.required_role_scope = "super_admin"
     return _wrapped_view
 
 
@@ -191,6 +192,7 @@ def require_admin_or_super_admin(view_func):
             logger.error(f"Error checking admin status: {e}", exc_info=True)
             return _forbidden_response(request, "Failed to verify permissions")
     
+    _wrapped_view.required_role_scope = "admin_or_super_admin"
     return _wrapped_view
 
 

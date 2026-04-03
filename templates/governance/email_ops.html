@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Operations — DocsAI{% endblock %}
+
+{% block content %}
+{# ADM-2.1 — Email ops: provider health, retry queues, failure visibility #}
+<div class="page-header mb-6">
+  <h1 class="page-title">Email Operations</h1>
+  <p class="page-subtitle">Provider status, retry queues, and delivery failures — era 2.x</p>
+</div>
+
+{# Provider health row #}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  {% for provider in email_providers %}
+  <div class="card p-4">
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <p class="text-sm font-semibold text-primary">{{ provider.name }}</p>
+        <p class="text-xs text-secondary">{{ provider.host }}</p>
+      </div>
+      <span class="badge {% if provider.status == 'operational' %}badge-success{% elif provider.status == 'degraded' %}badge-warning{% else %}badge-danger{% endif %}">
+        {{ provider.status|default:'unknown' }}
+      </span>
+    </div>
+
+    <div class="progress mb-2">
+      <div class="progress__header">
+        <span class="progress__label">Delivery rate</span>
+        <span class="progress__meta">{{ provider.delivery_rate|default:'—' }}%</span>
+      </div>
+      <div class="progress__track">
+        <div class="progress__bar {% if provider.delivery_rate >= 95 %}progress--success{% elif provider.delivery_rate >= 80 %}{% else %}progress--danger{% endif %}"
+             style="width:{{ provider.delivery_rate|default:0 }}%"
+             role="progressbar" aria-valuenow="{{ provider.delivery_rate|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+    </div>
+
+    <div class="flex gap-3 text-xs text-secondary">
+      <span>Sent: <strong>{{ provider.sent_24h|default:'—' }}</strong></span>
+      <span>Bounced: <strong class="text-danger">{{ provider.bounced_24h|default:'—' }}</strong></span>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card p-6 col-span-3 text-center text-secondary">
+    No email providers configured. Add providers via settings or API.
+  </div>
+  {% endfor %}
+</div>
+
+{# Retry queue #}
+<div class="card mb-6">
+  <div class="card-header flex items-center justify-between">
+    <h2 class="card-title">Retry Queue</h2>
+    <span class="badge badge-neutral">{{ retry_count|default:0 }} pending</span>
+  </div>
+  <div class="card-body p-0">
+    {% include 'components/table.html' with
+        id='email-retry-table'
+        columns=retry_columns
+        rows=retry_rows
+        hoverable=True
+        compact=True
+        empty_message='No messages in retry queue'
+    %}
+  </div>
+</div>
+
+{# Failure log #}
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Recent Failures</h2>
+  </div>
+  <div class="card-body p-0">
+    {% include 'components/table.html' with
+        id='email-failure-table'
+        columns=failure_columns
+        rows=failure_rows
+        hoverable=True
+        compact=True
+        empty_message='No failures in the last 24 hours'
+    %}
+  </div>
+</div>
+{% endblock %}
