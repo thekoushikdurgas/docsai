@@ -67,7 +67,7 @@ generator: json_to_markdown_endpoints.py
 | 11 | activities | 1.x | 11_ACTIVITIES_MODULE.md | ['activities', 'activityStats'] | [] |
 | 13 | admin | 7.x | 13_ADMIN_MODULE.md | ['users', 'usersWithBuckets', 'userStats', 'userHistory', 'logStatistics', 'logs', 'searchLogs'] | ['updateUserRole', 'updateUserCredits', 'deleteUser', 'promoteToAdmin', 'promoteToSuperAdmin', 'createLog', 'createLogsBatch', 'updateLog', 'deleteLog', 'deleteLogsBulk'] |
 | 14 | billing | 1.x | 14_BILLING_MODULE.md | ['billing', 'plans', 'addons', 'invoices', 'paymentInstructions', 'paymentSubmissions'] | ['subscribe', 'purchaseAddon', 'submitPaymentProof', 'approvePayment', 'declinePayment'] |
-| 15 | email | 2.x | 15_EMAIL_MODULE.md | ['findEmails', 'createEmailFinderExportJob', 'createEmailVerifyExportJob', 'findEmailsBulk', 'verifySingleEmail', 'verifyEmailsBulk', 'exportEmails', 'verifyexportEmail'] | ['addEmailPattern', 'addEmailPatternBulk'] |
+| 15 | email | 2.x | 15_EMAIL_MODULE.md | ['findEmails', 'findEmailsBulk', 'verifySingleEmail', 'verifyEmailsBulk', 'emailJobStatus', 'webSearch', 'exportEmails', 'verifyexportEmail'] | ['addEmailPattern', 'addEmailPatternBulk', 'createEmailFinderBulkJob', 'createEmailVerifyBulkJob'] |
 | 16 | jobs | 2.x | 16_JOBS_MODULE.md | ['job', 'jobs'] | ['createEmailFinderExport', 'createEmailVerifyExport', 'createContact360Export', 'createContact360Import', 'pauseJob', 'resumeJob', 'terminateJob', 'retryJob'] |
 | 17 | aiChats | 5.x | 17_AI_CHATS_MODULE.md | ['aiChat', 'aiChats'] | ['createAIChat', 'updateAIChat', 'deleteAIChat', 'sendMessage', 'analyzeEmailRisk', 'generateCompanySummary', 'parseContactFilters'] |
 | 18 | analytics | 6.x | 18_ANALYTICS_MODULE.md | ['performanceMetrics', 'aggregateMetrics'] | ['submitPerformanceMetric'] |

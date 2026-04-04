@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Email module provides email finder, verification, pattern management, optional **async satellite jobs**, and web discovery via the Lambda Email API (Go `email.server`). It includes **finder/verifier/pattern queries**, **pattern + async job mutations**, `emailJobStatus` and `webSearch` queries. Long‑running CSV export/import jobs still delegate to the [Jobs Module](16_JOBS_MODULE.md).
+The Email module provides email finder, verification, pattern management, optional **async satellite jobs**, and web discovery via the Lambda Email API (Go `email.server`). It includes **finder/verifier/pattern queries**, **pattern + async job mutations**, `emailJobStatus` and `webSearch` queries. **S3 CSV export jobs** are invoked only via the [Jobs Module](16_JOBS_MODULE.md) (`jobs.createEmailFinderExport` / `jobs.createEmailVerifyExport`); they are not duplicated under `email` queries.
 **Location:** `app/graphql/modules/email/`
 
 **Lambda Email API base URL:** from gateway env `LAMBDA_EMAIL_API_URL` (`app/core/config.py`). Do not hardcode stage URLs in clients.
@@ -21,11 +21,11 @@ The Email module provides email finder, verification, pattern management, option
 | `addEmailPatternBulk` | Lambda: POST `/email-patterns/add/bulk` | Add multiple email patterns (mutation) |
 | `createEmailFinderBulkJob` | Lambda: POST `/email/finder/bulk/job` | Enqueue async finder rows (mutation) |
 | `createEmailVerifyBulkJob` | Lambda: POST `/email/bulk/verifier/job` | Enqueue async verify rows (mutation) |
-| `createEmailFinderExportJob` | Delegates to `jobs.createEmailFinderExport` → email.server S3 finder job | Create an email finder export job (streaming CSV via S3) |
-| `createEmailVerifyExportJob` | Delegates to `jobs.createEmailVerifyExport` → email.server S3 verifier job | Create an email verification export job (streaming CSV via S3) |
+| `createEmailFinderExport` | [Jobs](16_JOBS_MODULE.md): POST `/email/finder/s3` | Finder S3 CSV stream job (`scheduler_jobs`) |
+| `createEmailVerifyExport` | [Jobs](16_JOBS_MODULE.md): POST `/email/verify/s3` | Verifier S3 CSV stream job (`scheduler_jobs`) |
 | *(removed)* `createEmailPatternImportJob` | — | Removed in favor of supported patterns under `jobs` / email APIs; see [16_JOBS_MODULE.md](16_JOBS_MODULE.md) |
 
-> **Note:** Finder and verification are **queries** under `email`; pattern add and async bulk jobs are **mutations** under `mutation.email`. CSV export jobs still live under `email` (queries) but delegate to the Jobs module (`scheduler_jobs`).
+> **Note:** Finder and verification are **queries** under `email`; pattern add and async bulk jobs are **mutations** under `mutation.email`. S3 CSV exports use **`jobs`** mutations only.
 
 ## Verifier provider matrix (gateway + satellite)
 
@@ -65,10 +65,10 @@ All fields live under `email { ... }` on `Query` / `Mutation`.
 | `findEmailsBulk` | `input` | `BulkEmailFinderInput!` | `BulkEmailFinderResponse` |
 | `verifySingleEmail` | `input` | `SingleEmailVerifierInput!` | `VerifiedEmailResult` |
 | `verifyEmailsBulk` | `input` | `BulkEmailVerifierInput!` | bulk verify result type |
-| `emailJobStatus` | `jobId` | `String!` | `EmailJobStatus` (async bulk job progress) |
+| `emailJobStatus` | `jobId` | `String!` | `EmailJobStatusResponse` (async bulk / S3 job progress) |
 | `webSearch` | `input` | `WebSearchInput!` | `JSON` (upstream discovery payload) |
-| `createEmailFinderExportJob` | `input` | `CreateEmailFinderExportInput!` | `SchedulerJob` (email.server) |
-| `createEmailVerifyExportJob` | `input` | `CreateEmailVerifyExportInput!` | `SchedulerJob` |
+| ~~`createEmailFinderExportJob`~~ | — | — | **Removed** — use `jobs.createEmailFinderExport` |
+| ~~`createEmailVerifyExportJob`~~ | — | — | **Removed** — use `jobs.createEmailVerifyExport` |
 | ~~`createEmailPatternImportJob`~~ | — | — | **Removed** from schema |
 | `exportEmails` | — | — | `ComingSoonResponse` (stub) |
 | `verifyexportEmail` | — | — | `ComingSoonResponse` (stub) |
@@ -1101,7 +1101,7 @@ Activity logging is non-blocking - failures don't affect the operation.
 1. **findEmails/findEmailsBulk:** EmailFinderInput (e.g. contact uuid, first/last/domain); Lambda Email API POST /email/finder/ and /email/finder/bulk; map response to EmailFinderResponse/BulkEmailFinderResponse; credit deduction and usage tracking (EMAIL_FINDER, BULK_EXPORT).
 2. **verifySingleEmail/verifyEmailsBulk:** SingleEmailVerifierInput / BulkEmailVerifierInput; Lambda /email/single/verifier/ and /email/bulk/verifier/ (1–10,000 emails); credit and usage (VERIFIER, BULK_VERIFICATION).
 3. **addEmailPattern/addEmailPatternBulk:** Mutations; Lambda /email-patterns/add and /add/bulk; validate company and pattern payload; no job creation.
-4. **Job creation fields:** createEmailFinderExportJob, createEmailVerifyExportJob, createEmailPatternImportJob delegate to JobMutation (same inputs as Jobs module); confirm scheduler_jobs row and activity log (JOBS/EXPORT, JOBS/IMPORT).
+4. **S3 export jobs:** Use `jobs.createEmailFinderExport` / `jobs.createEmailVerifyExport` only; confirm `scheduler_jobs` row and activity log (JOBS/EXPORT, BULK_VERIFICATION).
 5. **Error mapping:** Lambda errors via handle_external_error; validate response shape; document field-level validation (email format, bulk limits).
 
 ---

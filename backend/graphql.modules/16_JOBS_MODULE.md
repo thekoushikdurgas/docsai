@@ -103,10 +103,11 @@ List jobs for the current user. Optional **`jobFamily`** filter: `email_job` | `
 | `createContact360Export` | sync.server `POST /common/jobs/create` | `service` field selects contact vs company family |
 | `createContact360Import` | sync.server | `importTarget` in GraphQL maps to import scope |
 | `pauseJob` / `resumeJob` / `terminateJob` | email.server only | Error if `source_service` is not `email_server` |
-| `retryJob` | email vs sync | Email: satellite retry when available; sync: DB status update for worker |
+| `retryJob` | email vs sync | **email.server:** rejected (use resume if paused). **sync.server:** only sets local `scheduler_jobs.status` to `open`; no Connectra HTTP retry call. |
 
 ## Input types (summary)
 
+- **CreateEmailFinderExportInput** / **CreateEmailVerifyExportInput**: fields match email.server `S3CSVFinderRequest` / `S3CSVVerifyRequest` (`s3Bucket`, `inputCsvKey`, `outputPrefix`, optional `csvColumns`; verify also optional `provider`, default `mailtester`).
 - **CreateContact360ImportInput** includes `importTarget` (GraphQL name) for import scope when applicable.
 - **PauseJobInput** / **ResumeJobInput** / **TerminateJobInput**: `{ jobId: ID! }`.
 - **RetryJobInput**: job id and optional retry metadata (see schema).
