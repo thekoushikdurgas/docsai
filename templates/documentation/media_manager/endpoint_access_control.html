@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ endpoint_id }} - Access Control - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">{{ endpoint_id }}</h1>
+            <p class="c360-mm-hero__subtitle">Access Control</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:endpoint_detail_enhanced' endpoint_id %}" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Endpoint
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Access Control Content -->
+    {% if access_control %}
+        <div class="section-card">
+            <h2 class="c360-mm-section-title">Access Control Settings</h2>
+            <pre class="c360-mm-pre">{{ access_control|safe|pprint }}</pre>
+        </div>
+    {% else %}
+        <div class="section-card">
+            <p class="c360-mm-muted">No access control settings configured for this endpoint</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

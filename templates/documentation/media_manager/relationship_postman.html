@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ relationship_id }} - Postman - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">{{ relationship_id }}</h1>
+            <p class="c360-mm-hero__subtitle">Postman Configuration</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:relationship_detail_enhanced' relationship_id %}" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Relationship
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Postman Content -->
+    {% if postman %}
+        <div class="section-card">
+            <h2 class="c360-mm-section-title">Postman Configuration</h2>
+            <pre class="c360-mm-pre">{{ postman|safe|pprint }}</pre>
+        </div>
+    {% else %}
+        <div class="section-card">
+            <p class="c360-mm-muted">No Postman configuration available for this relationship</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

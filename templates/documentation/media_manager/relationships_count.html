@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relationships Count{% if page_id %}: Page {{ page_id }}{% elif endpoint_id %}: Endpoint {{ endpoint_id }}{% elif usage_type %}: {{ usage_type|title }}{% elif usage_context %}: {{ usage_context|title }}{% elif state %}: {{ state|title }}{% endif %} - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">Relationship Count</h1>
+            <p class="c360-mm-hero__subtitle">
+                {% if page_id %}Page: {{ page_id }}{% elif endpoint_id %}Endpoint: {{ endpoint_id }}{% elif usage_type %}{{ usage_type|title }} relationships{% elif usage_context %}{{ usage_context|title }} relationships{% elif state %}{{ state|title }} relationships{% else %}Relationships{% endif %}
+            </p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:dashboard_relationships' %}" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Relationships
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Count Display -->
+    <div class="section-card section-card--lg text-center">
+        <div class="mb-4">
+            {% if page_id %}
+                <span class="text-sm font-medium text-gray-500">Page ID</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ page_id }}</h2>
+            {% elif endpoint_id %}
+                <span class="text-sm font-medium text-gray-500">Endpoint ID</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ endpoint_id }}</h2>
+            {% elif usage_type %}
+                <span class="text-sm font-medium text-gray-500">Usage Type</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ usage_type|title }}</h2>
+            {% elif usage_context %}
+                <span class="text-sm font-medium text-gray-500">Usage Context</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ usage_context|title }}</h2>
+            {% elif state %}
+                <span class="text-sm font-medium text-gray-500">State</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ state|title }}</h2>
+            {% endif %}
+        </div>
+        <div class="mb-6">
+            <span class="text-6xl font-black text-blue-600">{{ count }}</span>
+            <p class="text-sm text-gray-500 mt-2">relationships</p>
+        </div>
+        {% if page_id %}
+            <a href="{% url 'documentation:relationships_by_page' page_id %}" 
+               class="btn btn-primary">
+                View All Relationships →
+            </a>
+        {% elif endpoint_id %}
+            <a href="{% url 'documentation:relationships_by_endpoint' endpoint_id %}" 
+               class="btn btn-primary">
+                View All Relationships →
+            </a>
+        {% elif usage_type %}
+            <a href="{% url 'documentation:relationships_by_usage_type' usage_type %}" 
+               class="btn btn-primary">
+                View All {{ usage_type|title }} Relationships →
+            </a>
+        {% elif usage_context %}
+            <a href="{% url 'documentation:relationships_by_usage_context' usage_context %}" 
+               class="btn btn-primary">
+                View All {{ usage_context|title }} Relationships →
+            </a>
+        {% elif state %}
+            <a href="{% url 'documentation:relationships_by_state' state %}" 
+               class="btn btn-primary">
+                View All {{ state|title }} Relationships →
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

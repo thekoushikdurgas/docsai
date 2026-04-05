@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}System Status — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">System Status</h1>
+    <p class="page-subtitle">Real-time service health probes</p>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn btn-outline" onclick="location.reload()">
+      <i class="lni lni-reload"></i> Refresh
+    </button>
+  </div>
+</div>
+
+<!-- Uptime summary -->
+<div class="kpi-grid" style="margin-bottom:var(--space-6)">
+  {% include "components/card.html" with value=up_count label="Services Up" icon="lni-pulse" color="success" %}
+  {% include "components/card.html" with value=total_services label="Total Services" icon="lni-network" color="primary" %}
+  {% include "components/card.html" with value=uptime_pct label="Uptime %" icon="lni-checkmark-circle" color="info" %}
+</div>
+
+{% include "components/progress.html" with value=uptime_pct label="Overall uptime" %}
+
+<div class="card" style="margin-top:var(--space-6)">
+  <div class="card-header"><h2 class="card-title">Service Health</h2></div>
+  <div class="table-wrap">
+    <table class="table" aria-label="Service health table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Status</th>
+          <th>Latency</th>
+          <th>Key</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for svc in health_services %}
+        <tr>
+          <td>
+            {{ svc.status|service_status_dot }}
+            <strong style="margin-left:8px">{{ svc.name }}</strong>
+          </td>
+          <td>
+            <span class="badge {% if svc.status == 'up' %}badge-success{% elif svc.status == 'down' %}badge-danger{% elif svc.status == 'degraded' %}badge-warning{% else %}badge-neutral{% endif %}">
+              {{ svc.status|title }}
+            </span>
+          </td>
+          <td>
+            {% if svc.latency_ms is not None %}
+            <span {% if svc.latency_ms > 1000 %}style="color:var(--color-warning)"{% endif %}>
+              {{ svc.latency_ms }}ms
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td><code style="font-size:var(--text-xs)">{{ svc.key }}</code></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="table-empty">No services configured.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

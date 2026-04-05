@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Collection {{ collection_id }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1 class="page-title">Collection</h1><p class="page-subtitle"><code>{{ collection_id }}</code></p></div>
+  <a href="{% url 'durgasman:dashboard' %}" class="btn btn-outline">Dashboard</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Method</th><th>Name</th><th>URL</th></tr></thead>
+      <tbody>
+        {% for r in requests %}
+        <tr><td>{{ r.method }}</td><td>{{ r.name }}</td><td>{{ r.url }}</td></tr>
+        {% empty %}
+        <tr><td colspan="3" class="table-empty">No requests (storage stub).</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

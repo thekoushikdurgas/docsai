@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Statistics — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Statistics</h1>
+    <p class="page-subtitle">User and usage analytics</p>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  {% include "components/card.html" with value=stats.totalUsers label="Total Users" icon="lni-users" color="primary" %}
+  {% include "components/card.html" with value=stats.activeUsers label="Active Users" icon="lni-checkmark" color="success" %}
+  {% include "components/card.html" with value=stats.newUsersToday label="New Today" icon="lni-star" color="warning" %}
+  {% include "components/card.html" with value=stats.newUsersThisWeek label="New This Week" icon="lni-calendar" color="info" %}
+  {% include "components/card.html" with value=stats.newUsersThisMonth label="New This Month" icon="lni-calendar" color="primary" %}
+</div>
+
+<div class="card c360-mt-6">
+  <div class="card-header"><h2 class="card-title">Users by Subscription Plan</h2></div>
+  <div class="card-body">
+    {{ chart_data|json_script_tag:"statsChartData" }}
+    <canvas id="statsChart" height="250" aria-label="Users by plan chart" role="img"></canvas>
+  </div>
+</div>
+
+{% if stats.usersBySubscription %}
+<div class="card c360-mt-4">
+  <div class="card-header"><h2 class="card-title">Plan Breakdown</h2></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Plan</th><th>Count</th><th>Share</th></tr></thead>
+      <tbody>
+        {% for plan_row in stats.usersBySubscription %}
+        <tr>
+          <td>{{ plan_row.subscriptionPlan|plan_badge }}</td>
+          <td>{{ plan_row.count }}</td>
+          <td>
+            {% if stats.totalUsers %}
+            {% widthratio plan_row.count stats.totalUsers 100 %}%
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'admin/js/charts.js' %}"></script>
+<script>
+  (function() {
+    var raw = document.getElementById('statsChartData');
+    if (!raw) return;
+    var d = JSON.parse(raw.textContent);
+    initBarChart('statsChart', d.labels, d.values, 'Users by Plan');
+  })();
+</script>
+{% endblock %}

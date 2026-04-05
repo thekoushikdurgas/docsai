@@ -1,0 +1,53 @@
+{% load admin_tags %}
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-search" role="search">
+        <form action="#" method="get" onsubmit="return false;">
+          <label for="headerSearchInput" class="visually-hidden">Search</label>
+          <input id="headerSearchInput" type="search" name="q" placeholder="Search here" autocomplete="off" />
+          <span class="search-icon lni lni-magnifier" aria-hidden="true"></span>
+        </form>
+      </div>
+      <nav class="breadcrumb header-breadcrumb" aria-label="Breadcrumb">
+        <a href="{% url 'core:dashboard' %}">Home</a>
+        {% block breadcrumb %}{% endblock %}
+      </nav>
+    </div>
+
+    <div class="header-right">
+      <button type="button" class="header-icon-btn" id="headerFullscreen" aria-label="Toggle fullscreen" title="Fullscreen">
+        <i class="lni lni-screen" aria-hidden="true"></i>
+      </button>
+
+      <details class="header-notify-dropdown">
+        <summary class="header-icon-btn warning" aria-label="Notifications">
+          <i class="lni lni-alarm" aria-hidden="true"></i>
+        </summary>
+        <div class="notify-panel" role="region" aria-label="Notifications">
+          <p style="margin:0;font-size:var(--text-sm);color:var(--color-text-muted);">No notifications</p>
+        </div>
+      </details>
+
+      <button type="button" class="header-icon-btn" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <i class="lni lni-moon" aria-hidden="true"></i>
+      </button>
+
+      {% if operator %}
+      <details class="header-profile-dropdown">
+        <summary class="header-profile-pill">
+          <span>Hello, <strong>{{ operator.name|default:operator.email|truncatechars:24 }}</strong></span>
+          <span class="header-avatar" aria-hidden="true">{{ operator.name|first|upper|default:"A" }}</span>
+        </summary>
+        <div class="profile-panel" role="menu">
+          <div class="profile-meta">v{{ docs_agent_version }}</div>
+          <a href="{% url 'core:dashboard' %}" role="menuitem">Dashboard</a>
+          <a href="{% url 'core:logout' %}" role="menuitem">Sign out</a>
+        </div>
+      </details>
+      {% else %}
+      <span class="badge badge-neutral" title="Docs Agent version">v{{ docs_agent_version }}</span>
+      {% endif %}
+    </div>
+  </div>
+</header>

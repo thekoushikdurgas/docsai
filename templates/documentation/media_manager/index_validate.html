@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Index Validation: {{ index_type|title }} - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">Index Validation: {{ index_type|title }}</h1>
+            <p class="c360-mm-hero__subtitle">Validate index file integrity</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            {% if index_type == 'pages' %}
+                <a href="{% url 'documentation:index_pages' %}" class="btn btn-secondary c360-mm-back-btn">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Index
+                </a>
+            {% elif index_type == 'endpoints' %}
+                <a href="{% url 'documentation:index_endpoints' %}" class="btn btn-secondary c360-mm-back-btn">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Index
+                </a>
+            {% elif index_type == 'relationships' %}
+                <a href="{% url 'documentation:index_relationships' %}" class="btn btn-secondary c360-mm-back-btn">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Index
+                </a>
+            {% elif index_type == 'postman' %}
+                <a href="{% url 'documentation:index_postman' %}" class="btn btn-secondary c360-mm-back-btn">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Index
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Validation Result -->
+    {% if validation_result %}
+        <div class="section-card">
+            <h2 class="c360-mm-section-title">Validation Result</h2>
+            <div class="mb-4">
+                {% if validation_result.valid %}
+                    <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="font-semibold">Valid</span>
+                    </div>
+                {% else %}
+                    <div class="inline-flex items-center px-4 py-2 bg-red-100 text-red-800 rounded-lg">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="font-semibold">Invalid</span>
+                    </div>
+                {% endif %}
+            </div>
+            <dl class="c360-mm-dl-grid">
+                {% for key, value in validation_result.items %}
+                    {% if key != 'valid' %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">{{ key|title }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ value }}</dd>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </dl>
+            {% if validation_result.errors %}
+                <div class="mt-4">
+                    <h3 class="text-sm font-semibold text-red-700 mb-2">Errors</h3>
+                    <pre class="bg-red-50 p-4 rounded-lg overflow-x-auto text-sm">{{ validation_result.errors|safe|pprint }}</pre>
+                </div>
+            {% endif %}
+            <div class="mt-4">
+                <h3 class="c360-mm-section-title c360-mm-section-title--sm">Full Validation Result</h3>
+                <pre class="c360-mm-pre">{{ validation_result|safe|pprint }}</pre>
+            </div>
+        </div>
+    {% else %}
+        <div class="section-card">
+            <p class="c360-mm-muted">No validation result available</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

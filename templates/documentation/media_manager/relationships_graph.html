@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relationships Graph - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">Relationships Graph</h1>
+            <p class="c360-mm-hero__subtitle">Visual representation of relationships</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:dashboard_relationships' %}" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Relationships
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Graph Visualization -->
+    <div class="section-card">
+        <h2 class="c360-mm-section-title">Graph Data</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Nodes</dt>
+                <dd class="mt-1 text-2xl font-semibold text-gray-900">{{ nodes|length }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Edges</dt>
+                <dd class="mt-1 text-2xl font-semibold text-gray-900">{{ edges|length }}</dd>
+            </div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+            <pre class="text-sm overflow-x-auto">{{ graph|safe|pprint }}</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

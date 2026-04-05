@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Job Detail — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Job Detail</h1>
+    <p class="page-subtitle">{{ job_id }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'admin_ops:jobs' %}" class="btn btn-outline"><i class="lni lni-arrow-left"></i> Back to Jobs</a>
+    {% if job and job.status == "failed" %}
+    <form method="post" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="retry">
+      <button type="submit" class="btn btn-warning"><i class="lni lni-reload"></i> Retry Job</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if job %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6)">
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Job Info</h2></div>
+    <div class="card-body">
+      <table class="table">
+        <tr><th>ID</th><td><code>{{ job.id }}</code></td></tr>
+        <tr><th>Type</th><td>{{ job.type }}</td></tr>
+        <tr><th>Status</th><td>{{ job.status|job_status_badge }}</td></tr>
+        <tr><th>User</th><td><code>{{ job.userId }}</code></td></tr>
+        <tr><th>Request ID</th><td><code>{{ job.requestId|default:"—" }}</code></td></tr>
+        <tr><th>Created</th><td>{{ job.createdAt }}</td></tr>
+        <tr><th>Updated</th><td>{{ job.updatedAt }}</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Progress</h2></div>
+    <div class="card-body">
+      {% if job.progress %}
+      {% include "components/progress.html" with value=job.progress.percent label="Completion" %}
+      <p style="margin-top:var(--space-4);color:var(--color-text-secondary);font-size:var(--text-sm)">
+        {{ job.progress.processed|default:0 }} / {{ job.progress.total|default:"?" }} processed
+      </p>
+      {% else %}
+      <p style="color:var(--color-text-muted)">No progress data available.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Job logs -->
+{% if job.logs %}
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Job Logs</h2></div>
+  <div class="card-body" style="padding:0">
+    <div style="max-height:400px;overflow-y:auto;font-family:var(--font-mono);font-size:var(--text-xs);background:var(--color-gray-50);padding:var(--space-4)">
+      {% for log in job.logs %}
+      <div style="margin-bottom:4px">
+        <span style="color:var(--color-text-muted)">{{ log.timestamp }}</span>
+        <span class="badge badge-{{ log.level|lower }}" style="margin:0 6px">{{ log.level }}</span>
+        <span>{{ log.message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+{% include "components/alert.html" with type="warning" message="Job not found or could not be loaded." %}
+{% endif %}
+{% endblock %}

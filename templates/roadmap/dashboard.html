@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Roadmap — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Roadmap</h1>
+    <p class="page-subtitle">Era-based delivery plan: 0.x — 10.x</p>
+  </div>
+  <div class="page-actions">
+    <div class="tab-nav tab-nav-filter">
+      <a href="{% url 'roadmap:dashboard' %}" class="tab-link {% if not era_filter %}active{% endif %}">All</a>
+      <a href="?status=completed" class="tab-link {% if era_filter == 'completed' %}active{% endif %}">Completed</a>
+      <a href="?status=in_progress" class="tab-link {% if era_filter == 'in_progress' %}active{% endif %}">In Progress</a>
+      <a href="?status=planned" class="tab-link {% if era_filter == 'planned' %}active{% endif %}">Planned</a>
+    </div>
+  </div>
+</div>
+<div style="display:flex;flex-direction:column;gap:var(--space-4)">
+  {% for era in eras %}
+  <div class="card">
+    <div class="card-body" style="display:grid;grid-template-columns:64px 1fr 200px;gap:var(--space-4);align-items:center">
+      <div style="text-align:center">
+        {% era_badge era.number %}
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:var(--text-sm)">{{ era.name }}</div>
+        <span class="badge badge-{{ status_color|get_item:era.status }}">{{ era.status|title }}</span>
+      </div>
+      <div>
+        {% include "components/progress.html" with value=era.era_pct label="" %}
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)">{{ era.era_pct }}% complete</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

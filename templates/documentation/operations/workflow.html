@@ -1,0 +1,37 @@
+{% extends 'layouts/operations-view.html' %}
+{% load static %}
+
+{% block title %}Workflow - Operations{% endblock %}
+
+{% block operations_wrapper_class %}c360-ops-root--narrow{% endblock %}
+
+{% block operations_content %}
+    <!-- Header -->
+    <div class="section-card mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Documentation Workflow</h1>
+        <p class="c360-mm-muted">
+            Manage documentation workflows and automation. Use Durgasflow to create and run workflows (analyze, sync, generate).
+        </p>
+    </div>
+
+    <!-- Link to Workflow Automation (Durgasflow) -->
+    <div class="section-card">
+        <div class="flex items-start gap-4">
+            <div class="p-3 bg-pink-100 rounded-lg">
+                <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">Workflow Automation (Durgasflow)</h2>
+                <p class="text-sm text-gray-600 mb-4">
+                    Create and run visual workflows for documentation: analyze files, sync to S3, generate indexes, and more.
+                </p>
+                {% url 'durgasflow:dashboard' as dashboard_url %}
+                {% url 'durgasflow:workflow_list' as workflows_url %}
+                {% include 'components/button.html' with text='Open Workflow Dashboard' type='primary' size='md' href=dashboard_url %}
+                {% include 'components/button.html' with text='View All Workflows' type='secondary' size='md' href=workflows_url class='ml-3' %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

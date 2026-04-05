@@ -1,0 +1,21 @@
+[Unit]
+Description=Contact360 DocsAI Admin (Gunicorn)
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/contact360/contact360.io/admin
+Environment="DJANGO_SETTINGS_MODULE=docsai.settings"
+EnvironmentFile=/home/ubuntu/contact360/contact360.io/admin/.env
+ExecStart=/home/ubuntu/.venv/bin/gunicorn docsai.wsgi:application \
+    --bind 127.0.0.1:8000 \
+    --workers 4 \
+    --timeout 120 \
+    --access-logfile /var/log/docsai/access.log \
+    --error-logfile /var/log/docsai/error.log
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+{% comment %}
+Adapter for dashboard pages that pass items, pagination, resource_name.
+Maps to _components/_resource_list.html which expects resource_type, items, total, filters, view_mode, page, per_page.
+{% endcomment %}
+{% with item_count=items|length %}
+{% with total=pagination.total|default_if_none:item_count per_page=pagination.page_size|default_if_none:pagination.per_page|default:20 page=pagination.page|default_if_none:1 %}
+{% include 'documentation/media_manager/_components/_resource_list.html' with resource_type=resource_name items=items total=total view_mode='list' page=page per_page=per_page %}
+{% endwith %}
+{% endwith %}

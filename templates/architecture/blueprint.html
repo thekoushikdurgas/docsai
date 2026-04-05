@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Architecture — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Architecture</h1>
+    <p class="page-subtitle">Contact360 system topology and service registry</p>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6)">
+  <!-- Services -->
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Service Registry</h2></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Service</th><th>Type</th><th>Host</th><th>Tech</th></tr></thead>
+        <tbody>
+          {% for svc in services %}
+          <tr>
+            <td>{{ svc.name }}</td>
+            <td><span class="badge badge-neutral">{{ svc.type }}</span></td>
+            <td><code style="font-size:var(--text-xs)">{{ svc.host }}</code></td>
+            <td style="font-size:var(--text-xs);color:var(--color-text-muted)">{{ svc.tech }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- URL mounts -->
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">URL Mount Map</h2></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Path</th><th>App</th><th>Description</th></tr></thead>
+        <tbody>
+          {% for mount in url_mounts %}
+          <tr>
+            <td><code style="font-size:var(--text-xs)">{{ mount.path }}</code></td>
+            <td><span style="font-size:var(--text-xs);color:var(--color-text-muted)">{{ mount.app }}</span></td>
+            <td style="font-size:var(--text-xs)">{{ mount.description }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Users — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Users</h1>
+    <p class="page-subtitle">
+      {% if page_info.total %}{{ page_info.total }} total users{% endif %}
+    </p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'admin_ops:statistics' %}" class="btn btn-outline">
+      <i class="lni lni-bar-chart"></i> Statistics
+    </a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:var(--space-4)">
+  <div class="card-body" style="padding:var(--space-4)">
+    <form method="get" class="filters-form" style="display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:flex-end">
+      <div class="form-group" style="margin:0;flex:1;min-width:180px">
+        <label class="form-label" for="id_search">Search</label>
+        <div class="search-input-wrap">
+          <i class="lni lni-magnifier search-icon"></i>
+          <input type="text" id="id_search" name="search" class="form-control" placeholder="Email, name…" value="{{ search }}">
+        </div>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label" for="id_plan">Plan</label>
+        <select id="id_plan" name="plan" class="form-control">
+          <option value="">All plans</option>
+          <option value="free" {% if plan == 'free' %}selected{% endif %}>Free</option>
+          <option value="pro" {% if plan == 'pro' %}selected{% endif %}>Pro</option>
+          <option value="enterprise" {% if plan == 'enterprise' %}selected{% endif %}>Enterprise</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label" for="id_role">Role</label>
+        <select id="id_role" name="role" class="form-control">
+          <option value="">All roles</option>
+          <option value="user" {% if role == 'user' %}selected{% endif %}>User</option>
+          <option value="admin" {% if role == 'admin' %}selected{% endif %}>Admin</option>
+          <option value="super_admin" {% if role == 'super_admin' %}selected{% endif %}>Super Admin</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label" for="id_active">Status</label>
+        <select id="id_active" name="active" class="form-control">
+          <option value="">All</option>
+          <option value="true" {% if active == 'true' %}selected{% endif %}>Active</option>
+          <option value="false" {% if active == 'false' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:var(--space-2)">
+        <button type="submit" class="btn btn-primary"><i class="lni lni-magnifier"></i> Filter</button>
+        <a href="{% url 'admin_ops:users' %}" class="btn btn-outline">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Users table -->
+<div class="card">
+  <div class="table-wrap">
+    <table class="table" aria-label="Users table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Plan</th>
+          <th>Credits</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td><span style="font-family:var(--font-mono);font-size:var(--text-xs)">{{ user.email }}</span></td>
+          <td>{{ user.name|default:"—" }}</td>
+          <td>{{ user.profile.role|role_badge }}</td>
+          <td>{{ user.profile.subscriptionPlan|plan_badge }}</td>
+          <td>{{ user.profile.credits|default:0 }}</td>
+          <td>
+            {% if user.isActive %}
+            <span class="badge badge-success">Active</span>
+            {% else %}
+            <span class="badge badge-neutral">Inactive</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap">{{ user.createdAt|date:"M d, Y" }}</td>
+          <td>
+            <div class="row-actions" style="opacity:1">
+              <a href="{% url 'admin_ops:user_detail' user.uuid %}" class="btn btn-ghost btn-sm" title="View user">
+                <i class="lni lni-eye"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="table-empty">No users found. Adjust your filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- Pagination -->
+  {% if page_info.total and page_info.total > 25 %}
+  <div class="table-pagination">
+    <span class="pagination-info">
+      Showing {{ page_info.offset|default:0|add:1 }}–{% with end=page_info.offset|add:25 %}{% if end > page_info.total %}{{ page_info.total }}{% else %}{{ end }}{% endif %}{% endwith %} of {{ page_info.total }}
+    </span>
+    <div class="pagination-controls">
+      {% if page_info.hasPrevious %}
+      <a href="?page={{ current_page|add:"-1" }}&search={{ search }}&plan={{ plan }}&role={{ role }}&active={{ active }}" class="pagination-btn">‹ Prev</a>
+      {% endif %}
+      {% if page_info.hasNext %}
+      <a href="?page={{ current_page|add:"1" }}&search={{ search }}&plan={{ plan }}&role={{ role }}&active={{ active }}" class="pagination-btn">Next ›</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

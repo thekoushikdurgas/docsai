@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Analytics — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Analytics</h1>
+    <p class="page-subtitle">User growth, credit burn, job throughput</p>
+  </div>
+</div>
+<div class="card">
+  {% include "components/alert.html" with type="info" message="Analytics aggregates from GraphQL gateway and Logs API. Configure upstream services to populate data." %}
+</div>
+<div class="c360-chart-grid">
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">User Growth</h2></div>
+    <div class="card-body">
+      <canvas id="userGrowthChart" height="250" aria-label="User growth chart"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Job Throughput</h2></div>
+    <div class="card-body">
+      <canvas id="jobChart" height="250" aria-label="Job throughput chart"></canvas>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'admin/vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'admin/js/charts.js' %}"></script>
+<script>
+  initLineChart('userGrowthChart', ['Jan','Feb','Mar','Apr','May','Jun'], [120,145,160,180,210,250], 'Users');
+  initBarChart('jobChart', ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], [42,65,88,72,95,34,21], 'Jobs');
+</script>
+{% endblock %}

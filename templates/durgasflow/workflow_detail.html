@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Workflow {{ workflow_id }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1 class="page-title">Workflow</h1><p class="page-subtitle"><code>{{ workflow_id }}</code></p></div>
+  <div class="page-actions">
+    <a href="{% url 'durgasflow:editor' workflow_id=workflow_id %}" class="btn btn-primary">Open editor</a>
+    <form method="post" action="{% url 'durgasflow:workflow_execute' workflow_id=workflow_id %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-outline">Execute</button></form>
+    <form method="post" action="{% url 'durgasflow:workflow_activate' workflow_id=workflow_id %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-outline">Activate</button></form>
+    <form method="post" action="{% url 'durgasflow:workflow_deactivate' workflow_id=workflow_id %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-outline">Deactivate</button></form>
+  </div>
+</div>
+{% include "components/alert.html" with type="info" message="Workflow detail loads from engine when configured." %}
+{% endblock %}

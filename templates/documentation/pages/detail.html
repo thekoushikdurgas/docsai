@@ -1,0 +1,1247 @@
+{% extends 'layouts/detail-view.html' %}
+{% load static custom_filters %}
+
+{% block title %}{{ page.metadata.content_sections.title|default:page.page_id }} - Documentation{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/css/components/form-responsive.css' %}?v=20260124d">
+<link rel="stylesheet" href="{% static 'admin/css/components/tabs.css' %}?v=20260125">
+{% endblock %}
+
+{% block detail_subtitle %}
+<p class="text-sm text-gray-500 font-mono mt-0.5">{{ page.page_id }}</p>
+<div class="flex items-center gap-2 mt-2 flex-wrap">
+    {% include 'components/badge.html' with type='status' status=page.metadata.status|default:'draft' text=page.metadata.status|default:'draft' %}
+    {% if page.metadata.route %}
+    {% include 'components/badge.html' with type='resource' resource_type='pages' text=page.metadata.route size='sm' %}
+    {% endif %}
+    {% include 'components/badge.html' with type='resource' resource_type='pages' text=page.page_type|default:'page' size='sm' %}
+</div>
+{% endblock %}
+
+{% block detail_tabs %}
+<div class="border-b border-gray-200 px-6 tabs-detail tabs-pages">
+            <nav class="flex flex-wrap gap-1 -mb-px" role="tablist">
+                <a href="?tab=overview" class="tab-button group {% if active_tab == 'overview' %}active{% endif %}" data-tab="overview" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Overview</span>
+                </a>
+                <a href="?tab=content" class="tab-button group {% if active_tab == 'content' %}active{% endif %}" data-tab="content" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                    <span>Content</span>
+                </a>
+                <a href="?tab=relationships" class="tab-button group {% if active_tab == 'relationships' %}active{% endif %}" data-tab="relationships" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <span>Relationships</span>
+                    {% if relationships_count %}
+                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 text-green-600 rounded-full">{{ relationships_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="?tab=endpoints" class="tab-button group {% if active_tab == 'endpoints' %}active{% endif %}" data-tab="endpoints" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Endpoints</span>
+                    {% if endpoints_count %}
+                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-blue-100 text-blue-600 rounded-full">{{ endpoints_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="?tab=components" class="tab-button group {% if active_tab == 'components' %}active{% endif %}" data-tab="components" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                    </svg>
+                    <span>Components</span>
+                    {% if page.metadata.ui_components %}
+                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-purple-100 text-purple-600 rounded-full">{{ page.metadata.ui_components|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="?tab=access" class="tab-button group {% if active_tab == 'access' %}active{% endif %}" data-tab="access" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>Access</span>
+                </a>
+                <a href="?tab=technical" class="tab-button group {% if active_tab == 'technical' %}active{% endif %}" data-tab="technical" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    <span>Technical</span>
+                </a>
+                <a href="?tab=sections" class="tab-button group {% if active_tab == 'sections' %}active{% endif %}" data-tab="sections" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span>Sections</span>
+                    {% if page_sections_count %}
+                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-teal-100 text-teal-600 rounded-full">{{ page_sections_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="?tab=data" class="tab-button group {% if active_tab == 'data' %}active{% endif %}" data-tab="data" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                    <span>Data</span>
+                    {% if fallback_data %}
+                    <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-600 rounded-full">{{ fallback_data|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="?tab=raw" class="tab-button group {% if active_tab == 'raw' %}active{% endif %}" data-tab="raw" role="tab">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    <span>Raw JSON</span>
+                </a>
+            </nav>
+        </div>
+{% endblock %}
+
+{% block detail_content %}
+            <!-- Overview Tab -->
+            <div class="tab-content {% if active_tab == 'overview' %}active{% endif %}" id="tab-overview" role="tabpanel">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Basic Info -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Basic Information
+                        </h3>
+                        <dl class="space-y-3">
+                            {% if page_internal_id %}
+                            {% include 'components/key_value_row.html' with label='Internal ID (_id)' value=page_internal_id format='mono' %}
+                            {% endif %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 shrink-0">Page ID</dt>
+                                <dd class="text-sm text-gray-900 font-mono text-right">{{ page.page_id }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 shrink-0">Title</dt>
+                                <dd class="text-sm text-gray-900 text-right truncate max-w-xs" title="{{ page.metadata.purpose }}">{{ page.title|default:page.metadata.content_sections.title|default:"—" }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 shrink-0">Type</dt>
+                                <dd class="text-sm text-gray-900 text-right capitalize">{{ page.page_type|default:"page" }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 shrink-0">Purpose</dt>
+                                <dd class="text-sm text-gray-900 text-right truncate max-w-xs" title="{{ page.metadata.purpose }}">{{ page.metadata.purpose|default:"—"|truncatechars:50 }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 shrink-0">Status</dt>
+                                <dd class="text-right">{% include 'components/badge.html' with type='status' status=page.metadata.status|default:'draft' text=page.metadata.status|default:'draft' %}</dd>
+                            </div>
+                            {% include 'components/key_value_row.html' with label='File path' value=page.metadata.file_path format='mono' %}
+                            {% include 'components/key_value_row.html' with label='S3 Key' value=page.metadata.s3_key format='mono' %}
+                            {% include 'components/key_value_row.html' with label='Authentication' value=page.metadata.authentication %}
+                            {% include 'components/key_value_row.html' with label='Authorization' value=page.metadata.authorization %}
+                            {% include 'components/key_value_row.html' with label='Page State' value=page.metadata.page_state format='badge' %}
+                            {% include 'components/key_value_row.html' with label='Last Updated' value=page.metadata.last_updated format='date' %}
+                            {% include 'components/key_value_row.html' with label='Endpoint Count' value=page.metadata.endpoint_count %}
+                            {% if page.metadata.api_versions %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 shrink-0">API Versions</dt>
+                                <dd class="text-right flex flex-wrap gap-1 justify-end">
+                                    {% for av in page.metadata.api_versions %}
+                                    {% include 'components/badge.html' with type='resource' resource_type='pages' text=av size='sm' %}
+                                    {% endfor %}
+                                </dd>
+                            </div>
+                            {% else %}
+                            {% include 'components/key_value_row.html' with label='API Versions' value=page.metadata.api_versions %}
+                            {% endif %}
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-sm text-gray-500 shrink-0">Versions</dt>
+                                <dd class="text-sm text-gray-900 text-right">{{ page.metadata.versions|length|default:0 }} {% if page.metadata.versions %}({{ page.metadata.versions|join:", " }}){% endif %}</dd>
+                            </div>
+                            {% if page.created_at %}
+                            {% include 'components/key_value_row.html' with label='Created' value=page.created_at format='date' %}
+                            {% endif %}
+                        </dl>
+                    </div>
+                    
+                    <!-- Metadata -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            Metadata
+                        </h3>
+                        <dl class="space-y-3">
+                            <div class="flex justify-between">
+                                <dt class="c360-mm-muted">Route</dt>
+                                <dd class="text-sm text-gray-900 font-mono">{{ page.metadata.route|default:"/" }}</dd>
+                            </div>
+                            {% if page.metadata.s3_key %}
+                            <div>
+                                <dt class="text-sm text-gray-500 mb-1">S3 Key</dt>
+                                <dd class="text-sm text-gray-900 font-mono break-all">{{ page.metadata.s3_key }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.last_updated %}
+                            <div class="flex justify-between">
+                                <dt class="c360-mm-muted">Last Updated</dt>
+                                <dd class="text-sm text-gray-900">{{ page.metadata.last_updated }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.endpoint_count is not None %}
+                            <div class="flex justify-between">
+                                <dt class="c360-mm-muted">Endpoint Count</dt>
+                                <dd class="text-sm text-gray-900">{{ page.metadata.endpoint_count }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.versions %}
+                            <div>
+                                <dt class="text-sm text-gray-500 mb-1">Versions</dt>
+                                <dd class="text-sm text-gray-900">{{ page.metadata.versions|join:", " }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.description %}
+                            <div>
+                                <dt class="text-sm text-gray-500 mb-1">Description</dt>
+                                <dd class="text-sm text-gray-900">{{ page.metadata.description }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.version %}
+                            <div class="flex justify-between">
+                                <dt class="c360-mm-muted">Version</dt>
+                                <dd class="text-sm text-gray-900">{{ page.metadata.version }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if page.metadata.last_imported %}
+                            <div class="flex justify-between">
+                                <dt class="c360-mm-muted">Last Imported</dt>
+                                <dd class="text-sm text-gray-900">{{ page.metadata.last_imported }}</dd>
+                            </div>
+                            {% endif %}
+                        </dl>
+                    </div>
+
+                    <!-- Data (fallback_data, mock_data, demo_data) -->
+                    <div class="bg-gray-50 rounded-lg p-5 lg:col-span-2">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                            </svg>
+                            Data
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Fallback data</span>
+                                    <span class="text-xs text-gray-500">{{ fallback_data|length }} item{{ fallback_data|length|pluralize }}</span>
+                                </div>
+                                {% if fallback_data %}
+                                <details class="text-xs">
+                                    <summary class="cursor-pointer text-blue-600 hover:underline">Expand</summary>
+                                    <ul class="mt-2 space-y-1 max-h-32 overflow-auto font-mono list-disc list-inside">
+                                        {% for item in fallback_data %}
+                                        <li class="truncate" title="{{ item }}">{% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                                {% else %}
+                                <p class="text-xs text-gray-500">—</p>
+                                {% endif %}
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Mock data</span>
+                                    <span class="text-xs text-gray-500">{{ mock_data|length }} item{{ mock_data|length|pluralize }}</span>
+                                </div>
+                                {% if mock_data %}
+                                <details class="text-xs">
+                                    <summary class="cursor-pointer text-blue-600 hover:underline">Expand</summary>
+                                    <ul class="mt-2 space-y-1 max-h-32 overflow-auto font-mono list-disc list-inside">
+                                        {% for item in mock_data %}
+                                        <li class="truncate" title="{{ item }}">{% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                                {% else %}
+                                <p class="text-xs text-gray-500">—</p>
+                                {% endif %}
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Demo data</span>
+                                    <span class="text-xs text-gray-500">{{ demo_data|length }} item{{ demo_data|length|pluralize }}</span>
+                                </div>
+                                {% if demo_data %}
+                                <details class="text-xs">
+                                    <summary class="cursor-pointer text-blue-600 hover:underline">Expand</summary>
+                                    <ul class="mt-2 space-y-1 max-h-32 overflow-auto font-mono list-disc list-inside">
+                                        {% for item in demo_data %}
+                                        <li class="truncate" title="{{ item }}">{% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                                {% else %}
+                                <p class="text-xs text-gray-500">—</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics -->
+                    <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ page.metadata.uses_endpoints|length|default:0 }}</div>
+                            <div class="text-xs text-blue-600/70 mt-1">Endpoints</div>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-purple-600">{{ page.metadata.ui_components|length|default:0 }}</div>
+                            <div class="text-xs text-purple-600/70 mt-1">Components</div>
+                        </div>
+                        <div class="bg-teal-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-teal-600">{{ page_sections_count|default:0 }}</div>
+                            <div class="text-xs text-teal-600/70 mt-1">Sections</div>
+                        </div>
+                        <div class="bg-amber-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-amber-600">{{ fallback_data|length|default:0 }}</div>
+                            <div class="text-xs text-amber-600/70 mt-1">Fallbacks</div>
+                        </div>
+                        <div class="bg-slate-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-slate-600">{{ mock_data|length|default:0 }}</div>
+                            <div class="text-xs text-slate-600/70 mt-1">Mock Data</div>
+                        </div>
+                        <div class="bg-indigo-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-indigo-600">{{ demo_data|length|default:0 }}</div>
+                            <div class="text-xs text-indigo-600/70 mt-1">Demo Data</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Relationships Tab -->
+            <div class="tab-content {% if active_tab == 'relationships' %}active{% endif %}" id="tab-relationships" role="tabpanel">
+                {% if page_relationships %}
+                <div class="space-y-6">
+                    <!-- Primary Relationships -->
+                    {% if relationships_by_type.primary %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Primary Relationships ({{ relationships_by_type.primary|length }})
+                        </h3>
+                        <div class="space-y-3">
+                            {% for rel in relationships_by_type.primary %}
+                            <div class="p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        {% if rel.endpoint_id %}
+                                        <a href="{% url 'documentation:endpoint_detail' endpoint_id=rel.endpoint_id %}" class="font-medium text-gray-900 hover:text-green-600">
+                                            {{ rel.endpoint_path|default:rel.endpoint_id }}
+                                        </a>
+                                        {% else %}
+                                        <span class="font-medium text-gray-900">{{ rel.endpoint_path|default:"Unknown Endpoint" }}</span>
+                                        {% endif %}
+                                        {% if rel.method %}
+                                        <span class="px-2 py-1 text-xs font-bold rounded
+                                            {% if rel.method == 'GET' or rel.method == 'QUERY' %}bg-green-100 text-green-700
+                                            {% elif rel.method == 'POST' or rel.method == 'MUTATION' %}bg-blue-100 text-blue-700
+                                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                            {{ rel.method }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if rel.usage_context %}
+                                <div class="flex flex-wrap gap-2 text-xs mt-2">
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">{{ rel.usage_context|title }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Secondary Relationships -->
+                    {% if relationships_by_type.secondary %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Secondary Relationships ({{ relationships_by_type.secondary|length }})
+                        </h3>
+                        <div class="space-y-3">
+                            {% for rel in relationships_by_type.secondary %}
+                            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        {% if rel.endpoint_id %}
+                                        <a href="{% url 'documentation:endpoint_detail' endpoint_id=rel.endpoint_id %}" class="font-medium text-gray-900 hover:text-blue-600">
+                                            {{ rel.endpoint_path|default:rel.endpoint_id }}
+                                        </a>
+                                        {% else %}
+                                        <span class="font-medium text-gray-900">{{ rel.endpoint_path|default:"Unknown Endpoint" }}</span>
+                                        {% endif %}
+                                        {% if rel.method %}
+                                        <span class="px-2 py-1 text-xs font-bold rounded
+                                            {% if rel.method == 'GET' or rel.method == 'QUERY' %}bg-green-100 text-green-700
+                                            {% elif rel.method == 'POST' or rel.method == 'MUTATION' %}bg-blue-100 text-blue-700
+                                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                            {{ rel.method }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if rel.usage_context %}
+                                <div class="flex flex-wrap gap-2 text-xs mt-2">
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">{{ rel.usage_context|title }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Conditional Relationships -->
+                    {% if relationships_by_type.conditional %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            Conditional Relationships ({{ relationships_by_type.conditional|length }})
+                        </h3>
+                        <div class="space-y-3">
+                            {% for rel in relationships_by_type.conditional %}
+                            <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        {% if rel.endpoint_id %}
+                                        <a href="{% url 'documentation:endpoint_detail' endpoint_id=rel.endpoint_id %}" class="font-medium text-gray-900 hover:text-amber-600">
+                                            {{ rel.endpoint_path|default:rel.endpoint_id }}
+                                        </a>
+                                        {% else %}
+                                        <span class="font-medium text-gray-900">{{ rel.endpoint_path|default:"Unknown Endpoint" }}</span>
+                                        {% endif %}
+                                        {% if rel.method %}
+                                        <span class="px-2 py-1 text-xs font-bold rounded
+                                            {% if rel.method == 'GET' or rel.method == 'QUERY' %}bg-green-100 text-green-700
+                                            {% elif rel.method == 'POST' or rel.method == 'MUTATION' %}bg-blue-100 text-blue-700
+                                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                            {{ rel.method }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if rel.usage_context %}
+                                <div class="flex flex-wrap gap-2 text-xs mt-2">
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">{{ rel.usage_context|title }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Other Relationships -->
+                    {% if relationships_by_type.other %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            Other Relationships ({{ relationships_by_type.other|length }})
+                        </h3>
+                        <div class="space-y-3">
+                            {% for rel in relationships_by_type.other %}
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        {% if rel.endpoint_id %}
+                                        <a href="{% url 'documentation:endpoint_detail' endpoint_id=rel.endpoint_id %}" class="font-medium text-gray-900 hover:text-gray-600">
+                                            {{ rel.endpoint_path|default:rel.endpoint_id }}
+                                        </a>
+                                        {% else %}
+                                        <span class="font-medium text-gray-900">{{ rel.endpoint_path|default:"Unknown Endpoint" }}</span>
+                                        {% endif %}
+                                        {% if rel.method %}
+                                        <span class="px-2 py-1 text-xs font-bold rounded
+                                            {% if rel.method == 'GET' or rel.method == 'QUERY' %}bg-green-100 text-green-700
+                                            {% elif rel.method == 'POST' or rel.method == 'MUTATION' %}bg-blue-100 text-blue-700
+                                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                            {{ rel.method }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if rel.usage_context %}
+                                <div class="flex flex-wrap gap-2 text-xs mt-2">
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">{{ rel.usage_context|title }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No Relationships</h3>
+                    <p class="text-sm text-gray-500 mb-6 max-w-md">No relationships found for this page. Create relationships to connect this page with endpoints.</p>
+                    <a href="{% url 'documentation:relationship_create' %}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                        <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Create Relationship
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Content Tab -->
+            <div class="tab-content {% if active_tab == 'content' %}active{% endif %}" id="tab-content" role="tabpanel">
+                {% if page.metadata.content_sections %}
+                <div class="space-y-6">
+                    <!-- Title & Subtitle -->
+                    {% if page.metadata.content_sections.title %}
+                    <div class="border-b border-gray-200 pb-4">
+                        <h2 class="text-2xl font-bold text-gray-900">{{ page.metadata.content_sections.title }}</h2>
+                        {% if page.metadata.content_sections.subtitle %}
+                        <p class="mt-2 text-lg text-gray-600">{{ page.metadata.content_sections.subtitle }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Value Propositions -->
+                    {% if page.metadata.content_sections.value_propositions %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Value Propositions</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {% for prop in page.metadata.content_sections.value_propositions %}
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="text-blue-500">{{ prop.icon|default:"📌" }}</span>
+                                    <span class="font-medium text-gray-900">{{ prop.title }}</span>
+                                </div>
+                                <p class="text-sm text-gray-600">{{ prop.description }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Story -->
+                    {% if page.metadata.content_sections.story %}
+                    <div class="bg-blue-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ page.metadata.content_sections.story.title }}</h3>
+                        <p class="text-gray-700">{{ page.metadata.content_sections.story.description }}</p>
+                        {% if page.metadata.content_sections.story.cta %}
+                        <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">{{ page.metadata.content_sections.story.cta }}</button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Other content_sections keys (hero, navbar, cards, features, product_showcase, pricing, footer, api_example, etc.) -->
+                    {% for cs_key, cs_val in page.metadata.content_sections.items %}
+                    {% if cs_key != "title" and cs_key != "subtitle" and cs_key != "value_propositions" and cs_key != "story" %}
+                    <div class="mt-6 border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ cs_key|title }}</h3>
+                        {% if cs_val.items %}
+                        <dl class="space-y-2">
+                            {% for k, v in cs_val.items %}
+                            <div class="flex flex-wrap gap-x-2">
+                                <dt class="text-sm text-gray-500 font-medium">{{ k }}:</dt>
+                                {% if v.items %}
+                                <dd class="text-sm text-gray-900"><span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">nested object</span></dd>
+                                {% elif v|length and v.0.items %}
+                                <dd class="text-sm text-gray-900"><span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">list of {{ v|length }} items</span></dd>
+                                {% else %}
+                                <dd class="text-sm text-gray-900">{{ v }}</dd>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </dl>
+                        {% else %}
+                        {% if cs_val|length and cs_val.0.items %}
+                        <div class="space-y-3">
+                            {% for item in cs_val %}
+                            <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                {% for k, v in item.items %}
+                                <div class="flex flex-wrap gap-x-2 text-sm mb-1">
+                                    <span class="text-gray-500">{{ k }}:</span>
+                                    <span class="text-gray-900">{{ v }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {% if "curl" in cs_key or "code" in cs_key or "example" in cs_key %}
+                        <pre class="text-sm font-mono bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap">{{ cs_val }}</pre>
+                        {% else %}
+                        <p class="text-sm text-gray-700">{{ cs_val }}</p>
+                        {% endif %}
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% elif page_html %}
+                <article class="prose prose-blue max-w-none">
+                    {{ page_html|safe }}
+                </article>
+                {% elif page.content %}
+                <pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>{{ page.content }}</code></pre>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No Content</h3>
+                    <p class="text-sm text-gray-500 mb-6 max-w-md">No content available for this page.</p>
+                    {% url 'documentation:page_edit' page_id=page.page_id as edit_page_url %}
+                    {% include 'components/button.html' with href=edit_page_url text='Edit Page' type='primary' size='sm' %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Endpoints Tab -->
+            <div class="tab-content {% if active_tab == 'endpoints' %}active{% endif %}" id="tab-endpoints" role="tabpanel">
+                {% if endpoints_used %}
+                <div class="space-y-3">
+                    {% for endpoint in endpoints_used %}
+                    <div class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                {% if endpoint.endpoint_id %}
+                                <a href="{% url 'documentation:endpoint_detail' endpoint_id=endpoint.endpoint_id %}" class="flex items-center space-x-2 hover:text-blue-600 transition-colors">
+                                    <span class="px-2 py-1 text-xs font-bold rounded
+                                        {% if endpoint.method == 'GET' or endpoint.method == 'QUERY' %}bg-green-100 text-green-700
+                                        {% elif endpoint.method == 'POST' or endpoint.method == 'MUTATION' %}bg-blue-100 text-blue-700
+                                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                        {{ endpoint.method|default:"GET" }}
+                                    </span>
+                                    <span class="font-medium text-gray-900 font-mono text-sm truncate">{{ endpoint.endpoint_path|default:endpoint.endpoint_id }}</span>
+                                </a>
+                                {% else %}
+                                <span class="px-2 py-1 text-xs font-bold rounded
+                                    {% if endpoint.method == 'GET' or endpoint.method == 'QUERY' %}bg-green-100 text-green-700
+                                    {% elif endpoint.method == 'POST' or endpoint.method == 'MUTATION' %}bg-blue-100 text-blue-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ endpoint.method|default:"GET" }}
+                                </span>
+                                <span class="font-medium text-gray-900 font-mono text-sm truncate">{{ endpoint.endpoint_path|default:"Unknown" }}</span>
+                                {% endif %}
+                            </div>
+                            {% if endpoint.api_version %}
+                            <span class="text-xs px-2 py-1 bg-gray-200 rounded text-gray-600 ml-2">{{ endpoint.api_version }}</span>
+                            {% endif %}
+                        </div>
+                        {% if endpoint.description %}
+                        <p class="text-sm text-gray-600 mb-2">{{ endpoint.description }}</p>
+                        {% endif %}
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            {% if endpoint.via_service %}
+                            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">Service: {{ endpoint.via_service }}</span>
+                            {% endif %}
+                            {% if endpoint.via_hook %}
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded">Hook: {{ endpoint.via_hook }}</span>
+                            {% endif %}
+                            {% if endpoint.usage_type %}
+                            <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded">{{ endpoint.usage_type|title }}</span>
+                            {% endif %}
+                            {% if endpoint.usage_context %}
+                            <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded">{{ endpoint.usage_context|title }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% elif page.metadata.uses_endpoints %}
+                <div class="space-y-3">
+                    {% for endpoint in page.metadata.uses_endpoints %}
+                    <div class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-1 text-xs font-bold rounded
+                                    {% if endpoint.method == 'GET' %}bg-green-100 text-green-700
+                                    {% elif endpoint.method == 'POST' %}bg-blue-100 text-blue-700
+                                    {% elif endpoint.method == 'QUERY' %}bg-purple-100 text-purple-700
+                                    {% elif endpoint.method == 'MUTATION' %}bg-orange-100 text-orange-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ endpoint.method|default:"GET" }}
+                                </span>
+                                <span class="font-medium text-gray-900 font-mono text-sm">{{ endpoint.endpoint_path }}</span>
+                            </div>
+                            <span class="text-xs px-2 py-1 bg-gray-200 rounded text-gray-600">{{ endpoint.api_version }}</span>
+                        </div>
+                        {% if endpoint.description %}
+                        <p class="text-sm text-gray-600 mb-2">{{ endpoint.description }}</p>
+                        {% endif %}
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            {% if endpoint.via_service %}
+                            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">Service: {{ endpoint.via_service }}</span>
+                            {% endif %}
+                            {% if endpoint.via_hook %}
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded">Hook: {{ endpoint.via_hook }}</span>
+                            {% endif %}
+                            {% if endpoint.usage_type %}
+                            <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded">{{ endpoint.usage_type }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No Endpoints</h3>
+                    <p class="text-sm text-gray-500 mb-6 max-w-md">No endpoints associated with this page.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Components Tab -->
+            <div class="tab-content {% if active_tab == 'components' %}active{% endif %}" id="tab-components" role="tabpanel">
+                {% if page.metadata.ui_components %}
+                <div class="space-y-4">
+                    {% for component in page.metadata.ui_components %}
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z" />
+                                </svg>
+                                <span class="font-medium text-gray-900">{{ component.name }}</span>
+                            </div>
+                        </div>
+                        {% if component.file_path %}
+                        <p class="text-xs text-gray-500 font-mono mb-3 truncate">{{ component.file_path }}</p>
+                        {% endif %}
+                        {% if component.access_control %}
+                        <div class="flex flex-wrap gap-2">
+                            {% if component.access_control.public %}<span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Public</span>{% endif %}
+                            {% if component.access_control.freeUser %}<span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">Free User</span>{% endif %}
+                            {% if component.access_control.proUser %}<span class="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">Pro User</span>{% endif %}
+                            {% if component.access_control.admin %}<span class="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded">Admin</span>{% endif %}
+                            {% if component.access_control.superAdmin %}<span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded">Super Admin</span>{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No UI Components</h3>
+                    <p class="text-sm text-gray-500 mb-6 max-w-md">No UI components defined for this page.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Access Control Tab -->
+            <div class="tab-content {% if active_tab == 'access' %}active{% endif %}" id="tab-access" role="tabpanel">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Authentication -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            Authentication
+                        </h3>
+                        <p class="text-sm text-gray-700">
+                            {{ page.metadata.authentication|default:"Not specified" }}
+                        </p>
+                    </div>
+                    
+                    <!-- Authorization -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            Authorization
+                        </h3>
+                        <p class="text-sm text-gray-700">
+                            {% if page.metadata.authorization %}{{ page.metadata.authorization }}{% else %}None required{% endif %}
+                        </p>
+                    </div>
+                    
+                    <!-- API Versions -->
+                    {% if page.metadata.api_versions %}
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            API Versions
+                        </h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for version in page.metadata.api_versions %}
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">{{ version }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- File Path -->
+                    {% if page.metadata.file_path %}
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                            </svg>
+                            Source File
+                        </h3>
+                        <p class="text-xs text-gray-600 font-mono break-all">{{ page.metadata.file_path }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Structured Access Control -->
+                    {% if access_control %}
+                    <div class="lg:col-span-2 bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            Access Control (by role)
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-2 pr-4 text-gray-500">Role</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Can View</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Can Edit</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Can Delete</th>
+                                        <th class="text-left py-2 text-gray-500">Restricted Components</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for role, perms in access_control.items %}
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-2 pr-4 font-medium text-gray-900">{{ role }}</td>
+                                        {% if perms.items %}
+                                        <td class="py-2 pr-4 text-gray-900">{{ perms.can_view|yesno:"Yes,No,-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ perms.can_edit|yesno:"Yes,No,-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ perms.can_delete|yesno:"Yes,No,-" }}</td>
+                                        <td class="py-2 text-gray-900">{% if perms.restricted_components %}{{ perms.restricted_components|join:", " }}{% else %}-{% endif %}</td>
+                                        {% else %}
+                                        <td colspan="4" class="py-2 text-gray-900">{{ perms|yesno:"Allowed,Denied,-" }}</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="lg:col-span-2 text-sm text-gray-500">No structured access control defined.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Technical Tab (file paths, versions, api_versions, sections) -->
+            <div class="tab-content {% if active_tab == 'technical' %}active{% endif %}" id="tab-technical" role="tabpanel">
+                <div class="space-y-6">
+                    <!-- File paths -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">File paths</h3>
+                        <dl class="space-y-2">
+                            {% include 'components/key_value_row.html' with label='File path' value=page.metadata.file_path format='mono' %}
+                            {% include 'components/key_value_row.html' with label='S3 Key' value=page.metadata.s3_key format='mono' %}
+                        </dl>
+                    </div>
+                    <!-- Versions -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Versions</h3>
+                        {% if page.metadata.versions %}
+                        <ul class="space-y-2 text-sm">
+                            {% for ver in page.metadata.versions %}
+                            <li class="text-gray-900">{{ ver }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="c360-mm-muted">—</p>
+                        {% endif %}
+                    </div>
+                    <!-- API versions -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">API versions</h3>
+                        {% if page.metadata.api_versions %}
+                        <div class="flex flex-wrap gap-2">
+                            {% for av in page.metadata.api_versions %}
+                            {% include 'components/badge.html' with type='resource' resource_type='pages' text=av size='sm' %}
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="c360-mm-muted">—</p>
+                        {% endif %}
+                    </div>
+                    <!-- Sections (page.sections dict) -->
+                    <div class="bg-gray-50 rounded-lg p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-4">Sections structure</h3>
+                        {% if page.sections %}
+                        <div class="space-y-3 text-sm">
+                            {% for key, val in page.sections.items %}
+                            <div>
+                                <span class="font-medium text-gray-700">{{ key }}:</span>
+                                {% if val|is_list %}
+                                <span class="c360-mm-lead">{{ val|length }} item{{ val|length|pluralize }}</span>
+                                {% elif val|is_dict %}
+                                <span class="c360-mm-lead">{{ val|length }} key{{ val|length|pluralize }}</span>
+                                {% else %}
+                                <span class="c360-mm-lead">{{ val|default:"—" }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="c360-mm-muted">—</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sections Tab (page.sections: headings, tabs, buttons, input_boxes, text_blocks, components, utilities, services, hooks, contexts, ui_components, endpoints) -->
+            <div class="tab-content {% if active_tab == 'sections' %}active{% endif %}" id="tab-sections" role="tabpanel">
+                {% if page_sections_count %}
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-600">Structural elements defined for this page. Edit in the form to add or change sections.</p>
+                        {% url 'documentation:page_edit' page_id=page.page_id as base_edit_url %}{% with edit_sections_href=base_edit_url|add:"?tab=sections" %}{% include 'components/button.html' with href=edit_sections_href text='Edit Sections' type='primary' size='sm' %}{% endwith %}
+                    </div>
+                    {% for section_key, section_list in page_sections.items %}
+                    {% if section_list|length %}
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h3 class="text-md font-semibold text-gray-900 mb-3">{{ section_key|title }} ({{ section_list|length }})</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        {% if section_key == "headings" or section_key == "subheadings" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Text</th>
+                                        <th class="text-left py-2 text-gray-500">Level</th>
+                                        {% elif section_key == "tabs" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Label</th>
+                                        <th class="text-left py-2 text-gray-500">Content Ref</th>
+                                        {% elif section_key == "buttons" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Label</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Action</th>
+                                        <th class="text-left py-2 text-gray-500">Variant</th>
+                                        {% elif section_key == "input_boxes" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Label</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Type</th>
+                                        <th class="text-left py-2 text-gray-500">Required</th>
+                                        {% elif section_key == "text_blocks" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Format</th>
+                                        <th class="text-left py-2 text-gray-500">Content</th>
+                                        {% elif section_key == "components" or section_key == "ui_components" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">Name</th>
+                                        <th class="text-left py-2 text-gray-500">File Path</th>
+                                        {% elif section_key == "utilities" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">File Path</th>
+                                        <th class="text-left py-2 text-gray-500">Functions</th>
+                                        {% elif section_key == "services" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">File Path</th>
+                                        <th class="text-left py-2 text-gray-500">Methods</th>
+                                        {% elif section_key == "hooks" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">File Path</th>
+                                        <th class="text-left py-2 text-gray-500">Dependencies</th>
+                                        {% elif section_key == "contexts" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">Name</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">File Path</th>
+                                        <th class="text-left py-2 text-gray-500">Provider</th>
+                                        {% elif section_key == "endpoints" %}
+                                        <th class="text-left py-2 pr-4 text-gray-500">Endpoint ID</th>
+                                        <th class="text-left py-2 pr-4 text-gray-500">Path</th>
+                                        <th class="text-left py-2 text-gray-500">Method</th>
+                                        {% else %}
+                                        <th class="text-left py-2 text-gray-500">Details</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in section_list %}
+                                    <tr class="border-b border-gray-100">
+                                        {% if section_key == "headings" or section_key == "subheadings" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ item.text|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.level|default:"-" }}</td>
+                                        {% elif section_key == "tabs" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ item.label|default:"-" }}</td>
+                                        <td class="py-2 font-mono text-gray-900">{{ item.content_ref|default:"-" }}</td>
+                                        {% elif section_key == "buttons" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ item.label|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ item.action|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.variant|default:"primary" }}</td>
+                                        {% elif section_key == "input_boxes" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ item.label|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ item.input_type|default:"text" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.required|yesno:"Yes,No" }}</td>
+                                        {% elif section_key == "text_blocks" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900">{{ item.id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 text-gray-900">{{ item.format|default:"markdown" }}</td>
+                                        <td class="py-2 text-gray-900 truncate max-w-xs" title="{{ item.content }}">{{ item.content|default:""|truncatechars:50 }}</td>
+                                        {% elif section_key == "components" or section_key == "ui_components" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 font-mono text-xs text-gray-600">{{ item.file_path|default:"-" }}</td>
+                                        {% elif section_key == "utilities" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.functions|join:", "|default:"-" }}</td>
+                                        {% elif section_key == "services" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.methods|join:", "|default:"-" }}</td>
+                                        {% elif section_key == "hooks" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.dependencies|join:", "|default:"-" }}</td>
+                                        {% elif section_key == "contexts" %}
+                                        <td class="py-2 pr-4 font-medium text-gray-900">{{ item.name|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-xs text-gray-600">{{ item.file_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.provider|default:"-" }}</td>
+                                        {% elif section_key == "endpoints" %}
+                                        <td class="py-2 pr-4 font-mono text-gray-900">{{ item.endpoint_id|default:"-" }}</td>
+                                        <td class="py-2 pr-4 font-mono text-gray-900">{{ item.endpoint_path|default:"-" }}</td>
+                                        <td class="py-2 text-gray-900">{{ item.method|default:"-" }}</td>
+                                        {% else %}
+                                        <td class="py-2 text-gray-900 font-mono text-xs">{{ item }}</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No section structure defined</h3>
+                    <p class="text-sm text-gray-500 mb-6 max-w-md">This page has no headings, tabs, buttons, input boxes, or code references. Add them in the edit form.</p>
+                    {% url 'documentation:page_edit' page_id=page.page_id as base_edit_url_2 %}{% with edit_sections_href_2=base_edit_url_2|add:"?tab=sections" %}{% include 'components/button.html' with href=edit_sections_href_2 text='Edit Sections' type='primary' size='sm' %}{% endwith %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Data Tab (fallback_data, mock_data, demo_data) -->
+            <div class="tab-content {% if active_tab == 'data' %}active{% endif %}" id="tab-data" role="tabpanel">
+                {% if fallback_data or mock_data or demo_data %}
+                <div class="space-y-6">
+                    {% if fallback_data %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Fallback Data ({{ fallback_data|length }})</h3>
+                        <div class="space-y-4">
+                            {% for item in fallback_data %}
+                            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                                <div class="flex flex-wrap gap-4 text-sm mb-2">
+                                    <span><strong class="text-gray-700">Source:</strong> {{ item.source|default:"-" }}</span>
+                                    <span><strong class="text-gray-700">Page key:</strong> {{ item.page_key|default:"-" }}</span>
+                                    <span><strong class="text-gray-700">Section key:</strong> {{ item.section_key|default:"-" }}</span>
+                                </div>
+                                {% if item.sections %}
+                                <div class="mt-3 pl-4 border-l-2 border-amber-300">
+                                    <p class="text-xs text-gray-500 mb-2">Nested sections (object)</p>
+                                    <pre class="text-xs font-mono bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto max-h-48">{{ item.sections }}</pre>
+                                </div>
+                                {% endif %}
+                                {% if item.hero %}
+                                <div class="mt-2 text-sm text-gray-700"><strong>Hero:</strong> {{ item.hero }}</div>
+                                {% endif %}
+                                {% if item.metadata %}
+                                <div class="mt-2 text-sm text-gray-700"><strong>Metadata:</strong> {{ item.metadata }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if mock_data %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Mock Data ({{ mock_data|length }})</h3>
+                        <div class="space-y-4">
+                            {% for item in mock_data %}
+                            <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                <pre class="text-sm font-mono text-gray-800 overflow-x-auto">{{ item }}</pre>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if demo_data %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Demo Data ({{ demo_data|length }})</h3>
+                        <div class="space-y-4">
+                            {% for item in demo_data %}
+                            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                                <pre class="text-sm font-mono text-gray-800 overflow-x-auto">{{ item }}</pre>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No data defined</h3>
+                    <p class="text-sm text-gray-500 max-w-md">No fallback, mock, or demo data for this page.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Raw JSON Tab -->
+            <div class="tab-content {% if active_tab == 'raw' %}active{% endif %}" id="tab-raw" role="tabpanel">
+                <div class="bg-gray-900 rounded-lg overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+                        <span class="text-sm text-gray-400">page.json</span>
+                        <button type="button" onclick="copyJSON()" class="text-xs text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <pre id="json-content" class="p-4 text-sm text-gray-300 overflow-x-auto max-h-96"><code>{{ page_json }}</code></pre>
+                </div>
+            </div>
+{% endblock %}
+
+{% block detail_footer %}
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <div class="flex items-center justify-between">
+                <a href="{% url 'documentation:dashboard' %}?tab=pages" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Pages
+                </a>
+                <div class="text-xs text-gray-400">
+                    {% if page.metadata.last_imported %}
+                    Last imported: {{ page.metadata.last_imported }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+<script>
+// Tab switching functionality with URL state management
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Get active tab from URL or default to overview
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTabFromUrl = urlParams.get('tab') || 'overview';
+    
+    // Set initial active state based on URL
+    tabButtons.forEach(button => {
+        const tabId = button.getAttribute('data-tab');
+        if (tabId === activeTabFromUrl) {
+            button.classList.add('active');
+        }
+    });
+    
+    tabContents.forEach(content => {
+        const contentId = content.id.replace('tab-', '');
+        if (contentId === activeTabFromUrl) {
+            content.classList.add('active');
+        }
+    });
+    
+    // Handle tab clicks - links will handle navigation, but we can add smooth scrolling
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // If it's a link, let it navigate naturally
+            // Otherwise, prevent default and handle programmatically
+            if (this.tagName === 'A') {
+                // Link will handle navigation
+                return;
+            }
+            
+            e.preventDefault();
+            const tabId = this.getAttribute('data-tab');
+            
+            // Update URL without page reload
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('tab', tabId);
+            window.history.pushState({}, '', newUrl);
+            
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding content
+            this.classList.add('active');
+            const targetContent = document.getElementById('tab-' + tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        });
+    });
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || 'overview';
+        
+        tabButtons.forEach(button => {
+            const tabId = button.getAttribute('data-tab');
+            button.classList.toggle('active', tabId === activeTab);
+        });
+        
+        tabContents.forEach(content => {
+            const contentId = content.id.replace('tab-', '');
+            content.classList.toggle('active', contentId === activeTab);
+        });
+    });
+});
+
+// Copy JSON functionality
+function copyJSON() {
+    const jsonContent = document.getElementById('json-content').textContent;
+    navigator.clipboard.writeText(jsonContent).then(() => {
+        // Show brief feedback
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Copied!';
+        setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+    });
+}
+</script>
+{% endblock %}

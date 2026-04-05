@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Storage — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Storage</h1>
+    <p class="page-subtitle">S3 artifact management</p>
+  </div>
+</div>
+
+<!-- Prefix filter -->
+<div class="card" style="margin-bottom:var(--space-4)">
+  <div class="card-body" style="padding:var(--space-4)">
+    <form method="get" style="display:flex;gap:var(--space-3)">
+      <div style="flex:1">
+        <input type="text" name="prefix" class="form-control" placeholder="Filter by prefix (e.g. exports/)" value="{{ prefix }}">
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="lni lni-magnifier"></i> Filter</button>
+      <a href="{% url 'admin_ops:storage' %}" class="btn btn-outline">Clear</a>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table" aria-label="Storage artifacts table">
+      <thead>
+        <tr>
+          <th>Key</th>
+          <th>Size</th>
+          <th>Last Modified</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for file in artifacts %}
+        <tr>
+          <td><code style="font-size:var(--text-xs)">{{ file.key }}</code></td>
+          <td>{{ file.size|format_bytes }}</td>
+          <td style="white-space:nowrap">{{ file.lastModified|date:"M d, Y H:i" }}</td>
+          <td>
+            <div style="display:flex;gap:var(--space-2)">
+              <button type="button" class="btn btn-outline btn-sm"
+                      onclick="downloadArtifact('{{ file.key|escapejs }}')"
+                      title="Download">
+                <i class="lni lni-download"></i> Download
+              </button>
+              <form method="post" action="{% url 'admin_ops:delete_artifact' %}" style="display:inline"
+                    data-confirm-delete="Delete {{ file.key }}? This cannot be undone.">
+                {% csrf_token %}
+                <input type="hidden" name="key" value="{{ file.key }}">
+                <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                  <i class="lni lni-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="table-empty">
+          No artifacts found. {% if prefix %}Try a different prefix.{% else %}The S3 storage server may not be configured.{% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function downloadArtifact(key) {
+    fetch("{% url 'admin_ops:storage_download_url' %}?key=" + encodeURIComponent(key))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.url) { window.open(d.url, '_blank'); }
+        else { showToast('Could not generate download URL.', 'error'); }
+      })
+      .catch(function() { showToast('Download URL request failed.', 'error'); });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete {{ page.title|default:page.page_id }} - DocsAI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/css/components/badges.css' %}?v=20260125">
+{% endblock %}
+
+{% block content %}
+{% url 'documentation:page_detail' page_id=page.page_id as cancel_url %}
+{% include 'documentation/_delete_confirm.html' with breadcrumb_items=breadcrumb_items delete_title="Delete Documentation Page" delete_description="You are about to permanently delete this page. This action <strong>cannot be undone</strong>." info_section_title="Page Information" resource_type="page" object=page cancel_url=cancel_url submit_text="Delete Page" loading_title="Deleting Page..." loading_description="Please wait while we delete the page." return_url=return_url impact_analysis=impact_analysis %}
+{% endblock %}

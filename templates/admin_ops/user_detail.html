@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}User Detail — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">User Detail</h1>
+    <p class="page-subtitle">{{ user_id }}</p>
+  </div>
+  <div class="page-actions" style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+    <a href="{% url 'admin_ops:user_history' user_id=user_id %}" class="btn btn-outline"><i class="lni lni-history"></i> Activity</a>
+    <a href="{% url 'admin_ops:users' %}" class="btn btn-outline"><i class="lni lni-arrow-left"></i> Back to Users</a>
+  </div>
+</div>
+
+{% include "components/alert.html" with type="info" message="Full user detail requires the GraphQL admin.user(id) query. Configure the gateway connection to see data." %}
+
+<!-- Adjust credits -->
+<div class="card" style="margin-top:var(--space-4)">
+  <div class="card-header"><h2 class="card-title">Adjust Credits</h2></div>
+  <div class="card-body">
+    <form method="post" style="display:flex;gap:var(--space-3);align-items:flex-end;flex-wrap:wrap">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="adjust_credits">
+      <div class="form-group" style="margin:0">
+        <label class="form-label" for="id_amount">Amount (positive to add, negative to deduct)</label>
+        <input type="number" id="id_amount" name="amount" class="form-control" placeholder="e.g. 100 or -50" required style="width:160px">
+      </div>
+      <div class="form-group" style="margin:0;flex:1">
+        <label class="form-label" for="id_reason">Reason</label>
+        <input type="text" id="id_reason" name="reason" class="form-control" placeholder="Admin adjustment note" required>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="lni lni-wallet"></i> Apply</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

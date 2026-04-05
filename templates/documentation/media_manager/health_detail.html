@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Health: {{ health_type|title }} - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">Health: {{ health_type|title }}</h1>
+            <p class="c360-mm-hero__subtitle">System health status</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:dashboard' %}?tab=health" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Health
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Health Data -->
+    {% if health_data %}
+        <div class="section-card">
+            <h2 class="c360-mm-section-title">{{ health_type|title }} Health Status</h2>
+            <dl class="c360-mm-dl-grid">
+                {% for key, value in health_data.items %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">{{ key|title }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {% if value == True %}
+                                <span class="c360-text-success">Healthy</span>
+                            {% elif value == False %}
+                                <span class="c360-text-danger">Unhealthy</span>
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </dd>
+                    </div>
+                {% endfor %}
+            </dl>
+            <div class="mt-4">
+                <h3 class="c360-mm-section-title c360-mm-section-title--sm">Full Health Data</h3>
+                <pre class="c360-mm-pre">{{ health_data|safe|pprint }}</pre>
+            </div>
+        </div>
+    {% else %}
+        <div class="section-card">
+            <p class="c360-mm-muted">No health data available</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

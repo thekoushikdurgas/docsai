@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Endpoints: {{ api_version|upper }} - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">Endpoints: {{ api_version|upper }}</h1>
+            <p class="c360-mm-hero__subtitle">{{ total }} endpoints found{% if method %} ({{ method }} method){% endif %}</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:dashboard_endpoints' %}" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Endpoints
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Filter Chips -->
+    {% if filters %}
+        {% include 'documentation/media_manager/_components/_filter_chips.html' with active_filters=filters resource_type='endpoints' %}
+    {% endif %}
+    
+    <!-- Endpoints List -->
+    {% include 'documentation/media_manager/_components/_resource_list.html' with resource_type='endpoints' items=endpoints total=total filters=filters view_mode='list' %}
+</div>
+{% endblock %}

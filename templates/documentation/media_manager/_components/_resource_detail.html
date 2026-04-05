@@ -1,0 +1,86 @@
+{% comment %}
+Reusable resource detail template component.
+
+Parameters:
+- resource: Resource object
+- resource_type: Type of resource (pages, endpoints, relationships, postman)
+- sub_resources: Dictionary of sub-resources to display
+- back_url: URL for back button
+{% endcomment %}
+{% load custom_filters %}
+
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Resource Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 section-card section-card--lg">
+        <div>
+            <h1 class="c360-mm-hero__title">
+                {% if resource.page_id %}{{ resource.page_id }}{% endif %}
+                {% if resource.endpoint_id %}{{ resource.endpoint_id }}{% endif %}
+                {% if resource.relationship_id %}{{ resource.relationship_id }}{% endif %}
+                {% if resource.config_id %}{{ resource.config_id }}{% endif %}
+            </h1>
+            <p class="c360-mm-hero__subtitle">{{ resource_type|title }} Details</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            {% if back_url %}
+                <a href="{{ back_url }}" class="btn btn-secondary c360-mm-back-btn">
+                    <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to {{ resource_type|title }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Resource Information -->
+    <div class="section-card">
+        <h2 class="c360-mm-section-title">{{ resource_type|title }} Information</h2>
+        <dl class="c360-mm-dl-grid">
+            {% for key, value in resource.items %}
+                {% if value and key != 'sections' and key != 'components' and key != 'endpoints' and key != 'versions' %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">{{ key|title|replace:"_, " }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {% if value|length > 100 %}
+                                <pre class="bg-gray-50 p-2 rounded text-xs overflow-x-auto">{{ value|truncatewords:20 }}</pre>
+                            {% else %}
+                                {{ value|default:"N/A" }}
+                            {% endif %}
+                        </dd>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </dl>
+    </div>
+    
+    <!-- Sub-resources -->
+    {% if sub_resources %}
+        {% for sub_name, sub_data in sub_resources.items %}
+            {% if sub_data %}
+                <div class="section-card">
+                    <h2 class="c360-mm-section-title">{{ sub_name|title|replace:"_, " }}</h2>
+                    {% if sub_data|length %}
+                        {% if sub_data|length > 10 %}
+                            <pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">{{ sub_data|safe }}</pre>
+                        {% else %}
+                            <div class="space-y-2">
+                                {% for item in sub_data %}
+                                    <div class="p-3 bg-gray-50 rounded-lg">
+                                        {% if item|length %}
+                                            <pre class="text-sm">{{ item|safe }}</pre>
+                                        {% else %}
+                                            {{ item }}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="c360-mm-muted">No {{ sub_name }} available</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>

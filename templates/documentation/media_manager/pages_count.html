@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pages Count: {{ page_type|title }} - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">Page Count</h1>
+            <p class="c360-mm-hero__subtitle">{{ page_type|title }} pages</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:dashboard_pages' %}" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Pages
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Count Display -->
+    <div class="section-card section-card--lg text-center">
+        <div class="mb-4">
+            <span class="text-sm font-medium text-gray-500">Page Type</span>
+            <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ page_type|title }}</h2>
+        </div>
+        <div class="mb-6">
+            <span class="text-6xl font-black text-blue-600">{{ count }}</span>
+            <p class="text-sm text-gray-500 mt-2">pages</p>
+        </div>
+        <a href="{% url 'documentation:pages_by_type' page_type %}" 
+           class="btn btn-primary">
+            View All {{ page_type|title }} Pages →
+        </a>
+    </div>
+</div>
+{% endblock %}

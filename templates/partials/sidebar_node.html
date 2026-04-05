@@ -1,0 +1,33 @@
+{% load admin_tags %}
+{% if node.children %}
+<li class="nav-branch {% nav_item_active node %} {% nav_branch_open node %}" role="none">
+  <button
+    type="button"
+    class="nav-branch-toggle"
+    id="nav-btn-{{ node.nav_id }}"
+    aria-expanded="{% nav_aria_expanded node %}"
+    aria-controls="nav-sub-{{ node.nav_id }}"
+  >
+    <i class="{{ node.icon }}" aria-hidden="true"></i>
+    <span class="nav-branch-label">{{ node.label }}</span>
+    <i class="lni lni-chevron-down nav-chevron" aria-hidden="true"></i>
+  </button>
+  <ul class="nav-submenu" id="nav-sub-{{ node.nav_id }}" role="group">
+    {% for child in node.children %}
+      {% include "partials/sidebar_node.html" with node=child %}
+    {% endfor %}
+  </ul>
+</li>
+{% else %}
+<li class="nav-leaf {% nav_item_active node %}" role="none">
+  <a
+    href="{% url node.url_name %}"
+    role="menuitem"
+    class="nav-leaf-link {% active_link node.url_name request %}"
+    {% if node.url_name == "api-docs" %}target="_blank" rel="noopener"{% endif %}
+  >
+    <i class="{{ node.icon }}" aria-hidden="true"></i>
+    <span>{{ node.label }}</span>
+  </a>
+</li>
+{% endif %}

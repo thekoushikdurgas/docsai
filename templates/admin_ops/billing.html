@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Billing — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Billing — Pending Payments</h1>
+    <p class="page-subtitle">Review and approve or decline payment submissions</p>
+  </div>
+</div>
+
+{% if not payments %}
+{% include "components/alert.html" with type="info" message="No pending payments to review." %}
+{% endif %}
+
+{% for payment in payments %}
+<div class="card" style="margin-bottom:var(--space-4)">
+  <div class="card-header">
+    <div>
+      <span class="card-title">Payment #{{ payment.id|slice:":8" }}</span>
+      <span class="badge badge-warning" style="margin-left:8px">Pending</span>
+    </div>
+    <div>
+      <span style="font-size:var(--text-lg);font-weight:700;color:var(--color-text)">${{ payment.amount }}</span>
+      <span style="font-size:var(--text-sm);color:var(--color-text-muted);margin-left:8px">{{ payment.planId }}</span>
+    </div>
+  </div>
+  <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6)">
+    <div>
+      <p style="margin:0 0 8px;font-size:var(--text-sm)"><strong>User:</strong> {{ payment.user.email }} ({{ payment.user.name }})</p>
+      <p style="margin:0 0 8px;font-size:var(--text-sm)"><strong>Submitted:</strong> {{ payment.createdAt|date:"M d, Y H:i" }}</p>
+      {% if payment.proofUrl %}
+      <a href="{{ payment.proofUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+        <i class="lni lni-eye"></i> View Proof
+      </a>
+      {% endif %}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+      <!-- Approve -->
+      <form method="post" action="{% url 'admin_ops:approve_payment' payment.id %}">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom:8px">
+          <input type="text" name="reason" class="form-control" placeholder="Approval note (optional)">
+        </div>
+        <button type="submit" class="btn btn-success btn-full">
+          <i class="lni lni-checkmark"></i> Approve &amp; Apply Credits
+        </button>
+      </form>
+      <!-- Decline -->
+      <form method="post" action="{% url 'admin_ops:decline_payment' payment.id %}">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom:8px">
+          <input type="text" name="reason" class="form-control" placeholder="Decline reason (required)" required>
+        </div>
+        <button type="submit" class="btn btn-danger-outline btn-full">
+          <i class="lni lni-close"></i> Decline
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

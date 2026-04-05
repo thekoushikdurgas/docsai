@@ -1,0 +1,18 @@
+{% comment %}
+Usage: {% include "components/card.html" with value="1,234" label="Total Users" icon="lni-users" color="primary" trend="+12%" trend_dir="up" %}
+{% endcomment %}
+<div class="kpi-card">
+  <div class="kpi-icon {{ color|default:'primary' }}" aria-hidden="true">
+    <i class="lni {{ icon|default:'lni-bar-chart' }}"></i>
+  </div>
+  <div class="kpi-body">
+    <div class="kpi-value">{{ value|default:"—" }}</div>
+    <div class="kpi-label">{{ label }}</div>
+    {% if trend %}
+    <div class="kpi-trend {{ trend_dir|default:'up' }}">
+      <i class="lni {% if trend_dir == 'up' %}lni-arrow-up{% else %}lni-arrow-down{% endif %}"></i>
+      {{ trend }}
+    </div>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_id }} - Access Control - Media Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="c360-mm-page c360-mm-stack c360-animate-in">
+    <!-- Header -->
+    <div class="c360-mm-hero">
+        <div>
+            <h1 class="c360-mm-hero__title">{{ page_id }}</h1>
+            <p class="c360-mm-hero__subtitle">Access Control</p>
+        </div>
+        <div class="c360-mm-hero__actions">
+            <a href="{% url 'documentation:page_detail_enhanced' page_id %}" class="btn btn-secondary c360-mm-back-btn">
+                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Page
+            </a>
+        </div>
+    </div>
+    
+    {% if error %}
+        <div class="c360-mm-alert c360-mm-alert--danger">
+            <p class="c360-mm-alert__text">{{ error }}</p>
+        </div>
+    {% endif %}
+    
+    <!-- Access Control Content -->
+    {% if access_control %}
+        <div class="section-card">
+            <h2 class="c360-mm-section-title">Access Control Settings</h2>
+            <dl class="c360-mm-dl-grid">
+                {% if access_control.can_view %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Can View</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {% if access_control.can_view|length %}
+                                {{ access_control.can_view|join:", " }}
+                            {% else %}
+                                {{ access_control.can_view }}
+                            {% endif %}
+                        </dd>
+                    </div>
+                {% endif %}
+                {% if access_control.can_edit %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Can Edit</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {% if access_control.can_edit|length %}
+                                {{ access_control.can_edit|join:", " }}
+                            {% else %}
+                                {{ access_control.can_edit }}
+                            {% endif %}
+                        </dd>
+                    </div>
+                {% endif %}
+                {% if access_control.can_delete %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Can Delete</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {% if access_control.can_delete|length %}
+                                {{ access_control.can_delete|join:", " }}
+                            {% else %}
+                                {{ access_control.can_delete }}
+                            {% endif %}
+                        </dd>
+                    </div>
+                {% endif %}
+            </dl>
+            {% if access_control|length > 3 %}
+                <div class="mt-4">
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">Full Access Control Data</h3>
+                    <pre class="c360-mm-pre">{{ access_control|safe|pprint }}</pre>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="section-card">
+            <p class="c360-mm-muted">No access control settings configured for this page</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

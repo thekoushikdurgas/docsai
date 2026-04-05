@@ -1,0 +1,101 @@
+{% load static admin_tags %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}{{ page_title|default:"Dashboard" }} — Contact360 Admin{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'admin/images/favicon.svg' %}">
+
+  <!-- Design tokens + layout -->
+  <link rel="stylesheet" href="{% static 'admin/css/design-tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/layout.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/shell-eatio.css' %}">
+
+  <!-- Components -->
+  <link rel="stylesheet" href="{% static 'admin/css/components/button.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/form-inputs.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/tabs.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/progress.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/badges.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/modal.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/tables.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/alerts.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/cards.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/graph.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/pagination.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/stepper.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/c360-page-shell.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/c360-ops-root.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/components/c360-util-shim.css' %}">
+
+  <!-- Icons (LineIcons) -->
+  <link rel="stylesheet" href="{% static 'admin/vendor/lineicons/LineIcons.css' %}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Preloader -->
+{% include "partials/preloader.html" %}
+
+<!-- Toast stack -->
+<div class="toast-stack" id="toastStack"></div>
+
+<div id="main-wrapper">
+
+  <!-- Nav header (logo bar) -->
+  {% include "partials/nav_header.html" %}
+
+  <!-- Sidebar -->
+  {% include "partials/sidebar.html" %}
+
+  <!-- Content area -->
+  <div class="content-body">
+
+    <!-- Top header bar -->
+    {% include "partials/header.html" %}
+
+    <!-- Django flash messages -->
+    {% if messages %}
+    <div class="page-content pb-0">
+      <div class="flash-messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'neutral' }} alert-dismissible">
+          <span class="alert-body">{{ message }}</span>
+          <button type="button" class="alert-dismiss" onclick="this.closest('.alert').remove()" aria-label="Dismiss">&times;</button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Main page content -->
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% include "partials/footer.html" %}
+
+  </div><!-- /content-body -->
+
+</div><!-- /main-wrapper -->
+
+<!-- Confirm-delete modal -->
+{% include "components/confirm_modal.html" %}
+
+<!-- Scripts -->
+<script src="{% static 'admin/js/app.js' %}"></script>
+<script src="{% static 'admin/js/sidebar-nav.js' %}"></script>
+<script src="{% static 'admin/js/tabs.js' %}"></script>
+<script src="{% static 'admin/js/modals.js' %}"></script>
+<script src="{% static 'admin/js/toast.js' %}"></script>
+<script src="{% static 'admin/js/confirm-delete.js' %}"></script>
+<script src="{% static 'admin/js/tables.js' %}"></script>
+<script src="{% static 'admin/js/stepper_utils.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

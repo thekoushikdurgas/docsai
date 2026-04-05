@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Workflow Editor — Durgasflow{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Workflow Editor</h1>
+    {% if workflow_id %}<p class="page-subtitle">{{ workflow_id }}</p>{% endif %}
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline"><i class="lni lni-arrow-left"></i> Workflows</a>
+    <button class="btn btn-primary" onclick="saveWorkflow()"><i class="lni lni-cloud-upload"></i> Save</button>
+  </div>
+</div>
+<div id="flow-canvas" class="graph-container graph-container--dynamic c360-flow-editor-canvas" style="--graph-container-height: 600px"></div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'admin/js/graph.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.initFlowCanvasSvg) {
+    window.initFlowCanvasSvg('flow-canvas', [
+      { id: 'a', label: 'Trigger' },
+      { id: 'b', label: 'HTTP' },
+      { id: 'c', label: 'Done' }
+    ], [
+      { source: 'a', target: 'b' },
+      { source: 'b', target: 'c' }
+    ]);
+  }
+});
+</script>
+{% endblock %}

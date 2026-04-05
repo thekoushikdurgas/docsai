@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Durgasflow — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Durgasflow</h1>
+    <p class="page-subtitle">Workflow automation (n8n-compatible)</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'durgasflow:workflow_hub' %}" class="btn btn-outline"><i class="lni lni-layers"></i> Hub</a>
+    <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline"><i class="lni lni-layers"></i> Workflows</a>
+    <a href="{% url 'durgasflow:editor_new' %}" class="btn btn-primary"><i class="lni lni-plus-circle"></i> New Workflow</a>
+  </div>
+</div>
+<div class="kpi-grid">
+  {% include "components/card.html" with value="—" label="Total Workflows" icon="lni-layers" color="primary" %}
+  {% include "components/card.html" with value="—" label="Active Executions" icon="lni-arrow-right-circle" color="success" %}
+  {% include "components/card.html" with value="—" label="Failed Runs" icon="lni-cross-circle" color="danger" %}
+  {% include "components/card.html" with value="—" label="Credentials" icon="lni-lock" color="info" %}
+</div>
+<div class="card" style="margin-top:var(--space-6)">
+  {% include "components/alert.html" with type="info" message="Durgasflow connects to the workflow engine. Configure the engine URL to populate real data." %}
+</div>
+{% endblock %}

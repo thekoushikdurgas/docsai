@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Postman Configuration - {{ postman.name|default:postman_id|default:"Unknown" }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/css/components/badges.css' %}?v=20260125">
+{% endblock %}
+
+{% block content %}
+{% include 'documentation/_delete_confirm.html' with breadcrumb_items=breadcrumb_items delete_title="Delete Postman Configuration" delete_description="You are about to permanently delete this Postman configuration. This action <strong>cannot be undone</strong>." info_section_title="Configuration Information" resource_type="postman" object=postman postman_id=postman_id cancel_url=cancel_url submit_text="Delete Configuration" loading_title="Deleting Configuration..." loading_description="Please wait while we delete the Postman configuration." return_url=return_url %}
+{% endblock %}

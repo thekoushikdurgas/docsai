@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Dashboard — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">System overview and key metrics</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'admin_ops:system_status' %}" class="btn btn-outline">
+      <i class="lni lni-pulse" aria-hidden="true"></i>
+      System Status
+    </a>
+    <a href="{% url 'admin_ops:jobs' %}" class="btn btn-primary">
+      <i class="lni lni-briefcase" aria-hidden="true"></i>
+      View Jobs
+    </a>
+  </div>
+</div>
+
+<!-- KPI cards -->
+<div class="kpi-grid">
+  {% include "components/card.html" with value=stats.total_users label="Total Users" icon="lni-users" color="primary" %}
+  {% include "components/card.html" with value=stats.active_users label="Active Users" icon="lni-checkmark" color="success" %}
+  {% include "components/card.html" with value=stats.new_today label="New Today" icon="lni-star" color="warning" %}
+  {% include "components/card.html" with value=stats.new_this_month label="New This Month" icon="lni-calendar" color="info" %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6)">
+
+  <!-- Users by plan chart -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Users by Plan</h2>
+    </div>
+    <div class="card-body">
+      {{ chart_data|json_script_tag:"dashChartData" }}
+      <canvas id="dashChart" height="200" aria-label="Users by plan chart" role="img"></canvas>
+      <noscript><p style="color:var(--color-text-muted)">Chart requires JavaScript.</p></noscript>
+    </div>
+  </div>
+
+  <!-- System health -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Service Health</h2>
+      <a href="{% url 'admin_ops:system_status' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="card-body" style="padding:var(--space-4)">
+      <div class="service-cards-grid">
+        {% for svc in health_services %}
+        <div class="service-card">
+          {{ svc.status|service_status_dot }}
+          <div>
+            <div class="service-card-name">{{ svc.name }}</div>
+            <div class="service-card-status">{{ svc.status|title }}</div>
+          </div>
+        </div>
+        {% empty %}
+        <p style="color:var(--color-text-muted);font-size:var(--text-sm)">No services configured.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick links -->
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Quick Links</h2></div>
+  <div class="card-body" style="display:flex;flex-wrap:wrap;gap:var(--space-3)">
+    <a href="{% url 'admin_ops:users' %}" class="btn btn-outline"><i class="lni lni-users"></i> Users</a>
+    <a href="{% url 'admin_ops:logs' %}" class="btn btn-outline"><i class="lni lni-list"></i> Logs</a>
+    <a href="{% url 'admin_ops:billing' %}" class="btn btn-outline"><i class="lni lni-wallet"></i> Billing</a>
+    <a href="{% url 'admin_ops:storage' %}" class="btn btn-outline"><i class="lni lni-cloud-upload"></i> Storage</a>
+    <a href="{% url 'documentation:dashboard' %}" class="btn btn-outline"><i class="lni lni-book"></i> Docs Hub</a>
+    <a href="{% url 'roadmap:dashboard' %}" class="btn btn-outline"><i class="lni lni-map"></i> Roadmap</a>
+    <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline"><i class="lni lni-bar-chart"></i> Analytics</a>
+    <a href="{% url 'ai_agent:chat' %}" class="btn btn-outline"><i class="lni lni-bubble"></i> AI Chat</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/vendor/chartjs/chart.umd.min.js' %}"></script>
+<script src="{% static 'admin/js/charts.js' %}"></script>
+<script>
+  (function() {
+    var raw = document.getElementById('dashChartData');
+    if (!raw) return;
+    var d = JSON.parse(raw.textContent);
+    initBarChart('dashChart', d.labels, d.values, 'Users by Plan');
+  })();
+</script>
+{% endblock %}

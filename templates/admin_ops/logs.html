@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Logs — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Logs</h1>
+    <p class="page-subtitle">Service log entries from the Logs API</p>
+  </div>
+</div>
+
+<!-- Service filter tabs -->
+<div style="margin-bottom:var(--space-4)">
+  <div class="tab-nav tab-nav-filter" role="tablist">
+    <a href="{% url 'admin_ops:logs' %}" class="tab-link {% if not service %}active{% endif %}">All</a>
+    {% for svc in services %}
+    <a href="?service={{ svc }}" class="tab-link {% if service == svc %}active{% endif %}">{{ svc|title }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table" aria-label="Logs table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Service</th>
+          <th>Level</th>
+          <th>Message</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="white-space:nowrap;font-size:var(--text-xs);font-family:var(--font-mono)">{{ log.timestamp }}</td>
+          <td><span class="badge badge-neutral">{{ log.service|default:"unknown" }}</span></td>
+          <td>
+            <span class="badge {% if log.level == 'ERROR' %}badge-danger{% elif log.level == 'WARN' %}badge-warning{% elif log.level == 'INFO' %}badge-info{% else %}badge-neutral{% endif %}">
+              {{ log.level|default:"INFO" }}
+            </span>
+          </td>
+          <td style="font-family:var(--font-mono);font-size:var(--text-xs);word-break:break-all">{{ log.message|truncatechars:120 }}</td>
+          <td>
+            <form method="post" action="{% url 'admin_ops:delete_log' log.id %}" style="display:inline"
+                  data-confirm-delete="Delete this log entry?">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                <i class="lni lni-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="table-empty">No log entries found. The Logs API may not be configured.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

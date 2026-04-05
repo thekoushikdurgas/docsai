@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Relationship Graph — Contact360 Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Relationship Graph</h1>
+    <p class="page-subtitle">Page → Endpoint relationship visualization (Cytoscape.js)</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'documentation:dashboard_relationships' %}" class="btn btn-outline">
+      <i class="lni lni-list"></i> Table View
+    </a>
+  </div>
+</div>
+
+{% include "components/graph_container.html" with graph_id="relGraph" height=600 %}
+
+<!-- Legend -->
+<div class="card c360-graph-card">
+  <div class="card-body">
+    <div class="graph-legend graph-legend--static">
+      <div class="graph-legend-item"><span class="graph-legend-dot c360-graph-legend-dot--page"></span> Page</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot c360-graph-legend-dot--endpoint"></span> Endpoint</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot c360-graph-legend-dot--relationship"></span> Relationship</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/vendor/cytoscape/cytoscape.min.js' %}"></script>
+{{ graph_nodes_json|json_script_tag:"graphNodes" }}
+{{ graph_edges_json|json_script_tag:"graphEdges" }}
+<script src="{% static 'admin/js/graph.js' %}"></script>
+<script>
+  (function() {
+    var nodes = JSON.parse(document.getElementById('graphNodes').textContent || '[]');
+    var edges = JSON.parse(document.getElementById('graphEdges').textContent || '[]');
+    initCytoscapeGraph('relGraph', nodes, edges);
+  })();
+</script>
+{% endblock %}
