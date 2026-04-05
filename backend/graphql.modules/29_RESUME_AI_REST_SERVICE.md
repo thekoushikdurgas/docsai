@@ -27,6 +27,58 @@ The **resumeai** microservice is a **FastAPI** application that exposes **REST**
 
 **OpenAPI:** When the service is running, **`GET {baseUrl}/docs`** (Swagger UI).
 
+## Gateway GraphQL proxy (`contact360.io/api`)
+
+Regenerate SDL from the gateway with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type ResumeQuery {
+  resumes: [ResumeRecord!]!
+  resume(id: ID!): ResumeRecord!
+}
+
+type ResumeMutation {
+  saveResume(input: SaveResumeInput!): ResumeRecord!
+  deleteResume(id: ID!): Boolean!
+}
+
+type ResumeRecord {
+  id: ID!
+  userId: String!
+  resumeData: JSON!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input SaveResumeInput {
+  id: ID = null
+  resumeData: JSON!
+}
+```
+
+### POST `/graphql` — example (gateway forwards to resumeai)
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+```json
+{
+  "query": "query { resume { resumes { id userId updatedAt } } }"
+}
+```
+
+```json
+{
+  "query": "mutation ($input: SaveResumeInput!) { resume { saveResume(input: $input) { id resumeData updatedAt } } }",
+  "variables": {
+    "input": {
+      "resumeData": { "basics": { "name": "Jane Doe" } }
+    }
+  }
+}
+```
+
 ---
 
 ## Authentication

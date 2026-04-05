@@ -24,6 +24,48 @@ GraphQL paths: `query { savedSearches { listSavedSearches(...) { ... } getSavedS
 
 Use camelCase in variables. Type filter: "contact", "company", or "all". saved_searches table; user isolation by user_id.
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type SavedSearchQuery {
+  listSavedSearches(type: String = null, limit: Int! = 100, offset: Int! = 0): SavedSearchList!
+  getSavedSearch(id: ID!): SavedSearch!
+}
+
+type SavedSearchMutation {
+  createSavedSearch(input: CreateSavedSearchInput!): SavedSearch!
+  updateSavedSearch(id: ID!, input: UpdateSavedSearchInput!): SavedSearch!
+  deleteSavedSearch(id: ID!): Boolean!
+  updateSavedSearchUsage(id: ID!): Boolean!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+```json
+{
+  "query": "mutation ($input: CreateSavedSearchInput!) { savedSearches { createSavedSearch(input: $input) { id name type searchTerm filters } } }",
+  "variables": {
+    "input": {
+      "name": "VP Eng SF",
+      "description": null,
+      "type": "contact",
+      "searchTerm": null,
+      "filters": null,
+      "sortField": null,
+      "sortDirection": null,
+      "pageSize": 50
+    }
+  }
+}
+```
+
 ## Types
 
 ### SavedSearch

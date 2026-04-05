@@ -30,6 +30,46 @@ GraphQL path: `query { pages { page(pageId: "...") { ... } pages { ... } dashboa
 
 No mutations in this API (create/update/delete may be via DocsAI). Data is sourced from DocsAI when enabled. Use camelCase in variables.
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type PagesQuery {
+  page(pageId: String!, pageType: String = null): PageDetail!
+  pages(pageType: String = null, includeDrafts: Boolean! = true, includeDeleted: Boolean! = false, status: String = null, limit: Int! = 100, offset: Int! = 0): PageList!
+  pageContent(pageId: String!): PageContent!
+  pagesByType(pageType: String!, includeDrafts: Boolean! = true, includeDeleted: Boolean! = false, status: String = null): PageList!
+  pageTypes: PageTypeList!
+  pageStatistics(pageType: String!): TypeStatistics!
+  pagesByState(state: String!): PageList!
+  pagesByStateCount(state: String!): Int!
+  pagesByUserType(userType: String!): PageList!
+  pagesByDocsaiUserType(userType: String!, pageType: String = null): PageList!
+  myPages(pageType: String = null): PageList!
+  pageAccessControl(pageId: String!): JSON!
+  pageSections(pageId: String!): JSON!
+  pageComponents(pageId: String!): JSON!
+  pageEndpoints(pageId: String!): JSON!
+  pageVersions(pageId: String!): JSON!
+  dashboardPages(page: Int! = 1, pageSize: Int! = 20, pageType: String = null, status: String = null, search: String = null): DashboardPageList!
+  marketingPages(page: Int! = 1, pageSize: Int! = 20, status: String = null, search: String = null): DashboardPageList!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Most queries are public (no `Authorization` header). `myPages` requires authentication.
+
+```json
+{
+  "query": "query ($pageId: String!) { pages { page(pageId: $pageId) { pageId title pageType route status version } } }",
+  "variables": { "pageId": "docs-getting-started" }
+}
+```
+
 ## Types
 
 ### PageSummary

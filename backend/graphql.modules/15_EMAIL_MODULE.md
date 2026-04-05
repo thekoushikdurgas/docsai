@@ -2,27 +2,27 @@
 
 ## Overview
 
-The Email module provides email finder, verification, pattern management, optional **async satellite jobs**, and web discovery via the Lambda Email API (Go `email.server`). It includes **finder/verifier/pattern queries**, **pattern + async job mutations**, `emailJobStatus` and `webSearch` queries. **S3 CSV export jobs** are invoked only via the [Jobs Module](16_JOBS_MODULE.md) (`jobs.createEmailFinderExport` / `jobs.createEmailVerifyExport`); they are not duplicated under `email` queries.
+The Email module provides email finder, verification, pattern management, optional **async satellite jobs**, and web discovery via the **Email API** Go service (`EC2/email.server`, also deployable as Lambda). It includes **finder/verifier/pattern queries**, **pattern + async job mutations**, `emailJobStatus` and `webSearch` queries. **S3 CSV export jobs** are invoked only via the [Jobs Module](16_JOBS_MODULE.md) (`jobs.createEmailFinderExport` / `jobs.createEmailVerifyExport`); they are not duplicated under `email` queries.
 **Location:** `app/graphql/modules/email/`
 
-**Lambda Email API base URL:** from gateway env `LAMBDA_EMAIL_API_URL` (`app/core/config.py`). Do not hardcode stage URLs in clients.
+**Email API base URL:** gateway env **`LAMBDA_EMAIL_API_URL`**; auth **`LAMBDA_EMAIL_API_KEY`** as **`X-API-Key`** (`app/core/config.py`). **REST reference (all paths, bodies, responses):** **[emailapis.api.md](../micro.services.apis/emailapis.api.md)** · Postman: **[EC2_email.server.postman_collection.json](../postman/EC2_email.server.postman_collection.json)**.
 
 ## API Endpoints Mapping
 
-| GraphQL Field | Backend | Description |
+| GraphQL Field | Backend (EC2/email.server) | Description |
 |---------------|---------|-------------|
-| `findEmails` | Lambda: POST `/email/finder/` | Find emails for one contact |
-| `findEmailsBulk` | Lambda: POST `/email/finder/bulk` | Bulk find (1-50 contacts) |
-| `verifySingleEmail` | Lambda: POST `/email/single/verifier/` | Verify one email |
-| `verifyEmailsBulk` | Lambda: POST `/email/bulk/verifier/` | Verify 1-10,000 emails |
-| `emailJobStatus` | Lambda: GET `/jobs/:id/status` | Async email satellite job progress |
-| `webSearch` | Lambda: POST `/web/web-search` | Full-name + domain discovery JSON |
-| `addEmailPattern` | Lambda: POST `/email-patterns/add` | Add one email pattern for a company (mutation) |
-| `addEmailPatternBulk` | Lambda: POST `/email-patterns/add/bulk` | Add multiple email patterns (mutation) |
-| `createEmailFinderBulkJob` | Lambda: POST `/email/finder/bulk/job` | Enqueue async finder rows (mutation) |
-| `createEmailVerifyBulkJob` | Lambda: POST `/email/bulk/verifier/job` | Enqueue async verify rows (mutation) |
-| `createEmailFinderExport` | [Jobs](16_JOBS_MODULE.md): POST `/email/finder/s3` | Finder S3 CSV stream job (`scheduler_jobs`) |
-| `createEmailVerifyExport` | [Jobs](16_JOBS_MODULE.md): POST `/email/verify/s3` | Verifier S3 CSV stream job (`scheduler_jobs`) |
+| `findEmails` | `POST /email/finder/` (query: `first_name`, `last_name`, `domain`) | Find emails for one contact |
+| `findEmailsBulk` | `POST /email/finder/bulk` | Bulk find (1–50 contacts) |
+| `verifySingleEmail` | `POST /email/single/verifier/` | Verify one email |
+| `verifyEmailsBulk` | `POST /email/bulk/verifier/` | Verify 1–10,000 emails |
+| `emailJobStatus` | `GET /jobs/:id/status` | Async email satellite job progress |
+| `webSearch` | `POST /web/web-search` | Full-name + domain discovery JSON |
+| `addEmailPattern` | `POST /email-patterns/add` | Add one email pattern for a company (mutation) |
+| `addEmailPatternBulk` | `POST /email-patterns/add/bulk` | Add multiple email patterns (mutation) |
+| `createEmailFinderBulkJob` | `POST /email/finder/bulk/job` | Enqueue async finder rows (`202` + `job_id`) |
+| `createEmailVerifyBulkJob` | `POST /email/bulk/verifier/job` | Enqueue async verify rows (`202` + `job_id`) |
+| `createEmailFinderExport` | [Jobs](16_JOBS_MODULE.md) → `POST /email/finder/s3` | Finder S3 CSV stream job (`scheduler_jobs`) |
+| `createEmailVerifyExport` | [Jobs](16_JOBS_MODULE.md) → `POST /email/verify/s3` | Verifier S3 CSV stream job (`scheduler_jobs`) |
 | *(removed)* `createEmailPatternImportJob` | — | Removed in favor of supported patterns under `jobs` / email APIs; see [16_JOBS_MODULE.md](16_JOBS_MODULE.md) |
 
 > **Note:** Finder and verification are **queries** under `email`; pattern add and async bulk jobs are **mutations** under `mutation.email`. S3 CSV exports use **`jobs`** mutations only.
@@ -52,7 +52,7 @@ These metadata files must stay aligned with:
 
 - GraphQL resolvers in `contact360.io/api/app/graphql/modules/email/`
 - frontend service bindings in `contact360.io/app/src/services/graphql/emailService.ts`
-- runtime routes in `lambda/emailapis/app/api/v1/router.py` and `lambda/emailapigo/internal/api/router.go`
+- runtime routes in **`EC2/email.server/internal/api/router.go`** (canonical Go implementation; see [emailapis.api.md](../micro.services.apis/emailapis.api.md))
 
 ## Queries and mutations – parameters and variable types
 
@@ -63,7 +63,7 @@ All fields live under `email { ... }` on `Query` / `Mutation`.
 | **Queries** | | | |
 | `findEmails` | `input` | `EmailFinderInput!` | `EmailFinderResponse` |
 | `findEmailsBulk` | `input` | `BulkEmailFinderInput!` | `BulkEmailFinderResponse` |
-| `verifySingleEmail` | `input` | `SingleEmailVerifierInput!` | `VerifiedEmailResult` |
+| `verifySingleEmail` | `input` | `SingleEmailVerifierInput!` | `SingleEmailVerifierResponse!` |
 | `verifyEmailsBulk` | `input` | `BulkEmailVerifierInput!` | bulk verify result type |
 | `emailJobStatus` | `jobId` | `String!` | `EmailJobStatusResponse` (async bulk / S3 job progress) |
 | `webSearch` | `input` | `WebSearchInput!` | `JSON` (upstream discovery payload) |
@@ -73,12 +73,60 @@ All fields live under `email { ... }` on `Query` / `Mutation`.
 | `exportEmails` | — | — | `ComingSoonResponse` (stub) |
 | `verifyexportEmail` | — | — | `ComingSoonResponse` (stub) |
 | **Mutations** | | | |
-| `addEmailPattern` | `input` | `AddEmailPatternInput!` | pattern result |
-| `addEmailPatternBulk` | `input` | `AddEmailPatternBulkInput!` | bulk pattern result |
+| `addEmailPattern` | `input` | `EmailPatternAddInput!` | `EmailPatternResult!` |
+| `addEmailPatternBulk` | `input` | `EmailPatternBulkAddInput!` | `EmailPatternBulkAddResponse!` |
 | `createEmailFinderBulkJob` | `input` | `BulkEmailFinderJobInput!` | `EmailJobQueuedResponse` |
 | `createEmailVerifyBulkJob` | `input` | `BulkEmailVerifyJobInput!` | `EmailJobQueuedResponse` |
 
 Use camelCase in variables. Credit deduction (1 per find/verify for typical paid tiers); SuperAdmin/Admin often unlimited—see resolver. Input types: see Input Types section and [16_JOBS_MODULE.md](16_JOBS_MODULE.md) for export/import job inputs.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type EmailQuery {
+  findEmails(input: EmailFinderInput!): EmailFinderResponse!
+  findEmailsBulk(input: BulkEmailFinderInput!): BulkEmailFinderResponse!
+  verifySingleEmail(input: SingleEmailVerifierInput!): SingleEmailVerifierResponse!
+  verifyEmailsBulk(input: BulkEmailVerifierInput!): BulkEmailVerifierResponse!
+  emailJobStatus(jobId: String!): EmailJobStatusResponse!
+  webSearch(input: WebSearchInput!): JSON!
+  exportEmails: ComingSoonResponse!
+  verifyexportEmail: ComingSoonResponse!
+}
+
+type EmailMutation {
+  addEmailPattern(input: EmailPatternAddInput!): EmailPatternResult!
+  addEmailPatternBulk(input: EmailPatternBulkAddInput!): EmailPatternBulkAddResponse!
+  createEmailFinderBulkJob(input: BulkEmailFinderJobInput!): EmailJobQueuedResponse!
+  createEmailVerifyBulkJob(input: BulkEmailVerifyJobInput!): EmailJobQueuedResponse!
+}
+```
+
+`EmailFinderInput`, `BulkEmailFinderInput`, `SingleEmailVerifierInput`, `EmailPatternAddInput`, etc., are defined in the generated SDL.
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+### `email.findEmails` (query)
+
+```json
+{
+  "query": "query ($input: EmailFinderInput!) { email { findEmails(input: $input) { success total emails { email status } } } }",
+  "variables": {
+    "input": {
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "domain": "example.com",
+      "website": null
+    }
+  }
+}
+```
 
 ## Types
 

@@ -2,6 +2,8 @@
 
 This document freezes the required CI checks for foundation release gating.
 
+**GraphQL docs:** Module reference docs under this folder are validated against `contact360.io/api` (`app/graphql/schema.py`). When CI or schema changes, update the relevant `NN_*_MODULE.md` and confirm with `python -c "from app.graphql.schema import schema; print(schema.as_str())"` run from the gateway directory.
+
 Job IDs below match the `jobs:` keys in [`docs/.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (monorepo CI). If workflows move or rename jobs, update this list in the same change.
 
 ## Required checks

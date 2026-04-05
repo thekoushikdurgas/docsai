@@ -33,6 +33,63 @@ GraphQL paths: `query { admin { users(filters: { ... }) { ... } } }`, `mutation 
 
 Use camelCase in variables (e.g. `timeRange`, `userId` inside filter inputs). Log querying/search integrates with the Lambda Logs API where configured. See Input Types for each input's fields.
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type AdminQuery {
+  users(filters: UserFilterInput = null): UserConnection!
+  usersWithBuckets(filters: UserFilterInput = null): UserConnection!
+  userStats: AdminUserStats!
+  userHistory(filters: UserHistoryFilterInput = null): UserHistoryConnection!
+  logStatistics(timeRange: String! = "24h"): LogStatistics!
+  logs(filters: LogQueryFilterInput = null): LogConnection!
+  searchLogs(input: LogSearchInput!): LogSearchConnection!
+}
+
+type AdminMutation {
+  updateUserRole(input: UpdateUserRoleInput!): User!
+  updateUserCredits(input: UpdateUserCreditsInput!): User!
+  deleteUser(input: DeleteUserInput!): Boolean!
+  promoteToAdmin(input: PromoteToAdminInput!): User!
+  promoteToSuperAdmin(input: PromoteToSuperAdminInput!): User!
+  createLog(input: CreateLogInput!): LogEntry!
+  createLogsBatch(input: CreateLogsBatchInput!): [LogEntry!]!
+  updateLog(input: UpdateLogInput!): LogEntry!
+  deleteLog(input: DeleteLogInput!): Boolean!
+  deleteLogsBulk(input: DeleteLogsBulkInput!): DeleteLogsBulkResponse!
+}
+```
+
+`UserFilterInput`, `UserHistoryFilterInput`, `LogQueryFilterInput`, `LogSearchInput`, `CreateLogInput`, and related types are listed in the generated SDL (search by name).
+
+**Note:** The same `promoteToAdmin` / `promoteToSuperAdmin` operations also appear on `UserMutation` (`users { ... }`); prefer one calling convention consistently in clients.
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>` (SuperAdmin for most operations; see RBAC table in this doc).
+
+### `admin.logStatistics` (query)
+
+```json
+{
+  "query": "query ($timeRange: String!) { admin { logStatistics(timeRange: $timeRange) { timeRange totalLogs errorRate } } }",
+  "variables": { "timeRange": "24h" }
+}
+```
+
+### `admin.deleteUser` (mutation)
+
+```json
+{
+  "query": "mutation ($input: DeleteUserInput!) { admin { deleteUser(input: $input) } }",
+  "variables": { "input": { "userId": "550e8400-e29b-41d4-a716-446655440000" } }
+}
+```
+
 ## Types
 
 ### UserConnection

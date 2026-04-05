@@ -3,7 +3,7 @@
     "_postman_id": "7b5f1117-8f95-4c72-8b29-30d5c32eb8f2",
     "name": "EC2 email.server",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Runtime collection for EC2/email.server Gin API."
+    "description": "EC2/email.server (Gin). Public: GET /health, GET /. All other routes need X-API-Key (API_KEY). Code: EC2/email.server/internal/api/router.go. Full contract: docs/backend/micro.services.apis/emailapis.api.md"
   },
   "variable": [
     {"key": "email_runtime_base_url", "value": "http://localhost:3000"},
@@ -51,6 +51,33 @@
           "name": "GET /jobs/:id/status",
           "request": {"method":"GET","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"}],"url":"{{email_runtime_base_url}}/jobs/{{job_id}}/status"},
           "event": [{"listen":"test","script":{"exec":["pm.expect([200,404]).to.include(pm.response.code);"],"type":"text/javascript"}}]
+        },
+        {
+          "name": "POST /jobs/:id/pause",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "X-API-Key", "value": "{{email_runtime_api_key}}"}],
+            "url": "{{email_runtime_base_url}}/jobs/{{job_id}}/pause"
+          },
+          "description": "Pause running job. 200: job_id, status paused. 400 if already done."
+        },
+        {
+          "name": "POST /jobs/:id/resume",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "X-API-Key", "value": "{{email_runtime_api_key}}"}],
+            "url": "{{email_runtime_base_url}}/jobs/{{job_id}}/resume"
+          },
+          "description": "Resume paused job. 400 if not paused."
+        },
+        {
+          "name": "POST /jobs/:id/terminate",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "X-API-Key", "value": "{{email_runtime_api_key}}"}],
+            "url": "{{email_runtime_base_url}}/jobs/{{job_id}}/terminate"
+          },
+          "description": "Terminate job; may merge S3 output in background."
         }
       ]
     },
@@ -91,8 +118,10 @@
     {
       "name":"04 Patterns",
       "item":[
-        {"name":"POST /email-patterns/add","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/add","body":{"mode":"raw","raw":"{\"company_uuid\":\"{{company_uuid}}\",\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\",\"pattern_format\":\"first.last\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([201,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]},
-        {"name":"POST /email-patterns/add/bulk","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/add/bulk","body":{"mode":"raw","raw":"{\"items\":[{\"company_uuid\":\"{{company_uuid}}\",\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\",\"pattern_format\":\"first.last\"}]}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([201,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]}
+        {"name":"POST /email-patterns/add","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/add","body":{"mode":"raw","raw":"{\"company_uuid\":\"{{company_uuid}}\",\"email\":\"{{email}}\",\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([201,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]},
+        {"name":"POST /email-patterns/add/bulk","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/add/bulk","body":{"mode":"raw","raw":"{\"items\":[{\"company_uuid\":\"{{company_uuid}}\",\"email\":\"{{email}}\",\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\"}]}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([201,400,500]).to.include(pm.response.code);","pm.expect(pm.response.responseTime).to.be.below(900);"],"type":"text/javascript"}}]},
+        {"name":"POST /email-patterns/predict","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/predict","body":{"mode":"raw","raw":"{\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\"}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([200,500]).to.include(pm.response.code);"],"type":"text/javascript"}}]},
+        {"name":"POST /email-patterns/predict/bulk","request":{"method":"POST","header":[{"key":"X-API-Key","value":"{{email_runtime_api_key}}"},{"key":"Content-Type","value":"application/json"}],"url":"{{email_runtime_base_url}}/email-patterns/predict/bulk","body":{"mode":"raw","raw":"{\"items\":[{\"first_name\":\"{{first_name}}\",\"last_name\":\"{{last_name}}\",\"domain\":\"{{domain}}\"}]}"}},"event":[{"listen":"test","script":{"exec":["pm.expect([200,500]).to.include(pm.response.code);"],"type":"text/javascript"}}]}
       ]
     },
     {

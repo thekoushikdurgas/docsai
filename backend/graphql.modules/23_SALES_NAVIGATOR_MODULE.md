@@ -13,6 +13,42 @@ Paths: `query { salesNavigator { salesNavigatorRecords(filters: { limit, offset 
 
 There are **no** gateway fields named `getSyncStatus` or `listSyncJobs` in `app/graphql/modules/sales_navigator/` — remove those from client code or treat any doc references as **planned/future**.
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type SalesNavigatorQuery {
+  salesNavigatorRecords(filters: SalesNavigatorFilterInput = null): UserScrapingConnection!
+}
+
+type SalesNavigatorMutation {
+  saveSalesNavigatorProfiles(input: SaveProfilesInput!): SaveProfilesResponse!
+}
+
+input SalesNavigatorFilterInput {
+  limit: Int = 100
+  offset: Int = 0
+}
+
+input SaveProfilesInput {
+  profiles: [JSON!]!
+}
+```
+
+### POST `/graphql` — example
+
+```json
+{
+  "query": "query ($filters: SalesNavigatorFilterInput) { salesNavigator { salesNavigatorRecords(filters: $filters) { items { id source createdAt } pageInfo { total limit offset } } } }",
+  "variables": { "filters": { "limit": 20, "offset": 0 } }
+}
+```
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
 ---
 
 ## Direct Sales Navigator REST contract (source service)

@@ -23,12 +23,60 @@ GraphQL paths: `query { aiChats { aiChats(filters: { ... }) { ... } aiChat(chatI
 | `createAIChat` | `input` | `CreateAIChatInput!` | `AIChat` |
 | `updateAIChat` | `chatId`, `input` | `String!`, `UpdateAIChatInput!` | `AIChat` |
 | `deleteAIChat` | `chatId` | `String!` | `Boolean` |
-| `sendMessage` | `input` | `SendMessageInput!` | message / chat result (see schema) |
-| `analyzeEmailRisk` | `input` | `AnalyzeEmailRiskInput!` | analysis result |
-| `generateCompanySummary` | `input` | `GenerateCompanySummaryInput!` | summary result |
-| `parseContactFilters` | `input` | `ParseContactFiltersInput!` | parsed filters |
+| `sendMessage` | `chatId`, `input` | `String!`, `SendMessageInput!` | `AIChat!` |
+| `analyzeEmailRisk` | `input` | `AnalyzeEmailRiskInput!` | `EmailRiskAnalysisResponse!` |
+| `generateCompanySummary` | `input` | `GenerateCompanySummaryInput!` | `CompanySummaryResponse!` |
+| `parseContactFilters` | `input` | `ParseFiltersInput!` | `ParseFiltersResponse!` |
 
 Use camelCase in variables (`chatId`, `createdAtAfter`, …). Chat and message operations call the Contact AI service via `LambdaAIClient`. See Input Types for each input's fields.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type AIChatQuery {
+  aiChats(filters: AIChatFilterInput = null): AIChatConnection!
+  aiChat(chatId: String!): AIChat!
+}
+
+type AIChatMutation {
+  createAIChat(input: CreateAIChatInput!): AIChat!
+  updateAIChat(chatId: String!, input: UpdateAIChatInput!): AIChat!
+  deleteAIChat(chatId: String!): Boolean!
+  sendMessage(chatId: String!, input: SendMessageInput!): AIChat!
+  analyzeEmailRisk(input: AnalyzeEmailRiskInput!): EmailRiskAnalysisResponse!
+  generateCompanySummary(input: GenerateCompanySummaryInput!): CompanySummaryResponse!
+  parseContactFilters(input: ParseFiltersInput!): ParseFiltersResponse!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+### `aiChats.aiChats` (query)
+
+```json
+{
+  "query": "query ($filters: AIChatFilterInput) { aiChats { aiChats(filters: $filters) { items { uuid title createdAt } pageInfo { total limit offset } } } }",
+  "variables": { "filters": { "limit": 20, "offset": 0, "ordering": "-created_at" } }
+}
+```
+
+### `aiChats.sendMessage` (mutation)
+
+```json
+{
+  "query": "mutation ($chatId: String!, $input: SendMessageInput!) { aiChats { sendMessage(chatId: $chatId, input: $input) { uuid messages { sender text } } } }",
+  "variables": {
+    "chatId": "<chat-uuid>",
+    "input": { "message": "Hello", "model": null }
+  }
+}
+```
 
 ## Types
 

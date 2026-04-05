@@ -7,14 +7,14 @@ Service-scoped API documentation index for standalone backend services.
 **Gateway & data plane**
 
 - `appointment360.api.md` — `contact360.io/api` GraphQL gateway
-- `connectra.api.md` — `contact360.io/sync` (contacts/companies/VQL)
+- `connectra.api.md` — **Connectra** HTTP API (`EC2/sync.server`; also referenced historically as `contact360.io/sync`) — VQL, filters, jobs, presign helpers
 - `jobs.api.md` — async jobs (email.server + sync.server; gateway `scheduler_jobs`)
 
 **Workers & integrations**
 
-- `s3storage.api.md` — object storage / presigned flows
+- `s3storage.api.md` — **`EC2/s3storage.server`** object storage / multipart / analysis / metadata jobs (full route table)
 - `logsapi.api.md` — `logs.api` ingest
-- `emailapis.api.md` — `lambda/emailapis` + `lambda/emailapigo` (finder/verify family)
+- `emailapis.api.md` — **`EC2/email.server`** (Gin; finder/verify/jobs/patterns/S3 CSV); legacy matrices may still cite `lambda/emailapis`
 
 **Product services (REST or mixed)**
 

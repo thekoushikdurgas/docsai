@@ -33,6 +33,71 @@ The Billing module provides billing and subscription management functionality in
 
 Use camelCase in variables JSON. See Input Types and Admin Input Types for field-level details. Payment processor details may be Razorpay or manual proof flow depending on deployment.
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type BillingQuery {
+  billing: BillingInfo!
+  plans: [SubscriptionPlan!]!
+  addons: [AddonPackage!]!
+  invoices(pagination: InvoicePaginationInput = null): InvoiceConnection!
+  paymentInstructions: PaymentInstructions
+  paymentSubmissions(status: String = null, limit: Int! = 50, offset: Int! = 0): PaymentSubmissionConnection!
+}
+
+type BillingMutation {
+  subscribe(input: SubscribeInput!): SubscribeResult!
+  purchaseAddon(input: PurchaseAddonInput!): PurchaseAddonResult!
+  cancelSubscription: CancelSubscriptionResult!
+  createPlan(input: CreatePlanInput!): CreatePlanResult!
+  updatePlan(tier: String!, input: UpdatePlanInput!): UpdatePlanResult!
+  deletePlan(tier: String!): DeletePlanResult!
+  createPlanPeriod(tier: String!, input: CreatePlanPeriodInput!): CreatePlanPeriodResult!
+  updatePlanPeriod(tier: String!, period: String!, input: UpdatePlanPeriodInput!): CreatePlanPeriodResult!
+  deletePlanPeriod(tier: String!, period: String!): DeletePlanPeriodResult!
+  createAddon(input: CreateAddonInput!): CreateAddonResult!
+  updateAddon(packageId: String!, input: UpdateAddonInput!): UpdateAddonResult!
+  deleteAddon(packageId: String!): DeleteAddonResult!
+  updatePaymentInstructions(input: UpdatePaymentInstructionsInput!): PaymentInstructions!
+  submitPaymentProof(input: SubmitPaymentProofInput!): PaymentSubmission!
+  approvePayment(submissionId: String!): PaymentSubmission!
+  declinePayment(input: DeclinePaymentInput!): PaymentSubmission!
+}
+```
+
+## POST `/graphql` — full request and response
+
+### `billing.plans` (public)
+
+```json
+{
+  "query": "query { billing { plans { tier name category periods { monthly { credits price } } } } }"
+}
+```
+
+### `billing.billing` (authenticated)
+
+```json
+{
+  "query": "query { billing { billing { credits subscriptionPlan subscriptionStatus usagePercentage } } }"
+}
+```
+
+Headers for authenticated calls: `Authorization: Bearer <access_token>`.
+
+### `billing.subscribe` (mutation)
+
+```json
+{
+  "query": "mutation ($input: SubscribeInput!) { billing { subscribe(input: $input) { message subscriptionPlan credits } } }",
+  "variables": { "input": { "tier": "5k", "period": "monthly" } }
+}
+```
+
 ## Types
 
 ### BillingInfo

@@ -13,6 +13,30 @@ The satellite email-campaign service is optional. The gateway exposes a **read-o
 
 **Direct REST** (Go campaign service) may still expose write routes; call that service or add gateway resolvers if you need mutations from GraphQL.
 
+## Canonical SDL (gateway — read-only satellite)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type CampaignModuleQuery {
+  campaigns: JSON!
+  sequences: JSON!
+  campaignTemplates: JSON!
+}
+```
+
+### POST `/graphql` — example
+
+```json
+{
+  "query": "query { campaignSatellite { campaigns sequences campaignTemplates } }"
+}
+```
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
 ---
 
 ## Planned / service-native GraphQL (not on gateway yet)

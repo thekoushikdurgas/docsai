@@ -5,6 +5,10 @@
 The Activities module provides comprehensive user activity tracking and statistics across all application modules. It allows users to view their activity history, filter activities by service type and action type, and get activity statistics. Activities are automatically logged for all user operations across Jobs, Imports, Contacts, Companies, Email, AI Chats, LinkedIn, and Sales Navigator modules.
 **Location:** `app/graphql/modules/activities/`
 
+**Connectra (`EC2/sync.server`):** User-facing GraphQL operations that delegate to Connectra (contacts/companies VQL, imports/exports) are what typically generate **activities**. The Connectra service also exposes its own **`/common/jobs/*`** HTTP API for native CSV jobs ([connectra.api.md](../micro.services.apis/connectra.api.md)); that layer does not replace gateway activity logging.
+
+**Email satellite (`EC2/email.server`):** Finder, verifier, pattern, and bulk/S3 job flows invoked via GraphQL **email** / **jobs** use the REST API documented in **[emailapis.api.md](../micro.services.apis/emailapis.api.md)**. Activity rows still come from the gateway’s activity logger when resolvers run, not from the email service directly.
+
 GraphQL paths: `query { activities { activities(filters: { ... }) { ... } activityStats(filters: { ... }) { ... } } }`.
 
 ## Queries – parameters and variable types
@@ -15,6 +19,52 @@ GraphQL paths: `query { activities { activities(filters: { ... }) { ... } activi
 | `activityStats` | `filters` | `ActivityStatsInput` (optional; `startDate`, `endDate` only) | `ActivityStats` |
 
 No mutations (activities are logged by other modules). Use camelCase in variables (e.g. `serviceType`, `startDate`). `ActivityStatsInput`: optional date range; `startDate` must be before `endDate` when both set. List pagination: `limit` 1–1000, `offset` ≥ 0 (enforced on `ActivityFilterInput`).
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type ActivityQuery {
+  activities(filters: ActivityFilterInput = null): ActivityConnection!
+  activityStats(filters: ActivityStatsInput = null): ActivityStats!
+}
+
+input ActivityFilterInput {
+  serviceType: String = null
+  actionType: String = null
+  status: String = null
+  startDate: DateTime = null
+  endDate: DateTime = null
+  limit: Int = 100
+  offset: Int = 0
+}
+
+input ActivityStatsInput {
+  startDate: DateTime = null
+  endDate: DateTime = null
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+```json
+{
+  "query": "query ($filters: ActivityFilterInput) { activities { activities(filters: $filters) { total limit offset items { id serviceType actionType status createdAt } } } }",
+  "variables": {
+    "filters": {
+      "limit": 50,
+      "offset": 0,
+      "serviceType": null,
+      "actionType": null
+    }
+  }
+}
+```
 
 ## Types
 

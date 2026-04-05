@@ -20,11 +20,57 @@ GraphQL paths: `query { profile { listAPIKeys { ... } } }`, `mutation { profile 
 | `deleteAPIKey` | `id` | `ID!` | `Boolean` |
 | `revokeSession` | `id` | `ID!` | `Boolean` |
 | `revokeAllOtherSessions` | — | — | `Boolean` |
-| `inviteTeamMember` | `input` | `InviteTeamMemberInput!` | result |
-| `updateTeamMemberRole` | `input` | `UpdateTeamMemberRoleInput!` | result |
-| `removeTeamMember` | `input` | `RemoveTeamMemberInput!` | result |
+| `inviteTeamMember` | `input` | `InviteTeamMemberInput!` | `TeamMember!` |
+| `updateTeamMemberRole` | `id`, `role` | `ID!`, `String!` | `TeamMember!` |
+| `removeTeamMember` | `id` | `ID!` | `Boolean!` |
 
 Use camelCase in variables. Tables: api_keys, sessions, team_members. User isolation for all operations.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type ProfileQuery {
+  listAPIKeys: APIKeyList!
+  listSessions: SessionList!
+  listTeamMembers: TeamList!
+}
+
+type ProfileMutation {
+  createAPIKey(input: CreateAPIKeyInput!): APIKey!
+  deleteAPIKey(id: ID!): Boolean!
+  revokeSession(id: ID!): Boolean!
+  revokeAllOtherSessions: Boolean!
+  inviteTeamMember(input: InviteTeamMemberInput!): TeamMember!
+  updateTeamMemberRole(id: ID!, role: String!): TeamMember!
+  removeTeamMember(id: ID!): Boolean!
+}
+
+input CreateAPIKeyInput {
+  name: String!
+  readAccess: Boolean! = true
+  writeAccess: Boolean! = false
+  expiresAt: String = null
+}
+
+input InviteTeamMemberInput {
+  email: String!
+  role: String! = "Member"
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+```json
+{
+  "query": "query { profile { listAPIKeys { keys { id name prefix readAccess } total } } } }"
+}
+```
 
 ## Types
 

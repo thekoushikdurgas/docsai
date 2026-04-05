@@ -5,6 +5,8 @@
 The Analytics module provides performance metrics tracking and aggregation functionality. It allows users to submit performance metrics (such as Core Web Vitals) and query aggregated statistics.
 **Location:** `app/graphql/modules/analytics/`
 
+**Cross-service note:** Bulk email **finder/verifier job** progress and CSV outputs are handled by the **email** satellite (**`EC2/email.server`**, `GET /jobs/:id/status`, etc. — see [emailapis.api.md](../micro.services.apis/emailapis.api.md)), not by `analytics.performanceMetrics`. This module stores **app performance** metrics (e.g. LCP) in `performance_metrics`, separate from email job queues.
+
 GraphQL paths: `query { analytics { performanceMetrics(input: { ... }) { ... } aggregateMetrics(input: { ... }) { ... } } }`, `mutation { analytics { submitPerformanceMetric(input: { ... }) { ... } } }`.
 
 ## Queries and mutations – parameters and variable types
@@ -18,6 +20,43 @@ GraphQL paths: `query { analytics { performanceMetrics(input: { ... }) { ... } a
 | `submitPerformanceMetric` | `input` | `SubmitPerformanceMetricInput!` (`name`, `value`, **`timestamp` as Unix ms (BigInt/int)**, optional `metadata`) | `PerformanceMetricResponse` |
 
 Use camelCase in variables. **`timestamp` must be epoch milliseconds** (resolver validates positive number, converts to `DateTime`). `submitPerformanceMetric` uses a best-effort persistence path (see resolver). Data stored via `performance_metrics` / `PerformanceMetricsRepository`.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type AnalyticsQuery {
+  performanceMetrics(input: GetMetricsInput = null): [PerformanceMetric!]!
+  aggregateMetrics(input: AggregateMetricsInput!): MetricAggregation!
+}
+
+type AnalyticsMutation {
+  submitPerformanceMetric(input: SubmitPerformanceMetricInput!): PerformanceMetricResponse!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>` (where required by resolver).
+
+### `analytics.submitPerformanceMetric` (mutation)
+
+```json
+{
+  "query": "mutation ($input: SubmitPerformanceMetricInput!) { analytics { submitPerformanceMetric(input: $input) { success message } } }",
+  "variables": {
+    "input": {
+      "name": "LCP",
+      "value": 2.4,
+      "timestamp": 1735689600000,
+      "metadata": { "url": "https://app.example.com/dashboard" }
+    }
+  }
+}
+```
 
 ## Types
 

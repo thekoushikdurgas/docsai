@@ -32,14 +32,73 @@ GraphQL paths: `query { jobs { job(jobId: ...) jobs(limit: ..., jobFamily: ...) 
 | `createEmailVerifyExport` | `input` | `CreateEmailVerifyExportInput!` | `SchedulerJob` |
 | `createContact360Export` | `input` | `CreateContact360ExportInput!` | `SchedulerJob` |
 | `createContact360Import` | `input` | `CreateContact360ImportInput!` | `SchedulerJob` (role-gated) |
-| `pauseJob` | `input` | `PauseJobInput!` | `SchedulerJob` |
-| `resumeJob` | `input` | `ResumeJobInput!` | `SchedulerJob` |
-| `terminateJob` | `input` | `TerminateJobInput!` | `SchedulerJob` |
-| `retryJob` | `input` | `RetryJobInput!` | `JSON` |
+| `pauseJob` | `input` | `PauseJobInput!` | `JSON!` |
+| `resumeJob` | `input` | `ResumeJobInput!` | `JSON!` |
+| `terminateJob` | `input` | `TerminateJobInput!` | `JSON!` |
+| `pauseConnectraJob` | `jobUuid` | `String!` | `JSON!` |
+| `resumeConnectraJob` | `jobUuid` | `String!` | `JSON!` |
+| `terminateConnectraJob` | `jobUuid` | `String!` | `JSON!` |
+| `retryJob` | `input` | `RetryJobInput!` | `JSON!` |
 
 **Removed:** `createEmailPatternImport`, `createAppointmentImport` (legacy tkdjob-era).
 
 Use **camelCase** in GraphQL variables. See Input Types below.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type JobQuery {
+  job(jobId: ID!): SchedulerJob!
+  jobs(limit: Int = 25, offset: Int = 0, status: String = null, jobType: String = null, jobFamily: String = null): JobConnection!
+}
+
+type JobMutation {
+  createEmailFinderExport(input: CreateEmailFinderExportInput!): SchedulerJob!
+  createEmailVerifyExport(input: CreateEmailVerifyExportInput!): SchedulerJob!
+  createContact360Export(input: CreateContact360ExportInput!): SchedulerJob!
+  createContact360Import(input: CreateContact360ImportInput!): SchedulerJob!
+  pauseJob(input: PauseJobInput!): JSON!
+  resumeJob(input: ResumeJobInput!): JSON!
+  terminateJob(input: TerminateJobInput!): JSON!
+  pauseConnectraJob(jobUuid: String!): JSON!
+  resumeConnectraJob(jobUuid: String!): JSON!
+  terminateConnectraJob(jobUuid: String!): JSON!
+  retryJob(input: RetryJobInput!): JSON!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+### `jobs.jobs` (query)
+
+```json
+{
+  "query": "query ($limit: Int, $offset: Int, $jobFamily: String) { jobs { jobs(limit: $limit, offset: $offset, jobFamily: $jobFamily) { jobs { id jobType status sourceService } pageInfo { total limit offset } } } }",
+  "variables": { "limit": 25, "offset": 0, "jobFamily": null }
+}
+```
+
+### `jobs.createEmailFinderExport` (mutation)
+
+```json
+{
+  "query": "mutation ($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { id jobId status jobFamily } } }",
+  "variables": {
+    "input": {
+      "inputCsvKey": "upload/20260210_contacts.csv",
+      "outputPrefix": "exports/",
+      "csvColumns": null,
+      "s3Bucket": null
+    }
+  }
+}
+```
 
 ## Flow
 
@@ -119,7 +178,39 @@ List jobs for the current user. Optional **`jobFamily`** filter: `email_job` | `
 
 There is **no** `TKDJOB_*` configuration.
 
+## Connectra native jobs API (`EC2/sync.server`)
+
+The sync server has its own **`jobs`** table and HTTP API under **`/common/jobs`** (distinct from GraphQL `scheduler_jobs`, though gateway mutations may create rows in both places depending on flow).
+
+| HTTP | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/common/jobs` | List jobs: body `{ "job_type", "status": [], "limit" }` |
+| `POST` | `/common/jobs/create` | Create job: `job_type` **`insert_csv_file`** \| **`export_csv_file`**, `job_data` JSON, `retry_count` |
+| `GET` | `/common/jobs/:job_uuid` | Fetch one job row |
+| `POST` | `/common/jobs/:job_uuid/pause` \| `/resume` \| `/terminate` | Status transitions |
+
+Worker-backed types and **`job_data`** shapes (S3 keys, export `vql`, `service` = `contact` \| `company`) are documented in **[connectra.api.md](../micro.services.apis/connectra.api.md)**. Postman: **[EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json)**.
+
+GraphQL mutations **`pauseConnectraJob`**, **`resumeConnectraJob`**, **`terminateConnectraJob`** map to these pause/resume/terminate routes (see gateway resolvers).
+
+## Email satellite native jobs (`EC2/email.server`)
+
+For **`source_service=email_server`**, the gateway delegates pause/resume/terminate and status to the Go service’s **`emailapi_jobs`** + Redis/Asynq pipeline.
+
+| HTTP (email.server) | Purpose |
+| --- | --- |
+| `GET /jobs` | List recent jobs (max 50) |
+| `GET /jobs/:id/status` | Progress, `output_csv_key`, provider |
+| `POST /jobs/:id/pause` | Pause |
+| `POST /jobs/:id/resume` | Resume (must be paused) |
+| `POST /jobs/:id/terminate` | Terminate + optional S3 merge |
+| `POST /email/finder/s3` | Finder S3 CSV stream job (`202`) |
+| `POST /email/verify/s3` | Verifier S3 CSV stream job (`202`) |
+
+Full parameters and JSON bodies: **[emailapis.api.md](../micro.services.apis/emailapis.api.md)** · Postman: **[EC2_email.server.postman_collection.json](../postman/EC2_email.server.postman_collection.json)**.
+
 ## Related docs
 
 - Database: `docs/backend/database/scheduler_jobs.sql`, `enums.sql` (`scheduler_job_status`)
 - Satellite routes: `docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`
+- Email HTTP API: [emailapis.api.md](../micro.services.apis/emailapis.api.md)

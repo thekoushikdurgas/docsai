@@ -23,6 +23,160 @@ GraphQL paths: `query { auth { me { ... } session { ... } } }`, `mutation { auth
 
 **Input type fields (for variables):** `LoginInput`: `email: String!`, `password: String!`, `geolocation: GeolocationInput`; `RegisterInput`: `name: String!`, `email: String!`, `password: String!`, `geolocation: GeolocationInput`; `RefreshTokenInput`: `refreshToken: String!`. Use camelCase in the `variables` JSON (e.g. `refreshToken`).
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+**Auth namespace and inputs (excerpt):**
+
+```graphql
+type AuthQuery {
+  me: User
+  session: SessionInfo!
+}
+
+type AuthMutation {
+  login(input: LoginInput!, pageType: String = null): AuthPayload!
+  register(input: RegisterInput!, pageType: String = null): AuthPayload!
+  logout: Boolean!
+  refreshToken(input: RefreshTokenInput!, pageType: String = null): AuthPayload!
+}
+
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: UserInfo!
+  pages: [PageSummary!]
+}
+
+type UserInfo {
+  uuid: ID!
+  email: String!
+  name: String
+  role: String
+  userType: String
+}
+
+type SessionInfo {
+  userUuid: ID!
+  email: String!
+  isAuthenticated: Boolean!
+  lastSignInAt: DateTime
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+  geolocation: GeolocationInput = null
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+  geolocation: GeolocationInput = null
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+input GeolocationInput {
+  ip: String = null
+  continent: String = null
+  continentCode: String = null
+  country: String = null
+  countryCode: String = null
+  region: String = null
+  regionName: String = null
+  city: String = null
+  district: String = null
+  zip: String = null
+  lat: Float = null
+  lon: Float = null
+  timezone: String = null
+  offset: Int = null
+  currency: String = null
+  isp: String = null
+  org: String = null
+  asname: String = null
+  reverse: String = null
+  device: String = null
+  proxy: Boolean = null
+  hosting: Boolean = null
+}
+```
+
+`User` on `me` is the shared Users module type; see [02_USERS_MODULE.md](02_USERS_MODULE.md) for fields.
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`. Optional: `Authorization: Bearer <access_token>` for `me`, `session`, `logout`.
+
+### Login (mutation)
+
+**Request body:**
+
+```json
+{
+  "query": "mutation Login($input: LoginInput!, $pageType: String) { auth { login(input: $input, pageType: $pageType) { accessToken refreshToken user { uuid email name role userType } pages { pageId title pageType route status } } } }",
+  "variables": {
+    "input": {
+      "email": "user@example.com",
+      "password": "string",
+      "geolocation": null
+    },
+    "pageType": null
+  }
+}
+```
+
+**Success response:**
+
+```json
+{
+  "data": {
+    "auth": {
+      "login": {
+        "accessToken": "<jwt>",
+        "refreshToken": "<jwt>",
+        "user": {
+          "uuid": "550e8400-e29b-41d4-a716-446655440000",
+          "email": "user@example.com",
+          "name": "Jane",
+          "role": "Member",
+          "userType": "guest"
+        },
+        "pages": []
+      }
+    }
+  }
+}
+```
+
+### Refresh token (mutation)
+
+**Variables:**
+
+```json
+{
+  "input": { "refreshToken": "<jwt>" },
+  "pageType": null
+}
+```
+
+### Session (query, requires auth)
+
+**Request body:**
+
+```json
+{
+  "query": "query { auth { session { userUuid email isAuthenticated lastSignInAt } } }"
+}
+```
+
 ## Types
 
 ### UserInfo

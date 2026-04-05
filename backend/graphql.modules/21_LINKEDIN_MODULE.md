@@ -16,6 +16,44 @@ GraphQL paths: `mutation { linkedin { search(input: { ... }) { ... } upsertByLin
 
 No queries under **`linkedin`** on the root `Query` type (operations are **mutations only**). Use camelCase in variables. Credit usage and URL validation follow resolver rules. See Input Types for `LinkedInSearchInput` and `LinkedInUpsertInput`.
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type LinkedInMutation {
+  search(input: LinkedInSearchInput!): LinkedInSearchResponse!
+  upsertByLinkedInUrl(input: LinkedInUpsertInput!): LinkedInUpsertResponse!
+}
+
+input LinkedInSearchInput {
+  url: String!
+}
+
+input LinkedInUpsertInput {
+  url: String!
+  contactData: JSON = null
+  contactMetadata: JSON = null
+  companyData: JSON = null
+  companyMetadata: JSON = null
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+### `linkedin.search` (mutation)
+
+```json
+{
+  "query": "mutation ($input: LinkedInSearchInput!) { linkedin { search(input: $input) { totalContacts totalCompanies } } }",
+  "variables": { "input": { "url": "https://www.linkedin.com/in/example" } }
+}
+```
+
 ## Types
 
 ### LinkedInSearchResponse

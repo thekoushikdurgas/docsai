@@ -9,24 +9,96 @@ GraphQL paths: `query { s3 { s3Files(...) { ... } } }`, `mutation { s3 { initiat
 
 **Mutations:** `initiateCsvUpload` / `completeCsvUpload` reuse upload-session types: `InitiateCsvUploadInput` plus **`CompleteUploadInput`** (same shape as `upload.completeUpload`) for completion. Use `upload.presignedUrl` and `upload.registerPart` for each part between initiate and complete. `deleteFile(fileKey: String!)` returns `Boolean`.
 
+## REST backend: `EC2/s3storage.server` (HTTP)
+
+The gateway uses **`S3StorageEC2Client`** (`app/clients/s3storage_ec2_client.py`) to call the Go service. Base URL: `LAMBDA_S3STORAGE_API_URL`; auth: **`X-API-Key`** (`LAMBDA_S3STORAGE_API_KEY`), or `?api_key=` for GETs.
+
+| Area | Go route(s) | Notes |
+| --- | --- | --- |
+| Health | `GET /api/v1/health`, `GET /api/v1/health/ready` | Public; ready checks S3 `HeadBucket` |
+| List files | `GET /api/v1/files?prefix=` | Logical prefix includes `{bucket_id}/` |
+| Multipart CSV | `POST /api/v1/uploads/initiate-csv`, `GET .../parts/:n`, `POST .../complete`, `DELETE .../abort` | Form `key`; JSON `parts` for complete |
+| Analysis | `GET /api/v1/analysis/schema?key=`, `GET .../stats?key=` | `key` = full S3 key (`bucket_id/file_key`) |
+| Avatars | `GET /api/v1/avatars/:user?ext=` | Presigned GET URL |
+| Metadata jobs | `GET /api/v1/jobs`, `GET /api/v1/jobs/:id` | Postgres-backed queue metadata |
+
+**Contract:** [s3storage.api.md](../micro.services.apis/s3storage.api.md) · **Postman:** [EC2_s3storage.server.postman_collection.json](../postman/EC2_s3storage.server.postman_collection.json).
+
+**Mapping shim** (Lambda vs Go): `s3storage_ec2_client.py` docstring at top of file.
+
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
 | **Queries** | | | |
-| `s3Files` | `prefix`, `limit`, `offset` | String, Int, Int | `S3FileList` |
-| `s3FileData` | `fileKey`, `limit`, `offset` | String!, Int, Int | `S3FileData` |
-| `s3FileInfo` | `fileKey` | String! | `S3FileInfo` |
-| `s3FileDownloadUrl` | `fileKey` | String! | `S3DownloadUrlResponse` |
-| `s3FileSchema` | `fileKey` | String! | schema type |
-| `s3FileStats` | `fileKey` | String! | stats type |
-| `s3BucketMetadata` | — | — | bucket metadata type |
+| `s3Files` | `prefix` | `String` (default `""`) | `S3FileList` |
+| `s3FileData` | `fileKey`, `limit`, `offset` | `String!`, `Int`, `Int` | `S3FileData` |
+| `s3FileInfo` | `fileKey` | `String!` | `S3FileInfo` |
+| `s3FileDownloadUrl` | `fileKey`, `expiresIn` | `String!`, `Int` | `S3DownloadUrlResponse` |
+| `s3FileSchema` | `fileKey` | `String!` | `[FileSchemaColumn!]!` |
+| `s3FileStats` | `fileKey` | `String!` | `S3FileStats` |
+| `s3BucketMetadata` | — | — | `JSON!` |
 | **Mutations** | | | |
-| `initiateCsvUpload` | `input` | InitiateCsvUploadInput! | init result (includes `fileKey`) |
-| `completeCsvUpload` | `input` | CompleteUploadInput! | result (includes `fileKey`) |
-| `deleteFile` | `fileKey` | String! | result |
+| `initiateCsvUpload` | `input` | `InitiateCsvUploadInput!` | `InitiateUploadResponse!` |
+| `completeCsvUpload` | `input` | `CompleteUploadInput!` | `CompleteUploadResponse!` |
+| `deleteFile` | `fileKey` | `String!` | `Boolean!` |
 
 Use camelCase in variables (e.g. `fileKey`). All operations are scoped to the authenticated user's logical bucket via s3storage.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type S3Query {
+  s3Files(prefix: String = ""): S3FileList!
+  s3FileData(fileKey: String!, limit: Int = null, offset: Int = null): S3FileData!
+  s3FileInfo(fileKey: String!): S3FileInfo!
+  s3FileDownloadUrl(fileKey: String!, expiresIn: Int = null): S3DownloadUrlResponse!
+  s3FileSchema(fileKey: String!): [FileSchemaColumn!]!
+  s3FileStats(fileKey: String!): S3FileStats!
+  s3BucketMetadata: JSON!
+}
+
+type S3Mutation {
+  initiateCsvUpload(input: InitiateCsvUploadInput!): InitiateUploadResponse!
+  completeCsvUpload(input: CompleteUploadInput!): CompleteUploadResponse!
+  deleteFile(fileKey: String!): Boolean!
+}
+
+input InitiateCsvUploadInput {
+  filename: String!
+  fileSize: BigInt!
+}
+
+input CompleteUploadInput {
+  uploadId: String!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+### `s3.s3Files` (query)
+
+```json
+{
+  "query": "query ($prefix: String) { s3 { s3Files(prefix: $prefix) { total files { key filename size } } } }",
+  "variables": { "prefix": "" }
+}
+```
+
+### `s3.s3FileDownloadUrl` (query)
+
+```json
+{
+  "query": "query ($fileKey: String!, $expiresIn: Int) { s3 { s3FileDownloadUrl(fileKey: $fileKey, expiresIn: $expiresIn) { downloadUrl expiresIn } } }",
+  "variables": { "fileKey": "upload/20260210_120000_contacts.csv", "expiresIn": 3600 }
+}
+```
 
 ## Types
 
@@ -224,6 +296,7 @@ query GetS3FileData($fileKey: String!, $limit: Int!, $offset: Int) {
   "limit": 100,
   "offset": 0
 }
+```
 
 **Arguments:**
 - `fileKey` (String!): Object key relative to the logical bucket root (file path inside the user's bucket)
@@ -682,16 +755,16 @@ query ReadNextPage {
 
 ### s3storage Integration
 
-- **S3StorageClient**: All file operations are handled by the `S3StorageClient`, which talks to the `s3storage` Lambda over HTTP.
+- **S3StorageClient** (`app/clients/s3storage_ec2_client.py`): All file operations call the **EC2 Go** service (`EC2/s3storage.server`) over HTTP (`LAMBDA_S3STORAGE_API_URL` / `LAMBDA_S3STORAGE_API_KEY`).
   - **File operations:** `list_csv_files`, `get_csv_file_info`, `get_download_url`, `delete_file` (bucket + file key).
   - **Analysis:** `get_schema`, `get_preview`, `get_stats`, `get_bucket_metadata` (bucket-level metadata).
-  - **Multipart upload:** `initiate_csv_upload`, `get_presigned_part_url`, `register_part`, `complete_upload(upload_id, bucket_id)` (s3storage API requires `bucket_id` on complete), `abort_upload`.
+  - **Multipart upload:** `initiate_csv_upload`, `get_presigned_part_url`, `register_part`, `complete_upload` (gateway passes logical `bucket_id` where the client maps keys), `abort_upload`.
   - **Single-shot upload:** `upload_csv(bucket_id, data, filename)` for smaller CSV files (not exposed in GraphQL; use multipart flow for large files).
-  - **Avatars:** `upload_avatar`, `get_avatar_download_url` (used by Users module). Avatar key pattern: `avatar/{user_id}.jpg`.
-  - **Health:** `health()`, `health_info()`, `root()` for monitoring.
-- **Logical Buckets**: The logical bucket id for a user is stored in `users.bucket` (defaulting to their UUID). GraphQL resolvers pass this as `bucket_id` on all s3storage calls; `complete_upload` receives it so the storage API can run the metadata worker.
-- **Physical Bucket Configuration**: The underlying S3 bucket and prefix layout are configured in the `s3storage` service (see its `template.yaml` and API.md), not in the Contact360 gateway.
-- **REST API reference:** `lambda/s3storage/docs/API.md`. A Postman collection for the storage backend is in `sql/postman/Storage_Backend_s3storage.postman_collection.json`.
+  - **Avatars:** `upload_avatar`, `get_avatar_download_url` (used by Users module). EC2 API uses key pattern `avatars/{user}.{ext}` (see `GET /api/v1/avatars/:user`).
+  - **Health:** `health()` → `GET /api/v1/health`; `health_info()` → `GET /api/v1/health/ready`.
+- **Logical buckets:** The logical bucket id for a user is stored in `users.bucket` (defaulting to their UUID). Resolvers pass this as `bucket_id` on s3storage calls; object keys are stored as `{bucket_id}/{relative_file_key}` in S3.
+- **Physical bucket:** Configured on the s3storage server via `S3STORAGE_BUCKET` / `BUCKET` / `S3_BUCKET_NAME` (see `EC2/s3storage.server/internal/config/config.go`).
+- **REST reference:** [s3storage.api.md](../micro.services.apis/s3storage.api.md) · **Postman:** [EC2_s3storage.server.postman_collection.json](../postman/EC2_s3storage.server.postman_collection.json).
 
 ### CSV File Operations
 

@@ -2,6 +2,8 @@
 
 This document freezes the expected `/health` response families across the 11 core services and maps them to the health matrix compose.
 
+**GraphQL gateway:** For the Contact360 API’s GraphQL health and monitoring fields (`health { apiMetadata, apiHealth, … }`), see [08_HEALTH_MODULE.md](08_HEALTH_MODULE.md) and regenerate SDL with `python -c "from app.graphql.schema import schema; print(schema.as_str())"` from `contact360.io/api`.
+
 ## Compose matrix
 
 - Local matrix compose: `docker-compose.health-matrix.yml`

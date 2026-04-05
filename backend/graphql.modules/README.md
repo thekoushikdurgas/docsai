@@ -227,6 +227,7 @@ For detailed information, see:
 - **GraphQL examples**: Use fenced blocks with ````graphql` for queries and mutations. Field names use camelCase in the schema (e.g. `pageId`, `pageType`).
 - **JSON examples**: Use fenced blocks with ````json` for request/response and error examples. All JSON must be valid (double-quoted keys and values, no trailing commas, no `|` in values—use a single example value and describe alternatives in prose).
 - **Variables**: GraphQL variables are passed as a JSON object in the `variables` key of the request body: `{ "query": "...", "variables": { ... } }`. Use **camelCase** for variable and field names in the JSON (e.g. `inputCsvKey`, `pageType`).
+- **Full schema (SDL)**: Regenerate the authoritative schema string from the gateway checkout: in `contact360.io/api` run `python -c "from app.graphql.schema import schema; print(schema.as_str())"`. Use this to verify operation names, argument names, and input/output types when updating module docs. Each `NN_*_MODULE.md` now includes a **Canonical SDL** excerpt and **POST `/graphql`** JSON examples aligned with that output.
 
 ## Task breakdown for learning and maintenance
 

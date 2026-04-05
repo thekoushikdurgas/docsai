@@ -8,6 +8,26 @@
 
 Field name in GraphQL is **`campaignTemplates`** (camelCase). There are **no** template CRUD mutations on the gateway’s `campaignSatellite` type today.
 
+## Canonical SDL (gateway — read-only)
+
+```graphql
+type CampaignModuleQuery {
+  campaigns: JSON!
+  sequences: JSON!
+  campaignTemplates: JSON!
+}
+```
+
+Regenerate: `python -c "from app.graphql.schema import schema; print(schema.as_str())"` from `contact360.io/api`.
+
+### POST `/graphql`
+
+```json
+{
+  "query": "query { campaignSatellite { campaignTemplates } }"
+}
+```
+
 ---
 
 ## Planned / service-native GraphQL (not on gateway yet)

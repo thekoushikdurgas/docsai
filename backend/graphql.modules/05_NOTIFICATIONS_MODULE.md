@@ -10,17 +10,93 @@ The Notifications module provides notification management functionality includin
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
 | **Queries** (under `notifications { ... }`) | | | |
-| `notifications` | `filters` | `NotificationFilterInput` (optional; includes `limit`, `offset`, `read`, `type`, etc.) | `NotificationConnection` |
-| `notification` | `id` | `ID!` | `Notification` |
+| `notifications` | `filters` | `NotificationFilterInput` | `NotificationConnection` |
+| `notification` | `notificationId` | `ID!` | `Notification` |
 | `unreadCount` | — | — | `UnreadCountResponse` |
 | `notificationPreferences` | — | — | `NotificationPreferences` |
 | **Mutations** (under `notifications { ... }`) | | | |
 | `markNotificationAsRead` | `notificationId` | `ID!` | `Notification` |
-| `markNotificationsAsRead` | `input` | `MarkReadInput!` (`notificationIds: [ID!]!`) | `MarkReadResponse` |
-| `deleteNotifications` | `input` | `DeleteNotificationsInput!` (`notificationIds: [ID!]!`) | `DeleteNotificationsResponse` |
+| `markNotificationsAsRead` | `input` | `MarkReadInput!` | `MarkReadResponse` |
+| `deleteNotifications` | `input` | `DeleteNotificationsInput!` | `DeleteNotificationsResponse` |
 | `updateNotificationPreferences` | `input` | `UpdateNotificationPreferencesInput!` | `NotificationPreferences` |
 
-Use camelCase in variables. `NotificationType` enum: SYSTEM, SECURITY, ACTIVITY, MARKETING, BILLING. See Input Types for filter and preference fields.
+Use camelCase in variables. Enum `GraphQLNotificationType`: SYSTEM, SECURITY, ACTIVITY, MARKETING, BILLING. Enum `GraphQLNotificationPriority`: LOW, MEDIUM, HIGH, URGENT.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type NotificationQuery {
+  notifications(filters: NotificationFilterInput = null): NotificationConnection!
+  notification(notificationId: ID!): Notification!
+  unreadCount: UnreadCountResponse!
+  notificationPreferences: NotificationPreferences!
+}
+
+type NotificationMutation {
+  markNotificationAsRead(notificationId: ID!): Notification!
+  markNotificationsAsRead(input: MarkReadInput!): MarkReadResponse!
+  deleteNotifications(input: DeleteNotificationsInput!): DeleteNotificationsResponse!
+  updateNotificationPreferences(input: UpdateNotificationPreferencesInput!): NotificationPreferences!
+}
+
+input NotificationFilterInput {
+  limit: Int = 100
+  offset: Int = 0
+  unreadOnly: Boolean! = false
+  type: GraphQLNotificationType = null
+}
+
+input MarkReadInput {
+  notificationIds: [ID!]!
+}
+
+input DeleteNotificationsInput {
+  notificationIds: [ID!]!
+}
+
+input UpdateNotificationPreferencesInput {
+  emailDigest: Boolean = null
+  newLeads: Boolean = null
+  securityAlerts: Boolean = null
+  marketing: Boolean = null
+  billingUpdates: Boolean = null
+  pushEnabled: Boolean = null
+  emailEnabled: Boolean = null
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+### `notifications.notifications` (query)
+
+```json
+{
+  "query": "query ($filters: NotificationFilterInput) { notifications { notifications(filters: $filters) { items { id title read } pageInfo { total limit offset hasNext hasPrevious } } } }",
+  "variables": {
+    "filters": {
+      "limit": 20,
+      "offset": 0,
+      "unreadOnly": false,
+      "type": null
+    }
+  }
+}
+```
+
+### `notifications.markNotificationAsRead` (mutation)
+
+```json
+{
+  "query": "mutation ($notificationId: ID!) { notifications { markNotificationAsRead(notificationId: $notificationId) { id read } } }",
+  "variables": { "notificationId": "0194a1c0-0000-7000-8000-000000000001" }
+}
+```
 
 ## Types
 

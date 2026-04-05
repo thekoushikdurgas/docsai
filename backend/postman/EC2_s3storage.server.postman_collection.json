@@ -169,6 +169,53 @@
       ]
     },
     {
+      "name": "Jobs (metadata queue)",
+      "item": [
+        {
+          "name": "GET /api/v1/jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/jobs?state=&limit=50",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "state", "value": "" },
+                { "key": "limit", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/jobs/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/jobs/{{metadata_job_id}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "jobs", "{{metadata_job_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Uploads",
       "item": [
         {
@@ -461,6 +508,10 @@
     {
       "key": "avatar_ext",
       "value": "png"
+    },
+    {
+      "key": "metadata_job_id",
+      "value": "1"
     }
   ]
 }

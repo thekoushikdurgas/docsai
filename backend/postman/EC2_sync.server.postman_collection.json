@@ -1,0 +1,558 @@
+{
+  "info": {
+    "_postman_id": "ec2-sync-server-connectra-contact360",
+    "name": "EC2 sync.server (Connectra API)",
+    "description": "REST API for EC2/sync.server (Connectra). Every route including GET /health requires X-API-Key matching API_KEY. Rate limit: 429 when MAX_REQUESTS_PER_MINUTE bucket is empty (middleware.RateLimiter). Default port 8000 (PORT). Full contract: docs/backend/micro.services.apis/connectra.api.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/health",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Returns status, version, uptime_seconds, service=connectra, diagnostics (database, search_engine). API key is required by global middleware in cmd/server.go."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "item": [
+        {
+          "name": "POST /contacts/",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"where\": {\n    \"text_matches\": { \"must\": [], \"must_not\": [] },\n    \"keyword_match\": { \"must\": {}, \"must_not\": {} },\n    \"range_query\": { \"must\": {}, \"must_not\": {} }\n  },\n  \"limit\": 20,\n  \"page\": 1\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/contacts/",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["contacts", ""]
+            },
+            "description": "VQL body (utilities.VQLQuery). Response: { \"data\": [...], \"success\": true }."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /contacts/count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"where\": {\n    \"text_matches\": { \"must\": [], \"must_not\": [] },\n    \"keyword_match\": { \"must\": {}, \"must_not\": {} },\n    \"range_query\": { \"must\": {}, \"must_not\": {} }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/contacts/count",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["contacts", "count"]
+            },
+            "description": "Response: { \"count\": <int>, \"success\": true }."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /contacts/batch-upsert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"company_id\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"first_name\": \"jane\",\n    \"last_name\": \"doe\",\n    \"email\": \"jane@example.com\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/contacts/batch-upsert",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["contacts", "batch-upsert"]
+            },
+            "description": "JSON array of PgContact-shaped objects (see models/contact.pgsql.go). Max batch size enforced. Response: { \"success\": true }."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "POST /companies/",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"where\": {\n    \"text_matches\": { \"must\": [], \"must_not\": [] },\n    \"keyword_match\": { \"must\": {}, \"must_not\": {} },\n    \"range_query\": { \"must\": {}, \"must_not\": {} }\n  },\n  \"limit\": 20\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/companies/",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["companies", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /companies/count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"where\": {\n    \"text_matches\": { \"must\": [], \"must_not\": [] },\n    \"keyword_match\": { \"must\": {}, \"must_not\": {} },\n    \"range_query\": { \"must\": {}, \"must_not\": {} }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/companies/count",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["companies", "count"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /companies/batch-upsert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[]"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/companies/batch-upsert",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["companies", "batch-upsert"]
+            },
+            "description": "JSON array of company records (see modules/companies/helper BindBatchUpsertRequest)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Common",
+      "item": [
+        {
+          "name": "POST /common/batch-upsert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": [\n    { \"first_name\": \"jane\", \"last_name\": \"doe\", \"person_linkedin_url\": \"https://linkedin.com/in/jane\", \"email\": \"j@ex.com\", \"title\": \"\", \"departments\": \"\", \"mobile_phone\": \"\", \"email_status\": \"\", \"seniority\": \"\", \"city\": \"\", \"state\": \"\", \"country\": \"\", \"facebook_url\": \"\", \"twitter_url\": \"\", \"work_direct_phone\": \"\", \"home_phone\": \"\", \"other_phone\": \"\", \"stage\": \"\" }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/common/batch-upsert",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "batch-upsert"]
+            },
+            "description": "Body: { \"data\": [ map[string]string, ... ] }. Used for LinkedIn-style row imports."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /common/upload-url",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/upload-url?filename={{upload_filename}}&bucket={{s3_bucket}}",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "upload-url"],
+              "query": [
+                { "key": "filename", "value": "{{upload_filename}}" },
+                { "key": "bucket", "value": "{{s3_bucket}}" }
+              ]
+            },
+            "description": "Query: filename (required), bucket (optional, defaults to config). Response: upload_url, s3_key, expires_in."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /common/download-url",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/download-url?s3_key={{s3_key}}&bucket={{s3_bucket}}",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "download-url"],
+              "query": [
+                { "key": "s3_key", "value": "{{s3_key}}" },
+                { "key": "bucket", "value": "{{s3_bucket}}" }
+              ]
+            },
+            "description": "Query: s3_key (required), bucket (optional)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /common/jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_type\": \"\",\n  \"status\": [],\n  \"limit\": 50\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/common/jobs",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "jobs"]
+            },
+            "description": "ListJobsRequest: job_type, status[], limit."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /common/jobs/create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_type\": \"insert_csv_file\",\n  \"job_data\": {\n    \"s3_key\": \"uploads/sample.csv\",\n    \"s3_bucket\": \"\"\n  },\n  \"retry_count\": 0\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/common/jobs/create",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "jobs", "create"]
+            },
+            "description": "CreateJobRequest. Worker types: insert_csv_file (job_data: s3_key, s3_bucket), export_csv_file (job_data: service contact|company, vql, s3_bucket). Response 201: { message, success }. See connectra.api.md."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /common/jobs/:job_uuid",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/jobs/{{job_uuid}}",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "jobs", "{{job_uuid}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /common/jobs/:job_uuid/pause",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/jobs/{{job_uuid}}/pause",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "jobs", "{{job_uuid}}", "pause"]
+            },
+            "description": "Response: { job_uuid, status: \"paused\", success: true }"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /common/jobs/:job_uuid/resume",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/jobs/{{job_uuid}}/resume",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "jobs", "{{job_uuid}}", "resume"]
+            },
+            "description": "Response: { job_uuid, status: \"open\", success: true }"
+          },
+          "response": []
+        },
+        {
+          "name": "POST /common/jobs/:job_uuid/terminate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/jobs/{{job_uuid}}/terminate",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "jobs", "{{job_uuid}}", "terminate"]
+            },
+            "description": "Response: { job_uuid, status: \"terminated\", success: true }"
+          },
+          "response": []
+        },
+        {
+          "name": "GET /common/contact/filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/contact/filters",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "contact", "filters"]
+            },
+            "description": "service path must be 'contact' or 'company' (constants.ContactsService / CompaniesService)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /common/company/filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{connectra_base_url}}/common/company/filters",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "company", "filters"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /common/contact/filters/data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filter_key\": \"title\",\n  \"search_text\": \"\",\n  \"page\": 1,\n  \"limit\": 20\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/common/contact/filters/data",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "contact", "filters", "data"]
+            },
+            "description": "FiltersDataQuery: filter_key, search_text, page, limit. Service set from path."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /common/company/filters/data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{connectra_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filter_key\": \"industry\",\n  \"search_text\": \"\",\n  \"page\": 1,\n  \"limit\": 20\n}"
+            },
+            "url": {
+              "raw": "{{connectra_base_url}}/common/company/filters/data",
+              "host": ["{{connectra_base_url}}"],
+              "path": ["common", "company", "filters", "data"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "connectra_base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "connectra_api_key",
+      "value": "change-me"
+    },
+    {
+      "key": "job_uuid",
+      "value": "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "key": "upload_filename",
+      "value": "export.csv"
+    },
+    {
+      "key": "s3_bucket",
+      "value": ""
+    },
+    {
+      "key": "s3_key",
+      "value": "prefix/object.csv"
+    }
+  ]
+}

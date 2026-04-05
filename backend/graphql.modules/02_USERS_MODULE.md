@@ -14,16 +14,120 @@ GraphQL paths: `query { users { user(uuid: ...) { ... } } }`, `mutation { users 
 |-----------|---------------|-------------------------|-------------|
 | **Queries** (under `users { ... }`) | | | |
 | `user` | `uuid` | `ID!` | `User` |
-| `users` | `limit`, `offset`, `isActive`, `role`, `search` | `Int`, `Int`, `Boolean`, `String`, `String` | `UserConnection` |
+| `users` | `limit`, `offset` | `Int`, `Int` | `[User!]!` |
 | `userStats` | — | — | `UserStats` (Admin/SuperAdmin) |
 | **Mutations** (under `users { ... }`) | | | |
-| `updateProfile` | `input` | `UpdateProfileInput!` | `User` |
-| `uploadAvatar` | `input` | `UploadAvatarInput!` | `User` |
+| `updateProfile` | `input` | `UpdateProfileInput!` | `UserProfile` |
+| `uploadAvatar` | `input` | `UploadAvatarInput!` | `UserProfile` |
 | `updateUser` | `input` | `UpdateUserInput!` | `User` |
 | `promoteToAdmin` | `input` | `PromoteToAdminInput!` | `User` (SuperAdmin) |
 | `promoteToSuperAdmin` | `input` | `PromoteToSuperAdminInput!` | `User` (SuperAdmin) |
 
 Use camelCase in the `variables` JSON (e.g. `uuid` for `user(uuid:)`, `jobTitle` in profile inputs). See Input Types section for field-level types.
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type UserQuery {
+  user(uuid: ID!): User!
+  users(limit: Int = 100, offset: Int = 0): [User!]!
+  userStats: UserStats!
+}
+
+type UserMutation {
+  updateProfile(input: UpdateProfileInput!): UserProfile!
+  uploadAvatar(input: UploadAvatarInput!): UserProfile!
+  updateUser(input: UpdateUserInput!): User!
+  promoteToAdmin(input: PromoteToAdminInput!): User!
+  promoteToSuperAdmin(input: PromoteToSuperAdminInput!): User!
+}
+
+input UpdateProfileInput {
+  jobTitle: String = null
+  bio: String = null
+  timezone: String = null
+  notifications: JSON = null
+}
+
+input UploadAvatarInput {
+  fileData: String = null
+  filePath: String = null
+}
+
+input UpdateUserInput {
+  name: String = null
+  email: String = null
+}
+```
+
+`PromoteToAdminInput` / `PromoteToSuperAdminInput` are defined in the Admin inputs section of the schema (`userId: ID!`).
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>` (required for all operations below except where noted).
+
+### `users.user` (query)
+
+**Request body:**
+
+```json
+{
+  "query": "query User($uuid: ID!) { users { user(uuid: $uuid) { uuid email name isActive profile { userId jobTitle credits role } } } }",
+  "variables": { "uuid": "550e8400-e29b-41d4-a716-446655440000" }
+}
+```
+
+**Success response (shape):**
+
+```json
+{
+  "data": {
+    "users": {
+      "user": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "email": "user@example.com",
+        "name": "Jane",
+        "isActive": true,
+        "profile": null
+      }
+    }
+  }
+}
+```
+
+### `users.updateProfile` (mutation)
+
+**Variables:**
+
+```json
+{
+  "input": {
+    "jobTitle": "Engineer",
+    "bio": null,
+    "timezone": "UTC",
+    "notifications": null
+  }
+}
+```
+
+**Minimal query string:**
+
+```graphql
+mutation ($input: UpdateProfileInput!) {
+  users {
+    updateProfile(input: $input) {
+      userId
+      jobTitle
+      bio
+      avatarUrl
+    }
+  }
+}
+```
 
 ## Types
 

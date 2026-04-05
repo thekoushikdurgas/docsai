@@ -5,19 +5,90 @@
 The Usage module provides feature usage tracking functionality. It allows users to track their usage of various features, view current usage limits, and reset usage counters (for testing/admin purposes).
 **Location:** `app/graphql/modules/usage/`
 
+**Jobs in `featureOverview`:** The nested query returns **`SchedulerJob`** rows from the gateway database (same family as [16_JOBS_MODULE.md](16_JOBS_MODULE.md)). Long-running work may also touch **email.server** or **Connectra** (`EC2/sync.server`); the REST job API there is documented in **[connectra.api.md](../micro.services.apis/connectra.api.md)**.
+
 ## Queries and mutations – parameters and variable types
 
 | Operation | Parameter(s) | Variable type (GraphQL) | Return type |
 |-----------|---------------|-------------------------|-------------|
-| **Queries** | | | |
-| `usage` (path: `usage { usage(...) }`) | `feature` | `String!` | `UsageResponse` |
-| `featureOverview` | _(root `Query` field)_ | `feature: String!` (e.g. `BULK_EXPORT`, `EMAIL_FINDER`) | `FeatureOverview` (usage slice, activities, jobs for that feature) |
+| **Queries** (under `usage { ... }`) | | | |
+| `usage` | `feature` | `String` (optional; filters to one feature) | `UsageResponse!` |
+| **Queries** (root field `featureOverview`) | | | |
+| `featureOverview` | `feature` | `String!` (nested: `featureOverview { featureOverview(feature: ...) }`) | `FeatureOverview!` |
 
-| **Mutations** (path: `usage { ... }`) | | | |
-| `trackUsage` | `input` | `TrackUsageInput!` | `TrackUsageResponse` |
-| `resetUsage` | `input` | `ResetUsageInput!` | `ResetUsageResponse` |
+| **Mutations** (under `usage { ... }`) | | | |
+| `trackUsage` | `input` | `TrackUsageInput!` | `TrackUsageResponse!` |
+| `resetUsage` | `input` | `ResetUsageInput!` | `ResetUsageResponse!` |
 
-Use camelCase in variables. `TrackUsageInput`: `feature: String!`, optional `amount`. `ResetUsageInput`: `feature: String!`. Supported feature names: AI_CHAT, BULK_EXPORT, API_KEYS, EMAIL_FINDER, VERIFIER, LINKEDIN, BULK_VERIFICATION, etc. (see Supported Features below). Example: `query { featureOverview(feature: \"EMAIL_FINDER\") { feature usage { used limit } } }`.
+Use camelCase in variables. `TrackUsageInput`: `feature: String!`, `amount: Int! = 1`. `ResetUsageInput`: `feature: String!`. Supported feature names: AI_CHAT, BULK_EXPORT, API_KEYS, EMAIL_FINDER, VERIFIER, LINKEDIN, BULK_VERIFICATION, etc. (see Supported Features below).
+
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type UsageQuery {
+  usage(feature: String = null): UsageResponse!
+}
+
+type UsageMutation {
+  trackUsage(input: TrackUsageInput!): TrackUsageResponse!
+  resetUsage(input: ResetUsageInput!): ResetUsageResponse!
+}
+
+type FeatureOverviewQuery {
+  featureOverview(feature: String!): FeatureOverview!
+}
+
+type FeatureOverview {
+  feature: String!
+  usage: FeatureUsageInfo
+  activities: [Activity!]!
+  jobs: [SchedulerJob!]!
+}
+
+input TrackUsageInput {
+  feature: String!
+  amount: Int! = 1
+}
+
+input ResetUsageInput {
+  feature: String!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+### `usage.usage` (query)
+
+```json
+{
+  "query": "query ($feature: String) { usage { usage(feature: $feature) { features { feature used limit remaining } } } }",
+  "variables": { "feature": null }
+}
+```
+
+### `featureOverview.featureOverview` (query)
+
+```json
+{
+  "query": "query ($feature: String!) { featureOverview { featureOverview(feature: $feature) { feature usage { used limit } } } }",
+  "variables": { "feature": "EMAIL_FINDER" }
+}
+```
+
+### `usage.trackUsage` (mutation)
+
+```json
+{
+  "query": "mutation ($input: TrackUsageInput!) { usage { trackUsage(input: $input) { feature used limit success } } }",
+  "variables": { "input": { "feature": "EMAIL_FINDER", "amount": 1 } }
+}
+```
 
 ## Types
 

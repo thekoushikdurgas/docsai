@@ -21,6 +21,109 @@ No mutations. **Auth:** `apiMetadata`, `apiHealth` are public. **`vqlHealth`** a
 
 **REST** (FastAPI, `app/main.py`): `GET /health`, `GET /health/db`, `GET /health/logging`, `GET /health/slo`, `GET /health/token-blacklist`. Also `GET /` (discovery JSON), `POST /graphql`.
 
+### Connectra (`EC2/sync.server`) — `GET /health`
+
+GraphQL `vqlHealth` / Connectra probes use **`CONNECTRA_BASE_URL`** (same server as VQL). The Gin app exposes:
+
+`GET /health`
+
+**Auth:** **`X-API-Key`** must match the Connectra API key — the global `APIKeyAuth` middleware runs **before** this handler (see `EC2/sync.server/cmd/server.go`).
+
+**Other status codes (Connectra):** missing/wrong key → **`401`** `{ "error", "success": false }`; rate limit → **`429`** (`MAX_REQUESTS_PER_MINUTE` token bucket). See **[connectra.api.md](../micro.services.apis/connectra.api.md)**.
+
+**Response `200` (JSON):**
+
+```json
+{
+  "status": "ok",
+  "version": "1.0.0",
+  "uptime_seconds": 42,
+  "service": "connectra",
+  "diagnostics": {
+    "database": true,
+    "search_engine": true
+  }
+}
+```
+
+Full reference: [connectra.api.md](../micro.services.apis/connectra.api.md) · Postman: [EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json).
+
+### s3storage (`EC2/s3storage.server`) — `GET /api/v1/health`
+
+GraphQL **`health.performanceStats.s3`** (SuperAdmin) probes the storage microservice when **`LAMBDA_S3STORAGE_API_URL`** is set. The Python client calls:
+
+`GET /api/v1/health`
+
+**Auth:** none (public liveness).
+
+**Expected success:** JSON body with `"status": "ok"` — the resolver treats this as **healthy** for `S3Health.status`.
+
+**Note:** `S3Health.bucket` and `S3Health.region` are currently not populated from this response (see `app/graphql/modules/health/queries.py`); messages distinguish `healthy`, `not_configured` (URL unset), and errors.
+
+**Readiness (optional):** `GET /api/v1/health/ready` performs S3 `HeadBucket` on the configured default bucket (`503` if bucket missing or S3 error). Used by ops and by `S3StorageEC2Client.health_info()` in Python, not by the default `performanceStats` s3 liveness check.
+
+Full HTTP surface: [s3storage.api.md](../micro.services.apis/s3storage.api.md) · Postman: [EC2_s3storage.server.postman_collection.json](../postman/EC2_s3storage.server.postman_collection.json).
+
+### Email satellite (`EC2/email.server`) — `GET /health`
+
+The gateway email client (`LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY`) targets this service. **Liveness** is **`GET /health`** — **no API key** (public), unlike almost all other email routes.
+
+**Response `200`:** `{ "status": "ok", "service", "version", "diagnostics": { ... } }` — `diagnostics` reports whether `API_KEY`, `DATABASE_URL`, provider keys, `S3_BUCKET_NAME`, and feature flags are configured (booleans), not live dependency probes.
+
+Full REST contract (finder, verifier, jobs, patterns, S3 CSV): **[emailapis.api.md](../micro.services.apis/emailapis.api.md)** · Postman: **[EC2_email.server.postman_collection.json](../postman/EC2_email.server.postman_collection.json)**.
+
+## Canonical SDL (gateway schema — GraphQL)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type HealthQuery {
+  apiMetadata: ApiMetadata!
+  apiHealth: ApiHealth!
+  vqlHealth: VQLHealth!
+  vqlStats: VQLStats!
+  performanceStats: PerformanceStats!
+}
+```
+
+Nested output types (`ApiMetadata`, `ApiHealth`, `VQLHealth`, `VQLStats`, `PerformanceStats`, `ConnectraDetails`, `CacheStats`, etc.) appear in the same generated SDL.
+
+## POST `/graphql` — full request and response (public fields)
+
+### `health.apiMetadata` and `health.apiHealth` (no auth)
+
+```json
+{
+  "query": "query { health { apiMetadata { name version docs } apiHealth { status environment } } }"
+}
+```
+
+**Success:**
+
+```json
+{
+  "data": {
+    "health": {
+      "apiMetadata": {
+        "name": "Contact360 API",
+        "version": "1.0.0",
+        "docs": "/docs"
+      },
+      "apiHealth": {
+        "status": "healthy",
+        "environment": "development"
+      }
+    }
+  }
+}
+```
+
+## POST `/graphql` — authenticated fields
+
+`vqlHealth`, `vqlStats`: require a valid Bearer token. `performanceStats`: requires **SuperAdmin**.
+
 ## Types
 
 ### ApiMetadata

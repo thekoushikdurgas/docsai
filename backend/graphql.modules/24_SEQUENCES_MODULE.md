@@ -8,6 +8,28 @@
 
 No sequence **mutations** exist under `campaignSatellite` in the gateway codebase (`app/graphql/modules/campaigns/queries.py` only).
 
+## Canonical SDL (gateway — read-only)
+
+`query { campaignSatellite { sequences } }` returns `JSON!`. Full namespace:
+
+```graphql
+type CampaignModuleQuery {
+  campaigns: JSON!
+  sequences: JSON!
+  campaignTemplates: JSON!
+}
+```
+
+Regenerate SDL: `python -c "from app.graphql.schema import schema; print(schema.as_str())"` (from `contact360.io/api`).
+
+### POST `/graphql`
+
+```json
+{
+  "query": "query { campaignSatellite { sequences } }"
+}
+```
+
 ---
 
 ## Planned / service-native GraphQL (not on gateway yet)

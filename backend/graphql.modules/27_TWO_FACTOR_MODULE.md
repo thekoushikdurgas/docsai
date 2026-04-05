@@ -23,6 +23,42 @@ GraphQL paths: `query { twoFactor { get2FAStatus { ... } } }`, `mutation { twoFa
 
 Use camelCase in variables (`backupCode`). two_factor table (secret_hash, verified, enabled, backup_codes_hash). Auth required for all.
 
+## Canonical SDL (gateway schema)
+
+Regenerate the full schema from `contact360.io/api` with:
+
+`python -c "from app.graphql.schema import schema; print(schema.as_str())"`
+
+```graphql
+type TwoFactorQuery {
+  get2FAStatus: TwoFactorStatus!
+}
+
+type TwoFactorMutation {
+  setup2FA: TwoFactorSetupResponse!
+  verify2FA(code: String!): Verify2FAResponse!
+  disable2FA(password: String = null, backupCode: String = null): Boolean!
+  regenerateBackupCodes: RegenerateBackupCodesResponse!
+}
+```
+
+## POST `/graphql` — full request and response
+
+Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.
+
+```json
+{
+  "query": "query { twoFactor { get2FAStatus { enabled verified } } }"
+}
+```
+
+```json
+{
+  "query": "mutation ($code: String!) { twoFactor { verify2FA(code: $code) { verified backupCodes } } }",
+  "variables": { "code": "123456" }
+}
+```
+
 ## Types
 
 ### TwoFactorStatus

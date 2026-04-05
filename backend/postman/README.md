@@ -24,7 +24,8 @@ This folder contains Postman collections for the Appointment360 backend.
 - **Connectra_GraphQL_API.postman_collection.json** – GraphQL equivalent of Connectra REST API, same folder structure as Connectra REST Postman.
 - **Storage_GraphQL_API.postman_collection.json** – GraphQL API for storage only: Auth, S3 (files, CSV upload, delete), and Upload (multipart status, presigned URL, register part, abort). Same endpoint as Contact360 GraphQL (`POST {{baseUrl}}/graphql`).
 - **Storage_Backend_s3storage.postman_collection.json** – REST API for the s3storage (storage backend) service used by Appointment360 for CSV/files, multipart uploads, and avatars.
-- **EC2_s3storage.server.postman_collection.json** – EC2 `EC2/s3storage.server` Gin API collection (health/ready, bucket ping, files, uploads, analysis, avatars) aligned to current routes.
+- **EC2_s3storage.server.postman_collection.json** – EC2 `EC2/s3storage.server` Gin API collection (health/ready, jobs queue, bucket ping, files, uploads, analysis, avatars) aligned to `internal/api/router.go`. See [s3storage.api.md](../micro.services.apis/s3storage.api.md).
+- **EC2_sync.server.postman_collection.json** – EC2 **`EC2/sync.server`** Connectra REST API (`/health`, `/contacts/*`, `/companies/*`, `/common/*`). See [connectra.api.md](../micro.services.apis/connectra.api.md).
 
 ## Folder reality snapshot
 
@@ -239,7 +240,7 @@ Required checks:
 - Collection file: `Email_Runtime_emailapis_emailapigo.postman_collection.json`
 - Collection file (EC2 Gin runtime): `EC2_email.server.postman_collection.json`
 - Purpose: direct runtime parity checks for finder/verifier/pattern/web-search endpoints independent of GraphQL gateway.
-- EC2 runtime contract doc: `EC2/email.server/docs/api.md`
+- Canonical REST contract: [`../micro.services.apis/emailapis.api.md`](../micro.services.apis/emailapis.api.md) · also `EC2/email.server/docs/api.md` if present
 - Required variables:
   - `email_runtime_base_url`
   - `email_runtime_api_key`
