@@ -14,8 +14,8 @@ from typing import Any, Dict, Optional
 
 import requests
 
-_DEFAULT_API_BASE = "http://api.contact360.io:8000"
-_DEFAULT_GRAPHQL_URL = "http://api.contact360.io/graphql"
+_DEFAULT_API_BASE = "https://api.contact360.io:8000"
+_DEFAULT_GRAPHQL_URL = "https://api.contact360.io/graphql"
 _DEFAULT_API_TIMEOUT_SECONDS = int(os.getenv("TIMEOUT_SECONDS", os.getenv("TIMEOUT", "300")))
 
 
@@ -147,7 +147,7 @@ def graphql_login(email: str, password: str, graphql_url: Optional[str] = None) 
     Mirrors the curl example:
 
     curl --request POST \\
-      --url http://api.contact360.io/graphql \\
+      --url https://api.contact360.io/graphql \\
       --header 'Content-Type: application/json' \\
       --data '{
         "query": "mutation Login($input: LoginInput!, $pageType: String) { auth { login(input: $input, pageType: $pageType) { accessToken refreshToken user { uuid email name role userType } pages { pageId title pageType route status } } } }",

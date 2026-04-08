@@ -1063,8 +1063,8 @@ Examples:
     parser.add_argument(
         '--api-url',
         type=str,
-        default='http://api.contact360.io:8000',
-        help='API base URL (default: http://api.contact360.io:8000)'
+        default='https://api.contact360.io:8000',
+        help='API base URL (default: https://api.contact360.io:8000)'
     )
     
     

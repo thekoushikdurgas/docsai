@@ -1141,7 +1141,7 @@ class EmailAPITester:
 
 def main():
     """Main entry point."""
-    base = os.getenv("API_BASE_URL", "http://api.contact360.io:8000").rstrip("/")
+    base = os.getenv("API_BASE_URL", "https://api.contact360.io:8000").rstrip("/")
     API_URL = os.getenv("EMAIL_SINGLE_API_URL", f"{base}/api/v2/email/single/")
     DATA_DIR = os.getenv("EMAIL_SINGLE_DATA_DIR", "data")
 

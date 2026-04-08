@@ -47,7 +47,7 @@ Examples:
         "--base-url",
         type=str,
         default=None,
-        help="API base URL (default: from env or http://api.contact360.io)"
+        help="API base URL (default: from env or https://api.contact360.io)"
     )
     parser.add_argument(
         "--category",

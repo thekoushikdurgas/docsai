@@ -449,7 +449,7 @@ The CLI also supports environment variables:
   "profiles": {
     "default": {
       "name": "default",
-      "base_url": "http://api.contact360.io",
+      "base_url": "https://api.contact360.io",
       "email": "test@example.com",
       "password": "testpass123",
       "timeout": 30,
