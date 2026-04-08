@@ -143,7 +143,7 @@ class GraphQLBackendHealthCheckTestCase(TestCase):
     def test_graphql_backend_healthy_on_200(self, mock_httpx):
         """When /health returns 200, status is healthy."""
         with patch('apps.documentation.utils.health_checks.settings') as mock_settings:
-            mock_settings.APPOINTMENT360_GRAPHQL_URL = 'http://api.contact360.io/graphql'
+            mock_settings.APPOINTMENT360_GRAPHQL_URL = 'https://api.contact360.io/graphql'
             mock_resp = Mock()
             mock_resp.status_code = 200
             mock_httpx.Client.return_value.__enter__.return_value.get.return_value = mock_resp
@@ -156,7 +156,7 @@ class GraphQLBackendHealthCheckTestCase(TestCase):
     def test_graphql_backend_unhealthy_on_error(self, mock_httpx):
         """When GET /health raises, status is unhealthy."""
         with patch('apps.documentation.utils.health_checks.settings') as mock_settings:
-            mock_settings.APPOINTMENT360_GRAPHQL_URL = 'http://api.contact360.io/graphql'
+            mock_settings.APPOINTMENT360_GRAPHQL_URL = 'https://api.contact360.io/graphql'
             mock_httpx.Client.return_value.__enter__.return_value.get.side_effect = Exception("Connection refused")
             result = check_graphql_backend_health()
         self.assertEqual(result["status"], "unhealthy")
