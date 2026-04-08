@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
+from django_ratelimit.decorators import ratelimit
 
 from .decorators import require_login
 from .services.appointment360_client import sign_in
@@ -115,10 +116,22 @@ def _get_health_services():
     ]
 
 
+@ratelimit(key="ip", rate="10/m", method="POST", block=False)
 @require_http_methods(["GET", "POST"])
 def login_view(request):
     if request.session.get("operator"):
         return redirect("core:dashboard")
+
+    if getattr(request, "limited", False):
+        return render(
+            request,
+            "core/login.html",
+            {
+                "error": "Too many login attempts. Please wait a minute and try again.",
+                "page_title": "Sign In",
+            },
+            status=429,
+        )
 
     error = None
     if request.method == "POST":

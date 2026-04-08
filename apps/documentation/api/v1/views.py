@@ -4,6 +4,7 @@ REST API v1 — JSON endpoints (health, dashboard, stats).
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, permission_classes
@@ -41,18 +42,30 @@ query DocsStatsApi {
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def service_info(request):
-    return Response({
+    cache_key = "admin_api_v1_service_info"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return Response(cached)
+    payload = {
         "service": "contact360-docsai-admin",
         "version": settings.DOCS_AGENT_VERSION,
         "status": "ok",
-    })
+    }
+    cache.set(cache_key, payload, 60)
+    return Response(payload)
 
 
 @extend_schema(summary="Overall health", tags=["Health"], responses={200: OpenApiTypes.OBJECT})
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_view(request):
-    return Response({"status": "ok", "database": "ok", "cache": "ok", "storage": "ok"})
+    cache_key = "admin_api_v1_health_summary"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return Response(cached)
+    payload = {"status": "ok", "database": "ok", "cache": "ok", "storage": "ok"}
+    cache.set(cache_key, payload, 30)
+    return Response(payload)
 
 
 @extend_schema(summary="Database health", tags=["Health"], responses={200: OpenApiTypes.OBJECT})

@@ -3,7 +3,8 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=docsai.settings
+ENV DJANGO_SETTINGS_MODULE=config.settings
+ENV DJANGO_ENV=production
 
 WORKDIR /app
 
@@ -19,8 +20,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Application code
 COPY . .
 
+# Deploy checks (production settings); build-time secrets are placeholders only
+RUN SECRET_KEY="docker-build-placeholder-secret-key-32chars!!" ALLOWED_HOSTS=localhost,127.0.0.1 \
+    python manage.py check --deploy
+
 # Collect static files
-RUN python manage.py collectstatic --noinput
+RUN SECRET_KEY="docker-build-placeholder-secret-key-32chars!!" ALLOWED_HOSTS=localhost,127.0.0.1 \
+    python manage.py collectstatic --noinput
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser && chown -R appuser:appuser /app
