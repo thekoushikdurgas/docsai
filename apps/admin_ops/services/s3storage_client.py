@@ -136,3 +136,107 @@ class S3StorageClient:
                     endpoint="/api/v1/uploads/photo",
                     status_code=503,
                 ) from e
+
+    def upload_json(
+        self,
+        bucket_id: str,
+        file,
+        filename: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Upload a JSON document (Postman collection / environment / generic) to S3.
+
+        Returns dict with ``fileKey`` (relative, e.g. ``json/<uuid>.json``) and ``bucketId``.
+        """
+        if not self.base_url:
+            raise LambdaAPIError(
+                "S3Storage is not configured (S3STORAGE_API_URL)",
+                endpoint="/api/v1/uploads/json",
+                status_code=503,
+            )
+        name = filename or getattr(file, "name", "document.json")
+        url = f"{self.base_url}/api/v1/uploads/json"
+        params = {"bucket_id": bucket_id}
+        with httpx.Client(timeout=self.timeout) as client:
+            try:
+                resp = client.post(
+                    url,
+                    headers={"X-Request-ID": self.request_id, **({"X-API-Key": self.api_key} if self.api_key else {})},
+                    params=params,
+                    files={"file": (name, file, "application/json")},
+                )
+                resp.raise_for_status()
+                data = resp.json() if resp.content else {}
+                if isinstance(data, dict):
+                    return data
+                raise LambdaAPIError(
+                    "Invalid response format",
+                    endpoint="/api/v1/uploads/json",
+                    status_code=resp.status_code,
+                )
+            except httpx.HTTPStatusError as e:
+                detail = "Unknown error"
+                try:
+                    err_body = e.response.json()
+                    if isinstance(err_body, dict):
+                        raw = err_body.get("detail") or err_body.get("error")
+                        if raw is not None:
+                            detail = raw if isinstance(raw, str) else str(raw)
+                except Exception:
+                    detail = e.response.text or str(e)
+                raise LambdaAPIError(
+                    detail,
+                    endpoint="/api/v1/uploads/json",
+                    status_code=e.response.status_code,
+                ) from e
+            except httpx.RequestError as e:
+                raise LambdaAPIError(
+                    str(e),
+                    endpoint="/api/v1/uploads/json",
+                    status_code=503,
+                ) from e
+
+    def get_object(self, key: str) -> bytes:
+        """Retrieve raw object bytes from S3. ``key`` is the full key (``bucket_id/relative``).
+
+        Returns raw bytes (typically JSON). Raises ``LambdaAPIError`` on failure.
+        """
+        if not self.base_url:
+            raise LambdaAPIError(
+                "S3Storage is not configured (S3STORAGE_API_URL)",
+                endpoint="/api/v1/objects/get",
+                status_code=503,
+            )
+        url = f"{self.base_url}/api/v1/objects/get"
+        with httpx.Client(timeout=self.timeout) as client:
+            try:
+                resp = client.get(
+                    url,
+                    headers={
+                        "X-Request-ID": self.request_id,
+                        **({"X-API-Key": self.api_key} if self.api_key else {}),
+                    },
+                    params={"key": key},
+                )
+                resp.raise_for_status()
+                return resp.content
+            except httpx.HTTPStatusError as e:
+                detail = "Unknown error"
+                try:
+                    err_body = e.response.json()
+                    if isinstance(err_body, dict):
+                        raw = err_body.get("detail") or err_body.get("error")
+                        if raw is not None:
+                            detail = raw if isinstance(raw, str) else str(raw)
+                except Exception:
+                    detail = e.response.text or str(e)
+                raise LambdaAPIError(
+                    detail,
+                    endpoint="/api/v1/objects/get",
+                    status_code=e.response.status_code,
+                ) from e
+            except httpx.RequestError as e:
+                raise LambdaAPIError(
+                    str(e),
+                    endpoint="/api/v1/objects/get",
+                    status_code=503,
+                ) from e

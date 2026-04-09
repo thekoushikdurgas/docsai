@@ -59,7 +59,30 @@ SIDEBAR_MENU = [
         "children": [
             {"label": "Durgasflow", "icon": "lni lni-arrow-right-circle", "url_name": "durgasflow:dashboard"},
             {"label": "Durgasman", "icon": "lni lni-database", "url_name": "durgasman:dashboard"},
-            {"label": "Page Builder", "icon": "lni lni-pencil", "url_name": "page_builder:index"},
+            {
+                "label": "Page Builder",
+                "icon": "lni lni-pencil",
+                "children": [
+                    {
+                        "label": "Dashboard",
+                        "icon": "lni lni-display",
+                        "url_name": "page_builder:dashboard",
+                        "also_active": [
+                            "page_builder:editor",
+                            "page_builder:page_spec_json",
+                            "page_builder:save_sections",
+                            "page_builder:delete",
+                            "page_builder:upload_json",
+                            "page_builder:api_list",
+                        ],
+                    },
+                    {
+                        "label": "Upload",
+                        "icon": "lni lni-cloud-upload",
+                        "url_name": "page_builder:upload_page",
+                    },
+                ],
+            },
         ],
     },
     {
@@ -81,8 +104,37 @@ SIDEBAR_MENU = [
                 ],
             },
             {"label": "Templates", "icon": "lni lni-licencse", "url_name": "templates_app:index"},
-            {"label": "Postman App", "icon": "lni lni-cloud", "url_name": "postman_app:dashboard"},
-            {"label": "JSON Store", "icon": "lni lni-empty-file", "url_name": "json_store:index"},
+            {
+                "label": "Postman",
+                "icon": "lni lni-cloud",
+                "children": [
+                    {
+                        "label": "Dashboard",
+                        "icon": "lni lni-display",
+                        "url_name": "postman_app:dashboard",
+                    },
+                    {
+                        "label": "Upload",
+                        "icon": "lni lni-cloud-upload",
+                        "url_name": "postman_app:upload",
+                        "also_active": [
+                            "postman_app:upload_collection",
+                            "postman_app:upload_environment",
+                        ],
+                    },
+                ],
+            },
+            {
+                "label": "JSON Store",
+                "icon": "lni lni-empty-file",
+                "url_name": "json_store:index",
+                "also_active": [
+                    "json_store:upload",
+                    "json_store:view",
+                    "json_store:delete",
+                    "json_store:download",
+                ],
+            },
         ],
     },
     {

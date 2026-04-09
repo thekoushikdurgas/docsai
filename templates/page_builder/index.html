@@ -1,11 +1,164 @@
 {% extends "base.html" %}
 {% load static admin_tags %}
+
 {% block title %}Page Builder — Contact360 Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/css/components/page-builder.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
-  <div><h1 class="page-title">Page Builder</h1><p class="page-subtitle">Drag-and-drop page builder (Era 9.x feature)</p></div>
+  <div>
+    <h1 class="page-title">Page Builder</h1>
+    <p class="page-subtitle">Browse and edit <code>page_spec</code> JSON (marketing <code>contact360.io/root</code> pages and more). Uploads sync to S3 and appear in JSON Store.</p>
+  </div>
+  <div style="display:flex;gap:var(--c360-spacing-2)">
+    <a href="{% url 'page_builder:upload_page' %}" class="btn btn-outline btn-sm"><i class="lni lni-cloud-upload"></i> Upload only</a>
+    <a href="#pb-upload-card" class="btn btn-primary btn-sm"><i class="lni lni-plus"></i> Jump to upload</a>
+  </div>
 </div>
-<div class="card">
-  {% include "components/alert.html" with type="info" message="Page builder is planned for Era 9.x (Platform productization). This is a placeholder." %}
+
+{% if not s3_enabled %}
+{% include "components/alert.html" with type="warning" message="S3 storage is not configured. Uploads will fail until S3STORAGE_API_URL is set." %}
+{% endif %}
+
+<!-- Stats -->
+<div class="pb-stats">
+  <div class="pb-stat-card">
+    <div class="pb-stat-value">{{ stats.total }}</div>
+    <div class="pb-stat-label">Total pages</div>
+  </div>
+  <div class="pb-stat-card">
+    <div class="pb-stat-value">{{ stats.root }}</div>
+    <div class="pb-stat-label">codebase: root</div>
+  </div>
+  <div class="pb-stat-card">
+    <div class="pb-stat-value">{{ stats.app }}</div>
+    <div class="pb-stat-label">codebase: app</div>
+  </div>
 </div>
+
+<!-- Upload -->
+<div class="card" id="pb-upload-card" style="margin-bottom:var(--c360-spacing-6)">
+  <div class="card-body">
+    <h3 class="card-title" style="margin-bottom:var(--c360-spacing-4)">Upload page spec JSON</h3>
+    <p style="font-size:var(--c360-text-sm);color:var(--c360-text-muted);margin-bottom:var(--c360-spacing-3)">
+      Files from <code>docs/frontend/pages/*_page.json</code> must include <code>"kind": "page_spec"</code>. Each upload is stored in S3 and listed in <a href="{% url 'json_store:index' %}">JSON Store</a>.
+    </p>
+    <div class="pb-upload-zone" id="pb-upload-zone">
+      <i class="lni lni-files"></i>
+      <p style="margin:0;font-weight:var(--c360-font-medium)">Drop JSON here or click to browse</p>
+      <p style="margin:4px 0 0;font-size:var(--c360-text-xs);color:var(--c360-text-muted)">Max 2 MB</p>
+    </div>
+    <input type="file" id="pb-file-input" accept=".json,application/json" style="display:none">
+    <p id="pb-file-name" style="margin-top:var(--c360-spacing-2);font-size:var(--c360-text-sm);color:var(--c360-text-muted)">No file selected</p>
+    <div style="display:flex;gap:var(--c360-spacing-3);margin-top:var(--c360-spacing-3);flex-wrap:wrap;max-width:400px">
+      <div style="flex:1;min-width:180px">
+        <label class="form-label" for="pb-bucket-id">Bucket ID</label>
+        <input type="text" id="pb-bucket-id" class="form-control" value="{{ default_bucket }}">
+      </div>
+    </div>
+    <div class="progress-wrap" id="pb-progress-wrap" style="display:none;margin-top:var(--c360-spacing-3)">
+      <div class="progress-label"><span>Uploading…</span></div>
+      <div class="progress"><div class="progress-bar animated" id="pb-progress-bar" style="width:0"></div></div>
+    </div>
+    <button type="button" class="btn btn-primary" id="pb-upload-btn" disabled style="margin-top:var(--c360-spacing-4)">
+      <i class="lni lni-cloud-upload"></i> Upload
+    </button>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="pb-filters">
+  <div class="pb-filter-group">
+    <label for="pb-filter-codebase">Codebase</label>
+    <select id="pb-filter-codebase">
+      <option value="">All</option>
+      {% for c in codebases %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="pb-filter-group">
+    <label for="pb-filter-page-type">Page type</label>
+    <select id="pb-filter-page-type">
+      <option value="">All</option>
+      {% for t in page_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="pb-filter-group">
+    <label for="pb-filter-status">Status</label>
+    <select id="pb-filter-status">
+      <option value="">All</option>
+      {% for s in statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="pb-filter-group" style="flex:1;min-width:200px">
+    <label for="pb-filter-search">Search</label>
+    <input type="search" id="pb-filter-search" placeholder="Title, page_id, route…">
+  </div>
+</div>
+
+<!-- Grid -->
+<div class="pb-grid" id="pb-pages-grid">
+  {% for s in specs %}
+  <article class="pb-page-card"
+    data-codebase="{{ s.codebase|default:''|escape }}"
+    data-page-type="{{ s.page_type|default:''|escape }}"
+    data-status="{{ s.status|default:''|escape }}"
+    data-search="{{ s.title|default:'' }} {{ s.page_id|default:'' }} {{ s.route|default:'' }}">
+    <h3 class="pb-page-card-title">{{ s.title }}</h3>
+    <div class="pb-page-card-meta">{{ s.page_id }}</div>
+    <div class="pb-page-card-badges">
+      {% if s.codebase %}<span class="pb-codebase-badge pb-codebase-{{ s.codebase|default:'default' }}">{{ s.codebase }}</span>{% endif %}
+      {% if s.page_type %}<span class="pb-page-type-badge">{{ s.page_type }}</span>{% endif %}
+    </div>
+    {% if s.route %}<div class="pb-page-card-meta">Route: {{ s.route }}</div>{% endif %}
+    <div class="pb-page-card-stats">
+      <span>{{ s.section_count }} sections</span>
+      <span>{{ s.component_count }} components</span>
+      {% if s.endpoint_count %}<span>{{ s.endpoint_count }} endpoints</span>{% endif %}
+    </div>
+    <div class="pb-page-card-actions">
+      <a href="{% url 'page_builder:editor' s.id %}" class="btn btn-primary btn-sm"><i class="lni lni-pencil"></i> Edit</a>
+      <a href="{% url 'page_builder:page_spec_json' s.id %}" class="btn btn-outline btn-sm" target="_blank" rel="noopener"><i class="lni lni-code"></i> JSON</a>
+      <button type="button" class="btn btn-danger btn-sm" data-delete-id="{{ s.id }}" data-delete-title="{{ s.title|escapejs }}"><i class="lni lni-trash"></i></button>
+    </div>
+  </article>
+  {% empty %}
+  <p class="table-empty" style="grid-column:1/-1">No page specs yet. Upload a <code>page_spec</code> JSON file above.</p>
+  {% endfor %}
+</div>
+
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/js/page-builder.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var token = document.querySelector('[name=csrfmiddlewaretoken]');
+    PageBuilderDashboard.init({
+      uploadUrl: '{% url "page_builder:upload_json" %}',
+      csrfToken: token ? token.value : ''
+    });
+    document.querySelectorAll('[data-delete-id]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-delete-id');
+        var title = btn.getAttribute('data-delete-title') || '';
+        if (!confirm('Delete page spec "' + title + '"?')) return;
+        fetch('/page-builder/' + id + '/delete/', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': token ? token.value : '' }
+        }).then(function (r) { return r.json(); }).then(function (d) {
+          if (d.success) {
+            if (typeof showToast === 'function') showToast('Deleted.', 'success');
+            btn.closest('.pb-page-card').remove();
+          } else if (typeof showToast === 'function') showToast(d.error || 'Delete failed', 'error');
+        }).catch(function (e) {
+          if (typeof showToast === 'function') showToast(String(e), 'error');
+        });
+      });
+    });
+  });
+</script>
 {% endblock %}
