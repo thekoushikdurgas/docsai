@@ -41,18 +41,15 @@ def _format_last_called(ts: float | None) -> str:
     return "Long ago"
 
 
-def api_docs_index(request: HttpRequest):
+def _build_api_usage_dashboard_context() -> dict:
     """
-    Render the API reference page at /api/docs/ with all registered GET endpoints
-    and their usage statistics (request count, last called), plus user_type breakdown.
-
-    The APIs table is built from the flat all_endpoints list; sorting is client-side.
+    Shared context for the endpoint registry + ApiTrackingMiddleware statistics UI.
+    In contact360.io/2 this page is mounted at /api/docs/; in admin, use /api/tracker/
+    because /api/docs/ is reserved for Spectacular Swagger.
     """
     keys = get_all_endpoint_keys()
     stats = get_endpoint_stats(keys)
 
-    # Build flat list of all endpoints with stats for the single APIs table.
-    # last_called_sort: numeric for client-side sort (Never = 0 so it sorts last when asc).
     all_endpoints = []
     for ep in get_all_endpoints():
         key = ep["endpoint_key"]
@@ -67,26 +64,59 @@ def api_docs_index(request: HttpRequest):
     total = get_total_endpoint_count()
     total_requests = sum(s.get("request_count", 0) or 0 for s in stats.values())
 
-    # Get user_type statistics for graph
     user_type_stats = get_endpoint_stats_by_user_type(keys)
     aggregated_stats = get_aggregated_stats_by_user_type()
 
-    # Prepare data for graph (JSON serializable)
     graph_data = {
         "by_endpoint": user_type_stats,
         "by_user_type": aggregated_stats,
         "summary": {
             "total_requests": total_requests,
             "total_endpoints": total,
-            "user_types_active": sum(1 for ut in aggregated_stats.values() if ut.get("total_requests", 0) > 0)
-        }
+            "user_types_active": sum(
+                1 for ut in aggregated_stats.values() if ut.get("total_requests", 0) > 0
+            ),
+        },
     }
 
-    context = {
+    return {
         "all_endpoints": all_endpoints,
         "total_endpoints": total,
         "total_requests": total_requests,
         "user_type_stats_json": json.dumps(graph_data),
         "aggregated_stats": aggregated_stats,
     }
-    return render(request, "documentation/api_docs/index.html", context)
+
+
+def api_docs_index(request: HttpRequest):
+    """
+    Same dashboard as api_tracker_index; default titles match legacy "API Reference" copy.
+    Not mounted in admin urls by default (/api/docs/ is Swagger); kept for reuse/tests.
+    """
+    ctx = _build_api_usage_dashboard_context()
+    ctx.setdefault("page_title", "API Reference - DocsAI Agent")
+    ctx.setdefault("hero_title", "API Reference")
+    ctx.setdefault(
+        "hero_subtitle",
+        f"All {ctx['total_endpoints']} GET endpoints with usage statistics",
+    )
+    return render(request, "documentation/api_docs/index.html", ctx)
+
+
+def api_tracker_index(request: HttpRequest):
+    """
+    Endpoint registry + request tracking stats (ApiTrackingMiddleware + cache).
+    Parity with contact360.io/2 /api/docs/ — mounted here at /api/tracker/.
+    """
+    ctx = _build_api_usage_dashboard_context()
+    ctx.update(
+        {
+            "page_title": "API usage tracker — Contact360 Admin",
+            "hero_title": "API usage tracker",
+            "hero_subtitle": (
+                f"Tracked GET traffic across {ctx['total_endpoints']} registered endpoints. "
+                "Interactive OpenAPI UI: /api/docs/."
+            ),
+        }
+    )
+    return render(request, "documentation/api_docs/index.html", ctx)

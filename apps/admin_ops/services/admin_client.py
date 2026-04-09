@@ -2,6 +2,7 @@
 Admin operations service client.
 Bridges to GraphQL gateway + logs.api + s3storage.server.
 """
+import json
 import logging
 import uuid
 from typing import Any, Dict, List, Optional
@@ -12,6 +13,29 @@ from django.conf import settings
 from apps.core.services.graphql_client import graphql_query, graphql_mutation
 
 logger = logging.getLogger(__name__)
+
+
+class AdminGraphQLError(RuntimeError):
+    """Raised when the gateway returns a GraphQL `errors` payload."""
+
+    def __init__(self, message: str, *, code: Optional[str] = None):
+        super().__init__(message)
+        self.code = code
+
+
+def _raise_if_graphql_errors(resp: Any) -> None:
+    if not isinstance(resp, dict):
+        return
+    errs = resp.get("errors")
+    if not isinstance(errs, list) or not errs:
+        return
+    first = errs[0]
+    if not isinstance(first, dict):
+        raise AdminGraphQLError(str(first))
+    msg = first.get("message") or "GraphQL error"
+    ext = first.get("extensions") if isinstance(first.get("extensions"), dict) else {}
+    code = ext.get("code") if isinstance(ext, dict) else None
+    raise AdminGraphQLError(str(msg), code=str(code) if code else None)
 
 
 def _graphql_data(resp: Any) -> Dict:
@@ -26,6 +50,18 @@ def _admin(resp: Any) -> Dict:
     return admin if isinstance(admin, dict) else {}
 
 
+def _jobs_root(resp: Any) -> Dict:
+    """Root ``jobs`` query/mutation namespace (scheduler jobs)."""
+    jobs = _graphql_data(resp).get("jobs")
+    return jobs if isinstance(jobs, dict) else {}
+
+
+def _billing(resp: Any) -> Dict:
+    """Root ``billing`` query/mutation namespace."""
+    billing = _graphql_data(resp).get("billing")
+    return billing if isinstance(billing, dict) else {}
+
+
 def _s3_api_root() -> str:
     """Base URL for S3 list/download/delete paths (avoids …/api/v1/api/v1 when env already includes /api/v1)."""
     base = (settings.S3STORAGE_API_URL or "").strip().rstrip("/")
@@ -38,13 +74,24 @@ def _s3_api_root() -> str:
 
 # ===== GraphQL fragments =====
 
-_ADMIN_USERS = """
-query AdminUsers($filters: UserFilterInput, $limit: Int, $offset: Int) {
+_USERS_WITH_BUCKETS = """
+query AdminUsersWithBuckets($limit: Int, $offset: Int) {
   admin {
-    users(filters: $filters, limit: $limit, offset: $offset) {
+    usersWithBuckets(limit: $limit, offset: $offset) {
+      items { uuid email bucket }
+      pageInfo { total limit offset hasNext hasPrevious }
+    }
+  }
+}
+"""
+
+_ADMIN_USERS = """
+query AdminUsers($filters: UserFilterInput) {
+  admin {
+    users(filters: $filters) {
       items {
         uuid email name isActive lastSignInAt createdAt
-        profile { role credits subscriptionPlan expiresAt }
+        profile { role credits subscriptionPlan }
       }
       pageInfo { total limit offset hasNext hasPrevious }
     }
@@ -56,61 +103,154 @@ _ADMIN_USER_STATS = """
 query AdminUserStats {
   admin {
     userStats {
-      totalUsers activeUsers newUsersToday newUsersThisWeek newUsersThisMonth
-      usersBySubscription { subscriptionPlan count }
+      totalUsers
+      activeUsers
+      usersByRole
+      usersByPlan
     }
   }
 }
 """
 
-_ADJUST_CREDITS = """
-mutation AdminAdjustCredits($userId: ID!, $amount: Int!, $reason: String!) {
+_UPDATE_USER_CREDITS = """
+mutation AdminUpdateUserCredits($input: UpdateUserCreditsInput!) {
   admin {
-    adjustCredits(userId: $userId, amount: $amount, reason: $reason) {
-      success error
+    updateUserCredits(input: $input) {
+      uuid
+      email
+    }
+  }
+}
+"""
+
+_UPDATE_USER_ROLE = """
+mutation AdminUpdateUserRole($input: UpdateUserRoleInput!) {
+  admin {
+    updateUserRole(input: $input) {
+      uuid
+      email
+    }
+  }
+}
+"""
+
+_DELETE_USER = """
+mutation AdminDeleteUser($input: DeleteUserInput!) {
+  admin {
+    deleteUser(input: $input)
+  }
+}
+"""
+
+_PROMOTE_TO_ADMIN = """
+mutation AdminPromoteToAdmin($input: PromoteToAdminInput!) {
+  admin {
+    promoteToAdmin(input: $input) {
+      uuid
+      email
+    }
+  }
+}
+"""
+
+_PROMOTE_TO_SUPER_ADMIN = """
+mutation AdminPromoteToSuperAdmin($input: PromoteToSuperAdminInput!) {
+  admin {
+    promoteToSuperAdmin(input: $input) {
+      uuid
+      email
     }
   }
 }
 """
 
 _APPROVE_PAYMENT = """
-mutation AdminApprovePayment($paymentId: ID!, $reason: String) {
-  admin {
-    approvePayment(paymentId: $paymentId, reason: $reason) {
-      success error
+mutation BillingApprovePayment($submissionId: String!) {
+  billing {
+    approvePayment(submissionId: $submissionId) {
+      id status creditsToAdd
     }
   }
 }
 """
 
 _DECLINE_PAYMENT = """
-mutation AdminDeclinePayment($paymentId: ID!, $reason: String!) {
-  admin {
-    declinePayment(paymentId: $paymentId, reason: $reason) {
-      success error
+mutation BillingDeclinePayment($submissionId: String!, $reason: String!) {
+  billing {
+    declinePayment(submissionId: $submissionId, reason: $reason) {
+      id status declineReason
     }
   }
 }
 """
 
 _PENDING_PAYMENTS = """
-query AdminPendingPayments {
-  admin {
-    pendingPayments {
-      id userId amount planId status createdAt proofUrl
-      user { email name }
+query AdminPaymentSubmissions($status: String, $limit: Int, $offset: Int) {
+  billing {
+    paymentSubmissions(status: $status, limit: $limit, offset: $offset) {
+      items {
+        id userId userEmail amount planTier planPeriod
+        screenshotDownloadUrl status creditsToAdd
+        declineReason reviewedBy reviewedAt createdAt
+      }
+      total limit offset hasNext hasPrevious
     }
   }
 }
 """
 
-_JOBS_LIST = """
-query AdminJobs($status: String, $limit: Int, $offset: Int) {
+_ADMIN_LOGS = """
+query AdminLogs($filters: LogQueryFilterInput) {
   admin {
-    jobs(status: $status, limit: $limit, offset: $offset) {
+    logs(filters: $filters) {
       items {
-        id type status createdAt updatedAt userId
-        progress { processed total percent }
+        id
+        timestamp
+        level
+        logger
+        message
+        userId
+        requestId
+      }
+      pageInfo {
+        total
+        limit
+        offset
+        hasNext
+        hasPrevious
+      }
+    }
+  }
+}
+"""
+
+_ADMIN_DELETE_LOG = """
+mutation AdminDeleteLog($input: DeleteLogInput!) {
+  admin {
+    deleteLog(input: $input)
+  }
+}
+"""
+
+_JOBS_LIST = """
+query AdminSchedulerJobs($status: String, $sourceService: String, $limit: Int, $offset: Int) {
+  admin {
+    schedulerJobs(
+      status: $status
+      sourceService: $sourceService
+      limit: $limit
+      offset: $offset
+    ) {
+      jobs {
+        id
+        jobId
+        userId
+        jobType
+        status
+        sourceService
+        jobFamily
+        createdAt
+        updatedAt
       }
       pageInfo { total limit offset hasNext hasPrevious }
     }
@@ -119,32 +259,120 @@ query AdminJobs($status: String, $limit: Int, $offset: Int) {
 """
 
 _JOB_DETAIL = """
-query AdminJobDetail($jobId: ID!) {
-  admin {
-    job(id: $jobId) {
-      id type status createdAt updatedAt userId requestId
-      progress { processed total percent }
-      logs { timestamp level message }
+query SchedulerJobDetail($jobId: ID!) {
+  jobs {
+    job(jobId: $jobId) {
+      id
+      jobId
+      userId
+      jobType
+      status
+      sourceService
+      jobFamily
+      jobSubtype
+      requestPayload
+      responsePayload
+      statusPayload
+      createdAt
+      updatedAt
     }
   }
 }
 """
 
 _RETRY_JOB = """
-mutation AdminRetryJob($jobId: ID!) {
-  admin {
-    retryJob(jobId: $jobId) {
-      success error idempotent
-    }
+mutation RetrySchedulerJob($input: RetryJobInput!) {
+  jobs {
+    retryJob(input: $input)
   }
 }
 """
 
 
+def _normalize_job_list_row(j: Dict[str, Any]) -> Dict[str, Any]:
+    """Map gateway SchedulerJob JSON to Django jobs list template fields."""
+    jid = j.get("jobId") or j.get("job_id")
+    return {
+        "id": jid,
+        "jobId": jid,
+        "type": j.get("jobType") or j.get("job_type"),
+        "status": j.get("status"),
+        "userId": j.get("userId") or j.get("user_id"),
+        "sourceService": j.get("sourceService") or j.get("source_service"),
+        "jobFamily": j.get("jobFamily") or j.get("job_family"),
+        "createdAt": j.get("createdAt") or j.get("created_at"),
+        "updatedAt": j.get("updatedAt") or j.get("updated_at"),
+        "progress": None,
+    }
+
+
+def _normalize_job_detail(j: Dict[str, Any]) -> Dict[str, Any]:
+    """Map SchedulerJob + live statusPayload for job_detail template."""
+    sp = j.get("statusPayload") or j.get("status_payload")
+    progress = None
+    if isinstance(sp, dict):
+        pct = sp.get("percent")
+        proc = sp.get("processed")
+        tot = sp.get("total")
+        try:
+            pval = int(float(pct)) if pct is not None else None
+        except (TypeError, ValueError):
+            pval = None
+        if pval is not None or proc is not None or tot is not None:
+            progress = {"percent": pval, "processed": proc, "total": tot}
+    jid = j.get("jobId") or j.get("job_id")
+    return {
+        "id": jid,
+        "jobId": jid,
+        "type": j.get("jobType") or j.get("job_type"),
+        "status": j.get("status"),
+        "userId": j.get("userId") or j.get("user_id"),
+        "sourceService": j.get("sourceService") or j.get("source_service"),
+        "jobFamily": j.get("jobFamily") or j.get("job_family"),
+        "requestId": None,
+        "createdAt": j.get("createdAt") or j.get("created_at"),
+        "updatedAt": j.get("updatedAt") or j.get("updated_at"),
+        "progress": progress,
+        "logs": [],
+        "requestPayload": j.get("requestPayload") or j.get("request_payload"),
+        "responsePayload": j.get("responsePayload") or j.get("response_payload"),
+        "statusPayload": sp,
+    }
+
+
 def get_users(token: str, filters: Optional[Dict] = None, limit: int = 25, offset: int = 0) -> Dict:
-    resp = graphql_query(_ADMIN_USERS, {"filters": filters or {}, "limit": limit, "offset": offset}, token=token)
+    # Gateway expects limit/offset inside UserFilterInput, not as separate users(...) arguments.
+    merged = dict(filters or {})
+    merged["limit"] = limit
+    merged["offset"] = offset
+    resp = graphql_query(_ADMIN_USERS, {"filters": merged}, token=token)
+    _raise_if_graphql_errors(resp)
     users = _admin(resp).get("users")
     return users if isinstance(users, dict) else {}
+
+
+def find_admin_user(token: str, user_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Resolve a user by UUID via paginated admin.users (SuperAdmin-only query on gateway).
+    Scans up to max_scan rows when the user is not on the first pages.
+    """
+    limit = 100
+    offset = 0
+    max_scan = 8000
+    scanned = 0
+    uid = str(user_id).strip()
+    while scanned < max_scan:
+        data = get_users(token, filters={}, limit=limit, offset=offset)
+        items = data.get("items") or []
+        for u in items:
+            if str(u.get("uuid")) == uid:
+                return u if isinstance(u, dict) else None
+        page_info = data.get("pageInfo") or {}
+        if not page_info.get("hasNext"):
+            break
+        offset += limit
+        scanned += len(items)
+    return None
 
 
 def get_user_stats(token: str) -> Dict:
@@ -154,45 +382,181 @@ def get_user_stats(token: str) -> Dict:
 
 
 def adjust_credits(token: str, user_id: str, amount: int, reason: str) -> Dict:
-    resp = graphql_mutation(_ADJUST_CREDITS, {"userId": user_id, "amount": amount, "reason": reason}, token=token)
-    out = _admin(resp).get("adjustCredits")
+    """
+    Apply a delta to credits using admin.updateUserCredits (absolute balance on gateway).
+    """
+    _ = reason  # audit note reserved for future gateway field
+    row = find_admin_user(token, user_id)
+    if not row:
+        return {"success": False, "error": "User not found in admin directory (scan limit reached)."}
+    profile = row.get("profile") if isinstance(row.get("profile"), dict) else {}
+    try:
+        current = int(profile.get("credits") or 0)
+    except (TypeError, ValueError):
+        current = 0
+    new_credits = max(0, current + int(amount))
+    try:
+        resp = graphql_mutation(
+            _UPDATE_USER_CREDITS,
+            {"input": {"userId": user_id, "credits": new_credits}},
+            token=token,
+        )
+    except Exception as exc:
+        logger.warning("adjust_credits mutation failed: %s", exc)
+        return {"success": False, "error": str(exc)}
+    if isinstance(resp, dict) and resp.get("errors"):
+        return {"success": False, "error": str(resp.get("errors"))}
+    adm = _admin(resp)
+    updated = adm.get("updateUserCredits") if isinstance(adm, dict) else None
+    if isinstance(updated, dict) and updated.get("uuid"):
+        return {"success": True, "credits": new_credits}
+    return {"success": False, "error": "Gateway did not return updated user."}
+
+
+def update_user_role(token: str, user_id: str, role: str) -> Dict[str, Any]:
+    try:
+        resp = graphql_mutation(
+            _UPDATE_USER_ROLE,
+            {"input": {"userId": user_id, "role": role}},
+            token=token,
+        )
+    except Exception as exc:
+        return {"success": False, "error": str(exc)}
+    if isinstance(resp, dict) and resp.get("errors"):
+        return {"success": False, "error": str(resp.get("errors"))}
+    u = _admin(resp).get("updateUserRole")
+    return {"success": bool(isinstance(u, dict) and u.get("uuid"))}
+
+
+def delete_user_account(token: str, user_id: str) -> Dict[str, Any]:
+    try:
+        resp = graphql_mutation(_DELETE_USER, {"input": {"userId": user_id}}, token=token)
+    except Exception as exc:
+        return {"success": False, "error": str(exc)}
+    if isinstance(resp, dict) and resp.get("errors"):
+        return {"success": False, "error": str(resp.get("errors"))}
+    ok = _admin(resp).get("deleteUser")
+    return {"success": bool(ok)}
+
+
+def promote_to_admin(token: str, user_id: str) -> Dict[str, Any]:
+    try:
+        resp = graphql_mutation(_PROMOTE_TO_ADMIN, {"input": {"userId": user_id}}, token=token)
+    except Exception as exc:
+        return {"success": False, "error": str(exc)}
+    if isinstance(resp, dict) and resp.get("errors"):
+        return {"success": False, "error": str(resp.get("errors"))}
+    u = _admin(resp).get("promoteToAdmin")
+    return {"success": bool(isinstance(u, dict) and u.get("uuid"))}
+
+
+def promote_to_super_admin(token: str, user_id: str) -> Dict[str, Any]:
+    try:
+        resp = graphql_mutation(
+            _PROMOTE_TO_SUPER_ADMIN,
+            {"input": {"userId": user_id}},
+            token=token,
+        )
+    except Exception as exc:
+        return {"success": False, "error": str(exc)}
+    if isinstance(resp, dict) and resp.get("errors"):
+        return {"success": False, "error": str(resp.get("errors"))}
+    u = _admin(resp).get("promoteToSuperAdmin")
+    return {"success": bool(isinstance(u, dict) and u.get("uuid"))}
+
+
+def get_pending_payments(
+    token: str,
+    status: Optional[str] = "pending",
+    limit: int = 50,
+    offset: int = 0,
+) -> Dict:
+    """Return ``{"items": [...], "total": int, "hasNext": bool, "hasPrevious": bool}``."""
+    resp = graphql_query(
+        _PENDING_PAYMENTS,
+        {"status": status, "limit": limit, "offset": offset},
+        token=token,
+    )
+    _raise_if_graphql_errors(resp)
+    conn = _billing(resp).get("paymentSubmissions") or {}
+    return {
+        "items": conn.get("items") if isinstance(conn.get("items"), list) else [],
+        "total": conn.get("total", 0),
+        "limit": conn.get("limit", limit),
+        "offset": conn.get("offset", offset),
+        "hasNext": conn.get("hasNext", False),
+        "hasPrevious": conn.get("hasPrevious", False),
+    }
+
+
+def approve_payment(token: str, submission_id: str) -> Dict:
+    resp = graphql_mutation(_APPROVE_PAYMENT, {"submissionId": submission_id}, token=token)
+    _raise_if_graphql_errors(resp)
+    out = _billing(resp).get("approvePayment")
     return out if isinstance(out, dict) else {}
 
 
-def get_pending_payments(token: str) -> List[Dict]:
-    resp = graphql_query(_PENDING_PAYMENTS, token=token)
-    pp = _admin(resp).get("pendingPayments")
-    return pp if isinstance(pp, list) else []
-
-
-def approve_payment(token: str, payment_id: str, reason: str = "") -> Dict:
-    resp = graphql_mutation(_APPROVE_PAYMENT, {"paymentId": payment_id, "reason": reason}, token=token)
-    out = _admin(resp).get("approvePayment")
+def decline_payment(token: str, submission_id: str, reason: str) -> Dict:
+    resp = graphql_mutation(_DECLINE_PAYMENT, {"submissionId": submission_id, "reason": reason}, token=token)
+    _raise_if_graphql_errors(resp)
+    out = _billing(resp).get("declinePayment")
     return out if isinstance(out, dict) else {}
 
 
-def decline_payment(token: str, payment_id: str, reason: str) -> Dict:
-    resp = graphql_mutation(_DECLINE_PAYMENT, {"paymentId": payment_id, "reason": reason}, token=token)
-    out = _admin(resp).get("declinePayment")
-    return out if isinstance(out, dict) else {}
+def get_jobs(
+    token: str,
+    status: Optional[str] = None,
+    limit: int = 25,
+    offset: int = 0,
+    source_service: Optional[str] = None,
+) -> Dict:
+    """
+    List scheduler jobs from gateway DB (``admin.schedulerJobs``).
 
-
-def get_jobs(token: str, status: Optional[str] = None, limit: int = 25, offset: int = 0) -> Dict:
-    resp = graphql_query(_JOBS_LIST, {"status": status, "limit": limit, "offset": offset}, token=token)
-    jobs = _admin(resp).get("jobs")
-    return jobs if isinstance(jobs, dict) else {}
+    Covers jobs executed on email.server and sync.server (Connectra); live satellite
+    status is resolved on the detail query via ``jobs.job`` → ``statusPayload``.
+    """
+    variables: Dict[str, Any] = {
+        "limit": limit,
+        "offset": offset,
+        "status": status,
+        "sourceService": source_service,
+    }
+    resp = graphql_query(_JOBS_LIST, variables, token=token)
+    _raise_if_graphql_errors(resp)
+    raw = _admin(resp).get("schedulerJobs")
+    if not isinstance(raw, dict):
+        return {}
+    rows = raw.get("jobs") if isinstance(raw.get("jobs"), list) else []
+    items = [_normalize_job_list_row(j) for j in rows if isinstance(j, dict)]
+    return {
+        "items": items,
+        "pageInfo": raw.get("pageInfo") if isinstance(raw.get("pageInfo"), dict) else {},
+    }
 
 
 def get_job_detail(token: str, job_id: str) -> Optional[Dict]:
     resp = graphql_query(_JOB_DETAIL, {"jobId": job_id}, token=token)
-    job = _admin(resp).get("job")
-    return job if isinstance(job, dict) else None
+    _raise_if_graphql_errors(resp)
+    job = _jobs_root(resp).get("job")
+    if not isinstance(job, dict):
+        return None
+    return _normalize_job_detail(job)
 
 
 def retry_job(token: str, job_id: str) -> Dict:
-    resp = graphql_mutation(_RETRY_JOB, {"jobId": job_id}, token=token)
-    out = _admin(resp).get("retryJob")
-    return out if isinstance(out, dict) else {}
+    resp = graphql_mutation(_RETRY_JOB, {"input": {"jobId": job_id}}, token=token)
+    _raise_if_graphql_errors(resp)
+    out = _jobs_root(resp).get("retryJob")
+    if isinstance(out, dict):
+        return out
+    if isinstance(out, str):
+        try:
+            parsed = json.loads(out)
+            return parsed if isinstance(parsed, dict) else {"success": False, "error": out}
+        except json.JSONDecodeError:
+            return {"success": False, "error": out}
+    return {"success": bool(out), "detail": out}
 
 
 _USER_HISTORY_FOR_USER = """
@@ -297,35 +661,65 @@ def update_payment_instructions(token: str, input_data: Dict[str, Any]) -> Dict:
     return _billing_root(resp).get("updatePaymentInstructions") or {}
 
 
-# ===== Logs API =====
-
-def _logs_headers() -> Dict[str, str]:
-    return {"X-API-Key": settings.LOGS_API_KEY, "X-Request-ID": str(uuid.uuid4())}
+# ===== Logs (gateway → log.server via LogsServerClient) =====
 
 
-def get_logs(service: Optional[str] = None, limit: int = 50, offset: int = 0) -> List[Dict]:
-    if not settings.LOGS_API_URL:
-        return []
+def get_logs(
+    token: str,
+    *,
+    logger: Optional[str] = None,
+    level: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> Dict[str, Any]:
+    """
+    List logs through GraphQL ``admin.logs`` (SuperAdmin), which calls the same
+    log.server HTTP API as ``contact360.io/api/app/clients/logs_client.py`` (GET /logs).
+    """
+    filters: Dict[str, Any] = {"limit": limit, "offset": offset}
+    if logger:
+        filters["logger"] = logger
+    if level:
+        filters["level"] = level
     try:
-        params: Dict[str, Any] = {"limit": limit, "offset": offset}
-        if service:
-            params["service"] = service
-        with httpx.Client(timeout=10.0) as c:
-            resp = c.get(f"{settings.LOGS_API_URL}/api/v1/logs", params=params, headers=_logs_headers())
-            resp.raise_for_status()
-            return resp.json().get("logs", [])
+        resp = graphql_query(_ADMIN_LOGS, {"filters": filters}, token=token)
+        _raise_if_graphql_errors(resp)
+        raw = _admin(resp).get("logs")
+        if not isinstance(raw, dict):
+            return {"items": [], "pageInfo": {}}
+        items = raw.get("items") if isinstance(raw.get("items"), list) else []
+        out_rows: List[Dict[str, Any]] = []
+        for row in items:
+            if not isinstance(row, dict):
+                continue
+            lg = row.get("logger") or ""
+            out_rows.append(
+                {
+                    "id": row.get("id", ""),
+                    "timestamp": row.get("timestamp"),
+                    "level": row.get("level", ""),
+                    "logger": lg,
+                    "message": row.get("message", ""),
+                    "userId": row.get("userId") or row.get("user_id"),
+                    "requestId": row.get("requestId") or row.get("request_id"),
+                    "service": lg,
+                }
+            )
+        return {
+            "items": out_rows,
+            "pageInfo": raw.get("pageInfo") if isinstance(raw.get("pageInfo"), dict) else {},
+        }
     except Exception as exc:
         logger.warning("get_logs failed: %s", exc)
-        return []
+        raise
 
 
-def delete_log(log_id: str) -> bool:
-    if not settings.LOGS_API_URL:
-        return False
+def delete_log(token: str, log_id: str) -> bool:
+    """Delete one log via GraphQL ``admin.deleteLog`` (SuperAdmin → log.server DELETE)."""
     try:
-        with httpx.Client(timeout=10.0) as c:
-            resp = c.delete(f"{settings.LOGS_API_URL}/api/v1/logs/{log_id}", headers=_logs_headers())
-            return resp.status_code < 300
+        resp = graphql_mutation(_ADMIN_DELETE_LOG, {"input": {"logId": log_id}}, token=token)
+        _raise_if_graphql_errors(resp)
+        return bool(_admin(resp).get("deleteLog"))
     except Exception as exc:
         logger.warning("delete_log failed: %s", exc)
         return False
@@ -337,22 +731,50 @@ def _s3_headers() -> Dict[str, str]:
     return {"X-API-Key": settings.S3STORAGE_API_KEY, "X-Request-ID": str(uuid.uuid4())}
 
 
-def get_storage_artifacts(prefix: str = "", limit: int = 50) -> List[Dict]:
+def _normalize_artifact(obj: Any) -> Dict[str, Any]:
+    """Coerce a single S3 list row to a stable shape regardless of PascalCase/snake_case from the server."""
+    key = obj.get("key") or obj.get("Key") or ""
+    size = obj.get("size") or obj.get("Size") or obj.get("ContentLength") or 0
+    last_modified = (
+        obj.get("last_modified")
+        or obj.get("lastModified")
+        or obj.get("LastModified")
+        or ""
+    )
+    content_type = (
+        obj.get("content_type")
+        or obj.get("contentType")
+        or obj.get("ContentType")
+        or ""
+    )
+    filename = obj.get("filename") or obj.get("Filename") or key.split("/")[-1]
+    return {
+        "key": key,
+        "filename": filename,
+        "size": int(size) if size else 0,
+        "last_modified": last_modified,
+        "content_type": content_type,
+    }
+
+
+def get_storage_artifacts(prefix: str = "", limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+    """Return ``{"items": [...], "total": int}`` from ``GET /api/v1/files``."""
     root = _s3_api_root()
     if not root:
-        return []
-    try:
-        with httpx.Client(timeout=10.0) as c:
-            resp = c.get(
-                f"{root}/list",
-                params={"prefix": prefix, "limit": limit},
-                headers=_s3_headers(),
-            )
-            resp.raise_for_status()
-            return resp.json().get("files", [])
-    except Exception as exc:
-        logger.warning("get_storage_artifacts failed: %s", exc)
-        return []
+        raise RuntimeError("S3STORAGE_API_URL is not configured.")
+    with httpx.Client(timeout=15.0) as c:
+        resp = c.get(
+            f"{root}/files",
+            params={"prefix": prefix, "limit": limit, "offset": offset},
+            headers=_s3_headers(),
+        )
+        resp.raise_for_status()
+        body = resp.json()
+        raw = body.get("objects") or body.get("files") or []
+        return {
+            "items": [_normalize_artifact(obj) for obj in raw],
+            "total": body.get("total", len(raw)),
+        }
 
 
 def get_download_url(key: str) -> Optional[str]:
@@ -362,12 +784,13 @@ def get_download_url(key: str) -> Optional[str]:
     try:
         with httpx.Client(timeout=10.0) as c:
             resp = c.get(
-                f"{root}/download-url",
+                f"{root}/objects/presign-download",
                 params={"key": key},
                 headers=_s3_headers(),
             )
             resp.raise_for_status()
-            return resp.json().get("url")
+            body = resp.json()
+            return body.get("downloadUrl") or body.get("download_url") or body.get("url")
     except Exception as exc:
         logger.warning("get_download_url failed: %s", exc)
         return None
@@ -380,7 +803,7 @@ def delete_storage_artifact(key: str) -> bool:
     try:
         with httpx.Client(timeout=10.0) as c:
             resp = c.delete(
-                f"{root}/delete",
+                f"{root}/objects",
                 params={"key": key},
                 headers=_s3_headers(),
             )
@@ -390,31 +813,95 @@ def delete_storage_artifact(key: str) -> bool:
         return False
 
 
+def get_users_with_buckets(token: str, limit: int = 200, offset: int = 0) -> List[Dict]:
+    """Return list of users that have a bucket configured (for the storage picker)."""
+    try:
+        resp = graphql_query(
+            _USERS_WITH_BUCKETS,
+            {"limit": limit, "offset": offset},
+            token=token,
+        )
+        _raise_if_graphql_errors(resp)
+        items = _admin(resp).get("usersWithBuckets", {})
+        if isinstance(items, dict):
+            return items.get("items") or []
+        return []
+    except Exception as exc:
+        logger.warning("get_users_with_buckets failed: %s", exc)
+        return []
+
+
 # ===== System health =====
 
+def _graphql_health_url() -> str:
+    """GET /health on the GraphQL gateway host (strip /graphql suffix if present)."""
+    url = (settings.GRAPHQL_URL or "").strip()
+    if not url:
+        return ""
+    base = url.replace("/graphql", "").rstrip("/")
+    return f"{base}/health"
+
+
+def _health_url(base: str, path: str = "/health") -> str:
+    root = (base or "").strip().rstrip("/")
+    if not root:
+        return ""
+    p = path if path.startswith("/") else f"/{path}"
+    return f"{root}{p}"
+
+
+def _optional_full_or_base_health(raw: str) -> str:
+    """Empty, full http(s) URL as-is, or service base URL with /health appended."""
+    s = (raw or "").strip()
+    if not s:
+        return ""
+    if s.lower().startswith("http"):
+        return s
+    return _health_url(s)
+
+
+def _probe_http_health(name: str, key: str, url: str) -> Dict:
+    """Return one service row: probe url or mark not_configured."""
+    row = {"name": name, "key": key, "url": url}
+    if not url:
+        return {**row, "status": "not_configured", "latency_ms": None}
+    try:
+        import time
+
+        t0 = time.monotonic()
+        with httpx.Client(timeout=5.0) as c:
+            resp = c.get(url)
+        latency = round((time.monotonic() - t0) * 1000)
+        status = "up" if resp.status_code < 300 else "degraded"
+    except Exception:
+        status = "down"
+        latency = None
+    return {**row, "status": status, "latency_ms": latency}
+
+
 def get_system_health() -> List[Dict]:
-    """Probe all known services and return health status list."""
-    services = [
-        {"name": "GraphQL Gateway", "key": "gateway", "url": settings.GRAPHQL_URL.replace("/graphql", "") + "/health"},
-        {"name": "Logs API", "key": "logs", "url": settings.LOGS_API_URL + "/health" if settings.LOGS_API_URL else ""},
-        {"name": "S3 Storage", "key": "s3storage", "url": settings.S3STORAGE_API_URL + "/health" if settings.S3STORAGE_API_URL else ""},
-        {"name": "AI Server", "key": "ai", "url": settings.AI_API_URL + "/health" if settings.AI_API_URL else ""},
-        {"name": "Email Campaign", "key": "emailcampaign", "url": settings.EMAILCAMPAIGN_URL + "/health" if settings.EMAILCAMPAIGN_URL else ""},
+    """
+    Probe configured services. Order matches the admin dashboard Service Health widget.
+    Optional settings (defaults empty): CONNECTRA_URL, EMAIL_SERVER_HEALTH_URL,
+    EXTENSION_SERVER_URL, MAILVETTER_URL.
+    """
+    connectra = getattr(settings, "CONNECTRA_URL", "") or ""
+    email_srv = getattr(settings, "EMAIL_SERVER_HEALTH_URL", "") or ""
+    extension = getattr(settings, "EXTENSION_SERVER_URL", "") or ""
+    mailvetter = getattr(settings, "MAILVETTER_URL", "") or ""
+
+    jobs_root = (settings.SCHEDULER_URL or "").strip()
+
+    specs = [
+        ("GraphQL Gateway", "gateway", _graphql_health_url()),
+        ("Connectra (Sync)", "sync", _health_url(connectra)),
+        ("Email Server", "email", _optional_full_or_base_health(email_srv)),
+        ("Jobs", "jobs", _health_url(jobs_root)),
+        ("S3 Storage", "s3storage", _health_url(settings.S3STORAGE_API_URL or "")),
+        ("Logs API", "logs", _health_url(settings.LOGS_API_URL or "")),
+        ("Contact AI", "ai", _health_url(settings.AI_API_URL or "")),
+        ("Extension Server", "extension", _health_url(extension)),
+        ("Email Campaign", "emailcampaign", _health_url(settings.EMAILCAMPAIGN_URL or "")),
+        ("Mailvetter", "mailvetter", _health_url(mailvetter)),
     ]
-    results = []
-    for svc in services:
-        if not svc.get("url"):
-            results.append({**svc, "status": "not_configured", "latency_ms": None})
-            continue
-        try:
-            import time
-            t0 = time.monotonic()
-            with httpx.Client(timeout=5.0) as c:
-                resp = c.get(svc["url"])
-            latency = round((time.monotonic() - t0) * 1000)
-            status = "up" if resp.status_code < 300 else "degraded"
-        except Exception:
-            status = "down"
-            latency = None
-        results.append({**svc, "status": status, "latency_ms": latency})
-    return results
+    return [_probe_http_health(name, key, url) for name, key, url in specs]

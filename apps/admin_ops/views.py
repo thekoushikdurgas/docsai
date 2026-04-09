@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import uuid
+from typing import Any, Dict
 
 from django.conf import settings
 from django.contrib import messages
@@ -19,11 +20,14 @@ from apps.core.decorators import require_admin_or_super_admin, require_login, re
 from apps.core.exceptions import LambdaAPIError
 
 from .services.admin_client import (
+    AdminGraphQLError,
     adjust_credits,
     approve_payment,
     decline_payment,
     delete_log,
     delete_storage_artifact,
+    delete_user_account,
+    find_admin_user,
     get_download_url,
     get_job_detail,
     get_jobs,
@@ -32,11 +36,15 @@ from .services.admin_client import (
     get_pending_payments,
     get_storage_artifacts,
     get_system_health,
+    get_users_with_buckets,
     get_user_activity_for_user,
     get_user_stats,
     get_users,
+    promote_to_admin,
+    promote_to_super_admin,
     retry_job,
     update_payment_instructions,
+    update_user_role,
 )
 from .services.logs_api_client import LogsApiClient
 from .services.s3storage_client import S3StorageClient
@@ -117,7 +125,33 @@ def _get_payment_qr_bucket(request) -> str | None:
 
 # ===== Users =====
 
-@require_admin_or_super_admin
+def _users_page_querystring(request, page_num: int) -> str:
+    q = request.GET.copy()
+    if page_num <= 1:
+        q.pop("page", None)
+    else:
+        q["page"] = str(page_num)
+    return q.urlencode()
+
+
+def _users_list_auth_message(exc: AdminGraphQLError) -> str:
+    msg = str(exc)
+    if msg == "Authentication required" or "Authentication required" in msg:
+        return (
+            "The API did not accept any signed-in user (missing or invalid JWT). "
+            "Sign out and sign in with your Contact360 email and password so an access token is stored. "
+            "If you used local Django sign-in only, set GRAPHQL_INTERNAL_TOKEN or use gateway login. "
+            "This directory requires a Super Admin account on the gateway."
+        )
+    if "Insufficient permissions" in msg or msg == "SuperAdmin role required":
+        return (
+            "Listing users requires Super Admin on the gateway. "
+            "Ask a Super Admin to promote your account, or use a Super Admin login."
+        )
+    return f"Failed to load users: {msg}"
+
+
+@require_super_admin
 def users_view(request):
     search = request.GET.get("search", "")
     plan = request.GET.get("plan", "")
@@ -137,18 +171,74 @@ def users_view(request):
     if active:
         filters["isActive"] = active == "true"
 
-    users_data = {}
-    try:
-        users_data = get_users(_token(request), filters=filters, limit=limit, offset=offset)
-    except Exception as exc:
-        logger.error("users_view error: %s", exc)
-        messages.error(request, "Failed to load users. Check gateway connection.")
+    filters_active = bool(search or plan or role or active)
+    users_data: dict = {}
+    users_load_failed = False
+
+    session_tok = (_token(request) or "").strip()
+    internal_tok = (getattr(settings, "GRAPHQL_INTERNAL_TOKEN", None) or "").strip()
+    if not session_tok and not internal_tok:
+        users_load_failed = True
+        messages.error(
+            request,
+            "No gateway credentials available for this browser session (empty JWT and no "
+            "GRAPHQL_INTERNAL_TOKEN). Sign in with Contact360 email/password, or configure "
+            "GRAPHQL_INTERNAL_TOKEN for server-to-server access.",
+        )
+    else:
+        try:
+            users_data = get_users(_token(request), filters=filters, limit=limit, offset=offset)
+        except AdminGraphQLError as exc:
+            users_load_failed = True
+            logger.error("users_view GraphQL error: %s", exc)
+            messages.error(request, _users_list_auth_message(exc))
+        except Exception as exc:
+            users_load_failed = True
+            logger.error("users_view error: %s", exc)
+            messages.error(request, "Failed to load users. Check gateway connection.")
+
+    page_info = users_data.get("pageInfo", {}) if isinstance(users_data, dict) else {}
+    items = users_data.get("items", []) if isinstance(users_data, dict) else []
+
+    if users_load_failed:
+        users_subtitle_mode = "error"
+        users_total = None
+    elif isinstance(page_info, dict) and "total" in page_info and page_info.get("total") is not None:
+        users_subtitle_mode = "count"
+        try:
+            users_total = int(page_info["total"])
+        except (TypeError, ValueError):
+            users_subtitle_mode = "unknown"
+            users_total = None
+    else:
+        users_subtitle_mode = "unknown"
+        users_total = None
+
+    pagination_query_prev = ""
+    pagination_query_next = ""
+    if not users_load_failed and isinstance(page_info, dict):
+        total = page_info.get("total")
+        try:
+            total_n = int(total) if total is not None else 0
+        except (TypeError, ValueError):
+            total_n = 0
+        if total_n > limit:
+            if page_info.get("hasPrevious"):
+                pagination_query_prev = _users_page_querystring(request, page - 1)
+            if page_info.get("hasNext"):
+                pagination_query_next = _users_page_querystring(request, page + 1)
 
     return render(request, "admin_ops/users.html", {
-        "users": users_data.get("items", []),
-        "page_info": users_data.get("pageInfo", {}),
+        "users": items,
+        "page_info": page_info if isinstance(page_info, dict) else {},
         "search": search, "plan": plan, "role": role, "active": active,
         "current_page": page, "page_title": "Users",
+        "filters_active": filters_active,
+        "users_load_failed": users_load_failed,
+        "users_subtitle_mode": users_subtitle_mode,
+        "users_total": users_total,
+        "pagination_query_prev": pagination_query_prev,
+        "pagination_query_next": pagination_query_next,
     })
 
 
@@ -156,56 +246,132 @@ def users_view(request):
 def user_detail_view(request, user_id):
     if request.method == "POST":
         action = request.POST.get("action")
-        if action == "adjust_credits":
-            amount = int(request.POST.get("amount", 0))
-            reason = request.POST.get("reason", "Admin adjustment")
-            try:
-                result = adjust_credits(_token(request), user_id, amount, reason)
+        tok = _token(request)
+        try:
+            if action == "adjust_credits":
+                amount = int(request.POST.get("amount", 0))
+                reason = request.POST.get("reason", "Admin adjustment")
+                result = adjust_credits(tok, user_id, amount, reason)
                 if result.get("success"):
-                    messages.success(request, f"Credits adjusted by {amount}.")
+                    messages.success(request, f"Credits updated (delta {amount:+d}).")
                 else:
                     messages.error(request, result.get("error", "Failed to adjust credits."))
-            except Exception as exc:
-                messages.error(request, f"Error: {exc}")
+            elif action == "update_role":
+                role = (request.POST.get("role") or "").strip()
+                result = update_user_role(tok, user_id, role)
+                if result.get("success"):
+                    messages.success(request, f"Role set to {role}.")
+                else:
+                    messages.error(request, result.get("error", "Failed to update role."))
+            elif action == "delete_user":
+                result = delete_user_account(tok, user_id)
+                if result.get("success"):
+                    messages.success(request, "User deleted.")
+                    return redirect("admin_ops:users")
+                messages.error(request, result.get("error", "Failed to delete user."))
+            elif action == "promote_admin":
+                result = promote_to_admin(tok, user_id)
+                if result.get("success"):
+                    messages.success(request, "User promoted to Admin.")
+                else:
+                    messages.error(request, result.get("error", "Promote to Admin failed."))
+            elif action == "promote_super":
+                result = promote_to_super_admin(tok, user_id)
+                if result.get("success"):
+                    messages.success(request, "User promoted to SuperAdmin.")
+                else:
+                    messages.error(request, result.get("error", "Promote to SuperAdmin failed."))
+            else:
+                messages.error(request, "Unknown action.")
+        except Exception as exc:
+            messages.error(request, f"Error: {exc}")
         return redirect("admin_ops:user_detail", user_id=user_id)
+
+    user_row = None
+    try:
+        user_row = find_admin_user(_token(request), user_id)
+    except Exception as exc:
+        logger.warning("user_detail find_admin_user: %s", exc)
 
     return render(request, "admin_ops/user_detail.html", {
         "user_id": user_id,
+        "user_row": user_row,
         "page_title": "User Detail",
+        "valid_roles": ["FreeUser", "ProUser", "Admin", "SuperAdmin"],
     })
 
 
 # ===== Jobs =====
 
+def _jobs_page_querystring(request, page_num: int) -> str:
+    q = request.GET.copy()
+    if page_num <= 1:
+        q.pop("page", None)
+    else:
+        q["page"] = str(page_num)
+    return q.urlencode()
+
+
 @require_admin_or_super_admin
 def jobs_view(request):
     status_filter = request.GET.get("status", "")
+    source_filter = (request.GET.get("source") or "").strip()
+    if source_filter not in ("email_server", "sync_server"):
+        source_filter = ""
     page = max(1, int(request.GET.get("page", 1)))
     limit = 25
     offset = (page - 1) * limit
 
-    jobs_data = {}
+    jobs_data: dict = {}
+    jobs_load_failed = False
     try:
-        jobs_data = get_jobs(_token(request), status=status_filter or None, limit=limit, offset=offset)
+        jobs_data = get_jobs(
+            _token(request),
+            status=status_filter or None,
+            limit=limit,
+            offset=offset,
+            source_service=source_filter or None,
+        )
     except Exception as exc:
+        jobs_load_failed = True
         logger.error("jobs_view error: %s", exc)
         messages.error(request, "Failed to load jobs.")
 
+    page_info = jobs_data.get("pageInfo", {}) if isinstance(jobs_data, dict) else {}
+    pagination_query_prev = ""
+    pagination_query_next = ""
+    if not jobs_load_failed and isinstance(page_info, dict):
+        try:
+            total_n = int(page_info.get("total") or 0)
+        except (TypeError, ValueError):
+            total_n = 0
+        if total_n > limit:
+            if page_info.get("hasPrevious"):
+                pagination_query_prev = _jobs_page_querystring(request, page - 1)
+            if page_info.get("hasNext"):
+                pagination_query_next = _jobs_page_querystring(request, page + 1)
+
+    # Tab IDs match ``scheduler_job_status`` / gateway DB (not legacy "running"/"queued" aliases).
     status_tabs = [
         {"id": "", "label": "All"},
-        {"id": "running", "label": "Running"},
-        {"id": "queued", "label": "Queued"},
+        {"id": "open", "label": "Open"},
+        {"id": "in_queue", "label": "In queue"},
+        {"id": "processing", "label": "Processing"},
         {"id": "completed", "label": "Completed"},
         {"id": "failed", "label": "Failed"},
-        {"id": "cancelled", "label": "Cancelled"},
+        {"id": "retry", "label": "Retry"},
     ]
     return render(request, "admin_ops/jobs.html", {
         "jobs": jobs_data.get("items", []),
-        "page_info": jobs_data.get("pageInfo", {}),
+        "page_info": page_info,
         "status_filter": status_filter,
+        "source_filter": source_filter,
         "status_tabs": status_tabs,
         "current_page": page,
         "page_title": "Jobs",
+        "jobs_load_failed": jobs_load_failed,
+        "pagination_query_prev": pagination_query_prev,
+        "pagination_query_next": pagination_query_next,
     })
 
 
@@ -217,7 +383,11 @@ def job_detail_view(request, job_id):
             if result.get("idempotent"):
                 messages.info(request, "Job is already in a terminal state or currently running.")
             elif result.get("success"):
-                messages.success(request, "Job retry queued successfully.")
+                detail = (result.get("detail") or "").strip()
+                messages.success(
+                    request,
+                    detail or "Retry recorded on the gateway (sync jobs: local status reset to open).",
+                )
             else:
                 messages.error(request, result.get("error", "Retry failed."))
         except Exception as exc:
@@ -238,33 +408,94 @@ def job_detail_view(request, job_id):
 
 # ===== Logs =====
 
-@require_admin_or_super_admin
+def _logs_page_querystring(request, page_num: int) -> str:
+    q = request.GET.copy()
+    if page_num <= 1:
+        q.pop("page", None)
+    else:
+        q["page"] = str(page_num)
+    return q.urlencode()
+
+
+@require_super_admin
 def logs_view(request):
+    """
+    Log.server data is loaded via GraphQL ``admin.logs`` (same path as API ``LogsServerClient``).
+    Requires Super Admin on the gateway — matches ``admin.queries.AdminQuery.logs``.
+    """
     service = request.GET.get("service", "")
+    level = (request.GET.get("level") or "").strip().upper() or ""
+    if level and level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "WARN"):
+        level = ""
+    if level == "WARN":
+        level = "WARNING"
     page = max(1, int(request.GET.get("page", 1)))
     limit = 50
     offset = (page - 1) * limit
 
-    log_entries = []
+    log_payload: Dict[str, Any] = {"items": [], "pageInfo": {}}
+    logs_load_failed = False
     try:
-        log_entries = get_logs(service=service or None, limit=limit, offset=offset)
+        log_payload = get_logs(
+            _token(request),
+            logger=service or None,
+            level=level or None,
+            limit=limit,
+            offset=offset,
+        )
     except Exception as exc:
-        messages.error(request, f"Failed to load logs: {exc}")
+        logs_load_failed = True
+        logger.error("logs_view error: %s", exc)
+        messages.error(
+            request,
+            "Failed to load logs from the gateway. "
+            "Use a Super Admin session, or check GraphQL and log.server configuration.",
+        )
 
-    services = ["gateway", "sync", "email", "jobs", "s3storage", "logs", "ai", "extension", "emailcampaign", "mailvetter"]
+    page_info = log_payload.get("pageInfo") or {}
+    pagination_query_prev = ""
+    pagination_query_next = ""
+    if not logs_load_failed and isinstance(page_info, dict):
+        try:
+            total_n = int(page_info.get("total") or 0)
+        except (TypeError, ValueError):
+            total_n = 0
+        if total_n > limit:
+            if page_info.get("hasPrevious"):
+                pagination_query_prev = _logs_page_querystring(request, page - 1)
+            if page_info.get("hasNext"):
+                pagination_query_next = _logs_page_querystring(request, page + 1)
+
+    services = [
+        "gateway",
+        "sync",
+        "email",
+        "jobs",
+        "s3storage",
+        "logs",
+        "ai",
+        "extension",
+        "emailcampaign",
+        "mailvetter",
+    ]
     return render(request, "admin_ops/logs.html", {
-        "logs": log_entries,
+        "logs": log_payload.get("items", []),
         "service": service,
+        "level_filter": level,
         "services": services,
         "current_page": page,
         "page_title": "Logs",
+        "page_info": page_info,
+        "logs_load_failed": logs_load_failed,
+        "pagination_query_prev": pagination_query_prev,
+        "pagination_query_next": pagination_query_next,
     })
 
 
 @require_super_admin
 @require_http_methods(["POST"])
 def delete_log_view(request, log_id):
-    success = delete_log(log_id)
+    success = delete_log(_token(request), log_id)
     if success:
         messages.success(request, "Log entry deleted.")
     else:
@@ -276,28 +507,48 @@ def delete_log_view(request, log_id):
 
 @require_admin_or_super_admin
 def billing_view(request):
-    payments = []
+    status_filter = request.GET.get("status", "pending")
     try:
-        payments = get_pending_payments(_token(request))
+        page = max(0, int(request.GET.get("page", 0)))
+    except (ValueError, TypeError):
+        page = 0
+    limit = 25
+    offset = page * limit
+
+    payment_data = {"items": [], "total": 0, "hasNext": False, "hasPrevious": False}
+    try:
+        payment_data = get_pending_payments(
+            _token(request), status=status_filter or None, limit=limit, offset=offset
+        )
     except Exception as exc:
         messages.error(request, f"Failed to load payments: {exc}")
 
     return render(request, "admin_ops/billing.html", {
-        "payments": payments,
-        "page_title": "Billing — Pending Payments",
+        "payments": payment_data["items"],
+        "total": payment_data["total"],
+        "has_next": payment_data["hasNext"],
+        "has_previous": payment_data["hasPrevious"],
+        "page": page,
+        "status_filter": status_filter,
+        "status_tabs": [
+            ("pending", "Pending"),
+            ("approved", "Approved"),
+            ("declined", "Declined"),
+            ("", "All"),
+        ],
+        "page_title": "Billing — Payment Submissions",
     })
 
 
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 def approve_payment_view(request, payment_id):
-    reason = request.POST.get("reason", "")
     try:
-        result = approve_payment(_token(request), payment_id, reason)
-        if result.get("success"):
-            messages.success(request, "Payment approved and credits applied.")
+        result = approve_payment(_token(request), payment_id)
+        if result.get("id"):
+            messages.success(request, f"Payment approved. Credits: {result.get('creditsToAdd', '—')}")
         else:
-            messages.error(request, result.get("error", "Approval failed."))
+            messages.error(request, "Approval failed — no response from gateway.")
     except Exception as exc:
         messages.error(request, f"Error: {exc}")
     return redirect("admin_ops:billing")
@@ -306,16 +557,16 @@ def approve_payment_view(request, payment_id):
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 def decline_payment_view(request, payment_id):
-    reason = request.POST.get("reason", "")
+    reason = request.POST.get("reason", "").strip()
     if not reason:
         messages.error(request, "Reason is required to decline a payment.")
         return redirect("admin_ops:billing")
     try:
         result = decline_payment(_token(request), payment_id, reason)
-        if result.get("success"):
+        if result.get("id"):
             messages.success(request, "Payment declined.")
         else:
-            messages.error(request, result.get("error", "Decline failed."))
+            messages.error(request, "Decline failed — no response from gateway.")
     except Exception as exc:
         messages.error(request, f"Error: {exc}")
     return redirect("admin_ops:billing")
@@ -325,16 +576,61 @@ def decline_payment_view(request, payment_id):
 
 @require_admin_or_super_admin
 def storage_view(request):
-    prefix = request.GET.get("prefix", "")
-    artifacts = []
+    selected_bucket = request.GET.get("bucket", "").strip()
+    prefix = request.GET.get("prefix", "").strip()
     try:
-        artifacts = get_storage_artifacts(prefix=prefix)
-    except Exception as exc:
-        messages.error(request, f"Failed to load storage: {exc}")
+        page = max(0, int(request.GET.get("page", 0)))
+    except (ValueError, TypeError):
+        page = 0
+    limit = 50
+    offset = page * limit
+
+    users = get_users_with_buckets(_token(request))
+    # Map bucket -> user for easy lookup in template
+    bucket_to_user = {u["bucket"]: u for u in users if u.get("bucket")}
+
+    artifacts: list = []
+    total = 0
+    has_next = False
+    has_previous = False
+
+    if selected_bucket:
+        full_prefix = f"{selected_bucket}/{prefix}".lstrip("/") if prefix else selected_bucket
+        try:
+            result = get_storage_artifacts(prefix=full_prefix, limit=limit, offset=offset)
+            artifacts = result["items"]
+            total = result["total"]
+            has_next = offset + limit < total
+            has_previous = offset > 0
+        except Exception as exc:
+            messages.error(request, f"Failed to load storage: {exc}")
+
+    # Build breadcrumb segments from prefix
+    breadcrumb_parts = []
+    if selected_bucket:
+        breadcrumb_parts.append({"label": "All", "bucket": "", "prefix": ""})
+        selected_user = bucket_to_user.get(selected_bucket)
+        user_label = selected_user["email"] if selected_user else selected_bucket[:12]
+        breadcrumb_parts.append({"label": user_label, "bucket": selected_bucket, "prefix": ""})
+        if prefix:
+            segments = [s for s in prefix.split("/") if s]
+            for i, seg in enumerate(segments):
+                breadcrumb_parts.append({
+                    "label": seg,
+                    "bucket": selected_bucket,
+                    "prefix": "/".join(segments[: i + 1]),
+                })
 
     return render(request, "admin_ops/storage.html", {
         "artifacts": artifacts,
+        "total": total,
+        "has_next": has_next,
+        "has_previous": has_previous,
+        "page": page,
         "prefix": prefix,
+        "selected_bucket": selected_bucket,
+        "users": users,
+        "breadcrumbs": breadcrumb_parts,
         "page_title": "Storage",
     })
 
@@ -352,6 +648,8 @@ def storage_download_url_view(request):
 @require_http_methods(["POST"])
 def delete_artifact_view(request):
     key = request.POST.get("key", "")
+    selected_bucket = request.POST.get("bucket", "")
+    prefix = request.POST.get("prefix", "")
     if not key:
         messages.error(request, "No key specified.")
         return redirect("admin_ops:storage")
@@ -360,7 +658,9 @@ def delete_artifact_view(request):
         messages.success(request, f"Deleted: {key}")
     else:
         messages.error(request, "Delete failed.")
-    return redirect("admin_ops:storage")
+    redirect_url = f"{redirect('admin_ops:storage').url}?bucket={selected_bucket}&prefix={prefix}"
+    from django.http import HttpResponseRedirect
+    return HttpResponseRedirect(redirect_url)
 
 
 # ===== System status =====
@@ -375,7 +675,10 @@ def system_status_view(request):
 
     up_count = sum(1 for s in health if s.get("status") == "up")
     total = len(health)
-    uptime_pct = round((up_count / total) * 100) if total else 0
+    # Uptime % only among services that are actually probed (exclude "not configured")
+    probed = [s for s in health if s.get("status") != "not_configured"]
+    up_probed = sum(1 for s in probed if s.get("status") == "up")
+    uptime_pct = round((up_probed / len(probed)) * 100) if probed else 0
 
     return render(request, "admin_ops/system_status.html", {
         "health_services": health,
@@ -410,20 +713,33 @@ def settings_view(request):
 
 @require_admin_or_super_admin
 def statistics_view(request):
-    stats = {}
+    stats: dict = {}
     try:
         stats = get_user_stats(_token(request))
     except Exception as exc:
         messages.error(request, f"Failed to load statistics: {exc}")
 
-    by_plan = stats.get("usersBySubscription", [])
+    # Gateway AdminUserStats: usersByPlan / usersByRole are JSON objects { "free": 12, ... }
+    # Accept camelCase (typical GraphQL JSON) or snake_case.
+    by_plan = stats.get("usersByPlan") if isinstance(stats.get("usersByPlan"), dict) else {}
+    if not by_plan and isinstance(stats.get("users_by_plan"), dict):
+        by_plan = stats["users_by_plan"]
+    plan_items = sorted(by_plan.items(), key=lambda x: (-(x[1] or 0), str(x[0]).lower()))
     chart_data = {
-        "labels": [p["subscriptionPlan"] for p in by_plan],
-        "values": [p["count"] for p in by_plan],
+        "labels": [str(k) for k, _ in plan_items],
+        "values": [int(v or 0) for _, v in plan_items],
     }
+
+    by_role = stats.get("usersByRole") if isinstance(stats.get("usersByRole"), dict) else {}
+    if not by_role and isinstance(stats.get("users_by_role"), dict):
+        by_role = stats["users_by_role"]
+    role_items = sorted(by_role.items(), key=lambda x: (-(x[1] or 0), str(x[0]).lower()))
+
     return render(request, "admin_ops/statistics.html", {
         "stats": stats,
         "chart_data": chart_data,
+        "plan_items": plan_items,
+        "role_items": role_items,
         "page_title": "Statistics",
     })
 
@@ -552,7 +868,11 @@ def job_retry_view(request, job_id: str):
         if result.get("idempotent"):
             messages.info(request, "Job is already in a terminal state or currently running.")
         elif result.get("success"):
-            messages.success(request, "Job retry queued successfully.")
+            detail = (result.get("detail") or "").strip()
+            messages.success(
+                request,
+                detail or "Retry recorded on the gateway (sync jobs: local status reset to open).",
+            )
         else:
             messages.error(request, result.get("error", "Retry failed."))
     except Exception as exc:

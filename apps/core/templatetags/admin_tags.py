@@ -1,9 +1,10 @@
 """
 Contact360 Admin template tags and filters.
 """
+import json
+
 from django import template
 from django.utils.safestring import mark_safe
-import json
 
 register = template.Library()
 
@@ -60,11 +61,19 @@ def _url_name_matches_request(request, url_name: str) -> bool:
     return False
 
 
+def _leaf_matches_current_route(request, node: dict) -> bool:
+    """True if sidebar leaf `url_name` or any `also_active` name matches the current route."""
+    if not node or not node.get("url_name"):
+        return False
+    names = [node["url_name"]] + list(node.get("also_active") or [])
+    return any(_url_name_matches_request(request, n) for n in names)
+
+
 def _node_has_active_descendant(request, node: dict) -> bool:
     """True if this node or any nested leaf matches the current route."""
     if not node:
         return False
-    if node.get("url_name") and _url_name_matches_request(request, node["url_name"]):
+    if node.get("url_name") and _leaf_matches_current_route(request, node):
         return True
     for child in node.get("children") or []:
         if _node_has_active_descendant(request, child):
@@ -103,30 +112,43 @@ def nav_aria_expanded(context, node):
     return "false"
 
 
+@register.simple_tag(takes_context=True)
+def active_nav_leaf(context, node, request=None):
+    """CSS class for sidebar leaf link when current route matches url_name or also_active."""
+    req = request or context.get("request")
+    if req and _leaf_matches_current_route(req, node):
+        return "active"
+    return ""
+
+
 @register.filter
 def progress_color(value):
-    """Return CSS class based on progress value threshold."""
+    """Return CSS class based on progress value (uptime / completion style tiers)."""
     try:
         v = int(value)
     except (TypeError, ValueError):
         return ""
-    if v >= 50:
+    if v >= 85:
         return "success"
-    elif v >= 20:
+    if v >= 60:
+        return "info"
+    if v >= 35:
         return "warning"
     return "danger"
 
 
 @register.filter
 def progress_threshold(value):
-    """Return data-threshold string for CSS selector."""
+    """Return data-threshold for CSS; use neutral when .progress-bar color comes from class alone."""
     try:
         v = int(value)
     except (TypeError, ValueError):
         return "unknown"
-    if v >= 50:
+    if v >= 85:
         return "good"
-    elif v >= 20:
+    if v >= 60:
+        return "unknown"
+    if v >= 35:
         return "caution"
     return "critical"
 
@@ -166,15 +188,30 @@ def era_badge(era_number):
 def job_status_badge(status):
     """Return badge HTML for a job status string."""
     cls_map = {
+        "open": "badge-queued",
+        "in_queue": "badge-queued",
+        "processing": "badge-running",
         "running": "badge-running",
         "queued": "badge-queued",
         "completed": "badge-completed",
         "failed": "badge-failed",
+        "retry": "badge-warning",
         "cancelled": "badge-cancelled",
         "scheduled": "badge-scheduled",
     }
     cls = cls_map.get(str(status).lower(), "badge-neutral")
     return mark_safe(f'<span class="badge {cls}">{status}</span>')
+
+
+@register.filter
+def jsonpretty(value):
+    """Pretty-print dict/list for read-only debug panels (admin job payloads)."""
+    if value is None:
+        return "—"
+    try:
+        return json.dumps(value, indent=2, default=str, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return str(value)
 
 
 @register.filter
@@ -213,9 +250,27 @@ def service_status_dot(status):
         "error": "down",
         "degraded": "degraded",
         "unknown": "unknown",
+        "not_configured": "unknown",
     }
     cls = cls_map.get(str(status).lower(), "unknown pulse")
     return mark_safe(f'<span class="status-dot {cls}" aria-label="Status: {status}" title="{status}"></span>')
+
+
+@register.filter
+def health_status_display(status):
+    """Human-readable label for health status (avoids Not_Configured from |title)."""
+    s = (status or "unknown").lower()
+    labels = {
+        "up": "Up",
+        "down": "Down",
+        "degraded": "Degraded",
+        "unknown": "Unknown",
+        "not_configured": "Not configured",
+        "healthy": "Up",
+        "ok": "Up",
+        "error": "Down",
+    }
+    return labels.get(s, str(status).replace("_", " ").title())
 
 
 @register.filter

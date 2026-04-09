@@ -6,84 +6,152 @@ import copy
 from django.conf import settings
 
 # Recursive sidebar: leaf = {label, icon, url_name} optional target for api-docs
+# Optional also_active: extra "namespace:url_name" values that keep this leaf + parent branch highlighted
 # branch = {label, icon, children: [...]}
+#
+# Icons MUST use LineIcons classes: "lni lni-<name>" (see static/admin/vendor/lineicons/LineIcons.css).
+# Do not use "lnr lnr-*" (Linearicons) — that font is not bundled; icons would render blank.
 SIDEBAR_MENU = [
     {
         "label": "Main",
-        "icon": "lnr lnr-home",
+        "icon": "lni lni-home",
         "children": [
-            {"label": "Dashboard", "icon": "lnr lnr-home", "url_name": "core:dashboard"},
+            {"label": "Dashboard", "icon": "lni lni-home", "url_name": "core:dashboard"},
         ],
     },
     {
         "label": "Documentation",
-        "icon": "lnr lnr-book",
+        "icon": "lni lni-book",
         "children": [
-            {"label": "Docs Hub", "icon": "lnr lnr-book", "url_name": "documentation:dashboard"},
-            {"label": "Pages", "icon": "lnr lnr-layers", "url_name": "documentation:dashboard_pages"},
-            {"label": "Endpoints", "icon": "lnr lnr-link", "url_name": "documentation:dashboard_endpoints"},
-            {"label": "Relationships", "icon": "lnr lnr-chart-bars", "url_name": "documentation:dashboard_relationships"},
-            {"label": "Postman", "icon": "lnr lnr-cloud-upload", "url_name": "documentation:dashboard_postman_enhanced"},
+            {"label": "Docs Hub", "icon": "lni lni-book", "url_name": "documentation:dashboard"},
+            {"label": "Pages", "icon": "lni lni-layers", "url_name": "documentation:dashboard_pages"},
+            {"label": "Endpoints", "icon": "lni lni-link", "url_name": "documentation:dashboard_endpoints"},
+            {"label": "Relationships", "icon": "lni lni-bar-chart", "url_name": "documentation:dashboard_relationships"},
+            {"label": "Postman", "icon": "lni lni-cloud-upload", "url_name": "documentation:dashboard_postman_enhanced"},
         ],
     },
     {
         "label": "Operations",
-        "icon": "lnr lnr-cog",
+        "icon": "lni lni-cog",
         "children": [
-            {"label": "Operations", "icon": "lnr lnr-cog", "url_name": "operations:index"},
-            {"label": "Graph", "icon": "lnr lnr-network", "url_name": "graph:visualization"},
-            {"label": "Codebase", "icon": "lnr lnr-code", "url_name": "codebase:dashboard"},
-            {"label": "Analytics", "icon": "lnr lnr-chart-bars", "url_name": "analytics:dashboard"},
+            {"label": "Operations", "icon": "lni lni-cog", "url_name": "operations:index"},
+            {"label": "Graph", "icon": "lni lni-network", "url_name": "graph:visualization"},
+            {"label": "Codebase", "icon": "lni lni-code", "url_name": "codebase:dashboard"},
+            {"label": "Analytics", "icon": "lni lni-bar-chart", "url_name": "analytics:dashboard"},
         ],
     },
     {
         "label": "AI",
-        "icon": "lnr lnr-bubble",
+        "icon": "lni lni-bubble",
         "children": [
-            {"label": "AI Chat", "icon": "lnr lnr-bubble", "url_name": "ai_agent:chat"},
-            {"label": "Sessions", "icon": "lnr lnr-history", "url_name": "ai_agent:sessions"},
+            {"label": "AI Chat", "icon": "lni lni-bubble", "url_name": "ai_agent:chat"},
+            {
+                "label": "Sessions",
+                "icon": "lni lni-timer",
+                "url_name": "ai_agent:sessions",
+                "also_active": ["ai_agent:session_detail"],
+            },
         ],
     },
     {
         "label": "Automation",
-        "icon": "lnr lnr-arrow-right-circle",
+        "icon": "lni lni-arrow-right-circle",
         "children": [
-            {"label": "Durgasflow", "icon": "lnr lnr-arrow-right-circle", "url_name": "durgasflow:dashboard"},
-            {"label": "Durgasman", "icon": "lnr lnr-database", "url_name": "durgasman:dashboard"},
+            {"label": "Durgasflow", "icon": "lni lni-arrow-right-circle", "url_name": "durgasflow:dashboard"},
+            {"label": "Durgasman", "icon": "lni lni-database", "url_name": "durgasman:dashboard"},
+            {"label": "Page Builder", "icon": "lni lni-pencil", "url_name": "page_builder:index"},
         ],
     },
     {
         "label": "Management",
-        "icon": "lnr lnr-map",
+        "icon": "lni lni-map",
         "children": [
-            {"label": "Roadmap", "icon": "lnr lnr-map", "url_name": "roadmap:dashboard"},
-            {"label": "Architecture", "icon": "lnr lnr-construction", "url_name": "architecture:blueprint"},
-            {"label": "Knowledge", "icon": "lnr lnr-graduation-hat", "url_name": "knowledge:list"},
-            {"label": "Templates", "icon": "lnr lnr-license", "url_name": "templates_app:index"},
-            {"label": "Postman App", "icon": "lnr lnr-cloud", "url_name": "postman_app:dashboard"},
-            {"label": "JSON Store", "icon": "lnr lnr-file-empty", "url_name": "json_store:index"},
-            {"label": "Page Builder", "icon": "lnr lnr-pencil", "url_name": "page_builder:index"},
+            {"label": "Roadmap", "icon": "lni lni-map", "url_name": "roadmap:dashboard"},
+            {"label": "Architecture", "icon": "lni lni-construction", "url_name": "architecture:blueprint"},
+            {
+                "label": "Knowledge",
+                "icon": "lni lni-graduation",
+                "url_name": "knowledge:list",
+                "also_active": [
+                    "knowledge:create",
+                    "knowledge:search",
+                    "knowledge:detail",
+                    "knowledge:edit",
+                    "knowledge:delete",
+                ],
+            },
+            {"label": "Templates", "icon": "lni lni-licencse", "url_name": "templates_app:index"},
+            {"label": "Postman App", "icon": "lni lni-cloud", "url_name": "postman_app:dashboard"},
+            {"label": "JSON Store", "icon": "lni lni-empty-file", "url_name": "json_store:index"},
         ],
     },
     {
         "label": "Admin",
-        "icon": "lnr lnr-users",
+        "icon": "lni lni-users",
         "children": [
-            {"label": "Users", "icon": "lnr lnr-users", "url_name": "admin_ops:users"},
-            {"label": "Jobs", "icon": "lnr lnr-briefcase", "url_name": "admin_ops:jobs"},
-            {"label": "Logs", "icon": "lnr lnr-list", "url_name": "admin_ops:logs"},
-            {"label": "Billing", "icon": "lnr lnr-wallet", "url_name": "admin_ops:billing"},
-            {"label": "Storage", "icon": "lnr lnr-cloud-upload", "url_name": "admin_ops:storage"},
-            {"label": "System Status", "icon": "lnr lnr-heart-pulse", "url_name": "admin_ops:system_status"},
-            {"label": "Settings", "icon": "lnr lnr-cog", "url_name": "admin_ops:settings"},
-            {"label": "Statistics", "icon": "lnr lnr-chart-bars", "url_name": "admin_ops:statistics"},
+            {
+                "label": "Users",
+                "icon": "lni lni-users",
+                "url_name": "admin_ops:users",
+                "also_active": ["admin_ops:user_detail", "admin_ops:user_history"],
+            },
+            {
+                "label": "Jobs",
+                "icon": "lni lni-briefcase",
+                "url_name": "admin_ops:jobs",
+                "also_active": ["admin_ops:job_detail", "admin_ops:job_retry"],
+            },
+            {
+                "label": "Logs",
+                "icon": "lni lni-list",
+                "url_name": "admin_ops:logs",
+                "also_active": [
+                    "admin_ops:logs_bulk_delete",
+                    "admin_ops:log_update",
+                    "admin_ops:delete_log",
+                ],
+            },
+            {
+                "label": "Billing",
+                "icon": "lni lni-wallet",
+                "url_name": "admin_ops:billing",
+                "also_active": [
+                    "admin_ops:approve_payment",
+                    "admin_ops:decline_payment",
+                    "admin_ops:billing_qr_upload",
+                    "admin_ops:billing_settings",
+                ],
+            },
+            {
+                "label": "Storage",
+                "icon": "lni lni-cloud-upload",
+                "url_name": "admin_ops:storage",
+                "also_active": ["admin_ops:storage_download_url", "admin_ops:delete_artifact"],
+            },
+            {"label": "System Status", "icon": "lni lni-pulse", "url_name": "admin_ops:system_status"},
+            {"label": "Settings", "icon": "lni lni-cog", "url_name": "admin_ops:settings"},
+            {"label": "Statistics", "icon": "lni lni-bar-chart", "url_name": "admin_ops:statistics"},
+        ],
+    },
+    {
+        "label": "Legal",
+        "icon": "lni lni-book",
+        "children": [
+            {"label": "Terms of Service", "icon": "lni lni-empty-file", "url_name": "legal:terms"},
+            {"label": "Privacy Policy", "icon": "lni lni-lock", "url_name": "legal:privacy"},
+            {"label": "Refund Policy", "icon": "lni lni-wallet", "url_name": "legal:refund"},
         ],
     },
     {
         "label": "Tools & Info",
-        "icon": "lnr lnr-code",
+        "icon": "lni lni-code",
         "children": [
-            {"label": "API Docs", "icon": "lnr lnr-code", "url_name": "api-docs"},
+            {
+                "label": "API usage tracker",
+                "icon": "lni lni-pulse",
+                "url_name": "api-tracker",
+            },
+            # {"label": "API Docs", "icon": "lni lni-code", "url_name": "api-docs"},
         ],
     },
 ]

@@ -2,13 +2,18 @@
 Core views: dashboard, login, logout.
 """
 import logging
+
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
+
+from apps.admin_ops.services.admin_client import get_system_health
 
 from .decorators import require_login
 from .services.appointment360_client import sign_in
@@ -64,16 +69,59 @@ def _users_by_plan_to_chart(us: dict) -> tuple:
     return labels, values
 
 
+def _django_user_stats_fallback():
+    """
+    When GraphQL admin.userStats is unavailable, show counts from the local Django user table
+    (e.g. AUTH_FALLBACK_LOCAL / dev without gateway).
+    """
+    User = get_user_model()
+    now = timezone.now()
+    start_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    total = User.objects.count()
+    active = User.objects.filter(is_active=True).count()
+    new_today = User.objects.filter(date_joined__gte=start_day).count()
+    new_month = User.objects.filter(date_joined__gte=start_month).count()
+    staff = User.objects.filter(is_staff=True).count()
+    regular = max(0, total - staff)
+    by_plan_rows = []
+    chart_labels = []
+    chart_values = []
+    if total:
+        chart_labels = ["Staff", "Other users"]
+        chart_values = [staff, regular]
+    stats = {
+        "total_users": total,
+        "active_users": active,
+        "new_today": new_today,
+        "new_this_week": 0,
+        "new_this_month": new_month,
+        "by_plan": by_plan_rows,
+    }
+    chart_data = {"labels": chart_labels, "values": chart_values}
+    return stats, chart_data
+
+
 @require_login
 def dashboard_view(request):
     token = request.session.get("operator", {}).get("token", "")
     stats = {}
     chart_data = {"labels": [], "values": []}
-    health_services = _get_health_services()
+    health_services = []
 
     try:
+        health_services = get_system_health()
+    except Exception as exc:
+        logger.warning("Dashboard health probe failed: %s", exc)
+
+    graphql_ok = False
+    try:
         resp = graphql_query(_DASHBOARD_STATS, token=token)
-        data = (resp.get("data") or {}) if isinstance(resp, dict) else {}
+        if not isinstance(resp, dict):
+            raise RuntimeError("Invalid GraphQL response")
+        if resp.get("errors"):
+            raise RuntimeError(resp.get("errors"))
+        data = resp.get("data") or {}
         user_stats = (data.get("admin") or {}).get("userStats") or {}
         labels, values = _users_by_plan_to_chart(user_stats)
         by_plan_rows = [
@@ -89,8 +137,12 @@ def dashboard_view(request):
             "by_plan": by_plan_rows,
         }
         chart_data = {"labels": labels, "values": values}
+        graphql_ok = True
     except Exception as exc:
         logger.warning("Dashboard stats fetch failed: %s", exc)
+
+    if not graphql_ok:
+        stats, chart_data = _django_user_stats_fallback()
 
     return render(request, "core/dashboard.html", {
         "stats": stats,
@@ -98,22 +150,6 @@ def dashboard_view(request):
         "health_services": health_services,
         "page_title": "Dashboard",
     })
-
-
-def _get_health_services():
-    """Return a list of known service health descriptors (placeholder values for now)."""
-    return [
-        {"name": "GraphQL Gateway", "key": "gateway", "status": "unknown"},
-        {"name": "Connectra (Sync)", "key": "sync", "status": "unknown"},
-        {"name": "Email Server", "key": "email", "status": "unknown"},
-        {"name": "Jobs", "key": "jobs", "status": "unknown"},
-        {"name": "S3 Storage", "key": "s3storage", "status": "unknown"},
-        {"name": "Logs API", "key": "logs", "status": "unknown"},
-        {"name": "Contact AI", "key": "ai", "status": "unknown"},
-        {"name": "Extension Server", "key": "extension", "status": "unknown"},
-        {"name": "Email Campaign", "key": "emailcampaign", "status": "unknown"},
-        {"name": "Mailvetter", "key": "mailvetter", "status": "unknown"},
-    ]
 
 
 @ratelimit(key="ip", rate="10/m", method="POST", block=False)

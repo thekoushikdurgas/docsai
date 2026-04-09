@@ -1,88 +1,93 @@
-/* Contact360 Admin — Alerts & Toasts */
+/* Contact360 Admin — Alerts & Toasts
+ * Colors use --c360-* canonical tokens.
+ * Visual spec matches Dashboard UI kit uc-toastr.html: left-border accent,
+ * semantic bg-light fill, toast animates from top-right.
+ */
 
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  gap: var(--c360-spacing-3);
+  padding: var(--c360-spacing-3) var(--c360-spacing-4);
+  border-radius: var(--c360-radius-md);
   border-left: 4px solid transparent;
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-4);
+  font-size: var(--c360-text-sm);
+  margin-bottom: var(--c360-spacing-4);
 }
 .alert-icon { flex-shrink: 0; margin-top: 1px; }
 .alert-body { flex: 1; }
-.alert-title { font-weight: 600; margin-bottom: 2px; }
+.alert-title { font-weight: var(--c360-font-semibold); margin-bottom: 2px; }
 .alert-message { color: inherit; opacity: 0.85; }
 .alert-dismiss {
   background: none; border: none; cursor: pointer;
-  padding: 2px; border-radius: var(--radius-sm);
+  padding: 2px; border-radius: var(--c360-radius-sm);
   color: inherit; opacity: 0.6; margin-left: auto; flex-shrink: 0;
 }
 .alert-dismiss:hover { opacity: 1; }
 
-/* Variants */
+/* Variants — all use c360 semantic tokens */
 .alert-success {
-  background-color: var(--color-success-bg);
-  border-left-color: var(--color-success);
+  background-color: var(--c360-success-light);
+  border-left-color: var(--c360-success);
   color: #14532d;
 }
 .alert-warning {
-  background-color: var(--color-warning-bg);
-  border-left-color: var(--color-warning);
+  background-color: var(--c360-warning-light);
+  border-left-color: var(--c360-warning);
   color: #78350f;
 }
 .alert-danger {
-  background-color: var(--color-danger-bg);
-  border-left-color: var(--color-danger);
+  background-color: var(--c360-danger-light);
+  border-left-color: var(--c360-danger);
   color: #7f1d1d;
 }
 .alert-info {
-  background-color: var(--color-info-bg);
-  border-left-color: var(--color-info);
+  background-color: var(--c360-info-light);
+  border-left-color: var(--c360-info);
   color: #164e63;
 }
 .alert-neutral {
-  background-color: var(--color-gray-100);
-  border-left-color: var(--color-gray-400);
-  color: var(--color-text);
+  background-color: var(--c360-bg-secondary);
+  border-left-color: var(--c360-border-strong);
+  color: var(--c360-text);
 }
 
-/* Toast stack */
+/* Toast stack — z-index above modals matches --c360-z-toast */
 .toast-stack {
   position: fixed;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: 2000;
+  top: var(--c360-spacing-4);
+  right: var(--c360-spacing-4);
+  z-index: var(--c360-z-toast);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--c360-spacing-2);
   max-width: 360px;
   pointer-events: none;
 }
 .toast {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background-color: var(--color-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  gap: var(--c360-spacing-3);
+  padding: var(--c360-spacing-3) var(--c360-spacing-4);
+  background-color: var(--c360-bg-elevated);
+  border-radius: var(--c360-radius-md);
+  box-shadow: var(--c360-shadow-md);
   border-left: 4px solid transparent;
-  font-size: var(--text-sm);
+  font-size: var(--c360-text-sm);
+  color: var(--c360-text);
   pointer-events: auto;
   animation: toast-in 0.2s ease;
 }
 .toast.toast-out { animation: toast-out 0.2s ease forwards; }
-.toast-success { border-left-color: var(--color-success); }
-.toast-warning { border-left-color: var(--color-warning); }
-.toast-error   { border-left-color: var(--color-danger); }
-.toast-info    { border-left-color: var(--color-info); }
+.toast-success { border-left-color: var(--c360-success); }
+.toast-warning { border-left-color: var(--c360-warning); }
+.toast-error   { border-left-color: var(--c360-danger); }
+.toast-info    { border-left-color: var(--c360-info); }
 .toast-msg { flex: 1; }
-.toast-close { background: none; border: none; cursor: pointer; padding: 2px; color: var(--color-text-muted); }
+.toast-close { background: none; border: none; cursor: pointer; padding: 2px; color: var(--c360-text-muted); }
 
 @keyframes toast-in  { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
 @keyframes toast-out { from { opacity:1; transform:translateY(0); }     to { opacity:0; transform:translateY(-8px); } }
 
 /* Flash messages from Django */
-.flash-messages { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.flash-messages { display: flex; flex-direction: column; gap: var(--c360-spacing-2); margin-bottom: var(--c360-spacing-4); }

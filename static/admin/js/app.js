@@ -1,9 +1,36 @@
 /**
  * Contact360 Admin — app.js
- * Global behaviors: preloader, sidebar toggle, dark mode, theme persistence.
+ * Global behaviors: preloader, sidebar toggle (app shell parity), dark mode, theme persistence.
  */
 (function () {
   'use strict';
+
+  var SIDEBAR_COLLAPSED_KEY = 'c360-sidebar-collapsed';
+  var MOBILE_SHELL_MQ = '(max-width: 1023px)';
+
+  function isMobileShell() {
+    return window.matchMedia(MOBILE_SHELL_MQ).matches;
+  }
+
+  function syncSidebarToggleAria() {
+    var toggle = document.getElementById('headerSidebarToggle');
+    if (!toggle) return;
+    if (isMobileShell()) {
+      var open = document.body.classList.contains('sidebar-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute(
+        'aria-label',
+        open ? 'Close navigation' : 'Open navigation',
+      );
+    } else {
+      var collapsed = document.body.classList.contains('nav-header-open');
+      toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      toggle.setAttribute(
+        'aria-label',
+        collapsed ? 'Expand sidebar' : 'Collapse sidebar',
+      );
+    }
+  }
 
   // ===== Preloader =====
   window.addEventListener('load', function () {
@@ -11,7 +38,9 @@
     if (pre) {
       pre.style.transition = 'opacity 0.3s';
       pre.style.opacity = '0';
-      setTimeout(function () { pre.style.display = 'none'; }, 300);
+      setTimeout(function () {
+        pre.style.display = 'none';
+      }, 300);
     }
   });
 
@@ -22,7 +51,10 @@
     var btn = document.getElementById('themeToggle');
     if (btn) {
       var icon = btn.querySelector('i');
-      if (icon) icon.className = theme === 'dark' ? 'lnr lnr-sun' : 'lnr lnr-moon';
+      if (icon) {
+        icon.className =
+          theme === 'dark' ? 'lni lni-sun' : 'lni lni-night';
+      }
     }
   }
   var savedTheme = localStorage.getItem(THEME_KEY) || 'light';
@@ -39,25 +71,41 @@
     }
   });
 
-  // ===== Sidebar toggle =====
+  // ===== Sidebar: mobile drawer vs desktop collapsed rail (parity with app MainLayout) =====
   document.addEventListener('DOMContentLoaded', function () {
-    var toggle = document.getElementById('sidebarToggle');
+    if (!isMobileShell()) {
+      if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true') {
+        document.body.classList.add('nav-header-open');
+      }
+    }
+    syncSidebarToggleAria();
+
+    var toggle = document.getElementById('headerSidebarToggle');
     if (toggle) {
       toggle.addEventListener('click', function () {
-        var isOpen = document.body.classList.toggle('nav-header-open');
-        toggle.setAttribute('aria-expanded', String(!isOpen));
+        if (isMobileShell()) {
+          document.body.classList.toggle('sidebar-open');
+        } else {
+          var collapsed = document.body.classList.toggle('nav-header-open');
+          localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
+        }
+        syncSidebarToggleAria();
       });
     }
 
-    // Mobile overlay close
-    document.addEventListener('click', function (e) {
-      if (window.innerWidth <= 768) {
-        var sidebar = document.querySelector('.dlabnav');
-        var toggleBtn = document.getElementById('sidebarToggle');
-        if (sidebar && !sidebar.contains(e.target) && toggleBtn && !toggleBtn.contains(e.target)) {
-          document.body.classList.remove('sidebar-open');
-        }
+    var overlay = document.getElementById('sidebarOverlay');
+    if (overlay) {
+      overlay.addEventListener('click', function () {
+        document.body.classList.remove('sidebar-open');
+        syncSidebarToggleAria();
+      });
+    }
+
+    window.addEventListener('resize', function () {
+      if (!isMobileShell()) {
+        document.body.classList.remove('sidebar-open');
       }
+      syncSidebarToggleAria();
     });
   });
 
@@ -68,7 +116,9 @@
       setTimeout(function () {
         alert.style.transition = 'opacity 0.4s';
         alert.style.opacity = '0';
-        setTimeout(function () { alert.remove(); }, 400);
+        setTimeout(function () {
+          alert.remove();
+        }, 400);
       }, 5000);
     });
   });
@@ -78,5 +128,4 @@
     var cookie = document.cookie.match('(^|;) ?csrftoken=([^;]*)(;|$)');
     return cookie ? cookie[2] : '';
   };
-
 })();

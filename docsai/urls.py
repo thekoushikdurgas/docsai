@@ -8,6 +8,8 @@ from django.urls import path, include, re_path
 from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from apps.documentation.views.api_docs import api_tracker_index
+
 urlpatterns = [
     path(
         "favicon.ico",
@@ -47,6 +49,8 @@ urlpatterns = [
     # REST API
     path("api/v1/", include("apps.documentation.api.v1.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    # Endpoint registry + hit stats (same UI as contact360.io/2 /api/docs/); Swagger stays below.
+    path("api/tracker/", api_tracker_index, name="api-tracker"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
 ]
 

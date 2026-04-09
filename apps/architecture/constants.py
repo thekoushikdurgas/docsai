@@ -36,5 +36,6 @@ URL_MOUNTS = [
     {"path": "/postman/", "app": "apps.postman_app", "description": "Postman manager"},
     {"path": "/api/v1/", "app": "apps.documentation.api.v1", "description": "REST JSON API (DRF)"},
     {"path": "/api/schema/", "app": "drf_spectacular", "description": "OpenAPI schema"},
+    {"path": "/api/tracker/", "app": "apps.documentation.views.api_docs", "description": "GET endpoint registry + ApiTrackingMiddleware stats (parity with docsai /api/docs/)"},
     {"path": "/api/docs/", "app": "drf_spectacular", "description": "Swagger UI"},
 ]

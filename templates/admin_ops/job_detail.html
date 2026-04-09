@@ -6,17 +6,20 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">Job Detail</h1>
-    <p class="page-subtitle">{{ job_id }}</p>
+    <h1 class="page-title">Job detail</h1>
+    <p class="page-subtitle"><code>{{ job.jobId|default:job_id }}</code></p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'admin_ops:jobs' %}" class="btn btn-outline"><i class="lni lni-arrow-left"></i> Back to Jobs</a>
-    {% if job and job.status == "failed" %}
+    <a href="{% url 'admin_ops:jobs' %}" class="btn btn-outline"><i class="lni lni-arrow-left"></i> Back to jobs</a>
+    {% if job and job.status == "failed" and job.sourceService == "sync_server" %}
     <form method="post" style="display:inline">
       {% csrf_token %}
       <input type="hidden" name="action" value="retry">
-      <button type="submit" class="btn btn-warning"><i class="lni lni-reload"></i> Retry Job</button>
+      <button type="submit" class="btn btn-warning"><i class="lni lni-reload"></i> Retry (sync)</button>
     </form>
+    <p class="text-muted" style="margin:var(--space-2) 0 0;font-size:var(--text-xs);max-width:28rem">
+      Retry updates the gateway row only (status → open). email.server jobs have no retry endpoint; use resume on the satellite if paused.
+    </p>
     {% endif %}
   </div>
 </div>
@@ -24,48 +27,58 @@
 {% if job %}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6)">
   <div class="card">
-    <div class="card-header"><h2 class="card-title">Job Info</h2></div>
+    <div class="card-header"><h2 class="card-title">Job info</h2></div>
     <div class="card-body">
       <table class="table">
-        <tr><th>ID</th><td><code>{{ job.id }}</code></td></tr>
-        <tr><th>Type</th><td>{{ job.type }}</td></tr>
+        <tr><th>Gateway row ID</th><td><code>{{ job.id }}</code></td></tr>
+        <tr><th>Satellite job ID</th><td><code>{{ job.jobId }}</code></td></tr>
+        <tr><th>Type</th><td>{{ job.type|default:"—" }}</td></tr>
+        <tr><th>Source</th><td><span class="badge badge-neutral">{{ job.sourceService|default:"—" }}</span></td></tr>
+        <tr><th>Family</th><td>{{ job.jobFamily|default:"—" }}</td></tr>
         <tr><th>Status</th><td>{{ job.status|job_status_badge }}</td></tr>
         <tr><th>User</th><td><code>{{ job.userId }}</code></td></tr>
-        <tr><th>Request ID</th><td><code>{{ job.requestId|default:"—" }}</code></td></tr>
         <tr><th>Created</th><td>{{ job.createdAt }}</td></tr>
-        <tr><th>Updated</th><td>{{ job.updatedAt }}</td></tr>
+        <tr><th>Updated</th><td>{{ job.updatedAt|default:"—" }}</td></tr>
       </table>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><h2 class="card-title">Progress</h2></div>
+    <div class="card-header"><h2 class="card-title">Live status</h2></div>
     <div class="card-body">
-      {% if job.progress %}
+      <p class="text-muted" style="font-size:var(--text-sm);margin-top:0">From email.server <code>GET /jobs/:id/status</code> or Connectra job payload (via gateway).</p>
+      {% if job.progress and job.progress.percent is not None %}
       {% include "components/progress.html" with value=job.progress.percent label="Completion" %}
       <p style="margin-top:var(--space-4);color:var(--color-text-secondary);font-size:var(--text-sm)">
-        {{ job.progress.processed|default:0 }} / {{ job.progress.total|default:"?" }} processed
+        {{ job.progress.processed|default:"—" }} / {{ job.progress.total|default:"?" }} processed
       </p>
       {% else %}
-      <p style="color:var(--color-text-muted)">No progress data available.</p>
+      <p style="color:var(--color-text-muted)">No numeric percent in live status payload.</p>
       {% endif %}
     </div>
   </div>
 </div>
 
-<!-- Job logs -->
-{% if job.logs %}
-<div class="card">
-  <div class="card-header"><h2 class="card-title">Job Logs</h2></div>
+{% if job.statusPayload %}
+<div class="card" style="margin-bottom:var(--space-4)">
+  <div class="card-header"><h2 class="card-title">Status payload (raw)</h2></div>
   <div class="card-body" style="padding:0">
-    <div style="max-height:400px;overflow-y:auto;font-family:var(--font-mono);font-size:var(--text-xs);background:var(--color-gray-50);padding:var(--space-4)">
-      {% for log in job.logs %}
-      <div style="margin-bottom:4px">
-        <span style="color:var(--color-text-muted)">{{ log.timestamp }}</span>
-        <span class="badge badge-{{ log.level|lower }}" style="margin:0 6px">{{ log.level }}</span>
-        <span>{{ log.message }}</span>
-      </div>
-      {% endfor %}
-    </div>
+    <pre style="margin:0;max-height:320px;overflow:auto;font-size:var(--text-xs);padding:var(--space-4);background:var(--color-gray-50)">{{ job.statusPayload|jsonpretty }}</pre>
+  </div>
+</div>
+{% endif %}
+
+{% if job.requestPayload or job.responsePayload %}
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Request / response (raw)</h2></div>
+  <div class="card-body" style="padding:0">
+    {% if job.requestPayload %}
+    <h3 style="margin:var(--space-3) var(--space-4) 0;font-size:var(--text-sm)">Request</h3>
+    <pre style="margin:0 0 var(--space-3);max-height:240px;overflow:auto;font-size:var(--text-xs);padding:var(--space-4);background:var(--color-gray-50)">{{ job.requestPayload|jsonpretty }}</pre>
+    {% endif %}
+    {% if job.responsePayload %}
+    <h3 style="margin:var(--space-3) var(--space-4) 0;font-size:var(--text-sm)">Response</h3>
+    <pre style="margin:0;max-height:240px;overflow:auto;font-size:var(--text-xs);padding:var(--space-4);background:var(--color-gray-50)">{{ job.responsePayload|jsonpretty }}</pre>
+    {% endif %}
   </div>
 </div>
 {% endif %}

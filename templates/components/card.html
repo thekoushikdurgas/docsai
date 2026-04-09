@@ -6,7 +6,8 @@ Usage: {% include "components/card.html" with value="1,234" label="Total Users" 
     <i class="lni {{ icon|default:'lni-bar-chart' }}"></i>
   </div>
   <div class="kpi-body">
-    <div class="kpi-value">{{ value|default:"—" }}</div>
+    {# |default treats 0 as empty — use explicit check so real zeros render #}
+    <div class="kpi-value">{% if value == None or value == "" %}—{% else %}{{ value }}{% endif %}</div>
     <div class="kpi-label">{{ label }}</div>
     {% if trend %}
     <div class="kpi-trend {{ trend_dir|default:'up' }}">

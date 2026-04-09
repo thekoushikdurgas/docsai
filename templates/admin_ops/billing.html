@@ -6,45 +6,87 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">Billing — Pending Payments</h1>
-    <p class="page-subtitle">Review and approve or decline payment submissions</p>
+    <h1 class="page-title">Billing — Payment Submissions</h1>
+    <p class="page-subtitle">Review and approve or decline payment proof submissions</p>
   </div>
+  {% if total %}
+  <div style="display:flex;align-items:center;gap:var(--space-2)">
+    <span class="badge badge-secondary">{{ total }} total</span>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Status filter tabs -->
+<div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-5);flex-wrap:wrap">
+  {% for tab_status, tab_label in status_tabs %}
+  <a href="?status={{ tab_status }}&page=0"
+     class="btn btn-sm {% if status_filter == tab_status %}btn-primary{% else %}btn-outline{% endif %}">
+    {{ tab_label }}
+  </a>
+  {% endfor %}
 </div>
 
 {% if not payments %}
-{% include "components/alert.html" with type="info" message="No pending payments to review." %}
+{% include "components/alert.html" with type="info" message="No submissions to review for this filter." %}
 {% endif %}
 
 {% for payment in payments %}
 <div class="card" style="margin-bottom:var(--space-4)">
   <div class="card-header">
-    <div>
-      <span class="card-title">Payment #{{ payment.id|slice:":8" }}</span>
-      <span class="badge badge-warning" style="margin-left:8px">Pending</span>
+    <div style="display:flex;align-items:center;gap:var(--space-3)">
+      <span class="card-title">Submission #{{ payment.id|slice:":8" }}</span>
+      {% if payment.status == "pending" %}
+        <span class="badge badge-warning">Pending</span>
+      {% elif payment.status == "approved" %}
+        <span class="badge badge-success">Approved</span>
+      {% elif payment.status == "declined" %}
+        <span class="badge badge-danger">Declined</span>
+      {% else %}
+        <span class="badge badge-secondary">{{ payment.status }}</span>
+      {% endif %}
+      {% if payment.credits_to_add %}
+        <span class="badge badge-info" title="Credits to add">+{{ payment.credits_to_add }} credits</span>
+      {% endif %}
     </div>
-    <div>
+    <div style="display:flex;align-items:center;gap:var(--space-3)">
       <span style="font-size:var(--text-lg);font-weight:700;color:var(--color-text)">${{ payment.amount }}</span>
-      <span style="font-size:var(--text-sm);color:var(--color-text-muted);margin-left:8px">{{ payment.planId }}</span>
+      {% if payment.plan_tier %}
+        <span class="badge badge-outline">{{ payment.plan_tier }}{% if payment.plan_period %} / {{ payment.plan_period }}{% endif %}</span>
+      {% endif %}
     </div>
   </div>
   <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6)">
     <div>
-      <p style="margin:0 0 8px;font-size:var(--text-sm)"><strong>User:</strong> {{ payment.user.email }} ({{ payment.user.name }})</p>
-      <p style="margin:0 0 8px;font-size:var(--text-sm)"><strong>Submitted:</strong> {{ payment.createdAt|date:"M d, Y H:i" }}</p>
-      {% if payment.proofUrl %}
-      <a href="{{ payment.proofUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
-        <i class="lni lni-eye"></i> View Proof
+      <p style="margin:0 0 8px;font-size:var(--text-sm)">
+        <strong>User:</strong> {{ payment.user_email|default:"—" }}
+      </p>
+      <p style="margin:0 0 8px;font-size:var(--text-sm)">
+        <strong>Submitted:</strong> {{ payment.created_at|date:"M d, Y H:i" }}
+      </p>
+      {% if payment.reviewed_at %}
+      <p style="margin:0 0 8px;font-size:var(--text-sm)">
+        <strong>Reviewed:</strong> {{ payment.reviewed_at|date:"M d, Y H:i" }}
+        {% if payment.reviewed_by %}<span style="color:var(--color-text-muted)"> by {{ payment.reviewed_by|slice:":8" }}</span>{% endif %}
+      </p>
+      {% endif %}
+      {% if payment.decline_reason %}
+      <p style="margin:0 0 8px;font-size:var(--text-sm);color:var(--color-danger)">
+        <strong>Decline reason:</strong> {{ payment.decline_reason }}
+      </p>
+      {% endif %}
+      {% if payment.screenshot_download_url %}
+      <a href="{{ payment.screenshot_download_url }}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+        <i class="lni lni-eye"></i> View Screenshot
       </a>
       {% endif %}
     </div>
+    {% if payment.status == "pending" %}
     <div style="display:flex;flex-direction:column;gap:var(--space-3)">
       <!-- Approve -->
       <form method="post" action="{% url 'admin_ops:approve_payment' payment.id %}">
         {% csrf_token %}
-        <div class="form-group" style="margin-bottom:8px">
-          <input type="text" name="reason" class="form-control" placeholder="Approval note (optional)">
-        </div>
-        <button type="submit" class="btn btn-success btn-full">
+        <button type="submit" class="btn btn-success btn-full"
+                onclick="return confirm('Approve this submission and add {{ payment.credits_to_add }} credits?')">
           <i class="lni lni-checkmark"></i> Approve &amp; Apply Credits
         </button>
       </form>
@@ -59,7 +101,29 @@
         </button>
       </form>
     </div>
+    {% else %}
+    <div style="display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);font-size:var(--text-sm)">
+      This submission has already been {{ payment.status }}.
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endfor %}
+
+<!-- Pagination -->
+{% if has_previous or has_next %}
+<div style="display:flex;gap:var(--space-3);justify-content:center;margin-top:var(--space-6)">
+  {% if has_previous %}
+  <a href="?status={{ status_filter }}&page={{ page|add:"-1" }}" class="btn btn-outline btn-sm">
+    <i class="lni lni-chevron-left"></i> Previous
+  </a>
+  {% endif %}
+  <span style="align-self:center;font-size:var(--text-sm);color:var(--color-text-muted)">Page {{ page|add:"1" }}</span>
+  {% if has_next %}
+  <a href="?status={{ status_filter }}&page={{ page|add:"1" }}" class="btn btn-outline btn-sm">
+    Next <i class="lni lni-chevron-right"></i>
+  </a>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}

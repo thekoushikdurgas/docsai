@@ -7,7 +7,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">System Status</h1>
-    <p class="page-subtitle">Real-time service health probes</p>
+    <p class="page-subtitle">Real-time service health probes. Uptime % counts only services with a configured probe (excludes &ldquo;Not configured&rdquo;).</p>
   </div>
   <div class="page-actions">
     <button type="button" class="btn btn-outline" onclick="location.reload()">
@@ -44,14 +44,14 @@
             {{ svc.status|service_status_dot }}
             <strong style="margin-left:8px">{{ svc.name }}</strong>
           </td>
-          <td>
+            <td>
             <span class="badge {% if svc.status == 'up' %}badge-success{% elif svc.status == 'down' %}badge-danger{% elif svc.status == 'degraded' %}badge-warning{% else %}badge-neutral{% endif %}">
-              {{ svc.status|title }}
+              {{ svc.status|health_status_display }}
             </span>
           </td>
           <td>
             {% if svc.latency_ms is not None %}
-            <span {% if svc.latency_ms > 1000 %}style="color:var(--color-warning)"{% endif %}>
+            <span class="latency-ms{% if svc.latency_ms > 3000 %} latency-ms--slow{% elif svc.latency_ms > 2000 %} latency-ms--warn{% endif %}">
               {{ svc.latency_ms }}ms
             </span>
             {% else %}—{% endif %}

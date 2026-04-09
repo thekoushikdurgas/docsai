@@ -2,6 +2,26 @@
 <header class="header">
   <div class="header-inner">
     <div class="header-left">
+      <button
+        type="button"
+        class="header-menu-toggle"
+        id="headerSidebarToggle"
+        aria-label="Toggle navigation"
+        aria-expanded="true"
+        aria-controls="admin-sidebar-nav"
+      >
+        <span class="hamburger-lines" aria-hidden="true">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </span>
+      </button>
+
+      <nav class="breadcrumb header-breadcrumb" aria-label="Breadcrumb">
+        <a href="{% url 'core:dashboard' %}">Home</a>
+        {% block breadcrumb %}{% endblock %}
+      </nav>
+
       <div class="header-search" role="search">
         <form action="#" method="get" onsubmit="return false;">
           <label for="headerSearchInput" class="visually-hidden">Search</label>
@@ -9,15 +29,11 @@
           <span class="search-icon lni lni-magnifier" aria-hidden="true"></span>
         </form>
       </div>
-      <nav class="breadcrumb header-breadcrumb" aria-label="Breadcrumb">
-        <a href="{% url 'core:dashboard' %}">Home</a>
-        {% block breadcrumb %}{% endblock %}
-      </nav>
     </div>
 
     <div class="header-right">
       <button type="button" class="header-icon-btn" id="headerFullscreen" aria-label="Toggle fullscreen" title="Fullscreen">
-        <i class="lni lni-screen" aria-hidden="true"></i>
+        <i class="lni lni-full-screen" aria-hidden="true"></i>
       </button>
 
       <details class="header-notify-dropdown">
@@ -25,12 +41,12 @@
           <i class="lni lni-alarm" aria-hidden="true"></i>
         </summary>
         <div class="notify-panel" role="region" aria-label="Notifications">
-          <p style="margin:0;font-size:var(--text-sm);color:var(--color-text-muted);">No notifications</p>
+          <p style="margin:0;font-size:var(--c360-text-sm);color:var(--c360-text-muted);">No notifications</p>
         </div>
       </details>
 
       <button type="button" class="header-icon-btn" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-        <i class="lni lni-moon" aria-hidden="true"></i>
+        <i class="lni lni-night" aria-hidden="true"></i>
       </button>
 
       {% if operator %}

@@ -18,6 +18,13 @@
 
     var fsBtn = document.getElementById('headerFullscreen');
     if (fsBtn) {
+      function syncFullscreenIcon() {
+        var icon = fsBtn.querySelector('i');
+        if (!icon) return;
+        icon.className = document.fullscreenElement
+          ? 'lni lni-exit-up'
+          : 'lni lni-full-screen';
+      }
       fsBtn.addEventListener('click', function () {
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(function () {});
@@ -25,6 +32,8 @@
           document.exitFullscreen();
         }
       });
+      document.addEventListener('fullscreenchange', syncFullscreenIcon);
+      syncFullscreenIcon();
     }
   });
 })();

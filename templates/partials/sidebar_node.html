@@ -8,7 +8,7 @@
     aria-expanded="{% nav_aria_expanded node %}"
     aria-controls="nav-sub-{{ node.nav_id }}"
   >
-    <i class="{{ node.icon }}" aria-hidden="true"></i>
+    <i class="{% firstof node.icon 'lni lni-menu' %}" aria-hidden="true"></i>
     <span class="nav-branch-label">{{ node.label }}</span>
     <i class="lni lni-chevron-down nav-chevron" aria-hidden="true"></i>
   </button>
@@ -23,10 +23,10 @@
   <a
     href="{% url node.url_name %}"
     role="menuitem"
-    class="nav-leaf-link {% active_link node.url_name request %}"
+    class="nav-leaf-link {% active_nav_leaf node request %}"
     {% if node.url_name == "api-docs" %}target="_blank" rel="noopener"{% endif %}
   >
-    <i class="{{ node.icon }}" aria-hidden="true"></i>
+    <i class="{% firstof node.icon 'lni lni-menu' %}" aria-hidden="true"></i>
     <span>{{ node.label }}</span>
   </a>
 </li>
