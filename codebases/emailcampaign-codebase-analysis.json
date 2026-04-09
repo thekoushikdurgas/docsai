@@ -1,0 +1,1040 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/emailcampaign-codebase-analysis.md",
+  "sha256_source": "3b9fe27012eca7b4f1b64f1e6a9d41b06d563cf71f2cc7c9bf8332ffa3d18dd7",
+  "generated_at": "2026-04-08T23:26:47.104373+00:00",
+  "title": "Email Campaign Codebase Analysis (backend(dev)/email campaign)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Email Campaign Codebase Analysis (backend(dev)/email campaign)",
+      "level": 1,
+      "slug": "email-campaign-codebase-analysis-backenddevemail-campaign",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`backend(dev)/email campaign` is Contact360's campaign execution backend for `10.x.x`. It handles campaign enqueueing, async recipient processing, SMTP dispatch, template rendering from S3, unsubscribe token validation, suppression checks, and per-recipient status tracking.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture snapshot",
+      "level": 2,
+      "slug": "runtime-architecture-snapshot",
+      "prose": "- Runtime: Go (Gin API + Asynq worker + Redis).\n- Entry points: `cmd/main.go` (API), `cmd/worker/main.go` (worker).\n- Core APIs: `api/handlers.go`, `template/handlers.go`.\n- Worker logic: `worker/campaign_worker.go`, `worker/email_worker.go`.\n- Data/storage: PostgreSQL schema (`db/schema.sql`) + S3 template store.\n- Security hooks: admin API-key middleware (`api/middleware.go`) + unsubscribe JWT flow (`utils/token.go`).\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Runtime: Go (Gin API + Asynq worker + Redis).",
+              "checked": null
+            },
+            {
+              "text": "Entry points: `cmd/main.go` (API), `cmd/worker/main.go` (worker).",
+              "checked": null
+            },
+            {
+              "text": "Core APIs: `api/handlers.go`, `template/handlers.go`.",
+              "checked": null
+            },
+            {
+              "text": "Worker logic: `worker/campaign_worker.go`, `worker/email_worker.go`.",
+              "checked": null
+            },
+            {
+              "text": "Data/storage: PostgreSQL schema (`db/schema.sql`) + S3 template store.",
+              "checked": null
+            },
+            {
+              "text": "Security hooks: admin API-key middleware (`api/middleware.go`) + unsubscribe JWT flow (`utils/token.go`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ Campaign queueing and async execution path are implemented (`/campaign` -> Asynq task -> worker send loop).\n- [x] ✅ Template CRUD and preview routes are implemented with S3-backed HTML storage.\n- [x] ✅ Schema includes `campaigns`, `recipients`, `templates`, and `suppression_list` tables.\n- [x] ✅ Recipient-level status updates (`sent`, `failed`, `unsubscribed`) are implemented in worker flow.\n- [x] ✅ Unsubscribe token validation and suppression-list insertion flow are implemented.\n- [x] ✅ SMTP authentication wiring exists (`smtp.PlainAuth`); submission ports **587/465/2525/2465** fail fast when credentials are missing (avoids `smtp.SendMail` with nil auth on providers that require LOGIN).\n- [x] ✅ `GetUnsubToken` uses `sqlx` `Get` (row scan) for `recipients.unsub_token` verification on unsubscribe.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Campaign queueing and async execution path are implemented (`/campaign` -> Asynq task -> worker send loop).",
+              "checked": true
+            },
+            {
+              "text": "✅ Template CRUD and preview routes are implemented with S3-backed HTML storage.",
+              "checked": true
+            },
+            {
+              "text": "✅ Schema includes `campaigns`, `recipients`, `templates`, and `suppression_list` tables.",
+              "checked": true
+            },
+            {
+              "text": "✅ Recipient-level status updates (`sent`, `failed`, `unsubscribed`) are implemented in worker flow.",
+              "checked": true
+            },
+            {
+              "text": "✅ Unsubscribe token validation and suppression-list insertion flow are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ SMTP authentication wiring exists (`smtp.PlainAuth`); submission ports **587/465/2525/2465** fail fast when credentials are missing (avoids `smtp.SendMail` with nil auth on providers that require LOGIN).",
+              "checked": true
+            },
+            {
+              "text": "✅ `GetUnsubToken` uses `sqlx` `Get` (row scan) for `recipients.unsub_token` verification on unsubscribe.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and access control",
+      "level": 3,
+      "slug": "security-and-access-control",
+      "prose": "- [ ] 🟡 In Progress: `RequireAdminAPIKey` exists, but route-level enforcement completeness for all sensitive endpoints must be verified and standardized.\n- [ ] ⬜ Incomplete: no tenant/user-scoped authorization model; current control is static admin key.\n- [ ] ⬜ Incomplete: audit-grade auth event logging and key-rotation governance are not fully represented.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: `RequireAdminAPIKey` exists, but route-level enforcement completeness for all sensitive endpoints must be verified and standardized.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no tenant/user-scoped authorization model; current control is static admin key.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: audit-grade auth event logging and key-rotation governance are not fully represented.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Campaign behavior and delivery guarantees",
+      "level": 3,
+      "slug": "campaign-behavior-and-delivery-guarantees",
+      "prose": "- [ ] ⬜ Incomplete: campaign terminal state currently marks `completed` after workers finish even when some recipients fail (no `completed_with_errors` state).\n- [ ] 🟡 In Progress: suppression checks are active, but advanced deliverability controls (warmup/throttling/bounce taxonomy) are limited.\n- [ ] ⬜ Incomplete: recipient source is CSV-filepath centric and not fully integrated with Connectra segment/VQL audience contracts.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: campaign terminal state currently marks `completed` after workers finish even when some recipients fail (no `completed_with_errors` state).",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: suppression checks are active, but advanced deliverability controls (warmup/throttling/bounce taxonomy) are limited.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: recipient source is CSV-filepath centric and not fully integrated with Connectra segment/VQL audience contracts.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Logging and observability drift",
+      "level": 3,
+      "slug": "logging-and-observability-drift",
+      "prose": "- [ ] ⬜ Incomplete: worker path still uses direct `log.Println`/`fmt.Printf` output in critical send paths.\n- [ ] 🟡 In Progress: structured operational data exists in DB status fields, but canonical `logs.api` unification is incomplete.\n- [ ] ⬜ Incomplete: open/click/reply analytics events and webhook emission are not complete.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: worker path still uses direct `log.Println`/`fmt.Printf` output in critical send paths.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: structured operational data exists in DB status fields, but canonical `logs.api` unification is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: open/click/reply analytics events and webhook emission are not complete.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Queue and architecture drift",
+      "level": 3,
+      "slug": "queue-and-architecture-drift",
+      "prose": "- [ ] 🟡 In Progress: Asynq queue is the active path, while `queue/reddis_queue.go` remains as legacy/parallel queue code and risks drift.\n- [ ] ⬜ Incomplete: explicit idempotency keys for campaign creation/send replay prevention are not fully enforced.\n- [ ] 📌 Planned: campaign orchestration expansion (sequences, A/B, scheduling policy) for full `10.x` scope.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: Asynq queue is the active path, while `queue/reddis_queue.go` remains as legacy/parallel queue code and risks drift.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit idempotency keys for campaign creation/send replay prevention are not fully enforced.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign orchestration expansion (sequences, A/B, scheduling policy) for full `10.x` scope.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-service dependency map (release gating)",
+      "level": 2,
+      "slug": "cross-service-dependency-map-release-gating",
+      "prose": "- [x] ✅ `backend(dev)/email campaign` <- gateway/dashboard surfaces (campaign create and status consumption).\n- [x] ✅ `backend(dev)/email campaign` -> PostgreSQL for campaign/recipient/template/suppression state.\n- [x] ✅ `backend(dev)/email campaign` -> S3 for template HTML storage.\n- [x] ✅ `backend(dev)/email campaign` -> Redis/Asynq for async processing.\n- [ ] 🟡 In Progress: `backend(dev)/email campaign` -> `lambda/logs.api` canonical logging pipeline.\n- [ ] 📌 Planned: deeper linkage to `contact360.io/sync`/segment services for audience sourcing.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `backend(dev)/email campaign` <- gateway/dashboard surfaces (campaign create and status consumption).",
+              "checked": true
+            },
+            {
+              "text": "✅ `backend(dev)/email campaign` -> PostgreSQL for campaign/recipient/template/suppression state.",
+              "checked": true
+            },
+            {
+              "text": "✅ `backend(dev)/email campaign` -> S3 for template HTML storage.",
+              "checked": true
+            },
+            {
+              "text": "✅ `backend(dev)/email campaign` -> Redis/Asynq for async processing.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: `backend(dev)/email campaign` -> `lambda/logs.api` canonical logging pipeline.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: deeper linkage to `contact360.io/sync`/segment services for audience sourcing.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage-control-plane migration map (direct S3 -> s3storage)",
+      "level": 2,
+      "slug": "storage-control-plane-migration-map-direct-s3---s3storage",
+      "prose": "- [x] ✅ Template storage integration with S3 is fully functional.\n- [ ] ⬜ Incomplete: service currently uses direct S3 SDK operations instead of a unified `s3storage` control-plane path.\n- [ ] 🟡 In Progress: define migration strategy for template/object ops through standard storage service contracts.\n- [ ] 📌 Planned: enforce no-new direct storage usage policy for future endpoints.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Template storage integration with S3 is fully functional.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: service currently uses direct S3 SDK operations instead of a unified `s3storage` control-plane path.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: define migration strategy for template/object ops through standard storage service contracts.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: enforce no-new direct storage usage policy for future endpoints.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Log-unification migration map (local logs/print/console -> logs.api)",
+      "level": 2,
+      "slug": "log-unification-migration-map-local-logsprintconsole---logsapi",
+      "prose": "- [x] ✅ Core DB-side status transitions provide baseline operational traceability.\n- [ ] ⬜ Incomplete: direct runtime output (`log.Println`, `fmt.Printf`) remains in API/worker paths.\n- [ ] 🟡 In Progress: normalize campaign events (`queued/sending/sent/failed/unsubscribed`) into canonical logs schema.\n- [ ] 📌 Planned: add campaign webhook + logs sink integration for ecosystem/reporting.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core DB-side status transitions provide baseline operational traceability.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: direct runtime output (`log.Println`, `fmt.Printf`) remains in API/worker paths.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: normalize campaign events (`queued/sending/sent/failed/unsubscribed`) into canonical logs schema.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add campaign webhook + logs sink integration for ecosystem/reporting.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Core campaign/template/unsubscribe endpoint contracts are implemented.\n- [ ] 🟡 In Progress: align contract semantics for partial failures and terminal campaign statuses.\n- [ ] ⬜ Incomplete: add idempotency key requirements for create/enqueue operations.\n- [ ] ⬜ Incomplete: define partner/public-safe campaign API versioning and webhook contracts.\n- [ ] 📌 Planned: sequence/A-B contract layer for advanced campaign runtime.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core campaign/template/unsubscribe endpoint contracts are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: align contract semantics for partial failures and terminal campaign statuses.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add idempotency key requirements for create/enqueue operations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define partner/public-safe campaign API versioning and webhook contracts.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: sequence/A-B contract layer for advanced campaign runtime.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Async worker + SMTP send pipeline + template renderer are implemented.\n- [ ] 🟡 In Progress: improve failure taxonomy and deterministic retry behavior.\n- [ ] ⬜ Incomplete: remove legacy queue drift and converge on one queue architecture.\n- [ ] ⬜ Incomplete: harden audience ingestion beyond filesystem CSV path.\n- [ ] 📌 Planned: AI-assisted template and sequence service modules.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Async worker + SMTP send pipeline + template renderer are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve failure taxonomy and deterministic retry behavior.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove legacy queue drift and converge on one queue architecture.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: harden audience ingestion beyond filesystem CSV path.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI-assisted template and sequence service modules.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Operational routes exist for campaign create, stats, mailbox, templates, and unsubscribe.\n- [ ] 🟡 In Progress: strengthen route protection and admin-only access boundaries.\n- [ ] ⬜ Incomplete: campaign analytics/event surfaces (open/click/reply) are incomplete.\n- [ ] ⬜ Incomplete: unified campaign status diagnostics endpoints are limited.\n- [ ] 📌 Planned: productized campaign lifecycle APIs for orchestration UI.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Operational routes exist for campaign create, stats, mailbox, templates, and unsubscribe.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: strengthen route protection and admin-only access boundaries.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign analytics/event surfaces (open/click/reply) are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: unified campaign status diagnostics endpoints are limited.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: productized campaign lifecycle APIs for orchestration UI.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Schema parity for core tables currently exists in `db/schema.sql`.\n- [x] ✅ `recipients.unsub_token` and `templates` table are present.\n- [ ] 🟡 In Progress: enhance data lineage for recipient lifecycle and suppression reasons.\n- [ ] ⬜ Incomplete: campaign evidence model for compliance and audit exports is incomplete.\n- [ ] 📌 Planned: tenant partitioning and policy-aware retention strategy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Schema parity for core tables currently exists in `db/schema.sql`.",
+              "checked": true
+            },
+            {
+              "text": "✅ `recipients.unsub_token` and `templates` table are present.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: enhance data lineage for recipient lifecycle and suppression reasons.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign evidence model for compliance and audit exports is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: tenant partitioning and policy-aware retention strategy.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Two-process deployment model (API + worker) with queue decoupling is established.\n- [ ] 🟡 In Progress: improve deliverability controls (rate warmup/throttle/bounce strategy).\n- [ ] ⬜ Incomplete: route-level SLOs and production alerting policy are incomplete.\n- [ ] ⬜ Incomplete: release gate matrix for auth/storage/log/idempotency is incomplete.\n- [ ] 📌 Planned: deployment runbooks with staged campaign safety checks.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Two-process deployment model (API + worker) with queue decoupling is established.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve deliverability controls (rate warmup/throttle/bounce strategy).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: route-level SLOs and production alerting policy are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: release gate matrix for auth/storage/log/idempotency is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: deployment runbooks with staged campaign safety checks.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Service scaffold, schema, queue integration, and health route are implemented.\n- [x] ✅ API and worker binaries are separated for asynchronous execution.\n- [ ] 🟡 In Progress: normalize foundational governance and release checks.\n- [ ] ⬜ Incomplete: fully standardized secure operational defaults.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Service scaffold, schema, queue integration, and health route are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ API and worker binaries are separated for asynchronous execution.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: normalize foundational governance and release checks.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: fully standardized secure operational defaults.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [ ] 🟡 In Progress: campaign sends can be linked from higher-level billing contexts.\n- [ ] ⬜ Incomplete: direct credit pre-check and deduction controls inside campaign runtime are incomplete.\n- [ ] ⬜ Incomplete: tenant/user-scoped authz model for paid plan enforcement is incomplete.\n- [ ] 📌 Planned: campaign-volume credit policy and billing evidence export.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: campaign sends can be linked from higher-level billing contexts.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: direct credit pre-check and deduction controls inside campaign runtime are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: tenant/user-scoped authz model for paid plan enforcement is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-volume credit policy and billing evidence export.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ SMTP send flow and template rendering are implemented.\n- [x] ✅ suppression and unsubscribe plumbing exist.\n- [ ] 🟡 In Progress: harden SMTP deliverability behavior and retry strategy.\n- [ ] ⬜ Incomplete: richer inbox/sent feedback loop and bounce categorization.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ SMTP send flow and template rendering are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ suppression and unsubscribe plumbing exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden SMTP deliverability behavior and retry strategy.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: richer inbox/sent feedback loop and bounce categorization.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [ ] 🟡 In Progress: campaign recipient ingestion can consume CSV data.\n- [ ] ⬜ Incomplete: full Connectra segment/VQL audience integration is incomplete.\n- [ ] ⬜ Incomplete: provenance and sync linkage with contact/company systems is limited.\n- [ ] 📌 Planned: audience-source unification and lineage controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: campaign recipient ingestion can consume CSV data.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full Connectra segment/VQL audience integration is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: provenance and sync linkage with contact/company systems is limited.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: audience-source unification and lineage controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] ⬜ Incomplete: no direct first-class extension/Sales Navigator audience flow in runtime.\n- [ ] 📌 Planned: extension and SN sourced recipient pipelines with provenance.\n- [ ] 📌 Planned: sales-triggered campaign automation hooks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: no direct first-class extension/Sales Navigator audience flow in runtime.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: extension and SN sourced recipient pipelines with provenance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: sales-triggered campaign automation hooks.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [ ] ⬜ Incomplete: AI-assisted campaign drafting/subject optimization is not complete.\n- [ ] 🟡 In Progress: template rendering architecture can host AI-generated content.\n- [ ] 📌 Planned: AI workflow APIs for copy, personalization, and send recommendations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: AI-assisted campaign drafting/subject optimization is not complete.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: template rendering architecture can host AI-generated content.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI workflow APIs for copy, personalization, and send recommendations.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ Async queue architecture establishes base scaling model.\n- [ ] 🟡 In Progress: improve resilience for partial failures and queue retry semantics.\n- [ ] ⬜ Incomplete: strict idempotency and replay-safe send guarantees not complete.\n- [ ] 📌 Planned: SLO/error-budget and deliverability guardrail automation.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Async queue architecture establishes base scaling model.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve resilience for partial failures and queue retry semantics.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: strict idempotency and replay-safe send guarantees not complete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: SLO/error-budget and deliverability guardrail automation.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ Separate API/worker deployment topology exists.\n- [ ] 🟡 In Progress: deployment runbooks and secret management hardening.\n- [ ] ⬜ Incomplete: comprehensive production release gates for campaign safety.\n- [ ] 📌 Planned: progressive rollout and rollback-safe campaign controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Separate API/worker deployment topology exists.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: deployment runbooks and secret management hardening.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: comprehensive production release gates for campaign safety.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: progressive rollout and rollback-safe campaign controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [x] ✅ Private API surface exists for campaign operations.\n- [ ] 🟡 In Progress: endpoint hardening and contract version policy.\n- [ ] ⬜ Incomplete: public/partner-safe API boundaries and webhook guarantees are incomplete.\n- [ ] 📌 Planned: API productization for campaign orchestration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Private API surface exists for campaign operations.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: endpoint hardening and contract version policy.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: public/partner-safe API boundaries and webhook guarantees are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: API productization for campaign orchestration.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 🟡 In Progress: architecture can support ecosystem events via queue + DB state.\n- [ ] ⬜ Incomplete: connector lifecycle, quotas, and integration observability are incomplete.\n- [ ] 📌 Planned: ecosystem-grade event/webhook framework and partner controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: architecture can support ecosystem events via queue + DB state.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: connector lifecycle, quotas, and integration observability are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: ecosystem-grade event/webhook framework and partner controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [x] ✅ Core campaign engine (send + template + unsubscribe + recipient states) is implemented.\n- [ ] 🟡 In Progress: close gap for partial-failure lifecycle and advanced analytics.\n- [ ] ⬜ Incomplete: full sequence/A-B/testing/compliance intelligence surface is incomplete.\n- [ ] 📌 Planned: complete campaign productization with compliance-grade evidence bundle.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core campaign engine (send + template + unsubscribe + recipient states) is implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: close gap for partial-failure lifecycle and advanced analytics.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full sequence/A-B/testing/compliance intelligence surface is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: complete campaign productization with compliance-grade evidence bundle.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [ ] ⬜ Incomplete: remove direct `log.Println`/`fmt.Printf` worker logging and unify to canonical structured sink.\n- [ ] 🟡 In Progress: enforce admin auth middleware consistently on all sensitive campaign/template operations.\n- [ ] ⬜ Incomplete: implement idempotency keys for campaign create/enqueue.\n- [ ] ⬜ Incomplete: add `completed_with_errors` status and explicit partial-failure policy.\n- [ ] 🟡 In Progress: replace CSV-filepath-only audience source with Connectra segment/VQL source integration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: remove direct `log.Println`/`fmt.Printf` worker logging and unify to canonical structured sink.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: enforce admin auth middleware consistently on all sensitive campaign/template operations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement idempotency keys for campaign create/enqueue.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add `completed_with_errors` status and explicit partial-failure policy.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: replace CSV-filepath-only audience source with Connectra segment/VQL source integration.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 - must close for release safety",
+      "level": 3,
+      "slug": "p0---must-close-for-release-safety",
+      "prose": "- [ ] ⬜ Incomplete: complete auth hardening and route protection policy.\n- [ ] ⬜ Incomplete: complete logging unification and remove ad-hoc output paths.\n- [ ] ⬜ Incomplete: idempotent send safety for replay/duplicate prevention.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: complete auth hardening and route protection policy.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete logging unification and remove ad-hoc output paths.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: idempotent send safety for replay/duplicate prevention.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2 - required for maturity",
+      "level": 3,
+      "slug": "p1p2---required-for-maturity",
+      "prose": "- [ ] 🟡 In Progress: partial-failure campaign lifecycle + retry semantics.\n- [ ] 🟡 In Progress: audience-source integration with contact/company systems.\n- [ ] 📌 Planned: webhook/event analytics and observability contracts.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: partial-failure campaign lifecycle + retry semantics.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: audience-source integration with contact/company systems.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: webhook/event analytics and observability contracts.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+ - platform productization",
+      "level": 3,
+      "slug": "p3---platform-productization",
+      "prose": "- [ ] 📌 Planned: AI-assisted campaign content and optimization loops.\n- [ ] 📌 Planned: full `10.x.x` sequence/A-B/compliance product suite.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: AI-assisted campaign content and optimization loops.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: full `10.x.x` sequence/A-B/compliance product suite.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

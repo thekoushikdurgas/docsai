@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_parse_filters_graphql.md",
+  "sha256_source": "bdb8f10e8a3ce7252bf5b94feffe793b3933a59cff57c0ed271dce54312e175e",
+  "generated_at": "2026-04-08T23:11:52.050926+00:00",
+  "title": "graphql/ParseFilters",
+  "raw_markdown": "---\ntitle: \"graphql/ParseFilters\"\nsource_json: mutation_parse_filters_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/ParseFilters\n\n## Overview\n\nParse natural language query into structured contact filters using AI. Accepts ParseFiltersInput with query (required, String, non-empty, max 1000 chars). Returns ParseFiltersResponse with jobTitles (array of String), companyNames (array of String), industry (array of String), location (array of String), employees (array of Int as [min, max] range), seniority (array of String). Example: 'Find CTOs at tech companies in San Francisco' -> {jobTitles: ['CTO'], industry: ['Technology'], location: ['San Francisco']}. Uses LambdaAIClient with Google Gemini AI.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_parse_filters_graphql |\n| _id | mutation_parse_filters_graphql-001 |\n| endpoint_path | graphql/ParseFilters |\n| method | MUTATION |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-01-21T00:00:00.000000+00:00 |\n| era | 0.x |\n| introduced_in | 0.1.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | appointment360/app/graphql/modules/ai_chats/mutations.py |\n| router_file | contact360/dashboard/src/services/graphql/aiChatsService.ts |\n\n\n## GraphQL operation\n\n```graphql\nmutation ParseFilters($input: ParseFiltersInput!) { aiChats { parseFilters(input: $input) { jobTitles companyNames industry location employees seniority } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- parseFilters\n\n## Inventory\n\n- **page_count:** 0\n- **Source:** `mutation_parse_filters_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `0.x` — see [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md#era-tags-on-endpoints) for theme mapping.\n\n## Database tables → SQL snapshots\n\n- *No `db_tables_read` / `db_tables_write` in this spec — gateway-only or metadata TBD; see lineage.*\n\n## Lineage & infrastructure docs\n\n- [Appointment360 (gateway DB)](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- *No `lambda_services` list — typically Appointment360-only DB access or inline HTTP client; see [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md).*\n\n## Related endpoint graph\n\n- **Topology overview:** [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md)\n- **Conventions:** [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md)\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_parse_filters_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_parse_filters_graphql"
+        ],
+        [
+          "_id",
+          "mutation_parse_filters_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/ParseFilters"
+        ],
+        [
+          "method",
+          "MUTATION"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-01-21T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "0.x"
+        ],
+        [
+          "introduced_in",
+          "0.1.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "appointment360/app/graphql/modules/ai_chats/mutations.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/aiChatsService.ts"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Parse natural language query into structured contact filters using AI. Accepts ParseFiltersInput with query (required, String, non-empty, max 1000 chars). Returns ParseFiltersResponse with jobTitles (array of String), companyNames (array of String), industry (array of String), location (array of String), employees (array of Int as [min, max] range), seniority (array of String). Example: 'Find CTOs at tech companies in San Francisco' -> {jobTitles: ['CTO'], industry: ['Technology'], location: ['San Francisco']}. Uses LambdaAIClient with Google Gemini AI."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_parse_filters_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/ParseFilters\"\nsource_json: mutation_parse_filters_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

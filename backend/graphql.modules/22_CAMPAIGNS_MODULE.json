@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/22_CAMPAIGNS_MODULE.md",
+  "sha256_source": "0283ff1a2ca0e52316fc6e128dae802874474236b4b3465adc1cec6abc146bb4",
+  "generated_at": "2026-04-08T23:26:46.588028+00:00",
+  "title": "Campaigns Module",
+  "raw_markdown": "# Campaigns Module\n\n## Contact360 gateway (actual — `contact360.io/api`)\n\nThe satellite email-campaign service is optional. The gateway exposes a **read-only JSON** field on root `Query`:\n\n| GraphQL | Path | Auth | Return |\n| --- | --- | --- | --- |\n| `campaignSatellite.campaigns` | `query { campaignSatellite { campaigns } }` | required | `JSON` (list payload from satellite `GET /campaigns`, or `[]` if `CAMPAIGN_API_URL` unset) |\n\n- **Env:** `CAMPAIGN_API_URL`, `CAMPAIGN_API_KEY`, `CAMPAIGN_API_TIMEOUT` (`app/core/config.py`).\n- **Mutations** for create/update/delete campaigns are **not** implemented in `app/graphql/modules/campaigns/` today (only `CampaignModuleQuery` in `queries.py`).\n\n**Direct REST** (Go campaign service) may still expose write routes; call that service or add gateway resolvers if you need mutations from GraphQL.\n\n## Canonical SDL (gateway — read-only satellite)\n\nRegenerate the full schema from `contact360.io/api` with:\n\n`python -c \"from app.graphql.schema import schema; print(schema.as_str())\"`\n\n```graphql\ntype CampaignModuleQuery {\n  campaigns: JSON!\n  sequences: JSON!\n  campaignTemplates: JSON!\n}\n```\n\n### POST `/graphql` — example\n\n```json\n{\n  \"query\": \"query { campaignSatellite { campaigns sequences campaignTemplates } }\"\n}\n```\n\nHeaders: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.\n\n---\n\n## Planned / service-native GraphQL (not on gateway yet)\n\nThe table below describes a **target** contract (e.g. era `10.x`); it is **not** shipped as Strawberry fields under `campaignSatellite` at the time of this doc sync.\n\n| Operation | Type | Description | Era |\n| --- | --- | --- | --- |\n| `createCampaign` | Mutation | Enqueue a new campaign send job | `10.x` (planned) |\n| `getCampaign` | Query | Get campaign by ID with full recipient/status detail | `10.x` (planned) |\n| `listCampaigns` | Query | Paginated list of campaigns for org | overlaps read-only `campaignSatellite.campaigns` |\n| `updateCampaign` | Mutation | Update campaign (pause, resume, reschedule) | `10.x` (planned) |\n| `deleteCampaign` | Mutation | Delete campaign and associated recipients | `10.x` (planned) |\n| `getCampaignStats` | Query | Aggregated open/click/unsubscribe rates | `10.x` (planned) |\n\n**Typical direct REST (service):** `POST /campaign`, health, unsub — see service repo.\n\n---\n\n## GraphQL input/output types\n\n### `createCampaign` input\n\n```graphql\ninput CreateCampaignInput {\n  name: String!\n  templateId: ID!\n  audienceSource: AudienceSource!  # CSV | SEGMENT | VQL | SN_BATCH\n  segmentId: ID\n  vqlQuery: String\n  scheduledAt: DateTime\n  abTestEnabled: Boolean\n}\n```\n\n### `Campaign` type\n\n```graphql\ntype Campaign {\n  id: ID!\n  name: String!\n  status: CampaignStatus!  # pending | sending | completed | completed_with_errors | failed | paused\n  totalRecipients: Int!\n  sent: Int!\n  failed: Int!\n  openRate: Float  # available after era 10.x tracking\n  clickRate: Float\n  unsubscribeCount: Int\n  createdAt: DateTime!\n  scheduledAt: DateTime\n  completedAt: DateTime\n  template: CampaignTemplate\n  userId: ID\n  orgId: ID\n}\n\nenum CampaignStatus {\n  pending\n  sending\n  completed\n  completed_with_errors\n  failed\n  paused\n}\n\nenum AudienceSource {\n  CSV\n  SEGMENT\n  VQL\n  SN_BATCH\n}\n```\n\n---\n\n## REST endpoints (direct, on campaign service)\n\n### `POST /campaign`\n\n**Auth:** JWT (Bearer token)\n**Request body:**\n\n```json\n{\n  \"template_id\": \"uuid\",\n  \"name\": \"Campaign name\",\n  \"filepath\": \"path/to/recipients.csv\",\n  \"audience_source\": \"csv | segment | vql | sn_batch\",\n  \"segment_id\": \"uuid (optional)\",\n  \"vql_query\": \"string (optional)\",\n  \"scheduled_at\": \"2026-03-24T10:00:00Z (optional)\"\n}\n```\n\n**Response `201`:**\n\n```json\n{\n  \"campaign_id\": \"uuid\",\n  \"status\": \"pending\"\n}\n```\n\n**Error codes:** `400` Bad request | `401` Unauthorized | `402` Insufficient credits | `429` Entitlement limit exceeded\n\n---\n\n### `GET /unsub`\n\n**Auth:** JWT in query parameter (`?token=...`)\n**Description:** Processes unsubscribe request; validates JWT, inserts to `suppression_list`, updates `recipients.status`.\n**Response:** HTML confirmation page or JSON\n**Error:** `401` Invalid/expired token\n\n---\n\n## Database tables\n\n| Table | Read | Write |\n| --- | --- | --- |\n| `campaigns` | `getCampaign`, `listCampaigns` | `createCampaign`, `updateCampaign`, worker status updates |\n| `recipients` | `getCampaign` (recipient list) | Worker fan-out, unsubscribe endpoint |\n| `suppression_list` | Worker pre-send check | Unsubscribe endpoint, bounce webhooks |\n| `templates` | Worker template fetch | `createCampaign` (template reference validation) |\n\n---\n\n## Frontend page bindings\n\n| Page | Route | Operations used |\n| --- | --- | --- |\n| Campaigns list | `/campaigns` | `listCampaigns` |\n| Campaign detail | `/campaigns/:id` | `getCampaign`, `getCampaignStats` |\n| Campaign wizard | `/campaigns/new` | `createCampaign` |\n| Campaign actions | All campaign pages | `updateCampaign`, `deleteCampaign` |\n\n---\n\n## Middleware and auth\n\n- **JWT validation middleware:** Required on all routes except `/health` and `/unsub` (which validates its own token).\n- **RBAC:** `campaign-manager` role for create/delete; `viewer` role for read.\n- **Credit guard:** Pre-send credit check before enqueueing (era `1.x`+).\n- **Entitlement guard:** Send-volume limit check per org tier (era `9.x`+).\n\n---\n\n## Campaign worker mapping\n\n| Step | Code file | Description |\n| --- | --- | --- |\n| Task enqueue | `api/handlers.go:CreateCampaign` | HTTP → Asynq `campaign:send` |\n| Task handler | `worker/campaign_worker.go:HandleCampaignTask` | Asynq consumer → sets status, loads audience |\n| Email worker | `worker/email_worker.go:EmailWorker` | Goroutine → suppress check → render → SMTP send |\n| Suppression check | `db/queries.go:IsEmailSuppressed` | Pre-send check against `suppression_list` |\n| Unsubscribe token | `utils/token.go:GenerateUnsubToken` | JWT HS256 per recipient |\n\n---\n\n## Era task-pack index\n\n| Era | Task pack |\n| --- | --- |\n| `0.x` | `docs/0. Foundation.../emailcampaign-foundation-task-pack.md` |\n| `1.x` | `docs/1. User billing.../emailcampaign-user-billing-task-pack.md` |\n| `2.x` | `docs/2. Email system.../emailcampaign-email-system-task-pack.md` |\n| `3.x` | `docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `emailcampaign-contact-company-task-pack.md` merged) |\n| `4.x` | `docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `emailcampaign-extension-sn-task-pack.md` merged) |\n| `5.x` | `docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `emailcampaign-ai-task-pack.md` merged) |\n| `10.x` | `docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `emailcampaign-email-campaign-task-pack.md` merged) |\n\nDeep reference: `docs/codebases/emailcampaign-codebase-analysis.md`.\n\n## 2026 blocker status\n\nThis module remains partially incomplete until `EC-0.1` to `EC-0.4` are resolved:\n\n- schema parity (`templates`, `unsub_token`)\n- unsubscribe query correctness fix\n- SMTP auth wiring\n- env-driven infrastructure config hardening\n",
+  "module_number": 22,
+  "module_name": "CAMPAIGNS",
+  "location": null,
+  "overview": null,
+  "operations": [],
+  "sdl_excerpt": "type CampaignModuleQuery {\n  campaigns: JSON!\n  sequences: JSON!\n  campaignTemplates: JSON!\n}\n",
+  "error_codes": [],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Campaigns Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Contact360 gateway (actual — contact360.io/api)",
+      "level": 2,
+      "prose": "The satellite email-campaign service is optional. The gateway exposes a **read-only JSON** field on root `Query`:\n\n| GraphQL | Path | Auth | Return |\n| --- | --- | --- | --- |\n| `campaignSatellite.campaigns` | `query { campaignSatellite { campaigns } }` | required | `JSON` (list payload from satellite `GET /campaigns`, or `[]` if `CAMPAIGN_API_URL` unset) |\n\n- **Env:** `CAMPAIGN_API_URL`, `CAMPAIGN_API_KEY`, `CAMPAIGN_API_TIMEOUT` (`app/core/config.py`).\n- **Mutations** for create/update/delete campaigns are **not** implemented in `app/graphql/modules/campaigns/` today (only `CampaignModuleQuery` in `queries.py`).\n\n**Direct REST** (Go campaign service) may still expose write routes; call that service or add gateway resolvers if you need mutations from GraphQL.",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — example",
+      "level": 3,
+      "prose": "```json\n{\n  \"query\": \"query { campaignSatellite { campaigns sequences campaignTemplates } }\"\n}\n```\n\nHeaders: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.\n\n---",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query { campaignSatellite { campaigns sequences campaignTemplates } }\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Planned / service-native GraphQL (not on gateway yet)",
+      "level": 2,
+      "prose": "The table below describes a **target** contract (e.g. era `10.x`); it is **not** shipped as Strawberry fields under `campaignSatellite` at the time of this doc sync.\n\n| Operation | Type | Description | Era |\n| --- | --- | --- | --- |\n| `createCampaign` | Mutation | Enqueue a new campaign send job | `10.x` (planned) |\n| `getCampaign` | Query | Get campaign by ID with full recipient/status detail | `10.x` (planned) |\n| `listCampaigns` | Query | Paginated list of campaigns for org | overlaps read-only `campaignSatellite.campaigns` |\n| `updateCampaign` | Mutation | Update campaign (pause, resume, reschedule) | `10.x` (planned) |\n| `deleteCampaign` | Mutation | Delete campaign and associated recipients | `10.x` (planned) |\n| `getCampaignStats` | Query | Aggregated open/click/unsubscribe rates | `10.x` (planned) |\n\n**Typical direct REST (service):** `POST /campaign`, health, unsub — see service repo.\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "GraphQL input/output types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "createCampaign input",
+      "level": 3,
+      "prose": "```graphql\ninput CreateCampaignInput {\n  name: String!\n  templateId: ID!\n  audienceSource: AudienceSource!  # CSV | SEGMENT | VQL | SN_BATCH\n  segmentId: ID\n  vqlQuery: String\n  scheduledAt: DateTime\n  abTestEnabled: Boolean\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input CreateCampaignInput {\n  name: String!\n  templateId: ID!\n  audienceSource: AudienceSource!  # CSV | SEGMENT | VQL | SN_BATCH\n  segmentId: ID\n  vqlQuery: String\n  scheduledAt: DateTime\n  abTestEnabled: Boolean\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Campaign type",
+      "level": 3,
+      "prose": "```graphql\ntype Campaign {\n  id: ID!\n  name: String!\n  status: CampaignStatus!  # pending | sending | completed | completed_with_errors | failed | paused\n  totalRecipients: Int!\n  sent: Int!\n  failed: Int!\n  openRate: Float  # available after era 10.x tracking\n  clickRate: Float\n  unsubscribeCount: Int\n  createdAt: DateTime!\n  scheduledAt: DateTime\n  completedAt: DateTime\n  template: CampaignTemplate\n  userId: ID\n  orgId: ID\n}\n\nenum CampaignStatus {\n  pending\n  sending\n  completed\n  completed_with_errors\n  failed\n  paused\n}\n\nenum AudienceSource {\n  CSV\n  SEGMENT\n  VQL\n  SN_BATCH\n}\n```\n\n---",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type Campaign {\n  id: ID!\n  name: String!\n  status: CampaignStatus!  # pending | sending | completed | completed_with_errors | failed | paused\n  totalRecipients: Int!\n  sent: Int!\n  failed: Int!\n  openRate: Float  # available after era 10.x tracking\n  clickRate: Float\n  unsubscribeCount: Int\n  createdAt: DateTime!\n  scheduledAt: DateTime\n  completedAt: DateTime\n  template: CampaignTemplate\n  userId: ID\n  orgId: ID\n}\n\nenum CampaignStatus {\n  pending\n  sending\n  completed\n  completed_with_errors\n  failed\n  paused\n}\n\nenum AudienceSource {\n  CSV\n  SEGMENT\n  VQL\n  SN_BATCH\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "REST endpoints (direct, on campaign service)",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /campaign",
+      "level": 3,
+      "prose": "**Auth:** JWT (Bearer token)\n**Request body:**\n\n```json\n{\n  \"template_id\": \"uuid\",\n  \"name\": \"Campaign name\",\n  \"filepath\": \"path/to/recipients.csv\",\n  \"audience_source\": \"csv | segment | vql | sn_batch\",\n  \"segment_id\": \"uuid (optional)\",\n  \"vql_query\": \"string (optional)\",\n  \"scheduled_at\": \"2026-03-24T10:00:00Z (optional)\"\n}\n```\n\n**Response `201`:**\n\n```json\n{\n  \"campaign_id\": \"uuid\",\n  \"status\": \"pending\"\n}\n```\n\n**Error codes:** `400` Bad request | `401` Unauthorized | `402` Insufficient credits | `429` Entitlement limit exceeded\n\n---",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"template_id\": \"uuid\",\n  \"name\": \"Campaign name\",\n  \"filepath\": \"path/to/recipients.csv\",\n  \"audience_source\": \"csv | segment | vql | sn_batch\",\n  \"segment_id\": \"uuid (optional)\",\n  \"vql_query\": \"string (optional)\",\n  \"scheduled_at\": \"2026-03-24T10:00:00Z (optional)\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"campaign_id\": \"uuid\",\n  \"status\": \"pending\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "GET /unsub",
+      "level": 3,
+      "prose": "**Auth:** JWT in query parameter (`?token=...`)\n**Description:** Processes unsubscribe request; validates JWT, inserts to `suppression_list`, updates `recipients.status`.\n**Response:** HTML confirmation page or JSON\n**Error:** `401` Invalid/expired token\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Database tables",
+      "level": 2,
+      "prose": "| Table | Read | Write |\n| --- | --- | --- |\n| `campaigns` | `getCampaign`, `listCampaigns` | `createCampaign`, `updateCampaign`, worker status updates |\n| `recipients` | `getCampaign` (recipient list) | Worker fan-out, unsubscribe endpoint |\n| `suppression_list` | Worker pre-send check | Unsubscribe endpoint, bounce webhooks |\n| `templates` | Worker template fetch | `createCampaign` (template reference validation) |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Frontend page bindings",
+      "level": 2,
+      "prose": "| Page | Route | Operations used |\n| --- | --- | --- |\n| Campaigns list | `/campaigns` | `listCampaigns` |\n| Campaign detail | `/campaigns/:id` | `getCampaign`, `getCampaignStats` |\n| Campaign wizard | `/campaigns/new` | `createCampaign` |\n| Campaign actions | All campaign pages | `updateCampaign`, `deleteCampaign` |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Middleware and auth",
+      "level": 2,
+      "prose": "- **JWT validation middleware:** Required on all routes except `/health` and `/unsub` (which validates its own token).\n- **RBAC:** `campaign-manager` role for create/delete; `viewer` role for read.\n- **Credit guard:** Pre-send credit check before enqueueing (era `1.x`+).\n- **Entitlement guard:** Send-volume limit check per org tier (era `9.x`+).\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Campaign worker mapping",
+      "level": 2,
+      "prose": "| Step | Code file | Description |\n| --- | --- | --- |\n| Task enqueue | `api/handlers.go:CreateCampaign` | HTTP → Asynq `campaign:send` |\n| Task handler | `worker/campaign_worker.go:HandleCampaignTask` | Asynq consumer → sets status, loads audience |\n| Email worker | `worker/email_worker.go:EmailWorker` | Goroutine → suppress check → render → SMTP send |\n| Suppression check | `db/queries.go:IsEmailSuppressed` | Pre-send check against `suppression_list` |\n| Unsubscribe token | `utils/token.go:GenerateUnsubToken` | JWT HS256 per recipient |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Era task-pack index",
+      "level": 2,
+      "prose": "| Era | Task pack |\n| --- | --- |\n| `0.x` | `docs/0. Foundation.../emailcampaign-foundation-task-pack.md` |\n| `1.x` | `docs/1. User billing.../emailcampaign-user-billing-task-pack.md` |\n| `2.x` | `docs/2. Email system.../emailcampaign-email-system-task-pack.md` |\n| `3.x` | `docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `emailcampaign-contact-company-task-pack.md` merged) |\n| `4.x` | `docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `emailcampaign-extension-sn-task-pack.md` merged) |\n| `5.x` | `docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `emailcampaign-ai-task-pack.md` merged) |\n| `10.x` | `docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `emailcampaign-email-campaign-task-pack.md` merged) |\n\nDeep reference: `docs/codebases/emailcampaign-codebase-analysis.md`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "2026 blocker status",
+      "level": 2,
+      "prose": "This module remains partially incomplete until `EC-0.1` to `EC-0.4` are resolved:\n\n- schema parity (`templates`, `unsub_token`)\n- unsubscribe query correctness fix\n- SMTP auth wiring\n- env-driven infrastructure config hardening",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": "## Canonical SDL (gateway — read-only satellite)\n\nRegenerate the full schema from `contact360.io/api` with:\n\n`python -c \"from app.graphql.schema import schema; print(schema.as_str())\"`"
+}

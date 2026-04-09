@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_create_plan_period_graphql.md",
+  "sha256_source": "404c0335ff317ddb65d10bc4170ea670a78d3c13898098cd80c9b0e3dfb3b082",
+  "generated_at": "2026-04-08T23:11:51.749040+00:00",
+  "title": "graphql/CreatePlanPeriod",
+  "raw_markdown": "---\ntitle: \"graphql/CreatePlanPeriod\"\nsource_json: mutation_create_plan_period_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/CreatePlanPeriod\n\n## Overview\n\nCreate or update a plan period. Accepts CreatePlanPeriodInput with tier (required, String, existing plan tier), period (required, enum: monthly, quarterly, yearly), credits (required, Int), ratePerCredit (required, Float), price (required, Float), savingsAmount (optional, Float), savingsPercentage (optional, Int). Creates new period or updates existing. Returns CreatePlanPeriodResponse with message (String), tier (String), period (String). Raises NotFoundError (404) if plan tier not found. Raises ForbiddenError (403) if not SuperAdmin.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_create_plan_period_graphql |\n| _id | mutation_create_plan_period_graphql-001 |\n| endpoint_path | graphql/CreatePlanPeriod |\n| method | MUTATION |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-01-21T00:00:00.000000+00:00 |\n| era | 0.x |\n| introduced_in | 0.1.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | appointment360/app/graphql/modules/billing/mutations.py |\n| router_file | contact360/dashboard/src/services/graphql/billingService.ts |\n\n\n## GraphQL operation\n\n```graphql\nmutation CreatePlanPeriod($input: CreatePlanPeriodInput!) { billing { createPlanPeriod(input: $input) { message tier period } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- createPlanPeriod\n\n### repository_methods\n\n- create_plan_period\n\n## Inventory\n\n- **page_count:** 0\n- **Source:** `mutation_create_plan_period_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `0.x` — Foundation & Pre-Product Stabilization (Billing bootstrap).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `subscription_plans` | READ | [subscription_plans.sql](../database/tables/subscription_plans.sql) |\n| `subscription_plan_periods` | WRITE | [subscription_plan_periods.sql](../database/tables/subscription_plan_periods.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Gateway DB**: Direct insert/upsert into `subscription_plan_periods` via BillingRepository. No downstream service calls.\n\n## Related endpoint graph\n\n- **Inbound**: `Admin Billing Page` (Frontend SuperAdmin).\n- **Outbound**: `GetPlans` (verify new period), `GetAdminPlans` (admin listing).\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_create_plan_period_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_create_plan_period_graphql"
+        ],
+        [
+          "_id",
+          "mutation_create_plan_period_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/CreatePlanPeriod"
+        ],
+        [
+          "method",
+          "MUTATION"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-01-21T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "0.x"
+        ],
+        [
+          "introduced_in",
+          "0.1.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "appointment360/app/graphql/modules/billing/mutations.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/billingService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`subscription_plans`",
+          "READ",
+          "[subscription_plans.sql](../database/tables/subscription_plans.sql)"
+        ],
+        [
+          "`subscription_plan_periods`",
+          "WRITE",
+          "[subscription_plan_periods.sql](../database/tables/subscription_plan_periods.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Create or update a plan period. Accepts CreatePlanPeriodInput with tier (required, String, existing plan tier), period (required, enum: monthly, quarterly, yearly), credits (required, Int), ratePerCredit (required, Float), price (required, Float), savingsAmount (optional, Float), savingsPercentage (optional, Int). Creates new period or updates existing. Returns CreatePlanPeriodResponse with message (String), tier (String), period (String). Raises NotFoundError (404) if plan tier not found. Raises ForbiddenError (403) if not SuperAdmin."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_create_plan_period_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/CreatePlanPeriod\"\nsource_json: mutation_create_plan_period_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-01-21T00:00:00.000000+00:00 |\n\n```graphql\nmutation CreatePlanPeriod($input: CreatePlanPeriodInput!) { billing { createPlanPeriod(input: $input) { message tier period } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n### repository_methods\n\n- **page_count:** 0\n- **Source:** `mutation_create_plan_period_graphql.json`\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `0.x` — Foundation & Pre-Product Stabilization (Billing bootstrap).\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Gateway DB**: Direct insert/upsert into `subscription_plan_periods` via BillingRepository. No downstream service calls.\n\n- **Inbound**: `Admin Billing Page` (Frontend SuperAdmin).\n- **Outbound**: `GetPlans` (verify new period), `GetAdminPlans` (admin listing)."
+}

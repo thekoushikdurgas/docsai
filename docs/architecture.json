@@ -1,0 +1,1990 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/architecture.md",
+  "sha256_source": "63fcc8786d3e3d592ccb40cce0e0c3644d04cf41028de744d5b025fdf1d3cf5e",
+  "generated_at": "2026-04-08T23:26:47.659702+00:00",
+  "title": "Contact360 Architecture",
+  "sections": [
+    {
+      "heading": "Contact360 Architecture",
+      "level": 1,
+      "slug": "contact360-architecture",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Overview",
+      "level": 2,
+      "slug": "overview",
+      "prose": "**Contact360** is a B2B SaaS platform focused on email discovery and verification. The system uses a Next.js dashboard, a Django DocsAI admin/docs surface, a **Python** FastAPI GraphQL gateway (`appointment360` at `contact360.io/api`) — the **main backend** — and multiple satellite services for search, verification, AI, scheduling, logging, and file storage. **Satellite HTTP backends target Go + Gin**; the gateway itself remains Python unless a future program explicitly migrates it. See **`docs/docs/backend-language-strategy.md`**.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Production Docker layout (EC2)",
+      "level": 3,
+      "slug": "production-docker-layout-ec2",
+      "prose": "The repository root ships **`docker-compose.prod.yml`**, which places all application containers on a single bridge network (`contact360`) with stable DNS names matching **`contact360.io/api/app/core/config.py`** defaults (`sync:8000`, `jobs:8000`, `emailapigo:8086`, `s3storage:8087`, `logs:8091`, `salesnavigator:8092`, `contact_ai:8090`, `emailcampaign:8086`, `mailvetter:8087`). **`nginx/nginx.prod.conf`** routes public hostnames (`contact360.io`, `app.contact360.io`, `api.contact360.io`, `email.contact360.io`, `admin.contact360.io`, `joblevel.contact360.io`) to those containers. TLS is expected at **ALB/ACM** in front of Nginx.\n\nThe compose file also runs **`joblevel`** (Next.js Joblevel app at `joblevel.contact360.io` via Nginx) and an **`emailcampaign-worker`** container. RDS, MSK, and OpenSearch remain **managed AWS** services; populate `deploy/env/jobs.env` and root `.env` (`DATABASE_URL` for the GraphQL API) before bringing the stack up. AWS provisioning steps: **`deploy/aws/PHASE5_RUNBOOK.md`**.\n\n**Data stores (PostgreSQL-first, no Redis):** **`docs/docs/data-stores-postgres.md`**.\n\n**Stack reference library:** Framework checklists and “why / best practices” notes for **Go/Gin, Next.js, Django, browser extension** live under **`docs/tech/`** (canonical filenames `tech-*-why-practices.md`, `tech-*-checklist-100.md`). Use them for era task planning; they are not release artifacts.\n\n**AWS system design (Route 53 → ALB/ACM → EC2 → Docker, plus RDS, OpenSearch, S3, optional MSK):** see **`deploy/aws/SYSTEM_DESIGN.md`**.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Request paths (target)",
+      "level": 3,
+      "slug": "request-paths-target",
+      "prose": "High-level traffic flow: browsers and the Chrome extension call the **Python GraphQL gateway**; the gateway orchestrates **Go/Gin satellite services** on EC2 (sync, jobs, email, campaign, storage, AI, logs, extension). Email web app may call mailbox **REST** directly where documented.\n\n```mermaid\nflowchart LR\n  subgraph clients [Clients]\n    AppNext[\"Next.js app\"]\n    RootNext[\"Next.js root\"]\n    EmailNext[\"Next.js email\"]\n    Extension[\"Chrome Extension MV3\"]\n    DocsAI[\"Django DocsAI admin\"]\n  end\n  subgraph gateway [Python GraphQL Gateway]\n    GQL[\"contact360.io/api\\nFastAPI + Strawberry\\nGraphQL\"]\n  end\n  subgraph satellites [Go/Gin Satellite Services - EC2]\n    Sync[\"EC2/sync.server\\nConnectra VQL + /common/jobs\"]\n    Email[\"EC2/email.server\\nfinder/verifier + async jobs\"]\n    Campaign[\"EC2/email campaign\\ncontact360.io/emailcampaign\"]\n    S3[\"EC2/s3storage.server\\ncontact360.io/s3storage\"]\n    AI[\"EC2/ai.server\\ncontact360.io/ai\"]\n    Logs[\"EC2/log.server\\ncontact360.io/logsapi\"]\n    Ext[\"EC2/extension.server\\ncontact360.io/extension\"]\n  end\n  subgraph workers [Background Workers]\n    CampaignWorker[\"emailcampaign-worker\"]\n    S3Worker[\"s3storage-worker\"]\n    AIWorker[\"ai-worker\"]\n    LogWorker[\"log-worker\"]\n    ExtWorker[\"extension-worker\"]\n  end\n  AppNext --> GQL\n  RootNext --> GQL\n  EmailNext --> GQL\n  EmailNext -->|\"REST mailbox\"| Email\n  Extension --> GQL\n  Extension -->|\"save-profiles REST\"| Ext\n  DocsAI --> GQL\n  GQL --> Sync\n  GQL --> Email\n  GQL --> Campaign\n  GQL --> S3\n  GQL --> AI\n  GQL --> Logs\n  GQL --> Ext\n  Campaign --> CampaignWorker\n  S3 --> S3Worker\n  AI --> AIWorker\n  Logs --> LogWorker\n  Ext --> ExtWorker\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n  subgraph clients [Clients]\n    AppNext[\"Next.js app\"]\n    RootNext[\"Next.js root\"]\n    EmailNext[\"Next.js email\"]\n    Extension[\"Chrome Extension MV3\"]\n    DocsAI[\"Django DocsAI admin\"]\n  end\n  subgraph gateway [Python GraphQL Gateway]\n    GQL[\"contact360.io/api\\nFastAPI + Strawberry\\nGraphQL\"]\n  end\n  subgraph satellites [Go/Gin Satellite Services - EC2]\n    Sync[\"EC2/sync.server\\nConnectra VQL + /common/jobs\"]\n    Email[\"EC2/email.server\\nfinder/verifier + async jobs\"]\n    Campaign[\"EC2/email campaign\\ncontact360.io/emailcampaign\"]\n    S3[\"EC2/s3storage.server\\ncontact360.io/s3storage\"]\n    AI[\"EC2/ai.server\\ncontact360.io/ai\"]\n    Logs[\"EC2/log.server\\ncontact360.io/logsapi\"]\n    Ext[\"EC2/extension.server\\ncontact360.io/extension\"]\n  end\n  subgraph workers [Background Workers]\n    CampaignWorker[\"emailcampaign-worker\"]\n    S3Worker[\"s3storage-worker\"]\n    AIWorker[\"ai-worker\"]\n    LogWorker[\"log-worker\"]\n    ExtWorker[\"extension-worker\"]\n  end\n  AppNext --> GQL\n  RootNext --> GQL\n  EmailNext --> GQL\n  EmailNext -->|\"REST mailbox\"| Email\n  Extension --> GQL\n  Extension -->|\"save-profiles REST\"| Ext\n  DocsAI --> GQL\n  GQL --> Sync\n  GQL --> Email\n  GQL --> Campaign\n  GQL --> S3\n  GQL --> AI\n  GQL --> Logs\n  GQL --> Ext\n  Campaign --> CampaignWorker\n  S3 --> S3Worker\n  AI --> AIWorker\n  Logs --> LogWorker\n  Ext --> ExtWorker\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Repository layout (this monorepo)",
+      "level": 2,
+      "slug": "repository-layout-this-monorepo",
+      "prose": "Product UI, the GraphQL gateway, Connectra, and async job satellites (**email.server**, **sync.server**) live under **`contact360.io/`** and **`EC2/`**. Shared email/log/storage microservices often live under **`lambda/`**. Additional backend checkouts in this workspace use **`backend(dev)/`** (AI, Mailvetter, Sales Navigator, Resume AI). **`docs/`** holds markdown source of truth; **DocsAI** Django constants are under **`contact360.io/admin/`** (not a separate `contact360/docsai/` tree in this layout).\n\n| Path | Purpose |\n| --- | --- |\n| `contact360.io/app/` | Authenticated dashboard (Next.js; package name `contact360-dashboard`). |\n| `contact360.io/root/` | Marketing / public site (Next.js; package name `contact360-marketing`). |\n| `contact360.io/admin/` | Django DocsAI — roadmap/architecture mirrors, documentation CRUD, AI assistant, and operational admin surfaces (users, logs, jobs, billing, storage). |\n| `contact360.io/email/` | Email web app (Mailhub-style mailbox UI) with auth via GraphQL + mailbox/account routes over REST. |\n| `contact360.io/api/` | **Appointment360** — FastAPI GraphQL gateway (`/graphql`), `sql/apis/*.md`, `app/graphql/modules/*`. |\n| `contact360.io/sync/` | **Connectra** — Go search / VQL / Elasticsearch (see service `README.md`). |\n| *(removed)* `contact360.io/jobs/` / `EC2/job.server` | **Replaced** by gateway-orchestrated jobs against **email.server** + **sync.server**; see `docs/backend/apis/16_JOBS_MODULE.md`. |\n| `EC2/log.server/`, `EC2/s3storage.server/`, `EC2/ai.server/`, `EC2/extension.server/`, `EC2/email campaign/` | Go Gin EC2 services for logs, S3 storage, AI, extension/SN ingestion, and email campaign engine. |\n| `lambda/` | Legacy email/log/storage services in some checkouts (`emailapis/`, `emailapigo/`, `logs.api/`, `s3storage/`); new work should target EC2 Go services. |\n| `backend(dev)/` | Legacy or auxiliary service trees when present: `contact.ai/`, `mailvetter/`, `salesnavigator/`, `resumeai/`. |\n| `contact360.io/joblevel/` | **Joblevel** recruiting UI on Next.js App Router. |\n| `extension/` | Browser extension packages (optional checkout). |\n| `docs/` | Product documentation (architecture, roadmap, versioning). |\n\n**Legacy / alternate names (full monorepo or older docs):**\n\n| Older / logical path | Typical role | This workspace |\n| --- | --- | --- |\n| `contact360/dashboard/` | Dashboard app | `contact360.io/app/` |\n| `contact360/marketing/` | Marketing site | `contact360.io/root/` |\n| `contact360/docsai/` | Django DocsAI | `contact360.io/admin/` |\n| `lambda/appointment360/` | GraphQL gateway | `contact360.io/api/` |\n| `lambda/connectra/` | Connectra | `contact360.io/sync/` |\n| *(legacy)* `lambda/tkdjob/` | Archived job scheduler | Superseded by email + sync satellites |\n| `lambda/mailvetter/` | Verifier | Often `backend(dev)/mailvetter/` here, or `lambda/mailvetter/` in other checkouts |\n\n**Naming note:** historical docs used `extention/contact360` and `extension/contact360`. Current canonical extension package folder is **`extension/contact360/`**.",
+      "tables": [
+        {
+          "headers": [
+            "Path",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "`contact360.io/app/`",
+              "Authenticated dashboard (Next.js; package name `contact360-dashboard`)."
+            ],
+            [
+              "`contact360.io/root/`",
+              "Marketing / public site (Next.js; package name `contact360-marketing`)."
+            ],
+            [
+              "`contact360.io/admin/`",
+              "Django DocsAI — roadmap/architecture mirrors, documentation CRUD, AI assistant, and operational admin surfaces (users, logs, jobs, billing, storage)."
+            ],
+            [
+              "`contact360.io/email/`",
+              "Email web app (Mailhub-style mailbox UI) with auth via GraphQL + mailbox/account routes over REST."
+            ],
+            [
+              "`contact360.io/api/`",
+              "**Appointment360** — FastAPI GraphQL gateway (`/graphql`), `sql/apis/*.md`, `app/graphql/modules/*`."
+            ],
+            [
+              "`contact360.io/sync/`",
+              "**Connectra** — Go search / VQL / Elasticsearch (see service `README.md`)."
+            ],
+            [
+              "*(removed)* `contact360.io/jobs/` / `EC2/job.server`",
+              "**Replaced** by gateway-orchestrated jobs against **email.server** + **sync.server**; see `docs/backend/apis/16_JOBS_MODULE.md`."
+            ],
+            [
+              "`EC2/log.server/`, `EC2/s3storage.server/`, `EC2/ai.server/`, `EC2/extension.server/`, `EC2/email campaign/`",
+              "Go Gin EC2 services for logs, S3 storage, AI, extension/SN ingestion, and email campaign engine."
+            ],
+            [
+              "`lambda/`",
+              "Legacy email/log/storage services in some checkouts (`emailapis/`, `emailapigo/`, `logs.api/`, `s3storage/`); new work should target EC2 Go services."
+            ],
+            [
+              "`backend(dev)/`",
+              "Legacy or auxiliary service trees when present: `contact.ai/`, `mailvetter/`, `salesnavigator/`, `resumeai/`."
+            ],
+            [
+              "`contact360.io/joblevel/`",
+              "**Joblevel** recruiting UI on Next.js App Router."
+            ],
+            [
+              "`extension/`",
+              "Browser extension packages (optional checkout)."
+            ],
+            [
+              "`docs/`",
+              "Product documentation (architecture, roadmap, versioning)."
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Older / logical path",
+            "Typical role",
+            "This workspace"
+          ],
+          "rows": [
+            [
+              "`contact360/dashboard/`",
+              "Dashboard app",
+              "`contact360.io/app/`"
+            ],
+            [
+              "`contact360/marketing/`",
+              "Marketing site",
+              "`contact360.io/root/`"
+            ],
+            [
+              "`contact360/docsai/`",
+              "Django DocsAI",
+              "`contact360.io/admin/`"
+            ],
+            [
+              "`lambda/appointment360/`",
+              "GraphQL gateway",
+              "`contact360.io/api/`"
+            ],
+            [
+              "`lambda/connectra/`",
+              "Connectra",
+              "`contact360.io/sync/`"
+            ],
+            [
+              "*(legacy)* `lambda/tkdjob/`",
+              "Archived job scheduler",
+              "Superseded by email + sync satellites"
+            ],
+            [
+              "`lambda/mailvetter/`",
+              "Verifier",
+              "Often `backend(dev)/mailvetter/` here, or `lambda/mailvetter/` in other checkouts"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "extension/ detail",
+      "level": 3,
+      "slug": "extension-detail",
+      "prose": "- `contact360/` — Extension logic/transport package for Sales Navigator workflows.\n- Current code in this package provides auth/session (`graphqlSession.js`), Lambda client (`lambdaClient.js`), and profile merge/dedup (`profileMerger.js`).\n- Chrome shell files (`manifest.json`, popup UI, background/content scripts) are tracked as remaining 4.x delivery work.\n\n**Checkout note:** Some clones omit the `extension/` tree (e.g. backend-only worktrees). The **canonical** package path remains `extension/contact360/`; do not introduce new paths under the historical `extention/` spelling.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`contact360/` — Extension logic/transport package for Sales Navigator workflows.",
+              "checked": null
+            },
+            {
+              "text": "Current code in this package provides auth/session (`graphqlSession.js`), Lambda client (`lambdaClient.js`), and profile merge/dedup (`profileMerger.js`).",
+              "checked": null
+            },
+            {
+              "text": "Chrome shell files (`manifest.json`, popup UI, background/content scripts) are tracked as remaining 4.x delivery work.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Dashboard routes (product)",
+      "level": 2,
+      "slug": "dashboard-routes-product",
+      "prose": "The authenticated dashboard uses the Next.js App Router under `contact360.io/app/app/(dashboard)/`.\n\n| Route | Source | Notes |\n| --- | --- | --- |\n| `/admin` | `app/(dashboard)/admin/page.tsx` | **Canonical** admin entry (statistics / control surface). Admin-related links may also appear from Billing or Profile; treat `/admin` as the dedicated route when documenting or linking. |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Route",
+            "Source",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "`/admin`",
+              "`app/(dashboard)/admin/page.tsx`",
+              "**Canonical** admin entry (statistics / control surface). Admin-related links may also appear from Billing or Profile; treat `/admin` as the dedicated route when documenting or linking."
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service register (canonical)",
+      "level": 2,
+      "slug": "service-register-canonical",
+      "prose": "Use this table to resolve **what exists in-repo** vs **historical aliases**. Update when folders are added, renamed, or retired.\n\n| Service | Path (this workspace) | Status | Notes |\n| --- | --- | --- | --- |\n| Appointment360 | `contact360.io/api/` | active | Primary GraphQL gateway; older docs reference `lambda/appointment360/` |\n| Connectra | `contact360.io/sync/` | active | Search on Elasticsearch; older docs reference `lambda/connectra/` |\n| Email APIs | `lambda/emailapis/` | active | Finder/verifier orchestration (Python) |\n| Email API Go | `lambda/emailapigo/` | active | High-throughput finder (Go); used when orchestration routes to Go workers |\n| Mailvetter | `backend(dev)/mailvetter/` (or `lambda/mailvetter/` in full monorepo) | active | Deliverability verification (DNS/SMTP/disposable) |\n| Logs API | `lambda/logs.api/`; **Go target:** `EC2/log.server/` (`contact360.io/logsapi`) | active | Centralized logs/audit (S3 CSV with cache) |\n| S3 Storage | `lambda/s3storage/`; **Go target:** `EC2/s3storage.server/` (`contact360.io/s3storage`) | active | Uploads, exports, artifacts |\n| Sales Navigator | `backend(dev)/salesnavigator/` (or `lambda/salesnavigator/`); **Go target:** `EC2/extension.server/` (`contact360.io/extension`) for save-profiles / Connectra | active | SN ingestion workflows |\n| Contact AI | `backend(dev)/contact.ai/` (or `lambda/contact.ai/`); **Go target:** `EC2/ai.server/` (`contact360.io/ai`) | active | AI workflows (e.g. Gemini) |\n| Resume AI | `backend(dev)/resumeai/` | active | Resume-related AI workflows (when checkout present) |\n| Async jobs | `EC2/email.server/`, `EC2/sync.server/` (via gateway) | active | Bulk email jobs + CSV import/export; legacy `contact360.io/jobs` / `EC2/job.server` **removed** |\n| Extension (Chrome) | `extension/contact360/` | active (optional checkout) | Sales Navigator extension surface; folder may be absent in minimal clones — path is still canonical |\n| Extension Auth | `extension/contact360/auth/graphqlSession.js` | active | JWT decode+expiry check, proactive token refresh via Appointment360 `auth.refreshToken`; `chrome.storage.local` adapter (MV3 compliant) |\n| Extension Lambda Client | `extension/contact360/utils/lambdaClient.js` | active | Batched REST client for `POST /v1/save-profiles`; retry+jitter, adaptive timeouts, payload compression, chunked batching |\n| Extension Profile Merger | `extension/contact360/utils/profileMerger.js` | active | Profile dedup and merge; `profile_url` as dedup key; completeness scoring; supports HTML and deep-scrape variants |\n\n**Legacy / alias paths (do not use in new work; document only for migrations):**\n\n- `extention/` — old folder spelling; canonical is `extension/`.\n- `extention/contact360` — old extension package path; canonical is `extension/contact360/`.\n- `lambda/1/` — may appear as a **nested bundle** (older copies or experiments of services under a numeric folder). **Canonical services live directly under `lambda/<service>/`** (for example `lambda/emailapis/`). Do not treat `lambda/1/*` as the primary deployment root without an explicit integration note.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Service",
+            "Path (this workspace)",
+            "Status",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "Appointment360",
+              "`contact360.io/api/`",
+              "active",
+              "Primary GraphQL gateway; older docs reference `lambda/appointment360/`"
+            ],
+            [
+              "Connectra",
+              "`contact360.io/sync/`",
+              "active",
+              "Search on Elasticsearch; older docs reference `lambda/connectra/`"
+            ],
+            [
+              "Email APIs",
+              "`lambda/emailapis/`",
+              "active",
+              "Finder/verifier orchestration (Python)"
+            ],
+            [
+              "Email API Go",
+              "`lambda/emailapigo/`",
+              "active",
+              "High-throughput finder (Go); used when orchestration routes to Go workers"
+            ],
+            [
+              "Mailvetter",
+              "`backend(dev)/mailvetter/` (or `lambda/mailvetter/` in full monorepo)",
+              "active",
+              "Deliverability verification (DNS/SMTP/disposable)"
+            ],
+            [
+              "Logs API",
+              "`lambda/logs.api/`; **Go target:** `EC2/log.server/` (`contact360.io/logsapi`)",
+              "active",
+              "Centralized logs/audit (S3 CSV with cache)"
+            ],
+            [
+              "S3 Storage",
+              "`lambda/s3storage/`; **Go target:** `EC2/s3storage.server/` (`contact360.io/s3storage`)",
+              "active",
+              "Uploads, exports, artifacts"
+            ],
+            [
+              "Sales Navigator",
+              "`backend(dev)/salesnavigator/` (or `lambda/salesnavigator/`); **Go target:** `EC2/extension.server/` (`contact360.io/extension`) for save-profiles / Connectra",
+              "active",
+              "SN ingestion workflows"
+            ],
+            [
+              "Contact AI",
+              "`backend(dev)/contact.ai/` (or `lambda/contact.ai/`); **Go target:** `EC2/ai.server/` (`contact360.io/ai`)",
+              "active",
+              "AI workflows (e.g. Gemini)"
+            ],
+            [
+              "Resume AI",
+              "`backend(dev)/resumeai/`",
+              "active",
+              "Resume-related AI workflows (when checkout present)"
+            ],
+            [
+              "Async jobs",
+              "`EC2/email.server/`, `EC2/sync.server/` (via gateway)",
+              "active",
+              "Bulk email jobs + CSV import/export; legacy `contact360.io/jobs` / `EC2/job.server` **removed**"
+            ],
+            [
+              "Extension (Chrome)",
+              "`extension/contact360/`",
+              "active (optional checkout)",
+              "Sales Navigator extension surface; folder may be absent in minimal clones — path is still canonical"
+            ],
+            [
+              "Extension Auth",
+              "`extension/contact360/auth/graphqlSession.js`",
+              "active",
+              "JWT decode+expiry check, proactive token refresh via Appointment360 `auth.refreshToken`; `chrome.storage.local` adapter (MV3 compliant)"
+            ],
+            [
+              "Extension Lambda Client",
+              "`extension/contact360/utils/lambdaClient.js`",
+              "active",
+              "Batched REST client for `POST /v1/save-profiles`; retry+jitter, adaptive timeouts, payload compression, chunked batching"
+            ],
+            [
+              "Extension Profile Merger",
+              "`extension/contact360/utils/profileMerger.js`",
+              "active",
+              "Profile dedup and merge; `profile_url` as dedup key; completeness scoring; supports HTML and deep-scrape variants"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`extention/` — old folder spelling; canonical is `extension/`.",
+              "checked": null
+            },
+            {
+              "text": "`extention/contact360` — old extension package path; canonical is `extension/contact360/`.",
+              "checked": null
+            },
+            {
+              "text": "`lambda/1/` — may appear as a **nested bundle** (older copies or experiments of services under a numeric folder). **Canonical services live directly under `lambda/<service>/`** (for example `lambda/emailapis/`). Do not treat `lambda/1/*` as the primary deployment root without an explicit integration note.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Canonical service ownership",
+      "level": 2,
+      "slug": "canonical-service-ownership",
+      "prose": "| Service | Path (this workspace) | Language | Owns |\n| --- | --- | --- | --- |\n| Appointment360 | `contact360.io/api/` | Python | GraphQL gateway contract, orchestration rules |\n| Connectra | `contact360.io/sync/` | Go | Search query execution on Elasticsearch |\n| Email APIs | `lambda/emailapis/` | Python | Finder/verifier workflow orchestration |\n| Email API Go | `lambda/emailapigo/` | Go | High-throughput finder workers |\n| Mailvetter | `backend(dev)/mailvetter/` | Go | Deliverability verification logic |\n| Logs API | `lambda/logs.api/` | Python → **Go** `EC2/log.server/` | Operational and audit log ingestion |\n| S3 Storage | `lambda/s3storage/` | Python → **Go** `EC2/s3storage.server/` | File artifact lifecycle on S3 |\n| Sales Navigator | `backend(dev)/salesnavigator/` | Python → **Go** `EC2/extension.server/` (ingestion façade) | Sales Navigator ingestion workflows |\n| Contact AI | `backend(dev)/contact.ai/` | Python → **Go** `EC2/ai.server/` | AI pipeline logic and model integration |\n| Resume AI | `backend(dev)/resumeai/` | Python → **Go** `EC2/ai.server/` worker tasks | Resume AI features (when present) |\n| Email / Sync job satellites | `EC2/email.server/`, `EC2/sync.server/` | Go | Async jobs via gateway (`scheduler_jobs`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Service",
+            "Path (this workspace)",
+            "Language",
+            "Owns"
+          ],
+          "rows": [
+            [
+              "Appointment360",
+              "`contact360.io/api/`",
+              "Python",
+              "GraphQL gateway contract, orchestration rules"
+            ],
+            [
+              "Connectra",
+              "`contact360.io/sync/`",
+              "Go",
+              "Search query execution on Elasticsearch"
+            ],
+            [
+              "Email APIs",
+              "`lambda/emailapis/`",
+              "Python",
+              "Finder/verifier workflow orchestration"
+            ],
+            [
+              "Email API Go",
+              "`lambda/emailapigo/`",
+              "Go",
+              "High-throughput finder workers"
+            ],
+            [
+              "Mailvetter",
+              "`backend(dev)/mailvetter/`",
+              "Go",
+              "Deliverability verification logic"
+            ],
+            [
+              "Logs API",
+              "`lambda/logs.api/`",
+              "Python → **Go** `EC2/log.server/`",
+              "Operational and audit log ingestion"
+            ],
+            [
+              "S3 Storage",
+              "`lambda/s3storage/`",
+              "Python → **Go** `EC2/s3storage.server/`",
+              "File artifact lifecycle on S3"
+            ],
+            [
+              "Sales Navigator",
+              "`backend(dev)/salesnavigator/`",
+              "Python → **Go** `EC2/extension.server/` (ingestion façade)",
+              "Sales Navigator ingestion workflows"
+            ],
+            [
+              "Contact AI",
+              "`backend(dev)/contact.ai/`",
+              "Python → **Go** `EC2/ai.server/`",
+              "AI pipeline logic and model integration"
+            ],
+            [
+              "Resume AI",
+              "`backend(dev)/resumeai/`",
+              "Python → **Go** `EC2/ai.server/` worker tasks",
+              "Resume AI features (when present)"
+            ],
+            [
+              "Email / Sync job satellites",
+              "`EC2/email.server/`, `EC2/sync.server/`",
+              "Go",
+              "Async jobs via gateway (`scheduler_jobs`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data ownership",
+      "level": 2,
+      "slug": "data-ownership",
+      "prose": "| Data store | Primary owners | Notes |\n| --- | --- | --- |\n| PostgreSQL | Appointment360 (and service-local relational modules) | Core transactional business entities, idempotency tables, and all queue/rate-limit state (no Redis). |\n| Elasticsearch | Connectra | Contacts/companies search indexes and VQL query targets |\n| MongoDB | — | **Removed (legacy only)** — older docs may still reference MongoDB for logs; canonical logs storage is S3 CSV. |\n| S3 | S3 Storage, job workers | CSV uploads, export artifacts, large object payloads |\n| `scheduler_jobs` (PostgreSQL) | Appointment360 | Gateway-owned job rows for dashboard listing; satellite-specific queues live in worker DBs |\n| Connectra filter metadata (`filters`, `filters_data`) | Connectra + Appointment360 | Filter taxonomy, facet hydration, and saved-search query compatibility |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Data store",
+            "Primary owners",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "PostgreSQL",
+              "Appointment360 (and service-local relational modules)",
+              "Core transactional business entities, idempotency tables, and all queue/rate-limit state (no Redis)."
+            ],
+            [
+              "Elasticsearch",
+              "Connectra",
+              "Contacts/companies search indexes and VQL query targets"
+            ],
+            [
+              "MongoDB",
+              "—",
+              "**Removed (legacy only)** — older docs may still reference MongoDB for logs; canonical logs storage is S3 CSV."
+            ],
+            [
+              "S3",
+              "S3 Storage, job workers",
+              "CSV uploads, export artifacts, large object payloads"
+            ],
+            [
+              "`scheduler_jobs` (PostgreSQL)",
+              "Appointment360",
+              "Gateway-owned job rows for dashboard listing; satellite-specific queues live in worker DBs"
+            ],
+            [
+              "Connectra filter metadata (`filters`, `filters_data`)",
+              "Connectra + Appointment360",
+              "Filter taxonomy, facet hydration, and saved-search query compatibility"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data flow (conceptual)",
+      "level": 2,
+      "slug": "data-flow-conceptual",
+      "prose": "1. `contact360.io/app` (dashboard) and `extension/contact360` send authenticated requests to **Appointment360** GraphQL (`contact360.io/api`).\n2. Appointment360 orchestrates downstream REST calls to `emailapis`, `emailapigo` (when used), `mailvetter`, Connectra (`contact360.io/sync`), **email.server** and **sync.server** job endpoints, `s3storage`, `salesnavigator`, and `contact.ai`.\n3. Connectra serves search from Elasticsearch.\n4. `mailvetter` and email services execute DNS/SMTP/external verification checks.\n5. Long-running work runs on **email.server** (bulk finder/verifier, Redis/Asynq) and **sync.server** (CSV import/export queue); the gateway stores ownership in `scheduler_jobs` and calls satellite HTTP APIs for create/status.\n6. `logs.api` and `s3storage` capture telemetry and file artifacts.\n\n**Simplified chain:**\n`Dashboard/Extension -> Appointment360 GraphQL -> Internal services -> PostgreSQL/Elasticsearch/S3 (+ jobs scheduler Postgres)`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`contact360.io/app` (dashboard) and `extension/contact360` send authenticated requests to **Appointment360** GraphQL (`contact360.io/api`).",
+              "checked": null
+            },
+            {
+              "text": "Appointment360 orchestrates downstream REST calls to `emailapis`, `emailapigo` (when used), `mailvetter`, Connectra (`contact360.io/sync`), **email.server** and **sync.server** job endpoints, `s3storage`, `salesnavigator`, and `contact.ai`.",
+              "checked": null
+            },
+            {
+              "text": "Connectra serves search from Elasticsearch.",
+              "checked": null
+            },
+            {
+              "text": "`mailvetter` and email services execute DNS/SMTP/external verification checks.",
+              "checked": null
+            },
+            {
+              "text": "Long-running work runs on **email.server** (bulk finder/verifier, Redis/Asynq) and **sync.server** (CSV import/export queue); the gateway stores ownership in `scheduler_jobs` and calls satellite HTTP APIs for create/status.",
+              "checked": null
+            },
+            {
+              "text": "`logs.api` and `s3storage` capture telemetry and file artifacts.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Authentication and access model",
+      "level": 2,
+      "slug": "authentication-and-access-model",
+      "prose": "- User authentication: JWT-based sessions for dashboard and extension users.\n- Authorization: RBAC and feature gates at product/API boundaries.\n- Service security: trusted internal auth (API key or equivalent) for service-to-service routes.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "User authentication: JWT-based sessions for dashboard and extension users.",
+              "checked": null
+            },
+            {
+              "text": "Authorization: RBAC and feature gates at product/API boundaries.",
+              "checked": null
+            },
+            {
+              "text": "Service security: trusted internal auth (API key or equivalent) for service-to-service routes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "External dependencies",
+      "level": 2,
+      "slug": "external-dependencies",
+      "prose": "- **Hugging Face Inference Providers** (chat completions + JSON tasks) for `contact.ai` primary LLM inference.\n- **Google Gemini** (fallback LLM) for `contact.ai` when HF inference is unavailable.\n- External email verification signals (DNS, SMTP, third-party verification providers).\n- Kafka may be used inside legacy or worker stacks; the primary job paths above use **email.server** / **sync.server** queues.\n- AWS S3 object storage for file lifecycle.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Hugging Face Inference Providers** (chat completions + JSON tasks) for `contact.ai` primary LLM inference.",
+              "checked": null
+            },
+            {
+              "text": "**Google Gemini** (fallback LLM) for `contact.ai` when HF inference is unavailable.",
+              "checked": null
+            },
+            {
+              "text": "External email verification signals (DNS, SMTP, third-party verification providers).",
+              "checked": null
+            },
+            {
+              "text": "Kafka may be used inside legacy or worker stacks; the primary job paths above use **email.server** / **sync.server** queues.",
+              "checked": null
+            },
+            {
+              "text": "AWS S3 object storage for file lifecycle.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact.ai data and service notes",
+      "level": 2,
+      "slug": "contactai-data-and-service-notes",
+      "prose": "- **Contact AI** is canonically deployed as **`EC2/ai.server`** (`contact360.io/ai`) — a Go/Gin EC2 service that preserves parity with the historical `backend(dev)/contact.ai` FastAPI Lambda implementation.\n- **Data store:** PostgreSQL `ai_chats` table (shared with appointment360); `user_id` FK references `users.uuid`.\n- **Inference:** Hugging Face Inference Providers for chat completions and JSON-mode tasks; Gemini as fallback.\n- **Auth:** `X-API-Key` (service-to-service) + `X-User-ID` (user-scoped chat ownership).\n- **Streaming:** Server-Sent Events (SSE) via `POST /api/v1/ai-chats/{id}/message/stream`.\n- **Utility endpoints:** `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters` — all stateless (no DB write).\n- **Era:** Operational baseline `0.x`; primary AI workflows `5.x`; full public API surface `8.x`.\n- **Cross-service dependency:** appointment360 calls Contact AI via an HTTP client; configuration is exposed as the AI service URL env var.\n- **Model selection:** `ModelSelection` enum in GraphQL maps to HF model IDs; the AI client must maintain the mapping shim.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Contact AI** is canonically deployed as **`EC2/ai.server`** (`contact360.io/ai`) — a Go/Gin EC2 service that preserves parity with the historical `backend(dev)/contact.ai` FastAPI Lambda implementation.",
+              "checked": null
+            },
+            {
+              "text": "**Data store:** PostgreSQL `ai_chats` table (shared with appointment360); `user_id` FK references `users.uuid`.",
+              "checked": null
+            },
+            {
+              "text": "**Inference:** Hugging Face Inference Providers for chat completions and JSON-mode tasks; Gemini as fallback.",
+              "checked": null
+            },
+            {
+              "text": "**Auth:** `X-API-Key` (service-to-service) + `X-User-ID` (user-scoped chat ownership).",
+              "checked": null
+            },
+            {
+              "text": "**Streaming:** Server-Sent Events (SSE) via `POST /api/v1/ai-chats/{id}/message/stream`.",
+              "checked": null
+            },
+            {
+              "text": "**Utility endpoints:** `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters` — all stateless (no DB write).",
+              "checked": null
+            },
+            {
+              "text": "**Era:** Operational baseline `0.x`; primary AI workflows `5.x`; full public API surface `8.x`.",
+              "checked": null
+            },
+            {
+              "text": "**Cross-service dependency:** appointment360 calls Contact AI via an HTTP client; configuration is exposed as the AI service URL env var.",
+              "checked": null
+            },
+            {
+              "text": "**Model selection:** `ModelSelection` enum in GraphQL maps to HF model IDs; the AI client must maintain the mapping shim.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "appointment360 (contact360.io/api) data and service notes",
+      "level": 2,
+      "slug": "appointment360-contact360ioapi-data-and-service-notes",
+      "prose": "- **Gateway identity:** `contact360.io/api` is the **sole GraphQL entry point** for all dashboard and extension requests. No REST feature routes exist — only `/graphql` + health probes.\n- **Stack:** FastAPI 0.11x + Strawberry GraphQL (code-first) + asyncpg + async SQLAlchemy.\n- **Schema composition:** `app/graphql/schema.py` assembles 28 nested `Query` + `Mutation` module classes. Each module is independently owned and versioned.\n- **Context lifecycle:** Per-request `Context` carries: `db` (AsyncSession), `user` (JWT-decoded `User | None`), `user_uuid`, `dataloaders`. `DatabaseCommitMiddleware` ensures the session commits after every successful request.\n- **Auth model:** HS256 JWT — `Authorization: Bearer <token>`. Token blacklist in PostgreSQL `token_blacklist` table. Optional in-process TTL user cache (`ENABLE_USER_CACHE`); **no Redis** in appointment360.\n- **Orchestration pattern:** Appointment360 does NOT own contact/company data — it proxies all search/filter/export calls to Connectra via `ConnectraClient`. It owns user, billing, credits, activities, saved searches, notifications, and API key data in its PostgreSQL DB.\n- **Downstream clients:** `ConnectraClient` (contact data + sync jobs), `EmailServerJobsClient` (email satellite jobs), `LambdaEmailClient` (email finder/verifier), `LambdaAIClient` (AI chats), `ResumeAIClient` (resume), `LambdaS3StorageClient` (files), `LambdaLogsClient` (audit), `DocsAIClient` (pages content).\n- **Middleware chain (8 layers):** GZip → REDMetrics → Timing → RequestId → TraceId → GraphQLBodySize → GraphQLIdempotency → GraphQLMutationAbuseGuard → GraphQLRateLimit → DatabaseCommit.\n- **Extensions:** `QueryComplexityExtension` (limit 100) + `QueryTimeoutExtension` (30s).\n- **Lambda:** Mangum handler for AWS Lambda execution; uvicorn for EC2. Both targets supported via same codebase.\n- **Era:** Bootstrap `0.x`; user/billing `1.x`; email system `2.x`; contacts/companies `3.x`; SN/extension `4.x`; AI workflows `5.x`; reliability guards `6.x`; deployment hardening `7.x`; public API surface + pages `8.x`; ecosystem/notifications `9.x`; campaigns/sequences/templates `10.x`.\n- **Known gaps:** Inline debug file writes in `email/queries.py` and `jobs/mutations.py` must be removed. No `campaigns`/`sequences`/`templates` GraphQL modules yet (10.x work). Rate limit disabled by default. SQL schema files missing from local checkout.\n- **Cross-service dependency chain:** `appointment360 → connectra → elasticsearch/postgres | appointment360 → email.server / sync.server (jobs) | appointment360 → lambda email/AI/S3/logs → AWS Lambda`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Gateway identity:** `contact360.io/api` is the **sole GraphQL entry point** for all dashboard and extension requests. No REST feature routes exist — only `/graphql` + health probes.",
+              "checked": null
+            },
+            {
+              "text": "**Stack:** FastAPI 0.11x + Strawberry GraphQL (code-first) + asyncpg + async SQLAlchemy.",
+              "checked": null
+            },
+            {
+              "text": "**Schema composition:** `app/graphql/schema.py` assembles 28 nested `Query` + `Mutation` module classes. Each module is independently owned and versioned.",
+              "checked": null
+            },
+            {
+              "text": "**Context lifecycle:** Per-request `Context` carries: `db` (AsyncSession), `user` (JWT-decoded `User | None`), `user_uuid`, `dataloaders`. `DatabaseCommitMiddleware` ensures the session commits after every successful request.",
+              "checked": null
+            },
+            {
+              "text": "**Auth model:** HS256 JWT — `Authorization: Bearer <token>`. Token blacklist in PostgreSQL `token_blacklist` table. Optional in-process TTL user cache (`ENABLE_USER_CACHE`); **no Redis** in appointment360.",
+              "checked": null
+            },
+            {
+              "text": "**Orchestration pattern:** Appointment360 does NOT own contact/company data — it proxies all search/filter/export calls to Connectra via `ConnectraClient`. It owns user, billing, credits, activities, saved searches, notifications, and API key data in its PostgreSQL DB.",
+              "checked": null
+            },
+            {
+              "text": "**Downstream clients:** `ConnectraClient` (contact data + sync jobs), `EmailServerJobsClient` (email satellite jobs), `LambdaEmailClient` (email finder/verifier), `LambdaAIClient` (AI chats), `ResumeAIClient` (resume), `LambdaS3StorageClient` (files), `LambdaLogsClient` (audit), `DocsAIClient` (pages content).",
+              "checked": null
+            },
+            {
+              "text": "**Middleware chain (8 layers):** GZip → REDMetrics → Timing → RequestId → TraceId → GraphQLBodySize → GraphQLIdempotency → GraphQLMutationAbuseGuard → GraphQLRateLimit → DatabaseCommit.",
+              "checked": null
+            },
+            {
+              "text": "**Extensions:** `QueryComplexityExtension` (limit 100) + `QueryTimeoutExtension` (30s).",
+              "checked": null
+            },
+            {
+              "text": "**Lambda:** Mangum handler for AWS Lambda execution; uvicorn for EC2. Both targets supported via same codebase.",
+              "checked": null
+            },
+            {
+              "text": "**Era:** Bootstrap `0.x`; user/billing `1.x`; email system `2.x`; contacts/companies `3.x`; SN/extension `4.x`; AI workflows `5.x`; reliability guards `6.x`; deployment hardening `7.x`; public API surface + pages `8.x`; ecosystem/notifications `9.x`; campaigns/sequences/templates `10.x`.",
+              "checked": null
+            },
+            {
+              "text": "**Known gaps:** Inline debug file writes in `email/queries.py` and `jobs/mutations.py` must be removed. No `campaigns`/`sequences`/`templates` GraphQL modules yet (10.x work). Rate limit disabled by default. SQL schema files missing from local checkout.",
+              "checked": null
+            },
+            {
+              "text": "**Cross-service dependency chain:** `appointment360 → connectra → elasticsearch/postgres | appointment360 → email.server / sync.server (jobs) | appointment360 → lambda email/AI/S3/logs → AWS Lambda`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Appointment360 execution spine (era-aligned)",
+      "level": 3,
+      "slug": "appointment360-execution-spine-era-aligned",
+      "prose": "| Era | Contract concern | Service concern | Data concern | Ops concern |\n| --- | --- | --- | --- | --- |\n| `0.x` | Schema root, health endpoints, settings model | FastAPI app, middleware stack bootstrap, DB session lifecycle, Mangum | `users`, `token_blacklist` tables | `.env.example`, Docker, logging baseline |\n| `1.x` | Auth mutations (login/register/refresh/logout), billing/usage queries, credit model | JWT auth, credit deduction, billing service, abuse guard wiring for billing | `credits`, `plans`, `subscriptions`, `payment_submissions`, `activities` | Token TTL config, idempotency for billing mutations |\n| `2.x` | Email module (finder/verifier), jobs module (create/list/status) | `LambdaEmailClient`, `EmailServerJobsClient` / `ConnectraClient`, remove debug writes | `scheduler_jobs` activity entries | `LAMBDA_EMAIL_*`, `CONNECTRA_*` env vars, Postman tests |\n| `3.x` | Contacts/companies module, VQL input type | `ConnectraClient` wiring, `vql_converter.py`, `connectra_mappers.py`, DataLoaders | Contacts/companies in Connectra only; `saved_searches` in appointment360 DB | Connectra env vars, contract tests |\n| `4.x` | LinkedIn/SN module, extension session auth | `sales_navigator_client.py`, `upsertByLinkedinUrl`, extension token guard | SN results → Connectra; `sessions` table | SN env config, abuse guard for `upsertByLinkedinUrl` |\n| `5.x` | AI chats module, resume module, Gemini routing | `LambdaAIClient`, `ResumeAIClient`, AI credit deduction | `ai_chats`, `ai_chat_messages`, `resumes` | AI API env vars, credit cost config |\n| `6.x` | SLO/complexity/timeout/rate limit/idempotency/abuse guard contracts | Enable all middleware guards for production; PostgreSQL-backed idempotency | `graphql_idempotency_replays` / idempotency tables, slow-query logging | Rate limit env vars, load tests, SLO alerts |\n| `7.x` | Deployment targets, health readiness, RBAC | Mangum cold-start < 3s, lifespan handler, CI/CD pipeline | Alembic migration hygiene | Dockerfile, docker-compose, GitHub Actions |\n| `8.x` | Pages/DocsAI module, saved searches, profile/API keys, public API auth | `DocsAIClient`, `apiKeys` CRUD, 2FA TOTP, `X-API-Key` guard | `api_keys`, `sessions`, `saved_searches` | DocsAI env vars, public API Postman collection |\n| `9.x` | Notifications, analytics, admin panel, tenant model | Notification service, analytics event tracking, plan-entitlement guard | `notifications`, `events`, `feature_flags`, `workspaces` | Webhook secret, admin tests |\n| `10.x` | Campaigns/sequences/templates GraphQL modules, campaign wizard orchestration | `CampaignServiceClient`, proxy to email campaign service, credit deduction per recipient | Campaign data in campaign service DB; activities in appointment360 DB | Campaign service env vars, contract tests |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Contract concern",
+            "Service concern",
+            "Data concern",
+            "Ops concern"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Schema root, health endpoints, settings model",
+              "FastAPI app, middleware stack bootstrap, DB session lifecycle, Mangum",
+              "`users`, `token_blacklist` tables",
+              "`.env.example`, Docker, logging baseline"
+            ],
+            [
+              "`1.x`",
+              "Auth mutations (login/register/refresh/logout), billing/usage queries, credit model",
+              "JWT auth, credit deduction, billing service, abuse guard wiring for billing",
+              "`credits`, `plans`, `subscriptions`, `payment_submissions`, `activities`",
+              "Token TTL config, idempotency for billing mutations"
+            ],
+            [
+              "`2.x`",
+              "Email module (finder/verifier), jobs module (create/list/status)",
+              "`LambdaEmailClient`, `EmailServerJobsClient` / `ConnectraClient`, remove debug writes",
+              "`scheduler_jobs` activity entries",
+              "`LAMBDA_EMAIL_*`, `CONNECTRA_*` env vars, Postman tests"
+            ],
+            [
+              "`3.x`",
+              "Contacts/companies module, VQL input type",
+              "`ConnectraClient` wiring, `vql_converter.py`, `connectra_mappers.py`, DataLoaders",
+              "Contacts/companies in Connectra only; `saved_searches` in appointment360 DB",
+              "Connectra env vars, contract tests"
+            ],
+            [
+              "`4.x`",
+              "LinkedIn/SN module, extension session auth",
+              "`sales_navigator_client.py`, `upsertByLinkedinUrl`, extension token guard",
+              "SN results → Connectra; `sessions` table",
+              "SN env config, abuse guard for `upsertByLinkedinUrl`"
+            ],
+            [
+              "`5.x`",
+              "AI chats module, resume module, Gemini routing",
+              "`LambdaAIClient`, `ResumeAIClient`, AI credit deduction",
+              "`ai_chats`, `ai_chat_messages`, `resumes`",
+              "AI API env vars, credit cost config"
+            ],
+            [
+              "`6.x`",
+              "SLO/complexity/timeout/rate limit/idempotency/abuse guard contracts",
+              "Enable all middleware guards for production; PostgreSQL-backed idempotency",
+              "`graphql_idempotency_replays` / idempotency tables, slow-query logging",
+              "Rate limit env vars, load tests, SLO alerts"
+            ],
+            [
+              "`7.x`",
+              "Deployment targets, health readiness, RBAC",
+              "Mangum cold-start < 3s, lifespan handler, CI/CD pipeline",
+              "Alembic migration hygiene",
+              "Dockerfile, docker-compose, GitHub Actions"
+            ],
+            [
+              "`8.x`",
+              "Pages/DocsAI module, saved searches, profile/API keys, public API auth",
+              "`DocsAIClient`, `apiKeys` CRUD, 2FA TOTP, `X-API-Key` guard",
+              "`api_keys`, `sessions`, `saved_searches`",
+              "DocsAI env vars, public API Postman collection"
+            ],
+            [
+              "`9.x`",
+              "Notifications, analytics, admin panel, tenant model",
+              "Notification service, analytics event tracking, plan-entitlement guard",
+              "`notifications`, `events`, `feature_flags`, `workspaces`",
+              "Webhook secret, admin tests"
+            ],
+            [
+              "`10.x`",
+              "Campaigns/sequences/templates GraphQL modules, campaign wizard orchestration",
+              "`CampaignServiceClient`, proxy to email campaign service, credit deduction per recipient",
+              "Campaign data in campaign service DB; activities in appointment360 DB",
+              "Campaign service env vars, contract tests"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deployment overview",
+      "level": 2,
+      "slug": "deployment-overview",
+      "prose": "- Frontend apps (`contact360.io/app`, `contact360.io/root`): SSR/static deployment target.\n- DocsAI (`contact360.io/admin`): Django app with reverse-proxy deployment.\n- GraphQL gateway (`contact360.io/api`), Connectra (`contact360.io/sync`), EC2 **email** / **sync** satellites, and `lambda/*` / `backend(dev)/*` services: per-service deployment pipelines.\n- Datastores: environment-scoped **PostgreSQL** (appointment360, Connectra, jobs, mailvetter, campaign DBs), **OpenSearch/Elasticsearch**, **S3**, and **Redis only in Go worker paths** (email campaign Asynq, Mailvetter — see **`docs/docs/data-stores-postgres.md`**). (MongoDB references in older docs are legacy — canonical logs.api storage is S3 CSV; see data ownership table.)\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Frontend apps (`contact360.io/app`, `contact360.io/root`): SSR/static deployment target.",
+              "checked": null
+            },
+            {
+              "text": "DocsAI (`contact360.io/admin`): Django app with reverse-proxy deployment.",
+              "checked": null
+            },
+            {
+              "text": "GraphQL gateway (`contact360.io/api`), Connectra (`contact360.io/sync`), EC2 **email** / **sync** satellites, and `lambda/*` / `backend(dev)/*` services: per-service deployment pipelines.",
+              "checked": null
+            },
+            {
+              "text": "Datastores: environment-scoped **PostgreSQL** (appointment360, Connectra, jobs, mailvetter, campaign DBs), **OpenSearch/Elasticsearch**, **S3**, and **Redis only in Go worker paths** (email campaign Asynq, Mailvetter — see **`docs/docs/data-stores-postgres.md`**). (MongoDB references in older docs are legacy — canonical logs.api storage is S3 CSV; see data ownership table.)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Docs governance and sync rules",
+      "level": 2,
+      "slug": "docs-governance-and-sync-rules",
+      "prose": "- Source-of-truth docs are maintained in `docs/`.\n- Any architecture content change in `docs/architecture.md` must be mirrored in `contact360.io/admin/apps/architecture/constants.py`.\n- Any roadmap content change in `docs/roadmap.md` must be mirrored in `contact360.io/admin/apps/roadmap/constants.py`.\n- Suggested update trigger: every feature release (`X.Y.0`) and every major architecture change.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Source-of-truth docs are maintained in `docs/`.",
+              "checked": null
+            },
+            {
+              "text": "Any architecture content change in `docs/architecture.md` must be mirrored in `contact360.io/admin/apps/architecture/constants.py`.",
+              "checked": null
+            },
+            {
+              "text": "Any roadmap content change in `docs/roadmap.md` must be mirrored in `contact360.io/admin/apps/roadmap/constants.py`.",
+              "checked": null
+            },
+            {
+              "text": "Suggested update trigger: every feature release (`X.Y.0`) and every major architecture change.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Planning horizon (near-term vs strategic runway)",
+      "level": 2,
+      "slug": "planning-horizon-near-term-vs-strategic-runway",
+      "prose": "| Horizon | Typical versions | Where it lives | How to use it |\n| --- | --- | --- | --- |\n| **Near-term execution** | `1.x`–`6.x` | `docs/versions.md`, `docs/roadmap.md` (stages `1.x`–`6.x`) | Sprint planning, release cuts, acceptance criteria |\n| **Strategic platform runway** | `7.x`–`10.x` | `docs/roadmap.md` (era sections), `docs/versions.md`, optional `docs/versions/version_*.md` | Architecture prep, contract design, phased activation |\n\nPlanning note: `2.x` release promotion requires closing the email-app credential security gap (plaintext IMAP credential persistence and direct credential headers).\n\n**Era summary (canonical):**\n- `0.x` Foundation · `1.x` User/billing/credit · `2.x` Email system · `3.x` Contact/company data\n- `4.x` Extension/SN · `5.x` AI workflows · `6.x` Reliability and Scaling · `7.x` Deployment\n- `8.x` Public and private APIs · `9.x` Ecosystem + Productization · `10.x` Email campaign\n\nSee `docs/version-policy.md` for full per-era theme definitions.\n\nStrategic eras do **not** block near-term releases. Promote a `7.x`+ era into active execution when `docs/versions.md` marks the corresponding major/minor as `in_progress` and roadmap dependencies are satisfied.\n\n**Version scheme alignment:** See `docs/version-policy.md` — themes `0.x`–`10.x` match the roadmap version headers in `docs/roadmap.md` exactly.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Horizon",
+            "Typical versions",
+            "Where it lives",
+            "How to use it"
+          ],
+          "rows": [
+            [
+              "**Near-term execution**",
+              "`1.x`–`6.x`",
+              "`docs/versions.md`, `docs/roadmap.md` (stages `1.x`–`6.x`)",
+              "Sprint planning, release cuts, acceptance criteria"
+            ],
+            [
+              "**Strategic platform runway**",
+              "`7.x`–`10.x`",
+              "`docs/roadmap.md` (era sections), `docs/versions.md`, optional `docs/versions/version_*.md`",
+              "Architecture prep, contract design, phased activation"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`0.x` Foundation · `1.x` User/billing/credit · `2.x` Email system · `3.x` Contact/company data",
+              "checked": null
+            },
+            {
+              "text": "`4.x` Extension/SN · `5.x` AI workflows · `6.x` Reliability and Scaling · `7.x` Deployment",
+              "checked": null
+            },
+            {
+              "text": "`8.x` Public and private APIs · `9.x` Ecosystem + Productization · `10.x` Email campaign",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution architecture by era (all eras)",
+      "level": 2,
+      "slug": "execution-architecture-by-era-all-eras",
+      "prose": "| Era | Theme | Core architectural concern | Primary services | Contract boundary |\n| --- | --- | --- | --- | --- |\n| `0.x` | Foundation | Repo setup, CI, service skeletons | All services (setup) | Repo and CI baseline |\n| `1.x` | User, billing, credit | Auth, session, credit lifecycle, billing | `contact360.io/api`, `logs.api` | User/credit/billing GraphQL contracts |\n| `2.x` | Email system | Finder, verifier, results, bulk processing | `emailapis`, `emailapigo`, `mailvetter`, `contact360.io/api` | Finder/verifier API contract |\n| `3.x` | Contact/company data | VQL, enrichment, deduplication, search | `contact360.io/sync` (Connectra), `contact360.io/api` | VQL filter and search contracts |\n| `4.x` | Extension and Sales Navigator | Extension auth, SN ingestion, sync, telemetry | `salesnavigator`, `contact360.io/api`, `extension/contact360` | Extension auth and sync contracts |\n| `5.x` | AI workflows | HF streaming, Gemini, confidence, cost governance | `contact.ai`, `contact360.io/api` | AI chat/utility API and cost contracts |\n| `6.x` | Reliability and Scaling | SLO, idempotency, queue resilience, observability | All core services, `contact360.io/api`, job satellites, `logs.api` | SLO, idempotency, and observability contracts |\n| `7.x` | Deployment | RBAC, audit, governance, security posture | `contact360.io/api`, `docsai`, all services | RBAC, audit, and governance contracts |\n| `8.x` | Public and private APIs | Analytics instrumentation, API surface, webhooks | `contact360.io/api`, `logs.api` | External API/webhook/analytics contracts |\n| `9.x` | Ecosystem + Productization | Connectors, tenant model, entitlements, SLA ops | All services + integration adapters, `docsai` | Tenant, entitlement, and connector contracts |\n| `10.x` | Email campaign | Campaign execution, deliverability, compliance | `contact360.io/api`, `emailapis`, `logs.api` | Campaign execution and compliance contracts |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Theme",
+            "Core architectural concern",
+            "Primary services",
+            "Contract boundary"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Foundation",
+              "Repo setup, CI, service skeletons",
+              "All services (setup)",
+              "Repo and CI baseline"
+            ],
+            [
+              "`1.x`",
+              "User, billing, credit",
+              "Auth, session, credit lifecycle, billing",
+              "`contact360.io/api`, `logs.api`",
+              "User/credit/billing GraphQL contracts"
+            ],
+            [
+              "`2.x`",
+              "Email system",
+              "Finder, verifier, results, bulk processing",
+              "`emailapis`, `emailapigo`, `mailvetter`, `contact360.io/api`",
+              "Finder/verifier API contract"
+            ],
+            [
+              "`3.x`",
+              "Contact/company data",
+              "VQL, enrichment, deduplication, search",
+              "`contact360.io/sync` (Connectra), `contact360.io/api`",
+              "VQL filter and search contracts"
+            ],
+            [
+              "`4.x`",
+              "Extension and Sales Navigator",
+              "Extension auth, SN ingestion, sync, telemetry",
+              "`salesnavigator`, `contact360.io/api`, `extension/contact360`",
+              "Extension auth and sync contracts"
+            ],
+            [
+              "`5.x`",
+              "AI workflows",
+              "HF streaming, Gemini, confidence, cost governance",
+              "`contact.ai`, `contact360.io/api`",
+              "AI chat/utility API and cost contracts"
+            ],
+            [
+              "`6.x`",
+              "Reliability and Scaling",
+              "SLO, idempotency, queue resilience, observability",
+              "All core services, `contact360.io/api`, job satellites, `logs.api`",
+              "SLO, idempotency, and observability contracts"
+            ],
+            [
+              "`7.x`",
+              "Deployment",
+              "RBAC, audit, governance, security posture",
+              "`contact360.io/api`, `docsai`, all services",
+              "RBAC, audit, and governance contracts"
+            ],
+            [
+              "`8.x`",
+              "Public and private APIs",
+              "Analytics instrumentation, API surface, webhooks",
+              "`contact360.io/api`, `logs.api`",
+              "External API/webhook/analytics contracts"
+            ],
+            [
+              "`9.x`",
+              "Ecosystem + Productization",
+              "Connectors, tenant model, entitlements, SLA ops",
+              "All services + integration adapters, `docsai`",
+              "Tenant, entitlement, and connector contracts"
+            ],
+            [
+              "`10.x`",
+              "Email campaign",
+              "Campaign execution, deliverability, compliance",
+              "`contact360.io/api`, `emailapis`, `logs.api`",
+              "Campaign execution and compliance contracts"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small-task architecture checklist per minor",
+      "level": 3,
+      "slug": "small-task-architecture-checklist-per-minor",
+      "prose": "- Define one contract artifact to version (`schema`, `policy`, or `event`) before implementation starts.\n- Assign one primary service owner and one reviewer service owner for each contract change.\n- Add one validation checkpoint in DocsAI docs before marking a stage complete.\n- Track one measurable risk control per stage (for example idempotency, authz, or lineage coverage).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Define one contract artifact to version (`schema`, `policy`, or `event`) before implementation starts.",
+              "checked": null
+            },
+            {
+              "text": "Assign one primary service owner and one reviewer service owner for each contract change.",
+              "checked": null
+            },
+            {
+              "text": "Add one validation checkpoint in DocsAI docs before marking a stage complete.",
+              "checked": null
+            },
+            {
+              "text": "Track one measurable risk control per stage (for example idempotency, authz, or lineage coverage).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Documentation package ownership",
+      "level": 2,
+      "slug": "documentation-package-ownership",
+      "prose": "| Document | Purpose | Primary owner | Update trigger |\n| --- | --- | --- | --- |\n| `docs/architecture.md` | System boundaries and ownership | Platform architecture | Service boundary or data ownership change |\n| `docs/backend.md` | Lambda/service index, datastores, gateway-to-service map | Platform engineering | New backend service, health/ops notes, or orchestration change |\n| `docs/frontend.md` | Frontend product map (dashboard, marketing, DocsAI, extension) | Platform + frontend | New app route, client env model, or surface ownership change |\n| `docs/codebase.md` | Practical codebase map and entry points | Platform engineering | New app/service/module introduction |\n| `docs/flowchart.md` | Cross-service flow diagrams | Product + platform | New workflow or API contract changes |\n| `docs/roadmap.md` | Stage-by-stage execution | Product engineering | Stage planning/replanning |\n| `docs/versions.md` | Release history and planned minor cuts | Product ops | Minor/major release planning |\n| `docs/version-policy.md` | Versioning policy and planning standard | Product leadership | Policy or rubric updates |\n| `docs/docsai-sync.md` | Markdown-to-DocsAI mirror process | DocsAI maintainers | Any constants mirror workflow change |\n| `docs/governance.md` | Monorepo/service governance, CI checks, release hygiene | Platform engineering | New service, CI policy, or release process change |\n| `docs/audit-compliance.md` | Per-era, per-service compliance requirements and RBAC matrix | Security + platform | New service, era gate, or compliance control added |\n| `docs/versions/version_*.md` | Optional per-minor stubs (alongside `docs/versions.md`) | Product ops | Adding or renaming planned minors |\n\n---\n\n*This file is intended to stay aligned with the hardcoded DocsAI architecture view.*",
+      "tables": [
+        {
+          "headers": [
+            "Document",
+            "Purpose",
+            "Primary owner",
+            "Update trigger"
+          ],
+          "rows": [
+            [
+              "`docs/architecture.md`",
+              "System boundaries and ownership",
+              "Platform architecture",
+              "Service boundary or data ownership change"
+            ],
+            [
+              "`docs/backend.md`",
+              "Lambda/service index, datastores, gateway-to-service map",
+              "Platform engineering",
+              "New backend service, health/ops notes, or orchestration change"
+            ],
+            [
+              "`docs/frontend.md`",
+              "Frontend product map (dashboard, marketing, DocsAI, extension)",
+              "Platform + frontend",
+              "New app route, client env model, or surface ownership change"
+            ],
+            [
+              "`docs/codebase.md`",
+              "Practical codebase map and entry points",
+              "Platform engineering",
+              "New app/service/module introduction"
+            ],
+            [
+              "`docs/flowchart.md`",
+              "Cross-service flow diagrams",
+              "Product + platform",
+              "New workflow or API contract changes"
+            ],
+            [
+              "`docs/roadmap.md`",
+              "Stage-by-stage execution",
+              "Product engineering",
+              "Stage planning/replanning"
+            ],
+            [
+              "`docs/versions.md`",
+              "Release history and planned minor cuts",
+              "Product ops",
+              "Minor/major release planning"
+            ],
+            [
+              "`docs/version-policy.md`",
+              "Versioning policy and planning standard",
+              "Product leadership",
+              "Policy or rubric updates"
+            ],
+            [
+              "`docs/docsai-sync.md`",
+              "Markdown-to-DocsAI mirror process",
+              "DocsAI maintainers",
+              "Any constants mirror workflow change"
+            ],
+            [
+              "`docs/governance.md`",
+              "Monorepo/service governance, CI checks, release hygiene",
+              "Platform engineering",
+              "New service, CI policy, or release process change"
+            ],
+            [
+              "`docs/audit-compliance.md`",
+              "Per-era, per-service compliance requirements and RBAC matrix",
+              "Security + platform",
+              "New service, era gate, or compliance control added"
+            ],
+            [
+              "`docs/versions/version_*.md`",
+              "Optional per-minor stubs (alongside `docs/versions.md`)",
+              "Product ops",
+              "Adding or renaming planned minors"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era 6.x–10.x backend additions",
+      "level": 3,
+      "slug": "era-6x10x-backend-additions",
+      "prose": "The sections below (Era-aligned service register, execution spines per service) document how each backend service evolves across the later eras. This is the navigation summary:\n\n| Era | Backend addition theme | Primary new tables/contracts | Key operational docs |\n| --- | --- | --- | --- |\n| `6.x` | Reliability hardening | `idempotency_keys`, SLO/error-budget schemas | `docs/6. Contact360 Reliability and Scaling/slo-idempotency.md`, `queue-observability.md`, `reliability-rc-hardening.md`, `performance-storage-abuse.md` |\n| `7.x` | RBAC, audit, governance | `api_keys`, `feature_flags`, `activities` (audit trail) | `docs/7. Contact360 deployment/rbac-authz.md`, `analytics-era-rc.md` |\n| `8.x` | Public/private APIs, webhooks | `webhooks`, `api_keys` (scoped), analytics schemas | `docs/8. Contact360 public and private apis and endpoints/webhooks-replay.md`, `analytics-platform.md` |\n| `9.x` | Ecosystem, connectors, productization | `notifications`, `events`, `workspaces`, `feature_flags` | `docs/9. Contact360 Ecosystem integrations and Platform productization/connectors-commercial.md` |\n| `10.x` | Email campaign execution | `campaigns`, `sequences`, `sequence_steps`, `campaign_events`, `suppression_list`, `campaign_ai_log` | `docs/10. Contact360 email campaign/` task-packs |\n\nDeep per-service execution details are in the service-specific sections that follow, and in `docs/backend.md`. Audit/compliance requirements for these eras are in `docs/audit-compliance.md`.",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Backend addition theme",
+            "Primary new tables/contracts",
+            "Key operational docs"
+          ],
+          "rows": [
+            [
+              "`6.x`",
+              "Reliability hardening",
+              "`idempotency_keys`, SLO/error-budget schemas",
+              "`docs/6. Contact360 Reliability and Scaling/slo-idempotency.md`, `queue-observability.md`, `reliability-rc-hardening.md`, `performance-storage-abuse.md`"
+            ],
+            [
+              "`7.x`",
+              "RBAC, audit, governance",
+              "`api_keys`, `feature_flags`, `activities` (audit trail)",
+              "`docs/7. Contact360 deployment/rbac-authz.md`, `analytics-era-rc.md`"
+            ],
+            [
+              "`8.x`",
+              "Public/private APIs, webhooks",
+              "`webhooks`, `api_keys` (scoped), analytics schemas",
+              "`docs/8. Contact360 public and private apis and endpoints/webhooks-replay.md`, `analytics-platform.md`"
+            ],
+            [
+              "`9.x`",
+              "Ecosystem, connectors, productization",
+              "`notifications`, `events`, `workspaces`, `feature_flags`",
+              "`docs/9. Contact360 Ecosystem integrations and Platform productization/connectors-commercial.md`"
+            ],
+            [
+              "`10.x`",
+              "Email campaign execution",
+              "`campaigns`, `sequences`, `sequence_steps`, `campaign_events`, `suppression_list`, `campaign_ai_log`",
+              "`docs/10. Contact360 email campaign/` task-packs"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-aligned service register extension",
+      "level": 2,
+      "slug": "era-aligned-service-register-extension",
+      "prose": "Use this normalization when documenting services:\n\n| Service family | Era introduced | Primary docs anchor |\n| --- | --- | --- |\n| Auth/Billing/Usage | `1.x` | `docs/backend/apis/01_AUTH_MODULE.md`, `14_BILLING_MODULE.md`, `09_USAGE_MODULE.md` |\n| Email Finder/Verifier | `2.x` | `docs/backend/apis/15_EMAIL_MODULE.md` |\n| Contacts/Companies/Search | `3.x` | `docs/backend/apis/03_CONTACTS_MODULE.md`, `04_COMPANIES_MODULE.md` |\n| Extension/Sales Navigator | `4.x` | `docs/backend/apis/21_LINKEDIN_MODULE.md`, `23_SALES_NAVIGATOR_MODULE.md` |\n| AI workflows | `5.x` | `docs/backend/apis/17_AI_CHATS_MODULE.md` |\n| Reliability/Analytics | `6.x` | `docs/backend/apis/18_ANALYTICS_MODULE.md`, `11_ACTIVITIES_MODULE.md` |\n| Deployment/Governance | `7.x` | `docs/backend/apis/13_ADMIN_MODULE.md` |\n| Public APIs/Integrations | `8.x` | `docs/backend/apis/06_WEBHOOKS_MODULE.md`, `20_INTEGRATIONS_MODULE.md` |\n| Ecosystem/Productization | `9.x` | `docs/backend/apis/26_SAVED_SEARCHES_MODULE.md`, `28_PROFILE_MODULE.md` |\n| Campaign platform | `10.x` | `docs/backend/apis/22_CAMPAIGNS_MODULE.md`, `24_SEQUENCES_MODULE.md`, `25_CAMPAIGN_TEMPLATES_MODULE.md` |",
+      "tables": [
+        {
+          "headers": [
+            "Service family",
+            "Era introduced",
+            "Primary docs anchor"
+          ],
+          "rows": [
+            [
+              "Auth/Billing/Usage",
+              "`1.x`",
+              "`docs/backend/apis/01_AUTH_MODULE.md`, `14_BILLING_MODULE.md`, `09_USAGE_MODULE.md`"
+            ],
+            [
+              "Email Finder/Verifier",
+              "`2.x`",
+              "`docs/backend/apis/15_EMAIL_MODULE.md`"
+            ],
+            [
+              "Contacts/Companies/Search",
+              "`3.x`",
+              "`docs/backend/apis/03_CONTACTS_MODULE.md`, `04_COMPANIES_MODULE.md`"
+            ],
+            [
+              "Extension/Sales Navigator",
+              "`4.x`",
+              "`docs/backend/apis/21_LINKEDIN_MODULE.md`, `23_SALES_NAVIGATOR_MODULE.md`"
+            ],
+            [
+              "AI workflows",
+              "`5.x`",
+              "`docs/backend/apis/17_AI_CHATS_MODULE.md`"
+            ],
+            [
+              "Reliability/Analytics",
+              "`6.x`",
+              "`docs/backend/apis/18_ANALYTICS_MODULE.md`, `11_ACTIVITIES_MODULE.md`"
+            ],
+            [
+              "Deployment/Governance",
+              "`7.x`",
+              "`docs/backend/apis/13_ADMIN_MODULE.md`"
+            ],
+            [
+              "Public APIs/Integrations",
+              "`8.x`",
+              "`docs/backend/apis/06_WEBHOOKS_MODULE.md`, `20_INTEGRATIONS_MODULE.md`"
+            ],
+            [
+              "Ecosystem/Productization",
+              "`9.x`",
+              "`docs/backend/apis/26_SAVED_SEARCHES_MODULE.md`, `28_PROFILE_MODULE.md`"
+            ],
+            [
+              "Campaign platform",
+              "`10.x`",
+              "`docs/backend/apis/22_CAMPAIGNS_MODULE.md`, `24_SEQUENCES_MODULE.md`, `25_CAMPAIGN_TEMPLATES_MODULE.md`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage canonical storage control plane",
+      "level": 2,
+      "slug": "s3storage-canonical-storage-control-plane",
+      "prose": "All services (appointment360, contact.ai, jobs, email campaign, mailvetter, connectra, salesnavigator, resumeai, admin) must route file/artifact storage operations through `lambda/s3storage` and must not perform direct `boto3`/`aioboto3` S3 calls in service code.\n\n| Service | Status |\n| --- | --- |\n| appointment360 | ✅ uses S3StorageClient |\n| contact360.io/jobs | 📌 Planned migrate direct S3 paths |\n| backend(dev)/contact.ai | 📌 Planned audit/migrate |\n| backend(dev)/email campaign | 📌 Planned migrate direct S3 paths |\n| backend(dev)/mailvetter | 📌 Planned audit/migrate |\n| backend(dev)/resumeai | 📌 Planned confirm/migrate |\n| contact360.io/admin | 📌 Planned confirm/migrate |",
+      "tables": [
+        {
+          "headers": [
+            "Service",
+            "Status"
+          ],
+          "rows": [
+            [
+              "appointment360",
+              "✅ uses S3StorageClient"
+            ],
+            [
+              "contact360.io/jobs",
+              "📌 Planned migrate direct S3 paths"
+            ],
+            [
+              "backend(dev)/contact.ai",
+              "📌 Planned audit/migrate"
+            ],
+            [
+              "backend(dev)/email campaign",
+              "📌 Planned migrate direct S3 paths"
+            ],
+            [
+              "backend(dev)/mailvetter",
+              "📌 Planned audit/migrate"
+            ],
+            [
+              "backend(dev)/resumeai",
+              "📌 Planned confirm/migrate"
+            ],
+            [
+              "contact360.io/admin",
+              "📌 Planned confirm/migrate"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "logs.api execution spine by era",
+      "level": 2,
+      "slug": "logsapi-execution-spine-by-era",
+      "prose": "| Era | Contract tasks | Service tasks | Data/Ops tasks |\n| --- | --- | --- | --- |\n| `0.x` | Baseline health and write/read envelope | S3 CSV persistence baseline | Smoke checks and startup reliability |\n| `1.x` | User/billing/credit event schema | Gateway event write integration | Abuse and auth/billing audit evidence |\n| `2.x` | Finder/verifier job event contract | Batch ingestion and query filters | Throughput, latency, and retention checks |\n| `3.x` | Contact/company operation schema | Enrichment/dedupe event logging | Data lineage and support diagnostics |\n| `4.x` | Extension sync telemetry contract | Source-tagged extension logging | Provenance and replay diagnostics |\n| `5.x` | AI telemetry and policy contract | Sensitive-aware AI event logging | Cost/error anomaly evidence |\n| `6.x` | SLO/error-budget evidence contract | Query/caching/streaming hardening | Reliability runbooks and SLO gates |\n| `7.x` | Deployment/audit evidence contract | Release and environment event capture | Retention/compliance gate evidence |\n| `8.x` | Public/private API audit contract | Partner/API key scoped observability | Compatibility and incident triage signals |\n| `9.x` | Tenant/integration governance contract | Connector and entitlement event capture | SLA/tenant incident evidence |\n| `10.x` | Campaign compliance log contract | Immutable campaign lifecycle logging | Compliance retention and RC evidence |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Contract tasks",
+            "Service tasks",
+            "Data/Ops tasks"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Baseline health and write/read envelope",
+              "S3 CSV persistence baseline",
+              "Smoke checks and startup reliability"
+            ],
+            [
+              "`1.x`",
+              "User/billing/credit event schema",
+              "Gateway event write integration",
+              "Abuse and auth/billing audit evidence"
+            ],
+            [
+              "`2.x`",
+              "Finder/verifier job event contract",
+              "Batch ingestion and query filters",
+              "Throughput, latency, and retention checks"
+            ],
+            [
+              "`3.x`",
+              "Contact/company operation schema",
+              "Enrichment/dedupe event logging",
+              "Data lineage and support diagnostics"
+            ],
+            [
+              "`4.x`",
+              "Extension sync telemetry contract",
+              "Source-tagged extension logging",
+              "Provenance and replay diagnostics"
+            ],
+            [
+              "`5.x`",
+              "AI telemetry and policy contract",
+              "Sensitive-aware AI event logging",
+              "Cost/error anomaly evidence"
+            ],
+            [
+              "`6.x`",
+              "SLO/error-budget evidence contract",
+              "Query/caching/streaming hardening",
+              "Reliability runbooks and SLO gates"
+            ],
+            [
+              "`7.x`",
+              "Deployment/audit evidence contract",
+              "Release and environment event capture",
+              "Retention/compliance gate evidence"
+            ],
+            [
+              "`8.x`",
+              "Public/private API audit contract",
+              "Partner/API key scoped observability",
+              "Compatibility and incident triage signals"
+            ],
+            [
+              "`9.x`",
+              "Tenant/integration governance contract",
+              "Connector and entitlement event capture",
+              "SLA/tenant incident evidence"
+            ],
+            [
+              "`10.x`",
+              "Campaign compliance log contract",
+              "Immutable campaign lifecycle logging",
+              "Compliance retention and RC evidence"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "connectra execution spine by era",
+      "level": 2,
+      "slug": "connectra-execution-spine-by-era",
+      "prose": "| Era | Contract tasks | Service tasks | Data/Ops tasks |\n| --- | --- | --- | --- |\n| `0.x` | API key and health envelope baseline | Bootstrap routes and middleware chain | PG/ES bootstrap and smoke checks |\n| `1.x` | Credit-aware query/export policy | Enforce usage-aware search/write guards | Billing/usage event linkage |\n| `2.x` | CSV batch ingest contract | Stream-safe import/export runners | Job queue reliability and retries |\n| `3.x` | VQL taxonomy and search contract freeze | Two-phase read and dual-write hardening | ES/PG parity and dedup evidence |\n| `4.x` | SN payload and provenance contract | Idempotent batch-upsert for extension ingest | Conflict/replay diagnostics |\n| `5.x` | AI-readable field exposure contract | AI enrichment query paths | Confidence metadata lineage |\n| `6.x` | Search/export SLO and idempotency contract | Retry, failure, and worker resilience | Error budgets and drift detection |\n| `7.x` | RBAC and privileged endpoint policy | Authz checks for write/export paths | Audit evidence and tenant isolation |\n| `8.x` | Endpoint versioning/deprecation contract | Partner-scoped keys and lifecycle events | Compatibility gates and API observability |\n| `9.x` | Entitlement and quota contract | Tenant-aware throttling and connector safety | SLA and capacity evidence |\n| `10.x` | Audience/suppression query contract | Campaign export and suppression enforcement | Compliance and reproducibility evidence |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Contract tasks",
+            "Service tasks",
+            "Data/Ops tasks"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "API key and health envelope baseline",
+              "Bootstrap routes and middleware chain",
+              "PG/ES bootstrap and smoke checks"
+            ],
+            [
+              "`1.x`",
+              "Credit-aware query/export policy",
+              "Enforce usage-aware search/write guards",
+              "Billing/usage event linkage"
+            ],
+            [
+              "`2.x`",
+              "CSV batch ingest contract",
+              "Stream-safe import/export runners",
+              "Job queue reliability and retries"
+            ],
+            [
+              "`3.x`",
+              "VQL taxonomy and search contract freeze",
+              "Two-phase read and dual-write hardening",
+              "ES/PG parity and dedup evidence"
+            ],
+            [
+              "`4.x`",
+              "SN payload and provenance contract",
+              "Idempotent batch-upsert for extension ingest",
+              "Conflict/replay diagnostics"
+            ],
+            [
+              "`5.x`",
+              "AI-readable field exposure contract",
+              "AI enrichment query paths",
+              "Confidence metadata lineage"
+            ],
+            [
+              "`6.x`",
+              "Search/export SLO and idempotency contract",
+              "Retry, failure, and worker resilience",
+              "Error budgets and drift detection"
+            ],
+            [
+              "`7.x`",
+              "RBAC and privileged endpoint policy",
+              "Authz checks for write/export paths",
+              "Audit evidence and tenant isolation"
+            ],
+            [
+              "`8.x`",
+              "Endpoint versioning/deprecation contract",
+              "Partner-scoped keys and lifecycle events",
+              "Compatibility gates and API observability"
+            ],
+            [
+              "`9.x`",
+              "Entitlement and quota contract",
+              "Tenant-aware throttling and connector safety",
+              "SLA and capacity evidence"
+            ],
+            [
+              "`10.x`",
+              "Audience/suppression query contract",
+              "Campaign export and suppression enforcement",
+              "Compliance and reproducibility evidence"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "email campaign execution spine by era",
+      "level": 2,
+      "slug": "email-campaign-execution-spine-by-era",
+      "prose": "`backend(dev)/email campaign` is the `10.x` campaign delivery engine. It starts as a raw Go SMTP service in the foundation era and evolves into a full campaign platform with sequences, A/B testing, analytics, and compliance controls.\n\n| Era | Contract tasks | Service tasks | Data/Ops tasks |\n| --- | --- | --- | --- |\n| `0.x` | Schema baseline, service contract, health envelope | Fix schema drift, SMTP auth, env validation | Bootstrap Postgres/Redis/S3; Dockerize API + worker |\n| `1.x` | User/billing attribution, credit-per-send contract | Auth middleware; JWT validation; credit pre-check | Add user_id/org_id to campaigns; credit log |\n| `2.x` | SMTP provider contract, retry/bounce/DLQ contract | SMTP auth hardened; bounce webhooks; rate-limiter | Provider credential rotation; DLQ monitoring |\n| `3.x` | Audience source contract (segment/VQL/CSV) | Connectra audience resolver integration | Recipient lineage from Connectra contact UUIDs |\n| `4.x` | SN audience source contract | SN batch→Connectra→recipient pipeline | Enrichment-gated recipient resolution |\n| `5.x` | AI template generation contract, personalization fields | AI generate endpoint, extend TemplateData | AI template metadata in DB; model/prompt lineage |\n| `6.x` | SLO/DLQ/idempotency/resume contract | Graceful shutdown; resume-from-checkpoint; circuit-breaker | HPA worker scaling; Prometheus campaign metrics |\n| `7.x` | RBAC, audit log, governance contract | Role checks on routes; audit events to logs.api | Secrets in vault; deployment pipeline |\n| `8.x` | GraphQL module, public REST v1, webhook contract | Campaign/template GraphQL resolvers; webhook dispatcher | Webhook delivery log; API usage metrics |\n| `9.x` | Entitlement, suppression import, partner send contract | Entitlement middleware; suppression import endpoint | Sender domain table; integration suppression sync |\n| `10.x` | Sequence engine, A/B, analytics, compliance contract | Full sequence/A/B/tracking/scheduler implementation | Analytics aggregation cron; tracking pixel CDN |\n\nData ownership note: `backend(dev)/email campaign` owns `campaigns`, `recipients`, `suppression_list`, `templates`, `sequences`, `sequence_steps`, `campaign_events` in its own Postgres instance. It reads contact/segment data from Connectra via REST, and logs lifecycle events to `logs.api`.\n\nReference deep-dive and small-task decomposition: `docs/codebases/emailcampaign-codebase-analysis.md`.",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Contract tasks",
+            "Service tasks",
+            "Data/Ops tasks"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Schema baseline, service contract, health envelope",
+              "Fix schema drift, SMTP auth, env validation",
+              "Bootstrap Postgres/Redis/S3; Dockerize API + worker"
+            ],
+            [
+              "`1.x`",
+              "User/billing attribution, credit-per-send contract",
+              "Auth middleware; JWT validation; credit pre-check",
+              "Add user_id/org_id to campaigns; credit log"
+            ],
+            [
+              "`2.x`",
+              "SMTP provider contract, retry/bounce/DLQ contract",
+              "SMTP auth hardened; bounce webhooks; rate-limiter",
+              "Provider credential rotation; DLQ monitoring"
+            ],
+            [
+              "`3.x`",
+              "Audience source contract (segment/VQL/CSV)",
+              "Connectra audience resolver integration",
+              "Recipient lineage from Connectra contact UUIDs"
+            ],
+            [
+              "`4.x`",
+              "SN audience source contract",
+              "SN batch→Connectra→recipient pipeline",
+              "Enrichment-gated recipient resolution"
+            ],
+            [
+              "`5.x`",
+              "AI template generation contract, personalization fields",
+              "AI generate endpoint, extend TemplateData",
+              "AI template metadata in DB; model/prompt lineage"
+            ],
+            [
+              "`6.x`",
+              "SLO/DLQ/idempotency/resume contract",
+              "Graceful shutdown; resume-from-checkpoint; circuit-breaker",
+              "HPA worker scaling; Prometheus campaign metrics"
+            ],
+            [
+              "`7.x`",
+              "RBAC, audit log, governance contract",
+              "Role checks on routes; audit events to logs.api",
+              "Secrets in vault; deployment pipeline"
+            ],
+            [
+              "`8.x`",
+              "GraphQL module, public REST v1, webhook contract",
+              "Campaign/template GraphQL resolvers; webhook dispatcher",
+              "Webhook delivery log; API usage metrics"
+            ],
+            [
+              "`9.x`",
+              "Entitlement, suppression import, partner send contract",
+              "Entitlement middleware; suppression import endpoint",
+              "Sender domain table; integration suppression sync"
+            ],
+            [
+              "`10.x`",
+              "Sequence engine, A/B, analytics, compliance contract",
+              "Full sequence/A/B/tracking/scheduler implementation",
+              "Analytics aggregation cron; tracking pixel CDN"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "salesnavigator execution spine by era",
+      "level": 2,
+      "slug": "salesnavigator-execution-spine-by-era",
+      "prose": "`EC2/extension.server` (`contact360.io/extension`) is the canonical `4.x` Sales Navigator ingestion façade, with parity to the historical `backend(dev)/salesnavigator` FastAPI Lambda implementation. It is stateless (no local DB), forwarding all data to Connectra. It starts as a scaffold in `0.x` and evolves with auth governance, rate limiting, and campaign audience provenance in later eras.\n\n| Era | Contract tasks | Service tasks | Data/Ops tasks |\n| --- | --- | --- | --- |\n| `0.x` | UUID5 deterministic contract; health endpoint spec | FastAPI+Mangum scaffold; SAM template | UUID generation rules documented |\n| `1.x` | Actor context headers contract | `X-User-ID`/`X-Org-ID` pass-through; billing stub | `actor_id` in Connectra contact metadata |\n| `2.x` | Email field handoff contract | Email/phone field validation; enrichment queue stub | `email`, `email_status` field presence validated |\n| `3.x` | Full field mapping contract; provenance tags | Mapper functions locked; `lead_id`, `search_id` tags | `source=sales_navigator` provenance in Connectra |\n| `4.x` | API semantics locked; docs drift fixed | HTML extraction hardened; extension UX delivered | `data_quality_score`, `recently_hired`, `is_premium` |\n| `5.x` | AI field requirements contract | `seniority`, `departments`, `about` quality gated | `data_quality_score` indexed for AI context |\n| `6.x` | SLO contract; partial success semantics | Rate limiter; chunk idempotency; CORS hardened | Load tests; error budget dashboards |\n| `7.x` | RBAC and scoped key contract; GDPR cascade | Per-tenant keys; audit event per save | Immutable audit events; GDPR erasure |\n| `8.x` | Rate-limit headers; versioned path | `X-RateLimit-*` headers; usage counters | `api_usage` table; quota enforcement |\n| `9.x` | Connector adapter contract; webhook delivery | Adapter layer; webhook retry | Connector audit trail; tenant lineage |\n| `10.x` | Campaign provenance contract; suppression guard | Suppression non-overwrite; `lead_id` → campaign | Campaign audience traceability |\n\nData ownership note: `backend(dev)/salesnavigator` has no local database. All contact/company data persists in Connectra (PostgreSQL + Elasticsearch). Provenance metadata (`lead_id`, `search_id`, `data_quality_score`, `source`) is embedded in Connectra contact records.\n\nReference deep-dive and small-task decomposition: `docs/codebases/salesnavigator-codebase-analysis.md`.\n\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Contract tasks",
+            "Service tasks",
+            "Data/Ops tasks"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "UUID5 deterministic contract; health endpoint spec",
+              "FastAPI+Mangum scaffold; SAM template",
+              "UUID generation rules documented"
+            ],
+            [
+              "`1.x`",
+              "Actor context headers contract",
+              "`X-User-ID`/`X-Org-ID` pass-through; billing stub",
+              "`actor_id` in Connectra contact metadata"
+            ],
+            [
+              "`2.x`",
+              "Email field handoff contract",
+              "Email/phone field validation; enrichment queue stub",
+              "`email`, `email_status` field presence validated"
+            ],
+            [
+              "`3.x`",
+              "Full field mapping contract; provenance tags",
+              "Mapper functions locked; `lead_id`, `search_id` tags",
+              "`source=sales_navigator` provenance in Connectra"
+            ],
+            [
+              "`4.x`",
+              "API semantics locked; docs drift fixed",
+              "HTML extraction hardened; extension UX delivered",
+              "`data_quality_score`, `recently_hired`, `is_premium`"
+            ],
+            [
+              "`5.x`",
+              "AI field requirements contract",
+              "`seniority`, `departments`, `about` quality gated",
+              "`data_quality_score` indexed for AI context"
+            ],
+            [
+              "`6.x`",
+              "SLO contract; partial success semantics",
+              "Rate limiter; chunk idempotency; CORS hardened",
+              "Load tests; error budget dashboards"
+            ],
+            [
+              "`7.x`",
+              "RBAC and scoped key contract; GDPR cascade",
+              "Per-tenant keys; audit event per save",
+              "Immutable audit events; GDPR erasure"
+            ],
+            [
+              "`8.x`",
+              "Rate-limit headers; versioned path",
+              "`X-RateLimit-*` headers; usage counters",
+              "`api_usage` table; quota enforcement"
+            ],
+            [
+              "`9.x`",
+              "Connector adapter contract; webhook delivery",
+              "Adapter layer; webhook retry",
+              "Connector audit trail; tenant lineage"
+            ],
+            [
+              "`10.x`",
+              "Campaign provenance contract; suppression guard",
+              "Suppression non-overwrite; `lead_id` → campaign",
+              "Campaign audience traceability"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email app surface register — contact360.io/email",
+      "level": 2,
+      "slug": "email-app-surface-register-contact360ioemail",
+      "prose": "| Surface | Path | Status | Notes |\n| --- | --- | --- | --- |\n| Email Frontend App | `contact360.io/email/` | active | Next.js 16 mailbox UI surface with GraphQL-based auth (via `api.contact360.io`) plus account and folder routes backed by mailbox REST APIs. |\n| Email Context Layer | `contact360.io/email/src/context/imap-context.tsx` | active | Active mailbox account context + localStorage persistence for folder/account state. |\n| Email UI table layer | `contact360.io/email/src/components/data-table.tsx` | active | Folder tabs, checkbox row selection, pagination, row actions. |",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Path",
+            "Status",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "Email Frontend App",
+              "`contact360.io/email/`",
+              "active",
+              "Next.js 16 mailbox UI surface with GraphQL-based auth (via `api.contact360.io`) plus account and folder routes backed by mailbox REST APIs."
+            ],
+            [
+              "Email Context Layer",
+              "`contact360.io/email/src/context/imap-context.tsx`",
+              "active",
+              "Active mailbox account context + localStorage persistence for folder/account state."
+            ],
+            [
+              "Email UI table layer",
+              "`contact360.io/email/src/components/data-table.tsx`",
+              "active",
+              "Folder tabs, checkbox row selection, pagination, row actions."
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Canonical ownership additions",
+      "level": 3,
+      "slug": "canonical-ownership-additions",
+      "prose": "| Service | Path (this workspace) | Language | Owns |\n| --- | --- | --- | --- |\n| Email Frontend | `contact360.io/email/` | TypeScript/React | Mailbox UX, auth entry UX (GraphQL login/logout), IMAP account management UI, REST API consumption for mailbox data. |",
+      "tables": [
+        {
+          "headers": [
+            "Service",
+            "Path (this workspace)",
+            "Language",
+            "Owns"
+          ],
+          "rows": [
+            [
+              "Email Frontend",
+              "`contact360.io/email/`",
+              "TypeScript/React",
+              "Mailbox UX, auth entry UX (GraphQL login/logout), IMAP account management UI, REST API consumption for mailbox data."
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "mailvetter execution spine by era",
+      "level": 2,
+      "slug": "mailvetter-execution-spine-by-era",
+      "prose": "`backend(dev)/mailvetter` is the deep verifier service for Contact360 email validation flows. It runs as two binaries (API + worker), uses Redis queueing, and persists jobs/results in PostgreSQL.\n\n| Era | Contract tasks | Service tasks | Data/Ops tasks |\n| --- | --- | --- | --- |\n| `0.x` | Canonicalize `/v1` contract and auth envelope | API/worker split baseline, startup checks | `jobs`/`results` tables and indexes baseline |\n| `1.x` | Plan/credit and API key ownership contract | Key scope + owner attribution | Usage/credit logs for billing reconciliation |\n| `2.x` | Verify/bulk/job/results contract freeze | SMTP+DNS+OSINT scoring and queue/worker hardening | Job lifecycle accuracy and result lineage |\n| `3.x` | Contact/company linkage contract | Optional `contact_uuid`/`company_uuid` verification links | Cross-service lineage to Connectra |\n| `4.x` | Extension/SN provenance contract | Source-tagged verification and anti-abuse controls | Provenance and dedupe evidence |\n| `5.x` | AI explainability schema contract | Reason-code summarization for AI workflows | AI-safe PII handling and factor lineage |\n| `6.x` | SLO/idempotency/distributed limiter contract | Redis-backed limiter + retry/DLQ | Queue lag/error budget observability |\n| `7.x` | Versioning/deprecation + release gate contract | Migration pipeline split from startup | Backup/restore and rollback evidence |\n| `8.x` | Public/private API scoped key contract | OpenAPI + scoped key enforcement | API audit logs and rotation evidence |\n| `9.x` | Ecosystem webhook and connector contract | Webhook replay/DLQ and partner adapters | Partner SLA and delivery logs |\n| `10.x` | Campaign preflight verification contract | Campaign recipient verification snapshots | Compliance traceability for send decisions |\n\nData ownership note: `backend(dev)/mailvetter` owns verifier operational state in local Postgres (`jobs`, `results`) and does not own Contact360 canonical contact/company entities.\n\nReference deep-dive and small-task decomposition: `docs/codebases/mailvetter-codebase-analysis.md`.",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Contract tasks",
+            "Service tasks",
+            "Data/Ops tasks"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Canonicalize `/v1` contract and auth envelope",
+              "API/worker split baseline, startup checks",
+              "`jobs`/`results` tables and indexes baseline"
+            ],
+            [
+              "`1.x`",
+              "Plan/credit and API key ownership contract",
+              "Key scope + owner attribution",
+              "Usage/credit logs for billing reconciliation"
+            ],
+            [
+              "`2.x`",
+              "Verify/bulk/job/results contract freeze",
+              "SMTP+DNS+OSINT scoring and queue/worker hardening",
+              "Job lifecycle accuracy and result lineage"
+            ],
+            [
+              "`3.x`",
+              "Contact/company linkage contract",
+              "Optional `contact_uuid`/`company_uuid` verification links",
+              "Cross-service lineage to Connectra"
+            ],
+            [
+              "`4.x`",
+              "Extension/SN provenance contract",
+              "Source-tagged verification and anti-abuse controls",
+              "Provenance and dedupe evidence"
+            ],
+            [
+              "`5.x`",
+              "AI explainability schema contract",
+              "Reason-code summarization for AI workflows",
+              "AI-safe PII handling and factor lineage"
+            ],
+            [
+              "`6.x`",
+              "SLO/idempotency/distributed limiter contract",
+              "Redis-backed limiter + retry/DLQ",
+              "Queue lag/error budget observability"
+            ],
+            [
+              "`7.x`",
+              "Versioning/deprecation + release gate contract",
+              "Migration pipeline split from startup",
+              "Backup/restore and rollback evidence"
+            ],
+            [
+              "`8.x`",
+              "Public/private API scoped key contract",
+              "OpenAPI + scoped key enforcement",
+              "API audit logs and rotation evidence"
+            ],
+            [
+              "`9.x`",
+              "Ecosystem webhook and connector contract",
+              "Webhook replay/DLQ and partner adapters",
+              "Partner SLA and delivery logs"
+            ],
+            [
+              "`10.x`",
+              "Campaign preflight verification contract",
+              "Campaign recipient verification snapshots",
+              "Compliance traceability for send decisions"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Documentation Overhaul Addendum",
+      "level": 2,
+      "slug": "2026-documentation-overhaul-addendum",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service topology corrections",
+      "level": 3,
+      "slug": "service-topology-corrections",
+      "prose": "- `contact360.io/admin` is a first-class service boundary (Django + DRF + Django-Q) and must be treated as part of the runtime control plane, not docs-only tooling.\n- `lambda/logs.api` canonical storage is S3 CSV (+ in-memory query/cache helpers). Any MongoDB mention is historical drift and non-canonical.\n- `lambda/emailapigo` and `lambda/emailapis` are both active in the email stack; documentation must reflect dual-runtime orchestration and provider fallback responsibilities.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`contact360.io/admin` is a first-class service boundary (Django + DRF + Django-Q) and must be treated as part of the runtime control plane, not docs-only tooling.",
+              "checked": null
+            },
+            {
+              "text": "`lambda/logs.api` canonical storage is S3 CSV (+ in-memory query/cache helpers). Any MongoDB mention is historical drift and non-canonical.",
+              "checked": null
+            },
+            {
+              "text": "`lambda/emailapigo` and `lambda/emailapis` are both active in the email stack; documentation must reflect dual-runtime orchestration and provider fallback responsibilities.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Critical architecture risks now tracked",
+      "level": 3,
+      "slug": "critical-architecture-risks-now-tracked",
+      "prose": "- `lambda/s3storage` keeps multipart session state in process memory (`_MULTIPART_SESSIONS`), which is non-durable for Lambda horizontal scale and retries.\n- `lambda/s3storage` currently has route-level capability without a fully enforced API auth boundary on all non-health paths.\n- `backend(dev)/email campaign` has correctness blockers in unsubscribe/query and schema parity paths (`EC-0.1`, `EC-0.2`).\n- `lambda/emailapigo` includes hardcoded logging credential patterns in prior implementation paths (`EGO-0.4`) and must be env-only.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`lambda/s3storage` keeps multipart session state in process memory (`_MULTIPART_SESSIONS`), which is non-durable for Lambda horizontal scale and retries.",
+              "checked": null
+            },
+            {
+              "text": "`lambda/s3storage` currently has route-level capability without a fully enforced API auth boundary on all non-health paths.",
+              "checked": null
+            },
+            {
+              "text": "`backend(dev)/email campaign` has correctness blockers in unsubscribe/query and schema parity paths (`EC-0.1`, `EC-0.2`).",
+              "checked": null
+            },
+            {
+              "text": "`lambda/emailapigo` includes hardcoded logging credential patterns in prior implementation paths (`EGO-0.4`) and must be env-only.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Control-plane boundary note",
+      "level": 3,
+      "slug": "control-plane-boundary-note",
+      "prose": "`contact360.io/api` remains the GraphQL gateway, while `contact360.io/admin` is the operational control surface that orchestrates privileged actions through clients to `appointment360`, `logs.api`, and `s3storage` (job state via gateway).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Operations & Runbooks",
+      "level": 2,
+      "slug": "operations-runbooks",
+      "prose": "- [Appointment360 Runbook](ops/runbooks/appointment360.md)\n- [Connectra Runbook](ops/runbooks/connectra.md)\n- [Contact AI Runbook](ops/runbooks/contact-ai.md)\n- [Email API (Go) Runbook](ops/runbooks/emailapigo.md)\n- [Email APIs Runbook](ops/runbooks/emailapis.md)\n- [Jobs Runbook](ops/runbooks/jobs.md)\n- [Logs API Runbook](ops/runbooks/logs-api.md)\n- [Resume AI Runbook](ops/runbooks/resumeai.md)\n- [S3 Storage Runbook](ops/runbooks/s3storage.md)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[Appointment360 Runbook](ops/runbooks/appointment360.md)",
+              "checked": null
+            },
+            {
+              "text": "[Connectra Runbook](ops/runbooks/connectra.md)",
+              "checked": null
+            },
+            {
+              "text": "[Contact AI Runbook](ops/runbooks/contact-ai.md)",
+              "checked": null
+            },
+            {
+              "text": "[Email API (Go) Runbook](ops/runbooks/emailapigo.md)",
+              "checked": null
+            },
+            {
+              "text": "[Email APIs Runbook](ops/runbooks/emailapis.md)",
+              "checked": null
+            },
+            {
+              "text": "[Jobs Runbook](ops/runbooks/jobs.md)",
+              "checked": null
+            },
+            {
+              "text": "[Logs API Runbook](ops/runbooks/logs-api.md)",
+              "checked": null
+            },
+            {
+              "text": "[Resume AI Runbook](ops/runbooks/resumeai.md)",
+              "checked": null
+            },
+            {
+              "text": "[S3 Storage Runbook](ops/runbooks/s3storage.md)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "Appointment360 Runbook",
+          "href": "ops/runbooks/appointment360.md"
+        },
+        {
+          "text": "Connectra Runbook",
+          "href": "ops/runbooks/connectra.md"
+        },
+        {
+          "text": "Contact AI Runbook",
+          "href": "ops/runbooks/contact-ai.md"
+        },
+        {
+          "text": "Email API (Go) Runbook",
+          "href": "ops/runbooks/emailapigo.md"
+        },
+        {
+          "text": "Email APIs Runbook",
+          "href": "ops/runbooks/emailapis.md"
+        },
+        {
+          "text": "Jobs Runbook",
+          "href": "ops/runbooks/jobs.md"
+        },
+        {
+          "text": "Logs API Runbook",
+          "href": "ops/runbooks/logs-api.md"
+        },
+        {
+          "text": "Resume AI Runbook",
+          "href": "ops/runbooks/resumeai.md"
+        },
+        {
+          "text": "S3 Storage Runbook",
+          "href": "ops/runbooks/s3storage.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "kind": "page_spec",
+  "source_path": "frontend/pages/deployment_page.md",
+  "sha256_source": "a8e9e844c0b57188444210a06f57776fcf4909ccd05c821fe3a6e280853675a7",
+  "generated_at": "2026-04-08T23:26:48.892406+00:00",
+  "title": "Deployments",
+  "raw_markdown": "---\ntitle: \"Deployments\"\npage_id: deployment_page\nsource_json: deployment_page.json\ngenerator: json_to_markdown.py\n---\n\n# Deployments\n\n## Overview\n\n- **page_id:** deployment_page\n- **page_type:** dashboard\n- **codebase:** app\n- **surface:** dashboard\n- **era_tags:** 7.x\n- **flow_id:** deployment\n- **_id:** deployment_page-001\n\n## Metadata\n\n- **route:** /admin/deployments\n- **file_path:** contact360.io/app/app/(dashboard)/admin/deployments/page.tsx\n- **purpose:** Planned admin-only deployment and release visibility: environment, build SHA, last deploy time, rollback affordance (superAdmin). Complements 7.x deployment pipeline (CI/CD) without exposing secrets to end users.\n- **s3_key:** data/pages/deployment_page.json\n- **status:** planned\n- **authentication:** Required (useSessionGuard + DashboardAccessGate)\n- **authorization:** superAdmin only; non-superAdmin redirected to /dashboard\n- **page_state:** planned\n- **last_updated:** 2026-03-24T00:00:00.000000+00:00\n- **uses_endpoints:** []\n- **ui_components:** []\n- **versions:** []\n- **endpoint_count:** 0\n- **api_versions:** []\n- **codebase:** app\n- **canonical_repo:** contact360.io/app\n\n## Content sections (summary)\n\n### title\n\nDeployments\n\n### description\n\nPlanned: view current deployment metadata and release history for ops.\n\n\n## Sections (UI structure)\n\n### headings\n\n| id | level | text |\n| --- | --- | --- |\n| deploy-title | 1 | Deployments |\n| current | 2 | Current release |\n| history | 2 | Release history |\n\n\n### subheadings\n\n\n\n### tabs\n\n| content_ref | id | label |\n| --- | --- | --- |\n| deploy-overview | overview | Overview |\n| deploy-history | history | History |\n\n\n### buttons\n\n| action | component | id | label | type | visibility |\n| --- | --- | --- | --- | --- | --- |\n| refetch deployment metadata | DeploymentPage | refresh-deploy | Refresh | icon |  |\n| external link to CI (e.g. GitHub Actions) | DeploymentPage | open-pipeline | Open pipeline | secondary | superAdmin |\n\n\n### input_boxes\n\n\n\n### text_blocks\n\n| component | content | id | type |\n| --- | --- | --- | --- |\n| DeploymentPage | Build: {shaShort} | build-sha | stat |\n| DeploymentPage | Environment: {production\\|staging} | env-label | badge |\n| DeploymentPage | Deployed at {isoTimestamp} | deployed-at | caption |\n\n\n### checkboxes\n\n\n\n### radio_buttons\n\n\n\n### progress_bars\n\n\n\n### graphs\n\n\n\n### flows\n\n| component | id | label | steps |\n| --- | --- | --- | --- |\n| DeploymentPage | deploy-visibility-flow | Deployment visibility (admin) | ['superAdmin navigates to /admin/deployments', 'deploymentService.GetCurrentDeployment', 'Table of recent releases with actor/commit message', 'Optional: link to external CI run'] |\n\n\n### components\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| components/features/admin/DeploymentPage.tsx | DeploymentPage | Planned: current build card + release history table |\n\n\n### hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useDeployments.ts | useDeployments | Planned: list deployments + current |\n\n\n### services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/deploymentService.ts | deploymentService | ['GetCurrentDeployment', 'ListDeployments'] |\n\n\n### contexts\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| context/RoleContext.tsx | RoleContext | superAdmin gate |\n\n\n### utilities\n\n\n\n### ui_components\n\n\n\n### endpoints\n\n\n\n## UI elements (top-level)\n\n### buttons\n\n| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| refresh-deploy | Refresh | icon | refetch deployment metadata | DeploymentPage |\n| open-pipeline | Open pipeline | secondary | external link to CI (e.g. GitHub Actions) | DeploymentPage |\n\n\n### inputs\n\n[]\n\n### checkboxes\n\n[]\n\n### radio_buttons\n\n[]\n\n### progress_bars\n\n[]\n\n### toasts\n\n[]\n\n## Graphql Bindings\n\n| hook | operation | service | type |\n| --- | --- | --- | --- |\n| useDeploymentPage (planned) | GetCurrentDeployment, ListDeployments | deploymentService (planned) | query |\n\n\n## Hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useDeployments.ts | useDeployments | Planned: list deployments + current |\n\n\n## Services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/deploymentService.ts | deploymentService | ['GetCurrentDeployment', 'ListDeployments'] |\n\n\n## Backend Bindings\n\n| layer | path | usage |\n| --- | --- | --- |\n| admin/deployment governance | deployment metadata endpoints (planned) | superAdmin deployment visibility |\n\n\n## Data Sources\n\n- Deployment metadata services (planned)\n- CI/CD pipeline integration references\n\n\n## Flow summary\n\nsuperAdmin deployment page -> planned deployment hooks/services -> deployment metadata endpoints -> release overview/history UI\n\n\n<!-- AUTO:design-nav:start -->\n\n## Era coverage (Contact360 0.x–10.x)\n\nThis page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **7.x** — Deployment — governance, deployments surface, RBAC-sensitive admin views.\n- **Status** — Planned or spec-only; confirm `page.tsx` exists before treating as shipped.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/admin/deployments`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.\n\n## Backend API documentation\n\n- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md).\n\n### Peer pages (same codebase)\n\n- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| — | *No `graphql/...` references in this page spec* | — | — |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n---\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*\n",
+  "front_matter": {
+    "title": "\"Deployments\"",
+    "page_id": "deployment_page",
+    "source_json": "deployment_page.json",
+    "generator": "json_to_markdown.py"
+  },
+  "page_id": "deployment_page",
+  "page_type": "dashboard",
+  "codebase": "app",
+  "surface": "dashboard",
+  "era_tags": [
+    "7.x"
+  ],
+  "flow_id": "deployment",
+  "metadata": {
+    "route": "/admin/deployments",
+    "file_path": "contact360.io/app/app/(dashboard)/admin/deployments/page.tsx",
+    "purpose": "Planned admin-only deployment and release visibility: environment, build SHA, last deploy time, rollback affordance (superAdmin). Complements 7.x deployment pipeline (CI/CD) without exposing secrets to end users.",
+    "s3_key": "data/pages/deployment_page.json",
+    "status": "planned",
+    "authentication": "Required (useSessionGuard + DashboardAccessGate)",
+    "authorization": "superAdmin only; non-superAdmin redirected to /dashboard",
+    "page_state": "planned",
+    "last_updated": "2026-03-24T00:00:00.000000+00:00"
+  },
+  "uses_endpoints": [],
+  "ui_components": [],
+  "sections": [
+    {
+      "heading": "Deployments",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Content sections (summary)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "title",
+      "level": 3,
+      "prose": "Deployments"
+    },
+    {
+      "heading": "description",
+      "level": 3,
+      "prose": "Planned: view current deployment metadata and release history for ops."
+    },
+    {
+      "heading": "Sections (UI structure)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "headings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| deploy-title | 1 | Deployments |\n| current | 2 | Current release |\n| history | 2 | Release history |"
+    },
+    {
+      "heading": "subheadings",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "tabs",
+      "level": 3,
+      "prose": "| content_ref | id | label |\n| --- | --- | --- |\n| deploy-overview | overview | Overview |\n| deploy-history | history | History |"
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| action | component | id | label | type | visibility |\n| --- | --- | --- | --- | --- | --- |\n| refetch deployment metadata | DeploymentPage | refresh-deploy | Refresh | icon |  |\n| external link to CI (e.g. GitHub Actions) | DeploymentPage | open-pipeline | Open pipeline | secondary | superAdmin |"
+    },
+    {
+      "heading": "input_boxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "text_blocks",
+      "level": 3,
+      "prose": "| component | content | id | type |\n| --- | --- | --- | --- |\n| DeploymentPage | Build: {shaShort} | build-sha | stat |\n| DeploymentPage | Environment: {production\\|staging} | env-label | badge |\n| DeploymentPage | Deployed at {isoTimestamp} | deployed-at | caption |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "graphs",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "flows",
+      "level": 3,
+      "prose": "| component | id | label | steps |\n| --- | --- | --- | --- |\n| DeploymentPage | deploy-visibility-flow | Deployment visibility (admin) | ['superAdmin navigates to /admin/deployments', 'deploymentService.GetCurrentDeployment', 'Table of recent releases with actor/commit message', 'Optional: link to external CI run'] |"
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useDeployments.ts | useDeployments | Planned: list deployments + current |"
+    },
+    {
+      "heading": "services",
+      "level": 3,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/deploymentService.ts | deploymentService | ['GetCurrentDeployment', 'ListDeployments'] |"
+    },
+    {
+      "heading": "contexts",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| context/RoleContext.tsx | RoleContext | superAdmin gate |"
+    },
+    {
+      "heading": "utilities",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI elements (top-level)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| refresh-deploy | Refresh | icon | refetch deployment metadata | DeploymentPage |\n| open-pipeline | Open pipeline | secondary | external link to CI (e.g. GitHub Actions) | DeploymentPage |"
+    },
+    {
+      "heading": "inputs",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "toasts",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "Graphql Bindings",
+      "level": 2,
+      "prose": "| hook | operation | service | type |\n| --- | --- | --- | --- |\n| useDeploymentPage (planned) | GetCurrentDeployment, ListDeployments | deploymentService (planned) | query |"
+    },
+    {
+      "heading": "Hooks",
+      "level": 2,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useDeployments.ts | useDeployments | Planned: list deployments + current |"
+    },
+    {
+      "heading": "Services",
+      "level": 2,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/deploymentService.ts | deploymentService | ['GetCurrentDeployment', 'ListDeployments'] |"
+    },
+    {
+      "heading": "Backend Bindings",
+      "level": 2,
+      "prose": "| layer | path | usage |\n| --- | --- | --- |\n| admin/deployment governance | deployment metadata endpoints (planned) | superAdmin deployment visibility |"
+    },
+    {
+      "heading": "Data Sources",
+      "level": 2,
+      "prose": "- Deployment metadata services (planned)\n- CI/CD pipeline integration references"
+    },
+    {
+      "heading": "Flow summary",
+      "level": 2,
+      "prose": "superAdmin deployment page -> planned deployment hooks/services -> deployment metadata endpoints -> release overview/history UI\n\n\n<!-- AUTO:design-nav:start -->"
+    },
+    {
+      "heading": "Era coverage (Contact360 0.x–10.x)",
+      "level": 2,
+      "prose": "This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **7.x** — Deployment — governance, deployments surface, RBAC-sensitive admin views.\n- **Status** — Planned or spec-only; confirm `page.tsx` exists before treating as shipped.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md)."
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era."
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/admin/deployments`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth."
+    },
+    {
+      "heading": "Backend API documentation",
+      "level": 2,
+      "prose": "- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md)."
+    },
+    {
+      "heading": "Peer pages (same codebase)",
+      "level": 3,
+      "prose": "- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Deployments\"\npage_id: deployment_page\nsource_json: deployment_page.json\ngenerator: json_to_markdown.py\n---\n\n- **page_id:** deployment_page\n- **page_type:** dashboard\n\n- **era_tags:** 7.x\n- **flow_id:** deployment\n- **_id:** deployment_page-001\n\n- **s3_key:** data/pages/deployment_page.json\n\n- **authentication:** Required (useSessionGuard + DashboardAccessGate)\n- **authorization:** superAdmin only; non-superAdmin redirected to /dashboard\n- **page_state:** planned\n- **last_updated:** 2026-03-24T00:00:00.000000+00:00\n- **uses_endpoints:** []\n- **ui_components:** []\n- **versions:** []\n- **endpoint_count:** 0\n- **api_versions:** []\n\n- **canonical_repo:** contact360.io/app\n\n| components/features/admin/DeploymentPage.tsx | DeploymentPage | Planned: current build card + release history table |\n\n### ui_components\n\n| GraphQL operation | Endpoint spec | Method | Era |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*"
+}

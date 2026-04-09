@@ -1,0 +1,968 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/salesnavigator-codebase-analysis.md",
+  "sha256_source": "476931fdf648dcede2f41fcb61bd332c8b8f311be8723fd4597ca227a84e5def",
+  "generated_at": "2026-04-08T23:26:47.373112+00:00",
+  "title": "Sales Navigator Codebase Analysis (backend(dev)/salesnavigator)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Sales Navigator Codebase Analysis (backend(dev)/salesnavigator)",
+      "level": 1,
+      "slug": "sales-navigator-codebase-analysis-backenddevsalesnavigator",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`backend(dev)/salesnavigator` is Contact360's Sales Navigator ingestion runtime. It receives Sales Navigator profile payloads (or raw HTML for extraction), normalizes/deduplicates them, and persists contacts/companies through Connectra bulk upsert APIs.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ FastAPI + Mangum Lambda runtime is implemented and deployable via SAM.\n- [x] ✅ Core endpoints exist: `POST /v1/scrape`, `POST /v1/save-profiles`, `GET /v1/health`, and root `/`.\n- [x] ✅ API-key authentication is enforced (`X-API-Key`).\n- [x] ✅ Per-key in-memory rate limiting is implemented in dependencies layer.\n- [x] ✅ `X-Request-ID` middleware is implemented and echoed on responses.\n- [x] ✅ CORS uses env-driven allowlist (`ALLOWED_ORIGINS`) rather than wildcard defaults.\n- [x] ✅ Save service deduplicates profiles and performs chunked parallel persistence via Connectra.\n- [x] ✅ Connectra client has retry/backoff and adaptive timeout behavior.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ FastAPI + Mangum Lambda runtime is implemented and deployable via SAM.",
+              "checked": true
+            },
+            {
+              "text": "✅ Core endpoints exist: `POST /v1/scrape`, `POST /v1/save-profiles`, `GET /v1/health`, and root `/`.",
+              "checked": true
+            },
+            {
+              "text": "✅ API-key authentication is enforced (`X-API-Key`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Per-key in-memory rate limiting is implemented in dependencies layer.",
+              "checked": true
+            },
+            {
+              "text": "✅ `X-Request-ID` middleware is implemented and echoed on responses.",
+              "checked": true
+            },
+            {
+              "text": "✅ CORS uses env-driven allowlist (`ALLOWED_ORIGINS`) rather than wildcard defaults.",
+              "checked": true
+            },
+            {
+              "text": "✅ Save service deduplicates profiles and performs chunked parallel persistence via Connectra.",
+              "checked": true
+            },
+            {
+              "text": "✅ Connectra client has retry/backoff and adaptive timeout behavior.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract and docs drift",
+      "level": 3,
+      "slug": "contract-and-docs-drift",
+      "prose": "- [ ] ⬜ Incomplete: docs still mention non-implemented/legacy surfaces in places; runtime is canonical on `/v1/scrape` and `/v1/save-profiles`.\n- [ ] 🟡 In Progress: OpenAPI stub exists, but endpoint/response parity enforcement in CI is incomplete.\n- [ ] 📌 Planned: publish strict compatibility policy for extension/gateway consumers.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: docs still mention non-implemented/legacy surfaces in places; runtime is canonical on `/v1/scrape` and `/v1/save-profiles`.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: OpenAPI stub exists, but endpoint/response parity enforcement in CI is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: publish strict compatibility policy for extension/gateway consumers.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Auth and governance",
+      "level": 3,
+      "slug": "auth-and-governance",
+      "prose": "- [ ] ⬜ Incomplete: single shared service API key remains (no scoped tenant/user key model).\n- [ ] 🟡 In Progress: per-key rate limit is present, but not distributed or durable across warm instances.\n- [ ] 📌 Planned: scoped key governance with usage attribution and rotation controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: single shared service API key remains (no scoped tenant/user key model).",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: per-key rate limit is present, but not distributed or durable across warm instances.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: scoped key governance with usage attribution and rotation controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Reliability and data quality",
+      "level": 3,
+      "slug": "reliability-and-data-quality",
+      "prose": "- [ ] 🟡 In Progress: retries/timeouts/chunked processing are implemented for Connectra saves.\n- [ ] ⬜ Incomplete: no explicit idempotency token at request/chunk level for replay-safe bulk ingestion.\n- [ ] ⬜ Incomplete: dependency on Connectra availability without local queue fallback.\n- [ ] ⬜ Incomplete: enrichment depth gaps (`employees_count`, industries, revenue) remain mostly absent from SN source mapping.\n- [ ] 📌 Planned: stronger quality gates and reconciliation evidence between ingested profiles and persisted entities.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: retries/timeouts/chunked processing are implemented for Connectra saves.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no explicit idempotency token at request/chunk level for replay-safe bulk ingestion.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: dependency on Connectra availability without local queue fallback.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enrichment depth gaps (`employees_count`, industries, revenue) remain mostly absent from SN source mapping.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: stronger quality gates and reconciliation evidence between ingested profiles and persisted entities.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-service dependency map (release gating)",
+      "level": 2,
+      "slug": "cross-service-dependency-map-release-gating",
+      "prose": "- [x] ✅ Inbound from extension and Appointment360/gateway for SN save operations.\n- [x] ✅ Outbound to `contact360.io/sync` (Connectra) via `/contacts/bulk` and `/companies/bulk`.\n- [x] ✅ Shared contract behavior around deterministic UUID mapping and deduplication.\n- [ ] 🟡 In Progress: contract parity checks across `docs/backend/apis` and OpenAPI stub.\n- [ ] 📌 Planned: campaign pipeline handoff contract for SN-derived audience provenance.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Inbound from extension and Appointment360/gateway for SN save operations.",
+              "checked": true
+            },
+            {
+              "text": "✅ Outbound to `contact360.io/sync` (Connectra) via `/contacts/bulk` and `/companies/bulk`.",
+              "checked": true
+            },
+            {
+              "text": "✅ Shared contract behavior around deterministic UUID mapping and deduplication.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: contract parity checks across `docs/backend/apis` and OpenAPI stub.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign pipeline handoff contract for SN-derived audience provenance.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage-control-plane migration map (direct S3 -> s3storage)",
+      "level": 2,
+      "slug": "storage-control-plane-migration-map-direct-s3---s3storage",
+      "prose": "- [x] ✅ Runtime currently does not rely on direct S3 writes for primary SN ingestion flow.\n- [ ] 📌 Planned: if ingestion artifacts/snapshots are introduced, route through `s3storage` control plane by default.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Runtime currently does not rely on direct S3 writes for primary SN ingestion flow.",
+              "checked": true
+            },
+            {
+              "text": "📌 Planned: if ingestion artifacts/snapshots are introduced, route through `s3storage` control plane by default.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Log-unification migration map (local logs/print/console -> logs.api)",
+      "level": 2,
+      "slug": "log-unification-migration-map-local-logsprintconsole---logsapi",
+      "prose": "- [ ] 🟡 In Progress: service uses Python logging, but unified event schema/correlation with `logs.api` is not complete.\n- [ ] ⬜ Incomplete: no full cross-service trace/event envelope alignment across extension -> gateway -> salesnavigator -> connectra.\n- [ ] 📌 Planned: canonical structured ingestion events with request IDs and actor context.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: service uses Python logging, but unified event schema/correlation with `logs.api` is not complete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no full cross-service trace/event envelope alignment across extension -> gateway -> salesnavigator -> connectra.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: canonical structured ingestion events with request IDs and actor context.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Canonical v1 endpoints are implemented and active.\n- [ ] 🟡 In Progress: synchronize README/OpenAPI/docs with runtime-only endpoints.\n- [ ] ⬜ Incomplete: endpoint parity test gate in CI for contract drift prevention.\n- [ ] ⬜ Incomplete: formal error taxonomy and status compatibility guarantees.\n- [ ] 📌 Planned: versioning/deprecation lifecycle for SN ingestion APIs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Canonical v1 endpoints are implemented and active.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: synchronize README/OpenAPI/docs with runtime-only endpoints.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: endpoint parity test gate in CI for contract drift prevention.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formal error taxonomy and status compatibility guarantees.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: versioning/deprecation lifecycle for SN ingestion APIs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Deduplication, chunking, and parallel save orchestration are implemented.\n- [x] ✅ Connectra client retry/backoff and adaptive timeout paths are implemented.\n- [ ] 🟡 In Progress: quality and resilience optimizations for large-batch save behavior.\n- [ ] ⬜ Incomplete: idempotency key model for chunk replay safety.\n- [ ] 📌 Planned: deeper enrichment and post-save verification/reconciliation jobs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Deduplication, chunking, and parallel save orchestration are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Connectra client retry/backoff and adaptive timeout paths are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: quality and resilience optimizations for large-batch save behavior.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: idempotency key model for chunk replay safety.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: deeper enrichment and post-save verification/reconciliation jobs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Supports extension/gateway ingestion surfaces.\n- [ ] 🟡 In Progress: response consistency and richer partial-success semantics for UI.\n- [ ] ⬜ Incomplete: explicit UX contract for retry/replay-safe outcomes.\n- [ ] 📌 Planned: readiness contract for campaign/audience builder integration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Supports extension/gateway ingestion surfaces.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: response consistency and richer partial-success semantics for UI.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit UX contract for retry/replay-safe outcomes.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: readiness contract for campaign/audience builder integration.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Deterministic UUID generation and mapping to contacts/companies are implemented.\n- [x] ✅ Deduplication by normalized profile URL/sales URL is implemented.\n- [ ] 🟡 In Progress: mapping coverage for metadata and quality indicators.\n- [ ] ⬜ Incomplete: lineage-grade provenance fields and persistent audit traceability.\n- [ ] 📌 Planned: enrichment pipeline for company-level fields not present in SN payloads.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Deterministic UUID generation and mapping to contacts/companies are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Deduplication by normalized profile URL/sales URL is implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: mapping coverage for metadata and quality indicators.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: lineage-grade provenance fields and persistent audit traceability.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: enrichment pipeline for company-level fields not present in SN payloads.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Lambda deployment scaffolding and health endpoint exist.\n- [x] ✅ Request-ID propagation baseline is implemented.\n- [ ] 🟡 In Progress: rate-limit behavior currently in-memory and instance-local.\n- [ ] ⬜ Incomplete: distributed throttling, SLO dashboarding, and error-budget gates.\n- [ ] 📌 Planned: production-grade governance for keys, telemetry, and rollout checks.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Lambda deployment scaffolding and health endpoint exist.",
+              "checked": true
+            },
+            {
+              "text": "✅ Request-ID propagation baseline is implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: rate-limit behavior currently in-memory and instance-local.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: distributed throttling, SLO dashboarding, and error-budget gates.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: production-grade governance for keys, telemetry, and rollout checks.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ service scaffold, config validation, health route, and Lambda handler are implemented.\n- [x] ✅ Connectra integration client and save pipeline baseline are implemented.\n- [ ] 🟡 In Progress: foundational documentation parity and contract guardrails.\n- [ ] ⬜ Incomplete: enforce runtime-doc parity checks as hard gates.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ service scaffold, config validation, health route, and Lambda handler are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Connectra integration client and save pipeline baseline are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: foundational documentation parity and contract guardrails.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce runtime-doc parity checks as hard gates.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ auth gate exists with service API key.\n- [ ] 🟡 In Progress: usage-limiting controls partially implemented via per-key minute window.\n- [ ] ⬜ Incomplete: tenant/user-scoped authn/authz and credit/billing attribution.\n- [ ] 📌 Planned: key-to-actor mapping and cost-accountable event emission.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ auth gate exists with service API key.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: usage-limiting controls partially implemented via per-key minute window.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: tenant/user-scoped authn/authz and credit/billing attribution.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: key-to-actor mapping and cost-accountable event emission.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ SN ingestion can provide contact records to downstream email workflows.\n- [ ] 🟡 In Progress: preserve email/linkedin field quality for email finder/verifier chain.\n- [ ] ⬜ Incomplete: direct handoff contract guarantees and quality thresholds.\n- [ ] 📌 Planned: explicit email-readiness status from SN ingest output.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ SN ingestion can provide contact records to downstream email workflows.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: preserve email/linkedin field quality for email finder/verifier chain.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: direct handoff contract guarantees and quality thresholds.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: explicit email-readiness status from SN ingest output.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [x] ✅ contact/company mapping and bulk upsert integration are implemented.\n- [x] ✅ deterministic IDs and dedup controls provide stable upsert behavior.\n- [ ] 🟡 In Progress: mapping completeness and provenance quality.\n- [ ] ⬜ Incomplete: deep lineage model and reconciliation reporting.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ contact/company mapping and bulk upsert integration are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ deterministic IDs and dedup controls provide stable upsert behavior.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: mapping completeness and provenance quality.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: deep lineage model and reconciliation reporting.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [x] ✅ primary era capabilities are implemented (scrape + save profiles).\n- [x] ✅ HTML extraction and profile normalization pipeline exists.\n- [ ] 🟡 In Progress: hardening around DOM drift and extension payload variant compatibility.\n- [ ] ⬜ Incomplete: full contract cleanup for stale docs and deprecated expectations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ primary era capabilities are implemented (scrape + save profiles).",
+              "checked": true
+            },
+            {
+              "text": "✅ HTML extraction and profile normalization pipeline exists.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: hardening around DOM drift and extension payload variant compatibility.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full contract cleanup for stale docs and deprecated expectations.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [x] ✅ output fields can seed AI workflows (titles, seniority, company context).\n- [ ] 🟡 In Progress: AI-quality enrichment and confidence alignment.\n- [ ] ⬜ Incomplete: formal AI-ready schema contract and low-quality filtering policy.\n- [ ] 📌 Planned: curated AI feature pack from SN-derived signals.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ output fields can seed AI workflows (titles, seniority, company context).",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: AI-quality enrichment and confidence alignment.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formal AI-ready schema contract and low-quality filtering policy.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: curated AI feature pack from SN-derived signals.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ retries, adaptive timeouts, chunked parallel saves, and request IDs are implemented.\n- [ ] 🟡 In Progress: local per-key rate limit is present but not distributed.\n- [ ] ⬜ Incomplete: idempotency tokens, replay controls, and failure-budget instrumentation.\n- [ ] 📌 Planned: load-profile SLO gates and resilience drills.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ retries, adaptive timeouts, chunked parallel saves, and request IDs are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: local per-key rate limit is present but not distributed.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: idempotency tokens, replay controls, and failure-budget instrumentation.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: load-profile SLO gates and resilience drills.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ SAM deployment template and runtime config surface are present.\n- [ ] 🟡 In Progress: deployment hardening and config governance.\n- [ ] ⬜ Incomplete: scoped key rollout, immutable audit, and compliance gate automation.\n- [ ] 📌 Planned: release/runbook standardization across environments.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ SAM deployment template and runtime config surface are present.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: deployment hardening and config governance.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: scoped key rollout, immutable audit, and compliance gate automation.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: release/runbook standardization across environments.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [x] ✅ private service endpoints and security scheme are defined.\n- [ ] 🟡 In Progress: OpenAPI contract exists as stub but needs strict parity governance.\n- [ ] ⬜ Incomplete: public/private lifecycle policy and durable quota/usage management.\n- [ ] 📌 Planned: external-ready API governance with compatibility tests.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ private service endpoints and security scheme are defined.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: OpenAPI contract exists as stub but needs strict parity governance.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: public/private lifecycle policy and durable quota/usage management.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: external-ready API governance with compatibility tests.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 🟡 In Progress: integration primitives exist through normalized payload path.\n- [ ] ⬜ Incomplete: connector-grade lineage, eventing, and partner observability.\n- [ ] 📌 Planned: multi-source ingestion adapters and platformized integration contracts.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: integration primitives exist through normalized payload path.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: connector-grade lineage, eventing, and partner observability.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: multi-source ingestion adapters and platformized integration contracts.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] 🟡 In Progress: SN ingestion can feed campaign audience building inputs.\n- [ ] ⬜ Incomplete: campaign-specific provenance/compliance handoff guarantees.\n- [ ] 📌 Planned: dedicated campaign preflight integration with suppression and audit evidence.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: SN ingestion can feed campaign audience building inputs.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign-specific provenance/compliance handoff guarantees.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: dedicated campaign preflight integration with suppression and audit evidence.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [ ] ⬜ Incomplete: align all docs/OpenAPI references to actual runtime endpoint behavior.\n- [ ] ⬜ Incomplete: add idempotency keys for request/chunk replay safety.\n- [ ] 🟡 In Progress: harden rate limiting from in-memory windows to distributed controls.\n- [ ] ⬜ Incomplete: implement scoped keys and actor-level usage attribution.\n- [ ] 🟡 In Progress: improve provenance/lineage payload for downstream audit and campaign usage.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: align all docs/OpenAPI references to actual runtime endpoint behavior.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add idempotency keys for request/chunk replay safety.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: harden rate limiting from in-memory windows to distributed controls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement scoped keys and actor-level usage attribution.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: improve provenance/lineage payload for downstream audit and campaign usage.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 - must close for release safety",
+      "level": 3,
+      "slug": "p0---must-close-for-release-safety",
+      "prose": "- [ ] ⬜ Incomplete (`SN-0`): remove contract drift between runtime and docs/OpenAPI.\n- [ ] ⬜ Incomplete (`SN-1`): replay-safe idempotency for bulk profile saves.\n- [ ] ⬜ Incomplete (`SN-2`): scoped authentication model beyond single shared API key.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete (`SN-0`): remove contract drift between runtime and docs/OpenAPI.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete (`SN-1`): replay-safe idempotency for bulk profile saves.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete (`SN-2`): scoped authentication model beyond single shared API key.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2 - required for maturity",
+      "level": 3,
+      "slug": "p1p2---required-for-maturity",
+      "prose": "- [ ] 🟡 In Progress (`SN-3`): distributed and observable rate-limiting controls.\n- [ ] 🟡 In Progress (`SN-4`): quality/provenance enrichment for mapped contact/company fields.\n- [ ] ⬜ Incomplete (`SN-5`): trace/event schema alignment with cross-service observability.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress (`SN-3`): distributed and observable rate-limiting controls.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress (`SN-4`): quality/provenance enrichment for mapped contact/company fields.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete (`SN-5`): trace/event schema alignment with cross-service observability.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+ - platform productization",
+      "level": 3,
+      "slug": "p3---platform-productization",
+      "prose": "- [ ] 📌 Planned (`SN-6`): external connector contracts and ecosystem ingestion adapters.\n- [ ] 📌 Planned (`SN-7`): campaign-grade provenance and compliance handoff pipeline.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned (`SN-6`): external connector contracts and ecosystem ingestion adapters.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned (`SN-7`): campaign-grade provenance and compliance handoff pipeline.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

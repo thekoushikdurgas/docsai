@@ -1,0 +1,582 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/05_NOTIFICATIONS_MODULE.md",
+  "sha256_source": "21070ccafc196d75fc4152c045c3ded416ffb2acc60c5d8d33b01546daf9bfa8",
+  "generated_at": "2026-04-08T23:11:52.776274+00:00",
+  "title": "Notifications Module",
+  "module_number": 5,
+  "module_name": "NOTIFICATIONS",
+  "location": "app/graphql/modules/notifications/",
+  "overview": "The Notifications module provides notification management functionality including listing notifications, marking as read, deleting notifications, and managing notification preferences. **Location:** `app/graphql/modules/notifications/`",
+  "operations": [
+    {
+      "name": "Queries** (under `notifications { ... }`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "notifications",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`filters`",
+          "graphql_type": "`NotificationFilterInput`"
+        }
+      ],
+      "return_type": "`NotificationConnection`",
+      "description": null
+    },
+    {
+      "name": "notification",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`notificationId`",
+          "graphql_type": "`ID!`"
+        }
+      ],
+      "return_type": "`Notification`",
+      "description": null
+    },
+    {
+      "name": "unreadCount",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "`UnreadCountResponse`",
+      "description": null
+    },
+    {
+      "name": "notificationPreferences",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "`NotificationPreferences`",
+      "description": null
+    },
+    {
+      "name": "Mutations** (under `notifications { ... }`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "markNotificationAsRead",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`notificationId`",
+          "graphql_type": "`ID!`"
+        }
+      ],
+      "return_type": "`Notification`",
+      "description": null
+    },
+    {
+      "name": "markNotificationsAsRead",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`MarkReadInput!`"
+        }
+      ],
+      "return_type": "`MarkReadResponse`",
+      "description": null
+    },
+    {
+      "name": "deleteNotifications",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`DeleteNotificationsInput!`"
+        }
+      ],
+      "return_type": "`DeleteNotificationsResponse`",
+      "description": null
+    },
+    {
+      "name": "updateNotificationPreferences",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`UpdateNotificationPreferencesInput!`"
+        }
+      ],
+      "return_type": "`NotificationPreferences`",
+      "description": null
+    }
+  ],
+  "sdl_excerpt": "type NotificationQuery {\n  notifications(filters: NotificationFilterInput = null): NotificationConnection!\n  notification(notificationId: ID!): Notification!\n  unreadCount: UnreadCountResponse!\n  notificationPreferences: NotificationPreferences!\n}\n\ntype NotificationMutation {\n  markNotificationAsRead(notificationId: ID!): Notification!\n  markNotificationsAsRead(input: MarkReadInput!): MarkReadResponse!\n  deleteNotifications(input: DeleteNotificationsInput!): DeleteNotificationsResponse!\n  updateNotificationPreferences(input: UpdateNotificationPreferencesInput!): NotificationPreferences!\n}\n\ninput NotificationFilterInput {\n  limit: Int = 100\n  offset: Int = 0\n  unreadOnly: Boolean! = false\n  type: GraphQLNotificationType = null\n}\n\ninput MarkReadInput {\n  notificationIds: [ID!]!\n}\n\ninput DeleteNotificationsInput {\n  notificationIds: [ID!]!\n}\n\ninput UpdateNotificationPreferencesInput {\n  emailDigest: Boolean = null\n  newLeads: Boolean = null\n  securityAlerts: Boolean = null\n  marketing: Boolean = null\n  billingUpdates: Boolean = null\n  pushEnabled: Boolean = null\n  emailEnabled: Boolean = null\n}",
+  "error_codes": [
+    "The Notifications module implements comprehensive error handling with input validation, database error handling, and response validation.",
+    "The Notifications module may raise the following errors:",
+    "**NotFoundError** (404): Notification not found",
+    "Code: `NOT_FOUND`",
+    "Extensions: `resourceType: \"Notification\"`, `identifier: <notification_id>`",
+    "Occurs when: Requested notification ID does not exist or belongs to another user",
+    "**ForbiddenError** (403): Insufficient permissions",
+    "Code: `FORBIDDEN`",
+    "Extensions: `requiredRole: <role>` (if applicable)",
+    "Occurs when: User lacks required permissions for the operation",
+    "**ValidationError** (422): Input validation failed",
+    "Code: `VALIDATION_ERROR`",
+    "Extensions: `fieldErrors` (field-specific errors)",
+    "Occurs when: Invalid notification ID format, invalid filter parameters, invalid pagination values, or invalid notification type/priority",
+    "**Example: Notification Not Found**",
+    "**Example: Validation Error**",
+    "**Input Validation**: Notification IDs, filters, pagination parameters, and notification types are validated before processing",
+    "**Database Errors**: All database operations include transaction rollback on failure",
+    "**User Isolation**: Users can only access their own notifications",
+    "**Error Logging**: Comprehensive error logging with context for debugging",
+    "**Input Validation**: All inputs are validated before processing",
+    "Notification ID format validation (positive integer)",
+    "List validation (non-empty, max 1000 items)",
+    "Boolean validation for preferences",
+    "Pagination validation",
+    "**Database Error Handling**: Database errors are handled centrally via `handle_database_exception`",
+    "NotificationRepository errors are caught and converted to appropriate GraphQL errors",
+    "NotificationService errors are caught and converted to appropriate GraphQL errors",
+    "Transaction rollback on failure",
+    "Transaction commit after successful operations",
+    "**User Isolation**: User ownership is verified before operations",
+    "Raises NotFoundError if notification doesn't exist or doesn't belong to user",
+    "Prevents unauthorized access to other users' notifications",
+    "**Response Validation**: Service responses are validated before conversion",
+    "Checks for required structure",
+    "Validates count values (non-negative)",
+    "Conversion errors are caught and logged"
+  ],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Notifications Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — full request and response",
+      "level": 2,
+      "prose": "Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "notifications.notifications (query)",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($filters: NotificationFilterInput) { notifications { notifications(filters: $filters) { items { id title read } pageInfo { total limit offset hasNext hasPrevious } } } }\",\n  \"variables\": {\n    \"filters\": {\n      \"limit\": 20,\n      \"offset\": 0,\n      \"unreadOnly\": false,\n      \"type\": null\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "notifications.markNotificationAsRead (mutation)",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"mutation ($notificationId: ID!) { notifications { markNotificationAsRead(notificationId: $notificationId) { id read } } }\",\n  \"variables\": { \"notificationId\": \"0194a1c0-0000-7000-8000-000000000001\" }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Notification",
+      "level": 3,
+      "prose": "Represents a single notification. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type Notification {\n  id: ID!\n  userId: ID!\n  type: NotificationType!\n  priority: NotificationPriority!\n  title: String!\n  message: String!\n  actionUrl: String\n  actionLabel: String\n  read: Boolean!\n  createdAt: DateTime!\n  readAt: DateTime\n  metadata: JSON\n}"
+        }
+      ]
+    },
+    {
+      "heading": "NotificationType",
+      "level": 3,
+      "prose": "Enum for notification types.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "enum NotificationType {\n  SYSTEM\n  SECURITY\n  ACTIVITY\n  MARKETING\n  BILLING\n}"
+        }
+      ]
+    },
+    {
+      "heading": "NotificationPriority",
+      "level": 3,
+      "prose": "Enum for notification priorities.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "enum NotificationPriority {\n  LOW\n  MEDIUM\n  HIGH\n  URGENT\n}"
+        }
+      ]
+    },
+    {
+      "heading": "NotificationConnection",
+      "level": 3,
+      "prose": "Paginated notification connection.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type NotificationConnection {\n  items: [Notification!]!\n  pageInfo: PageInfo!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UnreadCountResponse",
+      "level": 3,
+      "prose": "Response for unread notification count.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type UnreadCountResponse {\n  count: Int!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "NotificationPreferences",
+      "level": 3,
+      "prose": "Notification preferences for a user.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type NotificationPreferences {\n  emailDigest: Boolean!\n  newLeads: Boolean!\n  securityAlerts: Boolean!\n  marketing: Boolean!\n  billingUpdates: Boolean!\n  pushEnabled: Boolean!\n  emailEnabled: Boolean!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "MarkReadResponse",
+      "level": 3,
+      "prose": "Response for marking notifications as read.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type MarkReadResponse {\n  count: Int!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "DeleteNotificationsResponse",
+      "level": 3,
+      "prose": "Response for deleting notifications.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type DeleteNotificationsResponse {\n  count: Int!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "notifications",
+      "level": 3,
+      "prose": "List notifications for the current user with pagination and filters. **Parameters:** **Variables:** **Arguments:** **Returns:** `NotificationConnection` **Authentication:** Required **Validation:** **Implementation Details:** **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query ListNotifications($filters: NotificationFilterInput) {\n  notifications {\n    notifications(filters: $filters) {\n      items {\n        id\n        type\n        priority\n        title\n        message\n        read\n        createdAt\n      }\n      pageInfo {\n        total\n        limit\n        offset\n        hasNext\n        hasPrevious\n      }\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"filters\": {\n    \"unreadOnly\": true,\n    \"type\": \"SYSTEM\",\n    \"limit\": 20,\n    \"offset\": 0\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"notifications\": {\n      \"notifications\": {\n        \"items\": [\n          {\n            \"id\": \"1\",\n            \"type\": \"SYSTEM\",\n            \"priority\": \"HIGH\",\n            \"title\": \"Welcome!\",\n            \"message\": \"Welcome to the platform\",\n            \"read\": false,\n            \"createdAt\": \"2024-01-15T10:30:00Z\"\n          }\n        ],\n        \"pageInfo\": {\n          \"total\": 1,\n          \"limit\": 20,\n          \"offset\": 0,\n          \"hasNext\": false,\n          \"hasPrevious\": false\n        }\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "notification",
+      "level": 3,
+      "prose": "Get a notification by ID. **Parameters:** **Arguments:** **Returns:** `Notification` **Authentication:** Required **Validation:** **Implementation Details:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetNotification($notificationId: ID!) {\n  notifications {\n    notification(notificationId: $notificationId) {\n      id\n      type\n      priority\n      title\n      message\n      read\n      createdAt\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "unreadCount",
+      "level": 3,
+      "prose": "Get count of unread notifications for the current user. **Parameters:** None. **Returns:** `UnreadCountResponse` **Authentication:** Required **Implementation Details:** **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetUnreadCount {\n  notifications {\n    unreadCount {\n      count\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"notifications\": {\n      \"unreadCount\": {\n        \"count\": 5\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "notificationPreferences",
+      "level": 3,
+      "prose": "Get notification preferences for the current user. **Parameters:** None. **Returns:** `NotificationPreferences` **Authentication:** Required **Implementation Details:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetPreferences {\n  notifications {\n    notificationPreferences {\n      emailDigest\n      newLeads\n      securityAlerts\n      marketing\n      billingUpdates\n      pushEnabled\n      emailEnabled\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "markNotificationAsRead",
+      "level": 3,
+      "prose": "Mark a notification as read. **Parameters:** **Arguments:** **Returns:** `Notification` **Authentication:** Required **Validation:** **Implementation Details:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation MarkAsRead($notificationId: ID!) {\n  notifications {\n    markNotificationAsRead(notificationId: $notificationId) {\n      id\n      read\n      readAt\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "markNotificationsAsRead",
+      "level": 3,
+      "prose": "Mark multiple notifications as read. **Parameters:** **Variables:** **Input:** `MarkReadInput!` **Returns:** `MarkReadResponse` **Authentication:** Required **Validation:** **Implementation Details:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation MarkMultipleAsRead($input: MarkReadInput!) {\n  notifications {\n    markNotificationsAsRead(input: $input) {\n      count\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"notificationIds\": [\"1\", \"2\", \"3\"]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "markAllNotificationsAsRead",
+      "level": 3,
+      "prose": "Mark all notifications as read (if available). **Parameters:** None.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation MarkAllAsRead {\n  notifications {\n    markAllNotificationsAsRead {\n      count\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "deleteNotification",
+      "level": 3,
+      "prose": "Delete a notification. **Parameters:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation DeleteNotification($notificationId: ID!) {\n  notifications {\n    deleteNotification(notificationId: $notificationId)\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "deleteNotifications",
+      "level": 3,
+      "prose": "Delete multiple notifications. **Parameters:** **Variables:** **Input:** `DeleteNotificationsInput!` **Returns:** `DeleteNotificationsResponse` **Authentication:** Required **Validation:** **Implementation Details:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation DeleteNotifications($input: DeleteNotificationsInput!) {\n  notifications {\n    deleteNotifications(input: $input) {\n      count\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"notificationIds\": [\"1\", \"2\", \"3\"]\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "updateNotificationPreferences",
+      "level": 3,
+      "prose": "Update notification preferences for the current user. **Parameters:** **Variables:** **Input:** `UpdateNotificationPreferencesInput!` **Returns:** `NotificationPreferences` **Authentication:** Required **Validation:** **Implementation Details:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation UpdatePreferences($input: UpdateNotificationPreferencesInput!) {\n  notifications {\n    updateNotificationPreferences(input: $input) {\n      emailDigest\n      newLeads\n      securityAlerts\n      marketing\n      billingUpdates\n      pushEnabled\n      emailEnabled\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"emailDigest\": true,\n    \"newLeads\": true,\n    \"securityAlerts\": true,\n    \"marketing\": false,\n    \"billingUpdates\": true,\n    \"pushEnabled\": false,\n    \"emailEnabled\": true\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Input Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "NotificationFilterInput",
+      "level": 3,
+      "prose": "Filter input for notifications.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input NotificationFilterInput {\n  unreadOnly: Boolean\n  type: NotificationType\n  priority: NotificationPriority\n  limit: Int\n  offset: Int\n}"
+        }
+      ]
+    },
+    {
+      "heading": "MarkReadInput",
+      "level": 3,
+      "prose": "Input for marking notifications as read.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input MarkReadInput {\n  notificationIds: [ID!]!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "DeleteNotificationsInput",
+      "level": 3,
+      "prose": "Input for deleting notifications.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input DeleteNotificationsInput {\n  notificationIds: [ID!]!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UpdateNotificationPreferencesInput",
+      "level": 3,
+      "prose": "Input for updating notification preferences.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input UpdateNotificationPreferencesInput {\n  emailDigest: Boolean\n  newLeads: Boolean\n  securityAlerts: Boolean\n  marketing: Boolean\n  billingUpdates: Boolean\n  pushEnabled: Boolean\n  emailEnabled: Boolean\n}"
+        }
+      ]
+    },
+    {
+      "heading": "CreateNotificationInput",
+      "level": 3,
+      "prose": "Input for creating a notification (admin only).",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input CreateNotificationInput {\n  userId: ID!\n  type: NotificationType!\n  priority: NotificationPriority!\n  title: String!\n  message: String!\n  actionUrl: String\n  actionLabel: String\n  metadata: JSON\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Usage Examples",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Complete Notification Management Flow",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "# 1. Get unread count\nquery GetUnreadCount {\n  notifications {\n    unreadCount {\n      count\n    }\n  }\n}\n\n# 2. List unread notifications\nquery ListUnread {\n  notifications {\n    notifications(filters: {\n      unreadOnly: true\n      limit: 20\n    }) {\n      items {\n        id\n        type\n        priority\n        title\n        message\n        createdAt\n      }\n      pageInfo {\n        total\n      }\n    }\n  }\n}\n\n# 3. Mark notification as read\nmutation MarkAsRead {\n  notifications {\n    markNotificationAsRead(notificationId: \"1\") {\n      id\n      read\n      readAt\n    }\n  }\n}\n\n# 4. Mark multiple as read\nmutation MarkMultiple {\n  notifications {\n    markNotificationsAsRead(input: {\n      notificationIds: [\"1\", \"2\", \"3\"]\n    }) {\n      count\n    }\n  }\n}\n\n# 5. Delete notifications\nmutation Delete {\n  notifications {\n    deleteNotifications(input: {\n      notificationIds: [\"1\", \"2\"]\n    }) {\n      count\n    }\n  }\n}\n\n# 6. Update preferences\nmutation UpdatePrefs {\n  notifications {\n    updateNotificationPreferences(input: {\n      emailDigest: true\n      newLeads: true\n      marketing: false\n    }) {\n      emailDigest\n      newLeads\n      marketing\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Implementation Details",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "NotificationRepository Integration",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "NotificationService Integration",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "UserProfileRepository Integration",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Pagination",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Notification Types and Priorities",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Read Tracking",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Preferences Management",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Metadata",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Task breakdown (for maintainers)",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Related Modules",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Documentation metadata",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Endpoint/version binding checklist",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

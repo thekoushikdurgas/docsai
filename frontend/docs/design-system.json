@@ -1,0 +1,842 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "frontend/docs/design-system.md",
+  "sha256_source": "6b6cdb1349ff17c3320d03272fc6f6674815c316fab1bbe4d797ff4a31411413",
+  "generated_at": "2026-04-08T23:26:48.467531+00:00",
+  "title": "Contact360 Cross-Frontend Design System",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Contact360 Cross-Frontend Design System",
+      "level": 1,
+      "slug": "contact360-cross-frontend-design-system",
+      "prose": "> **Source of truth**: `docs/frontend/design-tokens/c360-tokens.css`\n> **Dashboard UI kit reference**: `docs/frontend/ideas/Dashboard ui kit/`\n> **Last updated**: Era 2–4 implementation (Apr 2026)\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Overview",
+      "level": 2,
+      "slug": "overview",
+      "prose": "All four frontend surfaces share a single canonical `--c360-*` CSS custom-property system. Each surface implements or aliases these tokens in its own way, but the values must always match the canonical reference file.\n\n| Surface | Stack | Token file |\n|---------|-------|------------|\n| `contact360.io/app` | Next.js + custom CSS | `app/css/core.css` |\n| `contact360.io/email` | Next.js + Tailwind v4 + Radix UI | `src/app/globals.css` |\n| `contact360.io/root` | Next.js + custom CSS (3D kit) | `src/styles/themes/variables.css` |\n| `contact360.io/admin` | Django + static CSS | `static/admin/css/design-tokens.css` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Stack",
+            "Token file"
+          ],
+          "rows": [
+            [
+              "`contact360.io/app`",
+              "Next.js + custom CSS",
+              "`app/css/core.css`"
+            ],
+            [
+              "`contact360.io/email`",
+              "Next.js + Tailwind v4 + Radix UI",
+              "`src/app/globals.css`"
+            ],
+            [
+              "`contact360.io/root`",
+              "Next.js + custom CSS (3D kit)",
+              "`src/styles/themes/variables.css`"
+            ],
+            [
+              "`contact360.io/admin`",
+              "Django + static CSS",
+              "`static/admin/css/design-tokens.css`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Design Tokens",
+      "level": 2,
+      "slug": "design-tokens",
+      "prose": "All tokens live in the canonical reference file. Surfaces MUST NOT define tokens not in the reference. They may add surface-specific aliases (e.g. `--marketing-primary`) but must point at `--c360-*` values.\n\n```\ndocs/frontend/design-tokens/c360-tokens.css   ← canonical reference (DO NOT @import)\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "docs/frontend/design-tokens/c360-tokens.css   ← canonical reference (DO NOT @import)\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Key Token Groups",
+      "level": 3,
+      "slug": "key-token-groups",
+      "prose": "| Group | Token prefix | Example |\n|-------|-------------|---------|\n| Brand | `--c360-primary`, `--c360-accent` | `#2f4cdd`, `#b519ec` |\n| Semantic | `--c360-success/warning/danger/info` | `#2bc155` |\n| Surfaces | `--c360-bg`, `--c360-bg-elevated`, `--c360-bg-secondary` | |\n| Text | `--c360-text`, `--c360-text-muted`, `--c360-text-light` | |\n| Borders | `--c360-border`, `--c360-border-strong` | |\n| Typography | `--c360-font-primary` (Poppins), `--c360-font-secondary` (Nunito) | |\n| Spacing | `--c360-spacing-1` … `--c360-spacing-16` | 4px … 64px |\n| Radius | `--c360-radius-sm` … `--c360-radius-full` | 6px … 9999px |\n| Shadows | `--c360-shadow-card`, `--c360-shadow-sm` … `--c360-shadow-xl` | |\n| Z-index | `--c360-z-sidebar` … `--c360-z-toast` | 40 … 200 |\n| Heights | `--c360-input-height`, `--c360-button-height` (+sm/lg) | 40px |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Group",
+            "Token prefix",
+            "Example"
+          ],
+          "rows": [
+            [
+              "Brand",
+              "`--c360-primary`, `--c360-accent`",
+              "`#2f4cdd`, `#b519ec`"
+            ],
+            [
+              "Semantic",
+              "`--c360-success/warning/danger/info`",
+              "`#2bc155`"
+            ],
+            [
+              "Surfaces",
+              "`--c360-bg`, `--c360-bg-elevated`, `--c360-bg-secondary`",
+              ""
+            ],
+            [
+              "Text",
+              "`--c360-text`, `--c360-text-muted`, `--c360-text-light`",
+              ""
+            ],
+            [
+              "Borders",
+              "`--c360-border`, `--c360-border-strong`",
+              ""
+            ],
+            [
+              "Typography",
+              "`--c360-font-primary` (Poppins), `--c360-font-secondary` (Nunito)",
+              ""
+            ],
+            [
+              "Spacing",
+              "`--c360-spacing-1` … `--c360-spacing-16`",
+              "4px … 64px"
+            ],
+            [
+              "Radius",
+              "`--c360-radius-sm` … `--c360-radius-full`",
+              "6px … 9999px"
+            ],
+            [
+              "Shadows",
+              "`--c360-shadow-card`, `--c360-shadow-sm` … `--c360-shadow-xl`",
+              ""
+            ],
+            [
+              "Z-index",
+              "`--c360-z-sidebar` … `--c360-z-toast`",
+              "40 … 200"
+            ],
+            [
+              "Heights",
+              "`--c360-input-height`, `--c360-button-height` (+sm/lg)",
+              "40px"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "UI Primitives — Per-Surface File Map",
+      "level": 2,
+      "slug": "ui-primitives-per-surface-file-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Button",
+      "level": 3,
+      "slug": "button",
+      "prose": "| Variants | primary / secondary / outline / danger / ghost |\n| Sizes | sm (32px) / default (40px) / lg (48px) |\n\n| Surface | File |\n|---------|------|\n| app | `src/components/ui/Button.tsx` + `app/css/components/01-btn.css` |\n| email | `src/components/ui/button.tsx` (CVA / Radix Slot) |\n| root | `src/components/ui/Button3D.tsx` + `src/styles/components/ui/button-3d.css` |\n| admin | `static/admin/css/components/button.css` (`.btn`, `.btn-primary` … `.btn-ghost`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Button.tsx` + `app/css/components/01-btn.css`"
+            ],
+            [
+              "email",
+              "`src/components/ui/button.tsx` (CVA / Radix Slot)"
+            ],
+            [
+              "root",
+              "`src/components/ui/Button3D.tsx` + `src/styles/components/ui/button-3d.css`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/button.css` (`.btn`, `.btn-primary` … `.btn-ghost`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Checkbox",
+      "level": 3,
+      "slug": "checkbox",
+      "prose": "| Surface | File |\n|---------|------|\n| app | `src/components/ui/Checkbox.tsx` + `app/css/components/05-checkbox-radio-table-alert.css` |\n| email | `src/components/ui/checkbox.tsx` (Radix CheckboxPrimitive) |\n| root | `src/components/ui/Checkbox3D.tsx` |\n| admin | `static/admin/css/components/form-inputs.css` (`.form-check-input`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Checkbox.tsx` + `app/css/components/05-checkbox-radio-table-alert.css`"
+            ],
+            [
+              "email",
+              "`src/components/ui/checkbox.tsx` (Radix CheckboxPrimitive)"
+            ],
+            [
+              "root",
+              "`src/components/ui/Checkbox3D.tsx`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/form-inputs.css` (`.form-check-input`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Radio / RadioGroup",
+      "level": 3,
+      "slug": "radio-radiogroup",
+      "prose": "| Surface | File |\n|---------|------|\n| app | `src/components/ui/Radio.tsx` + CSS in `05-checkbox-radio-table-alert.css` |\n| email | `src/components/ui/radio-group.tsx` (Radix RadioGroupPrimitive) |\n| root | `src/components/ui/RadioGroup3D.tsx` |\n| admin | `static/admin/css/components/form-inputs.css` (`.form-check-input[type=radio]`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Radio.tsx` + CSS in `05-checkbox-radio-table-alert.css`"
+            ],
+            [
+              "email",
+              "`src/components/ui/radio-group.tsx` (Radix RadioGroupPrimitive)"
+            ],
+            [
+              "root",
+              "`src/components/ui/RadioGroup3D.tsx`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/form-inputs.css` (`.form-check-input[type=radio]`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Progress Bar",
+      "level": 3,
+      "slug": "progress-bar",
+      "prose": "| Surface | File |\n|---------|------|\n| app | `src/components/ui/Progress.tsx` + CSS `05-checkbox-radio-table-alert.css` |\n| email | `src/components/ui/progress.tsx` (Radix ProgressPrimitive) |\n| root | `src/components/ui/Progress3D.tsx` |\n| admin | `static/admin/css/components/progress.css` (`.progress`, `.progress-bar`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Progress.tsx` + CSS `05-checkbox-radio-table-alert.css`"
+            ],
+            [
+              "email",
+              "`src/components/ui/progress.tsx` (Radix ProgressPrimitive)"
+            ],
+            [
+              "root",
+              "`src/components/ui/Progress3D.tsx`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/progress.css` (`.progress`, `.progress-bar`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Tabs",
+      "level": 3,
+      "slug": "tabs",
+      "prose": "| Surface | File |\n|---------|------|\n| app | `src/components/ui/Tabs.tsx` + `app/css/components/02-tabs-modals.css` |\n| email | `src/components/ui/tabs.tsx` (Radix TabsPrimitive) |\n| root | `src/components/ui/Tabs3D.tsx` |\n| admin | `static/admin/css/components/tabs.css` (`.tab-nav`, `.tab-link`, `.tab-link.active`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Tabs.tsx` + `app/css/components/02-tabs-modals.css`"
+            ],
+            [
+              "email",
+              "`src/components/ui/tabs.tsx` (Radix TabsPrimitive)"
+            ],
+            [
+              "root",
+              "`src/components/ui/Tabs3D.tsx`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/tabs.css` (`.tab-nav`, `.tab-link`, `.tab-link.active`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Input / Field",
+      "level": 3,
+      "slug": "input-field",
+      "prose": "| Surface | File |\n|---------|------|\n| app | `src/components/ui/Input.tsx` + `app/css/components/03-inputs.css` |\n| email | `src/components/ui/input.tsx` (Radix-style) |\n| root | `src/components/ui/Input3D.tsx` + `src/styles/components/ui/input-3d.css` |\n| admin | `static/admin/css/components/form-inputs.css` (`.form-control`) |\n\nHeight contract: `--c360-input-height-sm` = 32px / `--c360-input-height` = 40px / `--c360-input-height-lg` = 48px\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Input.tsx` + `app/css/components/03-inputs.css`"
+            ],
+            [
+              "email",
+              "`src/components/ui/input.tsx` (Radix-style)"
+            ],
+            [
+              "root",
+              "`src/components/ui/Input3D.tsx` + `src/styles/components/ui/input-3d.css`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/form-inputs.css` (`.form-control`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Card",
+      "level": 3,
+      "slug": "card",
+      "prose": "Kit reference: `ui-card.html`\n\n| Surface | File |\n|---------|------|\n| app | `src/components/ui/Card.tsx` + `app/css/components/04-cards.css` |\n| email | `src/components/ui/card.tsx` |\n| root | `src/components/ui/Card3D.tsx` + `src/styles/components/ui/card-3d.css` |\n| admin | `static/admin/css/components/cards.css` (`.card`, `.card-header`, `.card-body`) |\n\nShadow: `--c360-shadow-card` = `0px 0px 40px 0px rgba(82,63,105,0.1)`\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Card.tsx` + `app/css/components/04-cards.css`"
+            ],
+            [
+              "email",
+              "`src/components/ui/card.tsx`"
+            ],
+            [
+              "root",
+              "`src/components/ui/Card3D.tsx` + `src/styles/components/ui/card-3d.css`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/cards.css` (`.card`, `.card-header`, `.card-body`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Badge",
+      "level": 3,
+      "slug": "badge",
+      "prose": "Kit reference: `ui-badge.html`\n\n| Surface | File |\n|---------|------|\n| app | `src/components/ui/Badge.tsx` + CSS in `app/css/components/` |\n| email | `src/components/ui/badge.tsx` |\n| root | `src/components/ui/Badge3D.tsx` |\n| admin | `static/admin/css/components/badges.css` (`.badge`, `.badge-success`, `.badge-danger`, etc.) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Badge.tsx` + CSS in `app/css/components/`"
+            ],
+            [
+              "email",
+              "`src/components/ui/badge.tsx`"
+            ],
+            [
+              "root",
+              "`src/components/ui/Badge3D.tsx`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/badges.css` (`.badge`, `.badge-success`, `.badge-danger`, etc.)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Table",
+      "level": 3,
+      "slug": "table",
+      "prose": "| Surface | File |\n|---------|------|\n| app | `src/components/ui/DataTable.tsx` + `app/css/components/05-*.css` |\n| email | `src/components/data-table.tsx` (TanStack Table + Radix) |\n| root | `src/components/ui/Table3D.tsx` |\n| admin | `static/admin/css/components/tables.css` (`.table`, `.table-wrapper`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/DataTable.tsx` + `app/css/components/05-*.css`"
+            ],
+            [
+              "email",
+              "`src/components/data-table.tsx` (TanStack Table + Radix)"
+            ],
+            [
+              "root",
+              "`src/components/ui/Table3D.tsx`"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/tables.css` (`.table`, `.table-wrapper`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Alert / Toast",
+      "level": 3,
+      "slug": "alert-toast",
+      "prose": "Kit reference: `uc-toastr.html`\n\n| Surface | File |\n|---------|------|\n| app | `src/components/ui/Alert.tsx` + `app/css/components/05-*.css` (`.c360-alert`, `.c360-toast-stack`) |\n| email | `src/components/ui/alert.tsx` (CVA variants: default/success/warning/danger/info) |\n| root | n/a (marketing surfaces use full-page error states) |\n| admin | `static/admin/css/components/alerts.css` (`.alert`, `.toast`, `.toast-stack`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "app",
+              "`src/components/ui/Alert.tsx` + `app/css/components/05-*.css` (`.c360-alert`, `.c360-toast-stack`)"
+            ],
+            [
+              "email",
+              "`src/components/ui/alert.tsx` (CVA variants: default/success/warning/danger/info)"
+            ],
+            [
+              "root",
+              "n/a (marketing surfaces use full-page error states)"
+            ],
+            [
+              "admin",
+              "`static/admin/css/components/alerts.css` (`.alert`, `.toast`, `.toast-stack`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Navigation Shell",
+      "level": 2,
+      "slug": "navigation-shell",
+      "prose": "Kit reference: `page-app-layout.html`\n\n| Surface | Sidebar file | Active color |\n|---------|-------------|--------------|\n| app | `app/css/layout.css` → `.c360-sidebar` | `--c360-primary` active indicator |\n| email | `src/components/ui/sidebar.tsx` (shadcn Sidebar) | `--sidebar-accent: var(--c360-primary-light)` |\n| root | `src/components/layout/Navbar.tsx` | `--c360-primary` for links |\n| admin | `static/admin/css/layout.css` (geometry, flyout tokens) + `static/admin/css/components/shell-eatio.css` (topbar + nav tree) | `.nav-leaf.active` / collapsed rail use `--c360-primary` |",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Sidebar file",
+            "Active color"
+          ],
+          "rows": [
+            [
+              "app",
+              "`app/css/layout.css` → `.c360-sidebar`",
+              "`--c360-primary` active indicator"
+            ],
+            [
+              "email",
+              "`src/components/ui/sidebar.tsx` (shadcn Sidebar)",
+              "`--sidebar-accent: var(--c360-primary-light)`"
+            ],
+            [
+              "root",
+              "`src/components/layout/Navbar.tsx`",
+              "`--c360-primary` for links"
+            ],
+            [
+              "admin",
+              "`static/admin/css/layout.css` (geometry, flyout tokens) + `static/admin/css/components/shell-eatio.css` (topbar + nav tree)",
+              "`.nav-leaf.active` / collapsed rail use `--c360-primary`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin shell (parity with app dashboard)",
+      "level": 3,
+      "slug": "admin-shell-parity-with-app-dashboard",
+      "prose": "- **DOM**: `templates/base.html` — no separate top strip; brand lives in `partials/sidebar.html` (`#admin-sidebar-nav`). Top bar is `partials/header.html` (menu | breadcrumb | search | actions).\n- **Sidebar**: `.dlabnav` is fixed, full viewport height (`top: 0`, `height: 100vh`), width `--sidebar-width` (aliased to `--c360-sidebar-width`, 240px). Collapsed width `--sidebar-collapsed-width` → `--c360-sidebar-width-collapsed` (80px).\n- **Top bar**: `.header` is fixed with `left` matching sidebar width; `body.nav-header-open` shifts `left` to the collapsed width (desktop). Main content uses `padding-top: var(--c360-topbar-height)` (64px).\n- **Collapse**: `body.nav-header-open` = narrow rail on **desktop** (`min-width: 1024px`). Persisted in `localStorage` key **`c360-sidebar-collapsed`** (`\"true\"` / removed). Toggle: `#headerSidebarToggle` in `static/admin/js/app.js`.\n- **Mobile** (`max-width: 1023px`): `body.sidebar-open` slides the drawer; `.sidebar-overlay` closes on tap; top bar spans full width (`left: 0`). Accordion submenus stay in-sidebar (no flyouts).\n- **Collapsed nested nav**: `static/admin/js/sidebar-collapsed-flyout.js` builds `.c360-admin-flyout` panels from `.nav-submenu` (primary column + secondary column for nested branches). Styles: `.c360-admin-flyout*` in `layout.css`.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**DOM**: `templates/base.html` — no separate top strip; brand lives in `partials/sidebar.html` (`#admin-sidebar-nav`). Top bar is `partials/header.html` (menu | breadcrumb | search | actions).",
+              "checked": null
+            },
+            {
+              "text": "**Sidebar**: `.dlabnav` is fixed, full viewport height (`top: 0`, `height: 100vh`), width `--sidebar-width` (aliased to `--c360-sidebar-width`, 240px). Collapsed width `--sidebar-collapsed-width` → `--c360-sidebar-width-collapsed` (80px).",
+              "checked": null
+            },
+            {
+              "text": "**Top bar**: `.header` is fixed with `left` matching sidebar width; `body.nav-header-open` shifts `left` to the collapsed width (desktop). Main content uses `padding-top: var(--c360-topbar-height)` (64px).",
+              "checked": null
+            },
+            {
+              "text": "**Collapse**: `body.nav-header-open` = narrow rail on **desktop** (`min-width: 1024px`). Persisted in `localStorage` key **`c360-sidebar-collapsed`** (`\"true\"` / removed). Toggle: `#headerSidebarToggle` in `static/admin/js/app.js`.",
+              "checked": null
+            },
+            {
+              "text": "**Mobile** (`max-width: 1023px`): `body.sidebar-open` slides the drawer; `.sidebar-overlay` closes on tap; top bar spans full width (`left: 0`). Accordion submenus stay in-sidebar (no flyouts).",
+              "checked": null
+            },
+            {
+              "text": "**Collapsed nested nav**: `static/admin/js/sidebar-collapsed-flyout.js` builds `.c360-admin-flyout` panels from `.nav-submenu` (primary column + secondary column for nested branches). Styles: `.c360-admin-flyout*` in `layout.css`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Error Pages",
+      "level": 2,
+      "slug": "error-pages",
+      "prose": "Kit reference: `page-error-404.html`, `page-error-500.html`\n\n| Surface | File(s) |\n|---------|---------|\n| app | `app/not-found.tsx`, `app/error.tsx` (uses `c360-error-page` CSS classes) |\n| email | `src/app/not-found.tsx`, `src/app/error.tsx` (inline `--c360-*` vars) |\n| root | `app/not-found.tsx`, `app/error.tsx` (3D card style via `ErrorBoundaryFallback`) |\n| admin | `templates/404.html`, `templates/403.html`, `templates/500.html` (standalone pages with design-tokens.css) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File(s)"
+          ],
+          "rows": [
+            [
+              "app",
+              "`app/not-found.tsx`, `app/error.tsx` (uses `c360-error-page` CSS classes)"
+            ],
+            [
+              "email",
+              "`src/app/not-found.tsx`, `src/app/error.tsx` (inline `--c360-*` vars)"
+            ],
+            [
+              "root",
+              "`app/not-found.tsx`, `app/error.tsx` (3D card style via `ErrorBoundaryFallback`)"
+            ],
+            [
+              "admin",
+              "`templates/404.html`, `templates/403.html`, `templates/500.html` (standalone pages with design-tokens.css)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Auth Pages",
+      "level": 2,
+      "slug": "auth-pages",
+      "prose": "Kit reference: `page-login.html`\n\n| Surface | Files |\n|---------|-------|\n| app | `app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx` |\n| email | `src/app/auth/login/page.tsx`, `src/app/auth/signup/page.tsx` |\n| root | `app/(auth)/login/page.tsx` |\n| admin | `templates/core/login.html` + `static/admin/css/components/login.css` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Files"
+          ],
+          "rows": [
+            [
+              "app",
+              "`app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx`"
+            ],
+            [
+              "email",
+              "`src/app/auth/login/page.tsx`, `src/app/auth/signup/page.tsx`"
+            ],
+            [
+              "root",
+              "`app/(auth)/login/page.tsx`"
+            ],
+            [
+              "admin",
+              "`templates/core/login.html` + `static/admin/css/components/login.css`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Charts",
+      "level": 2,
+      "slug": "charts",
+      "prose": "| Surface | Library | Config file |\n|---------|---------|-------------|\n| app | Recharts | `src/lib/chartTheme.ts` (`CHART_COLORS` / `RECHARTS_DEFAULTS`) |\n| email | (no charts) | — |\n| root | — | — |\n| admin | Chart.js | `static/admin/js/charts.js` (`c360Var()` reads CSS tokens at runtime) |\n\nChart primary series: `--c360-primary` (#2f4cdd). Second series: `--c360-accent` (#b519ec).\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Library",
+            "Config file"
+          ],
+          "rows": [
+            [
+              "app",
+              "Recharts",
+              "`src/lib/chartTheme.ts` (`CHART_COLORS` / `RECHARTS_DEFAULTS`)"
+            ],
+            [
+              "email",
+              "(no charts)",
+              "—"
+            ],
+            [
+              "root",
+              "—",
+              "—"
+            ],
+            [
+              "admin",
+              "Chart.js",
+              "`static/admin/js/charts.js` (`c360Var()` reads CSS tokens at runtime)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email Compose Workflow",
+      "level": 2,
+      "slug": "email-compose-workflow",
+      "prose": "| Surface | File |\n|---------|------|\n| email | `src/components/compose-dialog.tsx` — floating compose panel (Gmail-style) |\n| email | `src/components/email-list.tsx` — Compose button triggers dialog |\n\nSend endpoint: `POST /api/emails/send` via `mailhubFetch`.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "File"
+          ],
+          "rows": [
+            [
+              "email",
+              "`src/components/compose-dialog.tsx` — floating compose panel (Gmail-style)"
+            ],
+            [
+              "email",
+              "`src/components/email-list.tsx` — Compose button triggers dialog"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Typography",
+      "level": 2,
+      "slug": "typography",
+      "prose": "| Font | Weight | Usage | Loading method |\n|------|--------|-------|----------------|\n| Poppins | 400, 500, 600, 700 | Headings, labels | `next/font/google` (app/email/root), `<link>` (admin) |\n| Nunito | 400, 600 | Body, subtle text | same as above |\n\nTokens: `--c360-font-primary` (Poppins), `--c360-font-secondary` (Nunito), `--c360-font-mono` (Fira Code).\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Font",
+            "Weight",
+            "Usage",
+            "Loading method"
+          ],
+          "rows": [
+            [
+              "Poppins",
+              "400, 500, 600, 700",
+              "Headings, labels",
+              "`next/font/google` (app/email/root), `<link>` (admin)"
+            ],
+            [
+              "Nunito",
+              "400, 600",
+              "Body, subtle text",
+              "same as above"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "CSS Audit Scripts",
+      "level": 2,
+      "slug": "css-audit-scripts",
+      "prose": "| Surface | Script | Command |\n|---------|--------|---------|\n| app | `scripts/css-inventory.mjs` | `npm run css:inventory` |\n| app | `scripts/check-best-practices.mjs` | `npm run check:best-practices` |\n| email | `scripts/css-token-audit.mjs` | `npm run css:audit` |\n| root | `scripts/css-token-audit.mjs` | `npm run css:audit` |\n| admin | (Django collectstatic CI check) | — |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Script",
+            "Command"
+          ],
+          "rows": [
+            [
+              "app",
+              "`scripts/css-inventory.mjs`",
+              "`npm run css:inventory`"
+            ],
+            [
+              "app",
+              "`scripts/check-best-practices.mjs`",
+              "`npm run check:best-practices`"
+            ],
+            [
+              "email",
+              "`scripts/css-token-audit.mjs`",
+              "`npm run css:audit`"
+            ],
+            [
+              "root",
+              "`scripts/css-token-audit.mjs`",
+              "`npm run css:audit`"
+            ],
+            [
+              "admin",
+              "(Django collectstatic CI check)",
+              "—"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Dark Mode",
+      "level": 2,
+      "slug": "dark-mode",
+      "prose": "| Surface | Mechanism |\n|---------|-----------|\n| app | `[data-theme=\"dark\"]` on `<html>` |\n| email | `.dark` class (Tailwind dark mode) + `--c360-*` overrides in `globals.css` |\n| root | `[data-theme=\"dark\"]` via ThemeProvider |\n| admin | `body.dark` class applied by JS toggle |\n\nThe canonical token file defines both `:root` (light) and `[data-theme=\"dark\"], body.dark` overrides for all `--c360-*` values.",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Mechanism"
+          ],
+          "rows": [
+            [
+              "app",
+              "`[data-theme=\"dark\"]` on `<html>`"
+            ],
+            [
+              "email",
+              "`.dark` class (Tailwind dark mode) + `--c360-*` overrides in `globals.css`"
+            ],
+            [
+              "root",
+              "`[data-theme=\"dark\"]` via ThemeProvider"
+            ],
+            [
+              "admin",
+              "`body.dark` class applied by JS toggle"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

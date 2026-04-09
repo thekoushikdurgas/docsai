@@ -1,0 +1,660 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/micro.services.apis/emailapis.api.md",
+  "sha256_source": "ff14a9fcc426d32c5ae634628395dc12e7bfb10b26f1284b1cc60e11de021147",
+  "generated_at": "2026-04-08T23:26:46.750532+00:00",
+  "title": "Email API service (EC2/email.server)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Email API service (EC2/email.server)",
+      "level": 1,
+      "slug": "email-api-service-ec2emailserver",
+      "prose": "Go/Gin microservice (`github.com/ayan/emailapigo` module paths in-repo: `EC2/email.server`). The Contact360 gateway calls it via **`LAMBDA_EMAIL_API_URL`** and **`LAMBDA_EMAIL_API_KEY`** (`X-API-Key` header).\n\n**Primary code:** `EC2/email.server/internal/api/router.go` (`SetupRouter`).  \n**Process entry:** `EC2/email.server/main.go` (HTTP on `PORT`, or Lambda adapter when `AWS_LAMBDA_FUNCTION_NAME` is set).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Authentication and public routes",
+      "level": 2,
+      "slug": "authentication-and-public-routes",
+      "prose": "| Route | Auth |\n| --- | --- |\n| `GET /health` | **None** |\n| `GET /` | **None** |\n| All other routes below | **`X-API-Key`** must equal env **`API_KEY`** |\n\n**Unauthorized (`401`):**\n\n```json\n{ \"detail\": \"invalid or missing API key\" }\n```\n\nMost error responses use **`{ \"detail\": \"<message>\" }`**. Validation/bind errors are typically **`400`**.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Route",
+            "Auth"
+          ],
+          "rows": [
+            [
+              "`GET /health`",
+              "**None**"
+            ],
+            [
+              "`GET /`",
+              "**None**"
+            ],
+            [
+              "All other routes below",
+              "**`X-API-Key`** must equal env **`API_KEY`**"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{ \"detail\": \"invalid or missing API key\" }\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Configuration (environment)",
+      "level": 2,
+      "slug": "configuration-environment",
+      "prose": "From `internal/config/config.go` (`env` tags). Critical vars:\n\n| Variable | Default | Role |\n| --- | --- | --- |\n| `API_KEY` | _(required)_ | API authentication |\n| `DATABASE_URL` | _(required)_ | GORM/Postgres (`emailapi_jobs`, patterns, etc.) |\n| `PORT` | `3000` | HTTP listen port |\n| `REDIS_ADDR` | `localhost:6379` | Asynq queues + job row cache |\n| `CONNECTRA_BASE_URL` | required | Internal Connectra client |\n| `CONNECTRA_API_KEY` | required | Connectra auth |\n| `S3_BUCKET_NAME` | — | S3 CSV jobs / presign |\n| `WEBSEARCH_ENABLED` | `false` | `/web/web-search` behavior |\n| `ICYPEAS_ENABLED` | `true` | Feature flags with IcyPeas |\n\nOptional: `TRUELIST_*`, `ICYPEAS_*`, `MAILVETTER_*`, `MAILTESTER_*`, `OPENAI_*`, `SCRAPINGDOG_*`, `PROJECT_NAME`, `VERSION`, `S3_PRESIGNED_URL_EXPIRATION`, `PROXY_ADDR`, `LAMBDA_LOGS_*`, etc.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Variable",
+            "Default",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`API_KEY`",
+              "_(required)_",
+              "API authentication"
+            ],
+            [
+              "`DATABASE_URL`",
+              "_(required)_",
+              "GORM/Postgres (`emailapi_jobs`, patterns, etc.)"
+            ],
+            [
+              "`PORT`",
+              "`3000`",
+              "HTTP listen port"
+            ],
+            [
+              "`REDIS_ADDR`",
+              "`localhost:6379`",
+              "Asynq queues + job row cache"
+            ],
+            [
+              "`CONNECTRA_BASE_URL`",
+              "required",
+              "Internal Connectra client"
+            ],
+            [
+              "`CONNECTRA_API_KEY`",
+              "required",
+              "Connectra auth"
+            ],
+            [
+              "`S3_BUCKET_NAME`",
+              "—",
+              "S3 CSV jobs / presign"
+            ],
+            [
+              "`WEBSEARCH_ENABLED`",
+              "`false`",
+              "`/web/web-search` behavior"
+            ],
+            [
+              "`ICYPEAS_ENABLED`",
+              "`true`",
+              "Feature flags with IcyPeas"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Operation inventory",
+      "level": 2,
+      "slug": "operation-inventory",
+      "prose": "| Method | Path | Auth |\n| --- | --- | --- |\n| `GET` | `/health` | Public |\n| `GET` | `/` | Public |\n| `GET` | `/jobs` | Key |\n| `POST` | `/jobs/:id/pause` | Key |\n| `POST` | `/jobs/:id/resume` | Key |\n| `POST` | `/jobs/:id/terminate` | Key |\n| `GET` | `/jobs/:id/status` | Key |\n| `POST` | `/email/finder/` | Key |\n| `POST` | `/email/finder/bulk` | Key |\n| `POST` | `/email/finder/bulk/job` | Key |\n| `POST` | `/email/finder/s3` | Key |\n| `POST` | `/email/single/verifier/` | Key |\n| `POST` | `/email/bulk/verifier/` | Key |\n| `POST` | `/email/bulk/verifier/job` | Key |\n| `POST` | `/email/verify/s3` | Key |\n| `POST` | `/web/web-search` | Key |\n| `POST` | `/email-patterns/add` | Key |\n| `POST` | `/email-patterns/add/bulk` | Key |\n| `POST` | `/email-patterns/predict` | Key |\n| `POST` | `/email-patterns/predict/bulk` | Key |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Method",
+            "Path",
+            "Auth"
+          ],
+          "rows": [
+            [
+              "`GET`",
+              "`/health`",
+              "Public"
+            ],
+            [
+              "`GET`",
+              "`/`",
+              "Public"
+            ],
+            [
+              "`GET`",
+              "`/jobs`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/jobs/:id/pause`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/jobs/:id/resume`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/jobs/:id/terminate`",
+              "Key"
+            ],
+            [
+              "`GET`",
+              "`/jobs/:id/status`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/finder/`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/finder/bulk`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/finder/bulk/job`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/finder/s3`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/single/verifier/`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/bulk/verifier/`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/bulk/verifier/job`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email/verify/s3`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/web/web-search`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email-patterns/add`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email-patterns/add/bulk`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email-patterns/predict`",
+              "Key"
+            ],
+            [
+              "`POST`",
+              "`/email-patterns/predict/bulk`",
+              "Key"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /health",
+      "level": 2,
+      "slug": "get-health",
+      "prose": "**Response `200`:**\n\n```json\n{\n  \"status\": \"ok\",\n  \"service\": \"<PROJECT_NAME>\",\n  \"version\": \"<VERSION>\",\n  \"diagnostics\": {\n    \"api_key_configured\": true,\n    \"database_configured\": true,\n    \"truelist_configured\": false,\n    \"mailvetter_configured\": false,\n    \"icypeas_configured\": false,\n    \"websearch_enabled\": false,\n    \"icypeas_enabled\": true,\n    \"s3_configured\": true\n  }\n}\n```\n\nBooleans reflect non-empty API keys / URLs / bucket name (not live dependency checks).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"ok\",\n  \"service\": \"<PROJECT_NAME>\",\n  \"version\": \"<VERSION>\",\n  \"diagnostics\": {\n    \"api_key_configured\": true,\n    \"database_configured\": true,\n    \"truelist_configured\": false,\n    \"mailvetter_configured\": false,\n    \"icypeas_configured\": false,\n    \"websearch_enabled\": false,\n    \"icypeas_enabled\": true,\n    \"s3_configured\": true\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /",
+      "level": 2,
+      "slug": "get",
+      "prose": "Discovery JSON: `service`, `version`, `description`, `status`, `endpoints` map (`health`, `docs`, `email_finder` → `/email`, `email_verification` → `/email`, `email_patterns` → `/email-patterns`).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Jobs (Postgres emailapijobs` + Redis)",
+      "level": 2,
+      "slug": "jobs-postgres-emailapijobs-redis",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /jobs",
+      "level": 3,
+      "slug": "get-jobs",
+      "prose": "Returns up to **50** most recent jobs (fixed query in router).\n\n**Response `200`:**\n\n```json\n{\n  \"total\": 0,\n  \"jobs\": [\n    {\n      \"id\": \"uuid-string\",\n      \"provider\": \"finder\",\n      \"status\": \"running\",\n      \"total_emails\": 100,\n      \"completed\": 0,\n      \"unknown_count\": 0,\n      \"avg_duration_ms\": 0,\n      \"done\": false,\n      \"created_at\": \"2026-01-01T00:00:00Z\",\n      \"updated_at\": \"2026-01-01T00:00:00Z\"\n    }\n  ]\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"total\": 0,\n  \"jobs\": [\n    {\n      \"id\": \"uuid-string\",\n      \"provider\": \"finder\",\n      \"status\": \"running\",\n      \"total_emails\": 100,\n      \"completed\": 0,\n      \"unknown_count\": 0,\n      \"avg_duration_ms\": 0,\n      \"done\": false,\n      \"created_at\": \"2026-01-01T00:00:00Z\",\n      \"updated_at\": \"2026-01-01T00:00:00Z\"\n    }\n  ]\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /jobs/:id/status",
+      "level": 3,
+      "slug": "get-jobsidstatus",
+      "prose": "**Response `200`:**\n\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"uuid\": \"<job id>\",\n    \"job_title\": \"finder job\",\n    \"job_type\": \"finder\",\n    \"status\": \"processing\",\n    \"processed_rows\": 10,\n    \"progress_percent\": 50,\n    \"credits\": 10,\n    \"created_at\": \"...\",\n    \"updated_at\": \"...\",\n    \"provider\": \"finder_s3\",\n    \"done\": false,\n    \"output_csv_key\": \"optional/prefix/jobid.csv\"\n  }\n}\n```\n\n`job_type` is **`finder`** if provider name contains `\"finder\"`, else **`verification`**. `status` becomes **`completed`** when `done` is true; running jobs may show as **`processing`**.\n\n**`404`:** `{ \"detail\": \"job not found\" }`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"success\": true,\n  \"data\": {\n    \"uuid\": \"<job id>\",\n    \"job_title\": \"finder job\",\n    \"job_type\": \"finder\",\n    \"status\": \"processing\",\n    \"processed_rows\": 10,\n    \"progress_percent\": 50,\n    \"credits\": 10,\n    \"created_at\": \"...\",\n    \"updated_at\": \"...\",\n    \"provider\": \"finder_s3\",\n    \"done\": false,\n    \"output_csv_key\": \"optional/prefix/jobid.csv\"\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /jobs/:id/pause",
+      "level": 3,
+      "slug": "post-jobsidpause",
+      "prose": "**Response `200`:** `{ \"job_id\": \"<id>\", \"status\": \"paused\" }`  \n**`404`:** job missing. **`400`:** job already completed.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /jobs/:id/resume",
+      "level": 3,
+      "slug": "post-jobsidresume",
+      "prose": "Requires job **`paused`**. **Response `200`:** `{ \"job_id\": \"<id>\", \"status\": \"running\" }`.  \n**`400`:** not paused or already completed. **`404`:** not found.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /jobs/:id/terminate",
+      "level": 3,
+      "slug": "post-jobsidterminate",
+      "prose": "Terminates job, may trigger S3 merge in background for S3-backed jobs, deletes Postgres row. **Response `200`:**\n\n```json\n{\n  \"job_id\": \"<id>\",\n  \"status\": \"terminated\",\n  \"message\": \"job completely removed, remaining items merging to S3 (if applicable)\"\n}\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"job_id\": \"<id>\",\n  \"status\": \"terminated\",\n  \"message\": \"job completely removed, remaining items merging to S3 (if applicable)\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email finder",
+      "level": 2,
+      "slug": "email-finder",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /email/finder/",
+      "level": 3,
+      "slug": "post-emailfinder",
+      "prose": "**Query parameters (required):** `first_name`, `last_name`, `domain`.\n\n**Response `200`:**\n\n```json\n{\n  \"emails\": [\n    { \"uuid\": \"\", \"email\": \"a@b.com\", \"status\": \"\", \"source\": \"\" }\n  ],\n  \"total\": 1,\n  \"success\": true\n}\n```\n\nErrors: **`400`** missing params; other statuses from `internal/errors` mapping.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"emails\": [\n    { \"uuid\": \"\", \"email\": \"a@b.com\", \"status\": \"\", \"source\": \"\" }\n  ],\n  \"total\": 1,\n  \"success\": true\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /email/finder/bulk",
+      "level": 3,
+      "slug": "post-emailfinderbulk",
+      "prose": "**Body:**\n\n```json\n{\n  \"items\": [\n    { \"first_name\": \"Jane\", \"last_name\": \"Doe\", \"domain\": \"example.com\" }\n  ]\n}\n```\n\n**Constraints:** `items` length **1–50** (`BulkEmailFinderRequest`).\n\n**Response `200`:**\n\n```json\n{\n  \"processed_count\": 1,\n  \"total_requested\": 1,\n  \"total_successful\": 1,\n  \"results\": [\n    {\n      \"first_name\": \"Jane\",\n      \"last_name\": \"Doe\",\n      \"domain\": \"example.com\",\n      \"emails\": [],\n      \"source\": \"\",\n      \"total\": 0,\n      \"success\": true,\n      \"error\": \"\"\n    }\n  ]\n}\n```\n\nPer-item failures set `success: false` and `error`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"items\": [\n    { \"first_name\": \"Jane\", \"last_name\": \"Doe\", \"domain\": \"example.com\" }\n  ]\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"processed_count\": 1,\n  \"total_requested\": 1,\n  \"total_successful\": 1,\n  \"results\": [\n    {\n      \"first_name\": \"Jane\",\n      \"last_name\": \"Doe\",\n      \"domain\": \"example.com\",\n      \"emails\": [],\n      \"source\": \"\",\n      \"total\": 0,\n      \"success\": true,\n      \"error\": \"\"\n    }\n  ]\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /email/finder/bulk/job",
+      "level": 3,
+      "slug": "post-emailfinderbulkjob",
+      "prose": "Async Asynq job. **Response `202`:**\n\n```json\n{\n  \"job_id\": \"<uuid>\",\n  \"queued\": 10,\n  \"status_url\": \"/jobs/<uuid>/status\"\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"job_id\": \"<uuid>\",\n  \"queued\": 10,\n  \"status_url\": \"/jobs/<uuid>/status\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /email/finder/s3",
+      "level": 3,
+      "slug": "post-emailfinders3",
+      "prose": "**Body (`S3CSVFinderRequest`):**\n\n```json\n{\n  \"s3_bucket\": \"my-bucket\",\n  \"input_csv_key\": \"upload/input.csv\",\n  \"output_prefix\": \"exports/\",\n  \"csv_columns\": {\n    \"first_name\": \"First Name\",\n    \"last_name\": \"Last Name\",\n    \"domain\": \"Website\"\n  }\n}\n```\n\n**`csv_columns`** must include keys **`first_name`**, **`last_name`**, **`domain`** (values = CSV header names).\n\n**Response `202`:** `{ \"job_id\", \"status_url\", \"message\" }` — streaming/enqueue runs in background.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"s3_bucket\": \"my-bucket\",\n  \"input_csv_key\": \"upload/input.csv\",\n  \"output_prefix\": \"exports/\",\n  \"csv_columns\": {\n    \"first_name\": \"First Name\",\n    \"last_name\": \"Last Name\",\n    \"domain\": \"Website\"\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email verification",
+      "level": 2,
+      "slug": "email-verification",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /email/single/verifier/",
+      "level": 3,
+      "slug": "post-emailsingleverifier",
+      "prose": "**Body (`SingleEmailVerifierRequest`):**\n\n```json\n{\n  \"email\": \"user@example.com\",\n  \"provider\": \"mailtester\"\n}\n```\n\n**`provider`:** `mailvetter` \\| `mailtester` \\| `icypeas` \\| `truelist`.\n\n**Response `200`:**\n\n```json\n{\n  \"result\": {\n    \"email\": \"user@example.com\",\n    \"status\": \"valid\"\n  },\n  \"success\": true\n}\n```\n\n`status` values include `valid`, `invalid`, `catchall`, `unknown`, `risky`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"email\": \"user@example.com\",\n  \"provider\": \"mailtester\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"result\": {\n    \"email\": \"user@example.com\",\n    \"status\": \"valid\"\n  },\n  \"success\": true\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /email/bulk/verifier/",
+      "level": 3,
+      "slug": "post-emailbulkverifier",
+      "prose": "**Body:**\n\n```json\n{\n  \"provider\": \"mailtester\",\n  \"emails\": [\"a@b.com\"]\n}\n```\n\n**Constraints:** **1–10000** emails. Providers: `mailvetter`, `mailtester`, `icypeas`, `truelist`.\n\n**Response `200`:**\n\n```json\n{\n  \"results\": [\n    {\n      \"email\": \"a@b.com\",\n      \"status\": \"valid\",\n      \"email_state\": null,\n      \"email_sub_state\": null\n    }\n  ],\n  \"total\": 1,\n  \"valid_count\": 1,\n  \"invalid_count\": 0,\n  \"catchall_count\": 0,\n  \"unknown_count\": 0,\n  \"success\": true\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"provider\": \"mailtester\",\n  \"emails\": [\"a@b.com\"]\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"results\": [\n    {\n      \"email\": \"a@b.com\",\n      \"status\": \"valid\",\n      \"email_state\": null,\n      \"email_sub_state\": null\n    }\n  ],\n  \"total\": 1,\n  \"valid_count\": 1,\n  \"invalid_count\": 0,\n  \"catchall_count\": 0,\n  \"unknown_count\": 0,\n  \"success\": true\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /email/bulk/verifier/job",
+      "level": 3,
+      "slug": "post-emailbulkverifierjob",
+      "prose": "**Response `202`:** same shape as finder bulk job (`job_id`, `queued`, `status_url`). Uses mailtester or mailvetter queue depending on `provider`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /email/verify/s3",
+      "level": 3,
+      "slug": "post-emailverifys3",
+      "prose": "**Body (`S3CSVVerifyRequest`):**\n\n```json\n{\n  \"s3_bucket\": \"my-bucket\",\n  \"input_csv_key\": \"upload/emails.csv\",\n  \"output_prefix\": \"verified/\",\n  \"csv_columns\": { \"email\": \"Email Column\" },\n  \"provider\": \"mailtester\"\n}\n```\n\n**`csv_columns.email`** required; **`provider`** defaults to **`mailtester`** if empty.\n\n**Response `202`:** `{ \"job_id\", \"status_url\", \"message\" }`.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"s3_bucket\": \"my-bucket\",\n  \"input_csv_key\": \"upload/emails.csv\",\n  \"output_prefix\": \"verified/\",\n  \"csv_columns\": { \"email\": \"Email Column\" },\n  \"provider\": \"mailtester\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Web search",
+      "level": 2,
+      "slug": "web-search",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /web/web-search",
+      "level": 3,
+      "slug": "post-webweb-search",
+      "prose": "**Body:**\n\n```json\n{\n  \"full_name\": \"Jane Doe\",\n  \"company_domain\": \"example.com\"\n}\n```\n\n**Response `200`:** JSON from `WebSearchService.DiscoverEmail` (structure depends on OpenAI/DuckDuckGo pipeline). **`500`** on failure.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"full_name\": \"Jane Doe\",\n  \"company_domain\": \"example.com\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email patterns",
+      "level": 2,
+      "slug": "email-patterns",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /email-patterns/add",
+      "level": 3,
+      "slug": "post-email-patternsadd",
+      "prose": "**Body (`EmailPatternRequest`):**\n\n```json\n{\n  \"company_uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"email\": \"jane@example.com\",\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\"\n}\n```\n\n**Response `201`:** `AddEmailPatternResponse` (`uuid`, `company_uuid`, `pattern_format`, `pattern_string`, `is_auto_extracted`, `domain`, `contact_count`, `created_at`, `updated_at`).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"company_uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"email\": \"jane@example.com\",\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /email-patterns/add/bulk",
+      "level": 3,
+      "slug": "post-email-patternsaddbulk",
+      "prose": "**Body:** `{ \"items\": [ EmailPatternRequest, ... ] }` (min 1 item).\n\n**Response `201`:** bulk result from service (same family as single add).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /email-patterns/predict",
+      "level": 3,
+      "slug": "post-email-patternspredict",
+      "prose": "**Body:**\n\n```json\n{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\"\n}\n```\n\n**Response `200`:** `{ \"domain\", \"patterns\": [...], \"total\", \"success\": true }`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /email-patterns/predict/bulk",
+      "level": 3,
+      "slug": "post-email-patternspredictbulk",
+      "prose": "**Body:** `{ \"items\": [ { \"first_name\", \"last_name\", \"domain\" }, ... ] }`.\n\n**Response `200`:** `{ \"results\": [...], \"total\", \"success\": true }`.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GraphQL gateway mapping",
+      "level": 2,
+      "slug": "graphql-gateway-mapping",
+      "prose": "| Concern | Doc |\n| --- | --- |\n| GraphQL email operations | [15_EMAIL_MODULE.md](../graphql.modules/15_EMAIL_MODULE.md) |\n| Scheduler jobs + S3 exports | [16_JOBS_MODULE.md](../graphql.modules/16_JOBS_MODULE.md) |\n| Postman collection | [EC2_email.server.postman_collection.json](../postman/EC2_email.server.postman_collection.json) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Concern",
+            "Doc"
+          ],
+          "rows": [
+            [
+              "GraphQL email operations",
+              "[15_EMAIL_MODULE.md](../graphql.modules/15_EMAIL_MODULE.md)"
+            ],
+            [
+              "Scheduler jobs + S3 exports",
+              "[16_JOBS_MODULE.md](../graphql.modules/16_JOBS_MODULE.md)"
+            ],
+            [
+              "Postman collection",
+              "[EC2_email.server.postman_collection.json](../postman/EC2_email.server.postman_collection.json)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "15_EMAIL_MODULE.md",
+          "href": "../graphql.modules/15_EMAIL_MODULE.md"
+        },
+        {
+          "text": "16_JOBS_MODULE.md",
+          "href": "../graphql.modules/16_JOBS_MODULE.md"
+        },
+        {
+          "text": "EC2_email.server.postman_collection.json",
+          "href": "../postman/EC2_email.server.postman_collection.json"
+        }
+      ]
+    },
+    {
+      "heading": "Legacy / parallel documentation",
+      "level": 2,
+      "slug": "legacy-parallel-documentation",
+      "prose": "Older matrices referred to `lambda/emailapis` (Python) and `lambda/emailapigo`. **`EC2/email.server`** is the maintained Gin implementation whose routes match the table above. For endpoint-era matrices and data lineage, still see:\n\n- [SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md)\n- [emailapis_endpoint_era_matrix.md](../endpoints/emailapis_endpoint_era_matrix.md)\n- [emailapis_data_lineage.md](../database/emailapis_data_lineage.md)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md)",
+              "checked": null
+            },
+            {
+              "text": "[emailapis_endpoint_era_matrix.md](../endpoints/emailapis_endpoint_era_matrix.md)",
+              "checked": null
+            },
+            {
+              "text": "[emailapis_data_lineage.md](../database/emailapis_data_lineage.md)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "SERVICE_TOPOLOGY.md",
+          "href": "../endpoints/SERVICE_TOPOLOGY.md"
+        },
+        {
+          "text": "emailapis_endpoint_era_matrix.md",
+          "href": "../endpoints/emailapis_endpoint_era_matrix.md"
+        },
+        {
+          "text": "emailapis_data_lineage.md",
+          "href": "../database/emailapis_data_lineage.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

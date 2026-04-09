@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "2. Contact360 email system/2.1 — Finder Engine.md",
+  "sha256_source": "917f197475dde5fc01ebdb9dd8d988e12ab82003b382db41cdde713ef0a9acbc",
+  "generated_at": "2026-04-08T23:11:49.954393+00:00",
+  "title": "Version 2.1 — Finder Engine",
+  "version": "2.1",
+  "codename": "Finder Engine",
+  "era": 2,
+  "minor": 1,
+  "patch": null,
+  "status": "completed",
+  "summary": "Grounded in `docs/codebases/emailapis-codebase-analysis.md` and `docs/codebases/appointment360-codebase-analysis.md`.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"2.1.x Finder Engine\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    hook[\"useEmailFinderSingle or emailService\"] --> gql[\"findEmail GraphQL\"]\n    gql --> gw[\"gateway auth plus credit check\"]\n    gw --> go[\"emailapigo Go worker\"]\n    go --> pat[\"up to 10 pattern formats\"]\n    pat --> cache[\"email_finder_cache lookup\"]\n    cache --> score[\"rank or score candidates\"]\n    score --> norm[\"normalize metadata for UI\"]\n    norm --> dash[\"dashboard finder results\"]\n    dash --> gate[\"2.1 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.3` core path · `.4`–`.6` hardening · `.7`–`.8` integration · `.9` minor freeze / handoff.\nTheme: **Pattern** — codenames in per-patch `2.1.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Freeze **finder** GraphQL input/output and enum for pattern sources — **Service task slices** in `2.1.P` patch files (scope from former `appointment360-email-system-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Document **emailapigo** vs **emailapis** routing rules — **Service task slices** in `2.1.P` patch files (scope from former `emailapis-email-system-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: harden **provider fallback** when pr…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **app:** `emailfindersingle.tsx` + `…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: loading, empty, and error states exp…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Single finder flow; optional bulk finder entry only if already in product (defer bulk export to `2.4`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **`email_finder_cache`** mutation ru…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **`email_patterns`** lineage for use…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **redis exit**: campaign (as…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "This minor owns the semantics of cache writes and cache hits.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Identity keys**: `first_name`, `last_name`, `domain` are case-insensitive and normalized.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Write rule**: only write cache entries for validated input sets (no invalid domain pollution).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Evidence**: data lineage doc updated (`docs/backend/database/emailapis_data_lineage.md`) and at least one “cache hit” trace exists.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**email_finder_cache**, **email_patterns** — read/write paths and ownership.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Cache/pattern doc updated",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: latency dashboard: p50/p95 finder (r…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: alert on finder error rate spike.) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `2.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 2.1 — Finder Engine",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Codebase file targets (Finder Engine)",
+      "level": 2,
+      "prose": "Grounded in `docs/codebases/emailapis-codebase-analysis.md` and `docs/codebases/appointment360-codebase-analysis.md`."
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (2.1.0 – 2.1.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

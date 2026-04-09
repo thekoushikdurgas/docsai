@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/09_USAGE_MODULE.md",
+  "sha256_source": "74e9e219b4cf2889c27e5e50976fd06d81f3c620d95ec3ae8357653086af10b9",
+  "generated_at": "2026-04-08T23:26:46.169635+00:00",
+  "title": "Usage Module",
+  "raw_markdown": "# Usage Module\n\n## Overview\n\nThe Usage module provides feature usage tracking functionality. It allows users to track their usage of various features, view current usage limits, and reset usage counters (for testing/admin purposes).\n**Location:** `app/graphql/modules/usage/`\n\n**Jobs in `featureOverview`:** The nested query returns **`SchedulerJob`** rows from the gateway database (same family as [16_JOBS_MODULE.md](16_JOBS_MODULE.md)). Long-running work may also touch **email.server** or **Connectra** (`EC2/sync.server`); the REST job API there is documented in **[connectra.api.md](../micro.services.apis/connectra.api.md)**.\n\n## Queries and mutations – parameters and variable types\n\n| Operation | Parameter(s) | Variable type (GraphQL) | Return type |\n|-----------|---------------|-------------------------|-------------|\n| **Queries** (under `usage { ... }`) | | | |\n| `usage` | `feature` | `String` (optional; filters to one feature) | `UsageResponse!` |\n| **Queries** (root field `featureOverview`) | | | |\n| `featureOverview` | `feature` | `String!` (nested: `featureOverview { featureOverview(feature: ...) }`) | `FeatureOverview!` |\n\n| **Mutations** (under `usage { ... }`) | | | |\n| `trackUsage` | `input` | `TrackUsageInput!` | `TrackUsageResponse!` |\n| `resetUsage` | `input` | `ResetUsageInput!` | `ResetUsageResponse!` |\n\nUse camelCase in variables. `TrackUsageInput`: `feature: String!`, `amount: Int! = 1`. `ResetUsageInput`: `feature: String!`. Supported feature names: AI_CHAT, BULK_EXPORT, API_KEYS, EMAIL_FINDER, VERIFIER, LINKEDIN, BULK_VERIFICATION, etc. (see Supported Features below).\n\n## Canonical SDL (gateway schema)\n\nRegenerate the full schema from `contact360.io/api` with:\n\n`python -c \"from app.graphql.schema import schema; print(schema.as_str())\"`\n\n```graphql\ntype UsageQuery {\n  usage(feature: String = null): UsageResponse!\n}\n\ntype UsageMutation {\n  trackUsage(input: TrackUsageInput!): TrackUsageResponse!\n  resetUsage(input: ResetUsageInput!): ResetUsageResponse!\n}\n\ntype FeatureOverviewQuery {\n  featureOverview(feature: String!): FeatureOverview!\n}\n\ntype FeatureOverview {\n  feature: String!\n  usage: FeatureUsageInfo\n  activities: [Activity!]!\n  jobs: [SchedulerJob!]!\n}\n\ninput TrackUsageInput {\n  feature: String!\n  amount: Int! = 1\n}\n\ninput ResetUsageInput {\n  feature: String!\n}\n```\n\n## POST `/graphql` — full request and response\n\nHeaders: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.\n\n### `usage.usage` (query)\n\n```json\n{\n  \"query\": \"query ($feature: String) { usage { usage(feature: $feature) { features { feature used limit remaining } } } }\",\n  \"variables\": { \"feature\": null }\n}\n```\n\n### `featureOverview.featureOverview` (query)\n\n```json\n{\n  \"query\": \"query ($feature: String!) { featureOverview { featureOverview(feature: $feature) { feature usage { used limit } } } }\",\n  \"variables\": { \"feature\": \"EMAIL_FINDER\" }\n}\n```\n\n### `usage.trackUsage` (mutation)\n\n```json\n{\n  \"query\": \"mutation ($input: TrackUsageInput!) { usage { trackUsage(input: $input) { feature used limit success } } }\",\n  \"variables\": { \"input\": { \"feature\": \"EMAIL_FINDER\", \"amount\": 1 } }\n}\n```\n\n## Types\n\n### FeatureUsageInfo\n\nFeature usage information.\n\n```graphql\ntype FeatureUsageInfo {\n  feature: String!\n  used: Int!\n  limit: Int!\n  remaining: Int!\n  resetAt: String\n}\n```\n\n**Fields:**\n\n- `feature` (String!): Feature name\n- `used` (Int!): Current usage count\n- `limit` (Int!): Usage limit (999999 means unlimited)\n- `remaining` (Int!): Remaining usage (limit - used, or -1 if unlimited)\n- `resetAt` (String): ISO format datetime when usage period resets (null if no reset scheduled)\n\n### UsageResponse\n\nResponse containing usage for all features.\n\n```graphql\ntype UsageResponse {\n  features: [FeatureUsageInfo!]!\n}\n```\n\n### TrackUsageResponse\n\nResponse from tracking usage.\n\n```graphql\ntype TrackUsageResponse {\n  feature: String!\n  used: Int!\n  limit: Int!\n  success: Boolean!\n}\n```\n\n### ResetUsageResponse\n\nResponse from resetting usage.\n\n```graphql\ntype ResetUsageResponse {\n  feature: String!\n  used: Int!\n  limit: Int!\n  success: Boolean!\n}\n```\n\n## Supported Features\n\nThe following features can be tracked:\n\n- `AI_CHAT` - AI chat conversations (see [AI Chats Module](17_AI_CHATS_MODULE.md) / Contact AI service)\n- `BULK_EXPORT` - Bulk export operations\n- `API_KEYS` - API key usage\n- `TEAM_MANAGEMENT` - Team management operations\n- `EMAIL_FINDER` - Email finder queries\n- `VERIFIER` - Email verification\n- `LINKEDIN` - LinkedIn operations\n- `DATA_SEARCH` - Data search queries\n- `ADVANCED_FILTERS` - Advanced filter usage\n- `AI_SUMMARIES` - AI summary generation\n- `SAVE_SEARCHES` - Saved search operations\n- `BULK_VERIFICATION` - Bulk email verification\n\n## Queries\n\n### usage\n\nGet current feature usage for all features or a specific feature.\n\n**Parameters:**\n\n| Name   | Type   | Required | Description                                                                 |\n|--------|--------|----------|-----------------------------------------------------------------------------|\n| feature| String | No       | Filter by specific feature name (case-insensitive, e.g. \"EMAIL_FINDER\")    |\n\n```graphql\nquery GetUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n**Arguments:**\n\n- `feature` (String, optional): Filter by specific feature name (case-insensitive, e.g., \"EMAIL_FINDER\" or \"email_finder\")\n\n**Returns:** `UsageResponse`\n\n**Authentication:** Required\n\n**Implementation Details:**\n\n- Usage records are auto-created on first track if they don't exist\n- Feature names are normalized to uppercase for matching\n- Unlimited limits are represented as 999999 (remaining is -1)\n- Period-based resets: Usage resets monthly (at the start of each month)\n- Role-based limits: Limits are determined by user role (FREE_USER vs PRO_USER)\n  - SuperAdmin/Admin get PRO_USER level access (unlimited for most features)\n\n**Example Query (All Features):**\n\n```graphql\nquery GetUsage {\n  usage {\n    usage {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n**Example Query (Single Feature):**\n\n```graphql\nquery GetUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n**Variables:**\n\n```json\n{\n  \"feature\": \"EMAIL_FINDER\"\n}\n```\n\n**Example Response:**\n\n```json\n{\n  \"data\": {\n    \"usage\": {\n      \"usage\": {\n        \"features\": [\n          {\n            \"feature\": \"EMAIL_FINDER\",\n            \"used\": 150,\n            \"limit\": 1000,\n            \"remaining\": 850,\n            \"resetAt\": \"2024-02-01T00:00:00Z\"\n          },\n          {\n            \"feature\": \"VERIFIER\",\n            \"used\": 75,\n            \"limit\": 500,\n            \"remaining\": 425,\n            \"resetAt\": \"2024-02-01T00:00:00Z\"\n          },\n          {\n            \"feature\": \"AI_CHAT\",\n            \"used\": 20,\n            \"limit\": 999999,\n            \"remaining\": -1,\n            \"resetAt\": null\n          }\n        ]\n      }\n    }\n  }\n}\n```\n\n**Note:** When `limit` is 999999 (unlimited), `remaining` will be -1. The `resetAt` field indicates when the usage period resets (typically monthly).\n\n### featureOverview\n\nGet a combined view of **usage**, **activities**, and **jobs** for a single feature for the current user.\n\n**Parameters:**\n\n| Name   | Type   | Required | Description                                      |\n|--------|--------|----------|--------------------------------------------------|\n| feature| String!| Yes      | Feature name (e.g. \"BULK_EXPORT\", \"EMAIL_FINDER\")|\n\n```graphql\nquery FeatureOverview($feature: String!) {\n  featureOverview {\n    featureOverview(feature: $feature) {\n      feature\n      usage {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n      activities {\n        id\n        service_type\n        action_type\n        status\n        created_at\n      }\n      jobs {\n        job_id\n        job_type\n        status\n        created_at\n      }\n    }\n  }\n}\n```\n\n**Arguments:**\n\n- `feature` (String!): Feature name (e.g., `\"BULK_EXPORT\"`, `\"BULK_VERIFICATION\"`, `\"EMAIL_FINDER\"`).\n\n**Returns:** `FeatureOverview` object with:\n\n- `feature`: Normalized feature name\n- `usage`: `FeatureUsageInfo` for this feature (or `null` if not used yet)\n- `activities`: Recent `UserActivity` records associated with this feature (email or jobs service types)\n- `jobs`: `SchedulerJob` records associated with this feature (e.g., bulk exports / verifications)\n\n**Authentication:** Required\n\n## Mutations\n\n### trackUsage\n\nTrack feature usage for the current user.\n\n**Parameters:**\n\n| Name  | Type               | Required | Description                                |\n|-------|--------------------|----------|--------------------------------------------|\n| input | TrackUsageInput!   | Yes      | Object with `feature` (string) and `amount` (Int, default 1) |\n\n```graphql\nmutation TrackUsage($input: TrackUsageInput!) {\n  usage {\n    trackUsage(input: $input) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n```\n\n**Variables:**\n\n```json\n{\n  \"input\": {\n    \"feature\": \"EMAIL_FINDER\",\n    \"amount\": 1\n  }\n}\n```\n\n**Input:** `TrackUsageInput!`\n\n**Returns:** `TrackUsageResponse`\n\n**Authentication:** Required\n\n**Validation:**\n\n- `feature`: Required, non-empty string, max 100 characters, must be a valid feature name\n- `amount`: Must be a non-negative integer, min: 1, max: 1,000,000 (default: 1)\n\n**Implementation Details:**\n\n- Increments usage count for the specified feature\n- Usage records are auto-created if they don't exist\n- Limits are updated if user role changed (e.g., upgraded subscription)\n- Usage is capped at the limit (won't exceed limit)\n- Unlimited features (limit is None or 0) keep used count at 0\n- Role-based limits: Limits are determined by user role (FREE_USER vs PRO_USER)\n\n**Example Response:**\n\n```json\n{\n  \"data\": {\n    \"usage\": {\n      \"trackUsage\": {\n        \"feature\": \"EMAIL_FINDER\",\n        \"used\": 151,\n        \"limit\": 1000,\n        \"success\": true\n      }\n    }\n  }\n}\n```\n\n### resetUsage\n\nReset the usage counter for a specific feature to zero.\n\n**Parameters:**\n\n| Name  | Type                 | Required | Description                          |\n|-------|----------------------|----------|--------------------------------------|\n| input | ResetUsageInput!     | Yes      | Object with `feature` (string)       |\n\n```graphql\nmutation ResetUsage($input: ResetUsageInput!) {\n  usage {\n    resetUsage(input: $input) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n```\n\n**Variables:**\n\n```json\n{\n  \"input\": {\n    \"feature\": \"EMAIL_FINDER\"\n  }\n}\n```\n\n**Input:** `ResetUsageInput!`\n\n**Returns:** `ResetUsageResponse`\n\n**Authentication:** Required\n\n**Validation:**\n\n- `feature`: Required, non-empty string, max 100 characters, must be a valid feature name\n\n**Implementation Details:**\n\n- Resets usage counter to zero for the specified feature\n- Useful for testing or administrative purposes\n- Usage records are auto-created if they don't exist\n\n**Example Response:**\n\n```json\n{\n  \"data\": {\n    \"usage\": {\n      \"resetUsage\": {\n        \"feature\": \"EMAIL_FINDER\",\n        \"used\": 0,\n        \"limit\": 1000,\n        \"success\": true\n      }\n    }\n  }\n}\n```\n\n## Input Types\n\n### TrackUsageInput\n\nInput for tracking feature usage.\n\n```graphql\ninput TrackUsageInput {\n  feature: String!\n  amount: Int\n}\n```\n\n**Fields:**\n\n- `feature` (String!): Feature name (must be one of the supported features) - max 100 characters\n- `amount` (Int): Amount to increment (default: 1, min: 1, max: 1,000,000)\n\n**Validation:**\n\n- `feature`: Required, non-empty, max 100 characters, must be a valid feature name\n- `amount`: Must be a non-negative integer, min: 1, max: 1,000,000\n- Input validation is performed via `input.validate()` method\n\n### ResetUsageInput\n\nInput for resetting feature usage.\n\n```graphql\ninput ResetUsageInput {\n  feature: String!\n}\n```\n\n**Fields:**\n\n- `feature` (String!): Feature name (must be one of the supported features) - max 100 characters\n\n**Validation:**\n\n- `feature`: Required, non-empty, max 100 characters, must be a valid feature name\n- Input validation is performed via `input.validate()` method\n\n## Error Handling\n\nThe Usage module implements comprehensive error handling with input validation, database error handling, and response validation.\n\n### Error Types\n\nThe Usage module may raise the following errors:\n\n- **NotFoundError** (404): User usage record not found\n  - Code: `NOT_FOUND`\n  - Extensions: `resourceType: \"Usage\"`, `identifier: <user_id>`\n  - Occurs when: User usage record does not exist (usage records are auto-created on first track)\n- **ValidationError** (422): Input validation failed\n  - Code: `VALIDATION_ERROR`\n  - Extensions: `fieldErrors` (field-specific errors)\n  - Occurs when: Invalid feature name, invalid amount (must be at least 1), or missing required fields\n- **BadRequestError** (400): Invalid request data\n  - Code: `BAD_REQUEST`\n  - Occurs when: Request format is invalid or required parameters are missing\n- **ServiceUnavailableError** (503): Database service unavailable\n  - Code: `SERVICE_UNAVAILABLE`\n  - Extensions: `serviceName: \"database\"`\n  - Occurs when: Database connection fails\n\n### Error Response Examples\n\n**Example: Validation Error**\n\n```json\n{\n  \"errors\": [\n    {\n      \"message\": \"Invalid feature: INVALID_FEATURE. Valid features: AI_CHAT, BULK_EXPORT, ...\",\n      \"extensions\": {\n        \"code\": \"VALIDATION_ERROR\",\n        \"statusCode\": 422,\n        \"fieldErrors\": {\n          \"feature\": [\"Feature must be one of the supported features: AI_CHAT, BULK_EXPORT, API_KEYS, ...\"],\n          \"amount\": [\"Amount must be at least 1\"]\n        }\n      }\n    }\n  ]\n}\n```\n\n**Example: Usage Record Not Found**\n\n```json\n{\n  \"errors\": [\n    {\n      \"message\": \"Usage with identifier '123e4567-e89b-12d3-a456-426614174000' not found\",\n      \"extensions\": {\n        \"code\": \"NOT_FOUND\",\n        \"statusCode\": 404,\n        \"resourceType\": \"Usage\",\n        \"identifier\": \"123e4567-e89b-12d3-a456-426614174000\"\n      }\n    }\n  ]\n}\n```\n\n### Error Handling Patterns\n\n- **Input Validation**: Feature names and amounts are validated before processing\n  - Feature name: max 100 characters, must be valid feature enum value\n  - Amount: min 1, max 1,000,000, must be non-negative integer\n- **Database Errors**: All database operations include transaction rollback on failure\n  - Transaction rollback on error (automatic via FastAPI dependency)\n  - Integrity errors are caught and converted to user-friendly errors\n  - Database connection errors are converted to ServiceUnavailableError\n- **Auto-Creation**: Usage records are automatically created when first tracked\n- **Feature Validation**: Feature names are validated against supported features list\n- **Error Logging**: Comprehensive error logging with context for debugging\n\n## Implementation Details\n\n### Usage Service\n\n- **UsageService**: Feature usage tracking is handled by `UsageService`\n  - All usage operations go through the service layer\n  - Service handles database operations, validation, and business logic\n\n### Role-Based Limits\n\n- **Role Normalization**: User roles are normalized to FREE_USER or PRO_USER level\n  - SuperAdmin/Admin: Get PRO_USER level access (unlimited for most features)\n  - PRO_USER: Gets PRO_USER level access\n  - All other roles: Get FREE_USER level access\n- **Feature Limits**: Limits are defined per feature and role in `FEATURE_LIMITS` dictionary\n  - FREE_USER limits: Specific numeric limits (e.g., EMAIL_FINDER: 10, VERIFIER: 5)\n  - PRO_USER limits: None (unlimited) for most features\n  - Some features are admin-only (TEAM_MANAGEMENT: 0 for FREE_USER, unlimited for PRO_USER)\n\n### Feature Limits Configuration\n\nThe following feature limits are configured:\n\n- **AI_CHAT**: FREE_USER: 0, PRO_USER: unlimited\n- **BULK_EXPORT**: FREE_USER: 0, PRO_USER: unlimited\n- **API_KEYS**: FREE_USER: 0, PRO_USER: unlimited\n- **TEAM_MANAGEMENT**: FREE_USER: 0, PRO_USER: unlimited (Admin only)\n- **EMAIL_FINDER**: FREE_USER: 10, PRO_USER: unlimited\n- **VERIFIER**: FREE_USER: 5, PRO_USER: unlimited\n- **LINKEDIN**: FREE_USER: 5, PRO_USER: unlimited\n- **DATA_SEARCH**: FREE_USER: 20, PRO_USER: unlimited\n- **ADVANCED_FILTERS**: FREE_USER: 0, PRO_USER: unlimited\n- **AI_SUMMARIES**: FREE_USER: 0, PRO_USER: unlimited\n- **SAVE_SEARCHES**: FREE_USER: 0, PRO_USER: unlimited\n- **BULK_VERIFICATION**: FREE_USER: 0, PRO_USER: unlimited\n\n### Usage Tracking\n\n- **Auto-Creation**: Usage records are automatically created on first track\n  - Created with current role-based limit\n  - Period start/end dates are set (monthly periods)\n- **Period-Based Resets**: Usage resets monthly at the start of each month\n  - `period_start`: Start of current period\n  - `period_end`: End of current period (start of next month)\n  - Usage is reset to 0 when period ends\n- **Limit Updates**: Limits are updated if user role changed (e.g., upgraded subscription)\n  - Limit is recalculated based on current role\n  - Used count is preserved (unless reset)\n- **Usage Capping**: Usage is capped at the limit (won't exceed limit)\n  - Formula: `used = min(used + amount, limit)`\n- **Unlimited Features**: Features with unlimited access (limit is None or 0) keep used count at 0\n\n### Unlimited Representation\n\n- **Unlimited Limits**: Unlimited is represented as 999999 in responses\n  - `limit`: 999999 means unlimited\n  - `remaining`: -1 means unlimited\n- **Internal Representation**: Internally, unlimited is represented as None\n  - Converted to 999999 for API responses\n\n### Database Operations\n\n- **Usage Records**: Stored in `FeatureUsage` table\n  - Fields: `user_id`, `feature`, `used`, `limit`, `period_start`, `period_end`, `updated_at`\n  - Unique constraint on `(user_id, feature)`\n- **Transaction Management**: All database operations use transactions\n  - Transaction rollback on failure\n  - Automatic flush after updates\n\n### Error Handling\n\n- **Input Validation**: All inputs are validated before processing\n  - Feature name validation: max 100 characters, must be valid feature enum\n  - Amount validation: min 1, max 1,000,000, must be non-negative integer\n  - UUID validation for user IDs\n- **Database Error Handling**: Database operations use centralized error handlers\n  - Transaction rollback on failure\n  - Integrity errors are caught and converted to user-friendly errors\n  - Database connection errors are converted to ServiceUnavailableError\n- **Response Validation**: All service responses are validated before returning\n  - Usage data structure validation\n  - Limit/used value validation\n\n## Usage Examples\n\n### Complete Usage Tracking Flow\n\n```graphql\n# 1. Get current usage for all features\nquery GetCurrentUsage {\n  usage {\n    usage {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n\n# 1a. Get current usage for a specific feature\nquery GetFeatureUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n\n# 2. Track feature usage\nmutation TrackEmailFinder {\n  usage {\n    trackUsage(input: {\n      feature: \"EMAIL_FINDER\"\n      amount: 1\n    }) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n\n# 3. Track multiple uses\nmutation TrackBulk {\n  usage {\n    trackUsage(input: {\n      feature: \"BULK_VERIFICATION\"\n      amount: 10\n    }) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n\n# 4. Reset usage (for testing/admin)\nmutation ResetUsage {\n  usage {\n    resetUsage(input: {\n      feature: \"EMAIL_FINDER\"\n    }) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n\n# 5. Check if feature is available (using feature parameter)\nquery CheckFeature($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n```\n\n## Implementation Details\n\n- **UsageService**: Usage tracking is handled by `UsageService`\n- **Feature Limits**: Each feature has a usage limit (999999 means unlimited)\n- **Automatic Creation**: Usage records are automatically created when first tracked\n- **User Isolation**: Users can only track and view their own usage\n- **Incremental Tracking**: Usage is incremented by the specified amount\n- **Reset Functionality**: Usage can be reset to zero (useful for testing/admin)\n\n## Task breakdown (for maintainers)\n\n1. **Trace usage query:** UsageQuery.usage(feature?) → UsageService; feature_usage table filtered by user_id; optional feature filter (case-insensitive); validate feature name against supported list.\n2. **featureOverview:** Separate resolver (FeatureOverviewQuery); document which fields it returns (e.g. list of features with limits/used).\n3. **trackUsage:** Increment usage for feature; verify user_id from context; auto-create feature_usage row if missing; confirm amount default (1) and max.\n4. **resetUsage:** Set used to 0 for feature; typically admin/testing; confirm authorization (e.g. self or Admin).\n5. **Limits:** Document how limits are determined (subscription/role from user_profiles); 999999 = unlimited.\n\n## Related Modules\n\n- **Users Module**: User profile contains subscription information that may affect limits\n- **Billing Module**: Subscription plans may affect usage limits\n\n## Documentation metadata\n\n- Era: `1.x`\n- Introduced in: `TBD` (fill with exact minor)\n- Frontend bindings: list page files from `docs/frontend/pages/*.json`\n- Data stores touched: PostgreSQL/Elasticsearch/MongoDB/S3 as applicable\n\n## Endpoint/version binding checklist\n\n- Add operation list with `introduced_in` / `deprecated_in` tags.\n- Map each operation to frontend page bindings and hook/service usage.\n- Record DB tables read/write for each operation.\n\n",
+  "module_number": 9,
+  "module_name": "USAGE",
+  "location": "app/graphql/modules/usage/",
+  "overview": "Get a combined view of **usage**, **activities**, and **jobs** for a single feature for the current user.\n\n**Parameters:**\n\n| Name   | Type   | Required | Description                                      |\n|--------|--------|----------|--------------------------------------------------|\n| feature| String!| Yes      | Feature name (e.g. \"BULK_EXPORT\", \"EMAIL_FINDER\")|\n\n```graphql\nquery FeatureOverview($feature: String!) {\n  featureOverview {\n    featureOverview(feature: $feature) {\n      feature\n      usage {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n      activities {\n        id\n        service_type\n        action_type\n        status\n        created_at\n      }\n      jobs {\n        job_id\n        job_type\n        status\n        created_at\n      }\n    }\n  }\n}\n```\n\n**Arguments:**\n\n- `feature` (String!): Feature name (e.g., `\"BULK_EXPORT\"`, `\"BULK_VERIFICATION\"`, `\"EMAIL_FINDER\"`).\n\n**Returns:** `FeatureOverview` object with:\n\n- `feature`: Normalized feature name\n- `usage`: `FeatureUsageInfo` for this feature (or `null` if not used yet)\n- `activities`: Recent `UserActivity` records associated with this feature (email or jobs service types)\n- `jobs`: `SchedulerJob` records associated with this feature (e.g., bulk exports / verifications)\n\n**Authentication:** Required",
+  "operations": [
+    {
+      "name": "Queries** (under `usage { ... }`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "usage",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`feature`",
+          "graphql_type": "`String` (optional; filters to one feature)"
+        }
+      ],
+      "return_type": "`UsageResponse!`",
+      "description": null
+    },
+    {
+      "name": "Queries** (root field `featureOverview`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "featureOverview",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`feature`",
+          "graphql_type": "`String!` (nested: `featureOverview { featureOverview(feature: ...) }`)"
+        }
+      ],
+      "return_type": "`FeatureOverview!`",
+      "description": null
+    }
+  ],
+  "sdl_excerpt": "type UsageQuery {\n  usage(feature: String = null): UsageResponse!\n}\n\ntype UsageMutation {\n  trackUsage(input: TrackUsageInput!): TrackUsageResponse!\n  resetUsage(input: ResetUsageInput!): ResetUsageResponse!\n}\n\ntype FeatureOverviewQuery {\n  featureOverview(feature: String!): FeatureOverview!\n}\n\ntype FeatureOverview {\n  feature: String!\n  usage: FeatureUsageInfo\n  activities: [Activity!]!\n  jobs: [SchedulerJob!]!\n}\n\ninput TrackUsageInput {\n  feature: String!\n  amount: Int! = 1\n}\n\ninput ResetUsageInput {\n  feature: String!\n}\n",
+  "error_codes": [
+    "**NotFoundError** (404): User usage record not found",
+    "Code: `NOT_FOUND`",
+    "Extensions: `resourceType: \"Usage\"`, `identifier: <user_id>`",
+    "Occurs when: User usage record does not exist (usage records are auto-created on first track)",
+    "**ValidationError** (422): Input validation failed",
+    "Code: `VALIDATION_ERROR`",
+    "Extensions: `fieldErrors` (field-specific errors)",
+    "Occurs when: Invalid feature name, invalid amount (must be at least 1), or missing required fields",
+    "**BadRequestError** (400): Invalid request data",
+    "Code: `BAD_REQUEST`",
+    "Occurs when: Request format is invalid or required parameters are missing",
+    "**ServiceUnavailableError** (503): Database service unavailable",
+    "Code: `SERVICE_UNAVAILABLE`",
+    "Extensions: `serviceName: \"database\"`",
+    "Occurs when: Database connection fails",
+    "**Input Validation**: Feature names and amounts are validated before processing",
+    "Feature name: max 100 characters, must be valid feature enum value",
+    "Amount: min 1, max 1,000,000, must be non-negative integer",
+    "**Database Errors**: All database operations include transaction rollback on failure",
+    "Transaction rollback on error (automatic via FastAPI dependency)",
+    "Integrity errors are caught and converted to user-friendly errors",
+    "Database connection errors are converted to ServiceUnavailableError",
+    "**Auto-Creation**: Usage records are automatically created when first tracked",
+    "**Feature Validation**: Feature names are validated against supported features list",
+    "**Error Logging**: Comprehensive error logging with context for debugging",
+    "**Input Validation**: All inputs are validated before processing",
+    "Feature name validation: max 100 characters, must be valid feature enum",
+    "Amount validation: min 1, max 1,000,000, must be non-negative integer",
+    "UUID validation for user IDs",
+    "**Database Error Handling**: Database operations use centralized error handlers",
+    "Transaction rollback on failure",
+    "Integrity errors are caught and converted to user-friendly errors",
+    "Database connection errors are converted to ServiceUnavailableError",
+    "**Response Validation**: All service responses are validated before returning",
+    "Usage data structure validation",
+    "Limit/used value validation"
+  ],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Usage Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — full request and response",
+      "level": 2,
+      "prose": "Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "usage.usage (query)",
+      "level": 3,
+      "prose": "```json\n{\n  \"query\": \"query ($feature: String) { usage { usage(feature: $feature) { features { feature used limit remaining } } } }\",\n  \"variables\": { \"feature\": null }\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($feature: String) { usage { usage(feature: $feature) { features { feature used limit remaining } } } }\",\n  \"variables\": { \"feature\": null }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "usage.trackUsage (mutation)",
+      "level": 3,
+      "prose": "```json\n{\n  \"query\": \"mutation ($input: TrackUsageInput!) { usage { trackUsage(input: $input) { feature used limit success } } }\",\n  \"variables\": { \"input\": { \"feature\": \"EMAIL_FINDER\", \"amount\": 1 } }\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"mutation ($input: TrackUsageInput!) { usage { trackUsage(input: $input) { feature used limit success } } }\",\n  \"variables\": { \"input\": { \"feature\": \"EMAIL_FINDER\", \"amount\": 1 } }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "FeatureUsageInfo",
+      "level": 3,
+      "prose": "Feature usage information.\n\n```graphql\ntype FeatureUsageInfo {\n  feature: String!\n  used: Int!\n  limit: Int!\n  remaining: Int!\n  resetAt: String\n}\n```\n\n**Fields:**\n\n- `feature` (String!): Feature name\n- `used` (Int!): Current usage count\n- `limit` (Int!): Usage limit (999999 means unlimited)\n- `remaining` (Int!): Remaining usage (limit - used, or -1 if unlimited)\n- `resetAt` (String): ISO format datetime when usage period resets (null if no reset scheduled)",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type FeatureUsageInfo {\n  feature: String!\n  used: Int!\n  limit: Int!\n  remaining: Int!\n  resetAt: String\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "UsageResponse",
+      "level": 3,
+      "prose": "Response containing usage for all features.\n\n```graphql\ntype UsageResponse {\n  features: [FeatureUsageInfo!]!\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type UsageResponse {\n  features: [FeatureUsageInfo!]!\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "TrackUsageResponse",
+      "level": 3,
+      "prose": "Response from tracking usage.\n\n```graphql\ntype TrackUsageResponse {\n  feature: String!\n  used: Int!\n  limit: Int!\n  success: Boolean!\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type TrackUsageResponse {\n  feature: String!\n  used: Int!\n  limit: Int!\n  success: Boolean!\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "ResetUsageResponse",
+      "level": 3,
+      "prose": "Response from resetting usage.\n\n```graphql\ntype ResetUsageResponse {\n  feature: String!\n  used: Int!\n  limit: Int!\n  success: Boolean!\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type ResetUsageResponse {\n  feature: String!\n  used: Int!\n  limit: Int!\n  success: Boolean!\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Supported Features",
+      "level": 2,
+      "prose": "The following features can be tracked:\n\n- `AI_CHAT` - AI chat conversations (see [AI Chats Module](17_AI_CHATS_MODULE.md) / Contact AI service)\n- `BULK_EXPORT` - Bulk export operations\n- `API_KEYS` - API key usage\n- `TEAM_MANAGEMENT` - Team management operations\n- `EMAIL_FINDER` - Email finder queries\n- `VERIFIER` - Email verification\n- `LINKEDIN` - LinkedIn operations\n- `DATA_SEARCH` - Data search queries\n- `ADVANCED_FILTERS` - Advanced filter usage\n- `AI_SUMMARIES` - AI summary generation\n- `SAVE_SEARCHES` - Saved search operations\n- `BULK_VERIFICATION` - Bulk email verification",
+      "code_blocks": []
+    },
+    {
+      "heading": "usage",
+      "level": 3,
+      "prose": "Get current feature usage for all features or a specific feature.\n\n**Parameters:**\n\n| Name   | Type   | Required | Description                                                                 |\n|--------|--------|----------|-----------------------------------------------------------------------------|\n| feature| String | No       | Filter by specific feature name (case-insensitive, e.g. \"EMAIL_FINDER\")    |\n\n```graphql\nquery GetUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n**Arguments:**\n\n- `feature` (String, optional): Filter by specific feature name (case-insensitive, e.g., \"EMAIL_FINDER\" or \"email_finder\")\n\n**Returns:** `UsageResponse`\n\n**Authentication:** Required\n\n**Implementation Details:**\n\n- Usage records are auto-created on first track if they don't exist\n- Feature names are normalized to uppercase for matching\n- Unlimited limits are represented as 999999 (remaining is -1)\n- Period-based resets: Usage resets monthly (at the start of each month)\n- Role-based limits: Limits are determined by user role (FREE_USER vs PRO_USER)\n  - SuperAdmin/Admin get PRO_USER level access (unlimited for most features)\n\n**Example Query (All Features):**\n\n```graphql\nquery GetUsage {\n  usage {\n    usage {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n**Example Query (Single Feature):**\n\n```graphql\nquery GetUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n**Variables:**\n\n```json\n{\n  \"feature\": \"EMAIL_FINDER\"\n}\n```\n\n**Example Response:**\n\n```json\n{\n  \"data\": {\n    \"usage\": {\n      \"usage\": {\n        \"features\": [\n          {\n            \"feature\": \"EMAIL_FINDER\",\n            \"used\": 150,\n            \"limit\": 1000,\n            \"remaining\": 850,\n            \"resetAt\": \"2024-02-01T00:00:00Z\"\n          },\n          {\n            \"feature\": \"VERIFIER\",\n            \"used\": 75,\n            \"limit\": 500,\n            \"remaining\": 425,\n            \"resetAt\": \"2024-02-01T00:00:00Z\"\n          },\n          {\n            \"feature\": \"AI_CHAT\",\n            \"used\": 20,\n            \"limit\": 999999,\n            \"remaining\": -1,\n            \"resetAt\": null\n          }\n        ]\n      }\n    }\n  }\n}\n```\n\n**Note:** When `limit` is 999999 (unlimited), `remaining` will be -1. The `resetAt` field indicates when the usage period resets (typically monthly).",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n"
+        },
+        {
+          "lang": "graphql",
+          "value": "query GetUsage {\n  usage {\n    usage {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n"
+        },
+        {
+          "lang": "graphql",
+          "value": "query GetUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"feature\": \"EMAIL_FINDER\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"usage\": {\n      \"usage\": {\n        \"features\": [\n          {\n            \"feature\": \"EMAIL_FINDER\",\n            \"used\": 150,\n            \"limit\": 1000,\n            \"remaining\": 850,\n            \"resetAt\": \"2024-02-01T00:00:00Z\"\n          },\n          {\n            \"feature\": \"VERIFIER\",\n            \"used\": 75,\n            \"limit\": 500,\n            \"remaining\": 425,\n            \"resetAt\": \"2024-02-01T00:00:00Z\"\n          },\n          {\n            \"feature\": \"AI_CHAT\",\n            \"used\": 20,\n            \"limit\": 999999,\n            \"remaining\": -1,\n            \"resetAt\": null\n          }\n        ]\n      }\n    }\n  }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "trackUsage",
+      "level": 3,
+      "prose": "Track feature usage for the current user.\n\n**Parameters:**\n\n| Name  | Type               | Required | Description                                |\n|-------|--------------------|----------|--------------------------------------------|\n| input | TrackUsageInput!   | Yes      | Object with `feature` (string) and `amount` (Int, default 1) |\n\n```graphql\nmutation TrackUsage($input: TrackUsageInput!) {\n  usage {\n    trackUsage(input: $input) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n```\n\n**Variables:**\n\n```json\n{\n  \"input\": {\n    \"feature\": \"EMAIL_FINDER\",\n    \"amount\": 1\n  }\n}\n```\n\n**Input:** `TrackUsageInput!`\n\n**Returns:** `TrackUsageResponse`\n\n**Authentication:** Required\n\n**Validation:**\n\n- `feature`: Required, non-empty string, max 100 characters, must be a valid feature name\n- `amount`: Must be a non-negative integer, min: 1, max: 1,000,000 (default: 1)\n\n**Implementation Details:**\n\n- Increments usage count for the specified feature\n- Usage records are auto-created if they don't exist\n- Limits are updated if user role changed (e.g., upgraded subscription)\n- Usage is capped at the limit (won't exceed limit)\n- Unlimited features (limit is None or 0) keep used count at 0\n- Role-based limits: Limits are determined by user role (FREE_USER vs PRO_USER)\n\n**Example Response:**\n\n```json\n{\n  \"data\": {\n    \"usage\": {\n      \"trackUsage\": {\n        \"feature\": \"EMAIL_FINDER\",\n        \"used\": 151,\n        \"limit\": 1000,\n        \"success\": true\n      }\n    }\n  }\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation TrackUsage($input: TrackUsageInput!) {\n  usage {\n    trackUsage(input: $input) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"feature\": \"EMAIL_FINDER\",\n    \"amount\": 1\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"usage\": {\n      \"trackUsage\": {\n        \"feature\": \"EMAIL_FINDER\",\n        \"used\": 151,\n        \"limit\": 1000,\n        \"success\": true\n      }\n    }\n  }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "resetUsage",
+      "level": 3,
+      "prose": "Reset the usage counter for a specific feature to zero.\n\n**Parameters:**\n\n| Name  | Type                 | Required | Description                          |\n|-------|----------------------|----------|--------------------------------------|\n| input | ResetUsageInput!     | Yes      | Object with `feature` (string)       |\n\n```graphql\nmutation ResetUsage($input: ResetUsageInput!) {\n  usage {\n    resetUsage(input: $input) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n```\n\n**Variables:**\n\n```json\n{\n  \"input\": {\n    \"feature\": \"EMAIL_FINDER\"\n  }\n}\n```\n\n**Input:** `ResetUsageInput!`\n\n**Returns:** `ResetUsageResponse`\n\n**Authentication:** Required\n\n**Validation:**\n\n- `feature`: Required, non-empty string, max 100 characters, must be a valid feature name\n\n**Implementation Details:**\n\n- Resets usage counter to zero for the specified feature\n- Useful for testing or administrative purposes\n- Usage records are auto-created if they don't exist\n\n**Example Response:**\n\n```json\n{\n  \"data\": {\n    \"usage\": {\n      \"resetUsage\": {\n        \"feature\": \"EMAIL_FINDER\",\n        \"used\": 0,\n        \"limit\": 1000,\n        \"success\": true\n      }\n    }\n  }\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation ResetUsage($input: ResetUsageInput!) {\n  usage {\n    resetUsage(input: $input) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"feature\": \"EMAIL_FINDER\"\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"usage\": {\n      \"resetUsage\": {\n        \"feature\": \"EMAIL_FINDER\",\n        \"used\": 0,\n        \"limit\": 1000,\n        \"success\": true\n      }\n    }\n  }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Input Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "TrackUsageInput",
+      "level": 3,
+      "prose": "Input for tracking feature usage.\n\n```graphql\ninput TrackUsageInput {\n  feature: String!\n  amount: Int\n}\n```\n\n**Fields:**\n\n- `feature` (String!): Feature name (must be one of the supported features) - max 100 characters\n- `amount` (Int): Amount to increment (default: 1, min: 1, max: 1,000,000)\n\n**Validation:**\n\n- `feature`: Required, non-empty, max 100 characters, must be a valid feature name\n- `amount`: Must be a non-negative integer, min: 1, max: 1,000,000\n- Input validation is performed via `input.validate()` method",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input TrackUsageInput {\n  feature: String!\n  amount: Int\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "ResetUsageInput",
+      "level": 3,
+      "prose": "Input for resetting feature usage.\n\n```graphql\ninput ResetUsageInput {\n  feature: String!\n}\n```\n\n**Fields:**\n\n- `feature` (String!): Feature name (must be one of the supported features) - max 100 characters\n\n**Validation:**\n\n- `feature`: Required, non-empty, max 100 characters, must be a valid feature name\n- Input validation is performed via `input.validate()` method",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input ResetUsageInput {\n  feature: String!\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Implementation Details",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Usage Service",
+      "level": 3,
+      "prose": "- **UsageService**: Feature usage tracking is handled by `UsageService`\n  - All usage operations go through the service layer\n  - Service handles database operations, validation, and business logic",
+      "code_blocks": []
+    },
+    {
+      "heading": "Role-Based Limits",
+      "level": 3,
+      "prose": "- **Role Normalization**: User roles are normalized to FREE_USER or PRO_USER level\n  - SuperAdmin/Admin: Get PRO_USER level access (unlimited for most features)\n  - PRO_USER: Gets PRO_USER level access\n  - All other roles: Get FREE_USER level access\n- **Feature Limits**: Limits are defined per feature and role in `FEATURE_LIMITS` dictionary\n  - FREE_USER limits: Specific numeric limits (e.g., EMAIL_FINDER: 10, VERIFIER: 5)\n  - PRO_USER limits: None (unlimited) for most features\n  - Some features are admin-only (TEAM_MANAGEMENT: 0 for FREE_USER, unlimited for PRO_USER)",
+      "code_blocks": []
+    },
+    {
+      "heading": "Feature Limits Configuration",
+      "level": 3,
+      "prose": "The following feature limits are configured:\n\n- **AI_CHAT**: FREE_USER: 0, PRO_USER: unlimited\n- **BULK_EXPORT**: FREE_USER: 0, PRO_USER: unlimited\n- **API_KEYS**: FREE_USER: 0, PRO_USER: unlimited\n- **TEAM_MANAGEMENT**: FREE_USER: 0, PRO_USER: unlimited (Admin only)\n- **EMAIL_FINDER**: FREE_USER: 10, PRO_USER: unlimited\n- **VERIFIER**: FREE_USER: 5, PRO_USER: unlimited\n- **LINKEDIN**: FREE_USER: 5, PRO_USER: unlimited\n- **DATA_SEARCH**: FREE_USER: 20, PRO_USER: unlimited\n- **ADVANCED_FILTERS**: FREE_USER: 0, PRO_USER: unlimited\n- **AI_SUMMARIES**: FREE_USER: 0, PRO_USER: unlimited\n- **SAVE_SEARCHES**: FREE_USER: 0, PRO_USER: unlimited\n- **BULK_VERIFICATION**: FREE_USER: 0, PRO_USER: unlimited",
+      "code_blocks": []
+    },
+    {
+      "heading": "Usage Tracking",
+      "level": 3,
+      "prose": "- **Auto-Creation**: Usage records are automatically created on first track\n  - Created with current role-based limit\n  - Period start/end dates are set (monthly periods)\n- **Period-Based Resets**: Usage resets monthly at the start of each month\n  - `period_start`: Start of current period\n  - `period_end`: End of current period (start of next month)\n  - Usage is reset to 0 when period ends\n- **Limit Updates**: Limits are updated if user role changed (e.g., upgraded subscription)\n  - Limit is recalculated based on current role\n  - Used count is preserved (unless reset)\n- **Usage Capping**: Usage is capped at the limit (won't exceed limit)\n  - Formula: `used = min(used + amount, limit)`\n- **Unlimited Features**: Features with unlimited access (limit is None or 0) keep used count at 0",
+      "code_blocks": []
+    },
+    {
+      "heading": "Unlimited Representation",
+      "level": 3,
+      "prose": "- **Unlimited Limits**: Unlimited is represented as 999999 in responses\n  - `limit`: 999999 means unlimited\n  - `remaining`: -1 means unlimited\n- **Internal Representation**: Internally, unlimited is represented as None\n  - Converted to 999999 for API responses",
+      "code_blocks": []
+    },
+    {
+      "heading": "Usage Examples",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Complete Usage Tracking Flow",
+      "level": 3,
+      "prose": "```graphql",
+      "code_blocks": []
+    },
+    {
+      "heading": "1. Get current usage for all features",
+      "level": 1,
+      "prose": "query GetCurrentUsage {\n  usage {\n    usage {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}",
+      "code_blocks": []
+    },
+    {
+      "heading": "1a. Get current usage for a specific feature",
+      "level": 1,
+      "prose": "query GetFeatureUsage($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}",
+      "code_blocks": []
+    },
+    {
+      "heading": "2. Track feature usage",
+      "level": 1,
+      "prose": "mutation TrackEmailFinder {\n  usage {\n    trackUsage(input: {\n      feature: \"EMAIL_FINDER\"\n      amount: 1\n    }) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}",
+      "code_blocks": []
+    },
+    {
+      "heading": "3. Track multiple uses",
+      "level": 1,
+      "prose": "mutation TrackBulk {\n  usage {\n    trackUsage(input: {\n      feature: \"BULK_VERIFICATION\"\n      amount: 10\n    }) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}",
+      "code_blocks": []
+    },
+    {
+      "heading": "4. Reset usage (for testing/admin)",
+      "level": 1,
+      "prose": "mutation ResetUsage {\n  usage {\n    resetUsage(input: {\n      feature: \"EMAIL_FINDER\"\n    }) {\n      feature\n      used\n      limit\n      success\n    }\n  }\n}",
+      "code_blocks": []
+    },
+    {
+      "heading": "5. Check if feature is available (using feature parameter)",
+      "level": 1,
+      "prose": "query CheckFeature($feature: String) {\n  usage {\n    usage(feature: $feature) {\n      features {\n        feature\n        used\n        limit\n        remaining\n        resetAt\n      }\n    }\n  }\n}\n```\n\n```",
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "\n"
+        }
+      ]
+    },
+    {
+      "heading": "Implementation Details",
+      "level": 2,
+      "prose": "- **UsageService**: Usage tracking is handled by `UsageService`\n- **Feature Limits**: Each feature has a usage limit (999999 means unlimited)\n- **Automatic Creation**: Usage records are automatically created when first tracked\n- **User Isolation**: Users can only track and view their own usage\n- **Incremental Tracking**: Usage is incremented by the specified amount\n- **Reset Functionality**: Usage can be reset to zero (useful for testing/admin)",
+      "code_blocks": []
+    },
+    {
+      "heading": "Task breakdown (for maintainers)",
+      "level": 2,
+      "prose": "1. **Trace usage query:** UsageQuery.usage(feature?) → UsageService; feature_usage table filtered by user_id; optional feature filter (case-insensitive); validate feature name against supported list.\n2. **featureOverview:** Separate resolver (FeatureOverviewQuery); document which fields it returns (e.g. list of features with limits/used).\n3. **trackUsage:** Increment usage for feature; verify user_id from context; auto-create feature_usage row if missing; confirm amount default (1) and max.\n4. **resetUsage:** Set used to 0 for feature; typically admin/testing; confirm authorization (e.g. self or Admin).\n5. **Limits:** Document how limits are determined (subscription/role from user_profiles); 999999 = unlimited.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Related Modules",
+      "level": 2,
+      "prose": "- **Users Module**: User profile contains subscription information that may affect limits\n- **Billing Module**: Subscription plans may affect usage limits",
+      "code_blocks": []
+    },
+    {
+      "heading": "Documentation metadata",
+      "level": 2,
+      "prose": "- Era: `1.x`\n- Introduced in: `TBD` (fill with exact minor)\n- Frontend bindings: list page files from `docs/frontend/pages/*.json`\n- Data stores touched: PostgreSQL/Elasticsearch/MongoDB/S3 as applicable",
+      "code_blocks": []
+    },
+    {
+      "heading": "Endpoint/version binding checklist",
+      "level": 2,
+      "prose": "- Add operation list with `introduced_in` / `deprecated_in` tags.\n- Map each operation to frontend page bindings and hook/service usage.\n- Record DB tables read/write for each operation.",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": "## Overview\n\nThe Usage module provides feature usage tracking functionality. It allows users to track their usage of various features, view current usage limits, and reset usage counters (for testing/admin purposes).\n**Location:** `app/graphql/modules/usage/`\n\n**Jobs in `featureOverview`:** The nested query returns **`SchedulerJob`** rows from the gateway database (same family as [16_JOBS_MODULE.md](16_JOBS_MODULE.md)). Long-running work may also touch **email.server** or **Connectra** (`EC2/sync.server`); the REST job API there is documented in **[connectra.api.md](../micro.services.apis/connectra.api.md)**.\n\n## Queries and mutations – parameters and variable types\n\n| Operation | Parameter(s) | Variable type (GraphQL) | Return type |\n|-----------|---------------|-------------------------|-------------|\n\n| **Mutations** (under `usage { ... }`) | | | |\n\nUse camelCase in variables. `TrackUsageInput`: `feature: String!`, `amount: Int! = 1`. `ResetUsageInput`: `feature: String!`. Supported feature names: AI_CHAT, BULK_EXPORT, API_KEYS, EMAIL_FINDER, VERIFIER, LINKEDIN, BULK_VERIFICATION, etc. (see Supported Features below).\n\n## Canonical SDL (gateway schema)\n\nRegenerate the full schema from `contact360.io/api` with:\n\n`python -c \"from app.graphql.schema import schema; print(schema.as_str())\"`\n\n## Mutations\n\nThe Usage module implements comprehensive error handling with input validation, database error handling, and response validation.\n\n```json\n{\n  \"errors\": [\n    {\n      \"message\": \"Usage with identifier '123e4567-e89b-12d3-a456-426614174000' not found\",\n      \"extensions\": {\n        \"code\": \"NOT_FOUND\",\n        \"statusCode\": 404,\n        \"resourceType\": \"Usage\",\n        \"identifier\": \"123e4567-e89b-12d3-a456-426614174000\"\n      }\n    }\n  ]\n}\n```\n\n### Error Handling Patterns\n\n- **Usage Records**: Stored in `FeatureUsage` table\n  - Fields: `user_id`, `feature`, `used`, `limit`, `period_start`, `period_end`, `updated_at`\n  - Unique constraint on `(user_id, feature)`\n- **Transaction Management**: All database operations use transactions\n\n  - Automatic flush after updates"
+}

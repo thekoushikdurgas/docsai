@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "kind": "page_spec",
+  "source_path": "frontend/pages/billing_page.md",
+  "sha256_source": "91d3720435bd69d2ecd1ec137026fa356aa1d86f1adb64d0ae6ae3edf11c2dab",
+  "generated_at": "2026-04-08T23:26:48.777545+00:00",
+  "title": "Billing",
+  "raw_markdown": "---\ntitle: Billing Page\npage_id: billing_page\nstatus: published\n---\n\n# Billing\n\n## Overview\n\n- **page_id:** billing_page\n- **page_type:** dashboard\n- **codebase:** app\n- **surface:** App (Dashboard)\n- **era_tags:** 1.x, 8.x\n- **flow_id:** billing\n- **_id:** billing_page-001\n\n## Metadata\n\n- **route:** /billing\n- **file_path:** contact360.io/app/app/(dashboard)/billing/page.tsx\n- **purpose:** Central financial governance hub. Manages subscription lifecycles, credit allocations, payment instrumentation, and invoice auditing.\n- **s3_key:** data/pages/billing_page.json\n- **status:** published\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** Admin tab (System Management) restricted to `admin` / `superAdmin` roles.\n- **page_state:** production\n- **last_updated:** 2026-03-29T00:00:00.000000+00:00\n\n### uses_endpoints (15)\n\n- `graphql/GetBilling` — Aggregated billing data (credits, subscription, status).\n- `graphql/GetPlans` — Available public subscription tiers.\n- `graphql/GetAddons` — Credit pack offerings.\n- `graphql/GetInvoices` — Historical transaction records.\n- `graphql/Subscribe` — Plan transition mutation.\n- `graphql/PurchaseAddon` — One-time credit acquisition.\n- `graphql/CancelSubscription` — Termination flow mutation.\n- `graphql/CreatePlan` — Admin: Defined new subscription tier.\n- `graphql/UpdatePlan` — Admin: Modify existing tier parameters.\n\n### UI components (metadata)\n\n- **BillingPage** — `app/(dashboard)/billing/page.tsx`\n- **UpiPaymentModal** — `components/billing/UpiPaymentModal.tsx`\n- **Button** — `components/ui/Button.tsx`\n- **Badge** — `components/ui/Badge.tsx`\n- **LoadingSpinner** — `components/shared/LoadingSpinner.tsx`\n- **ErrorState** — `components/shared/ErrorState.tsx`\n- **Check** — `lucide-react` (icon)\n- **CreditCard** — `lucide-react` (icon)\n- **Crown** — `lucide-react` (icon)\n- **Wallet** — `lucide-react` (icon)\n- **ShoppingCart** — `lucide-react` (icon)\n- **FeatureIcons** — `lucide-react` (Crown, Wallet, CreditCard, etc.)\n- **AdminBillingView** — `components/features/billing/AdminBillingView.tsx` (System-wide plan configuration)\n\n### components\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| components/billing/UpiPaymentModal.tsx | UpiPaymentModal | UPI payment flow integration |\n| components/shared/LoadingSpinner.tsx | LoadingSpinner | Application-wide loading state |\n| components/shared/ErrorState.tsx | ErrorState | Generic error handling view |\n| components/ui/Button.tsx | Button | Action trigger |\n| components/ui/Badge.tsx | Badge | Status/label indicator |\n\n## Sections (UI structure)\n\n### headings\n\n| id | level | text |\n| --- | --- | --- |\n| title | 1 | Billing |\n| sub | 2 | Subscription Plan |\n| hist | 2 | Invoice History |\n\n### tabs\n\n| id | label | visibility | era |\n| --- | --- | --- | --- |\n| sub | Subscription | always | 1.x |\n| inv | Invoices | always | 1.x |\n| cred | Credits | always | 1.x |\n| admin | System | adminOnly | 1.x |\n\n### hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useBilling.ts | useBilling | Subscription and transaction management |\n| hooks/useRole.ts | useRole | Permission and limit synchronization |\n\n### buttons\n\n| action | component | id | label | type | era |\n| --- | --- | --- | --- | --- | --- |\n| open UpgradeModal | SubscriptionPlans | upgrade | Upgrade | primary | 1.x |\n| open AddCreditsModal | CurrentSubscription | add-credits | Add Credits | secondary | 1.x |\n| trigger cancel | CurrentSubscription | cancel | Cancel | danger | 1.x |\n| download PDF | InvoiceHistory | download | Download | icon | 1.x |\n\n### progress_bars\n\n| component | id | label | color_logic |\n| --- | --- | --- | --- |\n| CurrentSubscription | usage | Credit Usage | Green > 50% |\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L:Dashboard] > [H:HeroCard] + [K:BalanceCard] + [Q:PlansGrid] + [A:AddonsGrid] + [T:HistoryTable] -> {useBilling, useRole}\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n\n**Typical inbound:** Sidebar, [profile_page.md](profile_page.md).\n**Typical outbound:** [usage_page.md](usage_page.md), [dashboard_page.md](dashboard_page.md).\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| `GetBilling` | [get_billing_graphql.md](../../backend/endpoints/get_billing_graphql.md) | QUERY | 1.x |\n| `GetPlans` | [query_get_plans_graphql.md](../../backend/endpoints/query_get_plans_graphql.md) | QUERY | 1.x |\n| `GetAddons` | [query_get_addons_graphql.md](../../backend/endpoints/query_get_addons_graphql.md) | QUERY | 1.x |\n| `GetInvoices` | [query_get_invoices_graphql.md](../../backend/endpoints/query_get_invoices_graphql.md) | QUERY | 1.x |\n| `Subscribe` | [mutation_subscribe_graphql.md](../../backend/endpoints/mutation_subscribe_graphql.md) | MUTATION | 1.x |\n| `PurchaseAddon` | [mutation_purchase_addon_graphql.md](../../backend/endpoints/mutation_purchase_addon_graphql.md) | MUTATION | 1.x |\n| `CancelSubscription` | [mutation_cancel_subscription_graphql.md](../../backend/endpoints/mutation_cancel_subscription_graphql.md) | MUTATION | 1.x |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n---\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*\n\n<!-- AUTO:endpoint-links:start -->\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| `GetBilling` | [get_billing_graphql.md](../../backend/endpoints/get_billing_graphql.md) | QUERY | 1.x |\n| `GetPlans` | [query_get_plans_graphql.md](../../backend/endpoints/query_get_plans_graphql.md) | QUERY | 1.x |\n| `GetAddons` | [query_get_addons_graphql.md](../../backend/endpoints/query_get_addons_graphql.md) | QUERY | 0.x |\n| `GetInvoices` | [query_get_invoices_graphql.md](../../backend/endpoints/query_get_invoices_graphql.md) | QUERY | 1.x |\n| `Subscribe` | [mutation_subscribe_graphql.md](../../backend/endpoints/mutation_subscribe_graphql.md) | MUTATION | 1.x |\n| `PurchaseAddon` | [mutation_purchase_addon_graphql.md](../../backend/endpoints/mutation_purchase_addon_graphql.md) | MUTATION | 1.x |\n| `CancelSubscription` | [mutation_cancel_subscription_graphql.md](../../backend/endpoints/mutation_cancel_subscription_graphql.md) | MUTATION | 0.x |\n| `CreatePlan` | [mutation_create_plan_graphql.md](../../backend/endpoints/mutation_create_plan_graphql.md) | MUTATION | 1.x |\n| `UpdatePlan` | [mutation_update_plan_graphql.md](../../backend/endpoints/mutation_update_plan_graphql.md) | MUTATION | 1.x |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n",
+  "front_matter": {
+    "title": "Billing Page",
+    "page_id": "billing_page",
+    "status": "published"
+  },
+  "page_id": "billing_page",
+  "page_type": "dashboard",
+  "codebase": "app",
+  "surface": "App (Dashboard)",
+  "era_tags": [
+    "1.x",
+    "8.x"
+  ],
+  "flow_id": "billing",
+  "metadata": {
+    "route": "/billing",
+    "file_path": "contact360.io/app/app/(dashboard)/billing/page.tsx",
+    "purpose": "Central financial governance hub. Manages subscription lifecycles, credit allocations, payment instrumentation, and invoice auditing.",
+    "s3_key": "data/pages/billing_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "Admin tab (System Management) restricted to `admin` / `superAdmin` roles.",
+    "page_state": "production",
+    "last_updated": "2026-03-29T00:00:00.000000+00:00"
+  },
+  "uses_endpoints": [
+    {
+      "endpoint": "graphql/GetBilling",
+      "description": "Aggregated billing data (credits, subscription, status)."
+    },
+    {
+      "endpoint": "graphql/GetPlans",
+      "description": "Available public subscription tiers."
+    },
+    {
+      "endpoint": "graphql/GetAddons",
+      "description": "Credit pack offerings."
+    },
+    {
+      "endpoint": "graphql/GetInvoices",
+      "description": "Historical transaction records."
+    },
+    {
+      "endpoint": "graphql/Subscribe",
+      "description": "Plan transition mutation."
+    },
+    {
+      "endpoint": "graphql/PurchaseAddon",
+      "description": "One-time credit acquisition."
+    },
+    {
+      "endpoint": "graphql/CancelSubscription",
+      "description": "Termination flow mutation."
+    },
+    {
+      "endpoint": "graphql/CreatePlan",
+      "description": "Admin: Defined new subscription tier."
+    },
+    {
+      "endpoint": "graphql/UpdatePlan",
+      "description": "Admin: Modify existing tier parameters."
+    }
+  ],
+  "ui_components": [
+    {
+      "name": "BillingPage",
+      "file_path": "app/(dashboard)/billing/page.tsx",
+      "description": null
+    },
+    {
+      "name": "UpiPaymentModal",
+      "file_path": "components/billing/UpiPaymentModal.tsx",
+      "description": null
+    },
+    {
+      "name": "Button",
+      "file_path": "components/ui/Button.tsx",
+      "description": null
+    },
+    {
+      "name": "Badge",
+      "file_path": "components/ui/Badge.tsx",
+      "description": null
+    },
+    {
+      "name": "LoadingSpinner",
+      "file_path": "components/shared/LoadingSpinner.tsx",
+      "description": null
+    },
+    {
+      "name": "ErrorState",
+      "file_path": "components/shared/ErrorState.tsx",
+      "description": null
+    },
+    {
+      "name": "Check",
+      "file_path": "lucide-react",
+      "description": "(icon)"
+    },
+    {
+      "name": "CreditCard",
+      "file_path": "lucide-react",
+      "description": "(icon)"
+    },
+    {
+      "name": "Crown",
+      "file_path": "lucide-react",
+      "description": "(icon)"
+    },
+    {
+      "name": "Wallet",
+      "file_path": "lucide-react",
+      "description": "(icon)"
+    },
+    {
+      "name": "ShoppingCart",
+      "file_path": "lucide-react",
+      "description": "(icon)"
+    },
+    {
+      "name": "FeatureIcons",
+      "file_path": "lucide-react",
+      "description": "(Crown, Wallet, CreditCard, etc.)"
+    },
+    {
+      "name": "AdminBillingView",
+      "file_path": "components/features/billing/AdminBillingView.tsx",
+      "description": "(System-wide plan configuration)"
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Billing",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Sections (UI structure)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "headings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| title | 1 | Billing |\n| sub | 2 | Subscription Plan |\n| hist | 2 | Invoice History |"
+    },
+    {
+      "heading": "tabs",
+      "level": 3,
+      "prose": "| id | label | visibility | era |\n| --- | --- | --- | --- |\n| sub | Subscription | always | 1.x |\n| inv | Invoices | always | 1.x |\n| cred | Credits | always | 1.x |\n| admin | System | adminOnly | 1.x |"
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useBilling.ts | useBilling | Subscription and transaction management |\n| hooks/useRole.ts | useRole | Permission and limit synchronization |"
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| action | component | id | label | type | era |\n| --- | --- | --- | --- | --- | --- |\n| open UpgradeModal | SubscriptionPlans | upgrade | Upgrade | primary | 1.x |\n| open AddCreditsModal | CurrentSubscription | add-credits | Add Credits | secondary | 1.x |\n| trigger cancel | CurrentSubscription | cancel | Cancel | danger | 1.x |\n| download PDF | InvoiceHistory | download | Download | icon | 1.x |"
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "| component | id | label | color_logic |\n| --- | --- | --- | --- |\n| CurrentSubscription | usage | Credit Usage | Green > 50% |"
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L:Dashboard] > [H:HeroCard] + [K:BalanceCard] + [Q:PlansGrid] + [A:AddonsGrid] + [T:HistoryTable] -> {useBilling, useRole}"
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n\n**Typical inbound:** Sidebar, [profile_page.md](profile_page.md).\n**Typical outbound:** [usage_page.md](usage_page.md), [dashboard_page.md](dashboard_page.md)."
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: Billing Page\npage_id: billing_page\nstatus: published\n---"
+}

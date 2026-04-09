@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_publish_marketing_page_graphql.md",
+  "sha256_source": "08ac576930e97360153a1754d927884a8d9c3db303302a4d6eb533a3846205eb",
+  "generated_at": "2026-04-08T23:11:52.072641+00:00",
+  "title": "graphql/PublishMarketingPage",
+  "raw_markdown": "---\ntitle: \"graphql/PublishMarketingPage\"\nsource_json: mutation_publish_marketing_page_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/PublishMarketingPage\n\n## Overview\n\nPublish a marketing page making it publicly accessible. Accepts PublishMarketingPageInput with pageId (required, String). Sets isPublished to true and publishedAt timestamp. Returns MarketingPage with pageId, title, isPublished (true), publishedAt (DateTime). Raises NotFoundError (404) if page not found. Raises ForbiddenError (403) if not Admin.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_publish_marketing_page_graphql |\n| _id | mutation_publish_marketing_page_graphql-001 |\n| endpoint_path | graphql/PublishMarketingPage |\n| method | MUTATION |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-01-21T00:00:00.000000+00:00 |\n| era | 9.x |\n| introduced_in | 9.0.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | appointment360/app/graphql/modules/marketing/mutations.py |\n| router_file | contact360/dashboard/src/services/graphql/marketingService.ts |\n\n\n## GraphQL operation\n\n```graphql\nmutation PublishMarketingPage($input: PublishMarketingPageInput!) { marketing { publishMarketingPage(input: $input) { pageId title isPublished publishedAt } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- publishMarketingPage\n\n### repository_methods\n\n- update_marketing_page\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /admin/marketing | Admin Marketing Page | marketingService | useAdminMarketingPages | secondary | data_mutation | 2026-01-20T00:00:00.000000+00:00 |\n\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `mutation_publish_marketing_page_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `9.x` — see [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md#era-tags-on-endpoints) for theme mapping.\n\n## Database tables → SQL snapshots\n\n- *No `db_tables_read` / `db_tables_write` in this spec — gateway-only or metadata TBD; see lineage.*\n\n## Lineage & infrastructure docs\n\n- [Appointment360 (gateway DB)](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- *No `lambda_services` list — typically Appointment360-only DB access or inline HTTP client; see [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md).*\n\n## Related endpoint graph\n\n- **Topology overview:** [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md)\n- **Conventions:** [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md)\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_publish_marketing_page_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_publish_marketing_page_graphql"
+        ],
+        [
+          "_id",
+          "mutation_publish_marketing_page_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/PublishMarketingPage"
+        ],
+        [
+          "method",
+          "MUTATION"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-01-21T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "9.x"
+        ],
+        [
+          "introduced_in",
+          "9.0.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "appointment360/app/graphql/modules/marketing/mutations.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/marketingService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/admin/marketing",
+          "Admin Marketing Page",
+          "marketingService",
+          "useAdminMarketingPages",
+          "secondary",
+          "data_mutation",
+          "2026-01-20T00:00:00.000000+00:00"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Publish a marketing page making it publicly accessible. Accepts PublishMarketingPageInput with pageId (required, String). Sets isPublished to true and publishedAt timestamp. Returns MarketingPage with pageId, title, isPublished (true), publishedAt (DateTime). Raises NotFoundError (404) if page not found. Raises ForbiddenError (403) if not Admin."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_publish_marketing_page_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/PublishMarketingPage\"\nsource_json: mutation_publish_marketing_page_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

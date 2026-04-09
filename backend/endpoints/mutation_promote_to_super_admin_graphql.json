@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_promote_to_super_admin_graphql.md",
+  "sha256_source": "0f9512e639887f89f50e78e75f9dba1385f23dfff3aafea813234578f4297eb7",
+  "generated_at": "2026-04-08T23:11:52.068105+00:00",
+  "title": "graphql/PromoteToSuperAdmin",
+  "raw_markdown": "---\ntitle: \"graphql/PromoteToSuperAdmin\"\nsource_json: mutation_promote_to_super_admin_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/PromoteToSuperAdmin\n\n## Overview\n\nPromote a user to SuperAdmin role. Accepts PromoteToSuperAdminInput with userId (ID!, required, valid UUID format). Returns User with uuid, email, name, isActive, lastSignInAt, createdAt, updatedAt, and profile (role updated to 'SuperAdmin'). Only SuperAdmin can promote users. Role check via UserProfileRepository. Reloads user after promotion to get updated profile. Raises NotFoundError (404) if target user doesn't exist. Raises ForbiddenError (403) if current user is not SuperAdmin.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_promote_to_super_admin_graphql |\n| _id | mutation_promote_to_super_admin_graphql-001 |\n| endpoint_path | graphql/PromoteToSuperAdmin |\n| method | MUTATION |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 5.x |\n| introduced_in | 0.5.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/admin/mutations.py |\n| router_file | contact360/dashboard/src/services/graphql/adminService.ts |\n\n\n## GraphQL operation\n\n```graphql\nmutation PromoteToSuperAdmin($input: PromoteToSuperAdminInput!) { users { promoteToSuperAdmin(input: $input) { uuid email name profile { role } } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- promoteToSuperAdmin\n\n### repository_methods\n\n- promote_user_to_super_admin\n\n## Inventory\n\n- **page_count:** 0\n- **Source:** `mutation_promote_to_super_admin_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `5.x` — Governance & RBAC (SuperAdmin Promotion).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `users` | WRITE | [users.sql](../database/tables/users.sql) |\n| `user_profiles` | WRITE | [user_profiles.sql](../database/tables/user_profiles.sql) |\n| `user_history` | WRITE | [user_history.sql](../database/tables/user_history.sql) |\n| `rbac_roles` | READ | [rbac_roles.sql](../database/tables/rbac_roles.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [Admin Governance](../database/admin_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Admin**: Reflected in `contact360.io/admin`.\n\n## Related endpoint graph\n\n- **Inbound**: `Admin Users Page`.\n- **Outbound**: `GetMe`, `UpdateUserRole`.\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_promote_to_super_admin_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_promote_to_super_admin_graphql"
+        ],
+        [
+          "_id",
+          "mutation_promote_to_super_admin_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/PromoteToSuperAdmin"
+        ],
+        [
+          "method",
+          "MUTATION"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "5.x"
+        ],
+        [
+          "introduced_in",
+          "0.5.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/admin/mutations.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/adminService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`users`",
+          "WRITE",
+          "[users.sql](../database/tables/users.sql)"
+        ],
+        [
+          "`user_profiles`",
+          "WRITE",
+          "[user_profiles.sql](../database/tables/user_profiles.sql)"
+        ],
+        [
+          "`user_history`",
+          "WRITE",
+          "[user_history.sql](../database/tables/user_history.sql)"
+        ],
+        [
+          "`rbac_roles`",
+          "READ",
+          "[rbac_roles.sql](../database/tables/rbac_roles.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Promote a user to SuperAdmin role. Accepts PromoteToSuperAdminInput with userId (ID!, required, valid UUID format). Returns User with uuid, email, name, isActive, lastSignInAt, createdAt, updatedAt, and profile (role updated to 'SuperAdmin'). Only SuperAdmin can promote users. Role check via UserProfileRepository. Reloads user after promotion to get updated profile. Raises NotFoundError (404) if target user doesn't exist. Raises ForbiddenError (403) if current user is not SuperAdmin."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_promote_to_super_admin_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/PromoteToSuperAdmin\"\nsource_json: mutation_promote_to_super_admin_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n\n```graphql\nmutation PromoteToSuperAdmin($input: PromoteToSuperAdminInput!) { users { promoteToSuperAdmin(input: $input) { uuid email name profile { role } } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n### repository_methods\n\n- promote_user_to_super_admin\n\n- **page_count:** 0\n- **Source:** `mutation_promote_to_super_admin_graphql.json`\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `5.x` — Governance & RBAC (SuperAdmin Promotion).\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [Admin Governance](../database/admin_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Admin**: Reflected in `contact360.io/admin`.\n\n- **Inbound**: `Admin Users Page`.\n- **Outbound**: `GetMe`, `UpdateUserRole`."
+}

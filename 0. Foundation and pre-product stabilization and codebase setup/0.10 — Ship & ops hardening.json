@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "0. Foundation and pre-product stabilization and codebase setup/0.10 — Ship & ops hardening.md",
+  "sha256_source": "8afe009538816defdf1f038d92db1f02f3e8d2c71203d10ea3b3911cc8ff5b93",
+  "generated_at": "2026-04-08T23:11:49.589826+00:00",
+  "title": "Version 0.10 — Ship & ops hardening",
+  "version": "0.10",
+  "codename": "Ship & ops hardening",
+  "era": 0,
+  "minor": 10,
+  "patch": null,
+  "status": "completed",
+  "summary": "Check **Service task slices** on each `0.10.P` patch (merged ops/release-gate rows from all services):",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"0.10.x Ship and ops hardening\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Foundation exit gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    compose[\"docker-compose / local matrix\"] --> health[\"/health probes per service\"]\n    health --> sam[\"SAM template parity\"]\n    sam --> ci[\"CI: smoke + lint + migrate\"]\n    ci --> secrets[\"Secrets manager / env separation\"]\n    secrets --> obs[\"RequestId + JSON logs\"]\n    obs --> exit[\"Exit gate: ready for 1.x\"]"
+  ],
+  "micro_gate": "**Patch intent bands (typical):** `.0` charter · `.1`–`.2` scaffold · `.3`–`.5` hardening · `.6`–`.8` integration/drift · `.9` minor freeze / handoff to `1.0`.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Production build, env vars for `NEXT_PUBLIC_*`, CSP notes if any.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Backup/migrate procedures referenced; no new schema required for ops-only work unless fixing blockers.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Completed: Migrate/backfill procedure linked",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "**Status:** ✅ Completed",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Era:** 0.x (Foundation and pre-product stabilization)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Summary:** **Foundation exit gate** before heavy `1.x` delivery — Docker Compose alignment for local/stage matrix, **SAM / Lambda** templates health-checked, consistent **`/health`** and **`/api/v1/health`** / **`/v1/health`** probes per service, **secrets** baseline (no plaintext in repo), CI pipeline required checks, rollback playbooks, and cross-service **observability** minimum (request ID, structured logs).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Patch closure:** Each codenamed patch file includes **Micro-gate** + **Service task slices**. Era hub: [`versions.md`](../versions.md).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **django docsai** (`contact3…) | patch `0.10.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": "Check **Service task slices** on each `0.10.P` patch (merged ops/release-gate rows from all services):Codebase analysis gaps to verify in `0.10` (must be evidence-backed):"
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (0.10.0 – 0.10.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

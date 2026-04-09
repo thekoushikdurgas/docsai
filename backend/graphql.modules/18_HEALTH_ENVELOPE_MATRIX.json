@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/18_HEALTH_ENVELOPE_MATRIX.md",
+  "sha256_source": "70b9dcca89b815e176151208ed6de66630a46e5f88562337868eb64d5cdcf2cc",
+  "generated_at": "2026-04-08T23:26:46.539749+00:00",
+  "title": "Health Envelope Matrix (0.10)",
+  "module_number": null,
+  "module_name": "18_HEALTH_ENVELOPE_MATRIX",
+  "location": null,
+  "overview": null,
+  "operations": [],
+  "sdl_excerpt": null,
+  "error_codes": [],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Health Envelope Matrix (0.10)",
+      "level": 1,
+      "prose": "This document freezes the expected `/health` response families across the 11 core services and maps them to the health matrix compose.\n\n**GraphQL gateway:** For the Contact360 API’s GraphQL health and monitoring fields (`health { apiMetadata, apiHealth, … }`), see [08_HEALTH_MODULE.md](08_HEALTH_MODULE.md) and regenerate SDL with `python -c \"from app.graphql.schema import schema; print(schema.as_str())\"` from `contact360.io/api`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Compose matrix",
+      "level": 2,
+      "prose": "- Local matrix compose: `docker-compose.health-matrix.yml`\n- Goal: boot all core services and probe their canonical health endpoint.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Service matrix",
+      "level": 2,
+      "prose": "| Service | Family | Health endpoint | Required fields |\n| --- | --- | --- | --- |\n| Contact360 gateway (`contact360.io/api`) | FastAPI gateway | `/health` | `status`, `service`, `version` |\n\nOn success, the gateway sets `status` to `\"healthy\"` (not `\"ok\"`); see `app/main.py` `health_check`. Failure responses may use `status: \"unhealthy\"` with extra fields.\n| Connectra (`contact360.io/sync`) | Go/Gin | `/health` | `status` |\n| TKD Job (`contact360.io/jobs`) | FastAPI jobs | `/health` | `status` |\n| Email APIs (`lambda/emailapis`) | FastAPI lambda-style | `/health` | `status`, `service`, `version` |\n| Email API Go (`lambda/emailapigo`) | Go/Gin | `/health` | `status`, `service`, `version` |\n| Logs API (`lambda/logs.api`) | FastAPI logging | `/health` | `status`, service identity fields |\n| S3 Storage (`lambda/s3storage`) | FastAPI storage | `/api/v1/health` | `status`, storage connectivity field |\n| Sales Navigator (`backend(dev)/salesnavigator`) | FastAPI integration | `/v1/health` | `status`, `service`, `version` |\n| Contact AI (`backend(dev)/contact.ai`) | FastAPI AI | `/health` | `status`, database connectivity field |\n| ResumeAI (`backend(dev)/resumeai`) | FastAPI AI | `/v1/health` | `status`, `service` |\n| Mailvetter (`backend(dev)/mailvetter`) | Go/Gin verifier | `/v1/health` | `status`, `service`, `version` |",
+      "code_blocks": []
+    },
+    {
+      "heading": "Envelope families",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "1) Minimal Go/Gin envelope",
+      "level": 3,
+      "prose": "```json\n{\n  \"status\": \"ok\"\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"ok\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "2) Service identity envelope",
+      "level": 3,
+      "prose": "```json\n{\n  \"status\": \"ok\",\n  \"service\": \"Service Name\",\n  \"version\": \"x.y.z\"\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"ok\",\n  \"service\": \"Service Name\",\n  \"version\": \"x.y.z\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "3) Component-aware envelope",
+      "level": 3,
+      "prose": "```json\n{\n  \"status\": \"ok\",\n  \"diagnostics\": {\n    \"component\": true\n  }\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"ok\",\n  \"diagnostics\": {\n    \"component\": true\n  }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "0.10 acceptance checks",
+      "level": 2,
+      "prose": "1. `docker compose -f docker-compose.health-matrix.yml up -d`\n2. Each container health status is `healthy`.\n3. Every endpoint in the table returns HTTP `200` with required fields.\n4. Any service-specific extra fields are allowed, but required fields must remain stable.",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

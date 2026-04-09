@@ -1,0 +1,1012 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/contact-ai-codebase-analysis.md",
+  "sha256_source": "ce51337f068994928e6289ec39a431e61795faf93813865cdf485e11c3f21366",
+  "generated_at": "2026-04-08T23:26:47.013592+00:00",
+  "title": "Contact AI Codebase Analysis (backend(dev)/contact.ai)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Contact AI Codebase Analysis (backend(dev)/contact.ai)",
+      "level": 1,
+      "slug": "contact-ai-codebase-analysis-backenddevcontactai",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`backend(dev)/contact.ai` is Contact360's AI inference service for chat and AI utilities. It provides user-scoped chat sessions, streaming replies, email risk analysis, company summaries, and natural-language filter parsing consumed via Appointment360 and dashboard/extension surfaces.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture snapshot",
+      "level": 2,
+      "slug": "runtime-architecture-snapshot",
+      "prose": "- Runtime: FastAPI + async SQLAlchemy + Mangum Lambda handler.\n- API surface: `/api/v1/ai-chats/*` and `/api/v1/ai/*` plus `/health` and `/`.\n- AI engine: Hugging Face chat-completions router with retries and fallback model candidates.\n- Data: PostgreSQL `ai_chats` persistence with JSON message history.\n- Middleware: permissive CORS, compression, monitoring/rate middleware.\n- Auth: `X-API-Key` and `X-User-ID` headers for protected endpoints.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Runtime: FastAPI + async SQLAlchemy + Mangum Lambda handler.",
+              "checked": null
+            },
+            {
+              "text": "API surface: `/api/v1/ai-chats/*` and `/api/v1/ai/*` plus `/health` and `/`.",
+              "checked": null
+            },
+            {
+              "text": "AI engine: Hugging Face chat-completions router with retries and fallback model candidates.",
+              "checked": null
+            },
+            {
+              "text": "Data: PostgreSQL `ai_chats` persistence with JSON message history.",
+              "checked": null
+            },
+            {
+              "text": "Middleware: permissive CORS, compression, monitoring/rate middleware.",
+              "checked": null
+            },
+            {
+              "text": "Auth: `X-API-Key` and `X-User-ID` headers for protected endpoints.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ Chat CRUD endpoints with user ownership checks are implemented.\n- [x] ✅ Sync and SSE streaming chat response endpoints are implemented.\n- [x] ✅ AI utility endpoints exist for email risk, company summary, and filter parsing.\n- [x] ✅ Health endpoint uses cached DB status with background refresh path.\n- [x] ✅ HF model fallback/retry logic is implemented in service layer.\n- [x] ✅ Lambda deployment wiring exists in `template.yaml`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Chat CRUD endpoints with user ownership checks are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Sync and SSE streaming chat response endpoints are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ AI utility endpoints exist for email risk, company summary, and filter parsing.",
+              "checked": true
+            },
+            {
+              "text": "✅ Health endpoint uses cached DB status with background refresh path.",
+              "checked": true
+            },
+            {
+              "text": "✅ HF model fallback/retry logic is implemented in service layer.",
+              "checked": true
+            },
+            {
+              "text": "✅ Lambda deployment wiring exists in `template.yaml`.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and secrets posture",
+      "level": 3,
+      "slug": "security-and-secrets-posture",
+      "prose": "- [ ] ⬜ Incomplete: CORS is wildcard (`allow_origins=[\"*\"]`) and needs hardened environment allowlists.\n- [ ] ⬜ Incomplete: single shared API key model remains; scoped service/tenant keys are not implemented.\n- [ ] ⬜ Incomplete: committed local configuration still contains sensitive real-looking DB values (`.env`, `samconfig.toml`) and must be sanitized.\n- [ ] 🟡 In Progress: route-level auth is present, but full governance and rotation policy evidence is incomplete.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: CORS is wildcard (`allow_origins=[\"*\"]`) and needs hardened environment allowlists.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: single shared API key model remains; scoped service/tenant keys are not implemented.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: committed local configuration still contains sensitive real-looking DB values (`.env`, `samconfig.toml`) and must be sanitized.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: route-level auth is present, but full governance and rotation policy evidence is incomplete.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract drift and integration quality",
+      "level": 3,
+      "slug": "contract-drift-and-integration-quality",
+      "prose": "- [ ] 🟡 In Progress: docs contain legacy path references (`/api/v2/gemini/...`) while runtime is `/api/v1/ai/...`.\n- [ ] ⬜ Incomplete: strict schema validation for `messages` JSON payload remains limited (free-form JSONB risk).\n- [ ] ⬜ Incomplete: model-selection contract parity between gateway enums and HF model IDs needs stronger enforcement.\n- [ ] 📌 Planned: publish explicit private/public API boundary and compatibility policy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: docs contain legacy path references (`/api/v2/gemini/...`) while runtime is `/api/v1/ai/...`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: strict schema validation for `messages` JSON payload remains limited (free-form JSONB risk).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: model-selection contract parity between gateway enums and HF model IDs needs stronger enforcement.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: publish explicit private/public API boundary and compatibility policy.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Reliability and observability",
+      "level": 3,
+      "slug": "reliability-and-observability",
+      "prose": "- [ ] 🟡 In Progress: cached health and retries exist, but full SLO/error-budget monitoring is incomplete.\n- [ ] ⬜ Incomplete: SSE error semantics under Lambda timeout/network interruption are not fully hardened.\n- [ ] ⬜ Incomplete: distributed tracing/correlation across gateway -> contact.ai -> model provider is incomplete.\n- [ ] 📌 Planned: archival/retention lifecycle for stale chats and audit evidence.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: cached health and retries exist, but full SLO/error-budget monitoring is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: SSE error semantics under Lambda timeout/network interruption are not fully hardened.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: distributed tracing/correlation across gateway -> contact.ai -> model provider is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: archival/retention lifecycle for stale chats and audit evidence.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-service dependency map (release gating)",
+      "level": 2,
+      "slug": "cross-service-dependency-map-release-gating",
+      "prose": "- [x] ✅ `contact360.io/api` -> `backend(dev)/contact.ai` for chat and utility AI operations.\n- [x] ✅ `backend(dev)/contact.ai` -> PostgreSQL (`ai_chats` table and ownership data).\n- [x] ✅ `backend(dev)/contact.ai` -> Hugging Face router for LLM calls.\n- [ ] 🟡 In Progress: fallback/provider governance and model-catalog controls.\n- [ ] 📌 Planned: campaign-runtime integration (`backend(dev)/email campaign`) for AI content generation paths.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `contact360.io/api` -> `backend(dev)/contact.ai` for chat and utility AI operations.",
+              "checked": true
+            },
+            {
+              "text": "✅ `backend(dev)/contact.ai` -> PostgreSQL (`ai_chats` table and ownership data).",
+              "checked": true
+            },
+            {
+              "text": "✅ `backend(dev)/contact.ai` -> Hugging Face router for LLM calls.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: fallback/provider governance and model-catalog controls.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-runtime integration (`backend(dev)/email campaign`) for AI content generation paths.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage-control-plane migration map (direct S3 -> s3storage)",
+      "level": 2,
+      "slug": "storage-control-plane-migration-map-direct-s3---s3storage",
+      "prose": "- [x] ✅ Contact AI runtime currently has no direct S3 data-path dependency for core features.\n- [ ] 📌 Planned: if chat artifacts/prompts/attachments are introduced, enforce `s3storage` mediation by default.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Contact AI runtime currently has no direct S3 data-path dependency for core features.",
+              "checked": true
+            },
+            {
+              "text": "📌 Planned: if chat artifacts/prompts/attachments are introduced, enforce `s3storage` mediation by default.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Log-unification migration map (local logs/print/console -> logs.api)",
+      "level": 2,
+      "slug": "log-unification-migration-map-local-logsprintconsole---logsapi",
+      "prose": "- [x] ✅ Service uses centralized logger utility for most runtime paths.\n- [ ] 🟡 In Progress: standardize all error/event emission into canonical logs ingestion path.\n- [ ] ⬜ Incomplete: end-to-end trace IDs and log schema compatibility with `logs.api` are incomplete.\n- [ ] 📌 Planned: AI operation audit events (model, latency, fallback reason) routed to canonical logging.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Service uses centralized logger utility for most runtime paths.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: standardize all error/event emission into canonical logs ingestion path.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: end-to-end trace IDs and log schema compatibility with `logs.api` are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI operation audit events (model, latency, fallback reason) routed to canonical logging.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Core REST contracts for chats and AI utilities are implemented.\n- [ ] 🟡 In Progress: align docs and consumers to `/api/v1/ai/*` and `/api/v1/ai-chats/*` only.\n- [ ] ⬜ Incomplete: enforce strict message/contact payload schema and validation guarantees.\n- [ ] ⬜ Incomplete: model enum mapping contract checks between gateway and contact.ai.\n- [ ] 📌 Planned: versioning/deprecation policy for externalized AI endpoints.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core REST contracts for chats and AI utilities are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: align docs and consumers to `/api/v1/ai/*` and `/api/v1/ai-chats/*` only.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce strict message/contact payload schema and validation guarantees.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: model enum mapping contract checks between gateway and contact.ai.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: versioning/deprecation policy for externalized AI endpoints.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Chat orchestration, HF retries/fallback, and streaming behavior are implemented.\n- [ ] 🟡 In Progress: harden fallback semantics and user-visible failure reasons.\n- [ ] ⬜ Incomplete: scoped authz and usage policy enforcement in service layer.\n- [ ] ⬜ Incomplete: formal retention/archival strategy for chat history.\n- [ ] 📌 Planned: campaign-specific generation services and reusable AI task packs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Chat orchestration, HF retries/fallback, and streaming behavior are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden fallback semantics and user-visible failure reasons.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: scoped authz and usage policy enforcement in service layer.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formal retention/archival strategy for chat history.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-specific generation services and reusable AI task packs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Endpoints support dashboard AI chat, utility AI, and streamed responses.\n- [ ] 🟡 In Progress: improve deterministic error responses for frontend/extension surfaces.\n- [ ] ⬜ Incomplete: consistency of response contracts across streaming/non-streaming paths.\n- [ ] ⬜ Incomplete: explicit endpoint readiness metadata for UI fallback decisions.\n- [ ] 📌 Planned: public developer-facing AI utility documentation surface.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Endpoints support dashboard AI chat, utility AI, and streamed responses.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve deterministic error responses for frontend/extension surfaces.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: consistency of response contracts across streaming/non-streaming paths.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit endpoint readiness metadata for UI fallback decisions.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: public developer-facing AI utility documentation surface.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ `ai_chats` persistence and repository patterns are established.\n- [ ] 🟡 In Progress: improve data lineage and ownership integrity checks.\n- [ ] ⬜ Incomplete: strict JSONB schema and migration-safe constraints.\n- [ ] ⬜ Incomplete: audit-grade event data model for AI outputs and moderation/compliance.\n- [ ] 📌 Planned: campaign-linked AI generation evidence tables and retention controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `ai_chats` persistence and repository patterns are established.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve data lineage and ownership integrity checks.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: strict JSONB schema and migration-safe constraints.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: audit-grade event data model for AI outputs and moderation/compliance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-linked AI generation evidence tables and retention controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Lambda deployment templates and health checks are present.\n- [ ] 🟡 In Progress: improve runtime metrics and operational alerting granularity.\n- [ ] ⬜ Incomplete: distributed tracing and cross-service correlation in production.\n- [ ] ⬜ Incomplete: secrets hygiene and environment hardening across local/deploy files.\n- [ ] 📌 Planned: release gates for model rollout, rollback, and provider failover.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Lambda deployment templates and health checks are present.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve runtime metrics and operational alerting granularity.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: distributed tracing and cross-service correlation in production.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: secrets hygiene and environment hardening across local/deploy files.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: release gates for model rollout, rollback, and provider failover.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Service scaffold, DB integration, and health/runtime basics are implemented.\n- [x] ✅ Lambda-compatible FastAPI deployment pattern established.\n- [ ] 🟡 In Progress: harden foundational config and secrets discipline.\n- [ ] ⬜ Incomplete: remove legacy/deprecated contract references from docs and tests.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Service scaffold, DB integration, and health/runtime basics are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Lambda-compatible FastAPI deployment pattern established.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden foundational config and secrets discipline.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove legacy/deprecated contract references from docs and tests.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ User-scoped chat ownership via `X-User-ID` flow is present.\n- [ ] 🟡 In Progress: connect AI usage events to billing/credit enforcement pathways.\n- [ ] ⬜ Incomplete: enforce scoped API credentials and tenant boundaries.\n- [ ] 📌 Planned: quota-aware AI usage controls and credit accounting interfaces.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ User-scoped chat ownership via `X-User-ID` flow is present.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: connect AI usage events to billing/credit enforcement pathways.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce scoped API credentials and tenant boundaries.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: quota-aware AI usage controls and credit accounting interfaces.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ Email risk analysis endpoint is operational.\n- [ ] 🟡 In Progress: align output schema and confidence semantics with email system consumers.\n- [ ] ⬜ Incomplete: stronger deterministic validation for risk-analysis payloads and errors.\n- [ ] 📌 Planned: deeper email workflow integration with campaign prep and verification flows.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Email risk analysis endpoint is operational.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: align output schema and confidence semantics with email system consumers.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: stronger deterministic validation for risk-analysis payloads and errors.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: deeper email workflow integration with campaign prep and verification flows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [x] ✅ Filter parsing and company summary endpoints are implemented.\n- [ ] 🟡 In Progress: tighten contract with Connectra filter taxonomy and company data surfaces.\n- [ ] ⬜ Incomplete: schema-safe contact payload constraints in chat messages.\n- [ ] 📌 Planned: richer contact/company enrichment outputs and provenance fields.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Filter parsing and company summary endpoints are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: tighten contract with Connectra filter taxonomy and company data surfaces.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: schema-safe contact payload constraints in chat messages.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: richer contact/company enrichment outputs and provenance fields.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] 🟡 In Progress: current APIs can support extension/SN contexts via gateway.\n- [ ] ⬜ Incomplete: dedicated extension-optimized AI contracts and response envelopes.\n- [ ] 📌 Planned: SN/extension context-aware AI task templates.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: current APIs can support extension/SN contexts via gateway.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: dedicated extension-optimized AI contracts and response envelopes.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: SN/extension context-aware AI task templates.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [x] ✅ This is the primary completed era: chat, streaming, and utility AI endpoints are live.\n- [x] ✅ HF model routing with fallback/retries exists.\n- [ ] 🟡 In Progress: model-contract parity and operational explainability hardening.\n- [ ] ⬜ Incomplete: advanced workflow chaining and structured agentic operations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ This is the primary completed era: chat, streaming, and utility AI endpoints are live.",
+              "checked": true
+            },
+            {
+              "text": "✅ HF model routing with fallback/retries exists.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: model-contract parity and operational explainability hardening.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: advanced workflow chaining and structured agentic operations.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ Cached DB health and retry scaffolding are implemented.\n- [ ] 🟡 In Progress: improve latency/error SLO instrumentation and alert readiness.\n- [ ] ⬜ Incomplete: robust SSE timeout/reconnect strategy for Lambda edge conditions.\n- [ ] 📌 Planned: traceability and failover scorecards with provider-level KPIs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Cached DB health and retry scaffolding are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve latency/error SLO instrumentation and alert readiness.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: robust SSE timeout/reconnect strategy for Lambda edge conditions.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: traceability and failover scorecards with provider-level KPIs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ SAM/Lambda deployment path exists.\n- [ ] 🟡 In Progress: deployment and secret hardening policy maturity.\n- [ ] ⬜ Incomplete: blue/green and canary controls for model/provider changes.\n- [ ] 📌 Planned: release gate automation for config contract checks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ SAM/Lambda deployment path exists.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: deployment and secret hardening policy maturity.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: blue/green and canary controls for model/provider changes.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: release gate automation for config contract checks.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [x] ✅ Private API pathing exists and is structured.\n- [ ] 🟡 In Progress: formal private/public boundary and docs consistency.\n- [ ] ⬜ Incomplete: scoped keys, versioning guarantees, and rate-limit headers for external consumption.\n- [ ] 📌 Planned: productized AI API governance and compatibility policy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Private API pathing exists and is structured.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: formal private/public boundary and docs consistency.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: scoped keys, versioning guarantees, and rate-limit headers for external consumption.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: productized AI API governance and compatibility policy.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 🟡 In Progress: integration-ready primitives exist but governance is partial.\n- [ ] ⬜ Incomplete: webhook/event integration model and connector lifecycle controls.\n- [ ] 📌 Planned: ecosystem-grade integration contracts and observability.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: integration-ready primitives exist but governance is partial.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: webhook/event integration model and connector lifecycle controls.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: ecosystem-grade integration contracts and observability.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] 🟡 In Progress: contact.ai already provides building blocks (email risk + generation-friendly chat).\n- [ ] ⬜ Incomplete: dedicated campaign generation endpoint and compliance evidence workflow.\n- [ ] 📌 Planned: full campaign AI orchestration with audit-friendly output lineage.\n- [ ] 📌 Planned: campaign-scale load testing and policy controls.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: contact.ai already provides building blocks (email risk + generation-friendly chat).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: dedicated campaign generation endpoint and compliance evidence workflow.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: full campaign AI orchestration with audit-friendly output lineage.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-scale load testing and policy controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [ ] ⬜ Incomplete: sanitize committed secrets and remove real-looking credentials from local/deploy configs.\n- [ ] 🟡 In Progress: normalize docs/tests to canonical `/api/v1/ai*` contracts only.\n- [ ] ⬜ Incomplete: enforce strict message schema validation and model enum mapping checks.\n- [ ] ⬜ Incomplete: harden CORS and scoped auth policy for production.\n- [ ] 🟡 In Progress: improve SSE failure handling and trace correlation for runtime debugging.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: sanitize committed secrets and remove real-looking credentials from local/deploy configs.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: normalize docs/tests to canonical `/api/v1/ai*` contracts only.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce strict message schema validation and model enum mapping checks.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: harden CORS and scoped auth policy for production.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: improve SSE failure handling and trace correlation for runtime debugging.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 - must close for release safety",
+      "level": 3,
+      "slug": "p0---must-close-for-release-safety",
+      "prose": "- [ ] ⬜ Incomplete: secrets/config hygiene (`.env`, `samconfig.toml`, templates) and key rotation readiness.\n- [ ] ⬜ Incomplete: strict contract parity and schema validation for chat payloads.\n- [ ] ⬜ Incomplete: scoped authentication model beyond global API key.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: secrets/config hygiene (`.env`, `samconfig.toml`, templates) and key rotation readiness.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: strict contract parity and schema validation for chat payloads.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: scoped authentication model beyond global API key.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2 - required for maturity",
+      "level": 3,
+      "slug": "p1p2---required-for-maturity",
+      "prose": "- [ ] 🟡 In Progress: observability upgrades (SLOs, traces, consistent error envelopes).\n- [ ] 🟡 In Progress: provider fallback transparency and model mapping governance.\n- [ ] 📌 Planned: retention/audit model for long-lived AI interactions.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: observability upgrades (SLOs, traces, consistent error envelopes).",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: provider fallback transparency and model mapping governance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: retention/audit model for long-lived AI interactions.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+ - platform productization",
+      "level": 3,
+      "slug": "p3---platform-productization",
+      "prose": "- [ ] 📌 Planned: ecosystem integration APIs and connector governance.\n- [ ] 📌 Planned: campaign-grade AI generation + compliance evidence integration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: ecosystem integration APIs and connector governance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-grade AI generation + compliance evidence integration.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

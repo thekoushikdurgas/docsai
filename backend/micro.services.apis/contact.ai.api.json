@@ -1,0 +1,1546 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/micro.services.apis/contact.ai.api.md",
+  "sha256_source": "86dac55b6ffc6031de8db156cae321a8640577cd0bc257438cde571402bcb682",
+  "generated_at": "2026-04-08T23:26:46.732756+00:00",
+  "title": "Contact AI Service - API Reference",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Contact AI Service - API Reference",
+      "level": 1,
+      "slug": "contact-ai-service---api-reference",
+      "prose": "Complete API reference for the Lambda Contact AI Service deployed on AWS API Gateway.\n\n**Go / EC2 target:** `EC2/ai.server/` — module `contact360.io/ai` (HF router `/v1/chat/completions`, `/v1/embeddings`, RAG helpers, Asynq workers for heavy tasks). Gateway may delegate to this satellite when wired.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Documentation map",
+      "level": 2,
+      "slug": "documentation-map",
+      "prose": "| Doc | Purpose |\n| --- | --- |\n| [SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md) | Contact AI in the delegation map |\n| [contact_ai_endpoint_era_matrix.md](../endpoints/contact_ai_endpoint_era_matrix.md) | HTTP + era alignment |\n| [contact_ai_data_lineage.md](../database/contact_ai_data_lineage.md) | `ai_chats` and related storage |\n| [ENDPOINT_DATABASE_LINKS.md](../endpoints/ENDPOINT_DATABASE_LINKS.md) | Gateway GraphQL ops that call AI utilities |\n| [index.md](../endpoints/index.md) | e.g. `graphql/CreateAIChat`, `graphql/AnalyzeEmailRisk`, parse filters |\n\nDashboard calls **appointment360** GraphQL; resolvers invoke this Lambda’s REST/SSE contracts where configured.",
+      "tables": [
+        {
+          "headers": [
+            "Doc",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "[SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md)",
+              "Contact AI in the delegation map"
+            ],
+            [
+              "[contact_ai_endpoint_era_matrix.md](../endpoints/contact_ai_endpoint_era_matrix.md)",
+              "HTTP + era alignment"
+            ],
+            [
+              "[contact_ai_data_lineage.md](../database/contact_ai_data_lineage.md)",
+              "`ai_chats` and related storage"
+            ],
+            [
+              "[ENDPOINT_DATABASE_LINKS.md](../endpoints/ENDPOINT_DATABASE_LINKS.md)",
+              "Gateway GraphQL ops that call AI utilities"
+            ],
+            [
+              "[index.md](../endpoints/index.md)",
+              "e.g. `graphql/CreateAIChat`, `graphql/AnalyzeEmailRisk`, parse filters"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "SERVICE_TOPOLOGY.md",
+          "href": "../endpoints/SERVICE_TOPOLOGY.md"
+        },
+        {
+          "text": "contact_ai_endpoint_era_matrix.md",
+          "href": "../endpoints/contact_ai_endpoint_era_matrix.md"
+        },
+        {
+          "text": "contact_ai_data_lineage.md",
+          "href": "../database/contact_ai_data_lineage.md"
+        },
+        {
+          "text": "ENDPOINT_DATABASE_LINKS.md",
+          "href": "../endpoints/ENDPOINT_DATABASE_LINKS.md"
+        },
+        {
+          "text": "index.md",
+          "href": "../endpoints/index.md"
+        }
+      ]
+    },
+    {
+      "heading": "Also in docs/backend/endpoints/",
+      "level": 3,
+      "slug": "also-in-docsbackendendpoints",
+      "prose": "- **[README.md](../endpoints/README.md)** — matrix registry includes `contact_ai`.\n- **[endpoints_index.md](../endpoints/endpoints_index.md)** — [contact_ai_endpoint_era_matrix.md](../endpoints/contact_ai_endpoint_era_matrix.md) in supplemental indexes; pair with [index.md](../endpoints/index.md) for GraphQL ops that list **Contact AI** / `contact.ai` under **`lambda_services`** or AI module fields in `*_graphql.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**[README.md](../endpoints/README.md)** — matrix registry includes `contact_ai`.",
+              "checked": null
+            },
+            {
+              "text": "**[endpoints_index.md](../endpoints/endpoints_index.md)** — [contact_ai_endpoint_era_matrix.md](../endpoints/contact_ai_endpoint_era_matrix.md) in supplemental indexes; pair with [index.md](../endpoints/index.md) for GraphQL ops that list **Contact AI** / `contact.ai` under **`lambda_services`** or AI module fields in `*_graphql.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "README.md",
+          "href": "../endpoints/README.md"
+        },
+        {
+          "text": "endpoints_index.md",
+          "href": "../endpoints/endpoints_index.md"
+        },
+        {
+          "text": "contact_ai_endpoint_era_matrix.md",
+          "href": "../endpoints/contact_ai_endpoint_era_matrix.md"
+        },
+        {
+          "text": "index.md",
+          "href": "../endpoints/index.md"
+        }
+      ]
+    },
+    {
+      "heading": "Base URL",
+      "level": 2,
+      "slug": "base-url",
+      "prose": "**Production:**\n```\nhttps://aziwa531nl.execute-api.us-east-1.amazonaws.com\n```\n\n**Local Development:**\n```\nhttp://localhost:8080\n```\n\nAll endpoints are prefixed with `/api/v1/`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "https://aziwa531nl.execute-api.us-east-1.amazonaws.com\n"
+        },
+        {
+          "lang": "",
+          "value": "http://localhost:8080\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Authentication",
+      "level": 2,
+      "slug": "authentication",
+      "prose": "All endpoints (except health check) require API key authentication via the `X-API-Key` header. Chat endpoints also require the `X-User-ID` header.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Required Headers",
+      "level": 3,
+      "slug": "required-headers",
+      "prose": "```http\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here  # Required for chat endpoints\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "X-API-Key: your-api-key-here\nX-User-ID: user-uuid-here  # Required for chat endpoints\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Authentication Error Response",
+      "level": 3,
+      "slug": "authentication-error-response",
+      "prose": "```json\n{\n  \"detail\": \"missing API key header\"\n}\n```\n\nor\n\n```json\n{\n  \"detail\": \"invalid API key\"\n}\n```\n\n**Status Code:** `401 Unauthorized`",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"missing API key header\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"invalid API key\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Missing User ID Error Response",
+      "level": 3,
+      "slug": "missing-user-id-error-response",
+      "prose": "```json\n{\n  \"detail\": \"X-User-ID header is required\"\n}\n```\n\n**Status Code:** `400 Bad Request`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"X-User-ID header is required\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Response Format",
+      "level": 2,
+      "slug": "response-format",
+      "prose": "All responses are JSON unless otherwise specified. Streaming endpoints return Server-Sent Events (SSE).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Success Response",
+      "level": 3,
+      "slug": "success-response",
+      "prose": "```json\n{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Chat Title\",\n  \"messages\": [...],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T00:00:00Z\"\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Chat Title\",\n  \"messages\": [...],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T00:00:00Z\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Error Response",
+      "level": 3,
+      "slug": "error-response",
+      "prose": "```json\n{\n  \"detail\": \"Error message describing what went wrong\"\n}\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"Error message describing what went wrong\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Health Check Endpoints",
+      "level": 2,
+      "slug": "health-check-endpoints",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/health",
+      "level": 3,
+      "slug": "get-apiv1health",
+      "prose": "Check service health status. **No authentication required.**\n\n**Response:**\n\n```json\n{\n  \"status\": \"ok\",\n  \"service\": \"Contact AI API\",\n  \"version\": \"1.0.0\"\n}\n```\n\n**Status Codes:**\n- `200 OK` - Service is healthy\n\n**Example:**\n\n```bash\ncurl https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/health\n```\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Service is healthy",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"ok\",\n  \"service\": \"Contact AI API\",\n  \"version\": \"1.0.0\"\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/health\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "AI Chat Endpoints",
+      "level": 2,
+      "slug": "ai-chat-endpoints",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "List Chats",
+      "level": 3,
+      "slug": "list-chats",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/ai-chats/",
+      "level": 4,
+      "slug": "get-apiv1ai-chats",
+      "prose": "Get a paginated list of all AI chat conversations for a user.\n\n**Headers:**\n```http\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n```\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Default | Description |\n|-----------|------|----------|---------|-------------|\n| `limit` | integer | No | 25 | Number of results per page (1-100) |\n| `offset` | integer | No | 0 | Offset for pagination |\n| `ordering` | string | No | `-created_at` | Order by field. Prepend `-` for descending. Valid: `created_at`, `updated_at`, `-created_at`, `-updated_at` |\n| `title` | string | No | - | Case-insensitive substring match against chat title |\n| `search` | string | No | - | General-purpose search term applied across chat text columns |\n| `created_at_after` | string | No | - | Filter chats created after ISO timestamp (inclusive) |\n| `created_at_before` | string | No | - | Filter chats created before ISO timestamp (inclusive) |\n| `updated_at_after` | string | No | - | Filter chats updated after ISO timestamp (inclusive) |\n| `updated_at_before` | string | No | - | Filter chats updated before ISO timestamp (inclusive) |\n| `page` | integer | No | - | 1-indexed page number (alternative to offset) |\n| `page_size` | integer | No | - | Explicit page size override |\n\n**Response:**\n\n```json\n{\n  \"count\": 10,\n  \"next\": \"https://api.example.com/api/v1/ai-chats/?limit=25&offset=25\",\n  \"previous\": null,\n  \"results\": [\n    {\n      \"uuid\": \"chat-uuid-1\",\n      \"title\": \"Chat Title 1\",\n      \"created_at\": \"2026-01-06T00:00:00Z\",\n      \"updated_at\": \"2026-01-06T01:00:00Z\"\n    },\n    {\n      \"uuid\": \"chat-uuid-2\",\n      \"title\": \"Chat Title 2\",\n      \"created_at\": \"2026-01-05T00:00:00Z\",\n      \"updated_at\": null\n    }\n  ]\n}\n```\n\n**Status Codes:**\n- `200 OK` - Success\n- `400 Bad Request` - Invalid query parameters\n- `401 Unauthorized` - Missing or invalid API key\n\n**Example:**\n\n```bash\ncurl -X GET \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/?limit=10&ordering=-created_at\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Default",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`limit`",
+              "integer",
+              "No",
+              "25",
+              "Number of results per page (1-100)"
+            ],
+            [
+              "`offset`",
+              "integer",
+              "No",
+              "0",
+              "Offset for pagination"
+            ],
+            [
+              "`ordering`",
+              "string",
+              "No",
+              "`-created_at`",
+              "Order by field. Prepend `-` for descending. Valid: `created_at`, `updated_at`, `-created_at`, `-updated_at`"
+            ],
+            [
+              "`title`",
+              "string",
+              "No",
+              "-",
+              "Case-insensitive substring match against chat title"
+            ],
+            [
+              "`search`",
+              "string",
+              "No",
+              "-",
+              "General-purpose search term applied across chat text columns"
+            ],
+            [
+              "`created_at_after`",
+              "string",
+              "No",
+              "-",
+              "Filter chats created after ISO timestamp (inclusive)"
+            ],
+            [
+              "`created_at_before`",
+              "string",
+              "No",
+              "-",
+              "Filter chats created before ISO timestamp (inclusive)"
+            ],
+            [
+              "`updated_at_after`",
+              "string",
+              "No",
+              "-",
+              "Filter chats updated after ISO timestamp (inclusive)"
+            ],
+            [
+              "`updated_at_before`",
+              "string",
+              "No",
+              "-",
+              "Filter chats updated before ISO timestamp (inclusive)"
+            ],
+            [
+              "`page`",
+              "integer",
+              "No",
+              "-",
+              "1-indexed page number (alternative to offset)"
+            ],
+            [
+              "`page_size`",
+              "integer",
+              "No",
+              "-",
+              "Explicit page size override"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Success",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid query parameters",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "X-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"count\": 10,\n  \"next\": \"https://api.example.com/api/v1/ai-chats/?limit=25&offset=25\",\n  \"previous\": null,\n  \"results\": [\n    {\n      \"uuid\": \"chat-uuid-1\",\n      \"title\": \"Chat Title 1\",\n      \"created_at\": \"2026-01-06T00:00:00Z\",\n      \"updated_at\": \"2026-01-06T01:00:00Z\"\n    },\n    {\n      \"uuid\": \"chat-uuid-2\",\n      \"title\": \"Chat Title 2\",\n      \"created_at\": \"2026-01-05T00:00:00Z\",\n      \"updated_at\": null\n    }\n  ]\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X GET \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/?limit=10&ordering=-created_at\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Create Chat",
+      "level": 3,
+      "slug": "create-chat",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/ai-chats/",
+      "level": 4,
+      "slug": "post-apiv1ai-chats",
+      "prose": "Create a new AI chat conversation.\n\n**Headers:**\n```http\nContent-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n```\n\n**Request Body:**\n\n```json\n{\n  \"title\": \"My Chat Title\",\n  \"messages\": []\n}\n```\n\n**Request Schema:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `title` | string | No | Chat title (max 255 characters, default: empty string) |\n| `messages` | array | No | Initial messages array (default: empty array) |\n\n**Response:**\n\n```json\n{\n  \"uuid\": \"new-chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"My Chat Title\",\n  \"messages\": [],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": null\n}\n```\n\n**Status Codes:**\n- `201 Created` - Chat created successfully\n- `400 Bad Request` - Invalid request data\n- `401 Unauthorized` - Missing or invalid API key\n\n**Example:**\n\n```bash\ncurl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"title\": \"My Chat Title\",\n    \"messages\": []\n  }'\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`title`",
+              "string",
+              "No",
+              "Chat title (max 255 characters, default: empty string)"
+            ],
+            [
+              "`messages`",
+              "array",
+              "No",
+              "Initial messages array (default: empty array)"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`201 Created` - Chat created successfully",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid request data",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "Content-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"title\": \"My Chat Title\",\n  \"messages\": []\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"uuid\": \"new-chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"My Chat Title\",\n  \"messages\": [],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": null\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"title\": \"My Chat Title\",\n    \"messages\": []\n  }'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Get Chat",
+      "level": 3,
+      "slug": "get-chat",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/ai-chats/{chatid}/`",
+      "level": 4,
+      "slug": "get-apiv1ai-chatschatid",
+      "prose": "Get detailed information about a specific AI chat conversation, including all messages.\n\n**Headers:**\n```http\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n```\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `chat_id` | string | Yes | Chat UUID |\n\n**Response:**\n\n```json\n{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Chat Title\",\n  \"messages\": [\n    {\n      \"sender\": \"user\",\n      \"text\": \"Hello, how are you?\",\n      \"contacts\": null\n    },\n    {\n      \"sender\": \"ai\",\n      \"text\": \"I'm doing well, thank you! How can I help you today?\",\n      \"contacts\": null\n    }\n  ],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T01:00:00Z\"\n}\n```\n\n**Status Codes:**\n- `200 OK` - Success\n- `404 Not Found` - Chat not found or user doesn't have access\n- `401 Unauthorized` - Missing or invalid API key\n\n**Example:**\n\n```bash\ncurl -X GET \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`chat_id`",
+              "string",
+              "Yes",
+              "Chat UUID"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Success",
+              "checked": null
+            },
+            {
+              "text": "`404 Not Found` - Chat not found or user doesn't have access",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "X-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Chat Title\",\n  \"messages\": [\n    {\n      \"sender\": \"user\",\n      \"text\": \"Hello, how are you?\",\n      \"contacts\": null\n    },\n    {\n      \"sender\": \"ai\",\n      \"text\": \"I'm doing well, thank you! How can I help you today?\",\n      \"contacts\": null\n    }\n  ],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T01:00:00Z\"\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X GET \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Update Chat",
+      "level": 3,
+      "slug": "update-chat",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "PUT /api/v1/ai-chats/{chatid}/`",
+      "level": 4,
+      "slug": "put-apiv1ai-chatschatid",
+      "prose": "Update an existing AI chat conversation (typically to add new messages or update the title).\n\n**Headers:**\n```http\nContent-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n```\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `chat_id` | string | Yes | Chat UUID |\n\n**Request Body:**\n\n```json\n{\n  \"title\": \"Updated Chat Title\",\n  \"messages\": [\n    {\n      \"sender\": \"user\",\n      \"text\": \"Hello\",\n      \"contacts\": null\n    }\n  ]\n}\n```\n\n**Request Schema:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `title` | string | No | Chat title (max 255 characters) |\n| `messages` | array | No | Complete messages array (replaces existing messages) |\n\n**Note:** All fields are optional - only provided fields will be updated (partial update). When updating messages, provide the complete messages array (it replaces existing messages).\n\n**Response:**\n\n```json\n{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Updated Chat Title\",\n  \"messages\": [...],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T02:00:00Z\"\n}\n```\n\n**Status Codes:**\n- `200 OK` - Chat updated successfully\n- `400 Bad Request` - Invalid request data\n- `404 Not Found` - Chat not found or user doesn't have access\n- `401 Unauthorized` - Missing or invalid API key\n\n**Example:**\n\n```bash\ncurl -X PUT \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"title\": \"Updated Chat Title\"\n  }'\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`chat_id`",
+              "string",
+              "Yes",
+              "Chat UUID"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`title`",
+              "string",
+              "No",
+              "Chat title (max 255 characters)"
+            ],
+            [
+              "`messages`",
+              "array",
+              "No",
+              "Complete messages array (replaces existing messages)"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Chat updated successfully",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid request data",
+              "checked": null
+            },
+            {
+              "text": "`404 Not Found` - Chat not found or user doesn't have access",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "Content-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"title\": \"Updated Chat Title\",\n  \"messages\": [\n    {\n      \"sender\": \"user\",\n      \"text\": \"Hello\",\n      \"contacts\": null\n    }\n  ]\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Updated Chat Title\",\n  \"messages\": [...],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T02:00:00Z\"\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X PUT \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"title\": \"Updated Chat Title\"\n  }'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Send Message",
+      "level": 3,
+      "slug": "send-message",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/ai-chats/{chatid}/message`",
+      "level": 4,
+      "slug": "post-apiv1ai-chatschatidmessage",
+      "prose": "Send a message in a chat and get AI response.\n\n**Headers:**\n```http\nContent-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n```\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `chat_id` | string | Yes | Chat UUID |\n\n**Request Body:**\n\n```json\n{\n  \"message\": \"Hello, how are you?\",\n  \"model\": \"gemini-1.5-flash\"\n}\n```\n\n**Request Schema:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `message` | string | Yes | User message text (min 1 character) |\n| `model` | string | No | Optional model selection override. Valid: `gemini-1.5-flash`, `gemini-1.5-pro`, `gemini-2.0-flash-exp`, `gemini-2.5-pro` |\n\n**Response:**\n\n```json\n{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Chat Title\",\n  \"messages\": [\n    {\n      \"sender\": \"user\",\n      \"text\": \"Hello, how are you?\",\n      \"contacts\": null\n    },\n    {\n      \"sender\": \"ai\",\n      \"text\": \"I'm doing well, thank you! How can I help you today?\",\n      \"contacts\": null\n    }\n  ],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T03:00:00Z\"\n}\n```\n\n**Status Codes:**\n- `200 OK` - Message sent and AI response generated\n- `400 Bad Request` - Invalid request data\n- `404 Not Found` - Chat not found or user doesn't have access\n- `401 Unauthorized` - Missing or invalid API key\n- `500 Internal Server Error` - Error generating AI response\n\n**Example:**\n\n```bash\ncurl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/message\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"message\": \"Hello, how are you?\",\n    \"model\": \"gemini-1.5-flash\"\n  }'\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`chat_id`",
+              "string",
+              "Yes",
+              "Chat UUID"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`message`",
+              "string",
+              "Yes",
+              "User message text (min 1 character)"
+            ],
+            [
+              "`model`",
+              "string",
+              "No",
+              "Optional model selection override. Valid: `gemini-1.5-flash`, `gemini-1.5-pro`, `gemini-2.0-flash-exp`, `gemini-2.5-pro`"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Message sent and AI response generated",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid request data",
+              "checked": null
+            },
+            {
+              "text": "`404 Not Found` - Chat not found or user doesn't have access",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            },
+            {
+              "text": "`500 Internal Server Error` - Error generating AI response",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "Content-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"message\": \"Hello, how are you?\",\n  \"model\": \"gemini-1.5-flash\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"uuid\": \"chat-uuid\",\n  \"user_id\": \"user-uuid\",\n  \"title\": \"Chat Title\",\n  \"messages\": [\n    {\n      \"sender\": \"user\",\n      \"text\": \"Hello, how are you?\",\n      \"contacts\": null\n    },\n    {\n      \"sender\": \"ai\",\n      \"text\": \"I'm doing well, thank you! How can I help you today?\",\n      \"contacts\": null\n    }\n  ],\n  \"created_at\": \"2026-01-06T00:00:00Z\",\n  \"updated_at\": \"2026-01-06T03:00:00Z\"\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/message\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"message\": \"Hello, how are you?\",\n    \"model\": \"gemini-1.5-flash\"\n  }'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Stream Message",
+      "level": 3,
+      "slug": "stream-message",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/ai-chats/{chatid}/message/stream`",
+      "level": 4,
+      "slug": "post-apiv1ai-chatschatidmessagestream",
+      "prose": "Send a message in a chat and stream AI response using Server-Sent Events (SSE).\n\n**Headers:**\n```http\nContent-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n```\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `chat_id` | string | Yes | Chat UUID |\n\n**Request Body:**\n\n```json\n{\n  \"message\": \"Tell me about artificial intelligence\",\n  \"model\": \"gemini-1.5-flash\"\n}\n```\n\n**Request Schema:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `message` | string | Yes | User message text (min 1 character) |\n| `model` | string | No | Optional model selection override |\n\n**Response:**\n\nContent-Type: `text/event-stream`\n\n```\ndata: Artificial\ndata:  intelligence\ndata:  (AI)\ndata:  is\ndata:  a\ndata:  branch\ndata:  of\ndata:  computer\ndata:  science\n...\ndata: [DONE]\n```\n\n**Status Codes:**\n- `200 OK` - Stream started successfully\n- `400 Bad Request` - Invalid request data\n- `404 Not Found` - Chat not found or user doesn't have access\n- `401 Unauthorized` - Missing or invalid API key\n- `500 Internal Server Error` - Error generating AI response\n\n**Example:**\n\n```bash\ncurl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/message/stream\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"message\": \"Tell me about artificial intelligence\"\n  }' \\\n  --no-buffer\n```\n\n**Note:** The `--no-buffer` flag is important for streaming responses. The stream ends with `data: [DONE]`.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`chat_id`",
+              "string",
+              "Yes",
+              "Chat UUID"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`message`",
+              "string",
+              "Yes",
+              "User message text (min 1 character)"
+            ],
+            [
+              "`model`",
+              "string",
+              "No",
+              "Optional model selection override"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Stream started successfully",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid request data",
+              "checked": null
+            },
+            {
+              "text": "`404 Not Found` - Chat not found or user doesn't have access",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            },
+            {
+              "text": "`500 Internal Server Error` - Error generating AI response",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "Content-Type: application/json\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"message\": \"Tell me about artificial intelligence\",\n  \"model\": \"gemini-1.5-flash\"\n}\n"
+        },
+        {
+          "lang": "",
+          "value": "data: Artificial\ndata:  intelligence\ndata:  (AI)\ndata:  is\ndata:  a\ndata:  branch\ndata:  of\ndata:  computer\ndata:  science\n...\ndata: [DONE]\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/message/stream\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\n    \"message\": \"Tell me about artificial intelligence\"\n  }' \\\n  --no-buffer\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Delete Chat",
+      "level": 3,
+      "slug": "delete-chat",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "DELETE /api/v1/ai-chats/{chatid}/`",
+      "level": 4,
+      "slug": "delete-apiv1ai-chatschatid",
+      "prose": "Delete an AI chat conversation.\n\n**Headers:**\n```http\nX-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n```\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `chat_id` | string | Yes | Chat UUID |\n\n**Response:**\n\nNo content (204 No Content)\n\n**Status Codes:**\n- `204 No Content` - Chat deleted successfully\n- `404 Not Found` - Chat not found or user doesn't have access\n- `401 Unauthorized` - Missing or invalid API key\n- `500 Internal Server Error` - Error deleting chat\n\n**Example:**\n\n```bash\ncurl -X DELETE \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"\n```\n\n**Note:** Deletion is permanent and cannot be undone.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`chat_id`",
+              "string",
+              "Yes",
+              "Chat UUID"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`204 No Content` - Chat deleted successfully",
+              "checked": null
+            },
+            {
+              "text": "`404 Not Found` - Chat not found or user doesn't have access",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            },
+            {
+              "text": "`500 Internal Server Error` - Error deleting chat",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "X-API-Key: your-api-key-here\nX-User-ID: user-uuid-here\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X DELETE \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/chat-uuid/\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Gemini AI Endpoints",
+      "level": 2,
+      "slug": "gemini-ai-endpoints",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email Risk Analysis",
+      "level": 3,
+      "slug": "email-risk-analysis",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/gemini/email/analyze",
+      "level": 4,
+      "slug": "post-apiv1geminiemailanalyze",
+      "prose": "Analyze email address for potential risk factors using Gemini AI.\n\n**Headers:**\n```http\nContent-Type: application/json\nX-API-Key: your-api-key-here\n```\n\n**Request Body:**\n\n```json\n{\n  \"email\": \"test@example.com\"\n}\n```\n\n**Request Schema:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `email` | string | Yes | Email address to analyze (must be valid email format) |\n\n**Response:**\n\n```json\n{\n  \"riskScore\": 5,\n  \"analysis\": \"This email appears to be a standard business email address. No significant risk factors detected.\",\n  \"isRoleBased\": false,\n  \"isDisposable\": false\n}\n```\n\n**Response Schema:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `riskScore` | integer | Risk score from 0-10 (0 = low risk, 10 = high risk) |\n| `analysis` | string | Detailed analysis text |\n| `isRoleBased` | boolean | Whether the email is role-based (e.g., info@, support@) |\n| `isDisposable` | boolean | Whether the email is from a disposable email service |\n\n**Status Codes:**\n- `200 OK` - Analysis completed successfully\n- `400 Bad Request` - Invalid email format\n- `401 Unauthorized` - Missing or invalid API key\n- `500 Internal Server Error` - Error analyzing email\n\n**Example:**\n\n```bash\ncurl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/gemini/email/analyze\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -d '{\n    \"email\": \"test@example.com\"\n  }'\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`email`",
+              "string",
+              "Yes",
+              "Email address to analyze (must be valid email format)"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`riskScore`",
+              "integer",
+              "Risk score from 0-10 (0 = low risk, 10 = high risk)"
+            ],
+            [
+              "`analysis`",
+              "string",
+              "Detailed analysis text"
+            ],
+            [
+              "`isRoleBased`",
+              "boolean",
+              "Whether the email is role-based (e.g., info@, support@)"
+            ],
+            [
+              "`isDisposable`",
+              "boolean",
+              "Whether the email is from a disposable email service"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Analysis completed successfully",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid email format",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            },
+            {
+              "text": "`500 Internal Server Error` - Error analyzing email",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "Content-Type: application/json\nX-API-Key: your-api-key-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"email\": \"test@example.com\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"riskScore\": 5,\n  \"analysis\": \"This email appears to be a standard business email address. No significant risk factors detected.\",\n  \"isRoleBased\": false,\n  \"isDisposable\": false\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/gemini/email/analyze\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -d '{\n    \"email\": \"test@example.com\"\n  }'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Company Summary",
+      "level": 3,
+      "slug": "company-summary",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/gemini/company/summary",
+      "level": 4,
+      "slug": "post-apiv1geminicompanysummary",
+      "prose": "Generate AI-powered company summary using Gemini AI.\n\n**Headers:**\n```http\nContent-Type: application/json\nX-API-Key: your-api-key-here\n```\n\n**Request Body:**\n\n```json\n{\n  \"company_name\": \"Google\",\n  \"industry\": \"Technology\"\n}\n```\n\n**Request Schema:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `company_name` | string | Yes | Company name |\n| `industry` | string | Yes | Industry sector |\n\n**Response:**\n\n```json\n{\n  \"summary\": \"Google is a multinational technology company specializing in Internet-related services and products. Founded in 1998, Google has become one of the world's most valuable companies, known for its search engine, cloud computing services, and innovative technologies like artificial intelligence and machine learning.\"\n}\n```\n\n**Response Schema:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `summary` | string | Generated company summary text |\n\n**Status Codes:**\n- `200 OK` - Summary generated successfully\n- `400 Bad Request` - Invalid request data\n- `401 Unauthorized` - Missing or invalid API key\n- `500 Internal Server Error` - Error generating summary\n\n**Example:**\n\n```bash\ncurl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/gemini/company/summary\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -d '{\n    \"company_name\": \"Google\",\n    \"industry\": \"Technology\"\n  }'\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`company_name`",
+              "string",
+              "Yes",
+              "Company name"
+            ],
+            [
+              "`industry`",
+              "string",
+              "Yes",
+              "Industry sector"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`summary`",
+              "string",
+              "Generated company summary text"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Summary generated successfully",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid request data",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            },
+            {
+              "text": "`500 Internal Server Error` - Error generating summary",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "Content-Type: application/json\nX-API-Key: your-api-key-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"company_name\": \"Google\",\n  \"industry\": \"Technology\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"summary\": \"Google is a multinational technology company specializing in Internet-related services and products. Founded in 1998, Google has become one of the world's most valuable companies, known for its search engine, cloud computing services, and innovative technologies like artificial intelligence and machine learning.\"\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/gemini/company/summary\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -d '{\n    \"company_name\": \"Google\",\n    \"industry\": \"Technology\"\n  }'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Parse Filters",
+      "level": 3,
+      "slug": "parse-filters",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/gemini/parse-filters",
+      "level": 4,
+      "slug": "post-apiv1geminiparse-filters",
+      "prose": "Parse natural language query into structured contact filter parameters using Gemini AI.\n\n**Headers:**\n```http\nContent-Type: application/json\nX-API-Key: your-api-key-here\n```\n\n**Request Body:**\n\n```json\n{\n  \"query\": \"Find software engineers in San Francisco with 5-10 years of experience\"\n}\n```\n\n**Request Schema:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `query` | string | Yes | Natural language query to parse |\n\n**Response:**\n\n```json\n{\n  \"job_titles\": [\"Software Engineer\", \"Senior Software Engineer\"],\n  \"company_names\": null,\n  \"industry\": null,\n  \"location\": [\"San Francisco\"],\n  \"employees\": [5, 10],\n  \"seniority\": [\"Mid-level\", \"Senior\"]\n}\n```\n\n**Response Schema:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `job_titles` | array of strings | Extracted job titles (nullable) |\n| `company_names` | array of strings | Extracted company names (nullable) |\n| `industry` | array of strings | Extracted industries (nullable) |\n| `location` | array of strings | Extracted locations (nullable) |\n| `employees` | tuple of integers | Employee count range [min, max] (nullable) |\n| `seniority` | array of strings | Extracted seniority levels (nullable) |\n\n**Status Codes:**\n- `200 OK` - Filters parsed successfully\n- `400 Bad Request` - Invalid request data\n- `401 Unauthorized` - Missing or invalid API key\n- `500 Internal Server Error` - Error parsing filters\n\n**Example:**\n\n```bash\ncurl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/gemini/parse-filters\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -d '{\n    \"query\": \"Find software engineers in San Francisco with 5-10 years of experience\"\n  }'\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`query`",
+              "string",
+              "Yes",
+              "Natural language query to parse"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`job_titles`",
+              "array of strings",
+              "Extracted job titles (nullable)"
+            ],
+            [
+              "`company_names`",
+              "array of strings",
+              "Extracted company names (nullable)"
+            ],
+            [
+              "`industry`",
+              "array of strings",
+              "Extracted industries (nullable)"
+            ],
+            [
+              "`location`",
+              "array of strings",
+              "Extracted locations (nullable)"
+            ],
+            [
+              "`employees`",
+              "tuple of integers",
+              "Employee count range [min, max] (nullable)"
+            ],
+            [
+              "`seniority`",
+              "array of strings",
+              "Extracted seniority levels (nullable)"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`200 OK` - Filters parsed successfully",
+              "checked": null
+            },
+            {
+              "text": "`400 Bad Request` - Invalid request data",
+              "checked": null
+            },
+            {
+              "text": "`401 Unauthorized` - Missing or invalid API key",
+              "checked": null
+            },
+            {
+              "text": "`500 Internal Server Error` - Error parsing filters",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "http",
+          "value": "Content-Type: application/json\nX-API-Key: your-api-key-here\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"Find software engineers in San Francisco with 5-10 years of experience\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"job_titles\": [\"Software Engineer\", \"Senior Software Engineer\"],\n  \"company_names\": null,\n  \"industry\": null,\n  \"location\": [\"San Francisco\"],\n  \"employees\": [5, 10],\n  \"seniority\": [\"Mid-level\", \"Senior\"]\n}\n"
+        },
+        {
+          "lang": "bash",
+          "value": "curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/gemini/parse-filters\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -d '{\n    \"query\": \"Find software engineers in San Francisco with 5-10 years of experience\"\n  }'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Error Handling",
+      "level": 2,
+      "slug": "error-handling",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Common Error Responses",
+      "level": 3,
+      "slug": "common-error-responses",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "400 Bad Request",
+      "level": 4,
+      "slug": "400-bad-request",
+      "prose": "```json\n{\n  \"detail\": \"X-User-ID header is required\"\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"X-User-ID header is required\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "401 Unauthorized",
+      "level": 4,
+      "slug": "401-unauthorized",
+      "prose": "```json\n{\n  \"detail\": \"missing API key header\"\n}\n```\n\nor\n\n```json\n{\n  \"detail\": \"invalid API key\"\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"missing API key header\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"invalid API key\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "404 Not Found",
+      "level": 4,
+      "slug": "404-not-found",
+      "prose": "```json\n{\n  \"detail\": \"Chat not found\"\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"Chat not found\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "500 Internal Server Error",
+      "level": 4,
+      "slug": "500-internal-server-error",
+      "prose": "```json\n{\n  \"detail\": \"An error occurred while processing the request.\"\n}\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"An error occurred while processing the request.\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Example Usage",
+      "level": 2,
+      "slug": "example-usage",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Complete Chat Flow",
+      "level": 3,
+      "slug": "complete-chat-flow",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1. Create a new chat",
+      "level": 1,
+      "slug": "1-create-a-new-chat",
+      "prose": "CHAT_UUID=$(curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\"title\": \"My Chat\"}' | jq -r '.uuid')",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2. Send a message",
+      "level": 1,
+      "slug": "2-send-a-message",
+      "prose": "curl -X POST \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/$CHAT_UUID/message\" \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\" \\\n  -d '{\"message\": \"Hello, how are you?\"}'",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3. Get chat details",
+      "level": 1,
+      "slug": "3-get-chat-details",
+      "prose": "curl -X GET \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/$CHAT_UUID/\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4. List all chats",
+      "level": 1,
+      "slug": "4-list-all-chats",
+      "prose": "curl -X GET \"https://aziwa531nl.execute-api.us-east-1.amazonaws.com/api/v1/ai-chats/?limit=10\" \\\n  -H \"X-API-Key: your-api-key\" \\\n  -H \"X-User-ID: user-uuid\"\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rate Limiting",
+      "level": 2,
+      "slug": "rate-limiting",
+      "prose": "The service implements rate limiting to prevent abuse:\n- Default: 20 requests per 60 seconds per user\n- Configurable via environment variables: `AI_RATE_LIMIT_REQUESTS` and `AI_RATE_LIMIT_WINDOW`\n\nWhen rate limit is exceeded, the service returns:\n\n**Status Code:** `429 Too Many Requests`\n\n```json\n{\n  \"detail\": \"Rate limit exceeded\"\n}\n```\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Default: 20 requests per 60 seconds per user",
+              "checked": null
+            },
+            {
+              "text": "Configurable via environment variables: `AI_RATE_LIMIT_REQUESTS` and `AI_RATE_LIMIT_WINDOW`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"detail\": \"Rate limit exceeded\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Best Practices",
+      "level": 2,
+      "slug": "best-practices",
+      "prose": "1. **Always include required headers**: `X-API-Key` for all endpoints, `X-User-ID` for chat endpoints\n2. **Handle errors gracefully**: Check status codes and error messages\n3. **Use pagination**: For list endpoints, use `limit` and `offset` or `page` and `page_size`\n4. **Stream for long responses**: Use the streaming endpoint for better UX with long AI responses\n5. **Cache when appropriate**: Chat data doesn't change frequently, consider caching\n6. **Monitor rate limits**: Be aware of rate limiting and implement retry logic with exponential backoff\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Always include required headers**: `X-API-Key` for all endpoints, `X-User-ID` for chat endpoints",
+              "checked": null
+            },
+            {
+              "text": "**Handle errors gracefully**: Check status codes and error messages",
+              "checked": null
+            },
+            {
+              "text": "**Use pagination**: For list endpoints, use `limit` and `offset` or `page` and `page_size`",
+              "checked": null
+            },
+            {
+              "text": "**Stream for long responses**: Use the streaming endpoint for better UX with long AI responses",
+              "checked": null
+            },
+            {
+              "text": "**Cache when appropriate**: Chat data doesn't change frequently, consider caching",
+              "checked": null
+            },
+            {
+              "text": "**Monitor rate limits**: Be aware of rate limiting and implement retry logic with exponential backoff",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Support",
+      "level": 2,
+      "slug": "support",
+      "prose": "For issues or questions:\n- Check CloudWatch Logs: `/aws/lambda/contact-ai`\n- Review [DEPLOYMENT.md](../DEPLOYMENT.md) for deployment information\n- See [INTEGRATION_TESTING.md](../INTEGRATION_TESTING.md) for testing guide",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Check CloudWatch Logs: `/aws/lambda/contact-ai`",
+              "checked": null
+            },
+            {
+              "text": "Review [DEPLOYMENT.md](../DEPLOYMENT.md) for deployment information",
+              "checked": null
+            },
+            {
+              "text": "See [INTEGRATION_TESTING.md](../INTEGRATION_TESTING.md) for testing guide",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "DEPLOYMENT.md",
+          "href": "../DEPLOYMENT.md"
+        },
+        {
+          "text": "INTEGRATION_TESTING.md",
+          "href": "../INTEGRATION_TESTING.md"
+        }
+      ]
+    },
+    {
+      "heading": "2026 route-contract note",
+      "level": 2,
+      "slug": "2026-route-contract-note",
+      "prose": "- Canonical route families are `/api/v1/ai/*` and `/api/v1/ai-*`.\n- Any `/api/v2` or `/gemini` direct-route references should be treated as legacy documentation drift unless explicitly reintroduced.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Canonical route families are `/api/v1/ai/*` and `/api/v1/ai-*`.",
+              "checked": null
+            },
+            {
+              "text": "Any `/api/v2` or `/gemini` direct-route references should be treated as legacy documentation drift unless explicitly reintroduced.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

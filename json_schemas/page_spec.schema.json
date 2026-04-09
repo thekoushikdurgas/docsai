@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/page_spec",
+  "title": "Frontend Page Specification",
+  "description": "Generated from docs/frontend/pages/*.md — dashboard page metadata specs",
+  "allOf": [{ "$ref": "common_envelope.schema.json" }],
+  "properties": {
+    "kind": { "const": "page_spec" },
+    "front_matter": {
+      "type": "object",
+      "description": "YAML front matter parsed from --- block",
+      "properties": {
+        "title": { "type": ["string", "null"] },
+        "page_id": { "type": ["string", "null"] },
+        "status": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "page_id": { "type": ["string", "null"] },
+    "page_type": { "type": ["string", "null"] },
+    "codebase": { "type": ["string", "null"] },
+    "surface": { "type": ["string", "null"] },
+    "era_tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "e.g. ['1.x', '8.x']"
+    },
+    "flow_id": { "type": ["string", "null"] },
+    "metadata": {
+      "type": "object",
+      "description": "Structured metadata from ## Metadata / ### Metadata section",
+      "properties": {
+        "route": { "type": ["string", "null"] },
+        "file_path": { "type": ["string", "null"] },
+        "purpose": { "type": ["string", "null"] },
+        "s3_key": { "type": ["string", "null"] },
+        "status": { "type": ["string", "null"] },
+        "authentication": { "type": ["string", "null"] },
+        "authorization": { "type": ["string", "null"] },
+        "page_state": { "type": ["string", "null"] },
+        "last_updated": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "uses_endpoints": {
+      "type": "array",
+      "description": "Endpoint references from uses_endpoints section",
+      "items": {
+        "type": "object",
+        "required": ["endpoint"],
+        "properties": {
+          "endpoint": { "type": "string" },
+          "description": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "ui_components": {
+      "type": "array",
+      "description": "UI component references",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "file_path": { "type": ["string", "null"] },
+          "description": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Other sections in document order",
+      "items": {
+        "type": "object",
+        "required": ["heading", "level", "prose"],
+        "properties": {
+          "heading": { "type": "string" },
+          "level": { "type": "integer" },
+          "prose": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_purchase_addon_graphql.md",
+  "sha256_source": "086166e3912ae5ddea266e3da29bc5d1f99dfbc1a9bca7fc9b90bdd49667d518",
+  "generated_at": "2026-04-08T23:11:52.078155+00:00",
+  "title": "graphql/PurchaseAddon",
+  "raw_markdown": "---\ntitle: \"graphql/PurchaseAddon\"\nsource_json: mutation_purchase_addon_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/PurchaseAddon\n\n## Overview\n\nPurchase an addon credits package. Accepts PurchaseAddonInput with addonId (required, String, valid addon ID). Validates addon exists and is active. Adds credits to user's account. Returns PurchaseAddonResponse with success (Boolean), message (String), creditsAdded (Int), newCreditBalance (Int). Raises NotFoundError (404) if addon not found. Raises BadRequestError (400) if addon inactive. Activity logged (non-blocking).\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_purchase_addon_graphql |\n| _id | mutation_purchase_addon_graphql-001 |\n| endpoint_path | graphql/PurchaseAddon |\n| method | MUTATION |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 1.x |\n| introduced_in | 1.1.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/billing/mutations.py |\n| router_file | contact360/dashboard/src/services/graphql/billingService.ts |\n\n\n## GraphQL operation\n\n```graphql\nmutation PurchaseAddon($input: PurchaseAddonInput!) { billing { purchaseAddon(input: $input) { success message creditsAdded newCreditBalance } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- purchaseAddon\n\n### repository_methods\n\n- add_user_credits\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /billing | Billing Page | billingService | useBilling | secondary | data_mutation | 2026-01-20T00:00:00.000000+00:00 |\n\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `mutation_purchase_addon_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `1.x` — Billing (Addons).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `addons` | READ | [addons.sql](../database/tables/addons.sql) |\n| `user_profiles` | WRITE | [user_profiles.sql](../database/tables/user_profiles.sql) |\n| `billing_history` | WRITE | [billing_history.sql](../database/tables/billing_history.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Payment Gateway**: Triggers Stripe checkout/payment for one-time addon purchases.\n\n## Related endpoint graph\n\n- **Inbound**: `Marketplace Page`.\n- **Outbound**: `GetBilling` (state update).\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_purchase_addon_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_purchase_addon_graphql"
+        ],
+        [
+          "_id",
+          "mutation_purchase_addon_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/PurchaseAddon"
+        ],
+        [
+          "method",
+          "MUTATION"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "1.x"
+        ],
+        [
+          "introduced_in",
+          "1.1.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/billing/mutations.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/billingService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/billing",
+          "Billing Page",
+          "billingService",
+          "useBilling",
+          "secondary",
+          "data_mutation",
+          "2026-01-20T00:00:00.000000+00:00"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`addons`",
+          "READ",
+          "[addons.sql](../database/tables/addons.sql)"
+        ],
+        [
+          "`user_profiles`",
+          "WRITE",
+          "[user_profiles.sql](../database/tables/user_profiles.sql)"
+        ],
+        [
+          "`billing_history`",
+          "WRITE",
+          "[billing_history.sql](../database/tables/billing_history.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Purchase an addon credits package. Accepts PurchaseAddonInput with addonId (required, String, valid addon ID). Validates addon exists and is active. Adds credits to user's account. Returns PurchaseAddonResponse with success (Boolean), message (String), creditsAdded (Int), newCreditBalance (Int). Raises NotFoundError (404) if addon not found. Raises BadRequestError (400) if addon inactive. Activity logged (non-blocking)."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_purchase_addon_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/PurchaseAddon\"\nsource_json: mutation_purchase_addon_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n\n```graphql\nmutation PurchaseAddon($input: PurchaseAddonInput!) { billing { purchaseAddon(input: $input) { success message creditsAdded newCreditBalance } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n### repository_methods\n\n- add_user_credits\n\n### used_by_pages\n\n| --- | --- | --- | --- | --- | --- | --- |\n| /billing | Billing Page | billingService | useBilling | secondary | data_mutation | 2026-01-20T00:00:00.000000+00:00 |\n\n- **page_count:** 1\n- **Source:** `mutation_purchase_addon_graphql.json`\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `1.x` — Billing (Addons).\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Payment Gateway**: Triggers Stripe checkout/payment for one-time addon purchases.\n\n- **Inbound**: `Marketplace Page`.\n- **Outbound**: `GetBilling` (state update)."
+}

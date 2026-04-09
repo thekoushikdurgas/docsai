@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/24_SEQUENCES_MODULE.md",
+  "sha256_source": "9d6a60857be61bc098367b0f224ea104c8cf0283c75d5435aae6812e1066793a",
+  "generated_at": "2026-04-08T23:26:46.602756+00:00",
+  "title": "Sequences Module",
+  "raw_markdown": "# Sequences Module\n\n## Contact360 gateway (actual)\n\n| GraphQL | Path | Auth | Return |\n| --- | --- | --- | --- |\n| `campaignSatellite.sequences` | `query { campaignSatellite { sequences } }` | required | `JSON` (from satellite `GET /sequences`, or `[]` if `CAMPAIGN_API_URL` unset) |\n\nNo sequence **mutations** exist under `campaignSatellite` in the gateway codebase (`app/graphql/modules/campaigns/queries.py` only).\n\n## Canonical SDL (gateway — read-only)\n\n`query { campaignSatellite { sequences } }` returns `JSON!`. Full namespace:\n\n```graphql\ntype CampaignModuleQuery {\n  campaigns: JSON!\n  sequences: JSON!\n  campaignTemplates: JSON!\n}\n```\n\nRegenerate SDL: `python -c \"from app.graphql.schema import schema; print(schema.as_str())\"` (from `contact360.io/api`).\n\n### POST `/graphql`\n\n```json\n{\n  \"query\": \"query { campaignSatellite { sequences } }\"\n}\n```\n\n---\n\n## Planned / service-native GraphQL (not on gateway yet)\n\n**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq). **Direct REST** may include `POST /sequences`, `GET /sequences/:id`, triggers, pause (era `10.x` planning).\n\n| Operation | Type | Description | Era |\n| --- | --- | --- | --- |\n| `createSequence` | Mutation | Create a new multi-step email sequence | planned |\n| `getSequence` | Query | Get sequence with all steps | planned |\n| `listSequences` | Query | List sequences for org | overlaps read-only `campaignSatellite.sequences` |\n| `updateSequence` | Mutation | Modify sequence steps or schedule | planned |\n| `deleteSequence` | Mutation | Delete sequence and its steps | planned |\n| `triggerSequence` | Mutation | Start sequence for an audience | planned |\n| `pauseSequence` | Mutation | Pause in-progress sequence | planned |\n| `resumeSequence` | Mutation | Resume paused sequence | planned |\n\n---\n\n## GraphQL input/output types\n\n### `createSequence` input\n\n```graphql\ninput CreateSequenceInput {\n  name: String!\n  steps: [SequenceStepInput!]!\n}\n\ninput SequenceStepInput {\n  stepType: SequenceStepType!  # SEND_EMAIL | WAIT | BRANCH_ON_OPEN | BRANCH_ON_CLICK\n  templateId: ID              # required for SEND_EMAIL step\n  delayDays: Int              # required for WAIT step\n  condition: String           # for BRANCH steps\n}\n\nenum SequenceStepType {\n  SEND_EMAIL\n  WAIT_DAYS\n  BRANCH_ON_OPEN\n  BRANCH_ON_CLICK\n  BRANCH_ON_NO_OPEN\n}\n```\n\n### `Sequence` type\n\n```graphql\ntype Sequence {\n  id: ID!\n  name: String!\n  status: SequenceStatus!  # draft | active | paused | completed\n  steps: [SequenceStep!]!\n  activeRecipients: Int\n  createdAt: DateTime!\n}\n\ntype SequenceStep {\n  id: ID!\n  stepType: SequenceStepType!\n  template: CampaignTemplate\n  delayDays: Int\n  condition: String\n  position: Int!\n}\n```\n\n---\n\n## Database tables\n\n| Table | Read | Write |\n| --- | --- | --- |\n| `sequences` | `getSequence`, `listSequences` | `createSequence`, `updateSequence`, `deleteSequence` |\n| `sequence_steps` | `getSequence` | `createSequence` (step insert), `updateSequence` |\n| `templates` | Step template fetch | — |\n| `recipients` | Active recipient tracking | Sequence trigger creates recipient entries |\n| `suppression_list` | Pre-step send check | — |\n\n---\n\n## Frontend page bindings\n\n| Page | Route | Operations used |\n| --- | --- | --- |\n| Sequences builder | `/campaigns/sequences` | `listSequences`, `createSequence`, `updateSequence` |\n| Sequence detail | `/campaigns/sequences/:id` | `getSequence` |\n| Sequence trigger | Wizard/launch flow | `triggerSequence` |\n\n---\n\n## Sequence step UI elements\n\n| Step type | UI card | Inputs |\n| --- | --- | --- |\n| `SEND_EMAIL` | Email step card | Template picker dropdown, subject preview |\n| `WAIT_DAYS` | Wait step card | Days input field (numeric) |\n| `BRANCH_ON_OPEN` | Branch card | Condition radio: \"if opened / if not opened\" |\n| `BRANCH_ON_CLICK` | Branch card | Condition radio: \"if clicked / if not clicked\" |\n\n---\n\n## Era context\n\nThe sequences engine is a `10.x` feature. In prior eras, sequence-related API calls return `501 Not Implemented`. Era task-pack: `docs/10. Contact360 email campaign/emailcampaign-email-campaign-task-pack.md` (Track B-10.1 and B-10.2).\n",
+  "module_number": 24,
+  "module_name": "SEQUENCES",
+  "location": null,
+  "overview": null,
+  "operations": [],
+  "sdl_excerpt": "type CampaignModuleQuery {\n  campaigns: JSON!\n  sequences: JSON!\n  campaignTemplates: JSON!\n}\n",
+  "error_codes": [],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Sequences Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Contact360 gateway (actual)",
+      "level": 2,
+      "prose": "| GraphQL | Path | Auth | Return |\n| --- | --- | --- | --- |\n| `campaignSatellite.sequences` | `query { campaignSatellite { sequences } }` | required | `JSON` (from satellite `GET /sequences`, or `[]` if `CAMPAIGN_API_URL` unset) |\n\nNo sequence **mutations** exist under `campaignSatellite` in the gateway codebase (`app/graphql/modules/campaigns/queries.py` only).",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql",
+      "level": 3,
+      "prose": "```json\n{\n  \"query\": \"query { campaignSatellite { sequences } }\"\n}\n```\n\n---",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query { campaignSatellite { sequences } }\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Planned / service-native GraphQL (not on gateway yet)",
+      "level": 2,
+      "prose": "**Service:** `backend(dev)/email campaign` (Go, Gin, Asynq). **Direct REST** may include `POST /sequences`, `GET /sequences/:id`, triggers, pause (era `10.x` planning).\n\n| Operation | Type | Description | Era |\n| --- | --- | --- | --- |\n| `createSequence` | Mutation | Create a new multi-step email sequence | planned |\n| `getSequence` | Query | Get sequence with all steps | planned |\n| `listSequences` | Query | List sequences for org | overlaps read-only `campaignSatellite.sequences` |\n| `updateSequence` | Mutation | Modify sequence steps or schedule | planned |\n| `deleteSequence` | Mutation | Delete sequence and its steps | planned |\n| `triggerSequence` | Mutation | Start sequence for an audience | planned |\n| `pauseSequence` | Mutation | Pause in-progress sequence | planned |\n| `resumeSequence` | Mutation | Resume paused sequence | planned |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "GraphQL input/output types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "createSequence input",
+      "level": 3,
+      "prose": "```graphql\ninput CreateSequenceInput {\n  name: String!\n  steps: [SequenceStepInput!]!\n}\n\ninput SequenceStepInput {\n  stepType: SequenceStepType!  # SEND_EMAIL | WAIT | BRANCH_ON_OPEN | BRANCH_ON_CLICK\n  templateId: ID              # required for SEND_EMAIL step\n  delayDays: Int              # required for WAIT step\n  condition: String           # for BRANCH steps\n}\n\nenum SequenceStepType {\n  SEND_EMAIL\n  WAIT_DAYS\n  BRANCH_ON_OPEN\n  BRANCH_ON_CLICK\n  BRANCH_ON_NO_OPEN\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input CreateSequenceInput {\n  name: String!\n  steps: [SequenceStepInput!]!\n}\n\ninput SequenceStepInput {\n  stepType: SequenceStepType!  # SEND_EMAIL | WAIT | BRANCH_ON_OPEN | BRANCH_ON_CLICK\n  templateId: ID              # required for SEND_EMAIL step\n  delayDays: Int              # required for WAIT step\n  condition: String           # for BRANCH steps\n}\n\nenum SequenceStepType {\n  SEND_EMAIL\n  WAIT_DAYS\n  BRANCH_ON_OPEN\n  BRANCH_ON_CLICK\n  BRANCH_ON_NO_OPEN\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Sequence type",
+      "level": 3,
+      "prose": "```graphql\ntype Sequence {\n  id: ID!\n  name: String!\n  status: SequenceStatus!  # draft | active | paused | completed\n  steps: [SequenceStep!]!\n  activeRecipients: Int\n  createdAt: DateTime!\n}\n\ntype SequenceStep {\n  id: ID!\n  stepType: SequenceStepType!\n  template: CampaignTemplate\n  delayDays: Int\n  condition: String\n  position: Int!\n}\n```\n\n---",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type Sequence {\n  id: ID!\n  name: String!\n  status: SequenceStatus!  # draft | active | paused | completed\n  steps: [SequenceStep!]!\n  activeRecipients: Int\n  createdAt: DateTime!\n}\n\ntype SequenceStep {\n  id: ID!\n  stepType: SequenceStepType!\n  template: CampaignTemplate\n  delayDays: Int\n  condition: String\n  position: Int!\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Database tables",
+      "level": 2,
+      "prose": "| Table | Read | Write |\n| --- | --- | --- |\n| `sequences` | `getSequence`, `listSequences` | `createSequence`, `updateSequence`, `deleteSequence` |\n| `sequence_steps` | `getSequence` | `createSequence` (step insert), `updateSequence` |\n| `templates` | Step template fetch | — |\n| `recipients` | Active recipient tracking | Sequence trigger creates recipient entries |\n| `suppression_list` | Pre-step send check | — |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Frontend page bindings",
+      "level": 2,
+      "prose": "| Page | Route | Operations used |\n| --- | --- | --- |\n| Sequences builder | `/campaigns/sequences` | `listSequences`, `createSequence`, `updateSequence` |\n| Sequence detail | `/campaigns/sequences/:id` | `getSequence` |\n| Sequence trigger | Wizard/launch flow | `triggerSequence` |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Sequence step UI elements",
+      "level": 2,
+      "prose": "| Step type | UI card | Inputs |\n| --- | --- | --- |\n| `SEND_EMAIL` | Email step card | Template picker dropdown, subject preview |\n| `WAIT_DAYS` | Wait step card | Days input field (numeric) |\n| `BRANCH_ON_OPEN` | Branch card | Condition radio: \"if opened / if not opened\" |\n| `BRANCH_ON_CLICK` | Branch card | Condition radio: \"if clicked / if not clicked\" |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Era context",
+      "level": 2,
+      "prose": "The sequences engine is a `10.x` feature. In prior eras, sequence-related API calls return `501 Not Implemented`. Era task-pack: `docs/10. Contact360 email campaign/emailcampaign-email-campaign-task-pack.md` (Track B-10.1 and B-10.2).",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": "## Canonical SDL (gateway — read-only)\n\n`query { campaignSatellite { sequences } }` returns `JSON!`. Full namespace:\n\nRegenerate SDL: `python -c \"from app.graphql.schema import schema; print(schema.as_str())\"` (from `contact360.io/api`)."
+}

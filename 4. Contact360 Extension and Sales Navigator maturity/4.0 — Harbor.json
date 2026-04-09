@@ -1,0 +1,420 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "4. Contact360 Extension and Sales Navigator maturity/4.0 — Harbor.md",
+  "sha256_source": "c3ff11c60f797ad6b5a547da83415b680bc9f8a89e6b6fa333ead2ed6c7c1bfb",
+  "generated_at": "2026-04-08T23:11:50.280953+00:00",
+  "title": "Version 4.0 — Harbor (era charter)",
+  "raw_markdown": "# Version 4.0 — Harbor (era charter)\n\n- **Status:** ✅ Completed\n- **Codename:** Harbor\n- **Era:** 4.x (Extension and Sales Navigator maturity) — **planning / charter** minor before roadmap stages **4.1–4.4** execution peaks\n- **Roadmap:** Pre-stage **charter** — align service inventory, codebase analyses, CI/docs scaffold, and governance with this era folder.\n- **Summary:** Establish **parity** between the **Extension + SN spine** services and their **docs/codebases/*-codebase-analysis.md** sources; align **Micro-gate** + per-patch **Service task slices**; ensure **logs.api** (S3 CSV), **s3storage**, **Connectra**, **Appointment360**, **jobs**, and **salesnavigator** are registered consistently for **4.x** execution.\n- **Owner:** Platform Engineering\n- **Patch closure:** Every codenamed patch file includes **Micro-gate** + **Service task slices**. Era hub: [`versions.md`](../versions.md).\n\n## Scope\n\n- **Target:** `4.0.x` patches.\n- **In scope:** Service register, folder paths (`extension/contact360` canonical), broken-link sweeps across this era folder + minors, codebase analysis freshness, Postman / endpoint matrix pointers, governance alignment ([`docs/governance.md`](../governance.md)).\n- **Out of scope:** Feature delivery that belongs to **4.1+** (auth), **4.2** (Harvest ingestion), **4.3** (sync integrity). Harbor **defines** work; later minors **execute**.\n\n## Flowchart\n\n```mermaid\nflowchart TD\n    stage[\"4.0.x Harbor — era charter\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate\n```\n\n### Runtime focus (unique to this minor)\n\n```mermaid\nflowchart LR\n    inv[\"Service inventory\"] --> analyses[\"Codebase analyses\"]\n    analyses --> packs[\"Era task packs\"]\n    packs --> ci[\"CI + docs scaffold\"]\n    ci --> gov[\"Governance + paths\"]\n    gov --> gate[\"4.0 seal → 4.1\"]\n```\n\n## Task tracks (per-service inventory)\n\n### Contract\n\n- 📌 Planned: Confirm **4.x** scope statements in each `4.N — *.md` minor, patch files, and [`versions.md`](../versions.md) rows — no **wrong-era** AI placeholder text.\n- 📌 Planned: Link **endpoint matrices** under `docs/backend/endpoints/` for extension-touching services.\n- 📌 Planned: Register **canonical paths**: `extension/contact360`, `backend(dev)/salesnavigator`, `lambda/logs.api`, `lambda/s3storage`.\n\n- 📌 Planned: **[architecture]** — Product **GraphQL** remains on `contact360.io/api` (Python); satellite HTTP contracts live under `docs/backend/apis/` and must stay versioned with gateway clients.\n### Service — inventory slices\n\n- 📌 Planned: **`extension/contact360`** — manifest placeholder, auth module, `lambdaClient`, `profileMerger` — [`docs/codebases/extension-codebase-analysis.md`](../codebases/extension-codebase-analysis.md).\n- ⬜ Incomplete: **`extension/contact360` — `content.js` stub** — currently a 9-line no-op (`window.__CONTACT360_CONTENT_SCRIPT__ = true` only); must implement: MutationObserver watching for `data-x-search-result=\"LEAD\"` nodes, auto-capture trigger, and `chrome.runtime.sendMessage` call to hand profiles to background.\n- ⬜ Incomplete: **`extension/contact360` — `background.js` orchestration** — no `chrome.runtime.onMessage` listener; service worker cannot receive or forward profile arrays from `content.js` to `LambdaClient.saveProfiles()`; implement message handler and error recovery.\n- ⬜ Incomplete: **`extension/contact360` — `manifest.json` host_permissions** — includes `\"https://*/*\"` and `\"http://*/*\"` (overly broad); Chrome Web Store will reject; scope down to `https://www.linkedin.com/*` and `https://*.linkedin.com/*`.\n- ⬜ Incomplete: **`extension/contact360` — `graphqlSession.js` ES module** — uses `export function` / `export {}` syntax but `manifest.json` does not declare `\"type\": \"module\"` in `content_scripts` or `web_accessible_resources`; will silently fail in non-module context.\n- 📌 Planned: **`extension/contact360` — `utils/constants.js`** — missing file; `lambdaClient.js` reads `window.Contact360Constants?.LAMBDA_API_CONFIG` but no `constants.js` exists; create and register in `manifest.json`.\n- 📌 Planned: **`backend(dev)/salesnavigator`** — routes, SaveService, extraction — [`docs/codebases/salesnavigator-codebase-analysis.md`](../codebases/salesnavigator-codebase-analysis.md).\n- 📌 Planned: **`contact360.io/api` (Appointment360)** — **Service task slices** in `4.0.P` patch files (scope from former `appointment360-extension-sn-task-pack.md`).\n- 📌 Planned: **`contact360.io/sync` (Connectra)** — **Service task slices** in `4.0.P` patch files (scope from former `connectra-extension-sn-task-pack.md`).\n- 📌 Planned: **`contact360.io/jobs`** — extension provenance / sync jobs per architecture spine.\n- 📌 Planned: **`lambda/logs.api`** — S3 CSV; **Service task slices** in `4.0.P` patch files (scope from former `logsapi-extension-salesnav-task-pack.md`) if present.\n- 📌 Planned: **`lambda/s3storage`** — **Service task slices** in `4.0.P` patch files (scope from former `s3storage-extension-sn-task-pack.md`).\n\n### Surface\n\n- 📌 Planned: **`contact360.io/app`** — `SNIngestionPanel`, ingestion timeline widgets, sync status cards, LinkedIn profile overlay per [`salesnavigator-ui-bindings.md`](../frontend/docs/salesnavigator-ui-bindings.md).\n- 📌 Planned: Extension UX placeholders indexed (popup, save CTA).\n\n> [!WARNING]\n> **P0 Security (Chrome Extension):** `extension/contact360/manifest.json` `host_permissions` must be minimized to only required LinkedIn domains. Current wildcard or over-broad permissions risk Chrome Web Store rejection.\n\n- 📌 Planned: **[architecture]** — **Next.js** customer surfaces (`contact360.io/app`, `root`, `email`, `joblevel-next`): standardise `NEXT_PUBLIC_GRAPHQL_URL` and GraphQL client; avoid calling Go services directly except documented REST exceptions.\n- 📌 Planned: **[architecture]** — **Chrome extension**: GraphQL bearer + narrow `host_permissions`; align with `docs/tech/tech-extension-why-practices.md` for MV3 constraints.\n### Data\n\n- 📌 Planned: Lineage docs enumerated: **`logsapi_data_lineage.md`**, Connectra dedup doc, SN provenance fields.\n- 📌 Planned: Remove mistaken **MongoDB** references for logs (see [`extension-telemetry.md`](extension-telemetry.md)).\n\n- 📌 Planned: **[architecture]** — **PostgreSQL-first** per `docs/docs/data-stores-postgres.md`; gateway idempotency and sessions use Postgres.\n### Ops\n\n- 📌 Planned: **Drift-scan:** grep for legacy `extention/` paths in new docs.\n- 📌 Planned: **CI:** ensure era docs included in doc-lint or review checklist if available.\n- 📌 Planned: **Postman:** collections exist or stubs filed for SN + extension flows.\n- 📌 Planned: **Idempotency:** Require `X-Idempotency-Key` header for `POST /v1/save-profiles` to prevent duplicate SN profile ingestion.\n- ⬜ Incomplete: **salesnavigator Lambda** — no `samconfig.toml`; create with SSM-based `parameter_overrides` for `ApiKey`, `ConnectraApiKey`, `ConnectraApiUrl`.\n- ⬜ Incomplete: **salesnavigator Lambda** — `template.yaml` Outputs block references `ServerlessHttpApi` (implicit resource name may differ); verify output `GetAtt` references resolve or replace with explicit `HttpApi` resource.\n- 📌 Planned: **salesnavigator Lambda** — add CORS configuration to `template.yaml` `HttpApi` resource; extension browser calls will be blocked without `Access-Control-Allow-Origin` header.\n\n- 📌 Planned: **[architecture]** — **Observability**: correlate `X-Request-ID` gateway → satellites; rollback path documented per release.\n## Task breakdown\n\n| Slice | Outcome |\n| --- | --- |\n| Platform | Charter + checklist usable |\n| Owners | Each service has analysis + pack link |\n| Docs | No broken master checklist link |\n\n## Immediate next execution queue\n\n- 📌 Planned: Keep **versions** / roadmap rows aligned with `4.N.P` patch closure (no standalone task-pack index).\n- 📌 Planned: Audit `docs/codebases/*` “Last reviewed” or era rows for Extension/SN services.\n- 📌 Planned: File tickets for P0 SN doc drift (hand off to **4.2**).\n\n## Cross-service ownership\n\n| Service | Focus |\n| --- | --- |\n| Platform | Harbor coordinator |\n| Each service team | Confirm inventory row |\n\n## References\n\n- [docs/frontend/salesnavigator-ui-bindings.md](../frontend/salesnavigator-ui-bindings.md)\n- [`docs/versions.md`](../versions.md) · era `4.x` patch ladder (`4.N.P — *.md`)\n- [`docs/architecture.md`](../architecture.md)\n- [`docs/codebases/extension-codebase-analysis.md`](../codebases/extension-codebase-analysis.md)\n- [`docs/codebases/salesnavigator-codebase-analysis.md`](../codebases/salesnavigator-codebase-analysis.md)\n\n## Backend API and endpoint scope\n\n- **Inventory only** — enumerate GraphQL + `POST /v1/scrape|save-profiles` + Connectra `batch-upsert`; no contract change required for Harbor alone.\n\n## Database and data lineage scope\n\n- Catalog which stores hold SN provenance; no migrations in Harbor unless blocking.\n\n## Frontend UX surface scope\n\n- Index components: **SNIngestionPanel**, extension hooks (per SN analysis UI map).\n\n## UI Elements Checklist\n\n- 📌 Planned: SN-related primary entry point present\n- 📌 Planned: Loading/progress state present\n- 📌 Planned: Error and retry states present\n\n## Audit and Compliance Notes\n\n- Validate provenance (source, ingestion_batch_id, trace_id) is retained through this minor flow.\n- Ensure PII handling aligns with [docs/audit-compliance.md](../audit-compliance.md).\n\n## Flow / graph delta for this minor\n\n- **Delta:** **Meta** — documentation and ownership graph for **4.x**, not runtime feature flow.\n\n## Patch ladder (`4.0.0` – `4.0.9`)\n\n### Micro-gate reference (apply at every `4.N.P`)\n\n| Track | Gate question (must answer Yes or document waiver) |\n| --- | --- |\n| **Contract** | Extension/SN REST, GraphQL modules, CSP — `docs/backend/apis/` + endpoint matrices updated? |\n| **Service** | SN scrape/save, Connectra upsert, jobs DAG, session refresh — smoke + idempotency documented? |\n| **Surface** | Extension popup, dashboard SN/campaign panels, operator flows changed? |\n| **Frontend** | Extension MV3 + dashboard routes/hooks (see minor scope / `extension-auth.md`, `extension-telemetry.md`)? |\n| **Data** | Provenance, audience tables, `messages.contacts[]` — migrations + lineage docs? |\n| **Ops** | `logs.api` events, S3 evidence, runbooks, rate/retry — delta recorded? |\n| **Architecture** | Go/Gin satellites only via Python GraphQL gateway (`contact360.io/api`); Next.js `NEXT_PUBLIC_GRAPHQL_URL`; Postgres-first / Redis exit per `docs/docs/data-stores-postgres.md`. |\n\n**Patch intent bands:** Codenames per minor — see **Patch ladder** table in this file (`.0` charter … `.9` seal/handoff).\n\nTheme: **Harbor** — codenames in per-patch `4.0.P — *.md` files.\n\n| Patch | Codename | Focus |\n| --- | --- | --- |\n| `4.0.0` | Charter | Era scope locked |\n| `4.0.1` | Inventory | Service register |\n| `4.0.2` | Drift-scan | Doc vs code |\n| `4.0.3` | Codebase-link | Analyses ↔ paths |\n| `4.0.4` | Governance | policy + retention |\n| `4.0.5` | CI | Pipeline/docs checks |\n| `4.0.6` | Docs | Scaffold complete |\n| `4.0.7` | Postman | Collections indexed |\n| `4.0.8` | Release-evidence | Template |\n| `4.0.9` | Seal | → **`4.1`** |\n\n## Release gate and evidence\n\n- 📌 Planned: Harbor checklist 100% ticked or ticketed\n- 📌 Planned: Master checklist + README links valid\n- 📌 Planned: Cross-analysis review slot scheduled for **4.10**\n- 📌 Planned: Owner sign-off: Platform\n\n## Patches\n\n| Patch | Codename | Doc |\n| --- | --- | --- |\n| `4.0.0` | Charter | [`4.0.0` — Charter](4.0.0 — Charter.md) |\n| `4.0.1` | Inventory | [`4.0.1` — Inventory](4.0.1 — Inventory.md) |\n| `4.0.2` | Drift-scan | [`4.0.2` — Drift-scan](4.0.2 — Drift-scan.md) |\n| `4.0.3` | Codebase-link | [`4.0.3` — Codebase-link](4.0.3 — Codebase-link.md) |\n| `4.0.4` | Governance | [`4.0.4` — Governance](4.0.4 — Governance.md) |\n| `4.0.5` | CI | [`4.0.5` — CI](4.0.5 — CI.md) |\n| `4.0.6` | Docs | [`4.0.6` — Docs](4.0.6 — Docs.md) |\n| `4.0.7` | Postman | [`4.0.7` — Postman](4.0.7 — Postman.md) |\n| `4.0.8` | Release-evidence | [`4.0.8` — Release-evidence](4.0.8 — Release-evidence.md) |\n| `4.0.9` | Seal | [`4.0.9` — Seal](4.0.9 — Seal.md) |\n\n## Release Gate and Evidence\n\n### Master Task Checklist\n- 📌 Planned: Track-level closure evidence linked\n\n### Backend API and Endpoints\n- 📌 Planned: Endpoint/contract parity verified\n\n### Database and Data Lineage\n- 📌 Planned: Migration and lineage references linked\n\n### Frontend UX\n- 📌 Planned: UX/route behavior evidence linked\n\n### UI Elements\n- 📌 Planned: Components/checklist closeout captured\n\n### Flow and Graph\n- 📌 Planned: Runtime graph reflects implementation\n\n### Validation\n- 📌 Planned: Smoke/CI/lint checks recorded\n\n### Release Gate\n- 📌 Planned: Minor ready for handoff to next minor\n## Tasks\n\n### Contract\n\n- ✅ Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md\n\n### Service\n\n- ✅ Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md\n- ✅ Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md\n\n- ✅ Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md\n### Surface\n\n- ✅ Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md\n\n### Data\n\n- ✅ Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md\n\n### Ops\n\n- ✅ Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md\n\n",
+  "version": "4.0",
+  "codename": "Harbor",
+  "era": 4,
+  "minor": 0,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** Codenames per minor — see **Patch ladder** table in this file (`.0` charter … `.9` seal/handoff).",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"4.0.x Harbor — era charter\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    inv[\"Service inventory\"] --> analyses[\"Codebase analyses\"]\n    analyses --> packs[\"Era task packs\"]\n    packs --> ci[\"CI + docs scaffold\"]\n    ci --> gov[\"Governance + paths\"]\n    gov --> gate[\"4.0 seal → 4.1\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** Codenames per minor — see **Patch ladder** table in this file (`.0` charter … `.9` seal/handoff).\nTheme: **Harbor** — codenames in per-patch `4.0.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "planned",
+        "text": "Planned: Confirm **4.x** scope statements in each `4.N — *.md` minor, patch files, and [`versions.md`](../versions.md) rows — no **wrong-era** AI placeholder text.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Link **endpoint matrices** under `docs/backend/endpoints/` for extension-touching services.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Register **canonical paths**: `extension/contact360`, `backend(dev)/salesnavigator`, `lambda/logs.api`, `lambda/s3storage`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — Product **GraphQL** remains on `contact360.io/api` (Python); satellite HTTP contracts live under `docs/backend/apis/` and must stay versioned with gateway clients.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "planned",
+        "text": "Planned: **`extension/contact360`** — manifest placeholder, auth module, `lambdaClient`, `profileMerger` — [`docs/codebases/extension-codebase-analysis.md`](../codebases/extension-codebase-analysis.md).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Incomplete: **`extension/contact360` — `content.js` stub** — currently a 9-line no-op (`window.__CONTACT360_CONTENT_SCRIPT__ = true` only); must implement: MutationObserver watching for `data-x-search-result=\"LEAD\"` nodes, auto-capture trigger, and `chrome.runtime.sendMessage` call to hand profiles to background.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Incomplete: **`extension/contact360` — `background.js` orchestration** — no `chrome.runtime.onMessage` listener; service worker cannot receive or forward profile arrays from `content.js` to `LambdaClient.saveProfiles()`; implement message handler and error recovery.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Incomplete: **`extension/contact360` — `manifest.json` host_permissions** — includes `\"https://*/*\"` and `\"http://*/*\"` (overly broad); Chrome Web Store will reject; scope down to `https://www.linkedin.com/*` and `https://*.linkedin.com/*`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Incomplete: **`extension/contact360` — `graphqlSession.js` ES module** — uses `export function` / `export {}` syntax but `manifest.json` does not declare `\"type\": \"module\"` in `content_scripts` or `web_accessible_resources`; will silently fail in non-module context.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **`extension/contact360` — `utils/constants.js`** — missing file; `lambdaClient.js` reads `window.Contact360Constants?.LAMBDA_API_CONFIG` but no `constants.js` exists; create and register in `manifest.json`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **`backend(dev)/salesnavigator`** — routes, SaveService, extraction — [`docs/codebases/salesnavigator-codebase-analysis.md`](../codebases/salesnavigator-codebase-analysis.md).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **`contact360.io/api` (Appointment360)** — **Service task slices** in `4.0.P` patch files (scope from former `appointment360-extension-sn-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **`contact360.io/sync` (Connectra)** — **Service task slices** in `4.0.P` patch files (scope from former `connectra-extension-sn-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **`contact360.io/jobs`** — extension provenance / sync jobs per architecture spine.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **`lambda/logs.api`** — S3 CSV; **Service task slices** in `4.0.P` patch files (scope from former `logsapi-extension-salesnav-task-pack.md`) if present.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **`lambda/s3storage`** — **Service task slices** in `4.0.P` patch files (scope from former `s3storage-extension-sn-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "planned",
+        "text": "Planned: **`contact360.io/app`** — `SNIngestionPanel`, ingestion timeline widgets, sync status cards, LinkedIn profile overlay per [`salesnavigator-ui-bindings.md`](../frontend/docs/salesnavigator-ui-bindings.md).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Extension UX placeholders indexed (popup, save CTA).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **Next.js** customer surfaces (`contact360.io/app`, `root`, `email`, `joblevel-next`): standardise `NEXT_PUBLIC_GRAPHQL_URL` and GraphQL client; avoid calling Go services directly except documented REST exceptions.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **Chrome extension**: GraphQL bearer + narrow `host_permissions`; align with `docs/tech/tech-extension-why-practices.md` for MV3 constraints.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Index components: **SNIngestionPanel**, extension hooks (per SN analysis UI map).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "planned",
+        "text": "Planned: Lineage docs enumerated: **`logsapi_data_lineage.md`**, Connectra dedup doc, SN provenance fields.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Remove mistaken **MongoDB** references for logs (see [`extension-telemetry.md`](extension-telemetry.md)).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **PostgreSQL-first** per `docs/docs/data-stores-postgres.md`; gateway idempotency and sessions use Postgres.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Catalog which stores hold SN provenance; no migrations in Harbor unless blocking.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Migration and lineage references linked",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "planned",
+        "text": "Planned: **Drift-scan:** grep for legacy `extention/` paths in new docs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **CI:** ensure era docs included in doc-lint or review checklist if available.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **Postman:** collections exist or stubs filed for SN + extension flows.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **Idempotency:** Require `X-Idempotency-Key` header for `POST /v1/save-profiles` to prevent duplicate SN profile ingestion.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Incomplete: **salesnavigator Lambda** — no `samconfig.toml`; create with SSM-based `parameter_overrides` for `ApiKey`, `ConnectraApiKey`, `ConnectraApiUrl`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Incomplete: **salesnavigator Lambda** — `template.yaml` Outputs block references `ServerlessHttpApi` (implicit resource name may differ); verify output `GetAtt` references resolve or replace with explicit `HttpApi` resource.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **salesnavigator Lambda** — add CORS configuration to `template.yaml` `HttpApi` resource; extension browser calls will be blocked without `Access-Control-Allow-Origin` header.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **Observability**: correlate `X-Request-ID` gateway → satellites; rollback path documented per release.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 4.0 — Harbor (era charter)",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / graph delta for this minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (4.0.0 – 4.0.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release gate and evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": "- **Codename:** Harbor\n- **Era:** 4.x (Extension and Sales Navigator maturity) — **planning / charter** minor before roadmap stages **4.1–4.4** execution peaks\n- **Roadmap:** Pre-stage **charter** — align service inventory, codebase analyses, CI/docs scaffold, and governance with this era folder.\n- **Summary:** Establish **parity** between the **Extension + SN spine** services and their **docs/codebases/*-codebase-analysis.md** sources; align **Micro-gate** + per-patch **Service task slices**; ensure **logs.api** (S3 CSV), **s3storage**, **Connectra**, **Appointment360**, **jobs**, and **salesnavigator** are registered consistently for **4.x** execution.\n- **Owner:** Platform Engineering\n- **Patch closure:** Every codenamed patch file includes **Micro-gate** + **Service task slices**. Era hub: [`versions.md`](../versions.md).\n\n- **Target:** `4.0.x` patches.\n- **In scope:** Service register, folder paths (`extension/contact360` canonical), broken-link sweeps across this era folder + minors, codebase analysis freshness, Postman / endpoint matrix pointers, governance alignment ([`docs/governance.md`](../governance.md)).\n- **Out of scope:** Feature delivery that belongs to **4.1+** (auth), **4.2** (Harvest ingestion), **4.3** (sync integrity). Harbor **defines** work; later minors **execute**.\n\n## Task tracks (per-service inventory)\n\n> [!WARNING]\n> **P0 Security (Chrome Extension):** `extension/contact360/manifest.json` `host_permissions` must be minimized to only required LinkedIn domains. Current wildcard or over-broad permissions risk Chrome Web Store rejection.\n\n| Slice | Outcome |\n\n| Platform | Charter + checklist usable |\n| Owners | Each service has analysis + pack link |\n| Docs | No broken master checklist link |\n\n- 📌 Planned: Keep **versions** / roadmap rows aligned with `4.N.P` patch closure (no standalone task-pack index).\n- 📌 Planned: Audit `docs/codebases/*` “Last reviewed” or era rows for Extension/SN services.\n- 📌 Planned: File tickets for P0 SN doc drift (hand off to **4.2**).\n\n## Cross-service ownership\n\n| Platform | Harbor coordinator |\n| Each service team | Confirm inventory row |\n\n- **Inventory only** — enumerate GraphQL + `POST /v1/scrape|save-profiles` + Connectra `batch-upsert`; no contract change required for Harbor alone.\n\n## Database and data lineage scope\n\n- 📌 Planned: SN-related primary entry point present\n- 📌 Planned: Loading/progress state present\n- 📌 Planned: Error and retry states present\n\n- Validate provenance (source, ingestion_batch_id, trace_id) is retained through this minor flow.\n- Ensure PII handling aligns with [docs/audit-compliance.md](../audit-compliance.md).\n\n- **Delta:** **Meta** — documentation and ownership graph for **4.x**, not runtime feature flow.\n\n### Micro-gate reference (apply at every `4.N.P`)\n\n| Track | Gate question (must answer Yes or document waiver) |\n\n| **Contract** | Extension/SN REST, GraphQL modules, CSP — `docs/backend/apis/` + endpoint matrices updated? |\n| **Service** | SN scrape/save, Connectra upsert, jobs DAG, session refresh — smoke + idempotency documented? |\n| **Surface** | Extension popup, dashboard SN/campaign panels, operator flows changed? |\n| **Frontend** | Extension MV3 + dashboard routes/hooks (see minor scope / `extension-auth.md`, `extension-telemetry.md`)? |\n| **Data** | Provenance, audience tables, `messages.contacts[]` — migrations + lineage docs? |\n| **Ops** | `logs.api` events, S3 evidence, runbooks, rate/retry — delta recorded? |\n| **Architecture** | Go/Gin satellites only via Python GraphQL gateway (`contact360.io/api`); Next.js `NEXT_PUBLIC_GRAPHQL_URL`; Postgres-first / Redis exit per `docs/docs/data-stores-postgres.md`. |\n\n| Patch | Codename | Focus |\n\n| `4.0.0` | Charter | Era scope locked |\n\n| `4.0.2` | Drift-scan | Doc vs code |\n| `4.0.3` | Codebase-link | Analyses ↔ paths |\n| `4.0.4` | Governance | policy + retention |\n| `4.0.5` | CI | Pipeline/docs checks |\n| `4.0.6` | Docs | Scaffold complete |\n\n| `4.0.8` | Release-evidence | Template |\n\n- 📌 Planned: Harbor checklist 100% ticked or ticketed\n- 📌 Planned: Master checklist + README links valid\n- 📌 Planned: Cross-analysis review slot scheduled for **4.10**\n- 📌 Planned: Owner sign-off: Platform\n\n| Patch | Codename | Doc |\n\n| `4.0.3` | Codebase-link | [`4.0.3` — Codebase-link](4.0.3 — Codebase-link.md) |\n\n| `4.0.5` | CI | [`4.0.5` — CI](4.0.5 — CI.md) |\n\n| `4.0.8` | Release-evidence | [`4.0.8` — Release-evidence](4.0.8 — Release-evidence.md) |\n\n- 📌 Planned: Track-level closure evidence linked\n\n- 📌 Planned: Endpoint/contract parity verified\n\n### Database and Data Lineage\n\n- 📌 Planned: UX/route behavior evidence linked\n\n- 📌 Planned: Components/checklist closeout captured\n\n- 📌 Planned: Runtime graph reflects implementation\n\n- 📌 Planned: Smoke/CI/lint checks recorded\n\n- 📌 Planned: Minor ready for handoff to next minor\n## Tasks"
+}

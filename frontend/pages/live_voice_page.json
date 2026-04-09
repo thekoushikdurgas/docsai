@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "kind": "page_spec",
+  "source_path": "frontend/pages/live_voice_page.md",
+  "sha256_source": "3ba4a6ad00cb6ae18f6c79408d93c72cd0602bd5c38982e53fb896f90d80825f",
+  "generated_at": "2026-04-08T23:26:49.167582+00:00",
+  "title": "Live Voice",
+  "raw_markdown": "---\ntitle: \"Live Voice\"\npage_id: live_voice_page\nsource_json: live_voice_page.json\ngenerator: json_to_markdown.py\n---\n\n# Live Voice\n\n## Overview\n\n- **page_id:** live_voice_page\n- **page_type:** dashboard\n- **codebase:** app\n- **surface:** App (Dashboard)\n- **era_tags:** 5.x, 11.x\n- **flow_id:** live_voice\n- **_id:** live_voice_page-001\n\n## Metadata\n\n- **route:** /live-voice\n- **file_path:** contact360.io/app/app/(dashboard)/live-voice/page.tsx\n- **purpose:** Voice Link Alpha: Low-latency, multimodal AI interaction for real-time lead sentiment analysis and neural transcription.\n- **status:** experimental\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None (Alpha access)\n- **page_state:** alpha\n- **last_updated:** 2026-03-29T00:00:00Z\n- **uses_endpoints:** []\n### UI components (metadata)\n\n- **LiveVoicePage** — `app/(dashboard)/live-voice/page.tsx`\n- **Button** — `components/ui/Button.tsx`\n- **Badge** — `components/ui/Badge.tsx`\n- **Mic Visualizer** — (Internal animated bars)\n- **Transcription Feed** — (Internal list of role-based messages)\n\n- **versions:** []\n- **endpoint_count:** 0\n- **api_versions:** []\n- **codebase:** app\n- **canonical_repo:** contact360.io/app\n\n## Content sections (summary)\n\n### title\n\nLive Voice\n\n### description\n\nPrototype interface for live voice interactions (Voice Link Alpha) demonstrating microphone control, status, and a mock transcription timeline.\n\n\n## Sections (UI structure)\n\n### headings\n\n| id | level | text |\n| --- | --- | --- |\n| voice-title | 1 | Voice Link Alpha |\n| transcription | 2 | Neural Transcription |\n\n\n### subheadings\n\n| id | level | text |\n| --- | --- | --- |\n| alpha-notice | 3 | Experimental Feature — Alpha |\n\n\n### tabs\n\n\n\n### buttons\n\n| action | component | id | label | type |\n| --- | --- | --- | --- | --- |\n| request microphone access → start audio stream | LiveVoicePage | start-voice | Start Recording | primary |\n| stop audio stream + submit transcript | LiveVoicePage | stop-voice | Stop Recording | danger |\n| clear transcription timeline | LiveVoicePage | clear-transcript | Clear | ghost |\n\n\n### input_boxes\n\n\n\n### text_blocks\n\n| component | content | id | type |\n| --- | --- | --- | --- |\n| LiveVoicePage | Alpha — Experimental feature | alpha-badge | badge |\n| LiveVoicePage | Ready — Click 'Start Recording' to begin | status-idle | status |\n| LiveVoicePage | Recording... {elapsedTime} | status-recording | status |\n| LiveVoicePage | Neural transcription output stream | transcription-output | result |\n\n\n### checkboxes\n\n\n\n### radio_buttons\n\n\n\n### progress_bars\n\n| component | id | label | purpose | type |\n| --- | --- | --- | --- |\n| LiveVoicePage | audio-level | Microphone audio level | Real-time audio input level indicator (waveform / volume bar) | indeterminate |\n\n\n### graphs\n\n| chart_type | component | data_source | id | label |\n| --- | --- | --- | --- | --- |\n| waveform | LiveVoicePage | Web Audio API (MediaStream) | audio-waveform | Live audio waveform |\n\n\n### flows\n\n| component | id | label | steps |\n| --- | --- | --- | --- |\n| LiveVoicePage | voice-record-flow | Voice recording flow | [\"Click 'Start Recording'\", 'Browser requests microphone permission', 'Audio stream starts → waveform animation', 'Neural transcription (mock/real) shows text in real-time', \"Click 'Stop' → transcript |\n\n\n### components\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| components/ui/Button.tsx | Button | Start/Stop recording controls |\n| components/ui/Badge.tsx | Badge | Alpha label badge |\n\n\n### hooks\n\n| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| (internal) | useState | Manages session active state and transcription history | 5.x |\n\n\n### services\n\n\n\n### contexts\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | Session required |\n\n\n### utilities\n\n\n\n### ui_components\n\n\n\n### endpoints\n\n\n\n## UI elements (top-level)\n\n### buttons\n\n| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| start-voice | Start Recording | primary | request microphone access → start audio stream | LiveVoicePage |\n| stop-voice | Stop Recording | danger | stop audio stream + submit transcript | LiveVoicePage |\n| clear-transcript | Clear | ghost | clear transcription timeline | LiveVoicePage |\n\n\n### inputs\n\n[]\n\n### checkboxes\n\n[]\n\n### radio_buttons\n\n[]\n\n### progress_bars\n\n| id | label | purpose | type | component |\n| --- | --- | --- | --- | --- |\n| audio-level | Microphone audio level | Real-time audio input level indicator (waveform / volume bar) | indeterminate | LiveVoicePage |\n\n\n### toasts\n\n[]\n\n## Backend Bindings\n\n| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql module operations (page-specific) | dashboard data and mutations via services/hooks |\n\n\n## Data Sources\n\n- Appointment360 GraphQL gateway\n- Backend-owned data stores (via GraphQL modules)\n\n\n## Flow summary\n\napp page UI -> page hooks -> page services -> GraphQL gateway -> backend modules -> rendered states\n\n\n<!-- AUTO:design-nav:start -->\n\n## Era coverage (Contact360 0.x–10.x)\n\nThis page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **5.x** — AI workflows — AI chat, live voice, AI email writer product, assistant panels.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/live-voice`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.\n\n## Backend API documentation\n\n- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md).\n\n### Peer pages (same codebase)\n\n- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| — | *No `graphql/...` references in this page spec* | — | — |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n---\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*\n",
+  "front_matter": {
+    "title": "\"Live Voice\"",
+    "page_id": "live_voice_page",
+    "source_json": "live_voice_page.json",
+    "generator": "json_to_markdown.py"
+  },
+  "page_id": "live_voice_page",
+  "page_type": "dashboard",
+  "codebase": "app",
+  "surface": "App (Dashboard)",
+  "era_tags": [
+    "5.x",
+    "11.x"
+  ],
+  "flow_id": "live_voice",
+  "metadata": {
+    "route": "/live-voice",
+    "file_path": "contact360.io/app/app/(dashboard)/live-voice/page.tsx",
+    "purpose": "Voice Link Alpha: Low-latency, multimodal AI interaction for real-time lead sentiment analysis and neural transcription.",
+    "status": "experimental",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "None (Alpha access)",
+    "page_state": "alpha",
+    "last_updated": "2026-03-29T00:00:00Z"
+  },
+  "uses_endpoints": [],
+  "ui_components": [
+    {
+      "name": "LiveVoicePage",
+      "file_path": "app/(dashboard)/live-voice/page.tsx",
+      "description": null
+    },
+    {
+      "name": "Button",
+      "file_path": "components/ui/Button.tsx",
+      "description": null
+    },
+    {
+      "name": "Badge",
+      "file_path": "components/ui/Badge.tsx",
+      "description": null
+    },
+    {
+      "name": "Mic Visualizer",
+      "file_path": "(Internal animated bars)",
+      "description": null
+    },
+    {
+      "name": "Transcription Feed",
+      "file_path": "(Internal list of role-based messages)",
+      "description": null
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Live Voice",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Content sections (summary)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "title",
+      "level": 3,
+      "prose": "Live Voice"
+    },
+    {
+      "heading": "description",
+      "level": 3,
+      "prose": "Prototype interface for live voice interactions (Voice Link Alpha) demonstrating microphone control, status, and a mock transcription timeline."
+    },
+    {
+      "heading": "Sections (UI structure)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "headings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| voice-title | 1 | Voice Link Alpha |\n| transcription | 2 | Neural Transcription |"
+    },
+    {
+      "heading": "subheadings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| alpha-notice | 3 | Experimental Feature — Alpha |"
+    },
+    {
+      "heading": "tabs",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| action | component | id | label | type |\n| --- | --- | --- | --- | --- |\n| request microphone access → start audio stream | LiveVoicePage | start-voice | Start Recording | primary |\n| stop audio stream + submit transcript | LiveVoicePage | stop-voice | Stop Recording | danger |\n| clear transcription timeline | LiveVoicePage | clear-transcript | Clear | ghost |"
+    },
+    {
+      "heading": "input_boxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "text_blocks",
+      "level": 3,
+      "prose": "| component | content | id | type |\n| --- | --- | --- | --- |\n| LiveVoicePage | Alpha — Experimental feature | alpha-badge | badge |\n| LiveVoicePage | Ready — Click 'Start Recording' to begin | status-idle | status |\n| LiveVoicePage | Recording... {elapsedTime} | status-recording | status |\n| LiveVoicePage | Neural transcription output stream | transcription-output | result |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "| component | id | label | purpose | type |\n| --- | --- | --- | --- |\n| LiveVoicePage | audio-level | Microphone audio level | Real-time audio input level indicator (waveform / volume bar) | indeterminate |"
+    },
+    {
+      "heading": "graphs",
+      "level": 3,
+      "prose": "| chart_type | component | data_source | id | label |\n| --- | --- | --- | --- | --- |\n| waveform | LiveVoicePage | Web Audio API (MediaStream) | audio-waveform | Live audio waveform |"
+    },
+    {
+      "heading": "flows",
+      "level": 3,
+      "prose": "| component | id | label | steps |\n| --- | --- | --- | --- |\n| LiveVoicePage | voice-record-flow | Voice recording flow | [\"Click 'Start Recording'\", 'Browser requests microphone permission', 'Audio stream starts → waveform animation', 'Neural transcription (mock/real) shows text in real-time', \"Click 'Stop' → transcript |"
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "prose": "| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| (internal) | useState | Manages session active state and transcription history | 5.x |"
+    },
+    {
+      "heading": "services",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "contexts",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | Session required |"
+    },
+    {
+      "heading": "utilities",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI elements (top-level)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| start-voice | Start Recording | primary | request microphone access → start audio stream | LiveVoicePage |\n| stop-voice | Stop Recording | danger | stop audio stream + submit transcript | LiveVoicePage |\n| clear-transcript | Clear | ghost | clear transcription timeline | LiveVoicePage |"
+    },
+    {
+      "heading": "inputs",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "| id | label | purpose | type | component |\n| --- | --- | --- | --- | --- |\n| audio-level | Microphone audio level | Real-time audio input level indicator (waveform / volume bar) | indeterminate | LiveVoicePage |"
+    },
+    {
+      "heading": "toasts",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "Backend Bindings",
+      "level": 2,
+      "prose": "| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql module operations (page-specific) | dashboard data and mutations via services/hooks |"
+    },
+    {
+      "heading": "Data Sources",
+      "level": 2,
+      "prose": "- Appointment360 GraphQL gateway\n- Backend-owned data stores (via GraphQL modules)"
+    },
+    {
+      "heading": "Flow summary",
+      "level": 2,
+      "prose": "app page UI -> page hooks -> page services -> GraphQL gateway -> backend modules -> rendered states\n\n\n<!-- AUTO:design-nav:start -->"
+    },
+    {
+      "heading": "Era coverage (Contact360 0.x–10.x)",
+      "level": 2,
+      "prose": "This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **5.x** — AI workflows — AI chat, live voice, AI email writer product, assistant panels.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md)."
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era."
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/live-voice`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth."
+    },
+    {
+      "heading": "Backend API documentation",
+      "level": 2,
+      "prose": "- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md)."
+    },
+    {
+      "heading": "Peer pages (same codebase)",
+      "level": 3,
+      "prose": "- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Live Voice\"\npage_id: live_voice_page\nsource_json: live_voice_page.json\ngenerator: json_to_markdown.py\n---\n\n## Overview\n\n- **page_id:** live_voice_page\n- **page_type:** dashboard\n\n- **era_tags:** 5.x, 11.x\n- **flow_id:** live_voice\n- **_id:** live_voice_page-001\n\n## Metadata\n\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None (Alpha access)\n- **page_state:** alpha\n- **last_updated:** 2026-03-29T00:00:00Z\n- **uses_endpoints:** []\n### UI components (metadata)\n\n- **versions:** []\n- **endpoint_count:** 0\n- **api_versions:** []\n\n- **canonical_repo:** contact360.io/app\n\n### ui_components\n\n| GraphQL operation | Endpoint spec | Method | Era |\n\n| — | *No `graphql/...` references in this page spec* | — | — |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*"
+}

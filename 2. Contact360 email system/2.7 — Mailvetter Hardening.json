@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "2. Contact360 email system/2.7 — Mailvetter Hardening.md",
+  "sha256_source": "bee201f4175891802497340e1b2ea8e071c32ea9b5d2db5fc1ae4e9296938718",
+  "generated_at": "2026-04-08T23:11:50.114165+00:00",
+  "title": "Version 2.7 — Mailvetter Hardening",
+  "version": "2.7",
+  "codename": "Mailvetter Hardening",
+  "era": 2,
+  "minor": 7,
+  "patch": null,
+  "status": "completed",
+  "summary": "Grounded in `docs/codebases/mailvetter-codebase-analysis.md`.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"2.7.x Mailvetter Hardening\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    edge[\"API ingress\"] --> rlim[\"Redis rate limiter\"]\n    rlim --> q[\"job queue\"]\n    q --> w[\"workers\"]\n    w --> idem[\"idempotent bulk create\"]\n    idem --> mig[\"migrations via pipeline\"]\n    mig --> wh[\"webhook HMAC with dedicated secret\"]\n    wh --> dlq[\"dead letter plus alert\"]\n    dlq --> gate[\"2.7 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.3` core path · `.4`–`.6` hardening · `.7`–`.8` integration · `.9` minor freeze / handoff.\nTheme: **Anvil** — codenames in per-patch `2.7.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Deprecate **legacy** `/upload` `/status` if still public; document sunset — **Service task slices** in `2.7.P` patch files (scope from former `mailvetter-email-system-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **idempotency-key** header on bulk c…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **failed** job status for poison / s…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: legacy static ui removal or guard be…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Dashboard verifier progress bars unchanged semantically.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **job events** timeline table (queue…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: migrations run in **deploy pipeline*…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **redis exit**: campaign (as…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Jobs, results, events tables; migration ordering.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Migration run evidence",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: runbook: redis down → degrade behavi…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: alerts: queue lag, worker saturation…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `2.7.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 2.7 — Mailvetter Hardening",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Codebase file targets (Mailvetter Hardening)",
+      "level": 2,
+      "prose": "Grounded in `docs/codebases/mailvetter-codebase-analysis.md`."
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (2.7.0 – 2.7.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

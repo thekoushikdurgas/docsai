@@ -1,0 +1,608 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "tech/tech-go-gin-checklist-100.md",
+  "sha256_source": "156c5411cd4ea6d102da5960533e2675509895c9768f1fcbf29ffed8f1b64363",
+  "generated_at": "2026-04-08T23:26:49.642477+00:00",
+  "title": "give me 100 checklist that to use full power of go gin framework and its best practices",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "",
+      "level": 0,
+      "slug": "",
+      "prose": "<img src=\"https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png\" style=\"height:64px;margin-right:32px\"/>",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "give me 100 checklist that to use full power of go gin framework and its best practices",
+      "level": 1,
+      "slug": "give-me-100-checklist-that-to-use-full-power-of-go-gin-framework-and-its-best-practices",
+      "prose": "Here is a 100‑point checklist to help you use Gin’s “full power” with solid, production‑grade best practices. Items are grouped by topic so you can apply them step by step in real projects.[^1][^2][^3][^4]\n\n***",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Project and module setup",
+      "level": 2,
+      "slug": "project-and-module-setup",
+      "prose": "These items make sure your Gin app starts with a clean, idiomatic Go foundation.[^5][^6]\n\n1. Initialize a Go module (`go mod init`) for every Gin service instead of using GOPATH‑style projects.[^6][^5]\n2. Add Gin with `go get -u github.com/gin-gonic/gin` and commit `go.mod`/`go.sum` to version control.[^7][^6]\n3. Keep a single `cmd/server/main.go` entrypoint and move actual app wiring into internal packages.[^3][^4]\n4. Use an `internal/` tree (`internal/handler`, `internal/service`, `internal/repository`, etc.) to enforce encapsulation.[^4][^3]\n5. Store shared helper code in `pkg/` (e.g., response helpers, client wrappers) to avoid circular deps.[^3][^4]\n6. Keep configuration loading in a dedicated `internal/config` package instead of scattering `os.Getenv` calls.[^4][^3]\n7. Add basic `Makefile` or task runner commands (`make run`, `make test`, `make lint`) to standardize workflows.[^3][^4]\n8. Pin a recent Go version (`go 1.21` or newer) in `go.mod` and keep Gin updated regularly.[^8][^6]\n9. Use `go fmt`, `go vet`, and `go test ./...` in CI for every commit before deploying a Gin service.[^8][^4]\n10. Containerize the app with a multi‑stage Docker build (builder + minimal runtime image) for small, secure images.[^9][^4]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Initialize a Go module (`go mod init`) for every Gin service instead of using GOPATH‑style projects.[^6][^5]",
+              "checked": null
+            },
+            {
+              "text": "Add Gin with `go get -u github.com/gin-gonic/gin` and commit `go.mod`/`go.sum` to version control.[^7][^6]",
+              "checked": null
+            },
+            {
+              "text": "Keep a single `cmd/server/main.go` entrypoint and move actual app wiring into internal packages.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use an `internal/` tree (`internal/handler`, `internal/service`, `internal/repository`, etc.) to enforce encapsulation.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Store shared helper code in `pkg/` (e.g., response helpers, client wrappers) to avoid circular deps.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Keep configuration loading in a dedicated `internal/config` package instead of scattering `os.Getenv` calls.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Add basic `Makefile` or task runner commands (`make run`, `make test`, `make lint`) to standardize workflows.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Pin a recent Go version (`go 1.21` or newer) in `go.mod` and keep Gin updated regularly.[^8][^6]",
+              "checked": null
+            },
+            {
+              "text": "Use `go fmt`, `go vet`, and `go test ./...` in CI for every commit before deploying a Gin service.[^8][^4]",
+              "checked": null
+            },
+            {
+              "text": "Containerize the app with a multi‑stage Docker build (builder + minimal runtime image) for small, secure images.[^9][^4]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Gin configuration and modes",
+      "level": 2,
+      "slug": "gin-configuration-and-modes",
+      "prose": "These items ensure Gin itself is configured correctly for each environment.[^1][^9]\n\n11. Use `gin.Default()` for development to get logger + recovery middleware out of the box.[^6][^7][^1]\n12. Use `gin.New()` in production and add middleware explicitly to have full control over logging and recovery.[^1][^3]\n13. Set Gin mode via `GIN_MODE` env var or `gin.SetMode(gin.ReleaseMode)` in production builds.[^9][^1]\n14. Keep `gin.DebugMode` only in local/dev environments to avoid verbose logs and extra overhead.[^9][^1]\n15. Bind listen address and port from configuration or env (e.g., `Addr: \":\" + cfg.ServerPort`) instead of hardcoding.[^4][^3]\n16. Tune `http.Server` timeouts (`ReadTimeout`, `WriteTimeout`, `IdleTimeout`) to protect against slowloris and stuck clients.[^3][^9]\n17. Use graceful shutdown with `server.Shutdown(ctx)` and OS signal handling so in‑flight Gin requests complete cleanly.[^4][^3]\n18. Expose lightweight `/health` or `/healthz` endpoints for liveness/readiness probes instead of reusing business routes.[^3][^4]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use `gin.Default()` for development to get logger + recovery middleware out of the box.[^6][^7][^1]",
+              "checked": null
+            },
+            {
+              "text": "Use `gin.New()` in production and add middleware explicitly to have full control over logging and recovery.[^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Set Gin mode via `GIN_MODE` env var or `gin.SetMode(gin.ReleaseMode)` in production builds.[^9][^1]",
+              "checked": null
+            },
+            {
+              "text": "Keep `gin.DebugMode` only in local/dev environments to avoid verbose logs and extra overhead.[^9][^1]",
+              "checked": null
+            },
+            {
+              "text": "Bind listen address and port from configuration or env (e.g., `Addr: \":\" + cfg.ServerPort`) instead of hardcoding.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Tune `http.Server` timeouts (`ReadTimeout`, `WriteTimeout`, `IdleTimeout`) to protect against slowloris and stuck clients.[^3][^9]",
+              "checked": null
+            },
+            {
+              "text": "Use graceful shutdown with `server.Shutdown(ctx)` and OS signal handling so in‑flight Gin requests complete cleanly.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Expose lightweight `/health` or `/healthz` endpoints for liveness/readiness probes instead of reusing business routes.[^3][^4]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Routing and grouping",
+      "level": 2,
+      "slug": "routing-and-grouping",
+      "prose": "These items help you design fast, maintainable routes and API structure.[^2][^1]\n\n19. Prefer simple, mostly static paths over deeply dynamic routes to keep routing fast and predictable.[^10][^2]\n20. Group related routes (e.g., `/api/v1/users`) with `router.Group` instead of repeating path prefixes everywhere.[^2][^1]\n21. Separate public and authenticated routes using distinct groups, applying auth middleware only where needed.[^2][^1][^3]\n22. Avoid ambiguous patterns where a dynamic segment could shadow a static route (e.g., `/:id` vs `/edit`).[^10][^2]\n23. Version your API via route prefixes (`/api/v1`, `/api/v2`) rather than magic headers.[^1][^3]\n24. Use HTTP verbs consistently: `GET` for read, `POST` for create, `PUT/PATCH` for update, `DELETE` for delete.[^5][^6]\n25. Keep handler functions in dedicated files per domain (e.g., `user_handler.go`, `health_handler.go`) for clarity.[^4][^3]\n26. Don’t put business logic directly in anonymous route functions; call service methods instead.[^3][^4]\n27. Use `router.NoRoute` for a consistent 404 JSON response instead of letting Gin’s default HTML 404 leak.[^1][^4]\n28. Use `router.NoMethod` to handle unsupported methods with a uniform error message.[^1][^4]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Prefer simple, mostly static paths over deeply dynamic routes to keep routing fast and predictable.[^10][^2]",
+              "checked": null
+            },
+            {
+              "text": "Group related routes (e.g., `/api/v1/users`) with `router.Group` instead of repeating path prefixes everywhere.[^2][^1]",
+              "checked": null
+            },
+            {
+              "text": "Separate public and authenticated routes using distinct groups, applying auth middleware only where needed.[^2][^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid ambiguous patterns where a dynamic segment could shadow a static route (e.g., `/:id` vs `/edit`).[^10][^2]",
+              "checked": null
+            },
+            {
+              "text": "Version your API via route prefixes (`/api/v1`, `/api/v2`) rather than magic headers.[^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use HTTP verbs consistently: `GET` for read, `POST` for create, `PUT/PATCH` for update, `DELETE` for delete.[^5][^6]",
+              "checked": null
+            },
+            {
+              "text": "Keep handler functions in dedicated files per domain (e.g., `user_handler.go`, `health_handler.go`) for clarity.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Don’t put business logic directly in anonymous route functions; call service methods instead.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use `router.NoRoute` for a consistent 404 JSON response instead of letting Gin’s default HTML 404 leak.[^1][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use `router.NoMethod` to handle unsupported methods with a uniform error message.[^1][^4]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Middleware usage and design",
+      "level": 2,
+      "slug": "middleware-usage-and-design",
+      "prose": "These items make your middleware chain powerful without becoming a mess.[^2][^1]\n\n29. Keep middleware focused (e.g., “auth”, “logging”, “rate limit”) instead of mixing many concerns in one function.[^10][^1]\n30. Always include a recovery middleware (`gin.Recovery()` or custom) to prevent panics from crashing the process.[^4][^1][^3]\n31. Place logging middleware early in the chain to capture status codes and latency for every request.[^11][^3][^4]\n32. Apply authentication/authorization middleware at the smallest necessary route group, not globally.[^2][^3]\n33. Use `c.Set` and `c.Get` to pass per‑request context (user ID, request ID) instead of global variables.[^12][^1][^3]\n34. Avoid starting long‑running goroutines in middleware; trigger job queues or background workers from handlers instead.[^10][^2]\n35. Use rate‑limiting middleware for public APIs to protect the service from abusive clients.[^10][^3][^4]\n36. For CORS, use a dedicated Gin CORS middleware and keep allowed origins/methods configurable.[^8][^1]\n37. Ensure middleware order is deliberate: recovery → logging/metrics → auth → rate limiting → domain‑specific middleware.[^11][^10][^3]\n38. Keep middleware definitions in `internal/middleware` with tests, not inline in `main.go`.[^3][^4]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Keep middleware focused (e.g., “auth”, “logging”, “rate limit”) instead of mixing many concerns in one function.[^10][^1]",
+              "checked": null
+            },
+            {
+              "text": "Always include a recovery middleware (`gin.Recovery()` or custom) to prevent panics from crashing the process.[^4][^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Place logging middleware early in the chain to capture status codes and latency for every request.[^11][^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Apply authentication/authorization middleware at the smallest necessary route group, not globally.[^2][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use `c.Set` and `c.Get` to pass per‑request context (user ID, request ID) instead of global variables.[^12][^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid starting long‑running goroutines in middleware; trigger job queues or background workers from handlers instead.[^10][^2]",
+              "checked": null
+            },
+            {
+              "text": "Use rate‑limiting middleware for public APIs to protect the service from abusive clients.[^10][^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "For CORS, use a dedicated Gin CORS middleware and keep allowed origins/methods configurable.[^8][^1]",
+              "checked": null
+            },
+            {
+              "text": "Ensure middleware order is deliberate: recovery → logging/metrics → auth → rate limiting → domain‑specific middleware.[^11][^10][^3]",
+              "checked": null
+            },
+            {
+              "text": "Keep middleware definitions in `internal/middleware` with tests, not inline in `main.go`.[^3][^4]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Binding, validation, and DTOs",
+      "level": 2,
+      "slug": "binding-validation-and-dtos",
+      "prose": "These items help you safely and efficiently parse input into typed structs.[^2][^1]\n\n39. Use `ShouldBindJSON`, `ShouldBindQuery`, or `ShouldBindUri` instead of manual parsing for most cases.[^5][^1][^2]\n40. Define separate request DTO structs (e.g., `CreateUserRequest`) rather than using DB models directly for binding.[^2][^3]\n41. Use `binding:\"required\"` and other `binding` tags to enforce required fields and basic validation.[^13][^2]\n42. Use numeric validators like `binding:\"gte=0,lte=120\"` to avoid manual range checks in handlers.[^13][^2]\n43. Always check and handle the error returned from `ShouldBind*`, returning a 400 with details on failure.[^6][^5][^2]\n44. Prefer `ShouldBind` over `MustBind` variants so you can control error formatting and logging.[^1][^2]\n45. Centralize validation error formatting (e.g., mapping field errors to a standard JSON shape) instead of ad‑hoc strings.[^2][^3]\n46. Use custom validators (e.g., for UUID, enums) registered via `validator` package when built‑in tags are not enough.[^3][^2]\n47. Log invalid requests at a lower severity (info/warn) and avoid logging full bodies containing sensitive data.[^11][^8][^3]\n48. Keep DTOs versioned alongside routes so changes to API contracts are explicit and reviewable.[^4][^3]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use `ShouldBindJSON`, `ShouldBindQuery`, or `ShouldBindUri` instead of manual parsing for most cases.[^5][^1][^2]",
+              "checked": null
+            },
+            {
+              "text": "Define separate request DTO structs (e.g., `CreateUserRequest`) rather than using DB models directly for binding.[^2][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use `binding:\"required\"` and other `binding` tags to enforce required fields and basic validation.[^13][^2]",
+              "checked": null
+            },
+            {
+              "text": "Use numeric validators like `binding:\"gte=0,lte=120\"` to avoid manual range checks in handlers.[^13][^2]",
+              "checked": null
+            },
+            {
+              "text": "Always check and handle the error returned from `ShouldBind*`, returning a 400 with details on failure.[^6][^5][^2]",
+              "checked": null
+            },
+            {
+              "text": "Prefer `ShouldBind` over `MustBind` variants so you can control error formatting and logging.[^1][^2]",
+              "checked": null
+            },
+            {
+              "text": "Centralize validation error formatting (e.g., mapping field errors to a standard JSON shape) instead of ad‑hoc strings.[^2][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use custom validators (e.g., for UUID, enums) registered via `validator` package when built‑in tags are not enough.[^3][^2]",
+              "checked": null
+            },
+            {
+              "text": "Log invalid requests at a lower severity (info/warn) and avoid logging full bodies containing sensitive data.[^11][^8][^3]",
+              "checked": null
+            },
+            {
+              "text": "Keep DTOs versioned alongside routes so changes to API contracts are explicit and reviewable.[^4][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Responses, rendering, and errors",
+      "level": 2,
+      "slug": "responses-rendering-and-errors",
+      "prose": "These items keep responses consistent, JSON‑friendly, and debuggable.[^5][^1]\n\n49. Prefer `c.JSON` with a well‑defined response struct or map over writing raw strings.[^6][^5][^1]\n50. Use a standard envelope for responses (e.g., `{ \"data\": ..., \"error\": ... }`) across all handlers.[^4][^3]\n51. Centralize error types and mapping (e.g., domain errors → HTTP status codes) in a small response helper package.[^3][^4]\n52. Return appropriate HTTP status codes instead of always responding with 200/500.[^5][^6]\n53. Avoid leaking internal error messages (SQL, stack traces) directly to clients; log them server‑side instead.[^8][^4][^3]\n54. Use `c.AbortWithStatusJSON` in middleware when denying a request to stop further handlers cleanly.[^1][^2]\n55. For HTML responses, use Gin’s template support and pre‑parse templates at startup rather than per request.[^1][^2]\n56. For file downloads or streaming, use `c.Data`, `c.File`, or `c.Stream` rather than loading large files fully into memory.[^2][^1]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Prefer `c.JSON` with a well‑defined response struct or map over writing raw strings.[^6][^5][^1]",
+              "checked": null
+            },
+            {
+              "text": "Use a standard envelope for responses (e.g., `{ \"data\": ..., \"error\": ... }`) across all handlers.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Centralize error types and mapping (e.g., domain errors → HTTP status codes) in a small response helper package.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Return appropriate HTTP status codes instead of always responding with 200/500.[^5][^6]",
+              "checked": null
+            },
+            {
+              "text": "Avoid leaking internal error messages (SQL, stack traces) directly to clients; log them server‑side instead.[^8][^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use `c.AbortWithStatusJSON` in middleware when denying a request to stop further handlers cleanly.[^1][^2]",
+              "checked": null
+            },
+            {
+              "text": "For HTML responses, use Gin’s template support and pre‑parse templates at startup rather than per request.[^1][^2]",
+              "checked": null
+            },
+            {
+              "text": "For file downloads or streaming, use `c.Data`, `c.File`, or `c.Stream` rather than loading large files fully into memory.[^2][^1]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Performance, concurrency, and scalability",
+      "level": 2,
+      "slug": "performance-concurrency-and-scalability",
+      "prose": "These items help you leverage Gin’s speed without introducing bottlenecks.[^10][^2]\n\n57. Reuse long‑lived clients (DB, Redis, HTTP) via dependency injection instead of recreating them inside handlers.[^10][^2][^3]\n58. Use proper connection pools for databases and external services with sane max open/idle settings.[^10][^2][^3]\n59. Keep handler logic small and delegate heavy work to services or async workers.[^10][^2]\n60. Offload time‑consuming tasks (emails, reports, large file processing) to background goroutines or message queues.[^10][^3]\n61. Avoid global mutable state; use per‑request context and concurrent‑safe structures where shared state is necessary.[^8][^4]\n62. Avoid unnecessary JSON marshaling/unmarshaling in hot paths; marshal once at the boundary when possible.[^2][^10]\n63. Use pagination (limit/offset or cursor) on list endpoints instead of returning unbounded collections.[^3][^10]\n64. Cache frequently accessed, rarely changing data (e.g., configuration lookups) appropriately to reduce DB round‑trips.[^10][^2]\n65. Consider `sync.Pool` for reusing objects in high‑throughput code paths when profiling shows allocation pressure.[^2][^10]\n66. Profile your Gin service with pprof or similar tools before and after optimizations rather than guessing.[^10][^2]\n67. Keep JSON payloads reasonably small; accept streaming uploads when handling very large files.[^2][^10]\n68. Scale out horizontally behind a load balancer instead of relying on a single giant instance.[^9][^4][^3]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Reuse long‑lived clients (DB, Redis, HTTP) via dependency injection instead of recreating them inside handlers.[^10][^2][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use proper connection pools for databases and external services with sane max open/idle settings.[^10][^2][^3]",
+              "checked": null
+            },
+            {
+              "text": "Keep handler logic small and delegate heavy work to services or async workers.[^10][^2]",
+              "checked": null
+            },
+            {
+              "text": "Offload time‑consuming tasks (emails, reports, large file processing) to background goroutines or message queues.[^10][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid global mutable state; use per‑request context and concurrent‑safe structures where shared state is necessary.[^8][^4]",
+              "checked": null
+            },
+            {
+              "text": "Avoid unnecessary JSON marshaling/unmarshaling in hot paths; marshal once at the boundary when possible.[^2][^10]",
+              "checked": null
+            },
+            {
+              "text": "Use pagination (limit/offset or cursor) on list endpoints instead of returning unbounded collections.[^3][^10]",
+              "checked": null
+            },
+            {
+              "text": "Cache frequently accessed, rarely changing data (e.g., configuration lookups) appropriately to reduce DB round‑trips.[^10][^2]",
+              "checked": null
+            },
+            {
+              "text": "Consider `sync.Pool` for reusing objects in high‑throughput code paths when profiling shows allocation pressure.[^2][^10]",
+              "checked": null
+            },
+            {
+              "text": "Profile your Gin service with pprof or similar tools before and after optimizations rather than guessing.[^10][^2]",
+              "checked": null
+            },
+            {
+              "text": "Keep JSON payloads reasonably small; accept streaming uploads when handling very large files.[^2][^10]",
+              "checked": null
+            },
+            {
+              "text": "Scale out horizontally behind a load balancer instead of relying on a single giant instance.[^9][^4][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Error handling and recovery",
+      "level": 2,
+      "slug": "error-handling-and-recovery",
+      "prose": "These items prevent one bad request from taking down your entire service.[^1][^3]\n\n69. Always include a recovery middleware that logs panics with stack traces.[^4][^1][^3]\n70. Wrap your Gin router in an `http.Server` and use `Shutdown` with a timeout for graceful termination.[^9][^3]\n71. Use structured logs on errors (JSON with fields like `path`, `method`, `status`, `request_id`) for easy searching.[^4][^3]\n72. Translate panics into 500 responses with a generic error message to avoid leaking internals.[^1][^3]\n73. Use Gin’s `c.Error` and `Errors` to accumulate errors when multiple operations can fail in a handler.[^12][^1]\n74. Don’t silently ignore errors from DB calls, external APIs, or binding; always handle or log them meaningfully.[^8][^3][^4]\n75. Implement global error formatting logic (via middleware) so individual handlers stay simple.[^3][^4]\n76. Use `defer` + `recover` only in narrow scopes when you truly need to catch panics, preferring centralized Gin recovery for HTTP.[^8][^1]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Always include a recovery middleware that logs panics with stack traces.[^4][^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Wrap your Gin router in an `http.Server` and use `Shutdown` with a timeout for graceful termination.[^9][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use structured logs on errors (JSON with fields like `path`, `method`, `status`, `request_id`) for easy searching.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Translate panics into 500 responses with a generic error message to avoid leaking internals.[^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use Gin’s `c.Error` and `Errors` to accumulate errors when multiple operations can fail in a handler.[^12][^1]",
+              "checked": null
+            },
+            {
+              "text": "Don’t silently ignore errors from DB calls, external APIs, or binding; always handle or log them meaningfully.[^8][^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Implement global error formatting logic (via middleware) so individual handlers stay simple.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use `defer` + `recover` only in narrow scopes when you truly need to catch panics, preferring centralized Gin recovery for HTTP.[^8][^1]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Observability: logging, metrics, and tracing",
+      "level": 2,
+      "slug": "observability-logging-metrics-and-tracing",
+      "prose": "These items make it possible to understand and debug your Gin app in production.[^11][^10]\n\n77. Integrate structured logging (e.g., `slog`, `zap`, or logrus) in middleware to log per‑request details.[^4][^3]\n78. Generate a unique request ID per request and include it in logs and response headers (e.g., `X-Request-ID`).[^3][^4]\n79. Record latency, method, path, status code, client IP, and user agent in your request logs.[^11][^4][^3]\n80. Export metrics (request counts, latencies, error rates) via Prometheus or another monitoring system.[^11][^10][^3]\n81. Use distributed tracing (e.g., OpenTelemetry instrumentation for Gin) to follow requests across services.[^11][^3]\n82. Log at appropriate levels (info for success, warn for client errors, error for server failures).[^4][^3]\n83. Avoid logging sensitive data like passwords, tokens, or PII in Gin logs.[^11][^8][^3]\n84. Regularly review logs and dashboards to spot anomalies before they become incidents.[^11][^3]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Integrate structured logging (e.g., `slog`, `zap`, or logrus) in middleware to log per‑request details.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Generate a unique request ID per request and include it in logs and response headers (e.g., `X-Request-ID`).[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Record latency, method, path, status code, client IP, and user agent in your request logs.[^11][^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Export metrics (request counts, latencies, error rates) via Prometheus or another monitoring system.[^11][^10][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use distributed tracing (e.g., OpenTelemetry instrumentation for Gin) to follow requests across services.[^11][^3]",
+              "checked": null
+            },
+            {
+              "text": "Log at appropriate levels (info for success, warn for client errors, error for server failures).[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid logging sensitive data like passwords, tokens, or PII in Gin logs.[^11][^8][^3]",
+              "checked": null
+            },
+            {
+              "text": "Regularly review logs and dashboards to spot anomalies before they become incidents.[^11][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and hardening",
+      "level": 2,
+      "slug": "security-and-hardening",
+      "prose": "These items help you avoid common security pitfalls when building APIs with Gin.[^8][^3]\n\n85. Terminate TLS at a reverse proxy or enable HTTPS directly on the server; never expose plain HTTP on the public internet.[^9][^8]\n86. Implement proper auth (JWT, OAuth2, or session tokens) via middleware for all protected routes.[^14][^3]\n87. Validate and sanitize all user input with binding + validation and domain rules.[^8][^2][^3]\n88. Use CORS configuration that is as strict as possible, not `*` for all origins in production.[^8][^1]\n89. Apply rate limiting or request throttling to protect against brute force and abuse.[^10][^3]\n90. Avoid echoing back untrusted input directly into HTML responses without proper escaping.[^8][^1]\n91. Store secrets (DB passwords, API keys, JWT secrets) in env vars or secret managers, not in source code.[^9][^8][^3]\n92. Keep dependencies updated and run security scans on images and modules regularly.[^9][^8][^4]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Terminate TLS at a reverse proxy or enable HTTPS directly on the server; never expose plain HTTP on the public internet.[^9][^8]",
+              "checked": null
+            },
+            {
+              "text": "Implement proper auth (JWT, OAuth2, or session tokens) via middleware for all protected routes.[^14][^3]",
+              "checked": null
+            },
+            {
+              "text": "Validate and sanitize all user input with binding + validation and domain rules.[^8][^2][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use CORS configuration that is as strict as possible, not `*` for all origins in production.[^8][^1]",
+              "checked": null
+            },
+            {
+              "text": "Apply rate limiting or request throttling to protect against brute force and abuse.[^10][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid echoing back untrusted input directly into HTML responses without proper escaping.[^8][^1]",
+              "checked": null
+            },
+            {
+              "text": "Store secrets (DB passwords, API keys, JWT secrets) in env vars or secret managers, not in source code.[^9][^8][^3]",
+              "checked": null
+            },
+            {
+              "text": "Keep dependencies updated and run security scans on images and modules regularly.[^9][^8][^4]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deployment and operations",
+      "level": 2,
+      "slug": "deployment-and-operations",
+      "prose": "These items ensure your Gin service is production‑ready from an operational standpoint.[^9][^3]\n\n93. Run Gin behind a reverse proxy (Nginx, Traefik, API gateway) for TLS termination and routing.[^15][^9]\n94. Configure liveness and readiness probes against health endpoints for Kubernetes or similar orchestrators.[^9][^3]\n95. Use environment‑based config (dev/stage/prod) to change only config, not code, between environments.[^3][^4]\n96. Limit maximum request body size when appropriate to avoid DoS via huge uploads.[^2][^10]\n97. Set sensible timeouts and keep‑alive settings on upstream clients used inside handlers.[^10][^2][^3]\n98. Use rolling or blue‑green deployments plus graceful shutdown so traffic isn’t dropped during releases.[^9][^3]\n99. Automate CI/CD with tests, vet, and build steps for every Gin service.[^8][^4]\n100. Document your routes, request/response schemas, and error codes (e.g., OpenAPI) and keep docs in sync with Gin code.[^4][^3]\n\nIf you want, I can turn this into a markdown checklist template tailored to one of your real services (e.g., “user API”, “billing API”) and fill in some concrete code snippets around the parts you care about most.\n<span style=\"display:none\">[^16][^17]</span>\n\n<div align=\"center\">⁂</div>\n\n[^1]: https://gin-gonic.com/en/docs/\n\n[^2]: https://leapcell.io/blog/gin-framework-performance-tuning-best-practices-for-routing-rendering-and-binding\n\n[^3]: https://oneuptime.com/blog/post/2026-01-27-gin-production-apis/view\n\n[^4]: https://shinagawa-web.com/blogs/go-gin-production-ready\n\n[^5]: https://go.dev/doc/tutorial/web-service-gin\n\n[^6]: https://bprogramming-blog.com/posts/building-your-first-api-with-go-and-gin/\n\n[^7]: https://gin-gonic.com/en/docs/quickstart/\n\n[^8]: https://8gwifi.org/tutorials/go/best-practices.jsp\n\n[^9]: https://gin-gonic.com/en/docs/deployment/\n\n[^10]: https://dev.to/leapcell/performance-best-practices-with-gin-25ci\n\n[^11]: https://www.alibabacloud.com/blog/602437\n\n[^12]: https://pkg.go.dev/github.com/gin-gonic/gin\n\n[^13]: https://www.educative.io/answers/what-is-gin-in-golang\n\n[^14]: https://stackoverflow.com/questions/40542005/what-is-the-best-practices-of-writing-web-services-using-gin-gonic\n\n[^15]: https://www.reddit.com/r/golang/comments/18bmjvc/gin_in_production/\n\n[^16]: https://www.reddit.com/r/golang/comments/1jmmnet/beginner_gogin_crud_api_seeking_code_review_and/\n\n[^17]: https://www.youtube.com/watch?v=sVoGKMTF66c",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Run Gin behind a reverse proxy (Nginx, Traefik, API gateway) for TLS termination and routing.[^15][^9]",
+              "checked": null
+            },
+            {
+              "text": "Configure liveness and readiness probes against health endpoints for Kubernetes or similar orchestrators.[^9][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use environment‑based config (dev/stage/prod) to change only config, not code, between environments.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Limit maximum request body size when appropriate to avoid DoS via huge uploads.[^2][^10]",
+              "checked": null
+            },
+            {
+              "text": "Set sensible timeouts and keep‑alive settings on upstream clients used inside handlers.[^10][^2][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use rolling or blue‑green deployments plus graceful shutdown so traffic isn’t dropped during releases.[^9][^3]",
+              "checked": null
+            },
+            {
+              "text": "Automate CI/CD with tests, vet, and build steps for every Gin service.[^8][^4]",
+              "checked": null
+            },
+            {
+              "text": "Document your routes, request/response schemas, and error codes (e.g., OpenAPI) and keep docs in sync with Gin code.[^4][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

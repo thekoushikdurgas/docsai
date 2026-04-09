@@ -1,0 +1,379 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/16_JOBS_MODULE.md",
+  "sha256_source": "bfdeaf35c2ecd8f05d4f630739ad924e5abc1b21f5273c491ffda44beb096338",
+  "generated_at": "2026-04-08T23:26:46.487860+00:00",
+  "title": "Jobs (Scheduler) Module",
+  "raw_markdown": "# Jobs (Scheduler) Module\n\n## Overview\n\nThe Jobs module provides GraphQL queries and mutations for creating and tracking long-running work. The Contact360 gateway validates the user, calls downstream satellites, and stores a row in `scheduler_jobs` for ownership and listing.\n\n| Satellite | Env | Used for |\n|-----------|-----|----------|\n| **email.server** | `LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY` | Email finder/verifier S3 bulk jobs; pause/resume/terminate; live `statusPayload` |\n| **sync.server** (Connectra) | `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY` | Contact/company CSV import & VQL export; job rows updated as the worker progresses |\n\n**Location:** `app/graphql/modules/jobs/`\n\nGraphQL paths: `query { jobs { job(jobId: ...) jobs(limit: ..., jobFamily: ...) { ... } } }`, `mutation { jobs { createEmailFinderExport(...) { ... } } }`.\n\n## Taxonomy (`scheduler_jobs`)\n\n- **`source_service`**: `email_server` | `sync_server`\n- **`job_family`**: `email_job` | `contact_job` | `company_job`\n- **`job_subtype`**: `finder` | `verifier` | `import` | `export` (where applicable)\n- **`job_type`**: string identifier (e.g. `email_finder_export_stream`, `contact360_export_stream`); stored as **TEXT** (see migration `20260410_0005`).\n\n## Queries and mutations – parameters and variable types\n\n| Operation | Parameter(s) | Variable type (GraphQL) | Return type |\n|-----------|---------------|-------------------------|-------------|\n| **Queries** (under `jobs { ... }`) | | | |\n| `job` | `jobId` | `ID!` | `SchedulerJob` |\n| `jobs` | `limit`, `offset`, `status`, `jobType`, `jobFamily` | `Int`, `Int`, `String`, `String`, `String` | `JobConnection` |\n| **Mutations** (under `jobs { ... }`) | | | |\n| `createEmailFinderExport` | `input` | `CreateEmailFinderExportInput!` | `SchedulerJob` |\n| `createEmailVerifyExport` | `input` | `CreateEmailVerifyExportInput!` | `SchedulerJob` |\n| `createContact360Export` | `input` | `CreateContact360ExportInput!` | `SchedulerJob` |\n| `createContact360Import` | `input` | `CreateContact360ImportInput!` | `SchedulerJob` (role-gated) |\n| `pauseJob` | `input` | `PauseJobInput!` | `JSON!` |\n| `resumeJob` | `input` | `ResumeJobInput!` | `JSON!` |\n| `terminateJob` | `input` | `TerminateJobInput!` | `JSON!` |\n| `pauseConnectraJob` | `jobUuid` | `String!` | `JSON!` |\n| `resumeConnectraJob` | `jobUuid` | `String!` | `JSON!` |\n| `terminateConnectraJob` | `jobUuid` | `String!` | `JSON!` |\n| `retryJob` | `input` | `RetryJobInput!` | `JSON!` |\n\n**Removed:** `createEmailPatternImport`, `createAppointmentImport` (legacy tkdjob-era).\n\nUse **camelCase** in GraphQL variables. See Input Types below.\n\n## Canonical SDL (gateway schema)\n\nRegenerate the full schema from `contact360.io/api` with:\n\n`python -c \"from app.graphql.schema import schema; print(schema.as_str())\"`\n\n```graphql\ntype JobQuery {\n  job(jobId: ID!): SchedulerJob!\n  jobs(limit: Int = 25, offset: Int = 0, status: String = null, jobType: String = null, jobFamily: String = null): JobConnection!\n}\n\ntype JobMutation {\n  createEmailFinderExport(input: CreateEmailFinderExportInput!): SchedulerJob!\n  createEmailVerifyExport(input: CreateEmailVerifyExportInput!): SchedulerJob!\n  createContact360Export(input: CreateContact360ExportInput!): SchedulerJob!\n  createContact360Import(input: CreateContact360ImportInput!): SchedulerJob!\n  pauseJob(input: PauseJobInput!): JSON!\n  resumeJob(input: ResumeJobInput!): JSON!\n  terminateJob(input: TerminateJobInput!): JSON!\n  pauseConnectraJob(jobUuid: String!): JSON!\n  resumeConnectraJob(jobUuid: String!): JSON!\n  terminateConnectraJob(jobUuid: String!): JSON!\n  retryJob(input: RetryJobInput!): JSON!\n}\n```\n\n## POST `/graphql` — full request and response\n\nHeaders: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.\n\n### `jobs.jobs` (query)\n\n```json\n{\n  \"query\": \"query ($limit: Int, $offset: Int, $jobFamily: String) { jobs { jobs(limit: $limit, offset: $offset, jobFamily: $jobFamily) { jobs { id jobType status sourceService } pageInfo { total limit offset } } } }\",\n  \"variables\": { \"limit\": 25, \"offset\": 0, \"jobFamily\": null }\n}\n```\n\n### `jobs.createEmailFinderExport` (mutation)\n\n```json\n{\n  \"query\": \"mutation ($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { id jobId status jobFamily } } }\",\n  \"variables\": {\n    \"input\": {\n      \"inputCsvKey\": \"upload/20260210_contacts.csv\",\n      \"outputPrefix\": \"exports/\",\n      \"csvColumns\": null,\n      \"s3Bucket\": null\n    }\n  }\n}\n```\n\n## Flow\n\n1. Client uploads inputs via the **Upload** / S3 flow where required and obtains keys / VQL / options.\n2. Client calls the appropriate GraphQL mutation under `jobs`.\n3. The gateway calls **email.server** or **sync.server** and inserts/updates `scheduler_jobs` with `source_service`, `job_family`, and `job_subtype`.\n4. The client lists jobs or opens **Jobs** in the app; `statusPayload` resolves from the email satellite when `source_service=email_server`, otherwise from stored DB payload for sync jobs.\n\n## Types\n\n### SchedulerJob\n\n```graphql\ntype SchedulerJob {\n  id: ID!\n  jobId: ID!\n  userId: ID!\n  jobType: String!\n  status: String!\n  sourceService: String!\n  jobFamily: String!\n  jobSubtype: String\n  requestPayload: JSON\n  responsePayload: JSON\n  statusPayload: JSON\n  timelinePayload: JSON   # null (not available for current satellites)\n  dagPayload: JSON        # null (not available for current satellites)\n  createdAt: DateTime!\n  updatedAt: DateTime\n}\n```\n\n- **statusPayload**: For `email_server`, fetched from email satellite status API when requested. For `sync_server`, read from DB (optionally refreshed via Connectra `GET /common/jobs/:uuid` when implemented client-side).\n- **timelinePayload** / **dagPayload**: Reserved; return `null` (no equivalent on current satellites).\n\n### JobConnection\n\n```graphql\ntype JobConnection {\n  jobs: [SchedulerJob!]!\n  pageInfo: PageInfo!\n}\n```\n\n## Queries\n\n### `job(jobId: ID!)`\n\nSingle scheduler job. User can only access their own jobs unless Admin/SuperAdmin.\n\n### `jobs(limit, offset, status, jobType, jobFamily)`\n\nList jobs for the current user. Optional **`jobFamily`** filter: `email_job` | `contact_job` | `company_job`.\n\n## Mutations\n\n| Mutation | Backend | Notes |\n|----------|---------|--------|\n| `createEmailFinderExport` | email.server S3 finder job | Feature usage / activities as implemented |\n| `createEmailVerifyExport` | email.server S3 verifier job | |\n| `createContact360Export` | sync.server `POST /common/jobs/create` | `service` field selects contact vs company family |\n| `createContact360Import` | sync.server | `importTarget` in GraphQL maps to import scope |\n| `pauseJob` / `resumeJob` / `terminateJob` | email.server only | Error if `source_service` is not `email_server` |\n| `retryJob` | email vs sync | **email.server:** rejected (use resume if paused). **sync.server:** only sets local `scheduler_jobs.status` to `open`; no Connectra HTTP retry call. |\n\n## Input types (summary)\n\n- **CreateEmailFinderExportInput** / **CreateEmailVerifyExportInput**: fields match email.server `S3CSVFinderRequest` / `S3CSVVerifyRequest` (`s3Bucket`, `inputCsvKey`, `outputPrefix`, optional `csvColumns`; verify also optional `provider`, default `mailtester`).\n- **CreateContact360ImportInput** includes `importTarget` (GraphQL name) for import scope when applicable.\n- **PauseJobInput** / **ResumeJobInput** / **TerminateJobInput**: `{ jobId: ID! }`.\n- **RetryJobInput**: job id and optional retry metadata (see schema).\n\n## Environment\n\n- **Email jobs:** `LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY`, `LAMBDA_EMAIL_API_TIMEOUT`\n- **Sync / Connectra jobs:** `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY`, `CONNECTRA_TIMEOUT`\n\nThere is **no** `TKDJOB_*` configuration.\n\n## Connectra native jobs API (`EC2/sync.server`)\n\nThe sync server has its own **`jobs`** table and HTTP API under **`/common/jobs`** (distinct from GraphQL `scheduler_jobs`, though gateway mutations may create rows in both places depending on flow).\n\n| HTTP | Path | Purpose |\n| --- | --- | --- |\n| `POST` | `/common/jobs` | List jobs: body `{ \"job_type\", \"status\": [], \"limit\" }` |\n| `POST` | `/common/jobs/create` | Create job: `job_type` **`insert_csv_file`** \\| **`export_csv_file`**, `job_data` JSON, `retry_count` |\n| `GET` | `/common/jobs/:job_uuid` | Fetch one job row |\n| `POST` | `/common/jobs/:job_uuid/pause` \\| `/resume` \\| `/terminate` | Status transitions |\n\nWorker-backed types and **`job_data`** shapes (S3 keys, export `vql`, `service` = `contact` \\| `company`) are documented in **[connectra.api.md](../micro.services.apis/connectra.api.md)**. Postman: **[EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json)**.\n\nGraphQL mutations **`pauseConnectraJob`**, **`resumeConnectraJob`**, **`terminateConnectraJob`** map to these pause/resume/terminate routes (see gateway resolvers).\n\n## Email satellite native jobs (`EC2/email.server`)\n\nFor **`source_service=email_server`**, the gateway delegates pause/resume/terminate and status to the Go service’s **`emailapi_jobs`** + Redis/Asynq pipeline.\n\n| HTTP (email.server) | Purpose |\n| --- | --- |\n| `GET /jobs` | List recent jobs (max 50) |\n| `GET /jobs/:id/status` | Progress, `output_csv_key`, provider |\n| `POST /jobs/:id/pause` | Pause |\n| `POST /jobs/:id/resume` | Resume (must be paused) |\n| `POST /jobs/:id/terminate` | Terminate + optional S3 merge |\n| `POST /email/finder/s3` | Finder S3 CSV stream job (`202`) |\n| `POST /email/verify/s3` | Verifier S3 CSV stream job (`202`) |\n\nFull parameters and JSON bodies: **[emailapis.api.md](../micro.services.apis/emailapis.api.md)** · Postman: **[EC2_email.server.postman_collection.json](../postman/EC2_email.server.postman_collection.json)**.\n\n## Related docs\n\n- Database: `docs/backend/database/scheduler_jobs.sql`, `enums.sql` (`scheduler_job_status`)\n- Satellite routes: `docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`\n- Email HTTP API: [emailapis.api.md](../micro.services.apis/emailapis.api.md)\n",
+  "module_number": 16,
+  "module_name": "JOBS",
+  "location": "app/graphql/modules/jobs/",
+  "overview": "The Jobs module provides GraphQL queries and mutations for creating and tracking long-running work. The Contact360 gateway validates the user, calls downstream satellites, and stores a row in `scheduler_jobs` for ownership and listing.\n\n| Satellite | Env | Used for |\n|-----------|-----|----------|\n| **email.server** | `LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY` | Email finder/verifier S3 bulk jobs; pause/resume/terminate; live `statusPayload` |\n| **sync.server** (Connectra) | `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY` | Contact/company CSV import & VQL export; job rows updated as the worker progresses |\n\n**Location:** `app/graphql/modules/jobs/`\n\nGraphQL paths: `query { jobs { job(jobId: ...) jobs(limit: ..., jobFamily: ...) { ... } } }`, `mutation { jobs { createEmailFinderExport(...) { ... } } }`.",
+  "operations": [
+    {
+      "name": "Queries** (under `jobs { ... }`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "job",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`jobId`",
+          "graphql_type": "`ID!`"
+        }
+      ],
+      "return_type": "`SchedulerJob`",
+      "description": null
+    },
+    {
+      "name": "jobs",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`limit`, `offset`, `status`, `jobType`, `jobFamily`",
+          "graphql_type": "`Int`, `Int`, `String`, `String`, `String`"
+        }
+      ],
+      "return_type": "`JobConnection`",
+      "description": null
+    },
+    {
+      "name": "Mutations** (under `jobs { ... }`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "createEmailFinderExport",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`CreateEmailFinderExportInput!`"
+        }
+      ],
+      "return_type": "`SchedulerJob`",
+      "description": null
+    },
+    {
+      "name": "createEmailVerifyExport",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`CreateEmailVerifyExportInput!`"
+        }
+      ],
+      "return_type": "`SchedulerJob`",
+      "description": null
+    },
+    {
+      "name": "createContact360Export",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`CreateContact360ExportInput!`"
+        }
+      ],
+      "return_type": "`SchedulerJob`",
+      "description": null
+    },
+    {
+      "name": "createContact360Import",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`CreateContact360ImportInput!`"
+        }
+      ],
+      "return_type": "`SchedulerJob` (role-gated)",
+      "description": null
+    },
+    {
+      "name": "pauseJob",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`PauseJobInput!`"
+        }
+      ],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "resumeJob",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`ResumeJobInput!`"
+        }
+      ],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "terminateJob",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`TerminateJobInput!`"
+        }
+      ],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "pauseConnectraJob",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`jobUuid`",
+          "graphql_type": "`String!`"
+        }
+      ],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "resumeConnectraJob",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`jobUuid`",
+          "graphql_type": "`String!`"
+        }
+      ],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "terminateConnectraJob",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`jobUuid`",
+          "graphql_type": "`String!`"
+        }
+      ],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "retryJob",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`RetryJobInput!`"
+        }
+      ],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "createEmailFinderExport",
+      "operation_type": "mutation",
+      "parameters": [
+        {
+          "name": "email.server S3 finder job",
+          "graphql_type": "Feature usage / activities as implemented"
+        }
+      ],
+      "return_type": null,
+      "description": null
+    },
+    {
+      "name": "createEmailVerifyExport",
+      "operation_type": "mutation",
+      "parameters": [
+        {
+          "name": "email.server S3 verifier job",
+          "graphql_type": ""
+        }
+      ],
+      "return_type": null,
+      "description": null
+    },
+    {
+      "name": "createContact360Export",
+      "operation_type": "mutation",
+      "parameters": [
+        {
+          "name": "sync.server `POST /common/jobs/create`",
+          "graphql_type": "`service` field selects contact vs company family"
+        }
+      ],
+      "return_type": null,
+      "description": null
+    },
+    {
+      "name": "createContact360Import",
+      "operation_type": "mutation",
+      "parameters": [
+        {
+          "name": "sync.server",
+          "graphql_type": "`importTarget` in GraphQL maps to import scope"
+        }
+      ],
+      "return_type": null,
+      "description": null
+    },
+    {
+      "name": "pauseJob` / `resumeJob` / `terminateJob",
+      "operation_type": "mutation",
+      "parameters": [
+        {
+          "name": "email.server only",
+          "graphql_type": "Error if `source_service` is not `email_server`"
+        }
+      ],
+      "return_type": null,
+      "description": null
+    },
+    {
+      "name": "retryJob",
+      "operation_type": "mutation",
+      "parameters": [
+        {
+          "name": "email vs sync",
+          "graphql_type": "**email.server:** rejected (use resume if paused). **sync.server:** only sets local `scheduler_jobs.status` to `open`; no Connectra HTTP retry call."
+        }
+      ],
+      "return_type": null,
+      "description": null
+    }
+  ],
+  "sdl_excerpt": "type JobQuery {\n  job(jobId: ID!): SchedulerJob!\n  jobs(limit: Int = 25, offset: Int = 0, status: String = null, jobType: String = null, jobFamily: String = null): JobConnection!\n}\n\ntype JobMutation {\n  createEmailFinderExport(input: CreateEmailFinderExportInput!): SchedulerJob!\n  createEmailVerifyExport(input: CreateEmailVerifyExportInput!): SchedulerJob!\n  createContact360Export(input: CreateContact360ExportInput!): SchedulerJob!\n  createContact360Import(input: CreateContact360ImportInput!): SchedulerJob!\n  pauseJob(input: PauseJobInput!): JSON!\n  resumeJob(input: ResumeJobInput!): JSON!\n  terminateJob(input: TerminateJobInput!): JSON!\n  pauseConnectraJob(jobUuid: String!): JSON!\n  resumeConnectraJob(jobUuid: String!): JSON!\n  terminateConnectraJob(jobUuid: String!): JSON!\n  retryJob(input: RetryJobInput!): JSON!\n}\n",
+  "error_codes": [],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Jobs (Scheduler) Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Taxonomy (schedulerjobs`)",
+      "level": 2,
+      "prose": "- **`source_service`**: `email_server` | `sync_server`\n- **`job_family`**: `email_job` | `contact_job` | `company_job`\n- **`job_subtype`**: `finder` | `verifier` | `import` | `export` (where applicable)\n- **`job_type`**: string identifier (e.g. `email_finder_export_stream`, `contact360_export_stream`); stored as **TEXT** (see migration `20260410_0005`).",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — full request and response",
+      "level": 2,
+      "prose": "Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "jobs.jobs (query)",
+      "level": 3,
+      "prose": "```json\n{\n  \"query\": \"query ($limit: Int, $offset: Int, $jobFamily: String) { jobs { jobs(limit: $limit, offset: $offset, jobFamily: $jobFamily) { jobs { id jobType status sourceService } pageInfo { total limit offset } } } }\",\n  \"variables\": { \"limit\": 25, \"offset\": 0, \"jobFamily\": null }\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($limit: Int, $offset: Int, $jobFamily: String) { jobs { jobs(limit: $limit, offset: $offset, jobFamily: $jobFamily) { jobs { id jobType status sourceService } pageInfo { total limit offset } } } }\",\n  \"variables\": { \"limit\": 25, \"offset\": 0, \"jobFamily\": null }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "jobs.createEmailFinderExport (mutation)",
+      "level": 3,
+      "prose": "```json\n{\n  \"query\": \"mutation ($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { id jobId status jobFamily } } }\",\n  \"variables\": {\n    \"input\": {\n      \"inputCsvKey\": \"upload/20260210_contacts.csv\",\n      \"outputPrefix\": \"exports/\",\n      \"csvColumns\": null,\n      \"s3Bucket\": null\n    }\n  }\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"mutation ($input: CreateEmailFinderExportInput!) { jobs { createEmailFinderExport(input: $input) { id jobId status jobFamily } } }\",\n  \"variables\": {\n    \"input\": {\n      \"inputCsvKey\": \"upload/20260210_contacts.csv\",\n      \"outputPrefix\": \"exports/\",\n      \"csvColumns\": null,\n      \"s3Bucket\": null\n    }\n  }\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Flow",
+      "level": 2,
+      "prose": "1. Client uploads inputs via the **Upload** / S3 flow where required and obtains keys / VQL / options.\n2. Client calls the appropriate GraphQL mutation under `jobs`.\n3. The gateway calls **email.server** or **sync.server** and inserts/updates `scheduler_jobs` with `source_service`, `job_family`, and `job_subtype`.\n4. The client lists jobs or opens **Jobs** in the app; `statusPayload` resolves from the email satellite when `source_service=email_server`, otherwise from stored DB payload for sync jobs.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "SchedulerJob",
+      "level": 3,
+      "prose": "```graphql\ntype SchedulerJob {\n  id: ID!\n  jobId: ID!\n  userId: ID!\n  jobType: String!\n  status: String!\n  sourceService: String!\n  jobFamily: String!\n  jobSubtype: String\n  requestPayload: JSON\n  responsePayload: JSON\n  statusPayload: JSON\n  timelinePayload: JSON   # null (not available for current satellites)\n  dagPayload: JSON        # null (not available for current satellites)\n  createdAt: DateTime!\n  updatedAt: DateTime\n}\n```\n\n- **statusPayload**: For `email_server`, fetched from email satellite status API when requested. For `sync_server`, read from DB (optionally refreshed via Connectra `GET /common/jobs/:uuid` when implemented client-side).\n- **timelinePayload** / **dagPayload**: Reserved; return `null` (no equivalent on current satellites).",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type SchedulerJob {\n  id: ID!\n  jobId: ID!\n  userId: ID!\n  jobType: String!\n  status: String!\n  sourceService: String!\n  jobFamily: String!\n  jobSubtype: String\n  requestPayload: JSON\n  responsePayload: JSON\n  statusPayload: JSON\n  timelinePayload: JSON   # null (not available for current satellites)\n  dagPayload: JSON        # null (not available for current satellites)\n  createdAt: DateTime!\n  updatedAt: DateTime\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "JobConnection",
+      "level": 3,
+      "prose": "```graphql\ntype JobConnection {\n  jobs: [SchedulerJob!]!\n  pageInfo: PageInfo!\n}\n```",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type JobConnection {\n  jobs: [SchedulerJob!]!\n  pageInfo: PageInfo!\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "job(jobId: ID!)",
+      "level": 3,
+      "prose": "Single scheduler job. User can only access their own jobs unless Admin/SuperAdmin.",
+      "code_blocks": []
+    },
+    {
+      "heading": "jobs(limit, offset, status, jobType, jobFamily)",
+      "level": 3,
+      "prose": "List jobs for the current user. Optional **`jobFamily`** filter: `email_job` | `contact_job` | `company_job`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Input types (summary)",
+      "level": 2,
+      "prose": "- **CreateEmailFinderExportInput** / **CreateEmailVerifyExportInput**: fields match email.server `S3CSVFinderRequest` / `S3CSVVerifyRequest` (`s3Bucket`, `inputCsvKey`, `outputPrefix`, optional `csvColumns`; verify also optional `provider`, default `mailtester`).\n- **CreateContact360ImportInput** includes `importTarget` (GraphQL name) for import scope when applicable.\n- **PauseJobInput** / **ResumeJobInput** / **TerminateJobInput**: `{ jobId: ID! }`.\n- **RetryJobInput**: job id and optional retry metadata (see schema).",
+      "code_blocks": []
+    },
+    {
+      "heading": "Environment",
+      "level": 2,
+      "prose": "- **Email jobs:** `LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY`, `LAMBDA_EMAIL_API_TIMEOUT`\n- **Sync / Connectra jobs:** `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY`, `CONNECTRA_TIMEOUT`\n\nThere is **no** `TKDJOB_*` configuration.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Connectra native jobs API (EC2/sync.server)",
+      "level": 2,
+      "prose": "The sync server has its own **`jobs`** table and HTTP API under **`/common/jobs`** (distinct from GraphQL `scheduler_jobs`, though gateway mutations may create rows in both places depending on flow).\n\n| HTTP | Path | Purpose |\n| --- | --- | --- |\n| `POST` | `/common/jobs` | List jobs: body `{ \"job_type\", \"status\": [], \"limit\" }` |\n| `POST` | `/common/jobs/create` | Create job: `job_type` **`insert_csv_file`** \\| **`export_csv_file`**, `job_data` JSON, `retry_count` |\n| `GET` | `/common/jobs/:job_uuid` | Fetch one job row |\n| `POST` | `/common/jobs/:job_uuid/pause` \\| `/resume` \\| `/terminate` | Status transitions |\n\nWorker-backed types and **`job_data`** shapes (S3 keys, export `vql`, `service` = `contact` \\| `company`) are documented in **[connectra.api.md](../micro.services.apis/connectra.api.md)**. Postman: **[EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json)**.\n\nGraphQL mutations **`pauseConnectraJob`**, **`resumeConnectraJob`**, **`terminateConnectraJob`** map to these pause/resume/terminate routes (see gateway resolvers).",
+      "code_blocks": []
+    },
+    {
+      "heading": "Email satellite native jobs (EC2/email.server)",
+      "level": 2,
+      "prose": "For **`source_service=email_server`**, the gateway delegates pause/resume/terminate and status to the Go service’s **`emailapi_jobs`** + Redis/Asynq pipeline.\n\n| HTTP (email.server) | Purpose |\n| --- | --- |\n| `GET /jobs` | List recent jobs (max 50) |\n| `GET /jobs/:id/status` | Progress, `output_csv_key`, provider |\n| `POST /jobs/:id/pause` | Pause |\n| `POST /jobs/:id/resume` | Resume (must be paused) |\n| `POST /jobs/:id/terminate` | Terminate + optional S3 merge |\n| `POST /email/finder/s3` | Finder S3 CSV stream job (`202`) |\n| `POST /email/verify/s3` | Verifier S3 CSV stream job (`202`) |\n\nFull parameters and JSON bodies: **[emailapis.api.md](../micro.services.apis/emailapis.api.md)** · Postman: **[EC2_email.server.postman_collection.json](../postman/EC2_email.server.postman_collection.json)**.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Related docs",
+      "level": 2,
+      "prose": "- Database: `docs/backend/database/scheduler_jobs.sql`, `enums.sql` (`scheduler_job_status`)\n- Satellite routes: `docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`\n- Email HTTP API: [emailapis.api.md](../micro.services.apis/emailapis.api.md)",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": "## Overview\n\n## Queries and mutations – parameters and variable types\n\n| Operation | Parameter(s) | Variable type (GraphQL) | Return type |\n|-----------|---------------|-------------------------|-------------|\n\n**Removed:** `createEmailPatternImport`, `createAppointmentImport` (legacy tkdjob-era).\n\nUse **camelCase** in GraphQL variables. See Input Types below.\n\n## Canonical SDL (gateway schema)\n\nRegenerate the full schema from `contact360.io/api` with:\n\n`python -c \"from app.graphql.schema import schema; print(schema.as_str())\"`\n\n| Mutation | Backend | Notes |\n|----------|---------|--------|"
+}

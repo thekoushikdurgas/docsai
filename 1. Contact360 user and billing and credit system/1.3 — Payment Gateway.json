@@ -1,0 +1,410 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "1. Contact360 user and billing and credit system/1.3 — Payment Gateway.md",
+  "sha256_source": "09b33a55df2a0668341ef917776a1a93c724488569d38f6b02f62fa141b2958c",
+  "generated_at": "2026-04-08T23:11:49.756988+00:00",
+  "title": "Version 1.3 — Payment Gateway",
+  "version": "1.3",
+  "codename": "Payment Gateway",
+  "era": 1,
+  "minor": 3,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"1.3.x Payment Gateway\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    purchase[\"purchaseAddon or subscribe\"]\n    purchase --> proof[\"submitPaymentProof plus S3 artifact\"]\n    proof --> admin[\"admin review queue\"]\n    admin --> decision[\"approvePayment or declinePayment\"]\n    decision --> ledger[\"credits table update\"]\n    ledger --> gate[\"1.3 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.\nTheme: **Vault**.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Billing types in `docs/backend/apis/10_BILLING_MODULE.md` (or equivalent).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Idempotency key header for subscribe/purchase/proof.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `1.3.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Contract**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Freeze s3storage “proof object class policy” for payment screenshots:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "required content-type and max size,",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "deterministic prefix and metadata.json linkage.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "File upload contract is compatible with billing proof UI:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Billing UI sends the file + `upi-reference` text to gateway.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Service**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "s3storage upload endpoints validate per object class and store proof under prefix model (e.g., `{bucket_id}/upload/`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Metadata worker updates `metadata.json` to support later verification/replay.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Surface**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`PaymentModal` validates screenshot input and provides clear error states for unsupported formats.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Data**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Persist `payment_submissions.proof_url` only after successful s3storage upload.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Ops**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Upload negative tests:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "invalid file types rejected,",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "oversized proofs rejected with a safe error envelope.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Codebases: `[s3storage][appointment360][app]`",
+        "codebase": "s3storage",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Server-side validation of proof metadata; no double-credit on retry.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Decline path: reason code + user-visible state.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `1.3.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `UpiPaymentModal` / billing service hooks; admin payment list.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `1.3.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Billing page, proof upload, success/error toasts, admin queue.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `payment_submissions` (or equivalent) + linkage to `users.uuid`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: logs.api audit events: payment_received, payment_approved.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `1.3.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Plans, subscriptions, payment proofs metadata, credits adjustment history.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: ER note for payment tables",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Manual reconciliation runbook for stuck submissions.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `1.3.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 1.3 — Payment Gateway",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (1.3.0 – 1.3.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "1.3.0 — Keycard (State machine doc)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][s3storage][app][admin][logsapi]`"
+    },
+    {
+      "heading": "1.3.1 — Lock (Authorization)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][admin]`"
+    },
+    {
+      "heading": "1.3.2 — Ledger (DB schema)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][logsapi]`"
+    },
+    {
+      "heading": "1.3.4 — Submit (User submit)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app][s3storage]`"
+    },
+    {
+      "heading": "1.3.5 — Review (Admin list)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][admin][logsapi]`"
+    },
+    {
+      "heading": "1.3.6 — Approve (Happy path credit)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][logsapi][admin][app]`"
+    },
+    {
+      "heading": "1.3.7 — Credit (Ledger atomicity)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][admin]`"
+    },
+    {
+      "heading": "1.3.8 — Record (logs.api)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[logsapi][appointment360][admin]`"
+    },
+    {
+      "heading": "1.3.9 — Close (Freeze)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app][s3storage][admin][logsapi]`"
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

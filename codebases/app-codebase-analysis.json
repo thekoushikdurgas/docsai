@@ -1,0 +1,1016 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/app-codebase-analysis.md",
+  "sha256_source": "35db24a99160acfec639db654dc6225a6cfb1b54f0c3d92b87c7302a6a888258",
+  "generated_at": "2026-04-08T23:26:46.955160+00:00",
+  "title": "Contact360 App Codebase Analysis (contact360.io/app)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Contact360 App Codebase Analysis (contact360.io/app)",
+      "level": 1,
+      "slug": "contact360-app-codebase-analysis-contact360ioapp",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`contact360.io/app` is the primary authenticated Contact360 dashboard runtime. It is the operational frontend where user identity, billing/credits, email workflows, contact/company data, jobs, files, admin tools, integrations, and AI entrypoints are composed into one product surface. The app is implemented in Next.js + React + TypeScript and depends on `contact360.io/api` (Appointment360 GraphQL gateway) for nearly all business operations.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture snapshot",
+      "level": 2,
+      "slug": "runtime-architecture-snapshot",
+      "prose": "- Framework/runtime: Next.js app-router frontend with route groups for auth and dashboard.\n- Auth and role layer: `AuthContext`, `RoleContext`, `useSessionGuard`, route gating in dashboard layouts.\n- GraphQL contract layer: `src/lib/graphqlClient.ts` + `src/services/graphql/*`.\n- Domain hooks: `useBilling`, `useJobs`, `useCsvUpload`, `useLinkedIn`, `useAdmin`, `useContacts*`, `useCompanies*`, `useEmail*`.\n- Surface shell: `MainLayout`, `Sidebar`, `DashboardAccessGate`, page-level layouts and modals.\n- Data boundaries: no direct DB access from frontend; writes/reads go through GraphQL gateway clients.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Framework/runtime: Next.js app-router frontend with route groups for auth and dashboard.",
+              "checked": null
+            },
+            {
+              "text": "Auth and role layer: `AuthContext`, `RoleContext`, `useSessionGuard`, route gating in dashboard layouts.",
+              "checked": null
+            },
+            {
+              "text": "GraphQL contract layer: `src/lib/graphqlClient.ts` + `src/services/graphql/*`.",
+              "checked": null
+            },
+            {
+              "text": "Domain hooks: `useBilling`, `useJobs`, `useCsvUpload`, `useLinkedIn`, `useAdmin`, `useContacts*`, `useCompanies*`, `useEmail*`.",
+              "checked": null
+            },
+            {
+              "text": "Surface shell: `MainLayout`, `Sidebar`, `DashboardAccessGate`, page-level layouts and modals.",
+              "checked": null
+            },
+            {
+              "text": "Data boundaries: no direct DB access from frontend; writes/reads go through GraphQL gateway clients.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ Auth/session frontend flow exists (login/register/session restore/logout) with GraphQL-backed token flow.\n- [x] ✅ Billing/credits UI is implemented with plan, invoice, add-on, and payment-proof flows.\n- [x] ✅ Email workflows are implemented for finder/verifier (single + bulk) and export/import job creation.\n- [x] ✅ Contact/company modules exist with search/filter/import and saved-search interactions.\n- [x] ✅ S3 upload/download frontends are wired through GraphQL (`s3Service`) rather than direct browser AWS SDK usage.\n- [x] ✅ Jobs/files surfaces exist with status, retries, previews, and csv upload orchestration; **job taxonomy** (`jobFamily`, `jobSubtype`, `sourceService`) and shared UI (`UnifiedJobProgress`, `RecentJobsStrip`, `JobFamilyTabs`) align with email.server + sync.server orchestration in the API.\n- [x] ✅ Admin area has SuperAdmin gating and user list/refresh/delete flow.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Auth/session frontend flow exists (login/register/session restore/logout) with GraphQL-backed token flow.",
+              "checked": true
+            },
+            {
+              "text": "✅ Billing/credits UI is implemented with plan, invoice, add-on, and payment-proof flows.",
+              "checked": true
+            },
+            {
+              "text": "✅ Email workflows are implemented for finder/verifier (single + bulk) and export/import job creation.",
+              "checked": true
+            },
+            {
+              "text": "✅ Contact/company modules exist with search/filter/import and saved-search interactions.",
+              "checked": true
+            },
+            {
+              "text": "✅ S3 upload/download frontends are wired through GraphQL (`s3Service`) rather than direct browser AWS SDK usage.",
+              "checked": true
+            },
+            {
+              "text": "✅ Jobs/files surfaces exist with status, retries, previews, and csv upload orchestration; **job taxonomy** (`jobFamily`, `jobSubtype`, `sourceService`) and shared UI (`UnifiedJobProgress`, `RecentJobsStrip`, `JobFamilyTabs`) align with email.server + sync.server orchestration in the API.",
+              "checked": true
+            },
+            {
+              "text": "✅ Admin area has SuperAdmin gating and user list/refresh/delete flow.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Feature completeness drift",
+      "level": 3,
+      "slug": "feature-completeness-drift",
+      "prose": "- [ ] ⬜ Incomplete: `app/(dashboard)/ai-chat/page.tsx` still uses local `mockSend` and is not wired to live AI chat mutation path.\n- [ ] ⬜ Incomplete: `app/(dashboard)/linkedin/page.tsx` CSV mapping submit still uses timeout simulation (`setTimeout`) instead of backend job mutation.\n- [ ] 🟡 In Progress: `app/(dashboard)/admin/page.tsx` contains \"Edit user (coming soon)\" UX with missing mutation flow.\n- [ ] ⬜ Incomplete: `app/(dashboard)/settings/page.tsx` only redirects to `/profile`; dedicated settings information architecture is absent.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: `app/(dashboard)/ai-chat/page.tsx` still uses local `mockSend` and is not wired to live AI chat mutation path.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `app/(dashboard)/linkedin/page.tsx` CSV mapping submit still uses timeout simulation (`setTimeout`) instead of backend job mutation.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: `app/(dashboard)/admin/page.tsx` contains \"Edit user (coming soon)\" UX with missing mutation flow.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `app/(dashboard)/settings/page.tsx` only redirects to `/profile`; dedicated settings information architecture is absent.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract and governance drift",
+      "level": 3,
+      "slug": "contract-and-governance-drift",
+      "prose": "- [ ] 🟡 In Progress: UI module set is broad, but contract parity with Appointment360 module evolution needs continuous synchronization.\n- [ ] ⬜ Incomplete: campaign-first UI modules for `10.x.x` are not yet represented as first-class dashboard pages/services.\n- [ ] ⬜ Incomplete: role/page visibility and plan entitlements need stricter cross-doc parity checks with admin/governance documentation.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: UI module set is broad, but contract parity with Appointment360 module evolution needs continuous synchronization.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign-first UI modules for `10.x.x` are not yet represented as first-class dashboard pages/services.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: role/page visibility and plan entitlements need stricter cross-doc parity checks with admin/governance documentation.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Reliability and observability gaps",
+      "level": 3,
+      "slug": "reliability-and-observability-gaps",
+      "prose": "- [ ] 🟡 In Progress: retry patterns exist in multipart upload and some hooks, but are not fully unified across all user-triggered network mutations.\n- [ ] ⬜ Incomplete: frontend action telemetry normalization to `logs.api` is incomplete for all high-value user actions.\n- [ ] 📌 Planned: standardized client-side error taxonomy and incident-facing dashboards for all product modules.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: retry patterns exist in multipart upload and some hooks, but are not fully unified across all user-triggered network mutations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: frontend action telemetry normalization to `logs.api` is incomplete for all high-value user actions.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: standardized client-side error taxonomy and incident-facing dashboards for all product modules.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-service dependency map (release gating)",
+      "level": 2,
+      "slug": "cross-service-dependency-map-release-gating",
+      "prose": "- [x] ✅ `contact360.io/app` -> `contact360.io/api` (primary GraphQL contract).\n- [x] ✅ `contact360.io/app` -> `lambda/s3storage` via Appointment360 `s3/upload` GraphQL modules.\n- [x] ✅ `contact360.io/app` -> `lambda/emailapis`/`lambda/emailapigo` via Appointment360 email/jobs modules.\n- [x] ✅ `contact360.io/app` -> `contact360.io/admin` governance workflows through admin GraphQL modules.\n- [ ] 🟡 In Progress: `contact360.io/app` -> `lambda/logs.api` for complete frontend user-action telemetry (currently partial/indirect through backend).\n- [ ] 📌 Planned: `contact360.io/app` -> campaign orchestration services once `10.x` modules ship.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `contact360.io/app` -> `contact360.io/api` (primary GraphQL contract).",
+              "checked": true
+            },
+            {
+              "text": "✅ `contact360.io/app` -> `lambda/s3storage` via Appointment360 `s3/upload` GraphQL modules.",
+              "checked": true
+            },
+            {
+              "text": "✅ `contact360.io/app` -> `lambda/emailapis`/`lambda/emailapigo` via Appointment360 email/jobs modules.",
+              "checked": true
+            },
+            {
+              "text": "✅ `contact360.io/app` -> `contact360.io/admin` governance workflows through admin GraphQL modules.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: `contact360.io/app` -> `lambda/logs.api` for complete frontend user-action telemetry (currently partial/indirect through backend).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `contact360.io/app` -> campaign orchestration services once `10.x` modules ship.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage-control-plane migration map (direct S3 -> s3storage)",
+      "level": 2,
+      "slug": "storage-control-plane-migration-map-direct-s3---s3storage",
+      "prose": "- [x] ✅ Current app upload and file operations run through GraphQL `s3Service`/`upload` modules (no direct frontend `boto3` pattern).\n- [ ] 🟡 In Progress: enforce contract-level checks so new app features cannot bypass `s3storage` paths.\n- [ ] 📌 Planned: add release gate asserting all file/binary interactions remain `s3storage`-mediated.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Current app upload and file operations run through GraphQL `s3Service`/`upload` modules (no direct frontend `boto3` pattern).",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: enforce contract-level checks so new app features cannot bypass `s3storage` paths.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add release gate asserting all file/binary interactions remain `s3storage`-mediated.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Log-unification migration map (local logs/console -> logs.api)",
+      "level": 2,
+      "slug": "log-unification-migration-map-local-logsconsole---logsapi",
+      "prose": "- [x] ✅ Most business event logging is expected via backend orchestration into `logs.api`.\n- [ ] 🟡 In Progress: unify frontend event and error breadcrumbs into a single `logs.api` schema through Appointment360 mutation/query contracts.\n- [ ] ⬜ Incomplete: remove residual ad-hoc client logging patterns in production-critical flows.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Most business event logging is expected via backend orchestration into `logs.api`.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: unify frontend event and error breadcrumbs into a single `logs.api` schema through Appointment360 mutation/query contracts.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove residual ad-hoc client logging patterns in production-critical flows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ GraphQL service modules cover core auth, billing, email, contacts, companies, jobs, files, admin, analytics.\n- [ ] 🟡 In Progress: keep all page-level payload assumptions synced with backend schema updates.\n- [ ] ⬜ Incomplete: formalize contract tests for AI chat, LinkedIn CSV mapping, and admin edit-user flows.\n- [ ] ⬜ Incomplete: define campaign contract surfaces (sequences/templates/send controls) for `10.x`.\n- [ ] 📌 Planned: publish app-facing public/private GraphQL consumption policy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ GraphQL service modules cover core auth, billing, email, contacts, companies, jobs, files, admin, analytics.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: keep all page-level payload assumptions synced with backend schema updates.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formalize contract tests for AI chat, LinkedIn CSV mapping, and admin edit-user flows.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define campaign contract surfaces (sequences/templates/send controls) for `10.x`.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: publish app-facing public/private GraphQL consumption policy.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Core domain hooks and service wrappers are in place for most modules.\n- [ ] 🟡 In Progress: connect mock/placeholder flows (`ai-chat`, `linkedin`, partial admin) to production mutations.\n- [ ] ⬜ Incomplete: add shared request retry/backoff/error transformation utilities for consistency.\n- [ ] ⬜ Incomplete: complete settings/security service model as first-class feature area.\n- [ ] 📌 Planned: add feature-flag infrastructure for phased era rollouts.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core domain hooks and service wrappers are in place for most modules.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: connect mock/placeholder flows (`ai-chat`, `linkedin`, partial admin) to production mutations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add shared request retry/backoff/error transformation utilities for consistency.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete settings/security service model as first-class feature area.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add feature-flag infrastructure for phased era rollouts.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Dashboard shell, route groups, role-aware navigation, and major module pages are implemented.\n- [ ] 🟡 In Progress: normalize UX states (loading/error/empty/success) across all pages to common standards.\n- [ ] ⬜ Incomplete: build dedicated settings workspace instead of redirect shim.\n- [ ] ⬜ Incomplete: implement complete admin edit action UX and mutation flow.\n- [ ] 📌 Planned: campaign operator workspace for planning/sending/reporting.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Dashboard shell, route groups, role-aware navigation, and major module pages are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: normalize UX states (loading/error/empty/success) across all pages to common standards.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: build dedicated settings workspace instead of redirect shim.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement complete admin edit action UX and mutation flow.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign operator workspace for planning/sending/reporting.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Frontend data operations are service-mediated through GraphQL instead of direct DB coupling.\n- [ ] 🟡 In Progress: strengthen typed contract validation and schema drift detection in CI.\n- [ ] ⬜ Incomplete: unify analytics/event schema across app modules for clean lineage.\n- [ ] ⬜ Incomplete: guarantee idempotent handling for repeated user submits in all critical flows.\n- [ ] 📌 Planned: add campaign data lineage surfaces and evidence tooling.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Frontend data operations are service-mediated through GraphQL instead of direct DB coupling.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: strengthen typed contract validation and schema drift detection in CI.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: unify analytics/event schema across app modules for clean lineage.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: guarantee idempotent handling for repeated user submits in all critical flows.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add campaign data lineage surfaces and evidence tooling.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Error boundary, status indicators, and baseline operational UX patterns exist.\n- [ ] 🟡 In Progress: improve performance budgets and lazy-loading for heavy dashboard modules.\n- [ ] ⬜ Incomplete: route-level SLO instrumentation and alert-friendly UI telemetry is not complete.\n- [ ] ⬜ Incomplete: full release checklist linking app routes to backend readiness gates.\n- [ ] 📌 Planned: formal frontend reliability scorecard for each era release.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Error boundary, status indicators, and baseline operational UX patterns exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve performance budgets and lazy-loading for heavy dashboard modules.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: route-level SLO instrumentation and alert-friendly UI telemetry is not complete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full release checklist linking app routes to backend readiness gates.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: formal frontend reliability scorecard for each era release.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Next.js dashboard shell, route groups, contexts, and shared UI foundation established.\n- [x] ✅ GraphQL client + service layer baseline implemented.\n- [ ] 🟡 In Progress: finalize codebase-wide standards for request/error/loading state normalization.\n- [ ] ⬜ Incomplete: remove remaining placeholder/mocked UI flows from foundational pages.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Next.js dashboard shell, route groups, contexts, and shared UI foundation established.",
+              "checked": true
+            },
+            {
+              "text": "✅ GraphQL client + service layer baseline implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: finalize codebase-wide standards for request/error/loading state normalization.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove remaining placeholder/mocked UI flows from foundational pages.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ Auth, role awareness, billing/credits dashboards, invoices, and payment-proof submission exist.\n- [ ] 🟡 In Progress: tighten entitlement and plan-based feature gating across all routes.\n- [ ] ⬜ Incomplete: complete admin user-edit lifecycle for account governance.\n- [ ] 📌 Planned: expand enterprise billing governance and tenant-level controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Auth, role awareness, billing/credits dashboards, invoices, and payment-proof submission exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: tighten entitlement and plan-based feature gating across all routes.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete admin user-edit lifecycle for account governance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: expand enterprise billing governance and tenant-level controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ Email finder/verifier single+bulk and export/import job creation are operational.\n- [ ] 🟡 In Progress: harden email workflow UX contracts for retries, partial failures, and deterministic user guidance.\n- [ ] ⬜ Incomplete: unify advanced template/pattern management UX and API consistency.\n- [ ] 📌 Planned: full campaign preparation experience groundwork.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Email finder/verifier single+bulk and export/import job creation are operational.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden email workflow UX contracts for retries, partial failures, and deterministic user guidance.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: unify advanced template/pattern management UX and API consistency.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: full campaign preparation experience groundwork.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [x] ✅ Contacts/companies list/search/filter/import/saved-search surfaces exist.\n- [ ] 🟡 In Progress: improve high-volume table performance and state persistence.\n- [ ] ⬜ Incomplete: complete advanced dedup/conflict-resolution UI pathways.\n- [ ] 📌 Planned: deeper lineage and provenance views for imported/enriched records.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Contacts/companies list/search/filter/import/saved-search surfaces exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve high-volume table performance and state persistence.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete advanced dedup/conflict-resolution UI pathways.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: deeper lineage and provenance views for imported/enriched records.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [x] ✅ LinkedIn and Sales Navigator-facing modules are present in UI/service layers.\n- [ ] 🟡 In Progress: wire LinkedIn CSV mapping flow to real backend job pipeline.\n- [ ] ⬜ Incomplete: complete extension-to-dashboard synchronization views and failure diagnostics.\n- [ ] 📌 Planned: operator-grade Sales Navigator orchestration controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ LinkedIn and Sales Navigator-facing modules are present in UI/service layers.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: wire LinkedIn CSV mapping flow to real backend job pipeline.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete extension-to-dashboard synchronization views and failure diagnostics.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: operator-grade Sales Navigator orchestration controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [x] ✅ AI chat/operator surface exists as a product shell.\n- [ ] ⬜ Incomplete: replace `mockSend` with live Appointment360 AI chat operations.\n- [ ] 🟡 In Progress: align AI result UX with persisted history, retry policy, and audit metadata.\n- [ ] 📌 Planned: AI-assisted multi-step workflow automation across contacts/companies/email/jobs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ AI chat/operator surface exists as a product shell.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: replace `mockSend` with live Appointment360 AI chat operations.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: align AI result UX with persisted history, retry policy, and audit metadata.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI-assisted multi-step workflow automation across contacts/companies/email/jobs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ Baseline operational controls (guards, job status, upload progress, error states) exist.\n- [ ] 🟡 In Progress: standardize resilience patterns across all network-heavy hooks/services.\n- [ ] ⬜ Incomplete: complete route-level telemetry and failure-budget visibility.\n- [ ] 📌 Planned: automated reliability conformance checks per release candidate.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Baseline operational controls (guards, job status, upload progress, error states) exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: standardize resilience patterns across all network-heavy hooks/services.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete route-level telemetry and failure-budget visibility.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: automated reliability conformance checks per release candidate.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ App is deployable and integrated into current platform runtime.\n- [ ] 🟡 In Progress: tighten environment/secret readiness checks and release runbooks.\n- [ ] ⬜ Incomplete: formalize production deployment gates for app/backend contract parity.\n- [ ] 📌 Planned: progressive rollout controls with UI-level feature flags.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ App is deployable and integrated into current platform runtime.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: tighten environment/secret readiness checks and release runbooks.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formalize production deployment gates for app/backend contract parity.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: progressive rollout controls with UI-level feature flags.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [x] ✅ App consumes private GraphQL endpoints for internal product modules.\n- [ ] 🟡 In Progress: document/validate which app flows are public-partner-safe vs internal-only.\n- [ ] ⬜ Incomplete: add frontend conformance checks for endpoint contract changes.\n- [ ] 📌 Planned: partner-facing module packaging and docs-aware endpoint discovery UX.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ App consumes private GraphQL endpoints for internal product modules.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: document/validate which app flows are public-partner-safe vs internal-only.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add frontend conformance checks for endpoint contract changes.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: partner-facing module packaging and docs-aware endpoint discovery UX.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [x] ✅ Integration-facing UI presence exists (LinkedIn, exports, jobs, admin operational surfaces).\n- [ ] 🟡 In Progress: unify integration module UX patterns and readiness indicators.\n- [ ] ⬜ Incomplete: build platform productization controls (integration lifecycle, quotas, failures).\n- [ ] 📌 Planned: ecosystem marketplace and integration governance experiences.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Integration-facing UI presence exists (LinkedIn, exports, jobs, admin operational surfaces).",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: unify integration module UX patterns and readiness indicators.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: build platform productization controls (integration lifecycle, quotas, failures).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: ecosystem marketplace and integration governance experiences.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] ⬜ Incomplete: dedicated campaign module pages (compose/sequence/schedule/sends) are not complete.\n- [ ] ⬜ Incomplete: campaign analytics and compliance dashboards are not complete.\n- [ ] 📌 Planned: launch campaign operator workspace integrated with credits, contacts, and AI.\n- [ ] 📌 Planned: add campaign delivery guardrails and post-send intelligence surfaces.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: dedicated campaign module pages (compose/sequence/schedule/sends) are not complete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign analytics and compliance dashboards are not complete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: launch campaign operator workspace integrated with credits, contacts, and AI.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add campaign delivery guardrails and post-send intelligence surfaces.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [ ] 🟡 In Progress: replace AI chat mock flow with production `aiChats.sendAiMessage` pipeline and persistence.\n- [ ] 🟡 In Progress: replace LinkedIn CSV timeout simulation with backend job mutation and status polling.\n- [ ] ⬜ Incomplete: implement admin \"edit user\" mutation flow and audit-safe UX.\n- [ ] ⬜ Incomplete: create dedicated settings route surface (security, sessions, API keys, notifications).\n- [ ] ⬜ Incomplete: add app-level release gate checks for schema drift and route-contract coverage.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: replace AI chat mock flow with production `aiChats.sendAiMessage` pipeline and persistence.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: replace LinkedIn CSV timeout simulation with backend job mutation and status polling.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement admin \"edit user\" mutation flow and audit-safe UX.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: create dedicated settings route surface (security, sessions, API keys, notifications).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add app-level release gate checks for schema drift and route-contract coverage.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 - must close for release safety",
+      "level": 3,
+      "slug": "p0---must-close-for-release-safety",
+      "prose": "- [ ] ⬜ Incomplete: eliminate mock/placeholder production paths (`ai-chat`, LinkedIn CSV mapping, settings redirect).\n- [ ] ⬜ Incomplete: complete critical admin governance UX (`edit user` + audit-safe confirmations).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: eliminate mock/placeholder production paths (`ai-chat`, LinkedIn CSV mapping, settings redirect).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete critical admin governance UX (`edit user` + audit-safe confirmations).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2 - required for maturity",
+      "level": 3,
+      "slug": "p1p2---required-for-maturity",
+      "prose": "- [ ] 🟡 In Progress: unify error/retry/loading behavior contracts across all service hooks.\n- [ ] 🟡 In Progress: complete telemetry normalization for route-level user actions and failures.\n- [ ] 📌 Planned: strengthen module-by-module contract parity validation in CI.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: unify error/retry/loading behavior contracts across all service hooks.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: complete telemetry normalization for route-level user actions and failures.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: strengthen module-by-module contract parity validation in CI.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+ - platform productization",
+      "level": 3,
+      "slug": "p3---platform-productization",
+      "prose": "- [ ] 📌 Planned: campaign UI system for `10.x.x` launch readiness.\n- [ ] 📌 Planned: ecosystem integration governance UX and partner module boundaries.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: campaign UI system for `10.x.x` launch readiness.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: ecosystem integration governance UX and partner module boundaries.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

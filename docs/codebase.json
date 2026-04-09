@@ -1,0 +1,2224 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/codebase.md",
+  "sha256_source": "5b81e3558ed0b576950681082b44d92f4dfaae15b8575cd66c4feaf20a4df539",
+  "generated_at": "2026-04-08T23:26:47.974465+00:00",
+  "title": "Contact360 Codebase Deep Map",
+  "sections": [
+    {
+      "heading": "Contact360 Codebase Deep Map",
+      "level": 1,
+      "slug": "contact360-codebase-deep-map",
+      "prose": "**Frontend surfaces (dashboard, marketing, DocsAI, extension):** see **`docs/frontend.md`**. **Backend services:** **`docs/backend.md`**.\n**Deep per-service analyses:** see **`docs/codebases/README.md`**.\n\n**Stack direction:** **`docs/docs/backend-language-strategy.md`** (Python GraphQL gateway + Go/Gin satellites).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Monorepo structure",
+      "level": 2,
+      "slug": "monorepo-structure",
+      "prose": "This table lists the **canonical service and app folders** for this workspace. Legacy paths are tracked separately below.\n\n| Path | Role | Primary tech | Primary API entry |\n| --- | --- | --- | --- |\n| `contact360.io/app/` | Authenticated product (dashboard) | Next.js 16, React 19, TypeScript | GraphQL via `contact360.io/api` |\n| `contact360.io/root/` | Public marketing site | Next.js 16, React 19, TypeScript | Mixed (static + GraphQL for forms where used) |\n| `contact360.io/admin/` | DocsAI — internal roadmap/architecture mirrors and control plane | Django | Internal / admin (GraphQL → `contact360.io/api`) |\n| `contact360.io/email/` | Mailbox/email web surface | Next.js 16, React 19, TypeScript | Mixed (GraphQL auth + REST mailbox backend) |\n| `contact360.io/api/` | Appointment360 GraphQL gateway | FastAPI (Python), Strawberry GraphQL | GraphQL (`/graphql`) |\n| `contact360.io/sync/` | Connectra search / VQL data plane | Go (Gin), Elasticsearch | REST / internal |\n| `contact360.io/jobs/` | TKD Job scheduler and DAG workers | Python (gateway client) + Go (EC2 job server) | REST / internal |\n| `contact360.io/joblevel/` | Joblevel recruiting UI | Next.js App Router | GraphQL via `contact360.io/api` |\n| `EC2/ai.server/` | AI + resume AI service (`contact360.io/ai`) | Go (Gin) | REST / internal |\n| `EC2/email.server/` | Email APIs (finder/verifier) service (`contact360.io/emailapi`) | Go (Gin) | REST / internal |\n| `EC2/email campaign/` | Email campaign engine (`contact360.io/emailcampaign`) | Go (Gin), Asynq (Redis) | REST / internal |\n| `EC2/extension.server/` | Sales Navigator / extension façade (`contact360.io/extension`) | Go (Gin) | REST / internal |\n| `EC2/log.server/` | Logs API service (`contact360.io/logsapi`) | Go (Gin) | REST / internal |\n| `EC2/s3storage.server/` | S3 storage control plane (`contact360.io/s3storage`) | Go (Gin) | REST / internal |\n| `contact360.extension/` | Chrome extension codebase (MV3) | JavaScript / TypeScript | GraphQL via `contact360.io/api` + REST to satellites |",
+      "tables": [
+        {
+          "headers": [
+            "Path",
+            "Role",
+            "Primary tech",
+            "Primary API entry"
+          ],
+          "rows": [
+            [
+              "`contact360.io/app/`",
+              "Authenticated product (dashboard)",
+              "Next.js 16, React 19, TypeScript",
+              "GraphQL via `contact360.io/api`"
+            ],
+            [
+              "`contact360.io/root/`",
+              "Public marketing site",
+              "Next.js 16, React 19, TypeScript",
+              "Mixed (static + GraphQL for forms where used)"
+            ],
+            [
+              "`contact360.io/admin/`",
+              "DocsAI — internal roadmap/architecture mirrors and control plane",
+              "Django",
+              "Internal / admin (GraphQL → `contact360.io/api`)"
+            ],
+            [
+              "`contact360.io/email/`",
+              "Mailbox/email web surface",
+              "Next.js 16, React 19, TypeScript",
+              "Mixed (GraphQL auth + REST mailbox backend)"
+            ],
+            [
+              "`contact360.io/api/`",
+              "Appointment360 GraphQL gateway",
+              "FastAPI (Python), Strawberry GraphQL",
+              "GraphQL (`/graphql`)"
+            ],
+            [
+              "`contact360.io/sync/`",
+              "Connectra search / VQL data plane",
+              "Go (Gin), Elasticsearch",
+              "REST / internal"
+            ],
+            [
+              "`contact360.io/jobs/`",
+              "TKD Job scheduler and DAG workers",
+              "Python (gateway client) + Go (EC2 job server)",
+              "REST / internal"
+            ],
+            [
+              "`contact360.io/joblevel/`",
+              "Joblevel recruiting UI",
+              "Next.js App Router",
+              "GraphQL via `contact360.io/api`"
+            ],
+            [
+              "`EC2/ai.server/`",
+              "AI + resume AI service (`contact360.io/ai`)",
+              "Go (Gin)",
+              "REST / internal"
+            ],
+            [
+              "`EC2/email.server/`",
+              "Email APIs (finder/verifier) service (`contact360.io/emailapi`)",
+              "Go (Gin)",
+              "REST / internal"
+            ],
+            [
+              "`EC2/email campaign/`",
+              "Email campaign engine (`contact360.io/emailcampaign`)",
+              "Go (Gin), Asynq (Redis)",
+              "REST / internal"
+            ],
+            [
+              "`EC2/extension.server/`",
+              "Sales Navigator / extension façade (`contact360.io/extension`)",
+              "Go (Gin)",
+              "REST / internal"
+            ],
+            [
+              "`EC2/log.server/`",
+              "Logs API service (`contact360.io/logsapi`)",
+              "Go (Gin)",
+              "REST / internal"
+            ],
+            [
+              "`EC2/s3storage.server/`",
+              "S3 storage control plane (`contact360.io/s3storage`)",
+              "Go (Gin)",
+              "REST / internal"
+            ],
+            [
+              "`contact360.extension/`",
+              "Chrome extension codebase (MV3)",
+              "JavaScript / TypeScript",
+              "GraphQL via `contact360.io/api` + REST to satellites"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Legacy and alternate paths",
+      "level": 2,
+      "slug": "legacy-and-alternate-paths",
+      "prose": "Older docs and some historical monorepos use different folder layouts. Treat these as **aliases only**; new work should reference the canonical paths above.\n\n| Older / logical path | Typical role | Canonical in this workspace |\n| --- | --- | --- |\n| `contact360/dashboard/` | Dashboard app | `contact360.io/app/` |\n| `contact360/marketing/` | Marketing site | `contact360.io/root/` |\n| `contact360/docsai/` | Django DocsAI | `contact360.io/admin/` |\n| `lambda/appointment360/` | GraphQL gateway | `contact360.io/api/` |\n| `lambda/connectra/` | Connectra | `contact360.io/sync/` |\n| `EC2/email.server`, `EC2/sync.server` | Async jobs (finder/verify/import/export) | Satellites behind gateway `jobs` module (`scheduler_jobs`) |\n| `lambda/emailapis/` | Email APIs (Python orchestration) | `EC2/email.server/` (Go target) |\n| `lambda/emailapigo/` | Email APIs (Go workers) | `EC2/email.server/` |\n| `lambda/logs.api/` | Logs API (Python) | `EC2/log.server/` |\n| `lambda/s3storage/` | S3 storage (Python) | `EC2/s3storage.server/` |\n| `lambda/mailvetter/` | Mailvetter verifier | `backend(dev)/mailvetter/` (service tree) |\n| `backend(dev)/mailvetter/` | Verification engine | `backend(dev)/mailvetter/` (service tree) |\n| `backend(dev)/contact.ai/` | Contact AI service | `EC2/ai.server/` (Go target) |\n| `backend(dev)/resumeai/` | Resume AI service | `EC2/ai.server/` (Go target) |\n| `backend(dev)/salesnavigator/` | Sales Navigator backend | `EC2/extension.server/` (Go target) |\n| `extension/contact360/` | Extension logic/transport layer | `contact360.extension/` repo (extension codebase) |\n\nSee **`docs/docs/architecture.md`** → *Service register (canonical)* for the full service inventory and status.\n\n**Service status:** see `docs/architecture.md` → *Service register (canonical)*.",
+      "tables": [
+        {
+          "headers": [
+            "Older / logical path",
+            "Typical role",
+            "Canonical in this workspace"
+          ],
+          "rows": [
+            [
+              "`contact360/dashboard/`",
+              "Dashboard app",
+              "`contact360.io/app/`"
+            ],
+            [
+              "`contact360/marketing/`",
+              "Marketing site",
+              "`contact360.io/root/`"
+            ],
+            [
+              "`contact360/docsai/`",
+              "Django DocsAI",
+              "`contact360.io/admin/`"
+            ],
+            [
+              "`lambda/appointment360/`",
+              "GraphQL gateway",
+              "`contact360.io/api/`"
+            ],
+            [
+              "`lambda/connectra/`",
+              "Connectra",
+              "`contact360.io/sync/`"
+            ],
+            [
+              "`EC2/email.server`, `EC2/sync.server`",
+              "Async jobs (finder/verify/import/export)",
+              "Satellites behind gateway `jobs` module (`scheduler_jobs`)"
+            ],
+            [
+              "`lambda/emailapis/`",
+              "Email APIs (Python orchestration)",
+              "`EC2/email.server/` (Go target)"
+            ],
+            [
+              "`lambda/emailapigo/`",
+              "Email APIs (Go workers)",
+              "`EC2/email.server/`"
+            ],
+            [
+              "`lambda/logs.api/`",
+              "Logs API (Python)",
+              "`EC2/log.server/`"
+            ],
+            [
+              "`lambda/s3storage/`",
+              "S3 storage (Python)",
+              "`EC2/s3storage.server/`"
+            ],
+            [
+              "`lambda/mailvetter/`",
+              "Mailvetter verifier",
+              "`backend(dev)/mailvetter/` (service tree)"
+            ],
+            [
+              "`backend(dev)/mailvetter/`",
+              "Verification engine",
+              "`backend(dev)/mailvetter/` (service tree)"
+            ],
+            [
+              "`backend(dev)/contact.ai/`",
+              "Contact AI service",
+              "`EC2/ai.server/` (Go target)"
+            ],
+            [
+              "`backend(dev)/resumeai/`",
+              "Resume AI service",
+              "`EC2/ai.server/` (Go target)"
+            ],
+            [
+              "`backend(dev)/salesnavigator/`",
+              "Sales Navigator backend",
+              "`EC2/extension.server/` (Go target)"
+            ],
+            [
+              "`extension/contact360/`",
+              "Extension logic/transport layer",
+              "`contact360.extension/` repo (extension codebase)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Core runtime contracts",
+      "level": 2,
+      "slug": "core-runtime-contracts",
+      "prose": "- Client surfaces (`contact360.io/app`, extension) call **Appointment360** (`contact360.io/api`) as the primary contract gateway.\n- Appointment360 orchestrates service calls to finder, verifier, search, scheduling, and storage services.\n- Async flows run through **`contact360.io/jobs`**, with telemetry routed to `lambda/logs.api` and artifacts to `lambda/s3storage`.\n- Search and enrichment behavior rely on **Connectra** (`contact360.io/sync`) (query/filter/index contract).\n- `contact360.io/email` consumes backend REST contracts via `NEXT_PUBLIC_BACKEND_URL` and is not GraphQL-only.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Client surfaces (`contact360.io/app`, extension) call **Appointment360** (`contact360.io/api`) as the primary contract gateway.",
+              "checked": null
+            },
+            {
+              "text": "Appointment360 orchestrates service calls to finder, verifier, search, scheduling, and storage services.",
+              "checked": null
+            },
+            {
+              "text": "Async flows run through **`contact360.io/jobs`**, with telemetry routed to `lambda/logs.api` and artifacts to `lambda/s3storage`.",
+              "checked": null
+            },
+            {
+              "text": "Search and enrichment behavior rely on **Connectra** (`contact360.io/sync`) (query/filter/index contract).",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/email` consumes backend REST contracts via `NEXT_PUBLIC_BACKEND_URL` and is not GraphQL-only.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deep decomposition framework (how to break work)",
+      "level": 2,
+      "slug": "deep-decomposition-framework-how-to-break-work",
+      "prose": "Use five task tracks for every roadmap stage:\n\n1. **Contract track**: GraphQL/API/event contract definitions and compatibility.\n2. **Service track**: Backend implementation per owning service.\n3. **Surface track**: Dashboard/extension/docsai UX and action wiring.\n4. **Data track**: Storage, lineage, quality, and reconciliation.\n5. **Ops track**: Observability, rollback safety, and release validation.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Contract track**: GraphQL/API/event contract definitions and compatibility.",
+              "checked": null
+            },
+            {
+              "text": "**Service track**: Backend implementation per owning service.",
+              "checked": null
+            },
+            {
+              "text": "**Surface track**: Dashboard/extension/docsai UX and action wiring.",
+              "checked": null
+            },
+            {
+              "text": "**Data track**: Storage, lineage, quality, and reconciliation.",
+              "checked": null
+            },
+            {
+              "text": "**Ops track**: Observability, rollback safety, and release validation.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage focused implementation map",
+      "level": 2,
+      "slug": "s3storage-focused-implementation-map",
+      "prose": "- Primary service: `lambda/s3storage/`\n- API entrypoints: `app/api/v1/endpoints/uploads.py`, `files.py`, `schema.py`, `avatars.py`, `buckets.py`\n- Core backend abstraction: `app/services/storage_service.py` and `app/services/storage_backends.py`\n- Metadata worker path: `app/utils/worker.py`, `metadata_job.py`, `update_bucket_metadata.py`\n- Deploy contract: `lambda/s3storage/template.yaml`\n\nImmediate engineering queue:\n\n1. Replace in-memory multipart session state with durable shared storage.\n2. Remove hardcoded metadata worker function name from endpoint logic.\n3. Add concurrency-safe metadata update strategy for `metadata.json`.\n4. Add contract parity tests between `docs/API.md` and implemented routes.\n5. Add E2E failure-path test coverage (duplicate complete, missing parts, worker failure).\n\nSee full era-by-era decomposition: `docs/codebases/s3storage-codebase-analysis.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary service: `lambda/s3storage/`",
+              "checked": null
+            },
+            {
+              "text": "API entrypoints: `app/api/v1/endpoints/uploads.py`, `files.py`, `schema.py`, `avatars.py`, `buckets.py`",
+              "checked": null
+            },
+            {
+              "text": "Core backend abstraction: `app/services/storage_service.py` and `app/services/storage_backends.py`",
+              "checked": null
+            },
+            {
+              "text": "Metadata worker path: `app/utils/worker.py`, `metadata_job.py`, `update_bucket_metadata.py`",
+              "checked": null
+            },
+            {
+              "text": "Deploy contract: `lambda/s3storage/template.yaml`",
+              "checked": null
+            },
+            {
+              "text": "Replace in-memory multipart session state with durable shared storage.",
+              "checked": null
+            },
+            {
+              "text": "Remove hardcoded metadata worker function name from endpoint logic.",
+              "checked": null
+            },
+            {
+              "text": "Add concurrency-safe metadata update strategy for `metadata.json`.",
+              "checked": null
+            },
+            {
+              "text": "Add contract parity tests between `docs/API.md` and implemented routes.",
+              "checked": null
+            },
+            {
+              "text": "Add E2E failure-path test coverage (duplicate complete, missing parts, worker failure).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact360.io/jobs focused implementation map",
+      "level": 2,
+      "slug": "contact360iojobs-focused-implementation-map",
+      "prose": "- Primary service: `contact360.io/jobs/`\n- API entrypoints: `app/api/main.py`, `app/api/v1/routes/jobs.py`\n- Workers: `app/workers/scheduler.py`, `consumer.py`, `worker_pool.py`\n- Processors: `app/processors/registry.py`, stream processors under `app/processors/`\n- Models: `app/models/job_node.py`, `edge.py`, `job_event.py`\n- Services/repositories: `app/services/job_service.py`, `app/repositories/`\n- Middleware/config: `app/middleware/auth.py`, `rate_limit.py`, `app/core/config.py`\n\nImmediate engineering queue:\n\n1. Add stronger authz model beyond shared `X-API-Key`.\n2. Add detection/remediation for DAG degree-decrement deadlocks.\n3. Add idempotency keys for create/retry submission paths.\n4. Improve stale `processing` recovery guarantees and evidence.\n5. Add contract parity tests for endpoints vs docs/module mapping.\n\nEra task-pack index: `docs/backend/apis/JOBS_ERA_TASK_PACKS.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary service: `contact360.io/jobs/`",
+              "checked": null
+            },
+            {
+              "text": "API entrypoints: `app/api/main.py`, `app/api/v1/routes/jobs.py`",
+              "checked": null
+            },
+            {
+              "text": "Workers: `app/workers/scheduler.py`, `consumer.py`, `worker_pool.py`",
+              "checked": null
+            },
+            {
+              "text": "Processors: `app/processors/registry.py`, stream processors under `app/processors/`",
+              "checked": null
+            },
+            {
+              "text": "Models: `app/models/job_node.py`, `edge.py`, `job_event.py`",
+              "checked": null
+            },
+            {
+              "text": "Services/repositories: `app/services/job_service.py`, `app/repositories/`",
+              "checked": null
+            },
+            {
+              "text": "Middleware/config: `app/middleware/auth.py`, `rate_limit.py`, `app/core/config.py`",
+              "checked": null
+            },
+            {
+              "text": "Add stronger authz model beyond shared `X-API-Key`.",
+              "checked": null
+            },
+            {
+              "text": "Add detection/remediation for DAG degree-decrement deadlocks.",
+              "checked": null
+            },
+            {
+              "text": "Add idempotency keys for create/retry submission paths.",
+              "checked": null
+            },
+            {
+              "text": "Improve stale `processing` recovery guarantees and evidence.",
+              "checked": null
+            },
+            {
+              "text": "Add contract parity tests for endpoints vs docs/module mapping.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "backend(dev)/contact.ai focused implementation map",
+      "level": 2,
+      "slug": "backenddevcontactai-focused-implementation-map",
+      "prose": "- Primary service: `backend(dev)/contact.ai/`\n- App entrypoint: `app/main.py` (FastAPI + Mangum Lambda adapter)\n- API entrypoints: `app/api/v1/endpoints/ai_chats.py` (chat CRUD + send/stream), `app/api/v1/endpoints/ai.py` (email risk, company summary, parse filters)\n- Services: `app/services/hf_service.py` (HF inference routing, fallback, streaming), `app/services/ai_chat_service.py` (chat orchestration)\n- Repositories: `app/repositories/ai_chat.py` (PostgreSQL `ai_chats` CRUD)\n- Models / schemas: `app/models/ai_chat.py`, `app/schemas/ai_chat.py` (Pydantic + `ModelSelection` enum)\n- Config / dependencies: `app/core/config.py`, `app/api/dependencies.py` (`api_key_dep`, `db_session_dep`)\n\nImmediate engineering queue:\n\n1. Fix `ModelSelection` enum mapping shim: GraphQL enum values must map to HF model IDs in `LambdaAIClient`.\n2. Align `LambdaAIClient` paths to `/api/v1/ai/…` — remove any legacy `/gemini/…` references.\n3. Implement strict JSONB `messages` validation in `AIChatService` (max text length, valid sender, max contacts).\n4. Add SSE stream error handling + client reconnect for Lambda timeout edge cases.\n5. Add optimistic lock (`version` column on `ai_chats`) to prevent concurrent message append races.\n\nEra task-pack index: `docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary service: `backend(dev)/contact.ai/`",
+              "checked": null
+            },
+            {
+              "text": "App entrypoint: `app/main.py` (FastAPI + Mangum Lambda adapter)",
+              "checked": null
+            },
+            {
+              "text": "API entrypoints: `app/api/v1/endpoints/ai_chats.py` (chat CRUD + send/stream), `app/api/v1/endpoints/ai.py` (email risk, company summary, parse filters)",
+              "checked": null
+            },
+            {
+              "text": "Services: `app/services/hf_service.py` (HF inference routing, fallback, streaming), `app/services/ai_chat_service.py` (chat orchestration)",
+              "checked": null
+            },
+            {
+              "text": "Repositories: `app/repositories/ai_chat.py` (PostgreSQL `ai_chats` CRUD)",
+              "checked": null
+            },
+            {
+              "text": "Models / schemas: `app/models/ai_chat.py`, `app/schemas/ai_chat.py` (Pydantic + `ModelSelection` enum)",
+              "checked": null
+            },
+            {
+              "text": "Config / dependencies: `app/core/config.py`, `app/api/dependencies.py` (`api_key_dep`, `db_session_dep`)",
+              "checked": null
+            },
+            {
+              "text": "Fix `ModelSelection` enum mapping shim: GraphQL enum values must map to HF model IDs in `LambdaAIClient`.",
+              "checked": null
+            },
+            {
+              "text": "Align `LambdaAIClient` paths to `/api/v1/ai/…` — remove any legacy `/gemini/…` references.",
+              "checked": null
+            },
+            {
+              "text": "Implement strict JSONB `messages` validation in `AIChatService` (max text length, valid sender, max contacts).",
+              "checked": null
+            },
+            {
+              "text": "Add SSE stream error handling + client reconnect for Lambda timeout edge cases.",
+              "checked": null
+            },
+            {
+              "text": "Add optimistic lock (`version` column on `ai_chats`) to prevent concurrent message append races.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small-task template (per stage)",
+      "level": 2,
+      "slug": "small-task-template-per-stage",
+      "prose": "- Task A: Define/adjust contract and acceptance boundaries.\n- Task B: Implement service logic and edge-case guards.\n- Task C: Wire UI surface behavior and permission checks.\n- Task D: Validate data integrity and background processing behavior.\n- Task E: Add telemetry, alerts, and release/rollback notes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Task A: Define/adjust contract and acceptance boundaries.",
+              "checked": null
+            },
+            {
+              "text": "Task B: Implement service logic and edge-case guards.",
+              "checked": null
+            },
+            {
+              "text": "Task C: Wire UI surface behavior and permission checks.",
+              "checked": null
+            },
+            {
+              "text": "Task D: Validate data integrity and background processing behavior.",
+              "checked": null
+            },
+            {
+              "text": "Task E: Add telemetry, alerts, and release/rollback notes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deep breakdown examples by era",
+      "level": 2,
+      "slug": "deep-breakdown-examples-by-era",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x (user, billing, credit)",
+      "level": 3,
+      "slug": "1x-user-billing-credit",
+      "prose": "- Contract: User/credit/billing GraphQL mutations and entitlement checks.\n- Service: Auth/session, credit deduction, billing state machine, analytics queries.\n- Surface: Dashboard auth flows, credit display, billing UX, notification components.\n- Data: Credit ledger consistency, billing payment state, usage logs.\n- Ops: Credit balance observability, fraud/abuse controls, payment audit.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: User/credit/billing GraphQL mutations and entitlement checks.",
+              "checked": null
+            },
+            {
+              "text": "Service: Auth/session, credit deduction, billing state machine, analytics queries.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Dashboard auth flows, credit display, billing UX, notification components.",
+              "checked": null
+            },
+            {
+              "text": "Data: Credit ledger consistency, billing payment state, usage logs.",
+              "checked": null
+            },
+            {
+              "text": "Ops: Credit balance observability, fraud/abuse controls, payment audit.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x (email system)",
+      "level": 3,
+      "slug": "2x-email-system",
+      "prose": "- Contract: Finder/verifier GraphQL API shape and credit deduction contract.\n- Service: Pattern generation (`emailapis`), Go worker path (`emailapigo`), Mailvetter integration, bulk job processors.\n- Surface: Email UI components, bulk export flow, results display.\n- Data: Finder/verifier result storage, bulk job checkpoint and S3 output.\n- Ops: Provider fallback telemetry, bulk job health, credit deduction accuracy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: Finder/verifier GraphQL API shape and credit deduction contract.",
+              "checked": null
+            },
+            {
+              "text": "Service: Pattern generation (`emailapis`), Go worker path (`emailapigo`), Mailvetter integration, bulk job processors.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Email UI components, bulk export flow, results display.",
+              "checked": null
+            },
+            {
+              "text": "Data: Finder/verifier result storage, bulk job checkpoint and S3 output.",
+              "checked": null
+            },
+            {
+              "text": "Ops: Provider fallback telemetry, bulk job health, credit deduction accuracy.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x (contact and company data)",
+      "level": 3,
+      "slug": "3x-contact-and-company-data",
+      "prose": "- Contract: VQL filter taxonomy freeze and search schema.\n- Service: Connectra VQL translation, dual-write PG+ES, enrichment pipeline, dedup algorithm.\n- Surface: Advanced filter UI, company drill-down, saved-search feature.\n- Data: Elasticsearch index refresh, enrichment completeness, dedup quality metrics.\n- Ops: Search relevance checks, index drift alerts, P95 latency targets.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: VQL filter taxonomy freeze and search schema.",
+              "checked": null
+            },
+            {
+              "text": "Service: Connectra VQL translation, dual-write PG+ES, enrichment pipeline, dedup algorithm.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Advanced filter UI, company drill-down, saved-search feature.",
+              "checked": null
+            },
+            {
+              "text": "Data: Elasticsearch index refresh, enrichment completeness, dedup quality metrics.",
+              "checked": null
+            },
+            {
+              "text": "Ops: Search relevance checks, index drift alerts, P95 latency targets.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x (extension and Sales Navigator)",
+      "level": 3,
+      "slug": "4x-extension-and-sales-navigator",
+      "prose": "- Contract: Extension auth token contract and SN sync payload schema.\n- Service: Extension session logic, SN ingestion parser, conflict resolution, telemetry shipping.\n- Surface: Extension UI auth flows, ingestion status indicators, sync health display.\n- Data: Sync dedup, SN record lineage, error telemetry in `logs.api`.\n- Ops: Sync idempotency checks, extension error triage coverage.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: Extension auth token contract and SN sync payload schema.",
+              "checked": null
+            },
+            {
+              "text": "Service: Extension session logic, SN ingestion parser, conflict resolution, telemetry shipping.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Extension UI auth flows, ingestion status indicators, sync health display.",
+              "checked": null
+            },
+            {
+              "text": "Data: Sync dedup, SN record lineage, error telemetry in `logs.api`.",
+              "checked": null
+            },
+            {
+              "text": "Ops: Sync idempotency checks, extension error triage coverage.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x (AI workflows)",
+      "level": 3,
+      "slug": "5x-ai-workflows",
+      "prose": "- Contract: AI chat/utility GraphQL schema; confidence/explanation fields; cost quota policy.\n- Service: HF streaming client, Gemini utility paths, quota enforcement, prompt version management.\n- Surface: AI response rendering, confidence display, usage cap messaging.\n- Data: AI conversation state in PostgreSQL, model usage cost tracking.\n- Ops: AI cost per user metrics, prompt regression checks, quota breach telemetry.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: AI chat/utility GraphQL schema; confidence/explanation fields; cost quota policy.",
+              "checked": null
+            },
+            {
+              "text": "Service: HF streaming client, Gemini utility paths, quota enforcement, prompt version management.",
+              "checked": null
+            },
+            {
+              "text": "Surface: AI response rendering, confidence display, usage cap messaging.",
+              "checked": null
+            },
+            {
+              "text": "Data: AI conversation state in PostgreSQL, model usage cost tracking.",
+              "checked": null
+            },
+            {
+              "text": "Ops: AI cost per user metrics, prompt regression checks, quota breach telemetry.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x (reliability and scaling)",
+      "level": 3,
+      "slug": "6x-reliability-and-scaling",
+      "prose": "- Contract: SLO definition document; idempotency key contract for billing/bulk/sync writes.\n- Service: Retry/DLQ configuration, idempotency middleware, trace ID propagation, abuse guard.\n- Surface: Health/SLO endpoint exposure, operational dashboard updates.\n- Data: Error budget ledger, SLO attainment time-series, artifact lifecycle logs.\n- Ops: SLO attainment dashboards, cost guardrail activation, reliability RC gate.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: SLO definition document; idempotency key contract for billing/bulk/sync writes.",
+              "checked": null
+            },
+            {
+              "text": "Service: Retry/DLQ configuration, idempotency middleware, trace ID propagation, abuse guard.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Health/SLO endpoint exposure, operational dashboard updates.",
+              "checked": null
+            },
+            {
+              "text": "Data: Error budget ledger, SLO attainment time-series, artifact lifecycle logs.",
+              "checked": null
+            },
+            {
+              "text": "Ops: SLO attainment dashboards, cost guardrail activation, reliability RC gate.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x (deployment)",
+      "level": 3,
+      "slug": "7x-deployment",
+      "prose": "- Contract: RBAC role matrix, audit event schema, data lifecycle policy definitions.\n- Service: Permission-check middleware, audit event emission, tenant isolation, secret rotation.\n- Surface: Admin governance UX, role management screens, compliance reporting views.\n- Data: Immutable audit log, tenant boundary test evidence, security control attestation.\n- Ops: Audit log integrity checks, tenant isolation test coverage, deployment RC gate.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: RBAC role matrix, audit event schema, data lifecycle policy definitions.",
+              "checked": null
+            },
+            {
+              "text": "Service: Permission-check middleware, audit event emission, tenant isolation, secret rotation.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Admin governance UX, role management screens, compliance reporting views.",
+              "checked": null
+            },
+            {
+              "text": "Data: Immutable audit log, tenant boundary test evidence, security control attestation.",
+              "checked": null
+            },
+            {
+              "text": "Ops: Audit log integrity checks, tenant isolation test coverage, deployment RC gate.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x (public and private APIs)",
+      "level": 3,
+      "slug": "8x-public-and-private-apis",
+      "prose": "- Contract: API versioning policy; webhook event envelope; analytics event schema.\n- Service: Public/private API handlers, webhook delivery/retry, partner auth scopes, analytics ingestion.\n- Surface: API documentation, developer portal, analytics dashboard.\n- Data: API usage telemetry, delivery observability, analytics quality metrics.\n- Ops: API compatibility regression tests, analytics quality checks, partner incident runbooks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: API versioning policy; webhook event envelope; analytics event schema.",
+              "checked": null
+            },
+            {
+              "text": "Service: Public/private API handlers, webhook delivery/retry, partner auth scopes, analytics ingestion.",
+              "checked": null
+            },
+            {
+              "text": "Surface: API documentation, developer portal, analytics dashboard.",
+              "checked": null
+            },
+            {
+              "text": "Data: API usage telemetry, delivery observability, analytics quality metrics.",
+              "checked": null
+            },
+            {
+              "text": "Ops: API compatibility regression tests, analytics quality checks, partner incident runbooks.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x (ecosystem integrations and platform productization)",
+      "level": 3,
+      "slug": "9x-ecosystem-integrations-and-platform-productization",
+      "prose": "- Contract: Connector lifecycle schema; tenant/policy/entitlement model.\n- Service: Connector SDK, multi-tenant enforcement, entitlement engine, lifecycle automation.\n- Surface: Integration setup UX, self-serve admin workspace, support diagnostics.\n- Data: SLA reporting, compliance evidence, cost/capacity forecasting metrics.\n- Ops: SLA attainment dashboards, compliance overlays, integration health dashboards.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: Connector lifecycle schema; tenant/policy/entitlement model.",
+              "checked": null
+            },
+            {
+              "text": "Service: Connector SDK, multi-tenant enforcement, entitlement engine, lifecycle automation.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Integration setup UX, self-serve admin workspace, support diagnostics.",
+              "checked": null
+            },
+            {
+              "text": "Data: SLA reporting, compliance evidence, cost/capacity forecasting metrics.",
+              "checked": null
+            },
+            {
+              "text": "Ops: SLA attainment dashboards, compliance overlays, integration health dashboards.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x (email campaign)",
+      "level": 3,
+      "slug": "10x-email-campaign",
+      "prose": "- Contract: Campaign entity schema; policy gate rules; compliance contract.\n- Service: Campaign execution state machine, send metering, deliverability verification, PII lifecycle.\n- Surface: Campaign creation UI, audience builder, deliverability dashboard, opt-out management.\n- Data: Send metering ledger, bounce/complaint logs, opt-out audit trail.\n- Ops: Bounce rate tracking, opt-out audit completeness, feature flag gates, canary rollout.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: Campaign entity schema; policy gate rules; compliance contract.",
+              "checked": null
+            },
+            {
+              "text": "Service: Campaign execution state machine, send metering, deliverability verification, PII lifecycle.",
+              "checked": null
+            },
+            {
+              "text": "Surface: Campaign creation UI, audience builder, deliverability dashboard, opt-out management.",
+              "checked": null
+            },
+            {
+              "text": "Data: Send metering ledger, bounce/complaint logs, opt-out audit trail.",
+              "checked": null
+            },
+            {
+              "text": "Ops: Bounce rate tracking, opt-out audit completeness, feature flag gates, canary rollout.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter repository layout (onboarding)",
+      "level": 2,
+      "slug": "mailvetter-repository-layout-onboarding",
+      "prose": "The Mailvetter service root in this workspace is **`backend(dev)/mailvetter/`** (often also published as `lambda/mailvetter/` in other checkouts). Production-oriented Go sources for the verifier often live under **`app/mailvetter-bak/`** (historical folder name: **`-bak`** does *not* mean “unused backup” in all environments — treat it as the packaged app subtree unless a deployment doc says otherwise).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Per-service implementation summaries",
+      "level": 2,
+      "slug": "per-service-implementation-summaries",
+      "prose": "High-level entry points for engineers mapping features to code. For API shapes, prefer `contact360.io/api/sql/apis/*.md` and GraphQL module docs under `contact360.io/api/app/graphql/modules/`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Dashboard (contact360.io/app/)",
+      "level": 3,
+      "slug": "dashboard-contact360ioapp",
+      "prose": "- **GraphQL:** `src/services/graphql/` — feature modules (`jobsService.ts`, `billingService.ts`, `contactsService.ts`, …) call the shared GraphQL client.\n- **Feature gating:** `src/lib/featureAccess.ts` (or adjacent config) coordinates plan/feature flags with UI.\n- **Bulk export UX:** `src/hooks/useNewExport.ts` — multipart upload orchestration for CSV → job pipeline; pairs with `src/services/graphql/jobsService.ts` and S3 helpers.\n- **Styling:** Modular CSS under `app/css/*` (see app `README.md`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**GraphQL:** `src/services/graphql/` — feature modules (`jobsService.ts`, `billingService.ts`, `contactsService.ts`, …) call the shared GraphQL client.",
+              "checked": null
+            },
+            {
+              "text": "**Feature gating:** `src/lib/featureAccess.ts` (or adjacent config) coordinates plan/feature flags with UI.",
+              "checked": null
+            },
+            {
+              "text": "**Bulk export UX:** `src/hooks/useNewExport.ts` — multipart upload orchestration for CSV → job pipeline; pairs with `src/services/graphql/jobsService.ts` and S3 helpers.",
+              "checked": null
+            },
+            {
+              "text": "**Styling:** Modular CSS under `app/css/*` (see app `README.md`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "DocsAI (contact360.io/admin/)",
+      "level": 3,
+      "slug": "docsai-contact360ioadmin",
+      "prose": "- Django apps under `contact360.io/admin/apps/` — **roadmap** and **architecture** UIs read from `apps/roadmap/constants.py` and `apps/architecture/constants.py` (mirrors of `docs/roadmap.md`, `docs/architecture.md` per `docs/docsai-sync.md`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Django apps under `contact360.io/admin/apps/` — **roadmap** and **architecture** UIs read from `apps/roadmap/constants.py` and `apps/architecture/constants.py` (mirrors of `docs/roadmap.md`, `docs/architecture.md` per `docs/docsai-sync.md`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Marketing (contact360.io/root/)",
+      "level": 3,
+      "slug": "marketing-contact360ioroot",
+      "prose": "- **Env:** `GRAPHQL_URL` for read-only API calls where enabled; `DASHBOARD_URL` (or equivalent) for auth redirects — see marketing `.env.example` and `README.md`.\n- **Resilience:** `API_FALLBACKS.md` (if present) documents static fallbacks when API is down.\n- **Styling:** Custom CSS, BEM-like naming (not Tailwind).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Env:** `GRAPHQL_URL` for read-only API calls where enabled; `DASHBOARD_URL` (or equivalent) for auth redirects — see marketing `.env.example` and `README.md`.",
+              "checked": null
+            },
+            {
+              "text": "**Resilience:** `API_FALLBACKS.md` (if present) documents static fallbacks when API is down.",
+              "checked": null
+            },
+            {
+              "text": "**Styling:** Custom CSS, BEM-like naming (not Tailwind).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Appointment360 (contact360.io/api/)",
+      "level": 3,
+      "slug": "appointment360-contact360ioapi",
+      "prose": "- **GraphQL:** `app/graphql/modules/*` — resolvers and schema composition per domain (jobs, billing, auth, …).\n- **HTTP clients:** `app/clients/*` — downstream service wrappers (email, Connectra, jobs, …).\n- **Contracts:** `sql/apis/*.md` and module-specific `*_MODULE.md` files document expected payloads and DB boundaries.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**GraphQL:** `app/graphql/modules/*` — resolvers and schema composition per domain (jobs, billing, auth, …).",
+              "checked": null
+            },
+            {
+              "text": "**HTTP clients:** `app/clients/*` — downstream service wrappers (email, Connectra, jobs, …).",
+              "checked": null
+            },
+            {
+              "text": "**Contracts:** `sql/apis/*.md` and module-specific `*_MODULE.md` files document expected payloads and DB boundaries.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Connectra (contact360.io/sync/)",
+      "level": 3,
+      "slug": "connectra-contact360iosync",
+      "prose": "- **Routes:** HTTP handlers grouped for `/contacts`, `/companies`, `/common` (filters, shared utilities).\n- **VQL:** Vivek Query Language parsing and translation to Elasticsearch queries — see service README and `common` route group for filter metadata endpoints.\n- **Auth:** API-key / internal auth for gateway-to-Connectra calls (align with Appointment360 client config).\n- **Two-phase read path:** `VQL -> Elasticsearch IDs -> PostgreSQL hydrate -> in-memory hash join` for full response assembly.\n- **Write concurrency model:** Batch upsert fans out in parallel to five stores (PG contacts, ES contacts, PG companies, ES companies, `filters_data`) using goroutines + `WaitGroup`.\n- **Search type mapping:** `exact`, `shuffle`, `substring` map to distinct ES query modes and are governed by the VQL taxonomy contract.\n- **Job engine:** `OPEN -> IN_QUEUE -> PROCESSING -> COMPLETED/FAILED -> RETRY_IN_QUEUED` with separate first-time and retry runners.\n- **Idempotency:** UUID5 derivation on normalized entity keys keeps bulk ingest replay-safe for contacts/companies/filter facets.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Routes:** HTTP handlers grouped for `/contacts`, `/companies`, `/common` (filters, shared utilities).",
+              "checked": null
+            },
+            {
+              "text": "**VQL:** Vivek Query Language parsing and translation to Elasticsearch queries — see service README and `common` route group for filter metadata endpoints.",
+              "checked": null
+            },
+            {
+              "text": "**Auth:** API-key / internal auth for gateway-to-Connectra calls (align with Appointment360 client config).",
+              "checked": null
+            },
+            {
+              "text": "**Two-phase read path:** `VQL -> Elasticsearch IDs -> PostgreSQL hydrate -> in-memory hash join` for full response assembly.",
+              "checked": null
+            },
+            {
+              "text": "**Write concurrency model:** Batch upsert fans out in parallel to five stores (PG contacts, ES contacts, PG companies, ES companies, `filters_data`) using goroutines + `WaitGroup`.",
+              "checked": null
+            },
+            {
+              "text": "**Search type mapping:** `exact`, `shuffle`, `substring` map to distinct ES query modes and are governed by the VQL taxonomy contract.",
+              "checked": null
+            },
+            {
+              "text": "**Job engine:** `OPEN -> IN_QUEUE -> PROCESSING -> COMPLETED/FAILED -> RETRY_IN_QUEUED` with separate first-time and retry runners.",
+              "checked": null
+            },
+            {
+              "text": "**Idempotency:** UUID5 derivation on normalized entity keys keeps bulk ingest replay-safe for contacts/companies/filter facets.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailapis (lambda/emailapis/)",
+      "level": 3,
+      "slug": "emailapis-lambdaemailapis",
+      "prose": "- Python orchestration for finder/verifier pipelines. Shares conceptual contract with **`LambdaEmailClient`** (or equivalent) in the gateway.\n- **`emailapis/README.md`** endpoint lists may lag code — verify against OpenAPI/route definitions before integration testing.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Python orchestration for finder/verifier pipelines. Shares conceptual contract with **`LambdaEmailClient`** (or equivalent) in the gateway.",
+              "checked": null
+            },
+            {
+              "text": "**`emailapis/README.md`** endpoint lists may lag code — verify against OpenAPI/route definitions before integration testing.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailapigo (lambda/emailapigo/)",
+      "level": 3,
+      "slug": "emailapigo-lambdaemailapigo",
+      "prose": "- Go workers for high-throughput finder paths. **Swap-the-URL model:** gateway may route heavy finder workloads to Go instead of Python depending on config/environment.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Go workers for high-throughput finder paths. **Swap-the-URL model:** gateway may route heavy finder workloads to Go instead of Python depending on config/environment.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact.ai (backend(dev)/contact.ai/)",
+      "level": 3,
+      "slug": "contactai-backenddevcontactai",
+      "prose": "- FastAPI REST + optional Lambda packaging. Gateway forwards **`X-User-ID`** (or equivalent) for tenancy.\n- **Data:** Shared PostgreSQL patterns for `ai_chats` / conversation state — see module docs under the service.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "FastAPI REST + optional Lambda packaging. Gateway forwards **`X-User-ID`** (or equivalent) for tenancy.",
+              "checked": null
+            },
+            {
+              "text": "**Data:** Shared PostgreSQL patterns for `ai_chats` / conversation state — see module docs under the service.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "logs.api (lambda/logs.api/)",
+      "level": 3,
+      "slug": "logsapi-lambdalogsapi",
+      "prose": "- Ingests structured logs; optional-disable pattern in gateway (**`LambdaLogsClient`**) so dev/test can silence shipping logs.\n- **Boundary:** analytics aggregates vs raw log storage — align field names (`user_id`, `request_id`) with usage/analytics roadmap stages.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Ingests structured logs; optional-disable pattern in gateway (**`LambdaLogsClient`**) so dev/test can silence shipping logs.",
+              "checked": null
+            },
+            {
+              "text": "**Boundary:** analytics aggregates vs raw log storage — align field names (`user_id`, `request_id`) with usage/analytics roadmap stages.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter (backend(dev)/mailvetter/)",
+      "level": 3,
+      "slug": "mailvetter-backenddevmailvetter",
+      "prose": "- **`app/mailvetter-bak/`** — primary packaged verifier sources (see onboarding note above).\n- **API:** `/v1/emails/validate` and bulk validation routes; routing may fan out to Truelist/IcyPeas or other providers per configuration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**`app/mailvetter-bak/`** — primary packaged verifier sources (see onboarding note above).",
+              "checked": null
+            },
+            {
+              "text": "**API:** `/v1/emails/validate` and bulk validation routes; routing may fan out to Truelist/IcyPeas or other providers per configuration.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage (lambda/s3storage/)",
+      "level": 3,
+      "slug": "s3storage-lambdas3storage",
+      "prose": "- **`StorageBackend`** protocol / implementation split for S3 operations.\n- **Model:** Logical `bucket_id` / tenant-facing bucket abstraction — see service README.\n- **Multipart:** `multipart_upload_guide.md` (or equivalent) documents initiate → presign → part → complete.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**`StorageBackend`** protocol / implementation split for S3 operations.",
+              "checked": null
+            },
+            {
+              "text": "**Model:** Logical `bucket_id` / tenant-facing bucket abstraction — see service README.",
+              "checked": null
+            },
+            {
+              "text": "**Multipart:** `multipart_upload_guide.md` (or equivalent) documents initiate → presign → part → complete.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "salesnavigator (backend(dev)/salesnavigator/)",
+      "level": 3,
+      "slug": "salesnavigator-backenddevsalesnavigator",
+      "prose": "- **Runtime:** FastAPI on AWS Lambda via Mangum; SAM deployment (`template.yaml`; 60s timeout, 1024 MB).\n- **REST:** `GET /`, `GET /v1/health`, `POST /v1/scrape` (HTML parse + optional save), `POST /v1/save-profiles` (profile array → Connectra bulk upsert).\n- **GraphQL:** `salesNavigator` operations proxied via Appointment360 for dashboard flows.\n- **No local DB:** All persistence via Connectra (`/contacts/bulk`, `/companies/bulk`). Deterministic UUID5 strategy for idempotent upserts.\n- **Core services:** `SaveService` (dedup by `profile_url`, completeness scoring, chunking 500/chunk, parallel async save), `mappers.py` (SN → Connectra field mapping), `extraction.py` (BeautifulSoup HTML parsing).\n- **Auth:** `X-API-Key` (global service-to-service key; per-tenant scoping planned for `7.x`).\n- **Known gaps:** `scrape-html-with-fetch` documented but not implemented; no rate limiting; wide-open CORS; no `X-Request-ID` correlation header.\n- **Deep reference:** `docs/codebases/salesnavigator-codebase-analysis.md`.\n- **Era task packs:** `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Runtime:** FastAPI on AWS Lambda via Mangum; SAM deployment (`template.yaml`; 60s timeout, 1024 MB).",
+              "checked": null
+            },
+            {
+              "text": "**REST:** `GET /`, `GET /v1/health`, `POST /v1/scrape` (HTML parse + optional save), `POST /v1/save-profiles` (profile array → Connectra bulk upsert).",
+              "checked": null
+            },
+            {
+              "text": "**GraphQL:** `salesNavigator` operations proxied via Appointment360 for dashboard flows.",
+              "checked": null
+            },
+            {
+              "text": "**No local DB:** All persistence via Connectra (`/contacts/bulk`, `/companies/bulk`). Deterministic UUID5 strategy for idempotent upserts.",
+              "checked": null
+            },
+            {
+              "text": "**Core services:** `SaveService` (dedup by `profile_url`, completeness scoring, chunking 500/chunk, parallel async save), `mappers.py` (SN → Connectra field mapping), `extraction.py` (BeautifulSoup HTML parsing).",
+              "checked": null
+            },
+            {
+              "text": "**Auth:** `X-API-Key` (global service-to-service key; per-tenant scoping planned for `7.x`).",
+              "checked": null
+            },
+            {
+              "text": "**Known gaps:** `scrape-html-with-fetch` documented but not implemented; no rate limiting; wide-open CORS; no `X-Request-ID` correlation header.",
+              "checked": null
+            },
+            {
+              "text": "**Deep reference:** `docs/codebases/salesnavigator-codebase-analysis.md`.",
+              "checked": null
+            },
+            {
+              "text": "**Era task packs:** `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Async jobs (email.server + sync.server)",
+      "level": 3,
+      "slug": "async-jobs-emailserver-syncserver",
+      "prose": "- **Gateway:** `contact360.io/api` GraphQL **jobs** module + `scheduler_jobs` table; clients `EmailServerJobsClient`, `ConnectraClient`.\n- **Satellites:** `EC2/email.server` (S3 bulk finder/verifier, pause/resume), `EC2/sync.server` (CSV import/export queue).\n- **Legacy:** Standalone Python `contact360.io/jobs` / `EC2/job.server` removed from monorepo — see `docs/codebases/jobs-codebase-analysis.md` archive note.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Gateway:** `contact360.io/api` GraphQL **jobs** module + `scheduler_jobs` table; clients `EmailServerJobsClient`, `ConnectraClient`.",
+              "checked": null
+            },
+            {
+              "text": "**Satellites:** `EC2/email.server` (S3 bulk finder/verifier, pause/resume), `EC2/sync.server` (CSV import/export queue).",
+              "checked": null
+            },
+            {
+              "text": "**Legacy:** Standalone Python `contact360.io/jobs` / `EC2/job.server` removed from monorepo — see `docs/codebases/jobs-codebase-analysis.md` archive note.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "resumeai (backend(dev)/resumeai/)",
+      "level": 3,
+      "slug": "resumeai-backenddevresumeai",
+      "prose": "- Resume-focused AI features when this checkout is present; align gateway routes and env with service README.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Resume-focused AI features when this checkout is present; align gateway routes and env with service README.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension (canonical path)",
+      "level": 3,
+      "slug": "extension-canonical-path",
+      "prose": "- Code lives under **`extension/contact360/`** when checked out; not all clones include this tree. Chrome Web Store / build pipelines may use a separate repo mirror — align with `docs/architecture.md` service register. Do not use the historical typo `extention/` or the shorthand `extension/contact360/` for new work.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Code lives under **`extension/contact360/`** when checked out; not all clones include this tree. Chrome Web Store / build pipelines may use a separate repo mirror — align with `docs/architecture.md` service register. Do not use the historical typo `extention/` or the shorthand `extension/contact360/` for new work.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin surface split (Dashboard vs DocsAI)",
+      "level": 2,
+      "slug": "admin-surface-split-dashboard-vs-docsai",
+      "prose": "- **Dashboard `/admin`:** In-product admin/statistics route (`contact360.io/app/app/(dashboard)/admin/page.tsx`). Use for authenticated operators who already use the product shell.\n- **DocsAI:** Django mirror of roadmap/architecture constants and internal docs workflows (`contact360.io/admin/`). Use for documentation governance and internal control-plane UX — not a substitute for gateway authorization on privileged mutations.\n- **Future wiring:** Admin credit adjustments and audit views should go through **Appointment360** resolvers and **`lambda/logs.api`** for structured audit trails; avoid duplicating privileged actions across surfaces without an explicit security review. Track Stage 1.13 in **`docs/roadmap.md`** and **`docs/versions.md`**.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Dashboard `/admin`:** In-product admin/statistics route (`contact360.io/app/app/(dashboard)/admin/page.tsx`). Use for authenticated operators who already use the product shell.",
+              "checked": null
+            },
+            {
+              "text": "**DocsAI:** Django mirror of roadmap/architecture constants and internal docs workflows (`contact360.io/admin/`). Use for documentation governance and internal control-plane UX — not a substitute for gateway authorization on privileged mutations.",
+              "checked": null
+            },
+            {
+              "text": "**Future wiring:** Admin credit adjustments and audit views should go through **Appointment360** resolvers and **`lambda/logs.api`** for structured audit trails; avoid duplicating privileged actions across surfaces without an explicit security review. Track Stage 1.13 in **`docs/roadmap.md`** and **`docs/versions.md`**.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x-10.x backend pointers",
+      "level": 3,
+      "slug": "8x-10x-backend-pointers",
+      "prose": "- webhooks module\n- integrations module\n- campaigns/sequences/templates modules",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "webhooks module",
+              "checked": null
+            },
+            {
+              "text": "integrations module",
+              "checked": null
+            },
+            {
+              "text": "campaigns/sequences/templates modules",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Five-track execution pack (documentation standard)",
+      "level": 2,
+      "slug": "five-track-execution-pack-documentation-standard",
+      "prose": "For each era and minor release, docs must explicitly include:\n\n- Contract track updates (API and schema)\n- Service track updates (backend runtime changes)\n- Surface track updates (UI routes, tabs, components)\n- Data track updates (DB/index/storage lineage)\n- Ops track updates (runbooks, release gates, evidence)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract track updates (API and schema)",
+              "checked": null
+            },
+            {
+              "text": "Service track updates (backend runtime changes)",
+              "checked": null
+            },
+            {
+              "text": "Surface track updates (UI routes, tabs, components)",
+              "checked": null
+            },
+            {
+              "text": "Data track updates (DB/index/storage lineage)",
+              "checked": null
+            },
+            {
+              "text": "Ops track updates (runbooks, release gates, evidence)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "logs.api focused implementation map",
+      "level": 2,
+      "slug": "logsapi-focused-implementation-map",
+      "prose": "- Primary service: `lambda/logs.api/`\n- API entrypoints: `app/api/v1/endpoints/logs.py`, `health.py`\n- Service/repository path: `app/services/log_service.py`, `app/models/log_repository.py`\n- Storage client: `app/clients/s3.py`\n- Cache/monitoring utilities: `app/utils/query_cache.py`, `query_monitor.py`, `cache_metrics.py`\n- Deploy contract: `lambda/logs.api/template.yaml`\n\nImmediate engineering queue:\n\n1. Correct MongoDB references in logs.api docs and contracts to S3 CSV reality.\n2. Replace static shared API key pattern with rotated secret strategy and per-service identities.\n3. Add scalability guardrails for wide time-range queries and costly scans.\n4. Strengthen retention/audit evidence generation for compliance flows.\n5. Add contract parity tests between documented endpoints and runtime routes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary service: `lambda/logs.api/`",
+              "checked": null
+            },
+            {
+              "text": "API entrypoints: `app/api/v1/endpoints/logs.py`, `health.py`",
+              "checked": null
+            },
+            {
+              "text": "Service/repository path: `app/services/log_service.py`, `app/models/log_repository.py`",
+              "checked": null
+            },
+            {
+              "text": "Storage client: `app/clients/s3.py`",
+              "checked": null
+            },
+            {
+              "text": "Cache/monitoring utilities: `app/utils/query_cache.py`, `query_monitor.py`, `cache_metrics.py`",
+              "checked": null
+            },
+            {
+              "text": "Deploy contract: `lambda/logs.api/template.yaml`",
+              "checked": null
+            },
+            {
+              "text": "Correct MongoDB references in logs.api docs and contracts to S3 CSV reality.",
+              "checked": null
+            },
+            {
+              "text": "Replace static shared API key pattern with rotated secret strategy and per-service identities.",
+              "checked": null
+            },
+            {
+              "text": "Add scalability guardrails for wide time-range queries and costly scans.",
+              "checked": null
+            },
+            {
+              "text": "Strengthen retention/audit evidence generation for compliance flows.",
+              "checked": null
+            },
+            {
+              "text": "Add contract parity tests between documented endpoints and runtime routes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailapis / emailapigo focused implementation map",
+      "level": 2,
+      "slug": "emailapis-emailapigo-focused-implementation-map",
+      "prose": "- Primary services: `lambda/emailapis/`, `lambda/emailapigo/`\n- API routes: `app/api/v1/router.py`, `internal/api/router.go`\n- Finder core: `app/services/email_finder_service.py`, `internal/services/email_finder_service.go`\n- Verifier core: `app/services/email_verification_service.py`, `internal/services/email_verification_service.go`\n- Pattern services/repositories: `app/services/email_pattern_service.py`, `internal/services/email_pattern_service.go`, corresponding repositories\n- Data models: `app/models/email_finder_cache.py`, `app/models/email_patterns.py`, Go equivalents under `internal/models/`\n\nImmediate engineering queue:\n\n1. Unify provider naming and contract (`truelist` vs `mailvetter`) across frontend, GraphQL, and both runtimes.\n2. Freeze status semantics and mapping tables across all layers.\n3. Add contract parity tests for endpoint payloads and error envelopes.\n4. Harden bulk failure-path mapping and retry/idempotency behavior.\n5. Add end-to-end observability contract (trace/request IDs across app -> api -> jobs -> lambda).\n\nSee full era-by-era decomposition: `docs/codebases/emailapis-codebase-analysis.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary services: `lambda/emailapis/`, `lambda/emailapigo/`",
+              "checked": null
+            },
+            {
+              "text": "API routes: `app/api/v1/router.py`, `internal/api/router.go`",
+              "checked": null
+            },
+            {
+              "text": "Finder core: `app/services/email_finder_service.py`, `internal/services/email_finder_service.go`",
+              "checked": null
+            },
+            {
+              "text": "Verifier core: `app/services/email_verification_service.py`, `internal/services/email_verification_service.go`",
+              "checked": null
+            },
+            {
+              "text": "Pattern services/repositories: `app/services/email_pattern_service.py`, `internal/services/email_pattern_service.go`, corresponding repositories",
+              "checked": null
+            },
+            {
+              "text": "Data models: `app/models/email_finder_cache.py`, `app/models/email_patterns.py`, Go equivalents under `internal/models/`",
+              "checked": null
+            },
+            {
+              "text": "Unify provider naming and contract (`truelist` vs `mailvetter`) across frontend, GraphQL, and both runtimes.",
+              "checked": null
+            },
+            {
+              "text": "Freeze status semantics and mapping tables across all layers.",
+              "checked": null
+            },
+            {
+              "text": "Add contract parity tests for endpoint payloads and error envelopes.",
+              "checked": null
+            },
+            {
+              "text": "Harden bulk failure-path mapping and retry/idempotency behavior.",
+              "checked": null
+            },
+            {
+              "text": "Add end-to-end observability contract (trace/request IDs across app -> api -> jobs -> lambda).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "backend(dev)/email campaign focused implementation map",
+      "level": 2,
+      "slug": "backenddevemail-campaign-focused-implementation-map",
+      "prose": "`email campaign` is the Go campaign delivery service introduced in `10.x`. It runs as two separate binaries: API server (`cmd/main.go`) and Asynq worker (`cmd/worker/main.go`).\n\n- **API server entrypoints:** `cmd/main.go` → registers Gin router, DB/Redis/S3 init, mounts all API routes.\n- **Handlers:** `api/handlers.go` — campaign create, unsubscribe, IMAP endpoints; `template/handlers.go` — template CRUD + preview.\n- **Worker entrypoint:** `cmd/worker/main.go` → registers `HandleCampaignTask` with Asynq server (5 workers).\n- **Campaign worker:** `worker/campaign_worker.go` — loads CSV/audience, creates recipients, dispatches to `EmailWorker` goroutines.\n- **Email worker:** `worker/email_worker.go` — fetches template from S3, renders with Go `html/template`, checks suppression, sends via `net/smtp`.\n- **Template service:** `template/service.go` — S3 `PutObject`/`GetObject` with in-memory `sync.RWMutex` cache.\n- **Database layer:** `db/db.go` (sqlx init), `db/queries.go` (campaign/recipient/suppression queries), `db/template_queries.go` (template CRUD).\n- **Tasks:** `tasks/campaign.go` — Asynq task type `TypeCampaign`, `CampaignPayload` struct.\n- **JWT utils:** `utils/token.go` — `GenerateUnsubToken`, `ParseUnsubToken` using HS256.\n- **Schema:** `db/schema.sql` — defines `campaigns`, `recipients`, `suppression_list` tables (⚠ missing `templates` table and `recipients.unsub_token`).\n\nImmediate engineering queue:\n\n1. Fix `db/schema.sql` — add `templates` table DDL and `recipients.unsub_token TEXT` column.\n2. Fix `GetUnsubToken` in `db/queries.go` — replace `DB.Exec` with `DB.Get` to return token value.\n3. Add SMTP auth: read `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` env vars; pass `smtp.PlainAuth` to `smtp.SendMail`.\n4. Add authentication middleware on `/campaign`, `/templates`, and `/unsub` (admin) routes.\n5. Replace CSV filepath audience with Connectra REST query for recipient resolution (`3.x` integration).\n6. Add `completed_with_errors` campaign status for partial failures.\n\nSee full era-by-era decomposition: `docs/codebases/emailcampaign-codebase-analysis.md`.\n\nEra task-pack index: era folders `0–10` each contain `emailcampaign-*-task-pack.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**API server entrypoints:** `cmd/main.go` → registers Gin router, DB/Redis/S3 init, mounts all API routes.",
+              "checked": null
+            },
+            {
+              "text": "**Handlers:** `api/handlers.go` — campaign create, unsubscribe, IMAP endpoints; `template/handlers.go` — template CRUD + preview.",
+              "checked": null
+            },
+            {
+              "text": "**Worker entrypoint:** `cmd/worker/main.go` → registers `HandleCampaignTask` with Asynq server (5 workers).",
+              "checked": null
+            },
+            {
+              "text": "**Campaign worker:** `worker/campaign_worker.go` — loads CSV/audience, creates recipients, dispatches to `EmailWorker` goroutines.",
+              "checked": null
+            },
+            {
+              "text": "**Email worker:** `worker/email_worker.go` — fetches template from S3, renders with Go `html/template`, checks suppression, sends via `net/smtp`.",
+              "checked": null
+            },
+            {
+              "text": "**Template service:** `template/service.go` — S3 `PutObject`/`GetObject` with in-memory `sync.RWMutex` cache.",
+              "checked": null
+            },
+            {
+              "text": "**Database layer:** `db/db.go` (sqlx init), `db/queries.go` (campaign/recipient/suppression queries), `db/template_queries.go` (template CRUD).",
+              "checked": null
+            },
+            {
+              "text": "**Tasks:** `tasks/campaign.go` — Asynq task type `TypeCampaign`, `CampaignPayload` struct.",
+              "checked": null
+            },
+            {
+              "text": "**JWT utils:** `utils/token.go` — `GenerateUnsubToken`, `ParseUnsubToken` using HS256.",
+              "checked": null
+            },
+            {
+              "text": "**Schema:** `db/schema.sql` — defines `campaigns`, `recipients`, `suppression_list` tables (⚠ missing `templates` table and `recipients.unsub_token`).",
+              "checked": null
+            },
+            {
+              "text": "Fix `db/schema.sql` — add `templates` table DDL and `recipients.unsub_token TEXT` column.",
+              "checked": null
+            },
+            {
+              "text": "Fix `GetUnsubToken` in `db/queries.go` — replace `DB.Exec` with `DB.Get` to return token value.",
+              "checked": null
+            },
+            {
+              "text": "Add SMTP auth: read `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` env vars; pass `smtp.PlainAuth` to `smtp.SendMail`.",
+              "checked": null
+            },
+            {
+              "text": "Add authentication middleware on `/campaign`, `/templates`, and `/unsub` (admin) routes.",
+              "checked": null
+            },
+            {
+              "text": "Replace CSV filepath audience with Connectra REST query for recipient resolution (`3.x` integration).",
+              "checked": null
+            },
+            {
+              "text": "Add `completed_with_errors` campaign status for partial failures.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact360.io/api (Appointment360) focused implementation map",
+      "level": 2,
+      "slug": "contact360ioapi-appointment360-focused-implementation-map",
+      "prose": "Appointment360 is the GraphQL-only gateway. Single `/graphql` endpoint. 28 module namespaces. No REST feature routes.\n\n- **App entrypoint:** `app/main.py` — FastAPI app factory, middleware registration (8 layers), exception handlers, health routes, Mangum Lambda handler, GraphQL router mount.\n- **Settings:** `app/core/config.py` — Pydantic `BaseSettings` with 50+ env vars across categories: GraphQL guards, DB pool, security, downstream clients, idempotency, abuse guard, SLO.\n- **Middleware:** `app/core/middleware.py` — all 8 custom Starlette middleware classes: `REDMetricsMiddleware`, `GraphQLBodySizeMiddleware`, `GraphQLIdempotencyMiddleware`, `GraphQLMutationAbuseGuardMiddleware`, `GraphQLRateLimitMiddleware`, `RequestIdMiddleware`, `TraceIdMiddleware`, `TimingMiddleware`.\n- **Schema:** `app/graphql/schema.py` — flat composition: `Query` + `Mutation` assembled from 28 module class imports.\n- **Context:** `app/graphql/context.py` — per-request `Context` with `db` (AsyncSession), `user` (JWT decode), `user_uuid`, `dataloaders`.\n- **Extensions:** `app/graphql/extensions.py` — `QueryComplexityExtension` (limit 100) + `QueryTimeoutExtension` (30s).\n- **Downstream clients:** `app/clients/connectra_client.py`, `email_server_client.py`, `lambda_email_client.py`, `lambda_ai_client.py`, `resume_ai_client.py`, `lambda_s3storage_client.py`, `lambda_logs_client.py`, `docsai_client.py`.\n- **Module resolvers:** `app/graphql/modules/*/queries.py` and `app/graphql/modules/*/mutations.py` — one folder per GraphQL module (auth, users, contacts, companies, email, jobs, billing, usage, aiChats, resume, salesNavigator, admin, savedSearches, profile, twoFactor, notifications, analytics, pages, s3, upload, featureOverview, etc.).\n- **Services:** `app/services/` — billing, credit, activity, notification, analytics, pages business logic.\n- **Repositories:** `app/repositories/` — user, profile, saved_search, scheduler_job, token_blacklist data access.\n- **DB session:** `app/db/session.py` — async engine, pool monitoring event listeners, `get_db()` FastAPI dependency.\n- **Utilities:** `app/utils/vql_converter.py` (VQLQueryInput → Connectra REST), `app/utils/connectra_mappers.py` (response type mapping).\n\nImmediate engineering queue:\n\n1. Remove all inline debug file writes (`_debug_log`, `debug.log` writes) from `email/queries.py` and `jobs/mutations.py`.\n2. Add `campaigns`, `sequences`, `campaignTemplates` GraphQL modules (10.x).\n3. Enable `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` in production environment configuration.\n4. Restore or link SQL schema source (`sql/tables/` files referenced by README but missing locally).\n5. ~~Move idempotency to Redis~~ — **done:** PostgreSQL (`graphql_idempotency_replays`); extend abuse guard with Postgres-backed counters when multi-replica enforcement is required.\n6. Add `DOCSAI_ENABLED` health check — pages module health should surface DocsAI dependency status.\n7. Write contract parity tests for each GraphQL module against `docs/backend/apis/*.md`.\n\nSee full era-by-era decomposition: `docs/codebases/appointment360-codebase-analysis.md`.\n\nEra task-pack index: era folders `0–10` each contain `appointment360-*-task-pack.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**App entrypoint:** `app/main.py` — FastAPI app factory, middleware registration (8 layers), exception handlers, health routes, Mangum Lambda handler, GraphQL router mount.",
+              "checked": null
+            },
+            {
+              "text": "**Settings:** `app/core/config.py` — Pydantic `BaseSettings` with 50+ env vars across categories: GraphQL guards, DB pool, security, downstream clients, idempotency, abuse guard, SLO.",
+              "checked": null
+            },
+            {
+              "text": "**Middleware:** `app/core/middleware.py` — all 8 custom Starlette middleware classes: `REDMetricsMiddleware`, `GraphQLBodySizeMiddleware`, `GraphQLIdempotencyMiddleware`, `GraphQLMutationAbuseGuardMiddleware`, `GraphQLRateLimitMiddleware`, `RequestIdMiddleware`, `TraceIdMiddleware`, `TimingMiddleware`.",
+              "checked": null
+            },
+            {
+              "text": "**Schema:** `app/graphql/schema.py` — flat composition: `Query` + `Mutation` assembled from 28 module class imports.",
+              "checked": null
+            },
+            {
+              "text": "**Context:** `app/graphql/context.py` — per-request `Context` with `db` (AsyncSession), `user` (JWT decode), `user_uuid`, `dataloaders`.",
+              "checked": null
+            },
+            {
+              "text": "**Extensions:** `app/graphql/extensions.py` — `QueryComplexityExtension` (limit 100) + `QueryTimeoutExtension` (30s).",
+              "checked": null
+            },
+            {
+              "text": "**Downstream clients:** `app/clients/connectra_client.py`, `email_server_client.py`, `lambda_email_client.py`, `lambda_ai_client.py`, `resume_ai_client.py`, `lambda_s3storage_client.py`, `lambda_logs_client.py`, `docsai_client.py`.",
+              "checked": null
+            },
+            {
+              "text": "**Module resolvers:** `app/graphql/modules/*/queries.py` and `app/graphql/modules/*/mutations.py` — one folder per GraphQL module (auth, users, contacts, companies, email, jobs, billing, usage, aiChats, resume, salesNavigator, admin, savedSearches, profile, twoFactor, notifications, analytics, pages, s3, upload, featureOverview, etc.).",
+              "checked": null
+            },
+            {
+              "text": "**Services:** `app/services/` — billing, credit, activity, notification, analytics, pages business logic.",
+              "checked": null
+            },
+            {
+              "text": "**Repositories:** `app/repositories/` — user, profile, saved_search, scheduler_job, token_blacklist data access.",
+              "checked": null
+            },
+            {
+              "text": "**DB session:** `app/db/session.py` — async engine, pool monitoring event listeners, `get_db()` FastAPI dependency.",
+              "checked": null
+            },
+            {
+              "text": "**Utilities:** `app/utils/vql_converter.py` (VQLQueryInput → Connectra REST), `app/utils/connectra_mappers.py` (response type mapping).",
+              "checked": null
+            },
+            {
+              "text": "Remove all inline debug file writes (`_debug_log`, `debug.log` writes) from `email/queries.py` and `jobs/mutations.py`.",
+              "checked": null
+            },
+            {
+              "text": "Add `campaigns`, `sequences`, `campaignTemplates` GraphQL modules (10.x).",
+              "checked": null
+            },
+            {
+              "text": "Enable `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` in production environment configuration.",
+              "checked": null
+            },
+            {
+              "text": "Restore or link SQL schema source (`sql/tables/` files referenced by README but missing locally).",
+              "checked": null
+            },
+            {
+              "text": "~~Move idempotency to Redis~~ — **done:** PostgreSQL (`graphql_idempotency_replays`); extend abuse guard with Postgres-backed counters when multi-replica enforcement is required.",
+              "checked": null
+            },
+            {
+              "text": "Add `DOCSAI_ENABLED` health check — pages module health should surface DocsAI dependency status.",
+              "checked": null
+            },
+            {
+              "text": "Write contract parity tests for each GraphQL module against `docs/backend/apis/*.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact360.io/root implementation notes (marketing app)",
+      "level": 2,
+      "slug": "contact360ioroot-implementation-notes-marketing-app",
+      "prose": "- Stack/shape: Next.js App Router + React + TypeScript, custom BEM-like CSS and 3D UI component system.\n- Core UX pattern: `app/(marketing)/layout.tsx` applies `useForceLightTheme` and wraps all marketing pages with common navbar/footer.\n- API contract path: GraphQL requests through `src/lib/graphqlClient.ts` with auth-aware error handling/retry behavior.\n- Component highlights: 3D primitives (`Button3D`, `Input3D`, `Checkbox3D`, `Modal3D`, `Tabs3D`, `Table3D`) plus selector/tooltip/card families.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Stack/shape: Next.js App Router + React + TypeScript, custom BEM-like CSS and 3D UI component system.",
+              "checked": null
+            },
+            {
+              "text": "Core UX pattern: `app/(marketing)/layout.tsx` applies `useForceLightTheme` and wraps all marketing pages with common navbar/footer.",
+              "checked": null
+            },
+            {
+              "text": "API contract path: GraphQL requests through `src/lib/graphqlClient.ts` with auth-aware error handling/retry behavior.",
+              "checked": null
+            },
+            {
+              "text": "Component highlights: 3D primitives (`Button3D`, `Input3D`, `Checkbox3D`, `Modal3D`, `Tabs3D`, `Table3D`) plus selector/tooltip/card families.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact360.io/admin implementation notes (DocsAI app)",
+      "level": 2,
+      "slug": "contact360ioadmin-implementation-notes-docsai-app",
+      "prose": "- Stack/shape: Django templates + static CSS/JS component system.\n- Navigation and shell: `apps/core/navigation.py` (`SIDEBAR_MENU`) + `templates/base.html`.\n- Backend integration path: Python GraphQL client (`apps/core/services/graphql_client.py`) with retries/backoff and domain clients in `apps/core/clients/` and `apps/admin/services/`.\n- Graph and flow UI: D3 (`relationship-graph-viewer.js`) and Cytoscape (`graph.js`) based relationship visualizations.\n- Data coupling: local Django persistence plus Appointment360 GraphQL, optional Redis cache (only if `USE_REDIS_CACHE=True`), and S3 index artifacts.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Stack/shape: Django templates + static CSS/JS component system.",
+              "checked": null
+            },
+            {
+              "text": "Navigation and shell: `apps/core/navigation.py` (`SIDEBAR_MENU`) + `templates/base.html`.",
+              "checked": null
+            },
+            {
+              "text": "Backend integration path: Python GraphQL client (`apps/core/services/graphql_client.py`) with retries/backoff and domain clients in `apps/core/clients/` and `apps/admin/services/`.",
+              "checked": null
+            },
+            {
+              "text": "Graph and flow UI: D3 (`relationship-graph-viewer.js`) and Cytoscape (`graph.js`) based relationship visualizations.",
+              "checked": null
+            },
+            {
+              "text": "Data coupling: local Django persistence plus Appointment360 GraphQL, optional Redis cache (only if `USE_REDIS_CACHE=True`), and S3 index artifacts.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension implementation notes — extension/contact360",
+      "level": 2,
+      "slug": "extension-implementation-notes-extensioncontact360",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Tech",
+      "level": 3,
+      "slug": "tech",
+      "prose": "- **Language:** JavaScript ES6+ (no transpile step)\n- **Chrome API:** MV3 — `chrome.storage.local` for token persistence\n- **Auth backend:** Appointment360 GraphQL (`POST /graphql` — `auth.refreshToken` mutation)\n- **Data backend:** Lambda SN API (`POST /v1/save-profiles`) → Connectra bulk endpoints",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Language:** JavaScript ES6+ (no transpile step)",
+              "checked": null
+            },
+            {
+              "text": "**Chrome API:** MV3 — `chrome.storage.local` for token persistence",
+              "checked": null
+            },
+            {
+              "text": "**Auth backend:** Appointment360 GraphQL (`POST /graphql` — `auth.refreshToken` mutation)",
+              "checked": null
+            },
+            {
+              "text": "**Data backend:** Lambda SN API (`POST /v1/save-profiles`) → Connectra bulk endpoints",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Key implementation patterns",
+      "level": 3,
+      "slug": "key-implementation-patterns",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "auth/graphqlSession.js — JWT lifecycle",
+      "level": 4,
+      "slug": "authgraphqlsessionjs-jwt-lifecycle",
+      "prose": "- Pure base64url decode for JWT payload (no library dependency)\n- Proactive refresh with 300-second buffer; avoids mid-scrape token expiry\n- All storage calls Promise-wrapped for async/await compatibility in MV3 service workers",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Pure base64url decode for JWT payload (no library dependency)",
+              "checked": null
+            },
+            {
+              "text": "Proactive refresh with 300-second buffer; avoids mid-scrape token expiry",
+              "checked": null
+            },
+            {
+              "text": "All storage calls Promise-wrapped for async/await compatibility in MV3 service workers",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "utils/lambdaClient.js — REST transport",
+      "level": 4,
+      "slug": "utilslambdaclientjs-rest-transport",
+      "prose": "- Chunked batching: profiles split into arrays of `BATCH_SIZE` (default 10) before each fetch call\n- Retry strategy: exponential back-off with jitter (`attempt => baseDelay * 2^attempt + Math.random() * jitter`)\n- Adaptive timeout: increases per retry to handle Lambda cold-start latency\n- Payload pruning: removes `null`/`undefined` fields to reduce payload size",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Chunked batching: profiles split into arrays of `BATCH_SIZE` (default 10) before each fetch call",
+              "checked": null
+            },
+            {
+              "text": "Retry strategy: exponential back-off with jitter (`attempt => baseDelay * 2^attempt + Math.random() * jitter`)",
+              "checked": null
+            },
+            {
+              "text": "Adaptive timeout: increases per retry to handle Lambda cold-start latency",
+              "checked": null
+            },
+            {
+              "text": "Payload pruning: removes `null`/`undefined` fields to reduce payload size",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "utils/profileMerger.js — dedup and merge",
+      "level": 4,
+      "slug": "utilsprofilemergerjs-dedup-and-merge",
+      "prose": "- Dedup key: `profile_url` (LinkedIn/SN canonical URL)\n- Completeness score: `filledFields / totalFields` — checked fields: name, title, company, email, phone, location, connections\n- Merge strategy: per-field winner is the value from the higher-scoring record; ties resolved by preferring the `deepScrape` variant over `HTML`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Dedup key: `profile_url` (LinkedIn/SN canonical URL)",
+              "checked": null
+            },
+            {
+              "text": "Completeness score: `filledFields / totalFields` — checked fields: name, title, company, email, phone, location, connections",
+              "checked": null
+            },
+            {
+              "text": "Merge strategy: per-field winner is the value from the higher-scoring record; ties resolved by preferring the `deepScrape` variant over `HTML`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era tagging",
+      "level": 3,
+      "slug": "era-tagging",
+      "prose": "| Module | Primary era |\n| --- | --- |\n| `auth/graphqlSession.js` | 1.x (token lifecycle), 4.x (proactive refresh) |\n| `utils/lambdaClient.js` | 3.x (save flow), 4.x (reliability), 6.x (retry/back-off) |\n| `utils/profileMerger.js` | 3.x (contact data quality), 4.x (SN maturity) |\n---",
+      "tables": [
+        {
+          "headers": [
+            "Module",
+            "Primary era"
+          ],
+          "rows": [
+            [
+              "`auth/graphqlSession.js`",
+              "1.x (token lifecycle), 4.x (proactive refresh)"
+            ],
+            [
+              "`utils/lambdaClient.js`",
+              "3.x (save flow), 4.x (reliability), 6.x (retry/back-off)"
+            ],
+            [
+              "`utils/profileMerger.js`",
+              "3.x (contact data quality), 4.x (SN maturity)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email app implementation notes — contact360.io/email",
+      "level": 2,
+      "slug": "email-app-implementation-notes-contact360ioemail",
+      "prose": "- **Framework:** Next.js 16 App Router + React 19.\n- **UI primitives:** `src/components/ui/*` (Button, Input, Tabs, Checkbox, Table, Alert, Badge, Tooltip, Drawer, Select).\n- **Table architecture:** `@tanstack/react-table` with row selection, pagination, and tab filtering.\n- **Contexts/hooks:** `ImapProvider` (`activeAccount`, `isLoading`) + `useIsMobile`.\n- **Routing:** mailbox routes (`/inbox`, `/sent`, `/spam`, `/draft`), detail route (`/email/[mailId]`), auth routes, account settings route.\n- **Security helper:** DOMPurify sanitization in email detail rendering.\n- **Known hardening gap:** IMAP credentials currently moved through custom headers and localStorage account blob.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Framework:** Next.js 16 App Router + React 19.",
+              "checked": null
+            },
+            {
+              "text": "**UI primitives:** `src/components/ui/*` (Button, Input, Tabs, Checkbox, Table, Alert, Badge, Tooltip, Drawer, Select).",
+              "checked": null
+            },
+            {
+              "text": "**Table architecture:** `@tanstack/react-table` with row selection, pagination, and tab filtering.",
+              "checked": null
+            },
+            {
+              "text": "**Contexts/hooks:** `ImapProvider` (`activeAccount`, `isLoading`) + `useIsMobile`.",
+              "checked": null
+            },
+            {
+              "text": "**Routing:** mailbox routes (`/inbox`, `/sent`, `/spam`, `/draft`), detail route (`/email/[mailId]`), auth routes, account settings route.",
+              "checked": null
+            },
+            {
+              "text": "**Security helper:** DOMPurify sanitization in email detail rendering.",
+              "checked": null
+            },
+            {
+              "text": "**Known hardening gap:** IMAP credentials currently moved through custom headers and localStorage account blob.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "backend(dev)/mailvetter focused implementation map",
+      "level": 2,
+      "slug": "backenddevmailvetter-focused-implementation-map",
+      "prose": "- Primary service: `backend(dev)/mailvetter/app/mailvetter-bak/`\n- API bootstrap: `cmd/api/main.go`, `internal/api/router.go`\n- Worker bootstrap: `cmd/worker/main.go`, `internal/worker/runner.go`\n- Handlers: `internal/handlers/validate.go`, `jobs.go`, `health.go`\n- Validation core: `internal/validator/logic.go`, `internal/validator/scoring.go`\n- Protocol lookups: `internal/lookup/dns.go`, `smtp.go`, `security.go`\n- Data layer: `internal/store/db.go` (`jobs`, `results`, indexes)\n- Queue layer: `internal/queue/client.go` (`tasks:verify`)\n- Webhook lifecycle: `internal/webhook/dispatcher.go`\n- Legacy operator UI: `static/index.html`\n\nImmediate engineering queue:\n\n1. Canonicalize `/v1` routes and deprecate legacy `/verify|/upload|/status|/results`.\n2. Replace in-memory limiter with Redis-backed distributed limiter.\n3. Add idempotency key support for bulk job creation.\n4. Add explicit `processing` and `failed` job statuses plus retry/DLQ flow.\n5. Split DB migration execution from runtime startup.\n6. Separate `WEBHOOK_SECRET_KEY` from `API_SECRET_KEY` with strict policy.\n7. Add endpoint contract parity tests for all `/v1` routes.\n\nSee full era-by-era decomposition: `docs/codebases/mailvetter-codebase-analysis.md`.\n\nEra task-pack index: era folders `0–10` each contain `mailvetter-*-task-pack.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary service: `backend(dev)/mailvetter/app/mailvetter-bak/`",
+              "checked": null
+            },
+            {
+              "text": "API bootstrap: `cmd/api/main.go`, `internal/api/router.go`",
+              "checked": null
+            },
+            {
+              "text": "Worker bootstrap: `cmd/worker/main.go`, `internal/worker/runner.go`",
+              "checked": null
+            },
+            {
+              "text": "Handlers: `internal/handlers/validate.go`, `jobs.go`, `health.go`",
+              "checked": null
+            },
+            {
+              "text": "Validation core: `internal/validator/logic.go`, `internal/validator/scoring.go`",
+              "checked": null
+            },
+            {
+              "text": "Protocol lookups: `internal/lookup/dns.go`, `smtp.go`, `security.go`",
+              "checked": null
+            },
+            {
+              "text": "Data layer: `internal/store/db.go` (`jobs`, `results`, indexes)",
+              "checked": null
+            },
+            {
+              "text": "Queue layer: `internal/queue/client.go` (`tasks:verify`)",
+              "checked": null
+            },
+            {
+              "text": "Webhook lifecycle: `internal/webhook/dispatcher.go`",
+              "checked": null
+            },
+            {
+              "text": "Legacy operator UI: `static/index.html`",
+              "checked": null
+            },
+            {
+              "text": "Canonicalize `/v1` routes and deprecate legacy `/verify|/upload|/status|/results`.",
+              "checked": null
+            },
+            {
+              "text": "Replace in-memory limiter with Redis-backed distributed limiter.",
+              "checked": null
+            },
+            {
+              "text": "Add idempotency key support for bulk job creation.",
+              "checked": null
+            },
+            {
+              "text": "Add explicit `processing` and `failed` job statuses plus retry/DLQ flow.",
+              "checked": null
+            },
+            {
+              "text": "Split DB migration execution from runtime startup.",
+              "checked": null
+            },
+            {
+              "text": "Separate `WEBHOOK_SECRET_KEY` from `API_SECRET_KEY` with strict policy.",
+              "checked": null
+            },
+            {
+              "text": "Add endpoint contract parity tests for all `/v1` routes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Documentation Overhaul Addendum",
+      "level": 2,
+      "slug": "2026-documentation-overhaul-addendum",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Added explicit service ownership notes",
+      "level": 3,
+      "slug": "added-explicit-service-ownership-notes",
+      "prose": "- `contact360.io/admin`: Django operator/control plane with RBAC middleware, billing ops, logs/jobs/storage consoles, and cross-service admin clients.\n- `lambda/s3storage`: object lifecycle + CSV analysis + multipart upload orchestration. Current reliability/auth gaps are roadmap blockers.\n- `lambda/logs.api`: S3 CSV log persistence and query/statistics API. MongoDB references are legacy and removed from canonical interpretation.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`contact360.io/admin`: Django operator/control plane with RBAC middleware, billing ops, logs/jobs/storage consoles, and cross-service admin clients.",
+              "checked": null
+            },
+            {
+              "text": "`lambda/s3storage`: object lifecycle + CSV analysis + multipart upload orchestration. Current reliability/auth gaps are roadmap blockers.",
+              "checked": null
+            },
+            {
+              "text": "`lambda/logs.api`: S3 CSV log persistence and query/statistics API. MongoDB references are legacy and removed from canonical interpretation.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Dependency and risk matrix updates",
+      "level": 3,
+      "slug": "dependency-and-risk-matrix-updates",
+      "prose": "- `backend(dev)/email campaign` depends on Redis + PostgreSQL + SMTP + S3 templates; schema parity and unsubscribe query path remain P0 blockers.\n- `lambda/emailapigo` and `lambda/emailapis` share provider-network responsibilities and must keep status vocabulary + cache contracts aligned.\n- `contact360.io/admin` integrates with `appointment360` (GraphQL), `logs.api`, and `s3storage` (job visibility via gateway); missing API-key forwarding in some client calls is tracked.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`backend(dev)/email campaign` depends on Redis + PostgreSQL + SMTP + S3 templates; schema parity and unsubscribe query path remain P0 blockers.",
+              "checked": null
+            },
+            {
+              "text": "`lambda/emailapigo` and `lambda/emailapis` share provider-network responsibilities and must keep status vocabulary + cache contracts aligned.",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/admin` integrates with `appointment360` (GraphQL), `logs.api`, and `s3storage` (job visibility via gateway); missing API-key forwarding in some client calls is tracked.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Attached Analysis & Task Packs",
+      "level": 2,
+      "slug": "attached-analysis-task-packs",
+      "prose": "- [Appointment360 Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/appointment360-foundation-task-pack.md)\n- [Appointment360 User Billing Task Pack](../../contact360.io/root/docs/imported/analysis/appointment360-user-billing-task-pack.md)\n- [Connectra Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/connectra-foundation-task-pack.md)\n- [Contact AI Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/contact-ai-foundation-task-pack.md)\n- [Contact360 E2E Architecture Flow](../../contact360.io/root/docs/imported/analysis/Contact360 End-to-End Architecture and Flow.md)\n- [Email APIs Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/emailapis-foundation-task-pack.md)\n- [Sync Codebase Analysis](../codebases/sync-codebase-analysis.md)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[Appointment360 Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/appointment360-foundation-task-pack.md)",
+              "checked": null
+            },
+            {
+              "text": "[Appointment360 User Billing Task Pack](../../contact360.io/root/docs/imported/analysis/appointment360-user-billing-task-pack.md)",
+              "checked": null
+            },
+            {
+              "text": "[Connectra Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/connectra-foundation-task-pack.md)",
+              "checked": null
+            },
+            {
+              "text": "[Contact AI Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/contact-ai-foundation-task-pack.md)",
+              "checked": null
+            },
+            {
+              "text": "[Contact360 E2E Architecture Flow](../../contact360.io/root/docs/imported/analysis/Contact360 End-to-End Architecture and Flow.md)",
+              "checked": null
+            },
+            {
+              "text": "[Email APIs Foundation Task Pack](../../contact360.io/root/docs/imported/analysis/emailapis-foundation-task-pack.md)",
+              "checked": null
+            },
+            {
+              "text": "[Sync Codebase Analysis](../codebases/sync-codebase-analysis.md)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "Appointment360 Foundation Task Pack",
+          "href": "../../contact360.io/root/docs/imported/analysis/appointment360-foundation-task-pack.md"
+        },
+        {
+          "text": "Appointment360 User Billing Task Pack",
+          "href": "../../contact360.io/root/docs/imported/analysis/appointment360-user-billing-task-pack.md"
+        },
+        {
+          "text": "Connectra Foundation Task Pack",
+          "href": "../../contact360.io/root/docs/imported/analysis/connectra-foundation-task-pack.md"
+        },
+        {
+          "text": "Contact AI Foundation Task Pack",
+          "href": "../../contact360.io/root/docs/imported/analysis/contact-ai-foundation-task-pack.md"
+        },
+        {
+          "text": "Contact360 E2E Architecture Flow",
+          "href": "../../contact360.io/root/docs/imported/analysis/Contact360 End-to-End Architecture and Flow.md"
+        },
+        {
+          "text": "Email APIs Foundation Task Pack",
+          "href": "../../contact360.io/root/docs/imported/analysis/emailapis-foundation-task-pack.md"
+        },
+        {
+          "text": "Sync Codebase Analysis",
+          "href": "../codebases/sync-codebase-analysis.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

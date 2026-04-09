@@ -1,0 +1,574 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/02_USERS_MODULE.md",
+  "sha256_source": "da516c1dafe8ec1865a7b5fc7f10e9318bed3fa47e71dc7d8975850dda0823ec",
+  "generated_at": "2026-04-08T23:11:52.750553+00:00",
+  "title": "Users Module",
+  "module_number": 2,
+  "module_name": "USERS",
+  "location": "app/graphql/modules/users/",
+  "overview": "The Users module provides user management functionality including user queries, profile updates, avatar uploads, and user statistics. It supports both regular user operations and admin operations. **Location:** `app/graphql/modules/users/` GraphQL paths: `query { users { user(uuid: ...) { ... } } }`, `mutation { users { updateProfile(...) { ... } } }`.",
+  "operations": [
+    {
+      "name": "Queries** (under `users { ... }`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "user",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`uuid`",
+          "graphql_type": "`ID!`"
+        }
+      ],
+      "return_type": "`User`",
+      "description": null
+    },
+    {
+      "name": "users",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`limit`, `offset`",
+          "graphql_type": "`Int`, `Int`"
+        }
+      ],
+      "return_type": "`[User!]!`",
+      "description": null
+    },
+    {
+      "name": "userStats",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "`UserStats` (Admin/SuperAdmin)",
+      "description": null
+    },
+    {
+      "name": "Mutations** (under `users { ... }`)",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "",
+      "description": null
+    },
+    {
+      "name": "updateProfile",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`UpdateProfileInput!`"
+        }
+      ],
+      "return_type": "`UserProfile`",
+      "description": null
+    },
+    {
+      "name": "uploadAvatar",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`UploadAvatarInput!`"
+        }
+      ],
+      "return_type": "`UserProfile`",
+      "description": null
+    },
+    {
+      "name": "updateUser",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`UpdateUserInput!`"
+        }
+      ],
+      "return_type": "`User`",
+      "description": null
+    },
+    {
+      "name": "promoteToAdmin",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`PromoteToAdminInput!`"
+        }
+      ],
+      "return_type": "`User` (SuperAdmin)",
+      "description": null
+    },
+    {
+      "name": "promoteToSuperAdmin",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`PromoteToSuperAdminInput!`"
+        }
+      ],
+      "return_type": "`User` (SuperAdmin)",
+      "description": null
+    }
+  ],
+  "sdl_excerpt": "type UserQuery {\n  user(uuid: ID!): User!\n  users(limit: Int = 100, offset: Int = 0): [User!]!\n  userStats: UserStats!\n}\n\ntype UserMutation {\n  updateProfile(input: UpdateProfileInput!): UserProfile!\n  uploadAvatar(input: UploadAvatarInput!): UserProfile!\n  updateUser(input: UpdateUserInput!): User!\n  promoteToAdmin(input: PromoteToAdminInput!): User!\n  promoteToSuperAdmin(input: PromoteToSuperAdminInput!): User!\n}\n\ninput UpdateProfileInput {\n  jobTitle: String = null\n  bio: String = null\n  timezone: String = null\n  notifications: JSON = null\n}\n\ninput UploadAvatarInput {\n  fileData: String = null\n  filePath: String = null\n}\n\ninput UpdateUserInput {\n  name: String = null\n  email: String = null\n}",
+  "error_codes": [
+    "The Users module implements comprehensive error handling with input validation, database error handling, file validation, and role-based access control.",
+    "The Users module may raise the following errors:",
+    "**ForbiddenError** (403): Insufficient permissions",
+    "Code: `FORBIDDEN`",
+    "Extensions: `requiredRole: <role>` (if applicable)",
+    "Occurs when: User lacks required permissions (e.g., accessing another user's data, promoting users without SuperAdmin role)",
+    "**NotFoundError** (404): User not found",
+    "Code: `NOT_FOUND`",
+    "Extensions: `resourceType: \"User\"`, `identifier: <user_uuid>`",
+    "Occurs when: Requested user UUID does not exist",
+    "**BadRequestError** (400): Invalid input data",
+    "Code: `BAD_REQUEST`",
+    "Occurs when: Invalid file type, file size exceeds limit (5MB), or invalid file format",
+    "**ValidationError** (422): Input validation failed",
+    "Code: `VALIDATION_ERROR`",
+    "Extensions: `fieldErrors` (field-specific errors)",
+    "Occurs when: Invalid UUID format, invalid email format, missing required fields, or invalid field values",
+    "**ServiceUnavailableError** (503): Database or S3 service unavailable",
+    "Code: `SERVICE_UNAVAILABLE`",
+    "Extensions: `serviceName: \"database\"` or `serviceName: \"s3\"`",
+    "Occurs when: Database connection fails or S3 service is unavailable",
+    "**Example: File Size Error**",
+    "**Example: Validation Error**",
+    "**Example: Forbidden Error**",
+    "**Example: User Not Found**",
+    "**Input Validation**: UUIDs, emails, file data, and profile fields are validated before processing",
+    "**File Validation**: Avatar uploads validate file type (JPEG, PNG, GIF, WebP), size (max 5MB), and content",
+    "**Database Errors**: All database operations include transaction rollback on failure",
+    "**Role-Based Access**: Access control checks prevent unauthorized access to user data",
+    "**S3 Errors**: S3 upload errors are caught and converted to appropriate GraphQL errors",
+    "**Error Logging**: Comprehensive error logging with context for debugging",
+    "**Transaction Management**: All mutations use database transactions with rollback on failure",
+    "**S3 Error Handling**: S3 errors are caught and converted to ServiceUnavailableError with proper context",
+    "**Database Error Handling**: Database errors are handled via centralized `handle_database_exception` function",
+    "**Validation Errors**: Field-level validation errors are returned in `extensions.fieldErrors` for proper GraphQL error handling"
+  ],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Users Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — full request and response",
+      "level": 2,
+      "prose": "Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>` (required for all operations below except where noted).",
+      "code_blocks": []
+    },
+    {
+      "heading": "users.user (query)",
+      "level": 3,
+      "prose": "**Request body:** **Success response (shape):**",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query User($uuid: ID!) { users { user(uuid: $uuid) { uuid email name isActive profile { userId jobTitle credits role } } } }\",\n  \"variables\": { \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\" }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"user\": {\n        \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"email\": \"user@example.com\",\n        \"name\": \"Jane\",\n        \"isActive\": true,\n        \"profile\": null\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "users.updateProfile (mutation)",
+      "level": 3,
+      "prose": "**Variables:** **Minimal query string:**",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"jobTitle\": \"Engineer\",\n    \"bio\": null,\n    \"timezone\": \"UTC\",\n    \"notifications\": null\n  }\n}"
+        },
+        {
+          "lang": "graphql",
+          "value": "mutation ($input: UpdateProfileInput!) {\n  users {\n    updateProfile(input: $input) {\n      userId\n      jobTitle\n      bio\n      avatarUrl\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "User",
+      "level": 3,
+      "prose": "User information with profile data. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type User {\n  uuid: ID!\n  email: String!\n  name: String\n  isActive: Boolean!\n  lastSignInAt: DateTime\n  createdAt: DateTime!\n  updatedAt: DateTime\n  profile: UserProfile\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UserProfile",
+      "level": 3,
+      "prose": "Detailed user profile information. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type UserProfile {\n  userId: ID!\n  jobTitle: String\n  bio: String\n  timezone: String\n  avatarUrl: String\n  role: String\n  credits: Int!\n  subscriptionPlan: String\n  subscriptionPeriod: String\n  subscriptionStatus: String\n  subscriptionStartedAt: DateTime\n  subscriptionEndsAt: DateTime\n  createdAt: DateTime!\n  updatedAt: DateTime\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UserStats",
+      "level": 3,
+      "prose": "Aggregated user statistics (admin only). **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type UserStats {\n  totalUsers: Int!\n  activeUsers: Int!\n  inactiveUsers: Int!\n  usersByRole: [UserRoleCount!]!\n  usersBySubscription: [UserSubscriptionCount!]!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UserRoleCount",
+      "level": 3,
+      "prose": "User count by role.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type UserRoleCount {\n  role: String!\n  count: Int!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UserSubscriptionCount",
+      "level": 3,
+      "prose": "User count by subscription plan.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type UserSubscriptionCount {\n  subscriptionPlan: String!\n  count: Int!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "user",
+      "level": 3,
+      "prose": "Get user by UUID. **Parameters:** **Arguments:** **Returns:** `User` **Authentication:** Required **Authorization:** **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetUser($uuid: ID!) {\n  users {\n    user(uuid: $uuid) {\n      uuid\n      email\n      name\n      isActive\n      profile {\n        jobTitle\n        bio\n        role\n        credits\n        subscriptionPlan\n      }\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"user\": {\n        \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"email\": \"user@example.com\",\n        \"name\": \"John Doe\",\n        \"isActive\": true,\n        \"profile\": {\n          \"jobTitle\": \"Software Engineer\",\n          \"bio\": \"Full-stack developer\",\n          \"role\": \"User\",\n          \"credits\": 1000,\n          \"subscriptionPlan\": \"pro\"\n        }\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "users",
+      "level": 3,
+      "prose": "List all users (admin only). **Parameters:** **Arguments:** **Validation:** **Returns:** `[User!]!` **Authentication:** Required **Authorization:** Admin/SuperAdmin only **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query ListUsers($limit: Int, $offset: Int) {\n  users {\n    users(limit: $limit, offset: $offset) {\n      uuid\n      email\n      name\n      isActive\n      createdAt\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"users\": [\n        {\n          \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n          \"email\": \"user1@example.com\",\n          \"name\": \"User One\",\n          \"isActive\": true,\n          \"createdAt\": \"2024-01-01T00:00:00Z\"\n        },\n        {\n          \"uuid\": \"223e4567-e89b-12d3-a456-426614174001\",\n          \"email\": \"user2@example.com\",\n          \"name\": \"User Two\",\n          \"isActive\": true,\n          \"createdAt\": \"2024-01-02T00:00:00Z\"\n        }\n      ]\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "userStats",
+      "level": 3,
+      "prose": "Get user statistics (admin only). **Parameters:** None. **Returns:** `UserStats` **Authentication:** Required **Authorization:** Admin/SuperAdmin only **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetUserStats {\n  users {\n    userStats {\n      totalUsers\n      activeUsers\n      inactiveUsers\n      usersByRole {\n        role\n        count\n      }\n      usersBySubscription {\n        subscriptionPlan\n        count\n      }\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"userStats\": {\n        \"totalUsers\": 150,\n        \"activeUsers\": 142,\n        \"inactiveUsers\": 8,\n        \"usersByRole\": [\n          {\n            \"role\": \"User\",\n            \"count\": 140\n          },\n          {\n            \"role\": \"Admin\",\n            \"count\": 8\n          },\n          {\n            \"role\": \"SuperAdmin\",\n            \"count\": 2\n          }\n        ],\n        \"usersBySubscription\": [\n          {\n            \"subscriptionPlan\": \"free\",\n            \"count\": 50\n          },\n          {\n            \"subscriptionPlan\": \"pro\",\n            \"count\": 80\n          },\n          {\n            \"subscriptionPlan\": \"enterprise\",\n            \"count\": 20\n          }\n        ]\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "updateProfile",
+      "level": 3,
+      "prose": "Update current user's profile. All input fields are optional; only provided fields are updated. **Parameters:** **Variables:** **Input:** `UpdateProfileInput!` **Returns:** `UserProfile` **Authentication:** Required **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation UpdateProfile($input: UpdateProfileInput!) {\n  users {\n    updateProfile(input: $input) {\n      userId\n      jobTitle\n      bio\n      timezone\n      role\n      credits\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"jobTitle\": \"Senior Software Engineer\",\n    \"bio\": \"Experienced full-stack developer\",\n    \"timezone\": \"America/New_York\",\n    \"notifications\": {\n      \"email\": true,\n      \"push\": false\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"updateProfile\": {\n        \"userId\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"jobTitle\": \"Senior Software Engineer\",\n        \"bio\": \"Experienced full-stack developer\",\n        \"timezone\": \"America/New_York\",\n        \"role\": \"User\",\n        \"credits\": 1000\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "uploadAvatar",
+      "level": 3,
+      "prose": "Upload avatar image for current user. Provide exactly one of `fileData` or `filePath`. Accepted image types: JPEG, PNG, GIF, WebP (max 5MB). Filename is auto-generated as `{user_id}.jpg`. **Parameters:** **Variables (Base64 method):** **Variables (HTTP/HTTPS URL method):** **Variables (file:// URL method):** **Variables (Local file path method):** **Input:** `UploadAvatarInput!` **Returns:** `UserProfile` **Authentication:** Required **File Requirements:** **Example Response:** **Notes:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation UploadAvatar($input: UploadAvatarInput!) {\n  users {\n    uploadAvatar(input: $input) {\n      userId\n      avatarUrl\n      jobTitle\n      bio\n      timezone\n      role\n      credits\n      subscriptionPlan\n      subscriptionStatus\n      createdAt\n      updatedAt\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"fileData\": \"/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=\"\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"fileData\": \"https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png\"\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"fileData\": \"file:///C:/Users/durga/Downloads/images.png\"\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"filePath\": \"/path/to/local/image.jpg\"\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"uploadAvatar\": {\n        \"userId\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"avatarUrl\": \"https://s3.amazonaws.com/bucket/avatars/123e4567-e89b-12d3-a456-426614174000/123e4567-e89b-12d3-a456-426614174000.jpg?X-Amz-Algorithm=...\",\n        \"jobTitle\": null,\n        \"bio\": null,\n        \"timezone\": null,\n        \"role\": \"Member\",\n        \"credits\": 100,\n        \"subscriptionPlan\": \"free\",\n        \"subscriptionStatus\": \"active\",\n        \"createdAt\": \"2024-01-15T10:30:00Z\",\n        \"updatedAt\": \"2024-01-15T10:35:00Z\"\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "updateUser",
+      "level": 3,
+      "prose": "Update current user's basic information (name and/or email). All input fields are optional. **Parameters:** **Variables:** **Input:** `UpdateUserInput!` **Returns:** `User` **Authentication:** Required **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation UpdateUser($input: UpdateUserInput!) {\n  users {\n    updateUser(input: $input) {\n      uuid\n      email\n      name\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"name\": \"John Doe Updated\"\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"updateUser\": {\n        \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"email\": \"user@example.com\",\n        \"name\": \"John Doe Updated\"\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "promoteToAdmin",
+      "level": 3,
+      "prose": "Promote a user to Admin role. Requires the caller to have SuperAdmin role. **Parameters:** **Variables:** **Input:** `PromoteToAdminInput!` **Returns:** `User` **Authentication:** Required **Authorization:** SuperAdmin role required **Example Response:** **Error Responses:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation PromoteToAdmin($input: PromoteToAdminInput!) {\n  users {\n    promoteToAdmin(input: $input) {\n      uuid\n      email\n      name\n      profile {\n        role\n      }\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"userId\": \"123e4567-e89b-12d3-a456-426614174000\"\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"promoteToAdmin\": {\n        \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"email\": \"user@example.com\",\n        \"name\": \"John Doe\",\n        \"profile\": {\n          \"role\": \"Admin\"\n        }\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "promoteToSuperAdmin",
+      "level": 3,
+      "prose": "Promote a user to SuperAdmin role. Requires the caller to have SuperAdmin role. **Parameters:** **Variables:** **Input:** `PromoteToSuperAdminInput!` **Returns:** `User` **Authentication:** Required **Authorization:** SuperAdmin role required **Example Response:** **Error Responses:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation PromoteToSuperAdmin($input: PromoteToSuperAdminInput!) {\n  users {\n    promoteToSuperAdmin(input: $input) {\n      uuid\n      email\n      name\n      profile {\n        role\n      }\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"userId\": \"123e4567-e89b-12d3-a456-426614174000\"\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"users\": {\n      \"promoteToSuperAdmin\": {\n        \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n        \"email\": \"user@example.com\",\n        \"name\": \"John Doe\",\n        \"profile\": {\n          \"role\": \"SuperAdmin\"\n        }\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Input Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "UpdateUserInput",
+      "level": 3,
+      "prose": "Input for updating user information. **Fields:** **Validation:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input UpdateUserInput {\n  name: String\n  email: String\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UpdateProfileInput",
+      "level": 3,
+      "prose": "Input for updating user profile. **Fields:** **Validation:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input UpdateProfileInput {\n  jobTitle: String\n  bio: String\n  timezone: String\n  notifications: JSON\n}"
+        }
+      ]
+    },
+    {
+      "heading": "UploadAvatarInput",
+      "level": 3,
+      "prose": "Input for uploading avatar. **Fields:** **Validation:** **Examples:** Base64 method: HTTP/HTTPS URL method: file:// URL method: Local file path method: **Notes:** **Example:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input UploadAvatarInput {\n  fileData: String\n  filePath: String\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"fileData\": \"/9j/4AAQSkZJRgABAQEAYABgAAD...\"\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"fileData\": \"https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png\"\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"fileData\": \"file:///C:/Users/durga/Downloads/images.png\"\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"filePath\": \"/path/to/local/image.jpg\"\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"fileData\": \"/9j/4AAQSkZJRgABAQEAYABgAAD...\",\n  \"filename\": \"my-avatar.jpg\"\n}"
+        }
+      ]
+    },
+    {
+      "heading": "PromoteToAdminInput",
+      "level": 3,
+      "prose": "Input for promoting a user to admin role. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input PromoteToAdminInput {\n  userId: ID!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "PromoteToSuperAdminInput",
+      "level": 3,
+      "prose": "Input for promoting a user to super admin role. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "input PromoteToSuperAdminInput {\n  userId: ID!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Usage Examples",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Complete User Management Flow",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "# 1. Get current user\nquery GetMe {\n  users {\n    user(uuid: \"123e4567-e89b-12d3-a456-426614174000\") {\n      uuid\n      email\n      name\n      profile {\n        jobTitle\n        bio\n        credits\n      }\n    }\n  }\n}\n\n# 2. Update profile\nmutation UpdateMyProfile {\n  users {\n    updateProfile(input: {\n      jobTitle: \"Senior Developer\"\n      bio: \"Passionate about code\"\n      timezone: \"UTC\"\n    }) {\n      userId\n      jobTitle\n      bio\n    }\n  }\n}\n\n# 3. Upload avatar\nmutation UploadMyAvatar {\n  users {\n    uploadAvatar(input: {\n      fileData: \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...\"\n      filename: \"profile.png\"\n    }) {\n      userId\n      avatarUrl\n    }\n  }\n}\n\n# 4. Update user name\nmutation UpdateMyName {\n  users {\n    updateUser(input: {\n      name: \"John Updated\"\n    }) {\n      uuid\n      name\n    }\n  }\n}\n\n# 5. Admin: List all users\nquery ListAllUsers {\n  users {\n    users(limit: 50, offset: 0) {\n      uuid\n      email\n      name\n      isActive\n    }\n  }\n}\n\n# 6. Admin: Get user statistics\nquery GetStats {\n  users {\n    userStats {\n      totalUsers\n      activeUsers\n      usersByRole {\n        role\n        count\n      }\n    }\n  }\n}\n\n# 7. SuperAdmin: Promote user to Admin\nmutation PromoteUserToAdmin {\n  users {\n    promoteToAdmin(input: {\n      userId: \"123e4567-e89b-12d3-a456-426614174000\"\n    }) {\n      uuid\n      email\n      profile {\n        role\n      }\n    }\n  }\n}\n\n# 8. SuperAdmin: Promote user to SuperAdmin\nmutation PromoteUserToSuperAdmin {\n  users {\n    promoteToSuperAdmin(input: {\n      userId: \"123e4567-e89b-12d3-a456-426614174000\"\n    }) {\n      uuid\n      email\n      profile {\n        role\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Implementation Details",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Query Optimization",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Avatar Upload",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Profile Management",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Access Control",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Credit System",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Task breakdown (for maintainers)",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Related Modules",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Documentation metadata",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Endpoint/version binding checklist",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

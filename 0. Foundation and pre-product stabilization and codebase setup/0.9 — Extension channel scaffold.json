@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "0. Foundation and pre-product stabilization and codebase setup/0.9 — Extension channel scaffold.md",
+  "sha256_source": "82245e7ca0e3fababa53351ff01b08301bbf946db0550d0091d0d1480ee058dd",
+  "generated_at": "2026-04-08T23:11:49.689925+00:00",
+  "title": "Version 0.9 — Extension channel scaffold",
+  "version": "0.9",
+  "codename": "Extension channel scaffold",
+  "era": 0,
+  "minor": 9,
+  "patch": null,
+  "status": "completed",
+  "summary": "Cross-reference: `docs/backend/endpoints/salesnavigator_endpoint_era_matrix.json` (era `0.x`).",
+  "scope": "Extension frontend scope (0.9 evidence):\nCross-reference: `docs/frontend/components.md` (extension section rows) and `docs/frontend/salesnavigator-ui-bindings.md` (era `0.x`).",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"0.9.x Extension channel scaffold\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    ext[\"Chrome extension MV3\"] --> store[\"chrome.storage.local session\"]\n    store --> client[\"lambdaClient / gateway client\"]\n    client --> sn[\"salesnavigator Lambda\"]\n    sn --> map[\"Profile to Contact/Company DTO\"]\n    map --> cr[\"Connectra batch-upsert\"]\n    cr --> pg[\"PostgreSQL + Elasticsearch\"]"
+  ],
+  "micro_gate": "**Patch intent bands (typical):** `.0` charter · `.1`–`.2` scaffold · `.3`–`.5` hardening · `.6`–`.8` integration/drift · `.9` minor freeze / handoff to `0.(N+1).0`.\nTheme: **Broadcast**. Per-patch tables: each `0.9.P — … .md` file.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **UUID5** rules documented for contact + company dedup via `generate_contact_uuid` / `generate_company_uuid` in `save_service.py`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: `X-API-Key` header authentication wired on SN Lambda endpoints via `verify_api_key` dependency.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add `X-Idempotency-Key` header support on `POST /v1/save-profiles` to prevent duplicate profile ingestion on retry.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Document CORS policy for `extension/contact360 salesnavigator Lambda` — no CORS headers currently in `template.yaml`; extension calls will fail in browser if CORS not configured.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `0.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: SN Lambda: `GET /health`, `POST /v1/save-profiles`, `POST /v1/scrape` — all endpoints implemented and health-checked.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: Rate-limit stub deferred to gateway-only for `0.9`; Lambda endpoints have no per-IP limit (documented gap).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **`content.js`** is a 9-line stub — only sets `window.__CONTACT360_CONTENT_SCRIPT__` flag; no DOM observation, no scraping trigger, no message passing to `background.js` implemented.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **`background.js`** has no `chrome.runtime.onMessage` handler — cannot receive or orchestrate messages from `content.js`; service worker is effectively a no-op beyond setting default gateway URL.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Implement `content.js` DOM observer for `data-x-search-result=\"LEAD\"` elements on Sales Navigator search pages; wire `chrome.runtime.sendMessage` to trigger save flow.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Implement `background.js` message handler to receive profile arrays from `content.js` and forward to `LambdaClient.saveProfiles()`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `0.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: Extension `background.js` + `content.js` scaffold present; `popup.js` renders token status + gateway URL UI.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: `graphqlSession.js` uses ES module `export` syntax but `manifest.json` does not declare `type: \"module\"` for `web_accessible_resources` scripts — will fail in non-module content script context; resolve by using IIFE/UMD wrapper or `type: \"module\"` in manifest.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Extension popups/options page skeleton; browser permissions documented.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Extension frontend scope (0.9 evidence):",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Files:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`extension/contact360/auth/graphqlSession.js` (decodeJWT export present)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`extension/contact360/utils/lambdaClient.js`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`extension/contact360/utils/profileMerger.js`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Popup HTML stub:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`extension/contact360/popup.html` (stub renders)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Cross-reference: `docs/frontend/components.md` (extension section rows) and `docs/frontend/salesnavigator-ui-bindings.md` (era `0.x`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: Field mapping with `PLACEHOLDER_VALUE` for empty/null values in `normalization.py`; aligns SN profile → Connectra contact/company shape.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add `source=sales_navigator`, `lead_id`, `search_id`, `connection_degree` provenance fields to all contact payloads sent to Connectra.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `0.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Connectra** PG + ES — receives extension/salesnavigator payloads.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Cross-reference: `docs/backend/database/salesnavigator_data_lineage.md` (era `0.x`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Completed: Sample upsert + UUID5 proof",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: SAM deploy for SN Lambda; extension build folder structure with tests scaffold present.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: No `samconfig.toml` for `extension/contact360 salesnavigator Lambda` — cannot run `sam deploy` without interactive parameter prompts; create `samconfig.toml` referencing SSM for secrets.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: `template.yaml` `ConnectraApiUrl` parameter Default is hardcoded IP `http://18.234.210.191:8000` — must be removed or replaced with SSM reference before production deploy.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Create `utils/constants.js` to define `LAMBDA_API_CONFIG` (currently missing; referenced by `lambdaClient.js` via `window.Contact360Constants`) and register in `manifest.json` `web_accessible_resources`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `0.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **django docsai** (`contact3…) | patch `0.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 0.9 — Extension channel scaffold",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (0.9.0 – 0.9.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

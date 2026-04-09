@@ -1,0 +1,452 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "frontend/docs/admin_surface.md",
+  "sha256_source": "9c958eb128b0dfffb9d259de1592e2fb7a554cf0e4d2c21efde6bc098d661ea8",
+  "generated_at": "2026-04-08T23:26:48.381467+00:00",
+  "title": "Admin surface (contact360.io/admin)",
+  "raw_markdown": "---\ntitle: \"Django DocsAI & super-admin surface\"\ncodebase: admin\ncanonical_repo: contact360.io/admin\n---\n\n# Admin surface (`contact360.io/admin`)\n\nDjango **DocsAI** + operational super-admin — **not** Next.js `page.tsx`. Specs for individual Django URLs can be split into `admin_*_page.md` later; this file is the hub for **design symbols**, **era coverage**, and **connections** to the Next apps.\n\n### UI components (metadata)\n\n- **base.html** — `admin/templates/base.html`\n- **_page_header.html** — `admin/templates/admin/_page_header.html`\n- **sidebar.html** — `admin/templates/layouts/sidebar.html`\n- **header.html** — `admin/templates/layouts/header.html`\n- **footer.html** — `admin/templates/layouts/footer.html`\n- **command_palette.html** — `admin/templates/components/command_palette.html`\n- **app-fab-chat** — (Floating AI chat button in base.html)\n- **main.css** — `admin/static/css/main.css`\n\n## Era coverage (0.x–10.x)\n\n| Era | Admin relevance | Typical UI symbols |\n| --- | --- | --- |\n| **0.x** | Foundation — app bootstrap, static/media, template shell | `[Ad]`, `[H]`, `[Q]` |\n| **1.x** | Users, billing ops, payment approval | `[Ad]`, `[F]`, `(btn)`, `(tbl)` |\n| **5.x** | AI assistant / agent tooling | `[Ad]`, `[F]`, `{REST}` / forms to AI |\n| **6.x** | Operations, analytics, logs views | `[Ad]`, `[K]`, `[Q]` |\n| **7.x** | RBAC, governance, audit-sensitive actions | `[Ad]`, `[F]`, role gates |\n| **8.x** | API testing / developer tooling in admin | `[Ad]`, `[F]` |\n| **9.x** | Workflows (e.g. LiteGraph), page builder shell, integrations | `[Ad]`, `[G]`, `[W]` |\n| **10.x** | Campaign management (when wired) | `[Ad]`, `[Q]`, `(pb)` |\n\nFull policy: [../../version-policy.md](../../version-policy.md).\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L:AdminShell] > [S:Menu] + [Q:AdminContent]\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** This file (hub for `contact360.io/admin`)\n\n**Route (registry):** `/admin` (Django prefix)\n\n**Codebase:** `contact360.io/admin` (Django, Postgres).\n\n**Typical inbound:** Auth gateway; direct access (Superadmin).\n\n**Typical outbound:** [dashboard_page.md](dashboard_page.md) (Support/Mirror); [index.md](index.md) (Full registry audit).\n\n**Cross-host:** Admin surface manages secrets and configurations consumed by **app** (Next.js), **email** (Mailhub), and extension telemetry/log pipelines (logs API base/key via env or admin-managed secret sync).\n**Backend:** Django ORM; direct Postgres access; DocsAI knowledge extraction service.\n\n### hooks\n\n| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| static/js/theme.js | ThemeMgr | Dark/Light mode persistent preference | 0.x |\n| static/js/base.js | BaseController | Shell initialization and event registration | 0.x |\n| static/js/components/unified-dashboard-controller.js | DashCtrl | Master state management for data grids | 0.x |\n| static/js/components/sidebar-keyboard.js | SidebarKbd | Keyboard shortcuts for navigation | 7.x |\n| apps/operations/views.py | operations_view probes | Real-time service health probes (S3/Lambda/GraphQL/DB/logs), including live scheduler API check, for operations hub | 6.x |\n| config/settings/base.py | validate_startup_config | Startup validation enforces URL/API-key pairing for logs, scheduler, storage, and Lambda AI service dependencies | 0.x |\n| apps/admin/tests/test_admin_guards.py | admin RBAC parity tests | Verifies `/admin/*` route inventory parity and required role scopes via decorator metadata | 0.x |\n| apps/admin/tests/test_privileged_route_scopes.py | cross-surface RBAC tests | Verifies critical non-admin routes (`operations`, `roadmap`, `architecture`, `page-builder`, `ai`) require super-admin scope | 0.x |\n| apps/admin/tests/test_trace_propagation.py | trace propagation tests | Verifies `X-Request-ID` propagation across GraphQL and logs/storage/job REST clients | 6.x |\n| apps/admin/tests/test_billing_settings_validation.py | billing settings validation tests | Verifies billing settings reject invalid inputs and only submit valid payloads | 1.x |\n| apps/core/tests/test_navigation_integrity.py | sidebar navigation drift guard | Verifies all sidebar `app_name:url_name` entries resolve to live URL patterns | 0.x |\n| apps/operations/tests/test_operations_resilience.py | operations outage resilience tests | Verifies dependency probe degradation/down behavior and dashboard render safety under full probe failure | 6.x |\n| apps/documentation/tests/test_operations_runtime_job_persistence.py | restart persistence tests | Verifies docs analyze/generate/upload progress APIs recover state from persisted `OperationLog.metadata` after memory loss/restart | 6.x |\n| apps/operations/views.py | release gate policy | Computes pass/block release gate from live dependency probes and weighted uptime threshold policy | 6.x |\n| apps/admin/views.py | _is_idempotent_noop_error | Shared idempotency/noop classifier used by delete, billing approve/decline, and job retry actions | 0.x |\n| apps/admin/views.py | billing settings validation/audit | Enforces UPI/phone/email/QR key validation and emits structured admin settings audit events on update | 1.x |\n| apps/admin/views.py | billing review audit timeline | Emits structured approve/decline audit events with actor, reason, status transition, request-id, and timestamp evidence | 1.x |\n| .env.example / .env.prod.example / env.example | env secret hygiene templates | Removes secret-like defaults and documents URL/API-key pair contracts for admin dependencies | 0.x |\n| templates/admin/settings.html | runtime settings surface | Replaces fake editable placeholders with runtime snapshot and links to validated workflows | 0.x |\n| apps/documentation/views/operations.py | runtime job persistence | Persists analyze/generate/upload background job state in `OperationLog` for restart-safe progress/result polling | 0.x |\n| templates/operations/dashboard.html | System health cards | Renders operational/degraded/down badges for probe outputs in Operations hub | 6.x |\n| templates/operations/dashboard.html | release gate card | Renders pass/block gate state, weighted uptime, and policy summary for deployment decision support | 6.x |\n\n### URL prefixes (examples)\n\nAlign with [index.md — Admin](index.md#admin-contact360ioadmin--template-surface):\n\n- `/docs/` — documentation CRUD mirror\n- `/ai/` — AI tooling\n- `/operations/` — status / ops\n- `/admin/users/` — user admin\n- `/analytics/` — analytics panels\n- `/durgasflow/` — workflow graph\n- `/durgasman/` — API testing\n- `/page-builder/` — builder shell\n\n### Peer documentation\n\n- [index.md](index.md) — full page registry (Next + Mailhub)\n- [../../docsai-sync.md](../../docsai-sync.md) — roadmap/architecture mirrors\n- [../../governance.md](../../governance.md) — release rules for admin\n\n```mermaid\nflowchart LR\n  subgraph admin[\"contact360.io/admin\"]\n    U[users / billing ops]\n    D[docs mirror]\n    O[operations]\n    A[ai / workflows]\n  end\n  subgraph app[\"contact360.io/app\"]\n    DB[dashboard_page]\n    BL[billing_page]\n  end\n  U -.->|support context| DB\n  U -.->|billing truth| BL\n  D -.->|same copy| root_docs[root /docs]\n```\n\n---\n\n*Hub spec only — add `admin_users_page.md` etc. when a route needs the same depth as dashboard `*_page.md`.*\n",
+  "front_matter": {
+    "title": "\"Django DocsAI & super-admin surface\"",
+    "codebase": "admin",
+    "canonical_repo": "contact360.io/admin"
+  },
+  "sections": [
+    {
+      "heading": "Admin surface (contact360.io/admin)",
+      "level": 1,
+      "slug": "admin-surface-contact360ioadmin",
+      "prose": "Django **DocsAI** + operational super-admin — **not** Next.js `page.tsx`. Specs for individual Django URLs can be split into `admin_*_page.md` later; this file is the hub for **design symbols**, **era coverage**, and **connections** to the Next apps.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "UI components (metadata)",
+      "level": 3,
+      "slug": "ui-components-metadata",
+      "prose": "- **base.html** — `admin/templates/base.html`\n- **_page_header.html** — `admin/templates/admin/_page_header.html`\n- **sidebar.html** — `admin/templates/layouts/sidebar.html`\n- **header.html** — `admin/templates/layouts/header.html`\n- **footer.html** — `admin/templates/layouts/footer.html`\n- **command_palette.html** — `admin/templates/components/command_palette.html`\n- **app-fab-chat** — (Floating AI chat button in base.html)\n- **main.css** — `admin/static/css/main.css`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**base.html** — `admin/templates/base.html`",
+              "checked": null
+            },
+            {
+              "text": "**_page_header.html** — `admin/templates/admin/_page_header.html`",
+              "checked": null
+            },
+            {
+              "text": "**sidebar.html** — `admin/templates/layouts/sidebar.html`",
+              "checked": null
+            },
+            {
+              "text": "**header.html** — `admin/templates/layouts/header.html`",
+              "checked": null
+            },
+            {
+              "text": "**footer.html** — `admin/templates/layouts/footer.html`",
+              "checked": null
+            },
+            {
+              "text": "**command_palette.html** — `admin/templates/components/command_palette.html`",
+              "checked": null
+            },
+            {
+              "text": "**app-fab-chat** — (Floating AI chat button in base.html)",
+              "checked": null
+            },
+            {
+              "text": "**main.css** — `admin/static/css/main.css`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era coverage (0.x–10.x)",
+      "level": 2,
+      "slug": "era-coverage-0x10x",
+      "prose": "| Era | Admin relevance | Typical UI symbols |\n| --- | --- | --- |\n| **0.x** | Foundation — app bootstrap, static/media, template shell | `[Ad]`, `[H]`, `[Q]` |\n| **1.x** | Users, billing ops, payment approval | `[Ad]`, `[F]`, `(btn)`, `(tbl)` |\n| **5.x** | AI assistant / agent tooling | `[Ad]`, `[F]`, `{REST}` / forms to AI |\n| **6.x** | Operations, analytics, logs views | `[Ad]`, `[K]`, `[Q]` |\n| **7.x** | RBAC, governance, audit-sensitive actions | `[Ad]`, `[F]`, role gates |\n| **8.x** | API testing / developer tooling in admin | `[Ad]`, `[F]` |\n| **9.x** | Workflows (e.g. LiteGraph), page builder shell, integrations | `[Ad]`, `[G]`, `[W]` |\n| **10.x** | Campaign management (when wired) | `[Ad]`, `[Q]`, `(pb)` |\n\nFull policy: [../../version-policy.md](../../version-policy.md).",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Admin relevance",
+            "Typical UI symbols"
+          ],
+          "rows": [
+            [
+              "**0.x**",
+              "Foundation — app bootstrap, static/media, template shell",
+              "`[Ad]`, `[H]`, `[Q]`"
+            ],
+            [
+              "**1.x**",
+              "Users, billing ops, payment approval",
+              "`[Ad]`, `[F]`, `(btn)`, `(tbl)`"
+            ],
+            [
+              "**5.x**",
+              "AI assistant / agent tooling",
+              "`[Ad]`, `[F]`, `{REST}` / forms to AI"
+            ],
+            [
+              "**6.x**",
+              "Operations, analytics, logs views",
+              "`[Ad]`, `[K]`, `[Q]`"
+            ],
+            [
+              "**7.x**",
+              "RBAC, governance, audit-sensitive actions",
+              "`[Ad]`, `[F]`, role gates"
+            ],
+            [
+              "**8.x**",
+              "API testing / developer tooling in admin",
+              "`[Ad]`, `[F]`"
+            ],
+            [
+              "**9.x**",
+              "Workflows (e.g. LiteGraph), page builder shell, integrations",
+              "`[Ad]`, `[G]`, `[W]`"
+            ],
+            [
+              "**10.x**",
+              "Campaign management (when wired)",
+              "`[Ad]`, `[Q]`, `(pb)`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "../../version-policy.md",
+          "href": "../../version-policy.md"
+        }
+      ]
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "slug": "page-design-symbols",
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L:AdminShell] > [S:Menu] + [Q:AdminContent]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "DESIGN_SYMBOLS.md",
+          "href": "DESIGN_SYMBOLS.md"
+        }
+      ]
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "slug": "navigation-connections",
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** This file (hub for `contact360.io/admin`)\n\n**Route (registry):** `/admin` (Django prefix)\n\n**Codebase:** `contact360.io/admin` (Django, Postgres).\n\n**Typical inbound:** Auth gateway; direct access (Superadmin).\n\n**Typical outbound:** [dashboard_page.md](dashboard_page.md) (Support/Mirror); [index.md](index.md) (Full registry audit).\n\n**Cross-host:** Admin surface manages secrets and configurations consumed by **app** (Next.js), **email** (Mailhub), and extension telemetry/log pipelines (logs API base/key via env or admin-managed secret sync).\n**Backend:** Django ORM; direct Postgres access; DocsAI knowledge extraction service.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)",
+              "checked": null
+            },
+            {
+              "text": "**Registry row:** [index.md#all-pages](index.md#all-pages)",
+              "checked": null
+            },
+            {
+              "text": "**Django admin / DocsAI:** This file (hub for `contact360.io/admin`)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "index.md#how-pages-connect-cross-host-navigation",
+          "href": "index.md#how-pages-connect-cross-host-navigation"
+        },
+        {
+          "text": "index.md#all-pages",
+          "href": "index.md#all-pages"
+        },
+        {
+          "text": "dashboard_page.md",
+          "href": "dashboard_page.md"
+        },
+        {
+          "text": "index.md",
+          "href": "index.md"
+        }
+      ]
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "slug": "hooks",
+      "prose": "| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| static/js/theme.js | ThemeMgr | Dark/Light mode persistent preference | 0.x |\n| static/js/base.js | BaseController | Shell initialization and event registration | 0.x |\n| static/js/components/unified-dashboard-controller.js | DashCtrl | Master state management for data grids | 0.x |\n| static/js/components/sidebar-keyboard.js | SidebarKbd | Keyboard shortcuts for navigation | 7.x |\n| apps/operations/views.py | operations_view probes | Real-time service health probes (S3/Lambda/GraphQL/DB/logs), including live scheduler API check, for operations hub | 6.x |\n| config/settings/base.py | validate_startup_config | Startup validation enforces URL/API-key pairing for logs, scheduler, storage, and Lambda AI service dependencies | 0.x |\n| apps/admin/tests/test_admin_guards.py | admin RBAC parity tests | Verifies `/admin/*` route inventory parity and required role scopes via decorator metadata | 0.x |\n| apps/admin/tests/test_privileged_route_scopes.py | cross-surface RBAC tests | Verifies critical non-admin routes (`operations`, `roadmap`, `architecture`, `page-builder`, `ai`) require super-admin scope | 0.x |\n| apps/admin/tests/test_trace_propagation.py | trace propagation tests | Verifies `X-Request-ID` propagation across GraphQL and logs/storage/job REST clients | 6.x |\n| apps/admin/tests/test_billing_settings_validation.py | billing settings validation tests | Verifies billing settings reject invalid inputs and only submit valid payloads | 1.x |\n| apps/core/tests/test_navigation_integrity.py | sidebar navigation drift guard | Verifies all sidebar `app_name:url_name` entries resolve to live URL patterns | 0.x |\n| apps/operations/tests/test_operations_resilience.py | operations outage resilience tests | Verifies dependency probe degradation/down behavior and dashboard render safety under full probe failure | 6.x |\n| apps/documentation/tests/test_operations_runtime_job_persistence.py | restart persistence tests | Verifies docs analyze/generate/upload progress APIs recover state from persisted `OperationLog.metadata` after memory loss/restart | 6.x |\n| apps/operations/views.py | release gate policy | Computes pass/block release gate from live dependency probes and weighted uptime threshold policy | 6.x |\n| apps/admin/views.py | _is_idempotent_noop_error | Shared idempotency/noop classifier used by delete, billing approve/decline, and job retry actions | 0.x |\n| apps/admin/views.py | billing settings validation/audit | Enforces UPI/phone/email/QR key validation and emits structured admin settings audit events on update | 1.x |\n| apps/admin/views.py | billing review audit timeline | Emits structured approve/decline audit events with actor, reason, status transition, request-id, and timestamp evidence | 1.x |\n| .env.example / .env.prod.example / env.example | env secret hygiene templates | Removes secret-like defaults and documents URL/API-key pair contracts for admin dependencies | 0.x |\n| templates/admin/settings.html | runtime settings surface | Replaces fake editable placeholders with runtime snapshot and links to validated workflows | 0.x |\n| apps/documentation/views/operations.py | runtime job persistence | Persists analyze/generate/upload background job state in `OperationLog` for restart-safe progress/result polling | 0.x |\n| templates/operations/dashboard.html | System health cards | Renders operational/degraded/down badges for probe outputs in Operations hub | 6.x |\n| templates/operations/dashboard.html | release gate card | Renders pass/block gate state, weighted uptime, and policy summary for deployment decision support | 6.x |",
+      "tables": [
+        {
+          "headers": [
+            "file_path",
+            "name",
+            "purpose",
+            "era"
+          ],
+          "rows": [
+            [
+              "static/js/theme.js",
+              "ThemeMgr",
+              "Dark/Light mode persistent preference",
+              "0.x"
+            ],
+            [
+              "static/js/base.js",
+              "BaseController",
+              "Shell initialization and event registration",
+              "0.x"
+            ],
+            [
+              "static/js/components/unified-dashboard-controller.js",
+              "DashCtrl",
+              "Master state management for data grids",
+              "0.x"
+            ],
+            [
+              "static/js/components/sidebar-keyboard.js",
+              "SidebarKbd",
+              "Keyboard shortcuts for navigation",
+              "7.x"
+            ],
+            [
+              "apps/operations/views.py",
+              "operations_view probes",
+              "Real-time service health probes (S3/Lambda/GraphQL/DB/logs), including live scheduler API check, for operations hub",
+              "6.x"
+            ],
+            [
+              "config/settings/base.py",
+              "validate_startup_config",
+              "Startup validation enforces URL/API-key pairing for logs, scheduler, storage, and Lambda AI service dependencies",
+              "0.x"
+            ],
+            [
+              "apps/admin/tests/test_admin_guards.py",
+              "admin RBAC parity tests",
+              "Verifies `/admin/*` route inventory parity and required role scopes via decorator metadata",
+              "0.x"
+            ],
+            [
+              "apps/admin/tests/test_privileged_route_scopes.py",
+              "cross-surface RBAC tests",
+              "Verifies critical non-admin routes (`operations`, `roadmap`, `architecture`, `page-builder`, `ai`) require super-admin scope",
+              "0.x"
+            ],
+            [
+              "apps/admin/tests/test_trace_propagation.py",
+              "trace propagation tests",
+              "Verifies `X-Request-ID` propagation across GraphQL and logs/storage/job REST clients",
+              "6.x"
+            ],
+            [
+              "apps/admin/tests/test_billing_settings_validation.py",
+              "billing settings validation tests",
+              "Verifies billing settings reject invalid inputs and only submit valid payloads",
+              "1.x"
+            ],
+            [
+              "apps/core/tests/test_navigation_integrity.py",
+              "sidebar navigation drift guard",
+              "Verifies all sidebar `app_name:url_name` entries resolve to live URL patterns",
+              "0.x"
+            ],
+            [
+              "apps/operations/tests/test_operations_resilience.py",
+              "operations outage resilience tests",
+              "Verifies dependency probe degradation/down behavior and dashboard render safety under full probe failure",
+              "6.x"
+            ],
+            [
+              "apps/documentation/tests/test_operations_runtime_job_persistence.py",
+              "restart persistence tests",
+              "Verifies docs analyze/generate/upload progress APIs recover state from persisted `OperationLog.metadata` after memory loss/restart",
+              "6.x"
+            ],
+            [
+              "apps/operations/views.py",
+              "release gate policy",
+              "Computes pass/block release gate from live dependency probes and weighted uptime threshold policy",
+              "6.x"
+            ],
+            [
+              "apps/admin/views.py",
+              "_is_idempotent_noop_error",
+              "Shared idempotency/noop classifier used by delete, billing approve/decline, and job retry actions",
+              "0.x"
+            ],
+            [
+              "apps/admin/views.py",
+              "billing settings validation/audit",
+              "Enforces UPI/phone/email/QR key validation and emits structured admin settings audit events on update",
+              "1.x"
+            ],
+            [
+              "apps/admin/views.py",
+              "billing review audit timeline",
+              "Emits structured approve/decline audit events with actor, reason, status transition, request-id, and timestamp evidence",
+              "1.x"
+            ],
+            [
+              ".env.example / .env.prod.example / env.example",
+              "env secret hygiene templates",
+              "Removes secret-like defaults and documents URL/API-key pair contracts for admin dependencies",
+              "0.x"
+            ],
+            [
+              "templates/admin/settings.html",
+              "runtime settings surface",
+              "Replaces fake editable placeholders with runtime snapshot and links to validated workflows",
+              "0.x"
+            ],
+            [
+              "apps/documentation/views/operations.py",
+              "runtime job persistence",
+              "Persists analyze/generate/upload background job state in `OperationLog` for restart-safe progress/result polling",
+              "0.x"
+            ],
+            [
+              "templates/operations/dashboard.html",
+              "System health cards",
+              "Renders operational/degraded/down badges for probe outputs in Operations hub",
+              "6.x"
+            ],
+            [
+              "templates/operations/dashboard.html",
+              "release gate card",
+              "Renders pass/block gate state, weighted uptime, and policy summary for deployment decision support",
+              "6.x"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "URL prefixes (examples)",
+      "level": 3,
+      "slug": "url-prefixes-examples",
+      "prose": "Align with [index.md — Admin](index.md#admin-contact360ioadmin--template-surface):\n\n- `/docs/` — documentation CRUD mirror\n- `/ai/` — AI tooling\n- `/operations/` — status / ops\n- `/admin/users/` — user admin\n- `/analytics/` — analytics panels\n- `/durgasflow/` — workflow graph\n- `/durgasman/` — API testing\n- `/page-builder/` — builder shell",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`/docs/` — documentation CRUD mirror",
+              "checked": null
+            },
+            {
+              "text": "`/ai/` — AI tooling",
+              "checked": null
+            },
+            {
+              "text": "`/operations/` — status / ops",
+              "checked": null
+            },
+            {
+              "text": "`/admin/users/` — user admin",
+              "checked": null
+            },
+            {
+              "text": "`/analytics/` — analytics panels",
+              "checked": null
+            },
+            {
+              "text": "`/durgasflow/` — workflow graph",
+              "checked": null
+            },
+            {
+              "text": "`/durgasman/` — API testing",
+              "checked": null
+            },
+            {
+              "text": "`/page-builder/` — builder shell",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "index.md — Admin",
+          "href": "index.md#admin-contact360ioadmin--template-surface"
+        }
+      ]
+    },
+    {
+      "heading": "Peer documentation",
+      "level": 3,
+      "slug": "peer-documentation",
+      "prose": "- [index.md](index.md) — full page registry (Next + Mailhub)\n- [../../docsai-sync.md](../../docsai-sync.md) — roadmap/architecture mirrors\n- [../../governance.md](../../governance.md) — release rules for admin\n\n```mermaid\nflowchart LR\n  subgraph admin[\"contact360.io/admin\"]\n    U[users / billing ops]\n    D[docs mirror]\n    O[operations]\n    A[ai / workflows]\n  end\n  subgraph app[\"contact360.io/app\"]\n    DB[dashboard_page]\n    BL[billing_page]\n  end\n  U -.->|support context| DB\n  U -.->|billing truth| BL\n  D -.->|same copy| root_docs[root /docs]\n```\n\n---\n\n*Hub spec only — add `admin_users_page.md` etc. when a route needs the same depth as dashboard `*_page.md`.*",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[index.md](index.md) — full page registry (Next + Mailhub)",
+              "checked": null
+            },
+            {
+              "text": "[../../docsai-sync.md](../../docsai-sync.md) — roadmap/architecture mirrors",
+              "checked": null
+            },
+            {
+              "text": "[../../governance.md](../../governance.md) — release rules for admin",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n  subgraph admin[\"contact360.io/admin\"]\n    U[users / billing ops]\n    D[docs mirror]\n    O[operations]\n    A[ai / workflows]\n  end\n  subgraph app[\"contact360.io/app\"]\n    DB[dashboard_page]\n    BL[billing_page]\n  end\n  U -.->|support context| DB\n  U -.->|billing truth| BL\n  D -.->|same copy| root_docs[root /docs]\n"
+        }
+      ],
+      "links": [
+        {
+          "text": "index.md",
+          "href": "index.md"
+        },
+        {
+          "text": "../../docsai-sync.md",
+          "href": "../../docsai-sync.md"
+        },
+        {
+          "text": "../../governance.md",
+          "href": "../../governance.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Django DocsAI & super-admin surface\"\ncodebase: admin\ncanonical_repo: contact360.io/admin\n---"
+}

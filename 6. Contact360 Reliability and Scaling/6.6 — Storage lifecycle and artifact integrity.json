@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "6. Contact360 Reliability and Scaling/6.6 — Storage lifecycle and artifact integrity.md",
+  "sha256_source": "5bc87e7ff885e18545f12e0c487e30c65df6a573d6905dd35628dca1e23dc35e",
+  "generated_at": "2026-04-08T23:11:50.626800+00:00",
+  "title": "Version 6.6",
+  "version": "6.6",
+  "codename": "Storage lifecycle and artifact integrity",
+  "era": 6,
+  "minor": 6,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch ladder:** Codenames `Void` → `Bloom` per minor (`.0`–`.9`) — see patch table below.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stageNode[\"6.6.0 — Storage lifecycle\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    releaseGate[\"6.6 gate: integrity %\"]\n\n    stageNode --> contract\n    stageNode --> service\n    stageNode --> surface\n    stageNode --> data\n    stageNode --> ops\n    contract --> releaseGate\n    service --> releaseGate\n    surface --> releaseGate\n    data --> releaseGate\n    ops --> releaseGate",
+    "flowchart LR\n    init[\"Init multipart\"]\n    part[\"Parts\"]\n    complete[\"Complete + CAS\"]\n    recon[\"Reconcile\"]\n\n    init --> part --> complete --> recon",
+    "flowchart LR\n    f[\"6.5 performance\"] --> g[\"6.6 storage\"]\n    g --> h[\"6.7 cost\"]",
+    "flowchart LR\n  contract[Contract]\n  service[Service]\n  surface[Surface]\n  data[Data]\n  ops[Ops]\n  gate[Release gate]\n\n  contract --> gate\n  service --> gate\n  surface --> gate\n  data --> gate\n  ops --> gate"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter, `.1-.2` scaffold, `.3-.5` hardening, `.6-.8` integration, `.9` freeze/handoff.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Metadata versioning rules (ETag/CAS).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Full five-track detail in **Service task slices** (`6.x` S3 patches).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: S3 lifecycle rules snippet in `performance-storage-abuse.md`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: Add upload/metadata SLO implementation — define P95 targets; create SLO dashboard (upload success rate, complete latency, metadata lag vs S3 object count).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Broaden transient-failure retry wrappers in `S3Backend` — currently partial; ensure retries cover all S3 operations (list, delete, metadata update, worker invoke) with backoff.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add error-budget alert: S3 operation failure rate above threshold → SNS/CloudWatch alarm.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Scheduled Lambda (EventBridge cron) to delete `lambda/logs.api` S3 CSV objects older than `LOG_TTL_DAYS`; nightly; idempotent; audit log of deletions.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add Postman collection at `lambda/logs.api/postman/logsapp.json` (CRUD, batch, search, statistics, health).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **[appointment360]** — service slice…) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **[emailapis]** — harden primary wor…) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Upload UIs: resumable behavior, user-visible failure recovery.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Progress bars; retry stalled uploads; clear error when CAS conflict.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Bucket policies, encryption, transition to IA/Glacier; orphan sweeper job.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Verify S3 lifecycle expiration on logs bucket (e.g. `contact360logsbucket`): match `LOG_TTL_DAYS` (default 90) for orphaned prefixes the sweeper misses.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **redis exit**: campaign (as…) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "File metadata tables; multipart session keys; retention job audit trail.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: SLO dashboard: upload success rate, complete latency, metadata lag vs S3.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `6.6.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 6.6",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus — uploads",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown — acceptance",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow/Graph Delta",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (6.6.0 - 6.6.9)",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

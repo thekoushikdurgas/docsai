@@ -1,0 +1,1247 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/version-policy.md",
+  "sha256_source": "beb579c70792e9146d35c5c26fb855caa09aa82fafebc2048e9480a0ac1d8431",
+  "generated_at": "2026-04-08T23:26:48.239372+00:00",
+  "title": "Contact360 Version Policy",
+  "raw_markdown": "# Contact360 Version Policy\n\n## SemVer policy\n\n- **Major (`X.0.0`)**: New product era, major channel expansion, or foundational architecture shift.\n- **Minor (`X.Y.0`)**: New feature sets within an existing product era.\n- **Patch (`X.Y.Z`)**: Bug fixes and reliability/performance improvements without scope expansion.\n- **Ownership**: Product + engineering leads approve version bumps per shipped scope.\n\n## Decision rubric (Contact360 specific)\n\n- Use a **major** bump when introducing a new platform capability family (for example, moving from core user/billing to the email system era, or from email to contact/company data).\n- Use a **minor** bump when adding a customer-visible capability in an existing major (for example, new billing flows, analytics panels, extension telemetry).\n- Use a **patch** bump for hotfixes, edge-case fixes, retry logic hardening, and non-breaking operational updates.\n- Critical credential/secret exposure fixes (for example plaintext credentials or leaked default secrets) must ship as patch releases immediately, even when the related major/minor era scope is unchanged.\n\n## Release entry schema\n\nEvery release entry in `docs/versions.md` should include:\n\n- `version`\n- `status` (`released`, `in_progress`, `planned`)\n- `released_on` (or `target_window` if planned)\n- `summary`\n- `scope`\n- `Roadmap mapping` (roadmap stage IDs; canonical display label in `docs/versions.md`, equivalent to `ships_stages`)\n- `owner`\n\n## Version hygiene rules\n\n- **Repo paths:** Canonical product and gateway paths are under **`contact360.io/`** (see `docs/docs/architecture.md`). Older stubs may reference `contact360/dashboard` or `lambda/appointment360/` — align to `contact360.io/app/` and `contact360.io/api/` when editing links or code pointers.\n- **Backend language policy:** Major bumps may accompany **platform** changes (e.g. new gateway technology); routine minors/patches do **not** assume migrating `contact360.io/api` from Python to Go — see **`docs/docs/backend-language-strategy.md`**.\n- **EC2 Go satellites:** Independent deployables under **`EC2/*.server/`** (jobs, s3storage, ai, logsapi, extension) should be **version-tagged or image-tagged** in release notes when their contracts change, even if the customer-facing SemVer era is unchanged — document beside the Python gateway release in **`docs/docs/versions.md`** when a satellite ships a breaking HTTP change. Route inventory: **`docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`**.\n- Do not pre-generate placeholder versions.\n- Create version entries only when scope is approved (`planned`) or shipped (`released`).\n- Keep `docs/versions.md` and `docs/roadmap.md` cross-referenced on every release update.\n- Use `Roadmap mapping` as the release-entry field label consistently in `docs/versions.md`.\n\n---\n\n## Major themes (`0.x` to `10.0.0`)\n\n### `0.x.x` - Foundation and pre-product stabilization and codebase setup\n\n- Initial repository setup, service skeletons, CI pipelines, base authentication primitives, DocsAI bootstrap, and internal experiments.\n- Core concern: repo hygiene, service wiring, and pre-product foundation readiness.\n\n### `1.x.x` - Contact360 user and billing and credit system\n\n- User authentication and session management, credit lifecycle (deduction, top-up, lapse), billing/payment flows, user-facing analytics, notifications, admin control panel, and basic security baseline.\n- Core concern: the end-to-end user account lifecycle and credit economy.\n\n### `2.x.x` - Contact360 email system\n\n- Email finder engine (multi-pattern generation, high-throughput Go path, provider fallback), email verification engine (Mailvetter, DNS/SMTP/SPF), results surface, and bulk CSV processing.\n- Core concern: the complete email discovery and verification product experience.\n\n### `3.x.x` - Contact360 contact and company data system\n\n- Connectra VQL filtering, dual-write PostgreSQL + Elasticsearch, enrichment quality, deduplication, deterministic UUID assignment, and advanced dashboard search UX.\n- Core concern: contacts and companies intelligence, search depth, and data quality.\n\n### `4.x.x` - Contact360 Extension and Sales Navigator maturity\n\n- Browser extension auth/session hardening, Sales Navigator ingestion reliability, sync integrity and conflict resolution, and extension telemetry.\n- Core concern: Sales Navigator channel quality and extension reliability.\n\n### `5.x.x` - Contact360 AI workflows\n\n- Contact AI integration into user journeys, HF streaming and Gemini utilities, confidence and explainability controls, AI cost governance, and prompt versioning.\n- Core concern: AI-assisted user workflows and responsible AI operations.\n\n### `6.x.x` - Contact360 Reliability and Scaling\n\n- SLO baselines and error budgets, idempotency hardening, queue/worker resilience, correlated observability, performance optimization, storage lifecycle, cost guardrails, and abuse resilience.\n- Core concern: platform reliability, throughput capacity, and operational hardening.\n\n### `7.x.x` - Contact360 deployment\n\n- RBAC model and access control, service-level authorization, admin governance, audit/compliance event model, data governance and lifecycle, tenant/policy isolation, security posture hardening, and enterprise observability.\n- Core concern: secure, auditable, and governable deployment across environments.\n\n### `8.x.x` - Contact360 public and private APIs and endpoints\n\n- Analytics taxonomy and event instrumentation, analytics ingestion hardening, private service-to-service API contracts, public GraphQL/REST API surface, API versioning and compatibility policy, webhook/event delivery platform, partner identity and access controls, and API documentation.\n- Core concern: stable, versioned, and observable API contracts for all consumers (internal, partner, and public).\n\n### `9.x.x` - Contact360 Ecosystem integrations and Platform productization\n\n- Integration contract governance, connector framework, integration observability, commercial entitlements, multi-tenant model standardization, self-serve workspace administration, plan packaging engine, SLA/SLO operations, support and incident tooling, cost/capacity governance.\n- Core concern: third-party ecosystem connectivity and multi-tenant platform maturity.\n\n### `10.x.x` - Contact360 email campaign\n\n- Campaign entity model, audience segmentation, policy gates (consent, content, rate limits), suppression lists, template system, campaign execution engine, deliverability and safety (Mailvetter pre-send), campaign observability and structured logging, feature flags and canary rollouts, send metering, PII retention, opt-out auditing, and contract freeze for reproducibility.\n- Core concern: compliant, observable, and commercially controlled email campaign delivery.\n\n---\n\n## Planning granularity standard (mandatory)\n\nFor all planned minors (`X.Y.0`), break implementation into these minimum task groups:\n\n- **Contract tasks**: schema/policy/event contract changes and compatibility notes.\n- **Service tasks**: API/service implementation tasks per owning backend.\n- **Surface tasks**: dashboard/extension/docsai UI integration tasks.\n- **Data tasks**: storage/index/lineage changes and validation tasks.\n- **Ops tasks**: rollout guardrails, observability, and incident readiness tasks.\n\nEach `docs/versions.md` minor entry should map to at least one roadmap stage and one owner group.\n\nReference strategic-era breakdown: `docs/roadmap.md` (stages `7.x`–`10.x`) and `docs/versions.md` / optional `docs/versions/version_*.md`.\n\n---\n\n## Era-to-system mapping summary\n\n| Era | Major theme | Primary services | Key contract boundary |\n| --- | --- | --- | --- |\n| `0.x` | Foundation | All (setup) | Repo + CI baseline |\n| `1.x` | User, billing, credit | `appointment360`, `logs.api` | User/credit/billing GraphQL contracts |\n| `2.x` | Email system | `emailapis`, `emailapigo`, `mailvetter`, `appointment360`, `email.server`, `sync.server` | Finder/verifier API contract |\n| `3.x` | Contact/company data | `connectra`, `appointment360`, `sync.server` | VQL filter and search contracts |\n| `4.x` | Extension and Sales Navigator | `salesnavigator`, `appointment360`, `extension`, `sync.server` | Extension auth and sync contracts |\n| `5.x` | AI workflows | `contact.ai`, `appointment360`, `sync.server` | AI chat/utility API and cost contracts |\n| `6.x` | Reliability and Scaling | All core services, `email.server`, `sync.server` | SLO, idempotency, and observability contracts |\n| `7.x` | Deployment | `appointment360`, `docsai`, all services | RBAC, audit, and governance contracts |\n| `8.x` | Public and private APIs | `appointment360`, `logs.api` | External API/webhook/analytics contracts |\n| `9.x` | Ecosystem + Productization | All services + integrations | Tenant, entitlement, and connector contracts |\n| `10.x` | Email campaign | `appointment360`, `emailapis`, `logs.api` | Campaign execution and compliance contracts |\n\n---\n\n## Related documentation\n\n- `docs/versions.md` — release entries and index (this policy governs their shape).\n- `docs/roadmap.md` — stages and `ships in` metadata.\n- `docs/architecture.md` — planning horizon and service ownership.\n- `docs/docsai-sync.md` — when roadmap or architecture changes require Django constant mirrors.\n\n## Documentation schema requirements for per-minor files\n\nEvery `docs/versions/version_*.md` file must include the following explicit sections:\n\n- `## Backend API and Endpoint Scope`\n- `## Database and Data Lineage Scope`\n- `## Frontend UX Surface Scope`\n- `## UI Elements Checklist`\n- `## Flow/Graph Delta for This Minor`\n- `## Release Gate and Evidence`\n\nThese sections are mandatory for new and existing minors and should contain concrete file/module references, not generic placeholders.\n\n## Era-to-surface and era-to-api module matrix\n\n| Era | Primary frontend surfaces | Primary backend API modules |\n| --- | --- | --- |\n| `0.x` | setup/status/docs placeholders | health/bootstrap metadata |\n| `1.x` | auth, billing, usage, settings | auth, users, billing, usage |\n| `2.x` | email finder, verifier, results | email, jobs, upload/export |\n| `3.x` | contacts, companies, files, export | contacts, companies, s3, upload |\n| `4.x` | extension and sales navigator views | linkedin, sales navigator |\n| `5.x` | AI chat and AI utilities | ai chats, jobs |\n| `6.x` | analytics and activity operations | analytics, activities, health |\n| `7.x` | admin governance and deployment views | admin, authz, audit |\n| `8.x` | integrations and API docs | webhooks, integrations, api keys |\n| `9.x` | profile, docs, 2FA, ecosystem pages | profile, notifications, saved searches, 2FA |\n| `10.x` | campaigns, sequences, templates | campaigns, sequences, campaign templates |\n\n## Era-to-storage maturity matrix (`s3storage`)\n\n| Era | Storage maturity theme | Key storage concern |\n| --- | --- | --- |\n| `0.x` | Bootstrap | Service wiring, endpoint baseline, key taxonomy; **EC2 `s3storage.server`** (Gin + Postgres `pgqueue` + S3) documented in `docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md` |\n| `1.x` | User artifacts | Avatar/photo/payment-proof handling and validation |\n| `2.x` | Bulk file engine | Multipart upload durability and metadata readiness |\n| `3.x` | Data intelligence feed | Ingestion/export lineage and analysis quality |\n| `4.x` | Channel maturity | Extension/SN provenance and access policy |\n| `5.x` | AI artifact governance | Sensitive artifact lifecycle and policy enforcement |\n| `6.x` | Reliability hardening | Idempotency, reconciliation, SLO/error budget coverage |\n| `7.x` | Governance controls | Authz, retention/deletion, compliance evidence |\n| `8.x` | API externalization | Versioned storage contracts and delivery/replay semantics |\n| `9.x` | Productization | Entitlements, quotas, tenant economics |\n| `10.x` | Campaign compliance | Reproducible campaign artifacts and audit trail guarantees |\n\n## Era-to-logging maturity matrix (`logs.api`)\n\n| Era | Logging maturity goal |\n| --- | --- |\n| `0.x` | Basic service health and event persistence baseline |\n| `1.x` | User/billing/credit auditable event trail |\n| `2.x` | High-volume email workflow telemetry reliability |\n| `3.x` | Data pipeline support diagnostics and lineage |\n| `4.x` | Extension/SN provenance and sync diagnostics |\n| `5.x` | AI workflow and cost telemetry governance |\n| `6.x` | SLO/error-budget observability and runbook evidence |\n| `7.x` | Deployment/audit governance and retention evidence |\n| `8.x` | API ecosystem observability and compatibility signals |\n| `9.x` | Tenant/platform integration governance trail |\n| `10.x` | Campaign compliance-grade immutable audit events |\n\n## Jobs maturity matrix (gateway `scheduler_jobs` + satellites)\n\n| Era | Jobs maturity theme | Key dependency |\n| --- | --- | --- |\n| `0.x` | Scheduler baseline and DAG primitives | API + Kafka + scheduler DB bootstrap |\n| `1.x` | Billing-aware job governance | Billing/usage traceability contracts |\n| `2.x` | Email stream processing maturity | `emailapis`/`emailapigo` + `s3storage` |\n| `3.x` | Contact/company import-export stream maturity | Connectra/VQL + Contact360 PG/OpenSearch |\n| `4.x` | Extension/SN provenance jobs | extension + salesnavigator ingest flows |\n| `5.x` | AI batch orchestration | AI workflow contracts and quota services |\n| `6.x` | Reliability and idempotency hardening | SLO/observability + retry/DLQ controls |\n| `7.x` | Governance and access controls | RBAC/authz + retention policy |\n| `8.x` | Versioned partner-safe jobs API | webhook/callback and API versioning |\n| `9.x` | Tenant-aware scheduling productization | entitlement engine and tenant quotas |\n| `10.x` | Campaign compliance execution | campaign orchestration + immutable audit evidence |\n\n## Contact AI maturity matrix (`backend(dev)/contact.ai`)\n\nService: FastAPI Lambda — HF Inference + Gemini fallback — `ai_chats` PostgreSQL table shared with appointment360.\n\n| Era | Contact AI maturity theme | Key service dependency |\n| --- | --- | --- |\n| `0.x` | Lambda skeleton + DDL baseline | FastAPI + Mangum + `ai_chats` DDL + health endpoints |\n| `1.x` | User FK integrity + IAM | `users.uuid` FK constraint; cascade strategy; secrets management |\n| `2.x` | Email risk analysis contract | `analyzeEmailRisk` endpoint; HF JSON task; PII policy |\n| `3.x` | Filter parsing + company summary | `parseContactFilters` aligned to Connectra VQL; `generateCompanySummary` |\n| `4.x` | SN contact JSONB compatibility | SN contact fields in `messages.contacts[]`; extension CSP |\n| `5.x` | Full AI workflows live | All chat CRUD + SSE streaming + all utility endpoints; `ModelSelection` shim |\n| `6.x` | Reliability and SLO | SSE error handling; TTL archival; optimistic lock; distributed tracing |\n| `7.x` | RBAC + audit + retention | Feature gating by plan; GDPR erasure cascade; audit log to `logs.api` |\n| `8.x` | Public API surface | Rate limit headers; scoped API keys; usage tracking; quota UI |\n| `9.x` | Ecosystem connectors | Webhook AI delivery; connector adapter; integration panel |\n| `10.x` | Campaign AI generation | `POST /api/v1/ai/email/generate`; `campaign_ai_log` compliance table |\n\n## Era-to-system mapping summary (all services)\n\n| Era | Services active |\n| --- | --- |\n| `0.x` | appointment360, connectra, emailapis, logs.api, s3storage, email.server/sync job path (skeleton), contact.ai (skeleton) |\n| `1.x` | + billing module, contact.ai (FK validation) |\n| `2.x` | + emailapigo, mailvetter, email.server (email jobs), contact.ai (analyzeEmailRisk) |\n| `3.x` | + connectra (VQL), sync.server (import/export), contact.ai (parseFilters + companySummary) |\n| `4.x` | + salesnavigator (full extension UX, HTML extraction, Connectra ingest), extension, contact.ai (SN JSONB compat) |\n| `5.x` | + contact.ai (full), resumeai, sync.server (batch jobs) |\n| `6.x` | All core services + SLO, contact.ai (reliability), job idempotency (gateway + workers) |\n| `7.x` | All + RBAC/audit across all services including contact.ai |\n| `8.x` | All + public API surface including contact.ai scoped keys |\n| `9.x` | All + ecosystem connectors including contact.ai webhook delivery |\n| `10.x` | All + campaign engine including contact.ai campaign AI generation |\n\n## `salesnavigator` service maturity matrix\n\n| Era | Maturity level | Key deliverable |\n| --- | --- | --- |\n| `0.x` | Scaffold | Health endpoint, UUID contract |\n| `1.x` | Auth/actor stub | Actor context headers |\n| `2.x` | Field validation | Email/phone handling |\n| `3.x` | Field mapping | Full provenance tagging |\n| `4.x` | **GA / Primary** | Extension UX, HTML extraction, docs fix |\n| `5.x` | AI integration | Quality gates for AI context |\n| `6.x` | Hardened | Rate limiting, idempotency, CORS |\n| `7.x` | Governed | RBAC, per-tenant keys, GDPR |\n| `8.x` | API product | Rate-limit headers, usage tracking |\n| `9.x` | Platform | Connector adapter, webhook delivery |\n| `10.x` | Compliant | Campaign provenance, suppression guard |\n\n## `mailvetter` service maturity matrix\n\n| Era | Maturity level | Key deliverable |\n| --- | --- | --- |\n| `0.x` | Scaffold | API/worker split, `/v1` baseline, DB/queue bootstrap |\n| `1.x` | Guarded | API key ownership and plan limits |\n| `2.x` | **GA / Primary** | Single/bulk verifier and async jobs contract |\n| `3.x` | Linked | Contact/company verification lineage |\n| `4.x` | Provenance-aware | Extension/SN source-tagged verification |\n| `5.x` | AI-ready | Explainability reason codes for AI surfaces |\n| `6.x` | Hardened | Distributed limiter, idempotency, retry/DLQ |\n| `7.x` | Governed | Migration discipline and release gates |\n| `8.x` | API product | OpenAPI, scoped keys, audit-ready public/private surface |\n| `9.x` | Platform | Partner webhook replay and connector reliability |\n| `10.x` | Compliant | Campaign preflight verification and traceability |\n\n**Pre-4.x planning note:** The `salesnavigator` service has documented gaps that must be resolved before the `4.x` era GA gate: missing `POST /v1/scrape-html-with-fetch` implementation, stale README, no rate limiting, no `X-Request-ID` header, wide-open CORS, and a single global `API_KEY` (per-tenant scoping is a `7.x` deliverable). Full details and remediation tasks: **`docs/codebases/salesnavigator-codebase-analysis.md`**.\n\n---\n\n> **Email app era track** (`contact360.io/email`) is maintained in **`docs/backend.md`** under the `Email frontend backend track` section, and in **`docs/architecture.md`** under the `Email app surface register` section. Do not duplicate it here.\n\n## 2026 Policy Addendum\n\n- A service with unresolved P0 defects (correctness, auth bypass, or non-durable distributed state) cannot be promoted to the next era stage.\n- `contact360.io/admin` releases require migration/static asset/system process validation in deployment evidence.\n- Services relying on runtime auto-migration must add explicit migration pipeline controls before `6.x` reliability promotion.\n",
+  "sections": [
+    {
+      "heading": "Contact360 Version Policy",
+      "level": 1,
+      "slug": "contact360-version-policy",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "SemVer policy",
+      "level": 2,
+      "slug": "semver-policy",
+      "prose": "- **Major (`X.0.0`)**: New product era, major channel expansion, or foundational architecture shift.\n- **Minor (`X.Y.0`)**: New feature sets within an existing product era.\n- **Patch (`X.Y.Z`)**: Bug fixes and reliability/performance improvements without scope expansion.\n- **Ownership**: Product + engineering leads approve version bumps per shipped scope.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Major (`X.0.0`)**: New product era, major channel expansion, or foundational architecture shift.",
+              "checked": null
+            },
+            {
+              "text": "**Minor (`X.Y.0`)**: New feature sets within an existing product era.",
+              "checked": null
+            },
+            {
+              "text": "**Patch (`X.Y.Z`)**: Bug fixes and reliability/performance improvements without scope expansion.",
+              "checked": null
+            },
+            {
+              "text": "**Ownership**: Product + engineering leads approve version bumps per shipped scope.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Decision rubric (Contact360 specific)",
+      "level": 2,
+      "slug": "decision-rubric-contact360-specific",
+      "prose": "- Use a **major** bump when introducing a new platform capability family (for example, moving from core user/billing to the email system era, or from email to contact/company data).\n- Use a **minor** bump when adding a customer-visible capability in an existing major (for example, new billing flows, analytics panels, extension telemetry).\n- Use a **patch** bump for hotfixes, edge-case fixes, retry logic hardening, and non-breaking operational updates.\n- Critical credential/secret exposure fixes (for example plaintext credentials or leaked default secrets) must ship as patch releases immediately, even when the related major/minor era scope is unchanged.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use a **major** bump when introducing a new platform capability family (for example, moving from core user/billing to the email system era, or from email to contact/company data).",
+              "checked": null
+            },
+            {
+              "text": "Use a **minor** bump when adding a customer-visible capability in an existing major (for example, new billing flows, analytics panels, extension telemetry).",
+              "checked": null
+            },
+            {
+              "text": "Use a **patch** bump for hotfixes, edge-case fixes, retry logic hardening, and non-breaking operational updates.",
+              "checked": null
+            },
+            {
+              "text": "Critical credential/secret exposure fixes (for example plaintext credentials or leaked default secrets) must ship as patch releases immediately, even when the related major/minor era scope is unchanged.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Release entry schema",
+      "level": 2,
+      "slug": "release-entry-schema",
+      "prose": "Every release entry in `docs/versions.md` should include:\n\n- `version`\n- `status` (`released`, `in_progress`, `planned`)\n- `released_on` (or `target_window` if planned)\n- `summary`\n- `scope`\n- `Roadmap mapping` (roadmap stage IDs; canonical display label in `docs/versions.md`, equivalent to `ships_stages`)\n- `owner`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`version`",
+              "checked": null
+            },
+            {
+              "text": "`status` (`released`, `in_progress`, `planned`)",
+              "checked": null
+            },
+            {
+              "text": "`released_on` (or `target_window` if planned)",
+              "checked": null
+            },
+            {
+              "text": "`summary`",
+              "checked": null
+            },
+            {
+              "text": "`scope`",
+              "checked": null
+            },
+            {
+              "text": "`Roadmap mapping` (roadmap stage IDs; canonical display label in `docs/versions.md`, equivalent to `ships_stages`)",
+              "checked": null
+            },
+            {
+              "text": "`owner`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Version hygiene rules",
+      "level": 2,
+      "slug": "version-hygiene-rules",
+      "prose": "- **Repo paths:** Canonical product and gateway paths are under **`contact360.io/`** (see `docs/docs/architecture.md`). Older stubs may reference `contact360/dashboard` or `lambda/appointment360/` — align to `contact360.io/app/` and `contact360.io/api/` when editing links or code pointers.\n- **Backend language policy:** Major bumps may accompany **platform** changes (e.g. new gateway technology); routine minors/patches do **not** assume migrating `contact360.io/api` from Python to Go — see **`docs/docs/backend-language-strategy.md`**.\n- **EC2 Go satellites:** Independent deployables under **`EC2/*.server/`** (jobs, s3storage, ai, logsapi, extension) should be **version-tagged or image-tagged** in release notes when their contracts change, even if the customer-facing SemVer era is unchanged — document beside the Python gateway release in **`docs/docs/versions.md`** when a satellite ships a breaking HTTP change. Route inventory: **`docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`**.\n- Do not pre-generate placeholder versions.\n- Create version entries only when scope is approved (`planned`) or shipped (`released`).\n- Keep `docs/versions.md` and `docs/roadmap.md` cross-referenced on every release update.\n- Use `Roadmap mapping` as the release-entry field label consistently in `docs/versions.md`.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Repo paths:** Canonical product and gateway paths are under **`contact360.io/`** (see `docs/docs/architecture.md`). Older stubs may reference `contact360/dashboard` or `lambda/appointment360/` — align to `contact360.io/app/` and `contact360.io/api/` when editing links or code pointers.",
+              "checked": null
+            },
+            {
+              "text": "**Backend language policy:** Major bumps may accompany **platform** changes (e.g. new gateway technology); routine minors/patches do **not** assume migrating `contact360.io/api` from Python to Go — see **`docs/docs/backend-language-strategy.md`**.",
+              "checked": null
+            },
+            {
+              "text": "**EC2 Go satellites:** Independent deployables under **`EC2/*.server/`** (jobs, s3storage, ai, logsapi, extension) should be **version-tagged or image-tagged** in release notes when their contracts change, even if the customer-facing SemVer era is unchanged — document beside the Python gateway release in **`docs/docs/versions.md`** when a satellite ships a breaking HTTP change. Route inventory: **`docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`**.",
+              "checked": null
+            },
+            {
+              "text": "Do not pre-generate placeholder versions.",
+              "checked": null
+            },
+            {
+              "text": "Create version entries only when scope is approved (`planned`) or shipped (`released`).",
+              "checked": null
+            },
+            {
+              "text": "Keep `docs/versions.md` and `docs/roadmap.md` cross-referenced on every release update.",
+              "checked": null
+            },
+            {
+              "text": "Use `Roadmap mapping` as the release-entry field label consistently in `docs/versions.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Major themes (0.x to 10.0.0)",
+      "level": 2,
+      "slug": "major-themes-0x-to-1000",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- Initial repository setup, service skeletons, CI pipelines, base authentication primitives, DocsAI bootstrap, and internal experiments.\n- Core concern: repo hygiene, service wiring, and pre-product foundation readiness.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Initial repository setup, service skeletons, CI pipelines, base authentication primitives, DocsAI bootstrap, and internal experiments.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: repo hygiene, service wiring, and pre-product foundation readiness.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- User authentication and session management, credit lifecycle (deduction, top-up, lapse), billing/payment flows, user-facing analytics, notifications, admin control panel, and basic security baseline.\n- Core concern: the end-to-end user account lifecycle and credit economy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "User authentication and session management, credit lifecycle (deduction, top-up, lapse), billing/payment flows, user-facing analytics, notifications, admin control panel, and basic security baseline.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: the end-to-end user account lifecycle and credit economy.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- Email finder engine (multi-pattern generation, high-throughput Go path, provider fallback), email verification engine (Mailvetter, DNS/SMTP/SPF), results surface, and bulk CSV processing.\n- Core concern: the complete email discovery and verification product experience.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Email finder engine (multi-pattern generation, high-throughput Go path, provider fallback), email verification engine (Mailvetter, DNS/SMTP/SPF), results surface, and bulk CSV processing.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: the complete email discovery and verification product experience.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- Connectra VQL filtering, dual-write PostgreSQL + Elasticsearch, enrichment quality, deduplication, deterministic UUID assignment, and advanced dashboard search UX.\n- Core concern: contacts and companies intelligence, search depth, and data quality.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Connectra VQL filtering, dual-write PostgreSQL + Elasticsearch, enrichment quality, deduplication, deterministic UUID assignment, and advanced dashboard search UX.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: contacts and companies intelligence, search depth, and data quality.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- Browser extension auth/session hardening, Sales Navigator ingestion reliability, sync integrity and conflict resolution, and extension telemetry.\n- Core concern: Sales Navigator channel quality and extension reliability.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Browser extension auth/session hardening, Sales Navigator ingestion reliability, sync integrity and conflict resolution, and extension telemetry.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: Sales Navigator channel quality and extension reliability.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- Contact AI integration into user journeys, HF streaming and Gemini utilities, confidence and explainability controls, AI cost governance, and prompt versioning.\n- Core concern: AI-assisted user workflows and responsible AI operations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contact AI integration into user journeys, HF streaming and Gemini utilities, confidence and explainability controls, AI cost governance, and prompt versioning.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: AI-assisted user workflows and responsible AI operations.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- SLO baselines and error budgets, idempotency hardening, queue/worker resilience, correlated observability, performance optimization, storage lifecycle, cost guardrails, and abuse resilience.\n- Core concern: platform reliability, throughput capacity, and operational hardening.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "SLO baselines and error budgets, idempotency hardening, queue/worker resilience, correlated observability, performance optimization, storage lifecycle, cost guardrails, and abuse resilience.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: platform reliability, throughput capacity, and operational hardening.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- RBAC model and access control, service-level authorization, admin governance, audit/compliance event model, data governance and lifecycle, tenant/policy isolation, security posture hardening, and enterprise observability.\n- Core concern: secure, auditable, and governable deployment across environments.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "RBAC model and access control, service-level authorization, admin governance, audit/compliance event model, data governance and lifecycle, tenant/policy isolation, security posture hardening, and enterprise observability.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: secure, auditable, and governable deployment across environments.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private APIs and endpoints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpoints",
+      "prose": "- Analytics taxonomy and event instrumentation, analytics ingestion hardening, private service-to-service API contracts, public GraphQL/REST API surface, API versioning and compatibility policy, webhook/event delivery platform, partner identity and access controls, and API documentation.\n- Core concern: stable, versioned, and observable API contracts for all consumers (internal, partner, and public).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Analytics taxonomy and event instrumentation, analytics ingestion hardening, private service-to-service API contracts, public GraphQL/REST API surface, API versioning and compatibility policy, webhook/event delivery platform, partner identity and access controls, and API documentation.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: stable, versioned, and observable API contracts for all consumers (internal, partner, and public).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- Integration contract governance, connector framework, integration observability, commercial entitlements, multi-tenant model standardization, self-serve workspace administration, plan packaging engine, SLA/SLO operations, support and incident tooling, cost/capacity governance.\n- Core concern: third-party ecosystem connectivity and multi-tenant platform maturity.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Integration contract governance, connector framework, integration observability, commercial entitlements, multi-tenant model standardization, self-serve workspace administration, plan packaging engine, SLA/SLO operations, support and incident tooling, cost/capacity governance.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: third-party ecosystem connectivity and multi-tenant platform maturity.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- Campaign entity model, audience segmentation, policy gates (consent, content, rate limits), suppression lists, template system, campaign execution engine, deliverability and safety (Mailvetter pre-send), campaign observability and structured logging, feature flags and canary rollouts, send metering, PII retention, opt-out auditing, and contract freeze for reproducibility.\n- Core concern: compliant, observable, and commercially controlled email campaign delivery.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Campaign entity model, audience segmentation, policy gates (consent, content, rate limits), suppression lists, template system, campaign execution engine, deliverability and safety (Mailvetter pre-send), campaign observability and structured logging, feature flags and canary rollouts, send metering, PII retention, opt-out auditing, and contract freeze for reproducibility.",
+              "checked": null
+            },
+            {
+              "text": "Core concern: compliant, observable, and commercially controlled email campaign delivery.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Planning granularity standard (mandatory)",
+      "level": 2,
+      "slug": "planning-granularity-standard-mandatory",
+      "prose": "For all planned minors (`X.Y.0`), break implementation into these minimum task groups:\n\n- **Contract tasks**: schema/policy/event contract changes and compatibility notes.\n- **Service tasks**: API/service implementation tasks per owning backend.\n- **Surface tasks**: dashboard/extension/docsai UI integration tasks.\n- **Data tasks**: storage/index/lineage changes and validation tasks.\n- **Ops tasks**: rollout guardrails, observability, and incident readiness tasks.\n\nEach `docs/versions.md` minor entry should map to at least one roadmap stage and one owner group.\n\nReference strategic-era breakdown: `docs/roadmap.md` (stages `7.x`–`10.x`) and `docs/versions.md` / optional `docs/versions/version_*.md`.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Contract tasks**: schema/policy/event contract changes and compatibility notes.",
+              "checked": null
+            },
+            {
+              "text": "**Service tasks**: API/service implementation tasks per owning backend.",
+              "checked": null
+            },
+            {
+              "text": "**Surface tasks**: dashboard/extension/docsai UI integration tasks.",
+              "checked": null
+            },
+            {
+              "text": "**Data tasks**: storage/index/lineage changes and validation tasks.",
+              "checked": null
+            },
+            {
+              "text": "**Ops tasks**: rollout guardrails, observability, and incident readiness tasks.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-to-system mapping summary",
+      "level": 2,
+      "slug": "era-to-system-mapping-summary",
+      "prose": "| Era | Major theme | Primary services | Key contract boundary |\n| --- | --- | --- | --- |\n| `0.x` | Foundation | All (setup) | Repo + CI baseline |\n| `1.x` | User, billing, credit | `appointment360`, `logs.api` | User/credit/billing GraphQL contracts |\n| `2.x` | Email system | `emailapis`, `emailapigo`, `mailvetter`, `appointment360`, `email.server`, `sync.server` | Finder/verifier API contract |\n| `3.x` | Contact/company data | `connectra`, `appointment360`, `sync.server` | VQL filter and search contracts |\n| `4.x` | Extension and Sales Navigator | `salesnavigator`, `appointment360`, `extension`, `sync.server` | Extension auth and sync contracts |\n| `5.x` | AI workflows | `contact.ai`, `appointment360`, `sync.server` | AI chat/utility API and cost contracts |\n| `6.x` | Reliability and Scaling | All core services, `email.server`, `sync.server` | SLO, idempotency, and observability contracts |\n| `7.x` | Deployment | `appointment360`, `docsai`, all services | RBAC, audit, and governance contracts |\n| `8.x` | Public and private APIs | `appointment360`, `logs.api` | External API/webhook/analytics contracts |\n| `9.x` | Ecosystem + Productization | All services + integrations | Tenant, entitlement, and connector contracts |\n| `10.x` | Email campaign | `appointment360`, `emailapis`, `logs.api` | Campaign execution and compliance contracts |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Major theme",
+            "Primary services",
+            "Key contract boundary"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Foundation",
+              "All (setup)",
+              "Repo + CI baseline"
+            ],
+            [
+              "`1.x`",
+              "User, billing, credit",
+              "`appointment360`, `logs.api`",
+              "User/credit/billing GraphQL contracts"
+            ],
+            [
+              "`2.x`",
+              "Email system",
+              "`emailapis`, `emailapigo`, `mailvetter`, `appointment360`, `email.server`, `sync.server`",
+              "Finder/verifier API contract"
+            ],
+            [
+              "`3.x`",
+              "Contact/company data",
+              "`connectra`, `appointment360`, `sync.server`",
+              "VQL filter and search contracts"
+            ],
+            [
+              "`4.x`",
+              "Extension and Sales Navigator",
+              "`salesnavigator`, `appointment360`, `extension`, `sync.server`",
+              "Extension auth and sync contracts"
+            ],
+            [
+              "`5.x`",
+              "AI workflows",
+              "`contact.ai`, `appointment360`, `sync.server`",
+              "AI chat/utility API and cost contracts"
+            ],
+            [
+              "`6.x`",
+              "Reliability and Scaling",
+              "All core services, `email.server`, `sync.server`",
+              "SLO, idempotency, and observability contracts"
+            ],
+            [
+              "`7.x`",
+              "Deployment",
+              "`appointment360`, `docsai`, all services",
+              "RBAC, audit, and governance contracts"
+            ],
+            [
+              "`8.x`",
+              "Public and private APIs",
+              "`appointment360`, `logs.api`",
+              "External API/webhook/analytics contracts"
+            ],
+            [
+              "`9.x`",
+              "Ecosystem + Productization",
+              "All services + integrations",
+              "Tenant, entitlement, and connector contracts"
+            ],
+            [
+              "`10.x`",
+              "Email campaign",
+              "`appointment360`, `emailapis`, `logs.api`",
+              "Campaign execution and compliance contracts"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Related documentation",
+      "level": 2,
+      "slug": "related-documentation",
+      "prose": "- `docs/versions.md` — release entries and index (this policy governs their shape).\n- `docs/roadmap.md` — stages and `ships in` metadata.\n- `docs/architecture.md` — planning horizon and service ownership.\n- `docs/docsai-sync.md` — when roadmap or architecture changes require Django constant mirrors.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/versions.md` — release entries and index (this policy governs their shape).",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md` — stages and `ships in` metadata.",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md` — planning horizon and service ownership.",
+              "checked": null
+            },
+            {
+              "text": "`docs/docsai-sync.md` — when roadmap or architecture changes require Django constant mirrors.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Documentation schema requirements for per-minor files",
+      "level": 2,
+      "slug": "documentation-schema-requirements-for-per-minor-files",
+      "prose": "Every `docs/versions/version_*.md` file must include the following explicit sections:\n\n- `## Backend API and Endpoint Scope`\n- `## Database and Data Lineage Scope`\n- `## Frontend UX Surface Scope`\n- `## UI Elements Checklist`\n- `## Flow/Graph Delta for This Minor`\n- `## Release Gate and Evidence`\n\nThese sections are mandatory for new and existing minors and should contain concrete file/module references, not generic placeholders.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`## Backend API and Endpoint Scope`",
+              "checked": null
+            },
+            {
+              "text": "`## Database and Data Lineage Scope`",
+              "checked": null
+            },
+            {
+              "text": "`## Frontend UX Surface Scope`",
+              "checked": null
+            },
+            {
+              "text": "`## UI Elements Checklist`",
+              "checked": null
+            },
+            {
+              "text": "`## Flow/Graph Delta for This Minor`",
+              "checked": null
+            },
+            {
+              "text": "`## Release Gate and Evidence`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-to-surface and era-to-api module matrix",
+      "level": 2,
+      "slug": "era-to-surface-and-era-to-api-module-matrix",
+      "prose": "| Era | Primary frontend surfaces | Primary backend API modules |\n| --- | --- | --- |\n| `0.x` | setup/status/docs placeholders | health/bootstrap metadata |\n| `1.x` | auth, billing, usage, settings | auth, users, billing, usage |\n| `2.x` | email finder, verifier, results | email, jobs, upload/export |\n| `3.x` | contacts, companies, files, export | contacts, companies, s3, upload |\n| `4.x` | extension and sales navigator views | linkedin, sales navigator |\n| `5.x` | AI chat and AI utilities | ai chats, jobs |\n| `6.x` | analytics and activity operations | analytics, activities, health |\n| `7.x` | admin governance and deployment views | admin, authz, audit |\n| `8.x` | integrations and API docs | webhooks, integrations, api keys |\n| `9.x` | profile, docs, 2FA, ecosystem pages | profile, notifications, saved searches, 2FA |\n| `10.x` | campaigns, sequences, templates | campaigns, sequences, campaign templates |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Primary frontend surfaces",
+            "Primary backend API modules"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "setup/status/docs placeholders",
+              "health/bootstrap metadata"
+            ],
+            [
+              "`1.x`",
+              "auth, billing, usage, settings",
+              "auth, users, billing, usage"
+            ],
+            [
+              "`2.x`",
+              "email finder, verifier, results",
+              "email, jobs, upload/export"
+            ],
+            [
+              "`3.x`",
+              "contacts, companies, files, export",
+              "contacts, companies, s3, upload"
+            ],
+            [
+              "`4.x`",
+              "extension and sales navigator views",
+              "linkedin, sales navigator"
+            ],
+            [
+              "`5.x`",
+              "AI chat and AI utilities",
+              "ai chats, jobs"
+            ],
+            [
+              "`6.x`",
+              "analytics and activity operations",
+              "analytics, activities, health"
+            ],
+            [
+              "`7.x`",
+              "admin governance and deployment views",
+              "admin, authz, audit"
+            ],
+            [
+              "`8.x`",
+              "integrations and API docs",
+              "webhooks, integrations, api keys"
+            ],
+            [
+              "`9.x`",
+              "profile, docs, 2FA, ecosystem pages",
+              "profile, notifications, saved searches, 2FA"
+            ],
+            [
+              "`10.x`",
+              "campaigns, sequences, templates",
+              "campaigns, sequences, campaign templates"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-to-storage maturity matrix (s3storage)",
+      "level": 2,
+      "slug": "era-to-storage-maturity-matrix-s3storage",
+      "prose": "| Era | Storage maturity theme | Key storage concern |\n| --- | --- | --- |\n| `0.x` | Bootstrap | Service wiring, endpoint baseline, key taxonomy; **EC2 `s3storage.server`** (Gin + Postgres `pgqueue` + S3) documented in `docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md` |\n| `1.x` | User artifacts | Avatar/photo/payment-proof handling and validation |\n| `2.x` | Bulk file engine | Multipart upload durability and metadata readiness |\n| `3.x` | Data intelligence feed | Ingestion/export lineage and analysis quality |\n| `4.x` | Channel maturity | Extension/SN provenance and access policy |\n| `5.x` | AI artifact governance | Sensitive artifact lifecycle and policy enforcement |\n| `6.x` | Reliability hardening | Idempotency, reconciliation, SLO/error budget coverage |\n| `7.x` | Governance controls | Authz, retention/deletion, compliance evidence |\n| `8.x` | API externalization | Versioned storage contracts and delivery/replay semantics |\n| `9.x` | Productization | Entitlements, quotas, tenant economics |\n| `10.x` | Campaign compliance | Reproducible campaign artifacts and audit trail guarantees |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Storage maturity theme",
+            "Key storage concern"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Bootstrap",
+              "Service wiring, endpoint baseline, key taxonomy; **EC2 `s3storage.server`** (Gin + Postgres `pgqueue` + S3) documented in `docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`"
+            ],
+            [
+              "`1.x`",
+              "User artifacts",
+              "Avatar/photo/payment-proof handling and validation"
+            ],
+            [
+              "`2.x`",
+              "Bulk file engine",
+              "Multipart upload durability and metadata readiness"
+            ],
+            [
+              "`3.x`",
+              "Data intelligence feed",
+              "Ingestion/export lineage and analysis quality"
+            ],
+            [
+              "`4.x`",
+              "Channel maturity",
+              "Extension/SN provenance and access policy"
+            ],
+            [
+              "`5.x`",
+              "AI artifact governance",
+              "Sensitive artifact lifecycle and policy enforcement"
+            ],
+            [
+              "`6.x`",
+              "Reliability hardening",
+              "Idempotency, reconciliation, SLO/error budget coverage"
+            ],
+            [
+              "`7.x`",
+              "Governance controls",
+              "Authz, retention/deletion, compliance evidence"
+            ],
+            [
+              "`8.x`",
+              "API externalization",
+              "Versioned storage contracts and delivery/replay semantics"
+            ],
+            [
+              "`9.x`",
+              "Productization",
+              "Entitlements, quotas, tenant economics"
+            ],
+            [
+              "`10.x`",
+              "Campaign compliance",
+              "Reproducible campaign artifacts and audit trail guarantees"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-to-logging maturity matrix (logs.api)",
+      "level": 2,
+      "slug": "era-to-logging-maturity-matrix-logsapi",
+      "prose": "| Era | Logging maturity goal |\n| --- | --- |\n| `0.x` | Basic service health and event persistence baseline |\n| `1.x` | User/billing/credit auditable event trail |\n| `2.x` | High-volume email workflow telemetry reliability |\n| `3.x` | Data pipeline support diagnostics and lineage |\n| `4.x` | Extension/SN provenance and sync diagnostics |\n| `5.x` | AI workflow and cost telemetry governance |\n| `6.x` | SLO/error-budget observability and runbook evidence |\n| `7.x` | Deployment/audit governance and retention evidence |\n| `8.x` | API ecosystem observability and compatibility signals |\n| `9.x` | Tenant/platform integration governance trail |\n| `10.x` | Campaign compliance-grade immutable audit events |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Logging maturity goal"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Basic service health and event persistence baseline"
+            ],
+            [
+              "`1.x`",
+              "User/billing/credit auditable event trail"
+            ],
+            [
+              "`2.x`",
+              "High-volume email workflow telemetry reliability"
+            ],
+            [
+              "`3.x`",
+              "Data pipeline support diagnostics and lineage"
+            ],
+            [
+              "`4.x`",
+              "Extension/SN provenance and sync diagnostics"
+            ],
+            [
+              "`5.x`",
+              "AI workflow and cost telemetry governance"
+            ],
+            [
+              "`6.x`",
+              "SLO/error-budget observability and runbook evidence"
+            ],
+            [
+              "`7.x`",
+              "Deployment/audit governance and retention evidence"
+            ],
+            [
+              "`8.x`",
+              "API ecosystem observability and compatibility signals"
+            ],
+            [
+              "`9.x`",
+              "Tenant/platform integration governance trail"
+            ],
+            [
+              "`10.x`",
+              "Campaign compliance-grade immutable audit events"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Jobs maturity matrix (gateway schedulerjobs` + satellites)",
+      "level": 2,
+      "slug": "jobs-maturity-matrix-gateway-schedulerjobs-satellites",
+      "prose": "| Era | Jobs maturity theme | Key dependency |\n| --- | --- | --- |\n| `0.x` | Scheduler baseline and DAG primitives | API + Kafka + scheduler DB bootstrap |\n| `1.x` | Billing-aware job governance | Billing/usage traceability contracts |\n| `2.x` | Email stream processing maturity | `emailapis`/`emailapigo` + `s3storage` |\n| `3.x` | Contact/company import-export stream maturity | Connectra/VQL + Contact360 PG/OpenSearch |\n| `4.x` | Extension/SN provenance jobs | extension + salesnavigator ingest flows |\n| `5.x` | AI batch orchestration | AI workflow contracts and quota services |\n| `6.x` | Reliability and idempotency hardening | SLO/observability + retry/DLQ controls |\n| `7.x` | Governance and access controls | RBAC/authz + retention policy |\n| `8.x` | Versioned partner-safe jobs API | webhook/callback and API versioning |\n| `9.x` | Tenant-aware scheduling productization | entitlement engine and tenant quotas |\n| `10.x` | Campaign compliance execution | campaign orchestration + immutable audit evidence |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Jobs maturity theme",
+            "Key dependency"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Scheduler baseline and DAG primitives",
+              "API + Kafka + scheduler DB bootstrap"
+            ],
+            [
+              "`1.x`",
+              "Billing-aware job governance",
+              "Billing/usage traceability contracts"
+            ],
+            [
+              "`2.x`",
+              "Email stream processing maturity",
+              "`emailapis`/`emailapigo` + `s3storage`"
+            ],
+            [
+              "`3.x`",
+              "Contact/company import-export stream maturity",
+              "Connectra/VQL + Contact360 PG/OpenSearch"
+            ],
+            [
+              "`4.x`",
+              "Extension/SN provenance jobs",
+              "extension + salesnavigator ingest flows"
+            ],
+            [
+              "`5.x`",
+              "AI batch orchestration",
+              "AI workflow contracts and quota services"
+            ],
+            [
+              "`6.x`",
+              "Reliability and idempotency hardening",
+              "SLO/observability + retry/DLQ controls"
+            ],
+            [
+              "`7.x`",
+              "Governance and access controls",
+              "RBAC/authz + retention policy"
+            ],
+            [
+              "`8.x`",
+              "Versioned partner-safe jobs API",
+              "webhook/callback and API versioning"
+            ],
+            [
+              "`9.x`",
+              "Tenant-aware scheduling productization",
+              "entitlement engine and tenant quotas"
+            ],
+            [
+              "`10.x`",
+              "Campaign compliance execution",
+              "campaign orchestration + immutable audit evidence"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contact AI maturity matrix (backend(dev)/contact.ai)",
+      "level": 2,
+      "slug": "contact-ai-maturity-matrix-backenddevcontactai",
+      "prose": "Service: FastAPI Lambda — HF Inference + Gemini fallback — `ai_chats` PostgreSQL table shared with appointment360.\n\n| Era | Contact AI maturity theme | Key service dependency |\n| --- | --- | --- |\n| `0.x` | Lambda skeleton + DDL baseline | FastAPI + Mangum + `ai_chats` DDL + health endpoints |\n| `1.x` | User FK integrity + IAM | `users.uuid` FK constraint; cascade strategy; secrets management |\n| `2.x` | Email risk analysis contract | `analyzeEmailRisk` endpoint; HF JSON task; PII policy |\n| `3.x` | Filter parsing + company summary | `parseContactFilters` aligned to Connectra VQL; `generateCompanySummary` |\n| `4.x` | SN contact JSONB compatibility | SN contact fields in `messages.contacts[]`; extension CSP |\n| `5.x` | Full AI workflows live | All chat CRUD + SSE streaming + all utility endpoints; `ModelSelection` shim |\n| `6.x` | Reliability and SLO | SSE error handling; TTL archival; optimistic lock; distributed tracing |\n| `7.x` | RBAC + audit + retention | Feature gating by plan; GDPR erasure cascade; audit log to `logs.api` |\n| `8.x` | Public API surface | Rate limit headers; scoped API keys; usage tracking; quota UI |\n| `9.x` | Ecosystem connectors | Webhook AI delivery; connector adapter; integration panel |\n| `10.x` | Campaign AI generation | `POST /api/v1/ai/email/generate`; `campaign_ai_log` compliance table |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Contact AI maturity theme",
+            "Key service dependency"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Lambda skeleton + DDL baseline",
+              "FastAPI + Mangum + `ai_chats` DDL + health endpoints"
+            ],
+            [
+              "`1.x`",
+              "User FK integrity + IAM",
+              "`users.uuid` FK constraint; cascade strategy; secrets management"
+            ],
+            [
+              "`2.x`",
+              "Email risk analysis contract",
+              "`analyzeEmailRisk` endpoint; HF JSON task; PII policy"
+            ],
+            [
+              "`3.x`",
+              "Filter parsing + company summary",
+              "`parseContactFilters` aligned to Connectra VQL; `generateCompanySummary`"
+            ],
+            [
+              "`4.x`",
+              "SN contact JSONB compatibility",
+              "SN contact fields in `messages.contacts[]`; extension CSP"
+            ],
+            [
+              "`5.x`",
+              "Full AI workflows live",
+              "All chat CRUD + SSE streaming + all utility endpoints; `ModelSelection` shim"
+            ],
+            [
+              "`6.x`",
+              "Reliability and SLO",
+              "SSE error handling; TTL archival; optimistic lock; distributed tracing"
+            ],
+            [
+              "`7.x`",
+              "RBAC + audit + retention",
+              "Feature gating by plan; GDPR erasure cascade; audit log to `logs.api`"
+            ],
+            [
+              "`8.x`",
+              "Public API surface",
+              "Rate limit headers; scoped API keys; usage tracking; quota UI"
+            ],
+            [
+              "`9.x`",
+              "Ecosystem connectors",
+              "Webhook AI delivery; connector adapter; integration panel"
+            ],
+            [
+              "`10.x`",
+              "Campaign AI generation",
+              "`POST /api/v1/ai/email/generate`; `campaign_ai_log` compliance table"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-to-system mapping summary (all services)",
+      "level": 2,
+      "slug": "era-to-system-mapping-summary-all-services",
+      "prose": "| Era | Services active |\n| --- | --- |\n| `0.x` | appointment360, connectra, emailapis, logs.api, s3storage, email.server/sync job path (skeleton), contact.ai (skeleton) |\n| `1.x` | + billing module, contact.ai (FK validation) |\n| `2.x` | + emailapigo, mailvetter, email.server (email jobs), contact.ai (analyzeEmailRisk) |\n| `3.x` | + connectra (VQL), sync.server (import/export), contact.ai (parseFilters + companySummary) |\n| `4.x` | + salesnavigator (full extension UX, HTML extraction, Connectra ingest), extension, contact.ai (SN JSONB compat) |\n| `5.x` | + contact.ai (full), resumeai, sync.server (batch jobs) |\n| `6.x` | All core services + SLO, contact.ai (reliability), job idempotency (gateway + workers) |\n| `7.x` | All + RBAC/audit across all services including contact.ai |\n| `8.x` | All + public API surface including contact.ai scoped keys |\n| `9.x` | All + ecosystem connectors including contact.ai webhook delivery |\n| `10.x` | All + campaign engine including contact.ai campaign AI generation |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Services active"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "appointment360, connectra, emailapis, logs.api, s3storage, email.server/sync job path (skeleton), contact.ai (skeleton)"
+            ],
+            [
+              "`1.x`",
+              "+ billing module, contact.ai (FK validation)"
+            ],
+            [
+              "`2.x`",
+              "+ emailapigo, mailvetter, email.server (email jobs), contact.ai (analyzeEmailRisk)"
+            ],
+            [
+              "`3.x`",
+              "+ connectra (VQL), sync.server (import/export), contact.ai (parseFilters + companySummary)"
+            ],
+            [
+              "`4.x`",
+              "+ salesnavigator (full extension UX, HTML extraction, Connectra ingest), extension, contact.ai (SN JSONB compat)"
+            ],
+            [
+              "`5.x`",
+              "+ contact.ai (full), resumeai, sync.server (batch jobs)"
+            ],
+            [
+              "`6.x`",
+              "All core services + SLO, contact.ai (reliability), job idempotency (gateway + workers)"
+            ],
+            [
+              "`7.x`",
+              "All + RBAC/audit across all services including contact.ai"
+            ],
+            [
+              "`8.x`",
+              "All + public API surface including contact.ai scoped keys"
+            ],
+            [
+              "`9.x`",
+              "All + ecosystem connectors including contact.ai webhook delivery"
+            ],
+            [
+              "`10.x`",
+              "All + campaign engine including contact.ai campaign AI generation"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "salesnavigator service maturity matrix",
+      "level": 2,
+      "slug": "salesnavigator-service-maturity-matrix",
+      "prose": "| Era | Maturity level | Key deliverable |\n| --- | --- | --- |\n| `0.x` | Scaffold | Health endpoint, UUID contract |\n| `1.x` | Auth/actor stub | Actor context headers |\n| `2.x` | Field validation | Email/phone handling |\n| `3.x` | Field mapping | Full provenance tagging |\n| `4.x` | **GA / Primary** | Extension UX, HTML extraction, docs fix |\n| `5.x` | AI integration | Quality gates for AI context |\n| `6.x` | Hardened | Rate limiting, idempotency, CORS |\n| `7.x` | Governed | RBAC, per-tenant keys, GDPR |\n| `8.x` | API product | Rate-limit headers, usage tracking |\n| `9.x` | Platform | Connector adapter, webhook delivery |\n| `10.x` | Compliant | Campaign provenance, suppression guard |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Maturity level",
+            "Key deliverable"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Scaffold",
+              "Health endpoint, UUID contract"
+            ],
+            [
+              "`1.x`",
+              "Auth/actor stub",
+              "Actor context headers"
+            ],
+            [
+              "`2.x`",
+              "Field validation",
+              "Email/phone handling"
+            ],
+            [
+              "`3.x`",
+              "Field mapping",
+              "Full provenance tagging"
+            ],
+            [
+              "`4.x`",
+              "**GA / Primary**",
+              "Extension UX, HTML extraction, docs fix"
+            ],
+            [
+              "`5.x`",
+              "AI integration",
+              "Quality gates for AI context"
+            ],
+            [
+              "`6.x`",
+              "Hardened",
+              "Rate limiting, idempotency, CORS"
+            ],
+            [
+              "`7.x`",
+              "Governed",
+              "RBAC, per-tenant keys, GDPR"
+            ],
+            [
+              "`8.x`",
+              "API product",
+              "Rate-limit headers, usage tracking"
+            ],
+            [
+              "`9.x`",
+              "Platform",
+              "Connector adapter, webhook delivery"
+            ],
+            [
+              "`10.x`",
+              "Compliant",
+              "Campaign provenance, suppression guard"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "mailvetter service maturity matrix",
+      "level": 2,
+      "slug": "mailvetter-service-maturity-matrix",
+      "prose": "| Era | Maturity level | Key deliverable |\n| --- | --- | --- |\n| `0.x` | Scaffold | API/worker split, `/v1` baseline, DB/queue bootstrap |\n| `1.x` | Guarded | API key ownership and plan limits |\n| `2.x` | **GA / Primary** | Single/bulk verifier and async jobs contract |\n| `3.x` | Linked | Contact/company verification lineage |\n| `4.x` | Provenance-aware | Extension/SN source-tagged verification |\n| `5.x` | AI-ready | Explainability reason codes for AI surfaces |\n| `6.x` | Hardened | Distributed limiter, idempotency, retry/DLQ |\n| `7.x` | Governed | Migration discipline and release gates |\n| `8.x` | API product | OpenAPI, scoped keys, audit-ready public/private surface |\n| `9.x` | Platform | Partner webhook replay and connector reliability |\n| `10.x` | Compliant | Campaign preflight verification and traceability |\n\n**Pre-4.x planning note:** The `salesnavigator` service has documented gaps that must be resolved before the `4.x` era GA gate: missing `POST /v1/scrape-html-with-fetch` implementation, stale README, no rate limiting, no `X-Request-ID` header, wide-open CORS, and a single global `API_KEY` (per-tenant scoping is a `7.x` deliverable). Full details and remediation tasks: **`docs/codebases/salesnavigator-codebase-analysis.md`**.\n\n---\n\n> **Email app era track** (`contact360.io/email`) is maintained in **`docs/backend.md`** under the `Email frontend backend track` section, and in **`docs/architecture.md`** under the `Email app surface register` section. Do not duplicate it here.",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Maturity level",
+            "Key deliverable"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Scaffold",
+              "API/worker split, `/v1` baseline, DB/queue bootstrap"
+            ],
+            [
+              "`1.x`",
+              "Guarded",
+              "API key ownership and plan limits"
+            ],
+            [
+              "`2.x`",
+              "**GA / Primary**",
+              "Single/bulk verifier and async jobs contract"
+            ],
+            [
+              "`3.x`",
+              "Linked",
+              "Contact/company verification lineage"
+            ],
+            [
+              "`4.x`",
+              "Provenance-aware",
+              "Extension/SN source-tagged verification"
+            ],
+            [
+              "`5.x`",
+              "AI-ready",
+              "Explainability reason codes for AI surfaces"
+            ],
+            [
+              "`6.x`",
+              "Hardened",
+              "Distributed limiter, idempotency, retry/DLQ"
+            ],
+            [
+              "`7.x`",
+              "Governed",
+              "Migration discipline and release gates"
+            ],
+            [
+              "`8.x`",
+              "API product",
+              "OpenAPI, scoped keys, audit-ready public/private surface"
+            ],
+            [
+              "`9.x`",
+              "Platform",
+              "Partner webhook replay and connector reliability"
+            ],
+            [
+              "`10.x`",
+              "Compliant",
+              "Campaign preflight verification and traceability"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Policy Addendum",
+      "level": 2,
+      "slug": "2026-policy-addendum",
+      "prose": "- A service with unresolved P0 defects (correctness, auth bypass, or non-durable distributed state) cannot be promoted to the next era stage.\n- `contact360.io/admin` releases require migration/static asset/system process validation in deployment evidence.\n- Services relying on runtime auto-migration must add explicit migration pipeline controls before `6.x` reliability promotion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "A service with unresolved P0 defects (correctness, auth bypass, or non-durable distributed state) cannot be promoted to the next era stage.",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/admin` releases require migration/static asset/system process validation in deployment evidence.",
+              "checked": null
+            },
+            {
+              "text": "Services relying on runtime auto-migration must add explicit migration pipeline controls before `6.x` reliability promotion.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": "## Jobs maturity matrix (gateway `scheduler_jobs` + satellites)"
+}

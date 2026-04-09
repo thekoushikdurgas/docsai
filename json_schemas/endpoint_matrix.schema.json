@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/endpoint_matrix",
+  "title": "Endpoint Matrix Document",
+  "description": "Generated from docs/backend/endpoints/*.md — tabular endpoint/era mapping files",
+  "allOf": [{ "$ref": "common_envelope.schema.json" }],
+  "properties": {
+    "kind": { "const": "endpoint_matrix" },
+    "overview": {
+      "type": ["string", "null"],
+      "description": "Opening prose before the table"
+    },
+    "tables": {
+      "type": "array",
+      "description": "All tables in the document in order",
+      "items": {
+        "type": "object",
+        "required": ["headers", "rows"],
+        "properties": {
+          "section_heading": {
+            "type": ["string", "null"],
+            "description": "Nearest heading above this table"
+          },
+          "headers": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Non-table sections in document order",
+      "items": {
+        "type": "object",
+        "required": ["heading", "level", "prose"],
+        "properties": {
+          "heading": { "type": "string" },
+          "level": { "type": "integer" },
+          "prose": { "type": "string" }
+        }
+      }
+    }
+  }
+}

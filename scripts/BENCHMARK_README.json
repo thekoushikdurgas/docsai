@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "scripts/BENCHMARK_README.md",
+  "sha256_source": "3539c8497a58bda9622e743122fe7b3f82a67d8ee8ffb9103d4ab7228ba08e92",
+  "generated_at": "2026-04-08T23:26:49.533879+00:00",
+  "title": "Performance Benchmark Scripts",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Performance Benchmark Scripts",
+      "level": 1,
+      "slug": "performance-benchmark-scripts",
+      "prose": "This directory contains scripts for benchmarking and comparing performance improvements.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Scripts",
+      "level": 2,
+      "slug": "scripts",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "benchmarkperformance.py`",
+      "level": 3,
+      "slug": "benchmarkperformancepy",
+      "prose": "Comprehensive performance benchmark script that tests:\n- Endpoint response times (with timing decorators)\n- Unified batch filter endpoint performance\n- Background task endpoint performance (email verification, analytics)\n- Health check baseline\n\n**Usage:**\n\n```bash",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Endpoint response times (with timing decorators)",
+              "checked": null
+            },
+            {
+              "text": "Unified batch filter endpoint performance",
+              "checked": null
+            },
+            {
+              "text": "Background task endpoint performance (email verification, analytics)",
+              "checked": null
+            },
+            {
+              "text": "Health check baseline",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run all benchmarks",
+      "level": 1,
+      "slug": "run-all-benchmarks",
+      "prose": "python scripts/benchmark_performance.py --base-url http://localhost:8000 --iterations 10",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Benchmark specific endpoint",
+      "level": 1,
+      "slug": "benchmark-specific-endpoint",
+      "prose": "python scripts/benchmark_performance.py --endpoint /api/v1/health --iterations 20",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "With authentication",
+      "level": 1,
+      "slug": "with-authentication",
+      "prose": "python scripts/benchmark_performance.py --auth-token YOUR_TOKEN --iterations 10",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Save results to file",
+      "level": 1,
+      "slug": "save-results-to-file",
+      "prose": "python scripts/benchmark_performance.py --iterations 10 --save results.json\n```\n\n**Output:**\n- Console table with min, max, avg, median, P95, P99 response times\n- JSON file with detailed results (if --save specified)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Console table with min, max, avg, median, P95, P99 response times",
+              "checked": null
+            },
+            {
+              "text": "JSON file with detailed results (if --save specified)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "benchmarkcomparison.py`",
+      "level": 3,
+      "slug": "benchmarkcomparisonpy",
+      "prose": "Compare performance before and after optimizations.\n\n**Usage:**\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Compare two benchmark runs",
+      "level": 1,
+      "slug": "compare-two-benchmark-runs",
+      "prose": "python scripts/benchmark_comparison.py --before before_results.json --after after_results.json",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Save comparison to file",
+      "level": 1,
+      "slug": "save-comparison-to-file",
+      "prose": "python scripts/benchmark_comparison.py --before before.json --after after.json --output comparison.json\n```\n\n**Output:**\n- Console table showing improvement percentages and speedup\n- Summary statistics (average improvement, speedup)\n- JSON file with comparison data (if --output specified)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Console table showing improvement percentages and speedup",
+              "checked": null
+            },
+            {
+              "text": "Summary statistics (average improvement, speedup)",
+              "checked": null
+            },
+            {
+              "text": "JSON file with comparison data (if --output specified)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Dependencies",
+      "level": 2,
+      "slug": "dependencies",
+      "prose": "Install required dependencies:\n\n```bash\npip install httpx rich\n```\n\nOr add to `requirements.txt`:\n```\nhttpx>=0.27.2\nrich>=13.0.0\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "pip install httpx rich\n"
+        },
+        {
+          "lang": "",
+          "value": "httpx>=0.27.2\nrich>=13.0.0\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Example Workflow",
+      "level": 2,
+      "slug": "example-workflow",
+      "prose": "1. **Before optimizations:**\n   ```bash\n   python scripts/benchmark_performance.py --iterations 20 --save before_optimization.json\n   ```\n\n2. **After optimizations:**\n   ```bash\n   python scripts/benchmark_performance.py --iterations 20 --save after_optimization.json\n   ```\n\n3. **Compare results:**\n   ```bash\n   python scripts/benchmark_comparison.py --before before_optimization.json --after after_optimization.json\n   ```",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Before optimizations:**",
+              "checked": null
+            },
+            {
+              "text": "**After optimizations:**",
+              "checked": null
+            },
+            {
+              "text": "**Compare results:**",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "   python scripts/benchmark_performance.py --iterations 20 --save before_optimization.json\n   "
+        },
+        {
+          "lang": "bash",
+          "value": "   python scripts/benchmark_performance.py --iterations 20 --save after_optimization.json\n   "
+        },
+        {
+          "lang": "bash",
+          "value": "   python scripts/benchmark_comparison.py --before before_optimization.json --after after_optimization.json\n   "
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Metrics Explained",
+      "level": 2,
+      "slug": "metrics-explained",
+      "prose": "- **Min/Max**: Fastest and slowest response times\n- **Avg**: Average response time across all iterations\n- **Median**: Middle value (50th percentile)\n- **P95**: 95th percentile (95% of requests are faster)\n- **P99**: 99th percentile (99% of requests are faster)\n- **Std Dev**: Standard deviation (measure of variance)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Min/Max**: Fastest and slowest response times",
+              "checked": null
+            },
+            {
+              "text": "**Avg**: Average response time across all iterations",
+              "checked": null
+            },
+            {
+              "text": "**Median**: Middle value (50th percentile)",
+              "checked": null
+            },
+            {
+              "text": "**P95**: 95th percentile (95% of requests are faster)",
+              "checked": null
+            },
+            {
+              "text": "**P99**: 99th percentile (99% of requests are faster)",
+              "checked": null
+            },
+            {
+              "text": "**Std Dev**: Standard deviation (measure of variance)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Performance Targets",
+      "level": 2,
+      "slug": "performance-targets",
+      "prose": "Based on our optimizations, target metrics:\n\n- **Health check**: < 10ms\n- **Unified batch filters**: < 200ms (vs 300-500ms for individual calls)\n- **Background task endpoints**: < 100ms (API response, processing happens async)\n- **Regular endpoints**: < 500ms (with timing decorators)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Health check**: < 10ms",
+              "checked": null
+            },
+            {
+              "text": "**Unified batch filters**: < 200ms (vs 300-500ms for individual calls)",
+              "checked": null
+            },
+            {
+              "text": "**Background task endpoints**: < 100ms (API response, processing happens async)",
+              "checked": null
+            },
+            {
+              "text": "**Regular endpoints**: < 500ms (with timing decorators)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Notes",
+      "level": 2,
+      "slug": "notes",
+      "prose": "- Benchmarks include warmup iterations to account for cold starts\n- Results may vary based on system load, network conditions, and database state\n- For accurate comparisons, run benchmarks under similar conditions\n- Background task benchmarks measure API response time, not processing time",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Benchmarks include warmup iterations to account for cold starts",
+              "checked": null
+            },
+            {
+              "text": "Results may vary based on system load, network conditions, and database state",
+              "checked": null
+            },
+            {
+              "text": "For accurate comparisons, run benchmarks under similar conditions",
+              "checked": null
+            },
+            {
+              "text": "Background task benchmarks measure API response time, not processing time",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

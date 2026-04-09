@@ -1,0 +1,1230 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/logsapi-codebase-analysis.md",
+  "sha256_source": "0dd860f5a9f1bcaee21e333ce161fe113406f85c099c466b933d78c0e380aa6d",
+  "generated_at": "2026-04-08T23:26:47.201784+00:00",
+  "title": "logs.api codebase deep analysis (Contact360 eras 0.x-10.x)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "logs.api codebase deep analysis (Contact360 eras 0.x-10.x)",
+      "level": 1,
+      "slug": "logsapi-codebase-deep-analysis-contact360-eras-0x-10x",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service summary",
+      "level": 2,
+      "slug": "service-summary",
+      "prose": "`lambda/logs.api` is a FastAPI logging service using S3 CSV objects as canonical storage for log CRUD/query/search/statistics across Contact360 operational and audit workflows.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture",
+      "level": 2,
+      "slug": "runtime-architecture",
+      "prose": "- Entrypoint: `lambda/logs.api/app/main.py`\n- Routing: `app/api/v1/endpoints/logs.py`, `app/api/v1/endpoints/health.py`\n- Auth dependency: `app/api/dependencies.py` (`X-API-Key`)\n- Service layer: `app/services/log_service.py`\n- Data repository: `app/models/log_repository.py`\n- Storage client: `app/clients/s3.py`\n- Caching/monitoring: `app/utils/query_cache.py`, `query_monitor.py`, `cache_metrics.py`\n- Deployment contract: `lambda/logs.api/template.yaml`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Entrypoint: `lambda/logs.api/app/main.py`",
+              "checked": null
+            },
+            {
+              "text": "Routing: `app/api/v1/endpoints/logs.py`, `app/api/v1/endpoints/health.py`",
+              "checked": null
+            },
+            {
+              "text": "Auth dependency: `app/api/dependencies.py` (`X-API-Key`)",
+              "checked": null
+            },
+            {
+              "text": "Service layer: `app/services/log_service.py`",
+              "checked": null
+            },
+            {
+              "text": "Data repository: `app/models/log_repository.py`",
+              "checked": null
+            },
+            {
+              "text": "Storage client: `app/clients/s3.py`",
+              "checked": null
+            },
+            {
+              "text": "Caching/monitoring: `app/utils/query_cache.py`, `query_monitor.py`, `cache_metrics.py`",
+              "checked": null
+            },
+            {
+              "text": "Deployment contract: `lambda/logs.api/template.yaml`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ S3 CSV is the canonical persistence layer (repository and client paths are S3-backed).\n- [x] ✅ Non-health log endpoints enforce API key auth using `Depends(verify_api_key)`.\n- [x] ✅ Health endpoint uses cached status and background refresh path.\n- [x] ✅ Lambda/IAM fallback behavior exists for empty credential values in config/client logic.\n- [x] ✅ Coverage exists for basic API and cache/performance behavior (test scaffolding present).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ S3 CSV is the canonical persistence layer (repository and client paths are S3-backed).",
+              "checked": true
+            },
+            {
+              "text": "✅ Non-health log endpoints enforce API key auth using `Depends(verify_api_key)`.",
+              "checked": true
+            },
+            {
+              "text": "✅ Health endpoint uses cached status and background refresh path.",
+              "checked": true
+            },
+            {
+              "text": "✅ Lambda/IAM fallback behavior exists for empty credential values in config/client logic.",
+              "checked": true
+            },
+            {
+              "text": "✅ Coverage exists for basic API and cache/performance behavior (test scaffolding present).",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and deploy drift",
+      "level": 3,
+      "slug": "security-and-deploy-drift",
+      "prose": "- [ ] ⬜ Incomplete: app-level CORS is wildcard (`allow_origins=[\"*\"]`).\n- [ ] ⬜ Incomplete: SAM HttpApi CORS is wildcard (`AllowOrigins/Methods/Headers: \"*\"`).\n- [ ] ⬜ Incomplete: `template.yaml` includes a real-looking default API key value; must be placeholder/secret reference only.\n- [ ] 🟡 In Progress: docs promote secrets-manager usage, but deploy artifacts still allow insecure defaults.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: app-level CORS is wildcard (`allow_origins=[\"*\"]`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: SAM HttpApi CORS is wildcard (`AllowOrigins/Methods/Headers: \"*\"`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `template.yaml` includes a real-looking default API key value; must be placeholder/secret reference only.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: docs promote secrets-manager usage, but deploy artifacts still allow insecure defaults.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract correctness and resilience",
+      "level": 3,
+      "slug": "contract-correctness-and-resilience",
+      "prose": "- [ ] ⬜ Incomplete: ingest endpoints (`POST /logs`, `/logs/batch`) do not enforce idempotency keys.\n- [ ] 🟡 In Progress: endpoint parity is improved (`POST /logs/delete` + `DELETE /logs` fallback), but contract tests are partial.\n- [ ] ⬜ Incomplete: standardized cross-service error envelope and retry guidance are not fully locked across all handlers.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: ingest endpoints (`POST /logs`, `/logs/batch`) do not enforce idempotency keys.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: endpoint parity is improved (`POST /logs/delete` + `DELETE /logs` fallback), but contract tests are partial.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: standardized cross-service error envelope and retry guidance are not fully locked across all handlers.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Scale and data-model risk",
+      "level": 3,
+      "slug": "scale-and-data-model-risk",
+      "prose": "- [ ] 🟡 In Progress: query caching and monitoring exist, but cache is process-local and non-distributed.\n- [ ] ⬜ Incomplete: heavy CSV scan/query paths can degrade under higher throughput without secondary indexing/rollups.\n- [ ] ⬜ Incomplete: tenant/trace lineage fields are not yet enforced as mandatory for all ingest paths.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: query caching and monitoring exist, but cache is process-local and non-distributed.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: heavy CSV scan/query paths can degrade under higher throughput without secondary indexing/rollups.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: tenant/trace lineage fields are not yet enforced as mandatory for all ingest paths.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Platform alignment risk",
+      "level": 3,
+      "slug": "platform-alignment-risk",
+      "prose": "- [ ] ⬜ Incomplete: `logs.api` still performs direct S3 operations and is not yet aligned to `s3storage` as unified storage control plane.\n- [ ] 📌 Planned: define adapter path (`logs.api` <-> `s3storage`) without breaking existing log contracts.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: `logs.api` still performs direct S3 operations and is not yet aligned to `s3storage` as unified storage control plane.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: define adapter path (`logs.api` <-> `s3storage`) without breaking existing log contracts.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "API contract snapshot",
+      "level": 2,
+      "slug": "api-contract-snapshot",
+      "prose": "- `POST /logs`, `POST /logs/batch`\n- `GET /logs`, `GET /logs/search`, `GET /logs/{log_id}`\n- `PUT /logs/{log_id}`, `DELETE /logs/{log_id}`\n- `POST /logs/delete`, `DELETE /logs`\n- `GET /logs/statistics`\n- `GET /health`, `GET /health/info`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`POST /logs`, `POST /logs/batch`",
+              "checked": null
+            },
+            {
+              "text": "`GET /logs`, `GET /logs/search`, `GET /logs/{log_id}`",
+              "checked": null
+            },
+            {
+              "text": "`PUT /logs/{log_id}`, `DELETE /logs/{log_id}`",
+              "checked": null
+            },
+            {
+              "text": "`POST /logs/delete`, `DELETE /logs`",
+              "checked": null
+            },
+            {
+              "text": "`GET /logs/statistics`",
+              "checked": null
+            },
+            {
+              "text": "`GET /health`, `GET /health/info`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ S3 CSV contract is established as canonical storage for log records.\n- [ ] 🟡 In Progress: keep `POST /logs/delete` and `DELETE /logs` behavior aligned and evidence-tested.\n- [ ] ⬜ Incomplete: add idempotency contract (`X-Idempotency-Key`) for ingest endpoints.\n- [ ] ⬜ Incomplete: lock unified response/error envelope and compatibility tests for all endpoints.\n- [ ] 📌 Planned: publish externalized OpenAPI/partner contract for `8.x` consumption.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ S3 CSV contract is established as canonical storage for log records.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: keep `POST /logs/delete` and `DELETE /logs` behavior aligned and evidence-tested.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add idempotency contract (`X-Idempotency-Key`) for ingest endpoints.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: lock unified response/error envelope and compatibility tests for all endpoints.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: publish externalized OpenAPI/partner contract for `8.x` consumption.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ S3 health checks, repository write/read, and basic cache-aware query flow are implemented.\n- [ ] 🟡 In Progress: improve query/caching behavior with deterministic stale-while-revalidate semantics.\n- [ ] ⬜ Incomplete: add throughput-safe rollup/index strategy to reduce large CSV scan pressure.\n- [ ] ⬜ Incomplete: enforce tenant/request/trace metadata requirements at write time.\n- [ ] 📌 Planned: evaluate phased move to `s3storage` control-plane interfaces for storage operations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ S3 health checks, repository write/read, and basic cache-aware query flow are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve query/caching behavior with deterministic stale-while-revalidate semantics.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add throughput-safe rollup/index strategy to reduce large CSV scan pressure.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce tenant/request/trace metadata requirements at write time.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: evaluate phased move to `s3storage` control-plane interfaces for storage operations.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Full log CRUD/query/search/statistics and health routes are available.\n- [ ] 🟡 In Progress: complete admin/ops diagnostics wiring for cache state and slow-query traces.\n- [ ] ⬜ Incomplete: provide consistent client-facing retry/action hints for transient failures.\n- [ ] 📌 Planned: add partner-safe log views/export affordances for ecosystem integrations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Full log CRUD/query/search/statistics and health routes are available.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: complete admin/ops diagnostics wiring for cache state and slow-query traces.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: provide consistent client-facing retry/action hints for transient failures.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add partner-safe log views/export affordances for ecosystem integrations.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Hour-partitioned CSV object key pattern and retention intent (90-day lifecycle) are defined.\n- [ ] 🟡 In Progress: align runtime evidence with retention/compliance documentation.\n- [ ] ⬜ Incomplete: add lineage schema versioning and mandatory governance fields.\n- [ ] 📌 Planned: legal-hold/compliance evidence overlays for campaign-era audit needs (`10.x`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Hour-partitioned CSV object key pattern and retention intent (90-day lifecycle) are defined.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: align runtime evidence with retention/compliance documentation.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add lineage schema versioning and mandatory governance fields.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: legal-hold/compliance evidence overlays for campaign-era audit needs (`10.x`).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ API key auth check is enforced on non-health endpoints.\n- [ ] ⬜ Incomplete: replace wildcard CORS in runtime and SAM template with explicit allowlists.\n- [ ] ⬜ Incomplete: remove insecure default-like API key values from templates/examples.\n- [ ] ⬜ Incomplete: expand integration/failure-path tests (invalid credentials, partial S3 failures, retries).\n- [ ] 📌 Planned: add SLO dashboards and error-budget gates tied to logs query/write latency.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ API key auth check is enforced on non-health endpoints.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: replace wildcard CORS in runtime and SAM template with explicit allowlists.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove insecure default-like API key values from templates/examples.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: expand integration/failure-path tests (invalid credentials, partial S3 failures, retries).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add SLO dashboards and error-budget gates tied to logs query/write latency.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [x] ✅ Confirm canonical S3 CSV storage and remove MongoDB assumptions from runtime truth.\n- [ ] ⬜ Incomplete: sanitize `template.yaml` API key default to placeholder-only and secrets-manager flow.\n- [ ] ⬜ Incomplete: tighten CORS (app + SAM) to environment-specific allowlists.\n- [ ] ⬜ Incomplete: add idempotency key support for `POST /logs` and `POST /logs/batch`.\n- [ ] 🟡 In Progress: harden contract parity tests for delete/query/search/statistics responses.\n- [ ] ⬜ Incomplete: add failure-path tests for S3 auth errors and partial write/read failure recovery.\n- [ ] 🟡 In Progress: strengthen cache observability and stale refresh metrics in ops surfaces.\n- [ ] ⬜ Incomplete: define cross-service mandatory fields (`tenant_id`, `trace_id`, `request_id`) and enforce validation.\n- [ ] 📌 Planned: design migration path to use `s3storage` as storage control plane without API regressions.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Confirm canonical S3 CSV storage and remove MongoDB assumptions from runtime truth.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: sanitize `template.yaml` API key default to placeholder-only and secrets-manager flow.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: tighten CORS (app + SAM) to environment-specific allowlists.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add idempotency key support for `POST /logs` and `POST /logs/batch`.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: harden contract parity tests for delete/query/search/statistics responses.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add failure-path tests for S3 auth errors and partial write/read failure recovery.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: strengthen cache observability and stale refresh metrics in ops surfaces.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define cross-service mandatory fields (`tenant_id`, `trace_id`, `request_id`) and enforce validation.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: design migration path to use `s3storage` as storage control plane without API regressions.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-codebase log unification plan (logs.api as single logging system)",
+      "level": 2,
+      "slug": "cross-codebase-log-unification-plan-logsapi-as-single-logging-system",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current adoption snapshot",
+      "level": 3,
+      "slug": "current-adoption-snapshot",
+      "prose": "- [x] ✅ `lambda/logs.api` provides central ingest/query/search/statistics API and is actively consumed by `contact360.io/api`.\n- [x] ✅ `contact360.io/admin` has a dedicated `LogsApiClient` and logs surface integration.\n- [ ] 🟡 In Progress: `contact360.io/api` still uses local Python logging infrastructure (`mongodb_log_handler.py` naming/adapter legacy) alongside forwarding to `logs.api`.\n- [ ] ⬜ Incomplete: `contact360.io/jobs` contains direct `print(...)` progress lines in streaming processors.\n- [ ] ⬜ Incomplete: multiple services still rely only on local service loggers (`logging`, custom `log_handler`, `console.log`) without `logs.api` shipping.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `lambda/logs.api` provides central ingest/query/search/statistics API and is actively consumed by `contact360.io/api`.",
+              "checked": true
+            },
+            {
+              "text": "✅ `contact360.io/admin` has a dedicated `LogsApiClient` and logs surface integration.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: `contact360.io/api` still uses local Python logging infrastructure (`mongodb_log_handler.py` naming/adapter legacy) alongside forwarding to `logs.api`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `contact360.io/jobs` contains direct `print(...)` progress lines in streaming processors.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: multiple services still rely only on local service loggers (`logging`, custom `log_handler`, `console.log`) without `logs.api` shipping.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Global migration principles (all codebases)",
+      "level": 3,
+      "slug": "global-migration-principles-all-codebases",
+      "prose": "- [ ] ⬜ Incomplete: treat `logs.api` as the canonical sink for operational/audit events across backend services.\n- [ ] ⬜ Incomplete: remove raw `print(...)` and `console.log(...)` from production paths; replace with structured logger adapters.\n- [ ] 🟡 In Progress: keep local logger instances only as transport wrappers that emit to `logs.api` (not as separate source of truth).\n- [ ] ⬜ Incomplete: enforce mandatory log fields (`service`, `tenant_id`, `request_id`, `trace_id`, `level`, `timestamp`).\n- [ ] 📌 Planned: introduce CI guardrails blocking new direct console/print usage in runtime code.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: treat `logs.api` as the canonical sink for operational/audit events across backend services.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove raw `print(...)` and `console.log(...)` from production paths; replace with structured logger adapters.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: keep local logger instances only as transport wrappers that emit to `logs.api` (not as separate source of truth).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce mandatory log fields (`service`, `tenant_id`, `request_id`, `trace_id`, `level`, `timestamp`).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: introduce CI guardrails blocking new direct console/print usage in runtime code.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack A - gateway and admin canonicalization",
+      "level": 3,
+      "slug": "execution-pack-a---gateway-and-admin-canonicalization",
+      "prose": "- [ ] 🟡 In Progress: rename/refactor `mongodb_log_handler` in `contact360.io/api` to `logs_api_handler` semantics to eliminate legacy drift.\n- [ ] ⬜ Incomplete: ensure every GraphQL resolver/service error path in `contact360.io/api` emits structured events via `LambdaLogsClient`.\n- [ ] 🟡 In Progress: keep `contact360.io/admin` logs dashboard on `logs.api` and remove fallback ambiguity where possible.\n- [ ] ⬜ Incomplete: standardize auth/key rotation and retry behavior across gateway/admin log clients.\n- [ ] 📌 Planned: add end-to-end evidence tests (gateway/admin action -> log visible in `logs.api` query API).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: rename/refactor `mongodb_log_handler` in `contact360.io/api` to `logs_api_handler` semantics to eliminate legacy drift.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: ensure every GraphQL resolver/service error path in `contact360.io/api` emits structured events via `LambdaLogsClient`.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: keep `contact360.io/admin` logs dashboard on `logs.api` and remove fallback ambiguity where possible.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: standardize auth/key rotation and retry behavior across gateway/admin log clients.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add end-to-end evidence tests (gateway/admin action -> log visible in `logs.api` query API).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack B - jobs and batch workers cleanup",
+      "level": 3,
+      "slug": "execution-pack-b---jobs-and-batch-workers-cleanup",
+      "prose": "- [ ] ⬜ Incomplete: replace `print(...)` progress output in `contact360.io/jobs` processors with structured logger calls.\n- [ ] ⬜ Incomplete: add jobs-to-`logs.api` transport client (batch-safe, retry-aware, non-blocking) for long-running workers.\n- [ ] ⬜ Incomplete: unify job log schema for row progress, checkpoints, retry, failure, and completion events.\n- [ ] ⬜ Incomplete: ensure worker logging never breaks processing when `logs.api` is unavailable (buffer + fallback policy).\n- [ ] 📌 Planned: add sampling controls for high-volume per-row logs to avoid cost spikes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: replace `print(...)` progress output in `contact360.io/jobs` processors with structured logger calls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add jobs-to-`logs.api` transport client (batch-safe, retry-aware, non-blocking) for long-running workers.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: unify job log schema for row progress, checkpoints, retry, failure, and completion events.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: ensure worker logging never breaks processing when `logs.api` is unavailable (buffer + fallback policy).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add sampling controls for high-volume per-row logs to avoid cost spikes.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack C - lambda service ecosystem alignment",
+      "level": 3,
+      "slug": "execution-pack-c---lambda-service-ecosystem-alignment",
+      "prose": "- [ ] ⬜ Incomplete: inventory all `lambda/*` services using local `log_handler` patterns (`emailapis`, `s3storage`, others) and add `logs.api` emitters.\n- [ ] ⬜ Incomplete: remove ad hoc console/print diagnostics from lambda runtime handlers in favor of structured events.\n- [ ] 🟡 In Progress: align logger metadata fields across lambda services so cross-service queries work consistently.\n- [ ] ⬜ Incomplete: provide shared SDK wrapper for Python/Go services to post batched logs to `logs.api`.\n- [ ] 📌 Planned: add tenant-aware and source-aware enrichment (`source_service`, `deployment_env`, `version`) at adapter layer.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: inventory all `lambda/*` services using local `log_handler` patterns (`emailapis`, `s3storage`, others) and add `logs.api` emitters.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove ad hoc console/print diagnostics from lambda runtime handlers in favor of structured events.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: align logger metadata fields across lambda services so cross-service queries work consistently.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: provide shared SDK wrapper for Python/Go services to post batched logs to `logs.api`.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add tenant-aware and source-aware enrichment (`source_service`, `deployment_env`, `version`) at adapter layer.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack D - frontend and extension event routing",
+      "level": 3,
+      "slug": "execution-pack-d---frontend-and-extension-event-routing",
+      "prose": "- [ ] ⬜ Incomplete: define browser-safe telemetry ingestion path (via gateway) so frontend and extension logs land in `logs.api`.\n- [ ] ⬜ Incomplete: remove development `console.log` usage from production bundles and replace with telemetry client wrappers.\n- [ ] 🟡 In Progress: classify which client-side events are operational logs vs analytics to avoid schema mixing.\n- [ ] ⬜ Incomplete: add privacy filtering/redaction rules before forwarding frontend/extension events.\n- [ ] 📌 Planned: add support tooling to correlate frontend trace IDs with backend `logs.api` entries.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: define browser-safe telemetry ingestion path (via gateway) so frontend and extension logs land in `logs.api`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove development `console.log` usage from production bundles and replace with telemetry client wrappers.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: classify which client-side events are operational logs vs analytics to avoid schema mixing.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add privacy filtering/redaction rules before forwarding frontend/extension events.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add support tooling to correlate frontend trace IDs with backend `logs.api` entries.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Next 5 smallest implementation tasks",
+      "level": 3,
+      "slug": "next-5-smallest-implementation-tasks",
+      "prose": "- [ ] ⬜ Incomplete: replace 2 known `print(...)` lines in `contact360.io/jobs` stream processors with structured logger calls.\n- [ ] ⬜ Incomplete: create shared lint rule/check that fails on `print(...)` and `console.log(...)` in non-test runtime files.\n- [ ] ⬜ Incomplete: add one unified Python `logs.api` emitter utility module and migrate one service as reference.\n- [ ] 🟡 In Progress: rename legacy \"mongodb\" logging symbols/docs in `contact360.io/api` to `logs_api` naming.\n- [ ] 📌 Planned: add cross-codebase adoption table (`integrated`, `hybrid`, `not integrated`) in each `docs/codebases/*.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: replace 2 known `print(...)` lines in `contact360.io/jobs` stream processors with structured logger calls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: create shared lint rule/check that fails on `print(...)` and `console.log(...)` in non-test runtime files.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add one unified Python `logs.api` emitter utility module and migrate one service as reference.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: rename legacy \"mongodb\" logging symbols/docs in `contact360.io/api` to `logs_api` naming.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add cross-codebase adoption table (`integrated`, `hybrid`, `not integrated`) in each `docs/codebases/*.md`.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Completed: baseline logs API service contract, auth gate, S3 CSV persistence, and health endpoints exist.\n- [ ] 🟡 In Progress: remove deployment/security drift (wildcard CORS + insecure template defaults).\n- [ ] ⬜ Incomplete: close foundational contract tests for idempotency and deterministic error envelope.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: baseline logs API service contract, auth gate, S3 CSV persistence, and health endpoints exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: remove deployment/security drift (wildcard CORS + insecure template defaults).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: close foundational contract tests for idempotency and deterministic error envelope.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [ ] 🟡 In Progress: gateway and admin flows already emit/query key operational logs through `logs.api`.\n- [ ] ⬜ Incomplete: enforce mandatory billing/user lineage fields (`tenant_id`, `request_id`, `trace_id`) at ingest boundary.\n- [ ] 📌 Planned: add billing-credit specific alert packs and log evidence gates for incidents.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: gateway and admin flows already emit/query key operational logs through `logs.api`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce mandatory billing/user lineage fields (`tenant_id`, `request_id`, `trace_id`) at ingest boundary.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add billing-credit specific alert packs and log evidence gates for incidents.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [ ] 🟡 In Progress: email workflow events are partially represented through existing integration points.\n- [ ] ⬜ Incomplete: migrate job/bulk worker print-style progress logging to structured `logs.api` events.\n- [ ] ⬜ Incomplete: define high-volume ingest policy (sampling, batching, retry/fallback) for verifier/finder pipelines.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: email workflow events are partially represented through existing integration points.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: migrate job/bulk worker print-style progress logging to structured `logs.api` events.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define high-volume ingest policy (sampling, batching, retry/fallback) for verifier/finder pipelines.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [ ] 📌 Planned: standardize contact/company enrichment taxonomy fields in `logs.api` contract.\n- [ ] ⬜ Incomplete: add canonical filters and dashboards for dedupe/enrichment incident triage.\n- [ ] 📌 Planned: enforce correlation IDs for contact/company data lineage tracing.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: standardize contact/company enrichment taxonomy fields in `logs.api` contract.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add canonical filters and dashboards for dedupe/enrichment incident triage.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: enforce correlation IDs for contact/company data lineage tracing.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] ⬜ Incomplete: route extension/Sales Navigator operational logs via backend ingestion into `logs.api`.\n- [ ] 🟡 In Progress: classify extension events (operational vs analytics) and schema boundaries.\n- [ ] 📌 Planned: add extension-to-backend trace correlation tooling in support views.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: route extension/Sales Navigator operational logs via backend ingestion into `logs.api`.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: classify extension events (operational vs analytics) and schema boundaries.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add extension-to-backend trace correlation tooling in support views.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [ ] 📌 Planned: define AI-safe logging schema (prompt/response metadata, redaction-safe fields).\n- [ ] ⬜ Incomplete: implement payload minimization/redaction before writing AI-adjacent logs.\n- [ ] 📌 Planned: AI workflow anomaly and cost diagnostics from `logs.api` statistics endpoints.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: define AI-safe logging schema (prompt/response metadata, redaction-safe fields).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement payload minimization/redaction before writing AI-adjacent logs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI workflow anomaly and cost diagnostics from `logs.api` statistics endpoints.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [ ] 🟡 In Progress: cache/monitoring capabilities exist as a base for reliability controls.\n- [ ] ⬜ Incomplete: add scalable rollup/index strategy beyond raw CSV scans.\n- [ ] ⬜ Incomplete: introduce SLO/error-budget dashboards and threshold alerting.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: cache/monitoring capabilities exist as a base for reliability controls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add scalable rollup/index strategy beyond raw CSV scans.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: introduce SLO/error-budget dashboards and threshold alerting.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [ ] ⬜ Incomplete: sanitize all deploy templates/secrets flows (API key defaults, env guidance).\n- [ ] ⬜ Incomplete: enforce environment-specific CORS and auth hardening in deployed stacks.\n- [ ] 🟡 In Progress: maintain deployment docs for secrets manager and IAM-first credential usage.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: sanitize all deploy templates/secrets flows (API key defaults, env guidance).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce environment-specific CORS and auth hardening in deployed stacks.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: maintain deployment docs for secrets manager and IAM-first credential usage.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [ ] 📌 Planned: publish stable external logs contract/OpenAPI guidance for partner-safe usage.\n- [ ] ⬜ Incomplete: enforce idempotency and contract parity tests required for public API confidence.\n- [ ] 📌 Planned: add policy controls for scoped API-key usage and endpoint-level governance.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: publish stable external logs contract/OpenAPI guidance for partner-safe usage.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce idempotency and contract parity tests required for public API confidence.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add policy controls for scoped API-key usage and endpoint-level governance.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 📌 Planned: add tenant-scoped metering and quota controls for log ingestion/query.\n- [ ] ⬜ Incomplete: add partner integration evidence bundles (traceability, retention proof, incident extracts).\n- [ ] 📌 Planned: cross-service platform dashboards fed by unified `logs.api` schema.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: add tenant-scoped metering and quota controls for log ingestion/query.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add partner integration evidence bundles (traceability, retention proof, incident extracts).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: cross-service platform dashboards fed by unified `logs.api` schema.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] 📌 Planned: define immutable campaign audit event schema and evidence retrieval contract.\n- [ ] ⬜ Incomplete: add campaign compliance lineage fields and legal-hold aware retrieval paths.\n- [ ] 📌 Planned: campaign release gates requiring log-based compliance and deliverability evidence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: define immutable campaign audit event schema and evidence retrieval contract.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add campaign compliance lineage fields and legal-hold aware retrieval paths.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign release gates requiring log-based compliance and deliverability evidence.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0",
+      "level": 3,
+      "slug": "p0",
+      "prose": "- [ ] ⬜ Incomplete: `LOG-0.1` Remove insecure API key defaults/placeholders from deployment templates and examples.\n- [ ] ⬜ Incomplete: `LOG-0.2` Replace wildcard CORS in both FastAPI middleware and SAM HttpApi config.\n- [ ] ⬜ Incomplete: `LOG-0.3` Add idempotency key contract for ingest endpoints (`/logs`, `/logs/batch`).\n- [ ] 🟡 In Progress: `LOG-0.4` Freeze endpoint/response parity with deterministic contract tests.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: `LOG-0.1` Remove insecure API key defaults/placeholders from deployment templates and examples.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `LOG-0.2` Replace wildcard CORS in both FastAPI middleware and SAM HttpApi config.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `LOG-0.3` Add idempotency key contract for ingest endpoints (`/logs`, `/logs/batch`).",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: `LOG-0.4` Freeze endpoint/response parity with deterministic contract tests.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2",
+      "level": 3,
+      "slug": "p1p2",
+      "prose": "- [ ] 🟡 In Progress: `LOG-1.1` Improve cache consistency evidence and stale-refresh observability.\n- [ ] ⬜ Incomplete: `LOG-1.2` Add fault-injection tests for S3 permission/auth and transient failures.\n- [ ] ⬜ Incomplete: `LOG-2.1` Enforce tenant/trace lineage fields and schema validation on writes.\n- [ ] 📌 Planned: `LOG-2.2` Introduce scalable rollup/index strategy for large-window queries.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: `LOG-1.1` Improve cache consistency evidence and stale-refresh observability.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `LOG-1.2` Add fault-injection tests for S3 permission/auth and transient failures.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `LOG-2.1` Enforce tenant/trace lineage fields and schema validation on writes.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `LOG-2.2` Introduce scalable rollup/index strategy for large-window queries.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+",
+      "level": 3,
+      "slug": "p3",
+      "prose": "- [ ] 📌 Planned: `LOG-3.1` Add distributed rate limiting and quota awareness.\n- [ ] 📌 Planned: `LOG-3.2` SLO/error-budget dashboards for query and ingest paths.\n- [ ] 📌 Planned: `LOG-4.1` Partner-safe exports/webhooks and compliance evidence APIs.\n- [ ] 📌 Planned: `LOG-4.2` Storage-control-plane convergence with `s3storage`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: `LOG-3.1` Add distributed rate limiting and quota awareness.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `LOG-3.2` SLO/error-budget dashboards for query and ingest paths.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `LOG-4.1` Partner-safe exports/webhooks and compliance evidence APIs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `LOG-4.2` Storage-control-plane convergence with `s3storage`.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

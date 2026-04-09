@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/query_get_export_download_url_graphql.md",
+  "sha256_source": "09a042a8bbbeb5355bf436cc44b2c0b6b80a098c39a1fa300b449e5c7ea80591",
+  "generated_at": "2026-04-08T23:11:52.424507+00:00",
+  "title": "graphql/GetExportDownloadUrl",
+  "raw_markdown": "---\ntitle: \"graphql/GetExportDownloadUrl\"\nsource_json: query_get_export_download_url_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/GetExportDownloadUrl\n\n## Overview\n\nGet download URL for completed export job. Accepts jobUuid (required, must be valid UUID format). Returns String (presigned download URL). Fetches job by UUID, validates that job status is 'completed', extracts S3 key from job_response.s3_key, and uses S3Service.generate_presigned_url to generate download URL. Raises NotFoundError if job doesn't exist, BadRequestError if job is not completed or S3 key is missing.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | query_get_export_download_url_graphql |\n| _id | query_get_export_download_url_graphql-001 |\n| endpoint_path | graphql/GetExportDownloadUrl |\n| method | QUERY |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-01-20T00:00:00.000000+00:00 |\n| era | 3.x |\n| introduced_in | 3.0.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | appointment360/app/graphql/modules/jobs/queries.py |\n| router_file | contact360/dashboard/src/services/graphql/jobsService.ts |\n\n\n## GraphQL operation\n\n```graphql\nquery GetExportDownloadUrl($jobUuid: ID!) { jobs { exportDownloadUrl(jobUuid: $jobUuid) } }\n```\n\n## Data & infrastructure\n\n### db_tables_read\n\n- jobs\n- scheduler_jobs\n\n### lambda_services\n\n- contact360.io/jobs\n- lambda/s3storage\n\n## Service / repository methods\n\n### service_methods\n\n- getExportDownloadUrl\n- exportDownloadUrl\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /jobs | Jobs Page | jobsService | useJobs | secondary | data_fetching | 2026-03-24T00:00:00.000000+00:00 |\n\n\n### frontend_page_bindings\n\n- contact360.io/app/app/(dashboard)/jobs/page.tsx\n- contact360.io/app/src/services/graphql/jobsService.ts\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `query_get_export_download_url_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `3.x` — see [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md#era-tags-on-endpoints) for theme mapping.\n\n## Database tables → SQL snapshots\n\n### Read\n- `jobs` — *no `tables/jobs.sql` snapshot in docs; see service lineage below*\n- `scheduler_jobs` → [scheduler_jobs.sql](../database/tables/scheduler_jobs.sql)\n\n### Write\n- *None listed in JSON metadata*\n\n## Lineage & infrastructure docs\n\n- [Appointment360 (gateway DB)](../database/appointment360_data_lineage.md)\n- [S3 Storage](../database/s3storage_data_lineage.md)\n- [TKD Jobs](../database/jobs_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- Delegates to **`contact360.io/jobs`** — see [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md) and that service’s era matrix JSON / `*_endpoint_era_matrix.md`.\n- Delegates to **`lambda/s3storage`** — see [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md) and that service’s era matrix JSON / `*_endpoint_era_matrix.md`.\n\n## Related endpoint graph\n\n- **Topology overview:** [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md)\n- **Conventions:** [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md)\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `query_get_export_download_url_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "query_get_export_download_url_graphql"
+        ],
+        [
+          "_id",
+          "query_get_export_download_url_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/GetExportDownloadUrl"
+        ],
+        [
+          "method",
+          "QUERY"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "3.x"
+        ],
+        [
+          "introduced_in",
+          "3.0.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "appointment360/app/graphql/modules/jobs/queries.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/jobsService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/jobs",
+          "Jobs Page",
+          "jobsService",
+          "useJobs",
+          "secondary",
+          "data_fetching",
+          "2026-03-24T00:00:00.000000+00:00"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Get download URL for completed export job. Accepts jobUuid (required, must be valid UUID format). Returns String (presigned download URL). Fetches job by UUID, validates that job status is 'completed', extracts S3 key from job_response.s3_key, and uses S3Service.generate_presigned_url to generate download URL. Raises NotFoundError if job doesn't exist, BadRequestError if job is not completed or S3 key is missing."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `query_get_export_download_url_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/GetExportDownloadUrl\"\nsource_json: query_get_export_download_url_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

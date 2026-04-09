@@ -1,0 +1,384 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "commands/production-operations-commands.md",
+  "sha256_source": "62b6c2e48cbc7e7f43e7f7c2287d9a82e1517b38be6072df89c26535b99d52ba",
+  "generated_at": "2026-04-08T23:26:47.442880+00:00",
+  "title": "Production Operations Commands",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Production Operations Commands",
+      "level": 1,
+      "slug": "production-operations-commands",
+      "prose": "Operational commands for health, logs, incident response, and rollback.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Health Checks",
+      "level": 2,
+      "slug": "health-checks",
+      "prose": "```bash\ncurl https://<HOST_OR_DOMAIN>/health\ncurl https://<HOST_OR_DOMAIN>/health/db\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "curl https://<HOST_OR_DOMAIN>/health\ncurl https://<HOST_OR_DOMAIN>/health/db\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Service Health Targets",
+      "level": 2,
+      "slug": "service-health-targets",
+      "prose": "- `contact360.io/api`: `/health`, `/health/db`\n- `contact360.io/admin`: Django app health endpoint or service status\n- `contact360.io/app`, `contact360.io/root`, `contact360.io/email`: HTTP root and key route checks\n- `contact360.io/sync`, `contact360.io/jobs`, `lambda/*`, `backend(dev)/*`: service health route and logs",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`contact360.io/api`: `/health`, `/health/db`",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/admin`: Django app health endpoint or service status",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/app`, `contact360.io/root`, `contact360.io/email`: HTTP root and key route checks",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/sync`, `contact360.io/jobs`, `lambda/*`, `backend(dev)/*`: service health route and logs",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "AWS / SAM Logs",
+      "level": 2,
+      "slug": "aws-sam-logs",
+      "prose": "```bash\nsam logs -n <FunctionName> --stack-name <StackName> --tail\naws logs tail /aws/lambda/<FunctionName> --follow\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "sam logs -n <FunctionName> --stack-name <StackName> --tail\naws logs tail /aws/lambda/<FunctionName> --follow\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Service Logs",
+      "level": 2,
+      "slug": "service-logs",
+      "prose": "```bash\npm2 logs <app-process>\nsudo journalctl -u <service-name> -f\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "pm2 logs <app-process>\nsudo journalctl -u <service-name> -f\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "PM2 Operations (if applicable)",
+      "level": 2,
+      "slug": "pm2-operations-if-applicable",
+      "prose": "```bash\npm2 list\npm2 logs <process-name>\npm2 restart <process-name>\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "pm2 list\npm2 logs <process-name>\npm2 restart <process-name>\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "System Services (if applicable)",
+      "level": 2,
+      "slug": "system-services-if-applicable",
+      "prose": "```bash\nsudo systemctl status <service-name>\nsudo systemctl restart <service-name>\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "sudo systemctl status <service-name>\nsudo systemctl restart <service-name>\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Rollback Pattern",
+      "level": 2,
+      "slug": "rollback-pattern",
+      "prose": "```bash\ngit checkout <known-good-tag>\n<build-command>\n<restart-command>\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "git checkout <known-good-tag>\n<build-command>\n<restart-command>\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Frontend Rollback Pattern",
+      "level": 2,
+      "slug": "frontend-rollback-pattern",
+      "prose": "```bash\ngit checkout <known-good-tag>\nnpm ci\nnpm run build\npm2 restart <process-name>\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "git checkout <known-good-tag>\nnpm ci\nnpm run build\npm2 restart <process-name>\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Lambda Rollback Pattern",
+      "level": 2,
+      "slug": "lambda-rollback-pattern",
+      "prose": "```bash\naws cloudformation describe-stacks --stack-name <StackName>",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "redeploy known-good artifact or stack version",
+      "level": 1,
+      "slug": "redeploy-known-good-artifact-or-stack-version",
+      "prose": "sam deploy\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Incident First Commands",
+      "level": 2,
+      "slug": "incident-first-commands",
+      "prose": "```bash\ndate\ngit rev-parse HEAD\ncurl -I https://<HOST_OR_DOMAIN>\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "date\ngit rev-parse HEAD\ncurl -I https://<HOST_OR_DOMAIN>\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Operational Guardrails",
+      "level": 2,
+      "slug": "operational-guardrails",
+      "prose": "- Do not run destructive database commands in production from docs defaults.\n- Always capture request IDs / trace IDs when triaging.\n- Keep rollback references aligned with version tags from `docs/versions.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Do not run destructive database commands in production from docs defaults.",
+              "checked": null
+            },
+            {
+              "text": "Always capture request IDs / trace IDs when triaging.",
+              "checked": null
+            },
+            {
+              "text": "Keep rollback references aligned with version tags from `docs/versions.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small Task Breakdown",
+      "level": 2,
+      "slug": "small-task-breakdown",
+      "prose": "1. Confirm incident scope (service and environment).\n2. Collect health and logs.\n3. Identify last known good tag/commit.\n4. Roll forward or rollback based on impact.\n5. Verify health and close with evidence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Confirm incident scope (service and environment).",
+              "checked": null
+            },
+            {
+              "text": "Collect health and logs.",
+              "checked": null
+            },
+            {
+              "text": "Identify last known good tag/commit.",
+              "checked": null
+            },
+            {
+              "text": "Roll forward or rollback based on impact.",
+              "checked": null
+            },
+            {
+              "text": "Verify health and close with evidence.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deep Task Breakdown (Incident Operations)",
+      "level": 2,
+      "slug": "deep-task-breakdown-incident-operations",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "I) Detection",
+      "level": 3,
+      "slug": "i-detection",
+      "prose": "- Confirm incident with health checks and user-facing signal.\n- Identify impacted services and blast radius.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Confirm incident with health checks and user-facing signal.",
+              "checked": null
+            },
+            {
+              "text": "Identify impacted services and blast radius.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "II) Triage",
+      "level": 3,
+      "slug": "ii-triage",
+      "prose": "- Gather logs and request/trace IDs.\n- Correlate with deploy history and config changes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Gather logs and request/trace IDs.",
+              "checked": null
+            },
+            {
+              "text": "Correlate with deploy history and config changes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "III) Mitigation",
+      "level": 3,
+      "slug": "iii-mitigation",
+      "prose": "- Apply immediate mitigation (restart, rollback, traffic control).\n- Validate partial recovery before full closure.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Apply immediate mitigation (restart, rollback, traffic control).",
+              "checked": null
+            },
+            {
+              "text": "Validate partial recovery before full closure.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "IV) Recovery Validation",
+      "level": 3,
+      "slug": "iv-recovery-validation",
+      "prose": "- Run health and smoke checks.\n- Verify no regression in connected services.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Run health and smoke checks.",
+              "checked": null
+            },
+            {
+              "text": "Verify no regression in connected services.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "V) Closure",
+      "level": 3,
+      "slug": "v-closure",
+      "prose": "- Document timeline, root cause summary, mitigation command list, and follow-up tasks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Document timeline, root cause summary, mitigation command list, and follow-up tasks.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

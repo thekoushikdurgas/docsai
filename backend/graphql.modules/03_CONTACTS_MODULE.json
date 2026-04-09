@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/03_CONTACTS_MODULE.md",
+  "sha256_source": "4c503aedf5c2708f00f5ff3cccaa9ab42f75e2890291111ab0c09455a1f171a3",
+  "generated_at": "2026-04-08T23:11:52.760201+00:00",
+  "title": "Contacts Module",
+  "module_number": 3,
+  "module_name": "CONTACTS",
+  "location": null,
+  "overview": null,
+  "operations": [],
+  "sdl_excerpt": "type ContactQuery {\n  contact(uuid: ID!): Contact!\n  contacts(query: VQLQueryInput = null): ContactConnection!\n  contactCount(query: VQLQueryInput = null): Int!\n  contactQuery(query: VQLQueryInput!): ContactConnection!\n  filters: ContactFilterConnection!\n  filterData(input: ContactFilterDataInput!): ContactFilterDataConnection!\n}\n\ntype ContactMutation {\n  createContact(input: CreateContactInput!): Contact!\n  exportContacts(input: CreateContact360ExportInput!): SchedulerJob!\n  importContacts(input: CreateContact360ImportInput!): SchedulerJob!\n  updateContact(uuid: ID!, input: UpdateContactInput!): Contact!\n  deleteContact(uuid: ID!): Boolean!\n  batchCreateContacts(input: BatchCreateContactsInput!): [Contact!]!\n}",
+  "error_codes": [
+    "Validation errors for invalid filters/pagination",
+    "Service unavailable for Connectra failures",
+    "Forbidden for cross-tenant access attempts"
+  ],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Contacts Module",
+      "level": 1,
+      "prose": "The Contacts module is the core Contact360 GraphQL surface for querying and mutating contact data stored in Connectra.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Query and mutation index",
+      "level": 2,
+      "prose": "All operations are under the **`contacts`** namespace (`query { contacts { ... } }` / `mutation { contacts { ... } }`).",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — full request and response",
+      "level": 2,
+      "prose": "Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "contacts.contact (query)",
+      "level": 3,
+      "prose": "**Success:**",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($uuid: ID!) { contacts { contact(uuid: $uuid) { uuid firstName lastName email company { uuid name } } } }\",\n  \"variables\": { \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\" }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"contacts\": {\n      \"contact\": {\n        \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"firstName\": \"Jane\",\n        \"lastName\": \"Doe\",\n        \"email\": \"jane@example.com\",\n        \"company\": null\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "contacts.contacts (query with VQL variables)",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($query: VQLQueryInput) { contacts { contacts(query: $query) { total limit offset items { uuid email } } } }\",\n  \"variables\": {\n    \"query\": {\n      \"limit\": 50,\n      \"offset\": 0,\n      \"filters\": null,\n      \"sortBy\": null,\n      \"sortDirection\": \"asc\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Connectra REST mapping (EC2/sync.server)",
+      "level": 2,
+      "prose": "Gateway env: **`CONNECTRA_BASE_URL`**, **`CONNECTRA_API_KEY`** on **`X-API-Key`**. Full request/response bodies, VQL JSON, pagination limits (`limit` ≤ 100, `page` ≤ 10), filter paths (`service` = **`contact`**, not `contacts`), jobs, and errors: **[connectra.api.md](../micro.services.apis/connectra.api.md)** · Postman: **[EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json)**.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Documentation metadata",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Endpoint/version binding checklist",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

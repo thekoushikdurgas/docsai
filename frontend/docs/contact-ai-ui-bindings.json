@@ -1,0 +1,681 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "frontend/docs/contact-ai-ui-bindings.md",
+  "sha256_source": "adf6e3c2fd03d76e1e9259a30e6cb8697afa98e30982732dbe60efbdb2a676b6",
+  "generated_at": "2026-04-08T23:26:48.454440+00:00",
+  "title": "Contact AI — UI Binding Matrix",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Contact AI — UI Binding Matrix",
+      "level": 1,
+      "slug": "contact-ai-ui-binding-matrix",
+      "prose": "**Service:** `backend(dev)/contact.ai`  \n**GraphQL proxy:** `contact360.io/api` (via `LambdaAIClient`)  \n**Dashboard app:** `contact360.io/app/`  \n**Era relevance:** UI surface introduced `5.x`, grows through `10.x`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Page and tab bindings by era",
+      "level": 2,
+      "slug": "page-and-tab-bindings-by-era",
+      "prose": "| Era | Dashboard page / route | Tabs / sections | Contact AI endpoints used |\n| --- | --- | --- | --- |\n| `0.x` | None (skeleton only) | — | `/health` (CI probe) |\n| `1.x` | None | — | — |\n| `2.x` | Contact detail page | Email risk inline badge | `POST /api/v1/ai/email/analyze` |\n| `3.x` | Contact search page, Company detail | AI filter input, Company summary tab | `POST /api/v1/ai/parse-filters`, `POST /api/v1/ai/company/summary` |\n| `4.x` | Extension popup (optional) | AI context panel | `POST /api/v1/ai-chats/{id}/message` |\n| `5.x` | `/app/ai-chat` (new page) | Chat list, chat thread, model selector | All `/api/v1/ai-chats/` + utilities |\n| `6.x` | `/app/ai-chat` | Error state, retry button, reconnect | All (with reliability wrappers) |\n| `7.x` | `/app/ai-chat` + admin | Role-gated AI features | All (RBAC enforcement) |\n| `8.x` | `/app/settings/api-keys` | AI API quota display | Rate limit headers |\n| `9.x` | `/app/integrations` | AI-powered connector config | Webhook AI result delivery |\n| `10.x` | `/app/campaigns/editor` | AI content assistant panel | `POST /api/v1/ai/email/generate` (10.x) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Dashboard page / route",
+            "Tabs / sections",
+            "Contact AI endpoints used"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "None (skeleton only)",
+              "—",
+              "`/health` (CI probe)"
+            ],
+            [
+              "`1.x`",
+              "None",
+              "—",
+              "—"
+            ],
+            [
+              "`2.x`",
+              "Contact detail page",
+              "Email risk inline badge",
+              "`POST /api/v1/ai/email/analyze`"
+            ],
+            [
+              "`3.x`",
+              "Contact search page, Company detail",
+              "AI filter input, Company summary tab",
+              "`POST /api/v1/ai/parse-filters`, `POST /api/v1/ai/company/summary`"
+            ],
+            [
+              "`4.x`",
+              "Extension popup (optional)",
+              "AI context panel",
+              "`POST /api/v1/ai-chats/{id}/message`"
+            ],
+            [
+              "`5.x`",
+              "`/app/ai-chat` (new page)",
+              "Chat list, chat thread, model selector",
+              "All `/api/v1/ai-chats/` + utilities"
+            ],
+            [
+              "`6.x`",
+              "`/app/ai-chat`",
+              "Error state, retry button, reconnect",
+              "All (with reliability wrappers)"
+            ],
+            [
+              "`7.x`",
+              "`/app/ai-chat` + admin",
+              "Role-gated AI features",
+              "All (RBAC enforcement)"
+            ],
+            [
+              "`8.x`",
+              "`/app/settings/api-keys`",
+              "AI API quota display",
+              "Rate limit headers"
+            ],
+            [
+              "`9.x`",
+              "`/app/integrations`",
+              "AI-powered connector config",
+              "Webhook AI result delivery"
+            ],
+            [
+              "`10.x`",
+              "`/app/campaigns/editor`",
+              "AI content assistant panel",
+              "`POST /api/v1/ai/email/generate` (10.x)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Component map",
+      "level": 2,
+      "slug": "component-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Chat page components (5.x+)",
+      "level": 3,
+      "slug": "chat-page-components-5x",
+      "prose": "| Component | Location (suggested) | API call | Props / state |\n| --- | --- | --- | --- |\n| `AIChatPage` | `app/(dashboard)/ai-chat/page.tsx` | Renders `ChatList` + `ChatThread` | Selected chat ID |\n| `ChatList` | `components/ai-chat/ChatList.tsx` | `GET /api/v1/ai-chats/` | Chats array, pagination, loading |\n| `ChatListItem` | `components/ai-chat/ChatListItem.tsx` | — | `uuid`, `title`, `updatedAt` |\n| `NewChatButton` | `components/ai-chat/NewChatButton.tsx` | `POST /api/v1/ai-chats/` | `onChatCreated` callback |\n| `ChatThread` | `components/ai-chat/ChatThread.tsx` | `GET /api/v1/ai-chats/{id}/` | Messages array, scroll ref |\n| `ChatMessage` | `components/ai-chat/ChatMessage.tsx` | — | `sender`, `text`, `contacts[]` |\n| `ContactsInMessage` | `components/ai-chat/ContactsInMessage.tsx` | — | Contact list (inline cards) |\n| `ChatInput` | `components/ai-chat/ChatInput.tsx` | `POST /api/v1/ai-chats/{id}/message` | Input value, send handler |\n| `StreamingText` | `components/ai-chat/StreamingText.tsx` | `POST /message/stream` (SSE) | Token stream, done flag |\n| `ModelSelector` | `components/ai-chat/ModelSelector.tsx` | `model` field in send payload | Selected model enum |\n| `ChatContextMenu` | `components/ai-chat/ChatContextMenu.tsx` | `PUT` / `DELETE` `/api/v1/ai-chats/{id}/` | Rename, delete actions |\n| `AILoadingSpinner` | `components/ai-chat/AILoadingSpinner.tsx` | — | Streaming / loading state |\n| `AIErrorState` | `components/ai-chat/AIErrorState.tsx` | — | Error type, retry handler |",
+      "tables": [
+        {
+          "headers": [
+            "Component",
+            "Location (suggested)",
+            "API call",
+            "Props / state"
+          ],
+          "rows": [
+            [
+              "`AIChatPage`",
+              "`app/(dashboard)/ai-chat/page.tsx`",
+              "Renders `ChatList` + `ChatThread`",
+              "Selected chat ID"
+            ],
+            [
+              "`ChatList`",
+              "`components/ai-chat/ChatList.tsx`",
+              "`GET /api/v1/ai-chats/`",
+              "Chats array, pagination, loading"
+            ],
+            [
+              "`ChatListItem`",
+              "`components/ai-chat/ChatListItem.tsx`",
+              "—",
+              "`uuid`, `title`, `updatedAt`"
+            ],
+            [
+              "`NewChatButton`",
+              "`components/ai-chat/NewChatButton.tsx`",
+              "`POST /api/v1/ai-chats/`",
+              "`onChatCreated` callback"
+            ],
+            [
+              "`ChatThread`",
+              "`components/ai-chat/ChatThread.tsx`",
+              "`GET /api/v1/ai-chats/{id}/`",
+              "Messages array, scroll ref"
+            ],
+            [
+              "`ChatMessage`",
+              "`components/ai-chat/ChatMessage.tsx`",
+              "—",
+              "`sender`, `text`, `contacts[]`"
+            ],
+            [
+              "`ContactsInMessage`",
+              "`components/ai-chat/ContactsInMessage.tsx`",
+              "—",
+              "Contact list (inline cards)"
+            ],
+            [
+              "`ChatInput`",
+              "`components/ai-chat/ChatInput.tsx`",
+              "`POST /api/v1/ai-chats/{id}/message`",
+              "Input value, send handler"
+            ],
+            [
+              "`StreamingText`",
+              "`components/ai-chat/StreamingText.tsx`",
+              "`POST /message/stream` (SSE)",
+              "Token stream, done flag"
+            ],
+            [
+              "`ModelSelector`",
+              "`components/ai-chat/ModelSelector.tsx`",
+              "`model` field in send payload",
+              "Selected model enum"
+            ],
+            [
+              "`ChatContextMenu`",
+              "`components/ai-chat/ChatContextMenu.tsx`",
+              "`PUT` / `DELETE` `/api/v1/ai-chats/{id}/`",
+              "Rename, delete actions"
+            ],
+            [
+              "`AILoadingSpinner`",
+              "`components/ai-chat/AILoadingSpinner.tsx`",
+              "—",
+              "Streaming / loading state"
+            ],
+            [
+              "`AIErrorState`",
+              "`components/ai-chat/AIErrorState.tsx`",
+              "—",
+              "Error type, retry handler"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Utility components (inline, cross-page)",
+      "level": 3,
+      "slug": "utility-components-inline-cross-page",
+      "prose": "| Component | Location (suggested) | API call | Props / state |\n| --- | --- | --- | --- |\n| `EmailRiskBadge` | `components/contacts/EmailRiskBadge.tsx` | `POST /api/v1/ai/email/analyze` | `email`, risk score, loading |\n| `CompanySummaryTab` | `components/companies/CompanySummaryTab.tsx` | `POST /api/v1/ai/company/summary` | `companyName`, `industry`, summary text |\n| `AIFilterInput` | `components/contacts/AIFilterInput.tsx` | `POST /api/v1/ai/parse-filters` | NL query, parsed filters output |\n| `CampaignAIAssistant` | `components/campaigns/CampaignAIAssistant.tsx` | `POST /api/v1/ai/email/generate` (`10.x`) | Subject/body generation, tone selector |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Component",
+            "Location (suggested)",
+            "API call",
+            "Props / state"
+          ],
+          "rows": [
+            [
+              "`EmailRiskBadge`",
+              "`components/contacts/EmailRiskBadge.tsx`",
+              "`POST /api/v1/ai/email/analyze`",
+              "`email`, risk score, loading"
+            ],
+            [
+              "`CompanySummaryTab`",
+              "`components/companies/CompanySummaryTab.tsx`",
+              "`POST /api/v1/ai/company/summary`",
+              "`companyName`, `industry`, summary text"
+            ],
+            [
+              "`AIFilterInput`",
+              "`components/contacts/AIFilterInput.tsx`",
+              "`POST /api/v1/ai/parse-filters`",
+              "NL query, parsed filters output"
+            ],
+            [
+              "`CampaignAIAssistant`",
+              "`components/campaigns/CampaignAIAssistant.tsx`",
+              "`POST /api/v1/ai/email/generate` (`10.x`)",
+              "Subject/body generation, tone selector"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Hooks",
+      "level": 2,
+      "slug": "hooks",
+      "prose": "| Hook | Purpose | Wraps |\n| --- | --- | --- |\n| `useChatList(limit, offset)` | Fetches + paginates chat list | `aiChats` GraphQL query |\n| `useChat(chatId)` | Fetches single chat with messages | `aiChat` GraphQL query |\n| `useSendMessage(chatId)` | Sends message, returns updated chat | `sendMessage` GraphQL mutation |\n| `useStreamMessage(chatId)` | SSE stream, appends tokens to UI state | `POST /message/stream` (direct or via gateway) |\n| `useCreateChat()` | Creates new chat | `createAIChat` GraphQL mutation |\n| `useDeleteChat()` | Deletes chat | `deleteAIChat` GraphQL mutation |\n| `useRenameChat()` | Updates title | `updateAIChat` GraphQL mutation |\n| `useEmailRisk(email)` | Analyzes email risk | `analyzeEmailRisk` GraphQL mutation |\n| `useCompanySummary(name, industry)` | Generates summary | `generateCompanySummary` GraphQL mutation |\n| `useParseFilters(query)` | Parses NL to filters | `parseContactFilters` GraphQL mutation |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Hook",
+            "Purpose",
+            "Wraps"
+          ],
+          "rows": [
+            [
+              "`useChatList(limit, offset)`",
+              "Fetches + paginates chat list",
+              "`aiChats` GraphQL query"
+            ],
+            [
+              "`useChat(chatId)`",
+              "Fetches single chat with messages",
+              "`aiChat` GraphQL query"
+            ],
+            [
+              "`useSendMessage(chatId)`",
+              "Sends message, returns updated chat",
+              "`sendMessage` GraphQL mutation"
+            ],
+            [
+              "`useStreamMessage(chatId)`",
+              "SSE stream, appends tokens to UI state",
+              "`POST /message/stream` (direct or via gateway)"
+            ],
+            [
+              "`useCreateChat()`",
+              "Creates new chat",
+              "`createAIChat` GraphQL mutation"
+            ],
+            [
+              "`useDeleteChat()`",
+              "Deletes chat",
+              "`deleteAIChat` GraphQL mutation"
+            ],
+            [
+              "`useRenameChat()`",
+              "Updates title",
+              "`updateAIChat` GraphQL mutation"
+            ],
+            [
+              "`useEmailRisk(email)`",
+              "Analyzes email risk",
+              "`analyzeEmailRisk` GraphQL mutation"
+            ],
+            [
+              "`useCompanySummary(name, industry)`",
+              "Generates summary",
+              "`generateCompanySummary` GraphQL mutation"
+            ],
+            [
+              "`useParseFilters(query)`",
+              "Parses NL to filters",
+              "`parseContactFilters` GraphQL mutation"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Services / contexts",
+      "level": 2,
+      "slug": "services-contexts",
+      "prose": "| Service / Context | Purpose |\n| --- | --- |\n| `AIChatContext` | Global selected chat ID, chat list state, SSE stream state |\n| `AIModelContext` | Selected `ModelSelection` enum value; persisted to localStorage |\n| `StreamingContext` | Token buffer, stream active flag, reconnect logic |\n| `LambdaAIClient` | HTTP client in appointment360 (`app/clients/lambda_ai_client.py`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Service / Context",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "`AIChatContext`",
+              "Global selected chat ID, chat list state, SSE stream state"
+            ],
+            [
+              "`AIModelContext`",
+              "Selected `ModelSelection` enum value; persisted to localStorage"
+            ],
+            [
+              "`StreamingContext`",
+              "Token buffer, stream active flag, reconnect logic"
+            ],
+            [
+              "`LambdaAIClient`",
+              "HTTP client in appointment360 (`app/clients/lambda_ai_client.py`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Input box / control bindings",
+      "level": 2,
+      "slug": "input-box-control-bindings",
+      "prose": "| Control | Type | Bound to | Validation |\n| --- | --- | --- | --- |\n| Chat message textarea | `<textarea>` | `ChatInput.message` | Min 1 char, max 10 000 chars |\n| Model selector | `<select>` / dropdown | `ModelSelector.model` | Enum: FLASH, PRO, FLASH_2_0, PRO_2_5 |\n| Chat title (rename) | `<input type=\"text\">` | `ChatContextMenu.title` | Max 255 chars |\n| Email risk input | `<input type=\"email\">` | `EmailRiskBadge.email` | Valid email, max 255 chars |\n| Company name input | `<input type=\"text\">` | `CompanySummaryTab.companyName` | Max 255 chars |\n| Industry input | `<input type=\"text\">` | `CompanySummaryTab.industry` | Max 255 chars |\n| NL filter input | `<input type=\"text\">` | `AIFilterInput.query` | Max 1000 chars |\n| Pagination (chat list) | Infinite scroll / Load more button | `useChatList` offset | Max 1000 per page |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Control",
+            "Type",
+            "Bound to",
+            "Validation"
+          ],
+          "rows": [
+            [
+              "Chat message textarea",
+              "`<textarea>`",
+              "`ChatInput.message`",
+              "Min 1 char, max 10 000 chars"
+            ],
+            [
+              "Model selector",
+              "`<select>` / dropdown",
+              "`ModelSelector.model`",
+              "Enum: FLASH, PRO, FLASH_2_0, PRO_2_5"
+            ],
+            [
+              "Chat title (rename)",
+              "`<input type=\"text\">`",
+              "`ChatContextMenu.title`",
+              "Max 255 chars"
+            ],
+            [
+              "Email risk input",
+              "`<input type=\"email\">`",
+              "`EmailRiskBadge.email`",
+              "Valid email, max 255 chars"
+            ],
+            [
+              "Company name input",
+              "`<input type=\"text\">`",
+              "`CompanySummaryTab.companyName`",
+              "Max 255 chars"
+            ],
+            [
+              "Industry input",
+              "`<input type=\"text\">`",
+              "`CompanySummaryTab.industry`",
+              "Max 255 chars"
+            ],
+            [
+              "NL filter input",
+              "`<input type=\"text\">`",
+              "`AIFilterInput.query`",
+              "Max 1000 chars"
+            ],
+            [
+              "Pagination (chat list)",
+              "Infinite scroll / Load more button",
+              "`useChatList` offset",
+              "Max 1000 per page"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Progress bars and loading states",
+      "level": 2,
+      "slug": "progress-bars-and-loading-states",
+      "prose": "| State | Component | Visual |\n| --- | --- | --- |\n| Chat loading (initial) | `ChatThread` skeleton | Skeleton rows |\n| Message sending (sync) | `AILoadingSpinner` | Spinner, disabled input |\n| SSE stream in progress | `StreamingText` | Token-by-token text render, cursor blink |\n| Email risk loading | `EmailRiskBadge` | Inline spinner on badge |\n| Company summary loading | `CompanySummaryTab` | Shimmer placeholder |\n| Filter parse loading | `AIFilterInput` | Input disabled + spinner |\n| Error state | `AIErrorState` | Red banner + retry button |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "State",
+            "Component",
+            "Visual"
+          ],
+          "rows": [
+            [
+              "Chat loading (initial)",
+              "`ChatThread` skeleton",
+              "Skeleton rows"
+            ],
+            [
+              "Message sending (sync)",
+              "`AILoadingSpinner`",
+              "Spinner, disabled input"
+            ],
+            [
+              "SSE stream in progress",
+              "`StreamingText`",
+              "Token-by-token text render, cursor blink"
+            ],
+            [
+              "Email risk loading",
+              "`EmailRiskBadge`",
+              "Inline spinner on badge"
+            ],
+            [
+              "Company summary loading",
+              "`CompanySummaryTab`",
+              "Shimmer placeholder"
+            ],
+            [
+              "Filter parse loading",
+              "`AIFilterInput`",
+              "Input disabled + spinner"
+            ],
+            [
+              "Error state",
+              "`AIErrorState`",
+              "Red banner + retry button"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Checkboxes and radio buttons",
+      "level": 2,
+      "slug": "checkboxes-and-radio-buttons",
+      "prose": "| Control | Usage | Component |\n| --- | --- | --- |\n| Model radio buttons | Select AI model for send | `ModelSelector` (radio group or segmented control) |\n| Include contacts toggle | Toggle contact card display in AI response | `ChatThread` settings |\n| Stream vs. sync toggle (dev mode) | Switch between SSE and sync message send | Debug settings only |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Control",
+            "Usage",
+            "Component"
+          ],
+          "rows": [
+            [
+              "Model radio buttons",
+              "Select AI model for send",
+              "`ModelSelector` (radio group or segmented control)"
+            ],
+            [
+              "Include contacts toggle",
+              "Toggle contact card display in AI response",
+              "`ChatThread` settings"
+            ],
+            [
+              "Stream vs. sync toggle (dev mode)",
+              "Switch between SSE and sync message send",
+              "Debug settings only"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Flow and graph",
+      "level": 2,
+      "slug": "flow-and-graph",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Chat message flow (frontend)",
+      "level": 3,
+      "slug": "chat-message-flow-frontend",
+      "prose": "```\nUser types message in ChatInput\n  → useSendMessage() dispatches sendMessage GraphQL mutation\n    → LambdaAIClient.send_message() → POST /api/v1/ai-chats/{id}/message\n      → contact.ai appends user message → HF inference → appends AI reply\n        → Returns updated AIChat\n          → ChatThread re-renders with new messages\n            → ContactsInMessage renders embedded contacts\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "User types message in ChatInput\n  → useSendMessage() dispatches sendMessage GraphQL mutation\n    → LambdaAIClient.send_message() → POST /api/v1/ai-chats/{id}/message\n      → contact.ai appends user message → HF inference → appends AI reply\n        → Returns updated AIChat\n          → ChatThread re-renders with new messages\n            → ContactsInMessage renders embedded contacts\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "SSE streaming flow (frontend)",
+      "level": 3,
+      "slug": "sse-streaming-flow-frontend",
+      "prose": "```\nUser types message in ChatInput\n  → useStreamMessage() opens SSE connection\n    → POST /api/v1/ai-chats/{id}/message/stream (SSE)\n      → contact.ai streams tokens via Server-Sent Events\n        → StreamingText appends tokens one by one\n          → AILoadingSpinner hidden when done flag received\n            → Updated chat persisted; ChatThread snapshot updated\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "User types message in ChatInput\n  → useStreamMessage() opens SSE connection\n    → POST /api/v1/ai-chats/{id}/message/stream (SSE)\n      → contact.ai streams tokens via Server-Sent Events\n        → StreamingText appends tokens one by one\n          → AILoadingSpinner hidden when done flag received\n            → Updated chat persisted; ChatThread snapshot updated\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Utility AI flow (frontend)",
+      "level": 3,
+      "slug": "utility-ai-flow-frontend",
+      "prose": "```\nUser triggers action (hover email, click company tab, type NL query)\n  → Hook dispatches GraphQL mutation (analyzeEmailRisk / generateCompanySummary / parseContactFilters)\n    → LambdaAIClient → POST /api/v1/ai/{email/analyze | company/summary | parse-filters}\n      → contact.ai runs HF JSON task (stateless)\n        → Returns structured result\n          → Component renders: EmailRiskBadge score, CompanySummaryTab text, AIFilterInput parsed chips\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "User triggers action (hover email, click company tab, type NL query)\n  → Hook dispatches GraphQL mutation (analyzeEmailRisk / generateCompanySummary / parseContactFilters)\n    → LambdaAIClient → POST /api/v1/ai/{email/analyze | company/summary | parse-filters}\n      → contact.ai runs HF JSON task (stateless)\n        → Returns structured result\n          → Component renders: EmailRiskBadge score, CompanySummaryTab text, AIFilterInput parsed chips\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era UI surface rollout",
+      "level": 2,
+      "slug": "era-by-era-ui-surface-rollout",
+      "prose": "| Era | UI features introduced |\n| --- | --- |\n| `0.x` | No UI; health endpoint for CI |\n| `1.x` | No UI; billing guard stubs |\n| `2.x` | `EmailRiskBadge` on contact email field |\n| `3.x` | `CompanySummaryTab`, `AIFilterInput` on search page |\n| `4.x` | Optional AI context in extension popup |\n| `5.x` | Full `AIChatPage`: `ChatList`, `ChatThread`, `ChatInput`, `StreamingText`, `ModelSelector`, all utility components |\n| `6.x` | `AIErrorState`, retry button, SSE reconnect, streaming reliability |\n| `7.x` | Role-gated AI feature flags; admin view of AI usage |\n| `8.x` | API quota display in settings; rate limit feedback in UI |\n| `9.x` | AI-powered integration panel; connector config UI |\n| `10.x` | `CampaignAIAssistant` in campaign editor |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "UI features introduced"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "No UI; health endpoint for CI"
+            ],
+            [
+              "`1.x`",
+              "No UI; billing guard stubs"
+            ],
+            [
+              "`2.x`",
+              "`EmailRiskBadge` on contact email field"
+            ],
+            [
+              "`3.x`",
+              "`CompanySummaryTab`, `AIFilterInput` on search page"
+            ],
+            [
+              "`4.x`",
+              "Optional AI context in extension popup"
+            ],
+            [
+              "`5.x`",
+              "Full `AIChatPage`: `ChatList`, `ChatThread`, `ChatInput`, `StreamingText`, `ModelSelector`, all utility components"
+            ],
+            [
+              "`6.x`",
+              "`AIErrorState`, retry button, SSE reconnect, streaming reliability"
+            ],
+            [
+              "`7.x`",
+              "Role-gated AI feature flags; admin view of AI usage"
+            ],
+            [
+              "`8.x`",
+              "API quota display in settings; rate limit feedback in UI"
+            ],
+            [
+              "`9.x`",
+              "AI-powered integration panel; connector config UI"
+            ],
+            [
+              "`10.x`",
+              "`CampaignAIAssistant` in campaign editor"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "slug": "references",
+      "prose": "- `docs/codebases/contact-ai-codebase-analysis.md`\n- `docs/backend/apis/17_AI_CHATS_MODULE.md`\n- `docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md`\n- `contact360.io/app/app/(dashboard)/` (dashboard routes)\n- `contact360.io/api/app/clients/lambda_ai_client.py` (HTTP client)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/contact-ai-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/17_AI_CHATS_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/app/app/(dashboard)/` (dashboard routes)",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/api/app/clients/lambda_ai_client.py` (HTTP client)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

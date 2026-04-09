@@ -1,0 +1,2438 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/s3storage-codebase-analysis.md",
+  "sha256_source": "44e52449d198a4f8e6517ad0dd58f733602fe1a06bb74d781888b79f20dabfbc",
+  "generated_at": "2026-04-08T23:26:47.344329+00:00",
+  "title": "Contact360 lambda/s3storage Codebase Analysis and Task Decomposition",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Contact360 lambda/s3storage Codebase Analysis and Task Decomposition",
+      "level": 1,
+      "slug": "contact360-lambdas3storage-codebase-analysis-and-task-decomposition",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete\n\nThis document is a deep analysis of the `lambda/s3storage` service in Contact360 and a version-aligned execution breakdown across `0.x.x` to `10.x.x`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role in Contact360",
+      "level": 2,
+      "slug": "purpose-and-role-in-contact360",
+      "prose": "`s3storage` is the storage control plane for Contact360 file artifacts. It provides:\n\n- bucket namespace initialization\n- file upload/download/list/delete APIs\n- multipart upload orchestration for large CSV files\n- CSV schema/preview/stats analysis\n- asynchronous metadata extraction and `metadata.json` maintenance\n- avatar/photo/resume storage paths\n\nThis service directly supports product flows in dashboard, API gateway, jobs, extension, and future campaign/integration systems.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "bucket namespace initialization",
+              "checked": null
+            },
+            {
+              "text": "file upload/download/list/delete APIs",
+              "checked": null
+            },
+            {
+              "text": "multipart upload orchestration for large CSV files",
+              "checked": null
+            },
+            {
+              "text": "CSV schema/preview/stats analysis",
+              "checked": null
+            },
+            {
+              "text": "asynchronous metadata extraction and `metadata.json` maintenance",
+              "checked": null
+            },
+            {
+              "text": "avatar/photo/resume storage paths",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current architecture snapshot",
+      "level": 2,
+      "slug": "current-architecture-snapshot",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service and API layer",
+      "level": 2,
+      "slug": "service-and-api-layer",
+      "prose": "- Entrypoint: `lambda/s3storage/app/main.py`\n- Framework: FastAPI + Mangum (Lambda adapter)\n- Router: `lambda/s3storage/app/api/v1/router.py`\n- Endpoint groups:\n  - `health`\n  - `buckets`\n  - `files`\n  - `uploads`\n  - `analysis` (schema/preview/stats/metadata)\n  - `avatars`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Entrypoint: `lambda/s3storage/app/main.py`",
+              "checked": null
+            },
+            {
+              "text": "Framework: FastAPI + Mangum (Lambda adapter)",
+              "checked": null
+            },
+            {
+              "text": "Router: `lambda/s3storage/app/api/v1/router.py`",
+              "checked": null
+            },
+            {
+              "text": "Endpoint groups:",
+              "checked": null
+            },
+            {
+              "text": "`health`",
+              "checked": null
+            },
+            {
+              "text": "`buckets`",
+              "checked": null
+            },
+            {
+              "text": "`files`",
+              "checked": null
+            },
+            {
+              "text": "`uploads`",
+              "checked": null
+            },
+            {
+              "text": "`analysis` (schema/preview/stats/metadata)",
+              "checked": null
+            },
+            {
+              "text": "`avatars`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Backend abstraction",
+      "level": 2,
+      "slug": "backend-abstraction",
+      "prose": "- Service facade: `lambda/s3storage/app/services/storage_service.py`\n- Concrete backends: `lambda/s3storage/app/services/storage_backends.py`\n  - `S3Backend`\n  - `FilesystemBackend`\n- Config selector:\n  - `S3STORAGE_STORAGE_BACKEND=s3|filesystem`\n  - loaded through `lambda/s3storage/app/core/config.py`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Service facade: `lambda/s3storage/app/services/storage_service.py`",
+              "checked": null
+            },
+            {
+              "text": "Concrete backends: `lambda/s3storage/app/services/storage_backends.py`",
+              "checked": null
+            },
+            {
+              "text": "`S3Backend`",
+              "checked": null
+            },
+            {
+              "text": "`FilesystemBackend`",
+              "checked": null
+            },
+            {
+              "text": "Config selector:",
+              "checked": null
+            },
+            {
+              "text": "`S3STORAGE_STORAGE_BACKEND=s3|filesystem`",
+              "checked": null
+            },
+            {
+              "text": "loaded through `lambda/s3storage/app/core/config.py`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data and key model",
+      "level": 2,
+      "slug": "data-and-key-model",
+      "prose": "Logical bucket model is prefix-based in a single S3 bucket:\n\n- `{bucket_id}/avatar/`\n- `{bucket_id}/upload/`\n- `{bucket_id}/photo/`\n- `{bucket_id}/export/`\n- `{bucket_id}/metadata.json`\n\nThis model is aligned with Contact360 multi-surface file usage and downstream ingestion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`{bucket_id}/avatar/`",
+              "checked": null
+            },
+            {
+              "text": "`{bucket_id}/upload/`",
+              "checked": null
+            },
+            {
+              "text": "`{bucket_id}/photo/`",
+              "checked": null
+            },
+            {
+              "text": "`{bucket_id}/export/`",
+              "checked": null
+            },
+            {
+              "text": "`{bucket_id}/metadata.json`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Async metadata pipeline",
+      "level": 2,
+      "slug": "async-metadata-pipeline",
+      "prose": "- Upload complete triggers worker lambda invocation:\n  - `s3storage-metadata-worker`\n- Worker handler:\n  - `lambda/s3storage/app/utils/worker.py`\n- Metadata computation:\n  - `lambda/s3storage/app/utils/metadata_job.py`\n- Metadata persistence:\n  - `lambda/s3storage/app/utils/update_bucket_metadata.py`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Upload complete triggers worker lambda invocation:",
+              "checked": null
+            },
+            {
+              "text": "`s3storage-metadata-worker`",
+              "checked": null
+            },
+            {
+              "text": "Worker handler:",
+              "checked": null
+            },
+            {
+              "text": "`lambda/s3storage/app/utils/worker.py`",
+              "checked": null
+            },
+            {
+              "text": "Metadata computation:",
+              "checked": null
+            },
+            {
+              "text": "`lambda/s3storage/app/utils/metadata_job.py`",
+              "checked": null
+            },
+            {
+              "text": "Metadata persistence:",
+              "checked": null
+            },
+            {
+              "text": "`lambda/s3storage/app/utils/update_bucket_metadata.py`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deployment",
+      "level": 2,
+      "slug": "deployment",
+      "prose": "- AWS SAM template:\n  - `lambda/s3storage/template.yaml`\n- Two lambda functions:\n  - API function\n  - metadata worker function",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "AWS SAM template:",
+              "checked": null
+            },
+            {
+              "text": "`lambda/s3storage/template.yaml`",
+              "checked": null
+            },
+            {
+              "text": "Two lambda functions:",
+              "checked": null
+            },
+            {
+              "text": "API function",
+              "checked": null
+            },
+            {
+              "text": "metadata worker function",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Strengths observed",
+      "level": 2,
+      "slug": "strengths-observed",
+      "prose": "- Clean backend abstraction (`StorageService` + backend protocol).\n- Good endpoint surface coverage for product needs.\n- Multipart upload flow exists end-to-end.\n- Metadata worker decouples upload path from expensive file analysis.\n- CSV analysis endpoints support preview/schema/stats UX.\n- Service can run in S3 and filesystem modes for different environments.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Clean backend abstraction (`StorageService` + backend protocol).",
+              "checked": null
+            },
+            {
+              "text": "Good endpoint surface coverage for product needs.",
+              "checked": null
+            },
+            {
+              "text": "Multipart upload flow exists end-to-end.",
+              "checked": null
+            },
+            {
+              "text": "Metadata worker decouples upload path from expensive file analysis.",
+              "checked": null
+            },
+            {
+              "text": "CSV analysis endpoints support preview/schema/stats UX.",
+              "checked": null
+            },
+            {
+              "text": "Service can run in S3 and filesystem modes for different environments.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Gaps and risks observed",
+      "level": 2,
+      "slug": "gaps-and-risks-observed",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified as completed in current code",
+      "level": 3,
+      "slug": "verified-as-completed-in-current-code",
+      "prose": "- [x] ✅ Multipart session state is durable (`_multipart_sessions/{upload_id}.json` in S3).\n- [x] ✅ Metadata worker function name is environment-driven (`S3_METADATA_WORKER_FUNCTION_NAME`).\n- [x] ✅ Metadata updates use optimistic write guards (`IfMatch` / `IfNoneMatch`) with retries.\n- [x] ✅ API key protection is enforced on all non-health routes via router dependencies.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Multipart session state is durable (`_multipart_sessions/{upload_id}.json` in S3).",
+              "checked": true
+            },
+            {
+              "text": "✅ Metadata worker function name is environment-driven (`S3_METADATA_WORKER_FUNCTION_NAME`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Metadata updates use optimistic write guards (`IfMatch` / `IfNoneMatch`) with retries.",
+              "checked": true
+            },
+            {
+              "text": "✅ API key protection is enforced on all non-health routes via router dependencies.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Still open / active risks",
+      "level": 3,
+      "slug": "still-open-active-risks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1) Missing idempotency contract on upload lifecycle",
+      "level": 4,
+      "slug": "1-missing-idempotency-contract-on-upload-lifecycle",
+      "prose": "- [ ] ⬜ Incomplete: `initiate/complete/abort` do not enforce or replay `X-Idempotency-Key`.\n- Impact: duplicate completion or client retry storms can create ambiguous final states.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: `initiate/complete/abort` do not enforce or replay `X-Idempotency-Key`.",
+              "checked": false
+            },
+            {
+              "text": "Impact: duplicate completion or client retry storms can create ambiguous final states.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2) Endpoint abstraction leakage",
+      "level": 4,
+      "slug": "2-endpoint-abstraction-leakage",
+      "prose": "- [ ] 🟡 In Progress: `avatars.py` accesses `storage_service._backend` directly.\n- [ ] 🟡 In Progress: `schema.py` uses `S3Backend()` directly for metadata retrieval, bypassing backend abstraction.\n- Impact: backend parity (`s3` vs `filesystem`) and testability drift.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: `avatars.py` accesses `storage_service._backend` directly.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: `schema.py` uses `S3Backend()` directly for metadata retrieval, bypassing backend abstraction.",
+              "checked": false
+            },
+            {
+              "text": "Impact: backend parity (`s3` vs `filesystem`) and testability drift.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3) Multipart complete request coupling risk",
+      "level": 4,
+      "slug": "3-multipart-complete-request-coupling-risk",
+      "prose": "- [ ] ⬜ Incomplete: `complete_upload` accepts `bucket_id` separately from upload session identity.\n- Impact: caller-side mismatch risk unless session-to-bucket binding is validated server-side.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: `complete_upload` accepts `bucket_id` separately from upload session identity.",
+              "checked": false
+            },
+            {
+              "text": "Impact: caller-side mismatch risk unless session-to-bucket binding is validated server-side.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4) Security/deployment drift risks",
+      "level": 4,
+      "slug": "4-securitydeployment-drift-risks",
+      "prose": "- [ ] 🟡 In Progress: app-level CORS allowlist is strict, but SAM `HttpApi` CORS in `template.yaml` still allows `\"*\"`.\n- [ ] ⬜ Incomplete: `samconfig.toml` contains real-looking secret-like values that should be replaced with placeholders.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: app-level CORS allowlist is strict, but SAM `HttpApi` CORS in `template.yaml` still allows `\"*\"`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `samconfig.toml` contains real-looking secret-like values that should be replaced with placeholders.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5) Test coverage gap",
+      "level": 4,
+      "slug": "5-test-coverage-gap",
+      "prose": "- [ ] ⬜ Incomplete: only health tests exist; no multipart lifecycle, metadata worker, or failure-path integration tests.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: only health tests exist; no multipart lifecycle, metadata worker, or failure-path integration tests.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6) Contract parity and evidence gap",
+      "level": 4,
+      "slug": "6-contract-parity-and-evidence-gap",
+      "prose": "- [ ] 🟡 In Progress: docs/runtime parity checks are partial; endpoint contract evidence is not yet fully closed.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: docs/runtime parity checks are partial; endpoint contract evidence is not yet fully closed.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contact360 era mapping (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "contact360-era-mapping-0xx-to-10xx",
+      "prose": "This section translates your version policy into concrete, small task packs for `s3storage`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 2,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Stabilize service boundaries and baseline deployment primitives.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - freeze endpoint naming and payload shape for core storage operations\n  - define canonical logical key taxonomy and folder semantics\n- Service:\n  - finalize backend interface behavior parity (`s3` vs `filesystem`)\n  - standardize error contract (`StorageError` mapping)\n- Data:\n  - define canonical `metadata.json` schema v1\n  - add explicit metadata schema version field\n- Ops:\n  - baseline health checks and deployment outputs in SAM\n  - add smoke test for bucket create -> upload -> list -> download-url",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "freeze endpoint naming and payload shape for core storage operations",
+              "checked": null
+            },
+            {
+              "text": "define canonical logical key taxonomy and folder semantics",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "finalize backend interface behavior parity (`s3` vs `filesystem`)",
+              "checked": null
+            },
+            {
+              "text": "standardize error contract (`StorageError` mapping)",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "define canonical `metadata.json` schema v1",
+              "checked": null
+            },
+            {
+              "text": "add explicit metadata schema version field",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "baseline health checks and deployment outputs in SAM",
+              "checked": null
+            },
+            {
+              "text": "add smoke test for bucket create -> upload -> list -> download-url",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 2,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Support user identity assets and billing artifacts with robust policy controls.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define object-class policy matrix (`avatar`, `photo`, `resume`, `upload`)\n  - define content-type and size rules per class\n- Service:\n  - enforce path-specific validation for billing/identity uploads\n  - add idempotency behavior for delete and overwrite flows\n- Surface:\n  - align gateway/dashboard callers to new validation and error semantics\n- Data:\n  - attach actor/source metadata for auditability\n- Ops:\n  - add abuse/rate monitoring for upload endpoints used in billing journeys",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define object-class policy matrix (`avatar`, `photo`, `resume`, `upload`)",
+              "checked": null
+            },
+            {
+              "text": "define content-type and size rules per class",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "enforce path-specific validation for billing/identity uploads",
+              "checked": null
+            },
+            {
+              "text": "add idempotency behavior for delete and overwrite flows",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "align gateway/dashboard callers to new validation and error semantics",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "attach actor/source metadata for auditability",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "add abuse/rate monitoring for upload endpoints used in billing journeys",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 2,
+      "slug": "2xx---contact360-email-system",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Harden bulk CSV upload and metadata flow powering finder/verifier pipelines.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - freeze multipart API contract (`initiate`, `parts`, `register`, `complete`, `abort`)\n  - define retry-safe completion semantics\n- Service:\n  - replace in-memory multipart session store with durable shared state\n  - add checksum/etag consistency guards\n- Surface:\n  - standardize client retry behavior for dashboard and gateway\n- Data:\n  - guarantee metadata freshness SLA after complete/upload\n  - add metadata reconciliation command for upload vs metadata drift\n- Ops:\n  - full E2E resilience tests for partial failures and resume",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "freeze multipart API contract (`initiate`, `parts`, `register`, `complete`, `abort`)",
+              "checked": null
+            },
+            {
+              "text": "define retry-safe completion semantics",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "replace in-memory multipart session store with durable shared state",
+              "checked": null
+            },
+            {
+              "text": "add checksum/etag consistency guards",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "standardize client retry behavior for dashboard and gateway",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "guarantee metadata freshness SLA after complete/upload",
+              "checked": null
+            },
+            {
+              "text": "add metadata reconciliation command for upload vs metadata drift",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "full E2E resilience tests for partial failures and resume",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 2,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Make storage artifacts first-class inputs for Connectra and enrichment pipelines.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define dataset artifact classes for contacts/companies import/export\n  - define naming/versioning policy for ingestion files\n- Service:\n  - optimize preview/schema/stats for high-cardinality files\n  - improve delimiter/encoding robustness and malformed-row handling\n- Surface:\n  - expose ingestion-ready metadata fields to gateway consumers\n- Data:\n  - add lineage links upload -> ingestion run -> index operation\n- Ops:\n  - quality checks and anomaly alerts for ingestion metadata",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define dataset artifact classes for contacts/companies import/export",
+              "checked": null
+            },
+            {
+              "text": "define naming/versioning policy for ingestion files",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "optimize preview/schema/stats for high-cardinality files",
+              "checked": null
+            },
+            {
+              "text": "improve delimiter/encoding robustness and malformed-row handling",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "expose ingestion-ready metadata fields to gateway consumers",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "add lineage links upload -> ingestion run -> index operation",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "quality checks and anomaly alerts for ingestion metadata",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 2,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Support extension-origin artifacts with tight access controls and observability.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define extension-safe URL TTL and access constraints\n  - define extension channel-specific object prefixes\n- Service:\n  - add stricter auth context checks for extension-origin operations\n  - improve download URL policy granularity by object class\n- Surface:\n  - expose extension-friendly error and retry semantics\n- Data:\n  - store provenance tags (`source=extension|salesnavigator`)\n- Ops:\n  - channel-level telemetry and triage views",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define extension-safe URL TTL and access constraints",
+              "checked": null
+            },
+            {
+              "text": "define extension channel-specific object prefixes",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "add stricter auth context checks for extension-origin operations",
+              "checked": null
+            },
+            {
+              "text": "improve download URL policy granularity by object class",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "expose extension-friendly error and retry semantics",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "store provenance tags (`source=extension|salesnavigator`)",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "channel-level telemetry and triage views",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 2,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Support AI artifacts with governance and lineage guarantees.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define AI artifact types (prompt/input/output/intermediate)\n  - define retention and access policy contract for sensitive AI artifacts\n- Service:\n  - enforce object-class limits and policy guards for AI paths\n  - enable immutable artifact write mode where needed\n- Surface:\n  - expose explicit retrieval semantics for AI consumers\n- Data:\n  - track source-file linkage and model-run lineage metadata\n- Ops:\n  - audit trails for sensitive AI artifact reads/writes",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define AI artifact types (prompt/input/output/intermediate)",
+              "checked": null
+            },
+            {
+              "text": "define retention and access policy contract for sensitive AI artifacts",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "enforce object-class limits and policy guards for AI paths",
+              "checked": null
+            },
+            {
+              "text": "enable immutable artifact write mode where needed",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "expose explicit retrieval semantics for AI consumers",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "track source-file linkage and model-run lineage metadata",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "audit trails for sensitive AI artifact reads/writes",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 2,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Make storage workflows reliably scalable under multi-tenant production load.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - formalize idempotency keys for complete/abort/update metadata operations\n  - define SLO contracts for upload and metadata freshness\n- Service:\n  - implement durable multipart session store\n  - add optimistic concurrency or CAS strategy for `metadata.json` updates\n  - add resilient backoff/retry wrappers for S3 transient failures\n- Surface:\n  - publish retry-safe client guidance for all callers\n- Data:\n  - implement periodic reconciliation (S3 objects vs metadata entries)\n- Ops:\n  - create SLO dashboard: upload success, complete latency, metadata lag\n  - define error budget and incident runbook",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "formalize idempotency keys for complete/abort/update metadata operations",
+              "checked": null
+            },
+            {
+              "text": "define SLO contracts for upload and metadata freshness",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "implement durable multipart session store",
+              "checked": null
+            },
+            {
+              "text": "add optimistic concurrency or CAS strategy for `metadata.json` updates",
+              "checked": null
+            },
+            {
+              "text": "add resilient backoff/retry wrappers for S3 transient failures",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "publish retry-safe client guidance for all callers",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "implement periodic reconciliation (S3 objects vs metadata entries)",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "create SLO dashboard: upload success, complete latency, metadata lag",
+              "checked": null
+            },
+            {
+              "text": "define error budget and incident runbook",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 2,
+      "slug": "7xx---contact360-deployment",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Bring deployment governance, authz hardening, and compliance controls.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define service-to-service auth contract and tenant policy enforcement contract\n- Service:\n  - enforce authentication/authorization at endpoint boundary\n  - remove hardcoded worker function names; use environment-driven routing\n- Surface:\n  - align gateway/admin integrations with role-based restrictions\n- Data:\n  - implement policy-controlled retention/deletion hooks per object class\n- Ops:\n  - add compliance evidence artifacts and deployment security checklist",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define service-to-service auth contract and tenant policy enforcement contract",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "enforce authentication/authorization at endpoint boundary",
+              "checked": null
+            },
+            {
+              "text": "remove hardcoded worker function names; use environment-driven routing",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "align gateway/admin integrations with role-based restrictions",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "implement policy-controlled retention/deletion hooks per object class",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "add compliance evidence artifacts and deployment security checklist",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpoints",
+      "level": 2,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpoints",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Prepare storage APIs as stable versioned internal/public interfaces.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define API versioning and deprecation policy for storage endpoints\n  - define event/webhook contract for object lifecycle\n- Service:\n  - emit lifecycle events (upload complete/delete/update) with replay-safe IDs\n  - add compatibility tests for old/new contract variants\n- Surface:\n  - provide docs and SDK examples for partner/internal consumers\n- Data:\n  - event lineage linking object actions to consumers and outcomes\n- Ops:\n  - compatibility gate and observability for partner-facing reliability",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define API versioning and deprecation policy for storage endpoints",
+              "checked": null
+            },
+            {
+              "text": "define event/webhook contract for object lifecycle",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "emit lifecycle events (upload complete/delete/update) with replay-safe IDs",
+              "checked": null
+            },
+            {
+              "text": "add compatibility tests for old/new contract variants",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "provide docs and SDK examples for partner/internal consumers",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "event lineage linking object actions to consumers and outcomes",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "compatibility gate and observability for partner-facing reliability",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 2,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Productize storage capabilities with entitlements, quotas, and tenant economics.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define entitlement-aware storage capability matrix by plan\n- Service:\n  - enforce quotas (size/object count/rate) and tenant throttling\n  - add policy engine hooks for plan and integration controls\n- Surface:\n  - expose admin diagnostics for quota and policy failures\n- Data:\n  - add cost attribution and residency metadata overlays\n- Ops:\n  - SLA reporting and support escalation pathways",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define entitlement-aware storage capability matrix by plan",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "enforce quotas (size/object count/rate) and tenant throttling",
+              "checked": null
+            },
+            {
+              "text": "add policy engine hooks for plan and integration controls",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "expose admin diagnostics for quota and policy failures",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "add cost attribution and residency metadata overlays",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "SLA reporting and support escalation pathways",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 2,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Goal",
+      "level": 3,
+      "slug": "goal",
+      "prose": "Support campaign-scale artifact lifecycle with compliance-grade reproducibility.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small tasks",
+      "level": 3,
+      "slug": "small-tasks",
+      "prose": "- Contract:\n  - define campaign artifact contracts (audiences, suppressions, templates, evidence)\n  - define reproducibility contract for campaign execution artifacts\n- Service:\n  - optimize high-throughput read/write paths for campaign engines\n  - enforce immutability for compliance-critical campaign artifacts\n- Surface:\n  - provide stable retrieval semantics for campaign observability/support tooling\n- Data:\n  - store consent/opt-out/suppression lineage evidence references\n- Ops:\n  - final compliance and governance gate for campaign-era readiness",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract:",
+              "checked": null
+            },
+            {
+              "text": "define campaign artifact contracts (audiences, suppressions, templates, evidence)",
+              "checked": null
+            },
+            {
+              "text": "define reproducibility contract for campaign execution artifacts",
+              "checked": null
+            },
+            {
+              "text": "Service:",
+              "checked": null
+            },
+            {
+              "text": "optimize high-throughput read/write paths for campaign engines",
+              "checked": null
+            },
+            {
+              "text": "enforce immutability for compliance-critical campaign artifacts",
+              "checked": null
+            },
+            {
+              "text": "Surface:",
+              "checked": null
+            },
+            {
+              "text": "provide stable retrieval semantics for campaign observability/support tooling",
+              "checked": null
+            },
+            {
+              "text": "Data:",
+              "checked": null
+            },
+            {
+              "text": "store consent/opt-out/suppression lineage evidence references",
+              "checked": null
+            },
+            {
+              "text": "Ops:",
+              "checked": null
+            },
+            {
+              "text": "final compliance and governance gate for campaign-era readiness",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Multipart/session and worker-name contracts are environment-driven in runtime.\n- [ ] ⬜ Incomplete: Add idempotency-key contract for upload lifecycle endpoints.\n- [ ] 🟡 In Progress: Complete docs/API parity and endpoint matrix sync.\n- [ ] 📌 Planned: Add versioned contract and deprecation policy for `8.x` externalization.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Multipart/session and worker-name contracts are environment-driven in runtime.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: Add idempotency-key contract for upload lifecycle endpoints.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: Complete docs/API parity and endpoint matrix sync.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: Add versioned contract and deprecation policy for `8.x` externalization.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Durable multipart session persistence is implemented in S3.\n- [x] ✅ Metadata optimistic-write guard/retry path is implemented.\n- [ ] 🟡 In Progress: Remove direct backend access from endpoint layer (`avatars.py`, `schema.py`).\n- [ ] ⬜ Incomplete: Add complete-flow validation that session bucket and request bucket cannot diverge.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Durable multipart session persistence is implemented in S3.",
+              "checked": true
+            },
+            {
+              "text": "✅ Metadata optimistic-write guard/retry path is implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: Remove direct backend access from endpoint layer (`avatars.py`, `schema.py`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: Add complete-flow validation that session bucket and request bucket cannot diverge.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Core upload/list/download/analysis route surfaces are available.\n- [ ] 🟡 In Progress: Standardize error envelope and retry hints for all caller surfaces.\n- [ ] 📌 Planned: Add partner/developer-facing usage examples for `8.x` API consumers.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core upload/list/download/analysis route surfaces are available.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: Standardize error envelope and retry hints for all caller surfaces.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: Add partner/developer-facing usage examples for `8.x` API consumers.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Metadata extraction pipeline writes key file stats and headers.\n- [ ] ⬜ Incomplete: Add metadata schema versioning and drift-reconciliation evidence.\n- [ ] 📌 Planned: Add full lineage overlays for entitlement/compliance eras (`9.x`, `10.x`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Metadata extraction pipeline writes key file stats and headers.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: Add metadata schema versioning and drift-reconciliation evidence.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: Add full lineage overlays for entitlement/compliance eras (`9.x`, `10.x`).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ API-key guard and non-debug CORS allowlist validation exist in runtime config.\n- [ ] ⬜ Incomplete: Replace wildcard CORS in SAM template with explicit environment allowlist.\n- [ ] ⬜ Incomplete: Expand test suite beyond health checks (multipart lifecycle + failure paths).\n- [ ] ⬜ Incomplete: Sanitize local deploy config files to remove secret-like values.\n- [ ] 📌 Planned: Add SLO dashboards and error-budget gates for reliability promotion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ API-key guard and non-debug CORS allowlist validation exist in runtime config.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: Replace wildcard CORS in SAM template with explicit environment allowlist.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: Expand test suite beyond health checks (multipart lifecycle + failure paths).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: Sanitize local deploy config files to remove secret-like values.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: Add SLO dashboards and error-budget gates for reliability promotion.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [x] ✅ Durable multipart session store (Postgres `multipart_sessions` only; in-process map removed from `EC2/s3storage.server` API).\n- [x] ✅ Environment-driven metadata worker function configuration.\n- [x] ✅ Concurrency-safe `metadata.json` update strategy.\n- [ ] ⬜ Incomplete: upload lifecycle idempotency contract (`X-Idempotency-Key`) for initiate/complete/abort.\n- [ ] 🟡 In Progress: contract parity check between implemented endpoints and `docs/API.md`.\n- [ ] 🟡 In Progress: remove endpoint abstraction leakage (`avatars.py` and `schema.py` direct backend usage).\n- [ ] ⬜ Incomplete: enforce session-bound bucket validation in multipart complete flow.\n- [ ] ⬜ Incomplete: end-to-end integration tests for multipart + metadata worker paths.\n- [ ] ⬜ Incomplete: failure-path tests (duplicate complete, missing parts, worker failure, retries).\n- [ ] 🟡 In Progress: upload security hardening checklist (auth, CORS, object policy, TTL, deploy-template parity).\n- [ ] ⬜ Incomplete: sanitize `samconfig.toml` secret-like values to placeholders.\n- [ ] 📌 Planned: SLO baseline and dashboards for storage reliability.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Durable multipart session store (Postgres `multipart_sessions` only; in-process map removed from `EC2/s3storage.server` API).",
+              "checked": true
+            },
+            {
+              "text": "✅ Environment-driven metadata worker function configuration.",
+              "checked": true
+            },
+            {
+              "text": "✅ Concurrency-safe `metadata.json` update strategy.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: upload lifecycle idempotency contract (`X-Idempotency-Key`) for initiate/complete/abort.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: contract parity check between implemented endpoints and `docs/API.md`.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: remove endpoint abstraction leakage (`avatars.py` and `schema.py` direct backend usage).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce session-bound bucket validation in multipart complete flow.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: end-to-end integration tests for multipart + metadata worker paths.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: failure-path tests (duplicate complete, missing parts, worker failure, retries).",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: upload security hardening checklist (auth, CORS, object policy, TTL, deploy-template parity).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: sanitize `samconfig.toml` secret-like values to placeholders.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: SLO baseline and dashboards for storage reliability.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Suggested owner map",
+      "level": 2,
+      "slug": "suggested-owner-map",
+      "prose": "- Platform Storage team: service/data/ops tasks\n- API Gateway team: contract/surface integration tasks\n- Product surfaces (Dashboard/Extension/Admin): UI and caller-behavior tasks\n- Security/Compliance: authz, retention, audit, governance tasks",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Platform Storage team: service/data/ops tasks",
+              "checked": null
+            },
+            {
+              "text": "API Gateway team: contract/surface integration tasks",
+              "checked": null
+            },
+            {
+              "text": "Product surfaces (Dashboard/Extension/Admin): UI and caller-behavior tasks",
+              "checked": null
+            },
+            {
+              "text": "Security/Compliance: authz, retention, audit, governance tasks",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-codebase adoption plan (s3storage as shared storage control plane)",
+      "level": 2,
+      "slug": "cross-codebase-adoption-plan-s3storage-as-shared-storage-control-plane",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current adoption snapshot",
+      "level": 3,
+      "slug": "current-adoption-snapshot",
+      "prose": "- [x] ✅ `appointment360` (`contact360.io/api`) already routes upload/list/download/schema/avatar flows through `s3storage` client wrappers.\n- [ ] 🟡 In Progress: `admin` (`contact360.io/admin`) uses both `s3storage` API calls and direct `boto3` paths (`apps/core/services/s3_service.py`).\n- [ ] ⬜ Incomplete: `jobs` (`contact360.io/jobs`) still reads and writes objects directly using `boto3/aioboto3` multipart APIs.\n- [ ] 📌 Planned: unify storage contracts for `logs.api`, `emailapis`, `emailcampaign`, and other service exports/imports that can centralize on `s3storage`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `appointment360` (`contact360.io/api`) already routes upload/list/download/schema/avatar flows through `s3storage` client wrappers.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: `admin` (`contact360.io/admin`) uses both `s3storage` API calls and direct `boto3` paths (`apps/core/services/s3_service.py`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `jobs` (`contact360.io/jobs`) still reads and writes objects directly using `boto3/aioboto3` multipart APIs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: unify storage contracts for `logs.api`, `emailapis`, `emailcampaign`, and other service exports/imports that can centralize on `s3storage`.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Shared migration principles",
+      "level": 3,
+      "slug": "shared-migration-principles",
+      "prose": "- [ ] 🟡 In Progress: treat `s3storage` as the only service allowed to hold raw bucket credentials for application-level object operations.\n- [ ] ⬜ Incomplete: keep one logical contract (`bucket_id`, `file_key`, metadata lineage) across all producers/consumers.\n- [ ] ⬜ Incomplete: disallow new direct `boto3/aioboto3` usage in app services unless explicitly approved for internal worker/runtime-only implementation.\n- [ ] 📌 Planned: publish a storage capability matrix by era (`2.x` to `10.x`) for imports, exports, campaign artifacts, and compliance evidence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: treat `s3storage` as the only service allowed to hold raw bucket credentials for application-level object operations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: keep one logical contract (`bucket_id`, `file_key`, metadata lineage) across all producers/consumers.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: disallow new direct `boto3/aioboto3` usage in app services unless explicitly approved for internal worker/runtime-only implementation.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: publish a storage capability matrix by era (`2.x` to `10.x`) for imports, exports, campaign artifacts, and compliance evidence.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack A - appointment360 hardening (already integrated)",
+      "level": 3,
+      "slug": "execution-pack-a---appointment360-hardening-already-integrated",
+      "prose": "- [x] ✅ Core upload and storage GraphQL flows use `S3StorageClient`.\n- [ ] ⬜ Incomplete: add idempotency-key propagation from GraphQL mutation layer to `s3storage` upload lifecycle endpoints.\n- [ ] 🟡 In Progress: normalize caller-side error taxonomy to map `s3storage` failures to deterministic GraphQL error codes.\n- [ ] ⬜ Incomplete: add integration tests that assert `appointment360` never falls back to direct S3 writes in upload/avatar paths.\n- [ ] 📌 Planned: add contract tests for backward compatibility before `8.x` public API stabilization.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core upload and storage GraphQL flows use `S3StorageClient`.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: add idempotency-key propagation from GraphQL mutation layer to `s3storage` upload lifecycle endpoints.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: normalize caller-side error taxonomy to map `s3storage` failures to deterministic GraphQL error codes.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add integration tests that assert `appointment360` never falls back to direct S3 writes in upload/avatar paths.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add contract tests for backward compatibility before `8.x` public API stabilization.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack B - admin migration to full API mode",
+      "level": 3,
+      "slug": "execution-pack-b---admin-migration-to-full-api-mode",
+      "prose": "- [ ] 🟡 In Progress: keep `apps/admin/services/s3storage_client.py` as the only admin storage access path.\n- [ ] ⬜ Incomplete: migrate `apps/core/services/s3_service.py` use cases to `s3storage` endpoints or isolate them behind explicit internal-only adapters.\n- [ ] ⬜ Incomplete: remove \"no API key required\" assumption and align auth model with `s3storage` API key policy.\n- [ ] ⬜ Incomplete: align photo/asset upload routes to canonical `s3storage` contracts (prefix rules, metadata updates, audit fields).\n- [ ] 📌 Planned: add admin UI evidence links for object lifecycle/audit events per tenant bucket.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: keep `apps/admin/services/s3storage_client.py` as the only admin storage access path.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: migrate `apps/core/services/s3_service.py` use cases to `s3storage` endpoints or isolate them behind explicit internal-only adapters.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove \"no API key required\" assumption and align auth model with `s3storage` API key policy.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: align photo/asset upload routes to canonical `s3storage` contracts (prefix rules, metadata updates, audit fields).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add admin UI evidence links for object lifecycle/audit events per tenant bucket.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack C - jobs migration (highest impact for consistency)",
+      "level": 3,
+      "slug": "execution-pack-c---jobs-migration-highest-impact-for-consistency",
+      "prose": "- [ ] ⬜ Incomplete: replace direct multipart write logic in stream processors with `s3storage` upload lifecycle (`initiate -> part url -> register -> complete/abort`) through a dedicated jobs storage client.\n- [ ] ⬜ Incomplete: replace direct object-read helpers with signed download or server-side stream contracts exposed by `s3storage`.\n- [ ] ⬜ Incomplete: propagate `bucket_id/file_key` identity instead of raw `bucket/key` when persisting checkpoints and job payloads.\n- [ ] ⬜ Incomplete: add resume/idempotency behavior tests for retry/cancel/restart on long-running CSV jobs using `s3storage` state.\n- [ ] 📌 Planned: benchmark throughput and part-size tuning after migration to ensure no regression in export pipelines.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: replace direct multipart write logic in stream processors with `s3storage` upload lifecycle (`initiate -> part url -> register -> complete/abort`) through a dedicated jobs storage client.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: replace direct object-read helpers with signed download or server-side stream contracts exposed by `s3storage`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: propagate `bucket_id/file_key` identity instead of raw `bucket/key` when persisting checkpoints and job payloads.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add resume/idempotency behavior tests for retry/cancel/restart on long-running CSV jobs using `s3storage` state.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: benchmark throughput and part-size tuning after migration to ensure no regression in export pipelines.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Execution pack D - cross-service governance and release gates",
+      "level": 3,
+      "slug": "execution-pack-d---cross-service-governance-and-release-gates",
+      "prose": "- [ ] ⬜ Incomplete: add repo-wide static check preventing new direct `boto3/aioboto3` imports in non-storage services.\n- [ ] 🟡 In Progress: add `docs/codebases/*` dependency tables listing each service's storage integration mode (`direct`, `hybrid`, `s3storage`).\n- [ ] ⬜ Incomplete: publish storage migration runbook with rollback steps by service.\n- [ ] ⬜ Incomplete: add SLOs for end-to-end storage operations consumed by `appointment360`, `admin`, and `jobs`.\n- [ ] 📌 Planned: require \"storage control plane compliance\" gate in each minor release checklist.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: add repo-wide static check preventing new direct `boto3/aioboto3` imports in non-storage services.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: add `docs/codebases/*` dependency tables listing each service's storage integration mode (`direct`, `hybrid`, `s3storage`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: publish storage migration runbook with rollback steps by service.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add SLOs for end-to-end storage operations consumed by `appointment360`, `admin`, and `jobs`.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: require \"storage control plane compliance\" gate in each minor release checklist.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Completed: baseline FastAPI service, bucket/object APIs, backend abstraction, and Lambda deployment are in place.\n- [x] ✅ Completed: multipart durability and metadata worker env-driven wiring are implemented.\n- [ ] 🟡 In Progress: finalize strict contract evidence and parity checks for foundational endpoint behavior.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: baseline FastAPI service, bucket/object APIs, backend abstraction, and Lambda deployment are in place.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: multipart durability and metadata worker env-driven wiring are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: finalize strict contract evidence and parity checks for foundational endpoint behavior.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ Completed: avatar/photo/resume object class paths exist and are available to caller services.\n- [ ] 🟡 In Progress: harden object-class validation policies and caller-level error normalization.\n- [ ] ⬜ Incomplete: complete audit-grade actor/source metadata coverage for billing/identity artifact writes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: avatar/photo/resume object class paths exist and are available to caller services.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden object-class validation policies and caller-level error normalization.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete audit-grade actor/source metadata coverage for billing/identity artifact writes.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ Completed: multipart CSV upload lifecycle and metadata extraction pipeline are live.\n- [ ] ⬜ Incomplete: enforce idempotency for initiate/complete/abort under client retries.\n- [ ] ⬜ Incomplete: complete end-to-end failure-path tests for bulk upload worker flows.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: multipart CSV upload lifecycle and metadata extraction pipeline are live.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: enforce idempotency for initiate/complete/abort under client retries.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete end-to-end failure-path tests for bulk upload worker flows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [ ] 🟡 In Progress: analysis endpoints (schema/preview/stats) provide ingestion-support capabilities.\n- [ ] ⬜ Incomplete: add lineage contract linking upload artifacts to downstream ingestion/index runs.\n- [ ] 📌 Planned: optimize high-cardinality analysis performance for larger enrichment datasets.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: analysis endpoints (schema/preview/stats) provide ingestion-support capabilities.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add lineage contract linking upload artifacts to downstream ingestion/index runs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: optimize high-cardinality analysis performance for larger enrichment datasets.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] 🟡 In Progress: extension/salesnavigator storage usage is partially supported through current bucket/key model.\n- [ ] ⬜ Incomplete: enforce extension-channel constraints (TTL/prefix/access policy) as explicit contracts.\n- [ ] 📌 Planned: add channel-specific observability and provenance evidence for extension-origin objects.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: extension/salesnavigator storage usage is partially supported through current bucket/key model.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce extension-channel constraints (TTL/prefix/access policy) as explicit contracts.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add channel-specific observability and provenance evidence for extension-origin objects.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [ ] 📌 Planned: define AI artifact class contracts and access/retention controls.\n- [ ] ⬜ Incomplete: add sensitive-object policy guards and immutable storage mode where required.\n- [ ] 📌 Planned: add AI lineage overlays (source file -> run -> output artifacts) in metadata contract.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: define AI artifact class contracts and access/retention controls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add sensitive-object policy guards and immutable storage mode where required.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add AI lineage overlays (source file -> run -> output artifacts) in metadata contract.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ Completed: optimistic concurrency for metadata updates and durable multipart session state.\n- [ ] ⬜ Incomplete: add explicit upload/metadata SLO implementation and error-budget monitoring.\n- [ ] 🟡 In Progress: improve resilience with broader transient failure handling and compatibility tests.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: optimistic concurrency for metadata updates and durable multipart session state.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: add explicit upload/metadata SLO implementation and error-budget monitoring.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: improve resilience with broader transient failure handling and compatibility tests.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ Completed: API key boundary and runtime CORS allowlist validation exist in service config.\n- [ ] ⬜ Incomplete: align SAM template CORS with runtime strict allowlist model.\n- [ ] ⬜ Incomplete: sanitize deploy config files (`samconfig.toml` and related examples) to remove secret-like values.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: API key boundary and runtime CORS allowlist validation exist in service config.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: align SAM template CORS with runtime strict allowlist model.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: sanitize deploy config files (`samconfig.toml` and related examples) to remove secret-like values.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [ ] 🟡 In Progress: endpoint surface is broad enough for API productization, but formal external contract is partial.\n- [ ] ⬜ Incomplete: publish version/deprecation contract and compatibility test suite.\n- [ ] 📌 Planned: provide SDK-grade usage examples and lifecycle webhook/event contract.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: endpoint surface is broad enough for API productization, but formal external contract is partial.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: publish version/deprecation contract and compatibility test suite.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: provide SDK-grade usage examples and lifecycle webhook/event contract.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 📌 Planned: define entitlement-aware storage capability matrix and quota policy model.\n- [ ] ⬜ Incomplete: implement quota/metering headers and tenant throttling paths.\n- [ ] 📌 Planned: add residency/cost attribution overlays and ecosystem support diagnostics.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: define entitlement-aware storage capability matrix and quota policy model.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement quota/metering headers and tenant throttling paths.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add residency/cost attribution overlays and ecosystem support diagnostics.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] 📌 Planned: define campaign artifact contracts and reproducibility expectations.\n- [ ] ⬜ Incomplete: implement compliance-grade immutability and evidence linkage for campaign objects.\n- [ ] 📌 Planned: add final campaign-era governance gates using storage lineage/compliance checks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: define campaign artifact contracts and reproducibility expectations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement compliance-grade immutability and evidence linkage for campaign objects.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add final campaign-era governance gates using storage lineage/compliance checks.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Release gate checklist for each minor",
+      "level": 2,
+      "slug": "release-gate-checklist-for-each-minor",
+      "prose": "- Contract compatibility validated (and documented).\n- Service changes covered by integration and failure-path tests.\n- Data lineage/metadata integrity checks passing.\n- Ops telemetry and alerts updated for new behavior.\n- Rollback plan validated before release promotion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract compatibility validated (and documented).",
+              "checked": null
+            },
+            {
+              "text": "Service changes covered by integration and failure-path tests.",
+              "checked": null
+            },
+            {
+              "text": "Data lineage/metadata integrity checks passing.",
+              "checked": null
+            },
+            {
+              "text": "Ops telemetry and alerts updated for new behavior.",
+              "checked": null
+            },
+            {
+              "text": "Rollback plan validated before release promotion.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0",
+      "level": 3,
+      "slug": "p0",
+      "prose": "- [x] ✅ `S3S-0.1`: Enforce API auth on all non-health endpoints.\n- [x] ✅ `S3S-0.3`: Replace in-memory multipart sessions with durable shared store.\n- [x] ✅ `S3S-0.4`: Remove hardcoded metadata worker function name.\n- [ ] ⬜ Incomplete: `S3S-0.5` Add idempotency keys for initiate/complete/upload paths.\n- [ ] ⬜ Incomplete: `S3S-0.6` Sanitize deployment config (`samconfig.toml`) to remove real-looking secrets.\n- [ ] ⬜ Incomplete: `S3S-0.7` Enforce session-bound bucket validation in multipart complete path.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `S3S-0.1`: Enforce API auth on all non-health endpoints.",
+              "checked": true
+            },
+            {
+              "text": "✅ `S3S-0.3`: Replace in-memory multipart sessions with durable shared store.",
+              "checked": true
+            },
+            {
+              "text": "✅ `S3S-0.4`: Remove hardcoded metadata worker function name.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: `S3S-0.5` Add idempotency keys for initiate/complete/upload paths.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `S3S-0.6` Sanitize deployment config (`samconfig.toml`) to remove real-looking secrets.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `S3S-0.7` Enforce session-bound bucket validation in multipart complete path.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2",
+      "level": 3,
+      "slug": "p1p2",
+      "prose": "- [ ] 📌 Planned: `S3S-1.x` Scoped keys, metering, quota headers.\n- [ ] 📌 Planned: `S3S-2.x` Object classification and lineage metadata contracts.\n- [ ] 🟡 In Progress: `S3S-2.1` Eliminate direct `_backend` access and keep endpoint layer backend-agnostic.\n- [ ] 🟡 In Progress: `S3S-2.2` Align SAM CORS policy with runtime allowlist model.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: `S3S-1.x` Scoped keys, metering, quota headers.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `S3S-2.x` Object classification and lineage metadata contracts.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: `S3S-2.1` Eliminate direct `_backend` access and keep endpoint layer backend-agnostic.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: `S3S-2.2` Align SAM CORS policy with runtime allowlist model.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+",
+      "level": 3,
+      "slug": "p3",
+      "prose": "- [ ] 📌 Planned: `S3S-3.1` Distributed rate limiting.\n- [ ] 📌 Planned: `S3S-4.x` OpenAPI parity and immutable audit events.\n- [ ] 📌 Planned: `S3S-5.x` Lifecycle webhooks and campaign evidence bundle support.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: `S3S-3.1` Distributed rate limiting.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `S3S-4.x` OpenAPI parity and immutable audit events.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `S3S-5.x` Lifecycle webhooks and campaign evidence bundle support.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

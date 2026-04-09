@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/micro.services.apis/extension-graphql-session.md",
+  "sha256_source": "746f950d52481005764900d89e1c4de6365ed3edfe38822e2db42e54229bf290",
+  "generated_at": "2026-04-08T23:26:46.766091+00:00",
+  "title": "Extension GraphQL Session Contract (graphqlSession.js)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Extension GraphQL Session Contract (graphqlSession.js)",
+      "level": 1,
+      "slug": "extension-graphql-session-contract-graphqlsessionjs",
+      "prose": "Describes the JWT access + refresh token lifecycle implemented in `contact360.extension/auth/graphqlSession.js` (Stage 3.1).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Overview",
+      "level": 2,
+      "slug": "overview",
+      "prose": "The extension maintains a two-token session that mirrors the dashboard (`app.contact360.io`) semantics:\n\n| Token | Storage key | Purpose |\n|---|---|---|\n| Access JWT | `c360_extension_access_token` | Bearer token for GraphQL requests |\n| Refresh JWT | `c360_extension_refresh_token` | Used to obtain a new access token when expiring |\n\nBoth tokens are persisted in **`chrome.storage.local`** (Manifest V3 background + popup).\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Token",
+            "Storage key",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "Access JWT",
+              "`c360_extension_access_token`",
+              "Bearer token for GraphQL requests"
+            ],
+            [
+              "Refresh JWT",
+              "`c360_extension_refresh_token`",
+              "Used to obtain a new access token when expiring"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Token Lifecycle State Machine",
+      "level": 2,
+      "slug": "token-lifecycle-state-machine",
+      "prose": "```\nNot authenticated → [user logs in via dashboard/OAuth]\n        ↓\nAUTHENTICATED   (access JWT valid, exp > now + 60 s buffer)\n        ↓ (exp approaching)\nEXPIRING_SOON  (access JWT < 60 s from expiry, refresh token present)\n        ↓ (access JWT expired, refresh token still present)\nREFRESH_ONLY   (no valid access token, refresh token still valid)\n        ↓ (ensureAccessToken called)\nAUTHENTICATED  (new access + refresh pair written to chrome.storage.local)\n        ↓ (refresh fails / no refresh token)\nUNAUTHENTICATED\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "Not authenticated → [user logs in via dashboard/OAuth]\n        ↓\nAUTHENTICATED   (access JWT valid, exp > now + 60 s buffer)\n        ↓ (exp approaching)\nEXPIRING_SOON  (access JWT < 60 s from expiry, refresh token present)\n        ↓ (access JWT expired, refresh token still present)\nREFRESH_ONLY   (no valid access token, refresh token still valid)\n        ↓ (ensureAccessToken called)\nAUTHENTICATED  (new access + refresh pair written to chrome.storage.local)\n        ↓ (refresh fails / no refresh token)\nUNAUTHENTICATED\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "State display (popup.js badge)",
+      "level": 3,
+      "slug": "state-display-popupjs-badge",
+      "prose": "| State | Badge variant | Label |\n|---|---|---|\n| AUTHENTICATED | `ok` | \"Authenticated\" |\n| EXPIRING_SOON | `warn` | \"Access expiring (refresh available)\" |\n| REFRESH_ONLY | `warn` | \"Refresh token only\" |\n| UNAUTHENTICATED | `bad` | \"Not authenticated\" |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "State",
+            "Badge variant",
+            "Label"
+          ],
+          "rows": [
+            [
+              "AUTHENTICATED",
+              "`ok`",
+              "\"Authenticated\""
+            ],
+            [
+              "EXPIRING_SOON",
+              "`warn`",
+              "\"Access expiring (refresh available)\""
+            ],
+            [
+              "REFRESH_ONLY",
+              "`warn`",
+              "\"Refresh token only\""
+            ],
+            [
+              "UNAUTHENTICATED",
+              "`bad`",
+              "\"Not authenticated\""
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Refresh Contract",
+      "level": 2,
+      "slug": "refresh-contract",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GraphQL mutation (called by refreshWithGraphQL)",
+      "level": 3,
+      "slug": "graphql-mutation-called-by-refreshwithgraphql",
+      "prose": "```graphql\nmutation RefreshToken($input: RefreshTokenInput!) {\n  auth {\n    refreshToken(input: $input) {\n      accessToken\n      refreshToken\n    }\n  }\n}\n```\n\n**Variables:**\n\n```json\n{\n  \"input\": {\n    \"refreshToken\": \"<current_refresh_jwt>\"\n  }\n}\n```\n\n**Success response shape:**\n\n```json\n{\n  \"data\": {\n    \"auth\": {\n      \"refreshToken\": {\n        \"accessToken\": \"<new_access_jwt>\",\n        \"refreshToken\": \"<new_refresh_jwt>\"\n      }\n    }\n  }\n}\n```\n\n**Error response:**\n\n```json\n{\n  \"errors\": [{ \"message\": \"<error string>\" }]\n}\n```\n\nIf `accessToken` or `refreshToken` is missing from the success payload, the refresh throws `\"Invalid refresh response\"` and the extension falls back to `UNAUTHENTICATED`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation RefreshToken($input: RefreshTokenInput!) {\n  auth {\n    refreshToken(input: $input) {\n      accessToken\n      refreshToken\n    }\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"refreshToken\": \"<current_refresh_jwt>\"\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"auth\": {\n      \"refreshToken\": {\n        \"accessToken\": \"<new_access_jwt>\",\n        \"refreshToken\": \"<new_refresh_jwt>\"\n      }\n    }\n  }\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"errors\": [{ \"message\": \"<error string>\" }]\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Refresh trigger — ensureAccessToken",
+      "level": 3,
+      "slug": "refresh-trigger-ensureaccesstoken",
+      "prose": "Called before every GraphQL request originating from the extension (background service worker or content script). The buffer is **60 000 ms (1 min)** before JWT `exp`.\n\n```js\n// Pseudocode call site (background.js):\nconst token = await ensureAccessToken({\n  graphqlUrl: GRAPHQL_URL,\n  loadTokens: adapter.loadTokens,   // reads chrome.storage.local\n  saveTokens: adapter.saveTokens,   // writes chrome.storage.local\n});\nif (!token) throw new Error(\"Not authenticated\");\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "js",
+          "value": "// Pseudocode call site (background.js):\nconst token = await ensureAccessToken({\n  graphqlUrl: GRAPHQL_URL,\n  loadTokens: adapter.loadTokens,   // reads chrome.storage.local\n  saveTokens: adapter.saveTokens,   // writes chrome.storage.local\n});\nif (!token) throw new Error(\"Not authenticated\");\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Chrome storage adapter",
+      "level": 3,
+      "slug": "chrome-storage-adapter",
+      "prose": "| Method | chrome.storage keys read/written |\n|---|---|\n| `loadTokens()` | `c360_extension_access_token`, `c360_extension_refresh_token` |\n| `saveTokens(access, refresh)` | `c360_extension_access_token`, `c360_extension_refresh_token` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Method",
+            "chrome.storage keys read/written"
+          ],
+          "rows": [
+            [
+              "`loadTokens()`",
+              "`c360_extension_access_token`, `c360_extension_refresh_token`"
+            ],
+            [
+              "`saveTokens(access, refresh)`",
+              "`c360_extension_access_token`, `c360_extension_refresh_token`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Global export (non-module context)",
+      "level": 2,
+      "slug": "global-export-non-module-context",
+      "prose": "```js\nglobalThis.Contact360GraphQLSession = {\n  isAccessTokenExpired,   // (token, bufferMs?) → boolean\n  refreshWithGraphQL,     // ({ graphqlUrl, refreshToken }) → { accessToken, refreshToken }\n  ensureAccessToken,      // (opts) → Promise<string|null>\n  createChromeStorageAdapter, // () → { loadTokens, saveTokens }\n  STORAGE_ACCESS,         // \"c360_extension_access_token\"\n  STORAGE_REFRESH,        // \"c360_extension_refresh_token\"\n};\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "js",
+          "value": "globalThis.Contact360GraphQLSession = {\n  isAccessTokenExpired,   // (token, bufferMs?) → boolean\n  refreshWithGraphQL,     // ({ graphqlUrl, refreshToken }) → { accessToken, refreshToken }\n  ensureAccessToken,      // (opts) → Promise<string|null>\n  createChromeStorageAdapter, // () → { loadTokens, saveTokens }\n  STORAGE_ACCESS,         // \"c360_extension_access_token\"\n  STORAGE_REFRESH,        // \"c360_extension_refresh_token\"\n};\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Related documentation",
+      "level": 2,
+      "slug": "related-documentation",
+      "prose": "| Doc | Purpose |\n|---|---|\n| [salesnavigator.api.md](salesnavigator.api.md) | Extension server / harvest flows |\n| [extension-telemetry-schema.md](extension-telemetry-schema.md) | Telemetry log event schema |\n| [logsapi.api.md](logsapi.api.md) | Logs API service contract |\n| [salesnavigator_endpoint_era_matrix.md](../endpoints/salesnavigator_endpoint_era_matrix.md) | Extension HTTP route inventory |\n| [mutation_create_log_graphql.md](../endpoints/mutation_create_log_graphql.md) | CreateLog mutation (auth path used by extension) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Doc",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "[salesnavigator.api.md](salesnavigator.api.md)",
+              "Extension server / harvest flows"
+            ],
+            [
+              "[extension-telemetry-schema.md](extension-telemetry-schema.md)",
+              "Telemetry log event schema"
+            ],
+            [
+              "[logsapi.api.md](logsapi.api.md)",
+              "Logs API service contract"
+            ],
+            [
+              "[salesnavigator_endpoint_era_matrix.md](../endpoints/salesnavigator_endpoint_era_matrix.md)",
+              "Extension HTTP route inventory"
+            ],
+            [
+              "[mutation_create_log_graphql.md](../endpoints/mutation_create_log_graphql.md)",
+              "CreateLog mutation (auth path used by extension)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "salesnavigator.api.md",
+          "href": "salesnavigator.api.md"
+        },
+        {
+          "text": "extension-telemetry-schema.md",
+          "href": "extension-telemetry-schema.md"
+        },
+        {
+          "text": "logsapi.api.md",
+          "href": "logsapi.api.md"
+        },
+        {
+          "text": "salesnavigator_endpoint_era_matrix.md",
+          "href": "../endpoints/salesnavigator_endpoint_era_matrix.md"
+        },
+        {
+          "text": "mutation_create_log_graphql.md",
+          "href": "../endpoints/mutation_create_log_graphql.md"
+        }
+      ]
+    },
+    {
+      "heading": "Era traceability",
+      "level": 2,
+      "slug": "era-traceability",
+      "prose": "| Era | Milestone |\n|---|---|\n| 0.x | Chrome storage adapter wired; `ensureAccessToken` called from background |\n| 4.x | Popup displays auth state machine badge; tab-switch UI added |\n| 6.x | Telemetry events keyed to token state transitions |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Milestone"
+          ],
+          "rows": [
+            [
+              "0.x",
+              "Chrome storage adapter wired; `ensureAccessToken` called from background"
+            ],
+            [
+              "4.x",
+              "Popup displays auth state machine badge; tab-switch UI added"
+            ],
+            [
+              "6.x",
+              "Telemetry events keyed to token state transitions"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

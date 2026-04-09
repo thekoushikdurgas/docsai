@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "4. Contact360 Extension and Sales Navigator maturity/4.1 — Auth & Session.md",
+  "sha256_source": "99909b7b1599d70c343eed0f2327df053d5354e960cebbe4843b350277427a71",
+  "generated_at": "2026-04-08T23:11:50.285959+00:00",
+  "title": "Version 4.1 — Auth & Session",
+  "version": "4.1",
+  "codename": "Auth & Session",
+  "era": 4,
+  "minor": 1,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** Codenames per minor — see **Patch ladder** table in this file (`.0` charter … `.9` seal/handoff).",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"4.1.x Auth & Session\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    gql[\"graphqlSession.js\"] --> store[\"chrome.storage.local\"]\n    store --> timer[\"Proactive 5-min check\"]\n    timer --> refresh[\"refreshToken mutation\"]\n    refresh --> bearer[\"Valid Bearer header\"]\n    bearer --> api[\"Authenticated API calls\"]\n    api --> gate[\"4.1 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** Codenames per minor — see **Patch ladder** table in this file (`.0` charter … `.9` seal/handoff).\nTheme: **Session** — codenames in per-patch `4.1.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: `graphqlSession.js` — `isAccessTokenExpired`, `refreshWithGraphQL`, `ensureAccessToken`, `createChromeStorageAdapter` implemented with 60-second early-refresh buffer.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: `graphqlSession.js` uses ES module `export` keyword — `manifest.json` does not declare `type: \"module\"` in `content_scripts` or service worker; script will fail silently when loaded in non-module context; must wrap in IIFE or add `\"type\": \"module\"` to manifest `background` entry.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Single-flight refresh (no stampede) — add mutex/lock flag to prevent token refresh stampede when multiple concurrent API calls detect expiry simultaneously.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Telemetry: `extension.session.token_refreshed` — **Service task slices** in `4.1.P` patch files (scope from former `logsapi-extension-salesnav-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — **chrome extension**: graphq…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Extension auth UX; re-auth modal or redirect.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Session/token persistence is client-side; server-side session tables only if API stores refresh rotation metadata.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[salesnavigator]** — refine duplicate task (was…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[salesnavigator]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `4.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/salesnavigator-codebase-analysis.md",
+        "codebase": "salesnavigator",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 4.1 — Auth & Session",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (4.1.0 – 4.1.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

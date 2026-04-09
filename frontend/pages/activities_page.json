@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "kind": "page_spec",
+  "source_path": "frontend/pages/activities_page.md",
+  "sha256_source": "64de1922bee095251656d5335a489e5d7da1007eeaa6059b194800fa14259ed2",
+  "generated_at": "2026-04-08T23:26:48.706469+00:00",
+  "title": "Activities",
+  "raw_markdown": "---\ntitle: \"Activities\"\npage_id: activities_page\nsource_json: activities_page.json\ngenerator: json_to_markdown.py\n---\n\n# Activities\n\n## Overview\n\n- **page_id:** activities_page\n- **page_type:** dashboard\n- **codebase:** app\n- **surface:** App (Dashboard)\n- **era_tags:** 0.x, 1.x, 6.x, 11.x\n- **flow_id:** activities\n- **_id:** activities_page-001\n\n## Metadata\n\n- **route:** /activities\n- **file_path:** contact360.io/app/app/(dashboard)/activities/page.tsx\n- **purpose:** Activity tracking page with stats cards, filterable activity table, and details modal. Filters: service_type, action_type, status, date range. Data batched via activitiesPageApi (activities + activityStats).\n- **s3_key:** data/pages/activities_page.json\n- **status:** published\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None\n- **page_state:** development\n- **last_updated:** 2026-03-29T00:00:00.000000+00:00\n### uses_endpoints (2)\n\n- `graphql/GetActivities` — List user activities via activities.activities. Filters: serviceType, actionType, status, startDate, endDate, limit, offset. Batched in activitiesPageApi via useActivitiesPage.\n- `graphql/GetActivityStats` — Get activity stats via activities.activityStats. Returns totalActivities, byServiceType, byActionType, byStatus. Batched in activitiesPageApi via useActivitiesPage. Optional (includeStats).\n\n### UI components (metadata)\n\n- **ActivitiesPage** — `app/(dashboard)/activities/page.tsx`\n- **ActivitiesSidebar** — `components/activities/ActivitiesSidebar.tsx`\n- **ActivitiesToolbar** — `components/activities/ActivitiesToolbar.tsx`\n- **ActivityStatsCards** — `components/activities/ActivityStatsCards.tsx`\n- **ActivityTable** — `components/activities/ActivityTable.tsx`\n- **ActivitiesPagination** — `components/activities/ActivitiesPagination.tsx`\n- **ActivityDetailsModal** — `components/activities/ActivityDetailsModal.tsx`\n- **LottiePlayer** — `components/shared/LottiePlayer.tsx`\n- **ErrorState** — `components/shared/ErrorState.tsx`\n- **EmptyState** — `components/shared/EmptyState.tsx`\n\n- **versions:** []\n- **endpoint_count:** 2\n### api_versions\n\n- graphql\n\n- **codebase:** app\n- **canonical_repo:** contact360.io/app\n\n## Content sections (summary)\n\n### title\n\nActivities\n\n### description\n\nActivity tracking page with stats cards, filterable activity table, and details modal. Filters: service_type, action_type, status, date range. Data batched via activitiesPageApi (activities + activityStats).\n\n\n## Sections (UI structure)\n\n### headings\n\n| id | level | text |\n| --- | --- | --- |\n| stats | 2 | Statistics |\n| table | 2 | Activity Table |\n\n\n### subheadings\n\n\n\n### tabs\n\n\n\n### buttons\n\n| action | component | id | label | type | era |\n| --- | --- | --- | --- | --- | --- |\n| ActivitiesToolbar.onRefresh | ActivitiesToolbar | refresh-activities | Refresh | icon | 6.x |\n| ActivitiesToolbar.onOpenFilters | ActivitiesToolbar | open-filters | Filters | secondary | 0.x |\n| ActivityTable.onSelectActivity | ActivityTable | view-activity-detail | View Details | ghost | 0.x |\n| ActivitiesSidebar.onFiltersChange (reset) | ActivitiesSidebar | clear-filters | Clear Filters | secondary | 0.x |\n| ActivityDetailsModal.onCopyTraceId | ActivityDetailsModal | copy-trace-id | Copy Trace ID | ghost | 6.x |\n\n\n### input_boxes\n\n| component | id | label | placeholder | required | type | era |\n| --- | --- | --- | --- | --- | --- | --- |\n| ActivitiesSidebar | search-activities | Search | Search activities... | False | search | 0.x |\n| ActivitiesSidebar | date-start | From date |  | False | date | 0.x |\n| ActivitiesSidebar | date-end | To date |  | False | date | 0.x |\n| ActivitiesSidebar | service-filter | Service | Select service... | False | select | 0.x |\n\n\n### text_blocks\n\n| component | content | id | type | era |\n| --- | --- | --- | --- | --- |\n| ActivityTable | No activities yet. Start by finding an email or uploading a CSV file. | empty-activities | empty-state | 0.x |\n| LottiePlayer | src=\"/animation/activity.json\" | loading-anim | lottie | 6.x |\n| ActivitiesToolbar | Syncing in background... | background-sync | info | 6.x |\n\n\n### components\n\n\n\n### checkboxes\n\n\n\n### radio_buttons\n\n\n\n### progress_bars\n\n\n\n### graphs\n\n| chart_type | component | data_source | id | label | metrics |\n| --- | --- | --- | --- | --- | --- |\n| stat_cards | ActivityStatsCard | activitiesService.GetActivityStats | activity-stats-cards | Activity summary stat cards | ['total', 'success', 'failed', 'pending'] |\n\n\n### flows\n\n| component | id | label | steps |\n| --- | --- | --- | --- |\n| ActivitiesPage | activity-filter-flow | Filter and view activities | ['Select service_type filter (finder/verifier/export/import)', 'Select action_type filter', 'Select status (success/failed/pending)', 'Set date range', 'useActivitiesPage refetches with new filters',  |\n\n\n### utilities\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| lib/activitiesConstants.ts | activitiesConstants | ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_COLORS by type |\n\n\n### services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/activitiesService.ts | activitiesService | ['GetActivities', 'GetActivityStats'] |\n\n\n### hooks\n\n| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| hooks/useActivities.ts | useActivities | Activity data fetching, stats, and pagination | 6.x |\n| lib/dashboardMapper.ts | mapActivityItemToDisplay | Transform raw API items for UI display | 0.x |\n| context/AuthContext.tsx | AuthContext | User ID for filtering own activities |\n\n\n### contexts\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | User ID for filtering own activities |\n\n\n### ui_components\n\n\n\n### endpoints\n\n| hook | method | operation | service |\n| --- | --- | --- | --- |\n| useActivitiesPage | QUERY | GetActivities | activitiesService |\n| useActivitiesPage | QUERY | GetActivityStats | activitiesService |\n\n\n## UI elements (top-level)\n\n### buttons\n\n| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| refresh-activities | Refresh | icon | refetch activities + stats | PageHeader |\n| view-activity-detail | View Details | ghost | open ActivityDetailsModal | ActivitiesTable |\n| clear-filters | Clear Filters | secondary | reset all filter state | ActivitiesFilters |\n\n\n### inputs\n\n| id | label | type | placeholder | component |\n| --- | --- | --- | --- | --- |\n| search-activities | Search | search | Search activities... | ActivitiesToolbar |\n| date-start | From date | date |  | ActivitiesFilters |\n| date-end | To date | date |  | ActivitiesFilters |\n\n\n### checkboxes\n\n[]\n\n### radio_buttons\n\n[]\n\n### progress_bars\n\n[]\n\n### toasts\n\n[]\n\n## Hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useActivities.ts | useActivitiesPage | Batched activities + activityStats; filter state management |\n| hooks/useActivities.ts | useActivities | Activity list with pagination and filter |\n\n\n## Services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/activitiesService.ts | activitiesService | ['GetActivities', 'GetActivityStats'] |\n\n\n## Backend Bindings\n\n| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql/GetActivities, graphql/GetActivityStats | dashboard data and mutations via services/hooks |\n\n\n## Data Sources\n\n- Appointment360 GraphQL gateway\n- Service modules: activitiesService\n- Backend-owned data stores (via GraphQL modules)\n\n\n## Flow summary\n\napp page UI -> useActivitiesPage, useActivities -> activitiesService -> GraphQL gateway -> backend modules -> rendered states\n\n\n<!-- AUTO:design-nav:start -->\n\n## Era coverage (Contact360 0.x–10.x)\n\nThis page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **1.x** — User / billing / credit — profile, usage, billing, register/login, credit UX, admin app stats.\n- **6.x** — Reliability & scaling — analytics, activities, jobs, status, error/retry/skeleton patterns.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/activities`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.\n\n## Backend API documentation\n\n- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md).\n\n### Peer pages (same codebase)\n\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| `GetActivities` | [get_activities_graphql.md](../../backend/endpoints/get_activities_graphql.md) | QUERY | 0.x |\n| `GetActivityStats` | [query_get_activity_stats_graphql.md](../../backend/endpoints/query_get_activity_stats_graphql.md) | QUERY | 6.x |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n---\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*\n",
+  "front_matter": {
+    "title": "\"Activities\"",
+    "page_id": "activities_page",
+    "source_json": "activities_page.json",
+    "generator": "json_to_markdown.py"
+  },
+  "page_id": "activities_page",
+  "page_type": "dashboard",
+  "codebase": "app",
+  "surface": "App (Dashboard)",
+  "era_tags": [
+    "0.x",
+    "1.x",
+    "6.x",
+    "11.x"
+  ],
+  "flow_id": "activities",
+  "metadata": {
+    "route": "/activities",
+    "file_path": "contact360.io/app/app/(dashboard)/activities/page.tsx",
+    "purpose": "Activity tracking page with stats cards, filterable activity table, and details modal. Filters: service_type, action_type, status, date range. Data batched via activitiesPageApi (activities + activityStats).",
+    "s3_key": "data/pages/activities_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "None",
+    "page_state": "development",
+    "last_updated": "2026-03-29T00:00:00.000000+00:00"
+  },
+  "uses_endpoints": [
+    {
+      "endpoint": "graphql/GetActivities",
+      "description": "List user activities via activities.activities. Filters: serviceType, actionType, status, startDate, endDate, limit, offset. Batched in activitiesPageApi via useActivitiesPage."
+    },
+    {
+      "endpoint": "graphql/GetActivityStats",
+      "description": "Get activity stats via activities.activityStats. Returns totalActivities, byServiceType, byActionType, byStatus. Batched in activitiesPageApi via useActivitiesPage. Optional (includeStats)."
+    }
+  ],
+  "ui_components": [
+    {
+      "name": "ActivitiesPage",
+      "file_path": "app/(dashboard)/activities/page.tsx",
+      "description": null
+    },
+    {
+      "name": "ActivitiesSidebar",
+      "file_path": "components/activities/ActivitiesSidebar.tsx",
+      "description": null
+    },
+    {
+      "name": "ActivitiesToolbar",
+      "file_path": "components/activities/ActivitiesToolbar.tsx",
+      "description": null
+    },
+    {
+      "name": "ActivityStatsCards",
+      "file_path": "components/activities/ActivityStatsCards.tsx",
+      "description": null
+    },
+    {
+      "name": "ActivityTable",
+      "file_path": "components/activities/ActivityTable.tsx",
+      "description": null
+    },
+    {
+      "name": "ActivitiesPagination",
+      "file_path": "components/activities/ActivitiesPagination.tsx",
+      "description": null
+    },
+    {
+      "name": "ActivityDetailsModal",
+      "file_path": "components/activities/ActivityDetailsModal.tsx",
+      "description": null
+    },
+    {
+      "name": "LottiePlayer",
+      "file_path": "components/shared/LottiePlayer.tsx",
+      "description": null
+    },
+    {
+      "name": "ErrorState",
+      "file_path": "components/shared/ErrorState.tsx",
+      "description": null
+    },
+    {
+      "name": "EmptyState",
+      "file_path": "components/shared/EmptyState.tsx",
+      "description": null
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Activities",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "api_versions",
+      "level": 3,
+      "prose": "- graphql\n\n- **codebase:** app\n- **canonical_repo:** contact360.io/app"
+    },
+    {
+      "heading": "Content sections (summary)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "title",
+      "level": 3,
+      "prose": "Activities"
+    },
+    {
+      "heading": "description",
+      "level": 3,
+      "prose": "Activity tracking page with stats cards, filterable activity table, and details modal. Filters: service_type, action_type, status, date range. Data batched via activitiesPageApi (activities + activityStats)."
+    },
+    {
+      "heading": "Sections (UI structure)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "headings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| stats | 2 | Statistics |\n| table | 2 | Activity Table |"
+    },
+    {
+      "heading": "subheadings",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "tabs",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| action | component | id | label | type | era |\n| --- | --- | --- | --- | --- | --- |\n| ActivitiesToolbar.onRefresh | ActivitiesToolbar | refresh-activities | Refresh | icon | 6.x |\n| ActivitiesToolbar.onOpenFilters | ActivitiesToolbar | open-filters | Filters | secondary | 0.x |\n| ActivityTable.onSelectActivity | ActivityTable | view-activity-detail | View Details | ghost | 0.x |\n| ActivitiesSidebar.onFiltersChange (reset) | ActivitiesSidebar | clear-filters | Clear Filters | secondary | 0.x |\n| ActivityDetailsModal.onCopyTraceId | ActivityDetailsModal | copy-trace-id | Copy Trace ID | ghost | 6.x |"
+    },
+    {
+      "heading": "input_boxes",
+      "level": 3,
+      "prose": "| component | id | label | placeholder | required | type | era |\n| --- | --- | --- | --- | --- | --- | --- |\n| ActivitiesSidebar | search-activities | Search | Search activities... | False | search | 0.x |\n| ActivitiesSidebar | date-start | From date |  | False | date | 0.x |\n| ActivitiesSidebar | date-end | To date |  | False | date | 0.x |\n| ActivitiesSidebar | service-filter | Service | Select service... | False | select | 0.x |"
+    },
+    {
+      "heading": "text_blocks",
+      "level": 3,
+      "prose": "| component | content | id | type | era |\n| --- | --- | --- | --- | --- |\n| ActivityTable | No activities yet. Start by finding an email or uploading a CSV file. | empty-activities | empty-state | 0.x |\n| LottiePlayer | src=\"/animation/activity.json\" | loading-anim | lottie | 6.x |\n| ActivitiesToolbar | Syncing in background... | background-sync | info | 6.x |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "graphs",
+      "level": 3,
+      "prose": "| chart_type | component | data_source | id | label | metrics |\n| --- | --- | --- | --- | --- | --- |\n| stat_cards | ActivityStatsCard | activitiesService.GetActivityStats | activity-stats-cards | Activity summary stat cards | ['total', 'success', 'failed', 'pending'] |"
+    },
+    {
+      "heading": "flows",
+      "level": 3,
+      "prose": "| component | id | label | steps |\n| --- | --- | --- | --- |\n| ActivitiesPage | activity-filter-flow | Filter and view activities | ['Select service_type filter (finder/verifier/export/import)', 'Select action_type filter', 'Select status (success/failed/pending)', 'Set date range', 'useActivitiesPage refetches with new filters',  |"
+    },
+    {
+      "heading": "utilities",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| lib/activitiesConstants.ts | activitiesConstants | ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_COLORS by type |"
+    },
+    {
+      "heading": "services",
+      "level": 3,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/activitiesService.ts | activitiesService | ['GetActivities', 'GetActivityStats'] |"
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "prose": "| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| hooks/useActivities.ts | useActivities | Activity data fetching, stats, and pagination | 6.x |\n| lib/dashboardMapper.ts | mapActivityItemToDisplay | Transform raw API items for UI display | 0.x |\n| context/AuthContext.tsx | AuthContext | User ID for filtering own activities |"
+    },
+    {
+      "heading": "contexts",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | User ID for filtering own activities |"
+    },
+    {
+      "heading": "UI elements (top-level)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| refresh-activities | Refresh | icon | refetch activities + stats | PageHeader |\n| view-activity-detail | View Details | ghost | open ActivityDetailsModal | ActivitiesTable |\n| clear-filters | Clear Filters | secondary | reset all filter state | ActivitiesFilters |"
+    },
+    {
+      "heading": "inputs",
+      "level": 3,
+      "prose": "| id | label | type | placeholder | component |\n| --- | --- | --- | --- | --- |\n| search-activities | Search | search | Search activities... | ActivitiesToolbar |\n| date-start | From date | date |  | ActivitiesFilters |\n| date-end | To date | date |  | ActivitiesFilters |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "toasts",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "Hooks",
+      "level": 2,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useActivities.ts | useActivitiesPage | Batched activities + activityStats; filter state management |\n| hooks/useActivities.ts | useActivities | Activity list with pagination and filter |"
+    },
+    {
+      "heading": "Services",
+      "level": 2,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/activitiesService.ts | activitiesService | ['GetActivities', 'GetActivityStats'] |"
+    },
+    {
+      "heading": "Backend Bindings",
+      "level": 2,
+      "prose": "| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql/GetActivities, graphql/GetActivityStats | dashboard data and mutations via services/hooks |"
+    },
+    {
+      "heading": "Data Sources",
+      "level": 2,
+      "prose": "- Appointment360 GraphQL gateway\n- Service modules: activitiesService\n- Backend-owned data stores (via GraphQL modules)"
+    },
+    {
+      "heading": "Flow summary",
+      "level": 2,
+      "prose": "app page UI -> useActivitiesPage, useActivities -> activitiesService -> GraphQL gateway -> backend modules -> rendered states\n\n\n<!-- AUTO:design-nav:start -->"
+    },
+    {
+      "heading": "Era coverage (Contact360 0.x–10.x)",
+      "level": 2,
+      "prose": "This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **1.x** — User / billing / credit — profile, usage, billing, register/login, credit UX, admin app stats.\n- **6.x** — Reliability & scaling — analytics, activities, jobs, status, error/retry/skeleton patterns.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md)."
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era."
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/activities`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth."
+    },
+    {
+      "heading": "Backend API documentation",
+      "level": 2,
+      "prose": "- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md)."
+    },
+    {
+      "heading": "Peer pages (same codebase)",
+      "level": 3,
+      "prose": "- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Activities\"\npage_id: activities_page\nsource_json: activities_page.json\ngenerator: json_to_markdown.py\n---\n\n## Overview\n\n- **page_id:** activities_page\n- **page_type:** dashboard\n\n- **era_tags:** 0.x, 1.x, 6.x, 11.x\n- **flow_id:** activities\n- **_id:** activities_page-001\n\n## Metadata\n\n- **s3_key:** data/pages/activities_page.json\n\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None\n- **page_state:** development\n- **last_updated:** 2026-03-29T00:00:00.000000+00:00\n### uses_endpoints (2)\n\n### UI components (metadata)\n\n- **endpoint_count:** 2\n\n### ui_components\n\n| hook | method | operation | service |\n\n| useActivitiesPage | QUERY | GetActivities | activitiesService |\n| useActivitiesPage | QUERY | GetActivityStats | activitiesService |\n\n| GraphQL operation | Endpoint spec | Method | Era |\n\n| `GetActivities` | [get_activities_graphql.md](../../backend/endpoints/get_activities_graphql.md) | QUERY | 0.x |\n| `GetActivityStats` | [query_get_activity_stats_graphql.md](../../backend/endpoints/query_get_activity_stats_graphql.md) | QUERY | 6.x |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*"
+}

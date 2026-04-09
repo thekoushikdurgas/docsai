@@ -1,0 +1,435 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/07_S3_MODULE.md",
+  "sha256_source": "2bf43495dc285db691bad946ad612c15870ce484453097132b9cc2b5ecf1529c",
+  "generated_at": "2026-04-08T23:11:52.791236+00:00",
+  "title": "S3 Module",
+  "module_number": 7,
+  "module_name": "S3",
+  "location": "s3storage",
+  "overview": "The S3 module provides file operations for listing, reading, and getting metadata about CSV files stored via the `s3storage` microservice, plus **mutations for multipart CSV upload** that return a logical **file_key**. It is used for accessing export files, uploading CSVs for jobs, and downloading via presigned URLs. **Location:** `app/graphql/modules/s3/` GraphQL paths: `query { s3 { s3Files(...) { ... } } }`, `mutation { s3 { initiateCsvUpload(...) { ... } completeCsvUpload(...) { ... } deleteFile(...) } }`. **Mutations:** `initiateCsvUpload` / `completeCsvUpload` reuse upload-session types: `InitiateCsvUploadInput` plus **`CompleteUploadInput`** (same shape as `upload.completeUpload`) for completion. Use `upload.presignedUrl` and `upload.registerPart` for each part between initiate and complete. `deleteFile(fileKey: String!)` returns `Boolean`.",
+  "operations": [
+    {
+      "name": "s3Files",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`prefix`",
+          "graphql_type": "`String` (default `\"\"`)"
+        }
+      ],
+      "return_type": "`S3FileList`",
+      "description": null
+    },
+    {
+      "name": "s3FileData",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`fileKey`, `limit`, `offset`",
+          "graphql_type": "`String!`, `Int`, `Int`"
+        }
+      ],
+      "return_type": "`S3FileData`",
+      "description": null
+    },
+    {
+      "name": "s3FileInfo",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`fileKey`",
+          "graphql_type": "`String!`"
+        }
+      ],
+      "return_type": "`S3FileInfo`",
+      "description": null
+    },
+    {
+      "name": "s3FileDownloadUrl",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`fileKey`, `expiresIn`",
+          "graphql_type": "`String!`, `Int`"
+        }
+      ],
+      "return_type": "`S3DownloadUrlResponse`",
+      "description": null
+    },
+    {
+      "name": "s3FileSchema",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`fileKey`",
+          "graphql_type": "`String!`"
+        }
+      ],
+      "return_type": "`[FileSchemaColumn!]!`",
+      "description": null
+    },
+    {
+      "name": "s3FileStats",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`fileKey`",
+          "graphql_type": "`String!`"
+        }
+      ],
+      "return_type": "`S3FileStats`",
+      "description": null
+    },
+    {
+      "name": "s3BucketMetadata",
+      "operation_type": "query",
+      "parameters": [],
+      "return_type": "`JSON!`",
+      "description": null
+    },
+    {
+      "name": "initiateCsvUpload",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`InitiateCsvUploadInput!`"
+        }
+      ],
+      "return_type": "`InitiateUploadResponse!`",
+      "description": null
+    },
+    {
+      "name": "completeCsvUpload",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`input`",
+          "graphql_type": "`CompleteUploadInput!`"
+        }
+      ],
+      "return_type": "`CompleteUploadResponse!`",
+      "description": null
+    },
+    {
+      "name": "deleteFile",
+      "operation_type": "query",
+      "parameters": [
+        {
+          "name": "`fileKey`",
+          "graphql_type": "`String!`"
+        }
+      ],
+      "return_type": "`Boolean!`",
+      "description": null
+    }
+  ],
+  "sdl_excerpt": "type S3Query {\n  s3Files(prefix: String = \"\"): S3FileList!\n  s3FileData(fileKey: String!, limit: Int = null, offset: Int = null): S3FileData!\n  s3FileInfo(fileKey: String!): S3FileInfo!\n  s3FileDownloadUrl(fileKey: String!, expiresIn: Int = null): S3DownloadUrlResponse!\n  s3FileSchema(fileKey: String!): [FileSchemaColumn!]!\n  s3FileStats(fileKey: String!): S3FileStats!\n  s3BucketMetadata: JSON!\n}\n\ntype S3Mutation {\n  initiateCsvUpload(input: InitiateCsvUploadInput!): InitiateUploadResponse!\n  completeCsvUpload(input: CompleteUploadInput!): CompleteUploadResponse!\n  deleteFile(fileKey: String!): Boolean!\n}\n\ninput InitiateCsvUploadInput {\n  filename: String!\n  fileSize: BigInt!\n}\n\ninput CompleteUploadInput {\n  uploadId: String!\n}",
+  "error_codes": [
+    "The S3 module implements comprehensive error handling with input validation, S3 service error handling, and response validation.",
+    "The S3 module may raise the following errors:",
+    "**NotFoundError** (404): File not found in S3",
+    "Code: `NOT_FOUND`",
+    "Extensions: `resourceType: \"S3File\"`, `identifier: <file_key>`",
+    "Occurs when: Requested file key does not exist in S3 bucket",
+    "**ServiceUnavailableError** (503): S3 service not configured or unavailable",
+    "Code: `SERVICE_UNAVAILABLE`",
+    "Extensions: `serviceName: \"s3\"`",
+    "Occurs when: S3 service is not configured, connection fails, or bucket is inaccessible",
+    "**ValidationError** (422): Input validation failed",
+    "Code: `VALIDATION_ERROR`",
+    "Extensions: `fieldErrors` (field-specific errors)",
+    "Occurs when: Invalid file key format, limit out of range (must be 1-1000), invalid offset (must be non-negative), or invalid prefix format",
+    "**BadRequestError** (400): Invalid request data",
+    "Code: `BAD_REQUEST`",
+    "Occurs when: Request format is invalid or required parameters are missing",
+    "**Example: File Not Found**",
+    "**Example: Validation Error**",
+    "**Example: Service Unavailable**",
+    "**Input Validation**: File keys, limits, offsets, and prefixes are validated before processing",
+    "**S3 Service Errors**: S3 API errors are caught and converted to appropriate GraphQL errors",
+    "**CSV Parsing Errors**: CSV parsing errors are handled gracefully with clear error messages",
+    "**Response Validation**: File metadata and CSV data are validated before returning",
+    "**Error Logging**: Comprehensive error logging with context for debugging",
+    "**Input Validation**: All inputs are validated before processing",
+    "String length validation (prefix, fileKey)",
+    "Pagination validation (limit, offset)",
+    "**S3 Service Error Handling**: S3 API errors are handled centrally via `handle_s3_error`",
+    "Connection errors are converted to ServiceUnavailableError",
+    "FileNotFoundError is converted to NotFoundError",
+    "Other S3 errors are logged and converted to appropriate GraphQL errors",
+    "**Response Validation**: File metadata and CSV data are validated before returning",
+    "File list structure validation",
+    "CSV row data validation",
+    "File info structure validation",
+    "**Error Logging**: Comprehensive error logging with context for debugging",
+    "User UUID, file key, operation type, and error details are logged"
+  ],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "S3 Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "REST backend: EC2/s3storage.server (HTTP)",
+      "level": 2,
+      "prose": "The gateway uses **`S3StorageEC2Client`** (`app/clients/s3storage_ec2_client.py`) to call the Go service. Base URL: `LAMBDA_S3STORAGE_API_URL`; auth: **`X-API-Key`** (`LAMBDA_S3STORAGE_API_KEY`), or `?api_key=` for GETs. **Contract:** [s3storage.api.md](../micro.services.apis/s3storage.api.md) · **Postman:** [EC2_s3storage.server.postman_collection.json](../postman/EC2_s3storage.server.postman_collection.json). **Mapping shim** (Lambda vs Go): `s3storage_ec2_client.py` docstring at top of file.",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — full request and response",
+      "level": 2,
+      "prose": "Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "s3.s3Files (query)",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($prefix: String) { s3 { s3Files(prefix: $prefix) { total files { key filename size } } } }\",\n  \"variables\": { \"prefix\": \"\" }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "s3.s3FileDownloadUrl (query)",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($fileKey: String!, $expiresIn: Int) { s3 { s3FileDownloadUrl(fileKey: $fileKey, expiresIn: $expiresIn) { downloadUrl expiresIn } } }\",\n  \"variables\": { \"fileKey\": \"upload/20260210_120000_contacts.csv\", \"expiresIn\": 3600 }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Types",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "S3FileInfo",
+      "level": 3,
+      "prose": "S3 file information. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type S3FileInfo {\n  key: String!\n  filename: String!\n  size: Int\n  lastModified: DateTime\n  contentType: String\n}"
+        }
+      ]
+    },
+    {
+      "heading": "S3FileList",
+      "level": 3,
+      "prose": "List of S3 files along with a display name for the logical bucket.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type S3FileList {\n  files: [S3FileInfo!]!\n  total: Int!\n  bucketDisplayName: String\n}"
+        }
+      ]
+    },
+    {
+      "heading": "S3FileData",
+      "level": 3,
+      "prose": "Paginated CSV file data.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type S3FileData {\n  fileKey: String!\n  rows: [S3FileDataRow!]!\n  limit: Int!\n  offset: Int!\n  totalRows: Int\n}"
+        }
+      ]
+    },
+    {
+      "heading": "S3DownloadUrlResponse",
+      "level": 3,
+      "prose": "Response containing presigned download URL for S3 file. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type S3DownloadUrlResponse {\n  downloadUrl: String!\n  expiresIn: Int!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "S3FileDataRow",
+      "level": 3,
+      "prose": "A single CSV row. **Fields:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "type S3FileDataRow {\n  data: JSON!\n}"
+        }
+      ]
+    },
+    {
+      "heading": "s3Files",
+      "level": 3,
+      "prose": "List all CSV files in the user's logical bucket. **Parameters:** **Variables:** **Arguments:** **Returns:** `S3FileList` **Authentication:** Required **Validation:** **Implementation Details:** **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query ListS3Files($prefix: String) {\n  s3 {\n    s3Files(prefix: $prefix) {\n      files {\n        key\n        filename\n        size\n        lastModified\n        contentType\n      }\n      total\n      bucketDisplayName\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"prefix\": \"upload/\"\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"s3\": {\n      \"s3Files\": {\n        \"files\": [\n          {\n            \"key\": \"exports/exp_123456.csv\",\n            \"filename\": \"exp_123456.csv\",\n            \"size\": 524288,\n            \"lastModified\": \"2024-01-15T10:30:00Z\",\n            \"contentType\": \"text/csv\"\n          }\n        ],\n        \"total\": 1\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "s3FileData",
+      "level": 3,
+      "prose": "Get paginated CSV file data from S3. **Parameters:** **Variables:** **Arguments:** **Returns:** `S3FileData` **Authentication:** Required **Validation:** **Implementation Details:** **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetS3FileData($fileKey: String!, $limit: Int!, $offset: Int) {\n  s3 {\n    s3FileData(fileKey: $fileKey, limit: $limit, offset: $offset) {\n      fileKey\n      rows {\n        data\n      }\n      limit\n      offset\n      totalRows\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"fileKey\": \"upload/exp_123456.csv\",\n  \"limit\": 100,\n  \"offset\": 0\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"s3\": {\n      \"s3FileData\": {\n        \"fileKey\": \"exports/exp_123456.csv\",\n        \"rows\": [\n          {\n            \"data\": {\n              \"uuid\": \"123e4567-e89b-12d3-a456-426614174000\",\n              \"firstName\": \"John\",\n              \"lastName\": \"Doe\",\n              \"email\": \"john.doe@example.com\"\n            }\n          }\n        ],\n        \"limit\": 100,\n        \"offset\": 0,\n        \"totalRows\": 150\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "s3FileInfo",
+      "level": 3,
+      "prose": "Get metadata/information about a CSV file in S3. **Parameters:**",
+      "code_blocks": []
+    },
+    {
+      "heading": "s3FileDownloadUrl",
+      "level": 3,
+      "prose": "Get presigned download URL for an S3 file. Returns a presigned URL that allows direct download from S3. The URL expires after the specified time (default: 1 hour). **Parameters:** **Variables:** **Arguments:** **Returns:** `S3DownloadUrlResponse` **Authentication:** Required **Validation:** **Implementation Details:** **Example Response:** **Arguments:** **Returns:** `S3FileInfo` **Authentication:** Required **Validation:** **Implementation Details:** **Example Response:**",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "query GetS3FileDownloadUrl($fileKey: String!, $expiresIn: Int) {\n  s3 {\n    s3FileDownloadUrl(fileKey: $fileKey, expiresIn: $expiresIn) {\n      downloadUrl\n      expiresIn\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"fileKey\": \"exports/exp_123456.csv\",\n  \"expiresIn\": 3600\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"s3\": {\n      \"s3FileDownloadUrl\": {\n        \"downloadUrl\": \"https://s3.amazonaws.com/bucket/exports/exp_123456.csv?X-Amz-Algorithm=...\",\n        \"expiresIn\": 3600\n      }\n    }\n  }\n}"
+        },
+        {
+          "lang": "graphql",
+          "value": "query GetS3FileInfo($fileKey: String!) {\n  s3 {\n    s3FileInfo(fileKey: $fileKey) {\n      key\n      filename\n      size\n      lastModified\n      contentType\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": {\n    \"s3\": {\n      \"s3FileInfo\": {\n        \"key\": \"exports/exp_123456.csv\",\n        \"filename\": \"exp_123456.csv\",\n        \"size\": 524288,\n        \"lastModified\": \"2024-01-15T10:30:00Z\",\n        \"contentType\": \"text/csv\"\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "initiateCsvUpload",
+      "level": 3,
+      "prose": "Initiate multipart upload of a CSV file to S3. Returns `upload_id` and **`file_key`** (S3 object key). **Parameters:** **Variables:** **Arguments:** **Returns:** Same shape as Upload's `InitiateUploadResponse`: `uploadId`, **`fileKey`**, `chunkSize`, `numParts` **Authentication:** Required **Validation:** **Next steps:** Use `upload.presignedUrl(uploadId, partNumber)` for each part, then `upload.registerPart`, then `s3.completeCsvUpload`.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation InitiateCsvUpload($input: InitiateCsvUploadInput!) {\n  s3 {\n    initiateCsvUpload(input: $input) {\n      uploadId\n      fileKey\n      chunkSize\n      numParts\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"filename\": \"contacts.csv\",\n    \"file_size\": 1048576\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "completeCsvUpload",
+      "level": 3,
+      "prose": "Complete the multipart CSV upload and return the final **`file_key`** (S3 object key). **Parameters:** **Variables:** **Arguments:** **Returns:** Same shape as Upload's `CompleteUploadResponse`: `status`, **`fileKey`**, `s3Url`, `location` **Authentication:** Required **Use of file_key:** Pass the returned `fileKey` to `jobs.createContact360Import` (as `s3Key`), `jobs.createEmailFinderExport` (as `input_csv_key`), or `s3.s3FileDownloadUrl(fileKey)` for download.",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation CompleteCsvUpload($input: CompleteUploadInput!) {\n  s3 {\n    completeCsvUpload(input: $input) {\n      status\n      fileKey\n      s3Url\n      location\n    }\n  }\n}"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"input\": {\n    \"upload_id\": \"uuid-from-initiateCsvUpload\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "deleteFile",
+      "level": 3,
+      "prose": "Delete a CSV file from the user's bucket by object key. Uses the same logical bucket as uploads (user's bucket or user UUID). **Parameters:** **Returns:** `Boolean` — `true` on success. **Authentication:** Required **Implementation:** Calls s3storage `DELETE /api/v1/buckets/{bucket_id}/objects?file_key=...`. Bucket is resolved from the authenticated user (`user.bucket` or `user.uuid`).",
+      "code_blocks": [
+        {
+          "lang": "graphql",
+          "value": "mutation DeleteS3File($fileKey: String!) {\n  s3 {\n    deleteFile(fileKey: $fileKey)\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Usage Examples",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Implementation Details",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "s3storage Integration",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Task breakdown (for maintainers)",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Related Modules",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Documentation metadata",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Endpoint/version binding checklist",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

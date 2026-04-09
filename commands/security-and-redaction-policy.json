@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "commands/security-and-redaction-policy.md",
+  "sha256_source": "3f649c149d02343ab0e4072925379241184fc256a2643a72256a8491d2a9c81c",
+  "generated_at": "2026-04-08T23:26:47.513417+00:00",
+  "title": "Security and Redaction Policy for Command Docs",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Security and Redaction Policy for Command Docs",
+      "level": 1,
+      "slug": "security-and-redaction-policy-for-command-docs",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose",
+      "level": 2,
+      "slug": "purpose",
+      "prose": "Prevent accidental exposure of secrets while keeping command documentation executable.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Hard Rules",
+      "level": 2,
+      "slug": "hard-rules",
+      "prose": "- Do not include real API keys, tokens, passwords, private keys, or cookie/session values.\n- Do not include real production credentials in inline examples.\n- Do not include direct Docker login passwords or PAT values in markdown.\n- Do not include real `Authorization` headers in docs.\n- Do not include real host authentication strings in `curl`, `git`, `docker`, or `ssh` examples.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Do not include real API keys, tokens, passwords, private keys, or cookie/session values.",
+              "checked": null
+            },
+            {
+              "text": "Do not include real production credentials in inline examples.",
+              "checked": null
+            },
+            {
+              "text": "Do not include direct Docker login passwords or PAT values in markdown.",
+              "checked": null
+            },
+            {
+              "text": "Do not include real `Authorization` headers in docs.",
+              "checked": null
+            },
+            {
+              "text": "Do not include real host authentication strings in `curl`, `git`, `docker`, or `ssh` examples.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Required Placeholder Format",
+      "level": 2,
+      "slug": "required-placeholder-format",
+      "prose": "Use these placeholders:\n\n- `<API_KEY>`\n- `<TOKEN>`\n- `<PASSWORD>`\n- `<SSH_KEY_PATH>`\n- `<AWS_PROFILE>`\n- `<HOST_OR_DOMAIN>`\n\nExample:\n\n```bash\ncurl -H \"Authorization: Bearer <TOKEN>\" https://<HOST_OR_DOMAIN>/health\n```",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`<API_KEY>`",
+              "checked": null
+            },
+            {
+              "text": "`<TOKEN>`",
+              "checked": null
+            },
+            {
+              "text": "`<PASSWORD>`",
+              "checked": null
+            },
+            {
+              "text": "`<SSH_KEY_PATH>`",
+              "checked": null
+            },
+            {
+              "text": "`<AWS_PROFILE>`",
+              "checked": null
+            },
+            {
+              "text": "`<HOST_OR_DOMAIN>`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "curl -H \"Authorization: Bearer <TOKEN>\" https://<HOST_OR_DOMAIN>/health\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Allowed Operational Details",
+      "level": 2,
+      "slug": "allowed-operational-details",
+      "prose": "- Public hostnames and domains\n- Non-sensitive ports\n- Non-secret stack names\n- Generic service names",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Public hostnames and domains",
+              "checked": null
+            },
+            {
+              "text": "Non-sensitive ports",
+              "checked": null
+            },
+            {
+              "text": "Non-secret stack names",
+              "checked": null
+            },
+            {
+              "text": "Generic service names",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Review Checklist (Before Commit)",
+      "level": 2,
+      "slug": "review-checklist-before-commit",
+      "prose": "- [ ] No values resembling bearer/JWT/API keys\n- [ ] No values resembling private key blocks\n- [ ] No plain-text credentials in command examples\n- [ ] All auth examples use placeholders\n- [ ] Commands are split by shell where needed (PowerShell vs Bash)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "No values resembling bearer/JWT/API keys",
+              "checked": false
+            },
+            {
+              "text": "No values resembling private key blocks",
+              "checked": false
+            },
+            {
+              "text": "No plain-text credentials in command examples",
+              "checked": false
+            },
+            {
+              "text": "All auth examples use placeholders",
+              "checked": false
+            },
+            {
+              "text": "Commands are split by shell where needed (PowerShell vs Bash)",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Legacy File Remediation Guidance",
+      "level": 2,
+      "slug": "legacy-file-remediation-guidance",
+      "prose": "When sanitizing historical files such as `commands.txt`, prioritize:\n\n1. API keys in inline comments or examples.\n2. Docker login tokens/password examples.\n3. Hardcoded credential strings in database connection examples.\n4. Any direct secret in environment-variable command examples.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "API keys in inline comments or examples.",
+              "checked": null
+            },
+            {
+              "text": "Docker login tokens/password examples.",
+              "checked": null
+            },
+            {
+              "text": "Hardcoded credential strings in database connection examples.",
+              "checked": null
+            },
+            {
+              "text": "Any direct secret in environment-variable command examples.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Incident Rule",
+      "level": 2,
+      "slug": "incident-rule",
+      "prose": "If a secret is found in docs:\n\n1. Remove it immediately.\n2. Rotate the secret.\n3. Note rotation in release/incident records.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Remove it immediately.",
+              "checked": null
+            },
+            {
+              "text": "Rotate the secret.",
+              "checked": null
+            },
+            {
+              "text": "Note rotation in release/incident records.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deep Task Breakdown (Security Hygiene)",
+      "level": 2,
+      "slug": "deep-task-breakdown-security-hygiene",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1) Detect",
+      "level": 3,
+      "slug": "1-detect",
+      "prose": "- Search command docs for high-risk token patterns.\n- Review recent edits for accidental credential insertion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Search command docs for high-risk token patterns.",
+              "checked": null
+            },
+            {
+              "text": "Review recent edits for accidental credential insertion.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2) Contain",
+      "level": 3,
+      "slug": "2-contain",
+      "prose": "- Redact exposed values with placeholders.\n- Remove sensitive references from examples and comments.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Redact exposed values with placeholders.",
+              "checked": null
+            },
+            {
+              "text": "Remove sensitive references from examples and comments.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3) Remediate",
+      "level": 3,
+      "slug": "3-remediate",
+      "prose": "- Rotate compromised secrets.\n- Update dependent environments/config safely.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Rotate compromised secrets.",
+              "checked": null
+            },
+            {
+              "text": "Update dependent environments/config safely.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4) Prevent",
+      "level": 3,
+      "slug": "4-prevent",
+      "prose": "- Keep this policy linked in release checklist.\n- Ensure command docs remain placeholder-only for secrets.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Keep this policy linked in release checklist.",
+              "checked": null
+            },
+            {
+              "text": "Ensure command docs remain placeholder-only for secrets.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

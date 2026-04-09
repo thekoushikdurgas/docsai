@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "3. Contact360 contact and company data system/3.5 — Import-Export Pipeline.md",
+  "sha256_source": "f995ca1f9ce6e756f3c1ee2ac6d3e9c1d7b8c5cf8cc3dd9baf6894b15dae7102",
+  "generated_at": "2026-04-08T23:11:50.241917+00:00",
+  "title": "Version 3.5 — Import/Export Pipeline",
+  "version": "3.5",
+  "codename": "Import-Export Pipeline",
+  "era": 3,
+  "minor": 5,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands (universal ladder):** `.0` Charter · `.1` Connectra · `.2` Gateway · `.3` Dashboard · `.4` Jobs/S3 · `.5` Satellite · `.6` Observability · `.7` Hardening · `.8` Evidence · `.9` Gate / handoff.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"3.5.x Import Export Pipeline\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    up[\"upload or ingest trigger\"] --> prep[\"contact360_import_prepare\"]\n    prep --> dag[\"job DAG nodes\"]\n    dag --> stream[\"stream processor PG plus OS\"]\n    stream --> validate[\"validate vql for export\"]\n    validate --> exp[\"contact360_export_stream\"]\n    exp --> out[\"artifact download\"]\n    out --> trace[\"job_response plus VQL lineage\"]\n    trace --> gate[\"3.5 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands (universal ladder):** `.0` Charter · `.1` Connectra · `.2` Gateway · `.3` Dashboard · `.4` Jobs/S3 · `.5` Satellite · `.6` Observability · `.7` Hardening · `.8` Evidence · `.9` Gate / handoff.\nTheme: **Pipeline** — codenames in per-patch `3.5.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Freeze **import/export** job create payloads — **Service task slices** in `3.5.P` patch files (scope from former `jobs-contact-company-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[connectra]** — refine duplicate task (was: 📌 p…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[connectra]** — refine duplicate task (was: 📌 p…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[connectra]** — refine duplicate task (was: 📌 p…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[connectra]** — refine duplicate task (was: 📌 p…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Data jobs UI; error and partial progress states.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[connectra]** — refine duplicate task (was: 📌 p…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Job tables; PG tables; OpenSearch indexes; S3 keys for CSV.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Lineage diagram updated",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[connectra]** — refine duplicate task (was: 📌 p…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[connectra]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `3.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/connectra-codebase-analysis.md",
+        "codebase": "connectra",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 3.5 — Import/Export Pipeline",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (3.5.0 – 3.5.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/04_COMPANIES_MODULE.md",
+  "sha256_source": "9cb83a7a2d0e2db6f3d8dec52409215eb925be849d3bd7a61558bb4af403535b",
+  "generated_at": "2026-04-08T23:11:52.764199+00:00",
+  "title": "Companies Module",
+  "module_number": 4,
+  "module_name": "COMPANIES",
+  "location": null,
+  "overview": null,
+  "operations": [],
+  "sdl_excerpt": "type CompanyQuery {\n  company(uuid: ID!): Company!\n  companies(query: VQLQueryInput = null): CompanyConnection!\n  companyQuery(query: VQLQueryInput!): CompanyConnection!\n  companyCount(query: VQLQueryInput = null): Int!\n  companyContacts(companyUuid: ID!, query: VQLQueryInput = null, limit: Int = 100, offset: Int = 0): ContactConnection!\n  filters: CompanyFilterConnection!\n  filterData(input: CompanyFilterDataInput!): CompanyFilterDataConnection!\n}\n\ntype CompanyMutation {\n  createCompany(input: CreateCompanyInput!): Company!\n  exportCompanies(input: CreateContact360ExportInput!): SchedulerJob!\n  importCompanies(input: CreateContact360ImportInput!): SchedulerJob!\n  updateCompany(uuid: ID!, input: UpdateCompanyInput!): Company!\n  deleteCompany(uuid: ID!): Boolean!\n}",
+  "error_codes": [],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Companies Module",
+      "level": 1,
+      "prose": "The Companies module exposes Connectra-backed company querying and mutation workflows.",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql — full request and response",
+      "level": 2,
+      "prose": "Headers: `Content-Type: application/json`, `Authorization: Bearer <access_token>`.",
+      "code_blocks": []
+    },
+    {
+      "heading": "companies.company (query)",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($uuid: ID!) { companies { company(uuid: $uuid) { uuid name website country } } }\",\n  \"variables\": { \"uuid\": \"550e8400-e29b-41d4-a716-446655440000\" }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "companies.companyContacts (query)",
+      "level": 3,
+      "prose": "",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query ($companyUuid: ID!, $query: VQLQueryInput, $limit: Int, $offset: Int) { companies { companyContacts(companyUuid: $companyUuid, query: $query, limit: $limit, offset: $offset) { total items { uuid email } } } }\",\n  \"variables\": {\n    \"companyUuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"query\": null,\n    \"limit\": 100,\n    \"offset\": 0\n  }\n}"
+        }
+      ]
+    },
+    {
+      "heading": "Connectra REST mapping (EC2/sync.server)",
+      "level": 2,
+      "prose": "Gateway env: **`CONNECTRA_BASE_URL`**, **`CONNECTRA_API_KEY`** on **`X-API-Key`**. Full HTTP contract: **[connectra.api.md](../micro.services.apis/connectra.api.md)** · Postman: **[EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json)**.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Documentation metadata",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Endpoint/version binding checklist",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

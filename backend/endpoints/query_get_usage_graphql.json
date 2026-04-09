@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/query_get_usage_graphql.md",
+  "sha256_source": "2d7de148a05c89fce9ec6297453518b101df8d0ab23563469481f436bad64a1d",
+  "generated_at": "2026-04-08T23:11:52.551510+00:00",
+  "title": "graphql/GetUsage",
+  "raw_markdown": "---\ntitle: \"graphql/GetUsage\"\nsource_json: query_get_usage_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/GetUsage\n\n## Overview\n\nGet feature usage for current user. Accepts optional featureKey (String) to get specific feature usage. Returns UsageInfo with features (array of FeatureUsage with featureKey, used, limit, remaining, percentage, resetAt, isUnlimited). Limits are role-based: FreeUser (limited), ProUser (higher limits), Admin/SuperAdmin (unlimited). Usage resets monthly. User isolation enforced.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | query_get_usage_graphql |\n| _id | query_get_usage_graphql-001 |\n| endpoint_path | graphql/GetUsage |\n| method | QUERY |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 1.x |\n| introduced_in | 1.1.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/usage/queries.py |\n| router_file | contact360/dashboard/src/services/graphql/usageService.ts |\n\n\n## GraphQL operation\n\n```graphql\nquery GetUsage($featureKey: String) { usage { usage(featureKey: $featureKey) { features { featureKey used limit remaining percentage resetAt isUnlimited } } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- usage\n\n### repository_methods\n\n- get_usage_by_user\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /usage | Usage Page | usageService | useUsageTracking | primary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n| /dashboard | Dashboard Page | usageService | useUsageTracking | secondary | data_fetching | 2026-02-03T00:00:00.000000+00:00 |\n\n\n## Inventory\n\n- **page_count:** 2\n- **Source:** `query_get_usage_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `1.x` — Billing (Usage Tracking).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `user_usage` | READ | [user_usage.sql](../database/tables/user_usage.sql) |\n| `users` | READ | [users.sql](../database/tables/users.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Gatekeeping**: Direct dependency for all credit-consuming features.\n\n## Related endpoint graph\n\n- **Inbound**: `Dashboard`, `Usage Page`.\n- **Outbound**: `ResetUsage` (Admin-only).\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `query_get_usage_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "query_get_usage_graphql"
+        ],
+        [
+          "_id",
+          "query_get_usage_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/GetUsage"
+        ],
+        [
+          "method",
+          "QUERY"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "1.x"
+        ],
+        [
+          "introduced_in",
+          "1.1.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/usage/queries.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/usageService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/usage",
+          "Usage Page",
+          "usageService",
+          "useUsageTracking",
+          "primary",
+          "data_fetching",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "/dashboard",
+          "Dashboard Page",
+          "usageService",
+          "useUsageTracking",
+          "secondary",
+          "data_fetching",
+          "2026-02-03T00:00:00.000000+00:00"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`user_usage`",
+          "READ",
+          "[user_usage.sql](../database/tables/user_usage.sql)"
+        ],
+        [
+          "`users`",
+          "READ",
+          "[users.sql](../database/tables/users.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Get feature usage for current user. Accepts optional featureKey (String) to get specific feature usage. Returns UsageInfo with features (array of FeatureUsage with featureKey, used, limit, remaining, percentage, resetAt, isUnlimited). Limits are role-based: FreeUser (limited), ProUser (higher limits), Admin/SuperAdmin (unlimited). Usage resets monthly. User isolation enforced."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `query_get_usage_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/GetUsage\"\nsource_json: query_get_usage_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n\n## Service / repository methods\n\n### service_methods\n\n### repository_methods\n\n- get_usage_by_user\n\n### used_by_pages\n\n| --- | --- | --- | --- | --- | --- | --- |\n| /usage | Usage Page | usageService | useUsageTracking | primary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n| /dashboard | Dashboard Page | usageService | useUsageTracking | secondary | data_fetching | 2026-02-03T00:00:00.000000+00:00 |\n\n- **page_count:** 2\n- **Source:** `query_get_usage_graphql.json`\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `1.x` — Billing (Usage Tracking).\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Gatekeeping**: Direct dependency for all credit-consuming features.\n\n- **Inbound**: `Dashboard`, `Usage Page`.\n- **Outbound**: `ResetUsage` (Admin-only)."
+}

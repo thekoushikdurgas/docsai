@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "title": "Contact360 docs — folder to kind routing",
+  "description": "Authoritative mapping from docs/ layout to JSON kind. Used with docs/scripts/convert_md_to_json.py detect_kind() and CI ownership checks.",
+  "docs_root_relative": "docs/",
+  "json_output_root_relative": "docs/",
+  "kinds": [
+    "index",
+    "hub",
+    "era_task",
+    "graphql_module",
+    "endpoint_matrix",
+    "page_spec",
+    "document"
+  ],
+  "rules": [
+    {
+      "id": "readme_index",
+      "kind": "index",
+      "match": "legacy: README.md → index.json in same folder (excluding _archive/, json_schemas/, .git/)",
+      "notes": "Output stem is index.json per folder."
+    },
+    {
+      "id": "hub_docs",
+      "kind": "hub",
+      "match": "docs/docs/*.json hub envelopes (canonical policy JSON under docs/docs/)",
+      "examples": ["architecture.json", "versions.json", "roadmap.json"]
+    },
+    {
+      "id": "era_tasks",
+      "kind": "era_task",
+      "match": "docs/<0-10>. */*.md except README.md",
+      "examples": ["0. Foundation .../0.3 — Service mesh contracts.md"]
+    },
+    {
+      "id": "graphql_modules",
+      "kind": "graphql_module",
+      "match": "docs/backend/graphql.modules/*.md"
+    },
+    {
+      "id": "endpoint_matrices",
+      "kind": "endpoint_matrix",
+      "match": "docs/backend/endpoints/*.md"
+    },
+    {
+      "id": "page_specs",
+      "kind": "page_spec",
+      "match": "docs/frontend/pages/*.md"
+    },
+    {
+      "id": "catch_all_document",
+      "kind": "document",
+      "match": "all other docs/**/*.md not matched above",
+      "includes": [
+        "docs/tech/**",
+        "docs/codebases/**",
+        "docs/commands/**",
+        "docs/promsts/**",
+        "docs/scripts/**",
+        "docs/errors/**",
+        "docs/result/**",
+        "docs/.agents/**",
+        "docs/backend/** (except graphql.modules and endpoints special cases)",
+        "docs/frontend/** (except frontend/pages)"
+      ]
+    }
+  ],
+  "lossless_fields": {
+    "envelope": ["raw_markdown", "source_path", "sha256_source", "generated_at", "title"],
+    "description": "Every converted file MUST include raw_markdown with the full UTF-8 markdown source so structured fields are optional views, not the only copy."
+  }
+}

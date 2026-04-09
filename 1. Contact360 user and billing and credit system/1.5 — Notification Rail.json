@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "1. Contact360 user and billing and credit system/1.5 — Notification Rail.md",
+  "sha256_source": "5688fc4b2214e6a0dda4b7a5a088c913c15d6889ef7ac3dca8d6e5b63284e53c",
+  "generated_at": "2026-04-08T23:11:49.776352+00:00",
+  "title": "Version 1.5 — Notification Rail",
+  "version": "1.5",
+  "codename": "Notification Rail",
+  "era": 1,
+  "minor": 5,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"1.5.x Notification Rail\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    bal[\"balance check or subscription listener\"]\n    bal --> thr[\"threshold crossed\"]\n    thr --> cue[\"CreditBudgetAlerts or toast\"]\n    cue --> cta[\"payment CTA\"]\n    cta --> gate[\"1.5 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.\nTheme: **Signal**.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Optional `notifications` GraphQL or client-only cues — document source of truth.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `1.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Server pushes **accurate** balance after billing approve (avoid stale client).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `1.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `CreditBudgetAlerts` via `MainLayout`; payment modal success feedback.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `1.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Main layout, billing success path.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: No duplicate notification state; idempotent “low credit shown once per session” policy.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `1.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Client state only unless persisting notification prefs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: N/A or prefs",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Monitor false-positive rate (KPI: notification correctness).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `1.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 1.5 — Notification Rail",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (1.5.0 – 1.5.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "1.5.0 — Pulse (Charter)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.5.1 — Wave (Threshold rules)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.5.2 — Frequency (Debounce)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[app]`"
+    },
+    {
+      "heading": "1.5.3 — Trigger (Low credit)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.5.4 — Dispatch (Payment success)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][admin][app][logsapi]`"
+    },
+    {
+      "heading": "1.5.5 — Relay (Layout wiring)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[app]`"
+    },
+    {
+      "heading": "1.5.6 — Notify (Component polish)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[app]`"
+    },
+    {
+      "heading": "1.5.7 — Confirm (User ack)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[app][appointment360]`"
+    },
+    {
+      "heading": "1.5.8 — Quiet (Suppress rules)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[app]`"
+    },
+    {
+      "heading": "1.5.9 — Silence (Freeze)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

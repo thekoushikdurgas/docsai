@@ -1,0 +1,1125 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/micro.services.apis/mailvetter.api.md",
+  "sha256_source": "a399fb1aae36c813284c1cb760002a35d92b2f9fad3ff912e6d6385e9db19ad0",
+  "generated_at": "2026-04-08T23:26:46.789750+00:00",
+  "title": "Mailvetter API Documentation",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Mailvetter API Documentation",
+      "level": 1,
+      "slug": "mailvetter-api-documentation",
+      "prose": "**Version**: 1.0.0  \n**Last Updated**: March 28, 2026  \n**Service path**: `backend(dev)/mailvetter` (Go API + worker)  \n**Canonical v1 base URL**: deploy-specific (e.g. `https://<host>/v1`); new integrations must use `/v1/*` only.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Documentation map",
+      "level": 2,
+      "slug": "documentation-map",
+      "prose": "| Doc | Purpose |\n| --- | --- |\n| [SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md) | Mailvetter in the platform graph |\n| [mailvetter_endpoint_era_matrix.md](../endpoints/mailvetter_endpoint_era_matrix.md) | Era and route maturity |\n| [mailvetter_data_lineage.md](../database/mailvetter_data_lineage.md) | Verification pipeline data |\n| [emailapis.api.md](emailapis.api.md) | Finder/verify family alongside Mailvetter |\n| [index.md](../endpoints/index.md) | GraphQL verify operations that delegate here |\n| [ENDPOINT_DATABASE_LINKS.md](../endpoints/ENDPOINT_DATABASE_LINKS.md) | Delegation and table scope on gateway specs |",
+      "tables": [
+        {
+          "headers": [
+            "Doc",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "[SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md)",
+              "Mailvetter in the platform graph"
+            ],
+            [
+              "[mailvetter_endpoint_era_matrix.md](../endpoints/mailvetter_endpoint_era_matrix.md)",
+              "Era and route maturity"
+            ],
+            [
+              "[mailvetter_data_lineage.md](../database/mailvetter_data_lineage.md)",
+              "Verification pipeline data"
+            ],
+            [
+              "[emailapis.api.md](emailapis.api.md)",
+              "Finder/verify family alongside Mailvetter"
+            ],
+            [
+              "[index.md](../endpoints/index.md)",
+              "GraphQL verify operations that delegate here"
+            ],
+            [
+              "[ENDPOINT_DATABASE_LINKS.md](../endpoints/ENDPOINT_DATABASE_LINKS.md)",
+              "Delegation and table scope on gateway specs"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "SERVICE_TOPOLOGY.md",
+          "href": "../endpoints/SERVICE_TOPOLOGY.md"
+        },
+        {
+          "text": "mailvetter_endpoint_era_matrix.md",
+          "href": "../endpoints/mailvetter_endpoint_era_matrix.md"
+        },
+        {
+          "text": "mailvetter_data_lineage.md",
+          "href": "../database/mailvetter_data_lineage.md"
+        },
+        {
+          "text": "emailapis.api.md",
+          "href": "emailapis.api.md"
+        },
+        {
+          "text": "index.md",
+          "href": "../endpoints/index.md"
+        },
+        {
+          "text": "ENDPOINT_DATABASE_LINKS.md",
+          "href": "../endpoints/ENDPOINT_DATABASE_LINKS.md"
+        }
+      ]
+    },
+    {
+      "heading": "Also in docs/backend/endpoints/",
+      "level": 3,
+      "slug": "also-in-docsbackendendpoints",
+      "prose": "- **[README.md](../endpoints/README.md)** — `mailvetter` row in matrix ↔ codebase table.\n- **[endpoints_index.md](../endpoints/endpoints_index.md)** — [mailvetter_endpoint_era_matrix.md](../endpoints/mailvetter_endpoint_era_matrix.md); GraphQL: [index.md](../endpoints/index.md) for `graphql/VerifySingleEmail`, bulk verify, and any op with **`lambda_services`** referencing Mailvetter.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**[README.md](../endpoints/README.md)** — `mailvetter` row in matrix ↔ codebase table.",
+              "checked": null
+            },
+            {
+              "text": "**[endpoints_index.md](../endpoints/endpoints_index.md)** — [mailvetter_endpoint_era_matrix.md](../endpoints/mailvetter_endpoint_era_matrix.md); GraphQL: [index.md](../endpoints/index.md) for `graphql/VerifySingleEmail`, bulk verify, and any op with **`lambda_services`** referencing Mailvetter.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "README.md",
+          "href": "../endpoints/README.md"
+        },
+        {
+          "text": "endpoints_index.md",
+          "href": "../endpoints/endpoints_index.md"
+        },
+        {
+          "text": "mailvetter_endpoint_era_matrix.md",
+          "href": "../endpoints/mailvetter_endpoint_era_matrix.md"
+        },
+        {
+          "text": "index.md",
+          "href": "../endpoints/index.md"
+        }
+      ]
+    },
+    {
+      "heading": "Table of Contents",
+      "level": 2,
+      "slug": "table-of-contents",
+      "prose": "1. [Authentication](#authentication)\n2. [Core Endpoints](#core-endpoints)\n3. [Single Email Validation](#single-email-validation)\n4. [Bulk Email Validation](#bulk-email-validation)\n5. [Status & Results](#status--results)\n6. [Error Handling](#error-handling)\n7. [Rate Limiting](#rate-limiting)\n8. [Examples](#examples)\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[Authentication](#authentication)",
+              "checked": null
+            },
+            {
+              "text": "[Core Endpoints](#core-endpoints)",
+              "checked": null
+            },
+            {
+              "text": "[Single Email Validation](#single-email-validation)",
+              "checked": null
+            },
+            {
+              "text": "[Bulk Email Validation](#bulk-email-validation)",
+              "checked": null
+            },
+            {
+              "text": "[Status & Results](#status--results)",
+              "checked": null
+            },
+            {
+              "text": "[Error Handling](#error-handling)",
+              "checked": null
+            },
+            {
+              "text": "[Rate Limiting](#rate-limiting)",
+              "checked": null
+            },
+            {
+              "text": "[Examples](#examples)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "Authentication",
+          "href": "#authentication"
+        },
+        {
+          "text": "Core Endpoints",
+          "href": "#core-endpoints"
+        },
+        {
+          "text": "Single Email Validation",
+          "href": "#single-email-validation"
+        },
+        {
+          "text": "Bulk Email Validation",
+          "href": "#bulk-email-validation"
+        },
+        {
+          "text": "Status & Results",
+          "href": "#status--results"
+        },
+        {
+          "text": "Error Handling",
+          "href": "#error-handling"
+        },
+        {
+          "text": "Rate Limiting",
+          "href": "#rate-limiting"
+        },
+        {
+          "text": "Examples",
+          "href": "#examples"
+        }
+      ]
+    },
+    {
+      "heading": "Authentication",
+      "level": 2,
+      "slug": "authentication",
+      "prose": "All protected API requests require an API key in the `Authorization` header as `Bearer <token>`, or the configured shared secret per deployment.\n\n```bash\nAuthorization: Bearer YOUR_API_KEY\n```\n\n**Obtaining an API Key**:\n- Provision via deployment config (`API_SECRET_KEY` / key store) for your Contact360 environment.\n- Rotate keys through your ops runbook; do not embed keys in client-side code.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Provision via deployment config (`API_SECRET_KEY` / key store) for your Contact360 environment.",
+              "checked": null
+            },
+            {
+              "text": "Rotate keys through your ops runbook; do not embed keys in client-side code.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "Authorization: Bearer YOUR_API_KEY\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Core Endpoints",
+      "level": 2,
+      "slug": "core-endpoints",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Endpoint Summary",
+      "level": 3,
+      "slug": "endpoint-summary",
+      "prose": "| Method | Endpoint | Purpose |\n|--------|----------|---------|\n| POST | `/emails/validate` | Validate a single email |\n| POST | `/emails/validate-bulk` | Validate multiple emails |\n| GET | `/jobs/{job_id}` | Get bulk validation job status |\n| GET | `/jobs/{job_id}/results` | Download validation results |\n| GET | `/health` | Service health check |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Method",
+            "Endpoint",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "POST",
+              "`/emails/validate`",
+              "Validate a single email"
+            ],
+            [
+              "POST",
+              "`/emails/validate-bulk`",
+              "Validate multiple emails"
+            ],
+            [
+              "GET",
+              "`/jobs/{job_id}`",
+              "Get bulk validation job status"
+            ],
+            [
+              "GET",
+              "`/jobs/{job_id}/results`",
+              "Download validation results"
+            ],
+            [
+              "GET",
+              "`/health`",
+              "Service health check"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Single Email Validation",
+      "level": 2,
+      "slug": "single-email-validation",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Validate Single Email",
+      "level": 3,
+      "slug": "validate-single-email",
+      "prose": "Validate a single email address with comprehensive verification checks.\n\n**Endpoint**:\n```\nPOST /emails/validate\n```\n\n**Request Headers**:\n```\nAuthorization: Bearer YOUR_API_KEY\nContent-Type: application/json\n```\n\n**Request Body**:\n```json\n{\n  \"email\": \"user@example.com\",\n  \"verify_smtp\": true,\n  \"check_disposable\": true,\n  \"full_details\": false\n}\n```\n\n**Parameters**:\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `email` | string | Yes | Email address to validate |\n| `verify_smtp` | boolean | No | Enable SMTP verification (slower but more accurate). Default: `true` |\n| `check_disposable` | boolean | No | Check against disposable email list. Default: `true` |\n| `full_details` | boolean | No | Return detailed validation info. Default: `false` |\n\n**Response (200 OK)**:\n```json\n{\n  \"status\": \"success\",\n  \"email\": \"user@example.com\",\n  \"is_valid\": true,\n  \"validation_result\": {\n    \"syntax_valid\": true,\n    \"domain_valid\": true,\n    \"smtp_valid\": true,\n    \"is_disposable\": false,\n    \"is_catchall\": false\n  },\n  \"confidence_score\": 0.95,\n  \"details\": {\n    \"domain\": \"example.com\",\n    \"email_provider\": \"gmail\",\n    \"mx_records_found\": 5,\n    \"smtp_response_code\": 250,\n    \"validation_time_ms\": 1200\n  }\n}\n```\n\n**Response Fields**:\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `status` | string | `success` or `error` |\n| `email` | string | Input email address |\n| `is_valid` | boolean | Overall validation result |\n| `validation_result` | object | Detailed validation checks |\n| `confidence_score` | number | 0-1 confidence level of validation |\n| `details` | object | Extended metadata (if `full_details: true`) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`email`",
+              "string",
+              "Yes",
+              "Email address to validate"
+            ],
+            [
+              "`verify_smtp`",
+              "boolean",
+              "No",
+              "Enable SMTP verification (slower but more accurate). Default: `true`"
+            ],
+            [
+              "`check_disposable`",
+              "boolean",
+              "No",
+              "Check against disposable email list. Default: `true`"
+            ],
+            [
+              "`full_details`",
+              "boolean",
+              "No",
+              "Return detailed validation info. Default: `false`"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`status`",
+              "string",
+              "`success` or `error`"
+            ],
+            [
+              "`email`",
+              "string",
+              "Input email address"
+            ],
+            [
+              "`is_valid`",
+              "boolean",
+              "Overall validation result"
+            ],
+            [
+              "`validation_result`",
+              "object",
+              "Detailed validation checks"
+            ],
+            [
+              "`confidence_score`",
+              "number",
+              "0-1 confidence level of validation"
+            ],
+            [
+              "`details`",
+              "object",
+              "Extended metadata (if `full_details: true`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "POST /emails/validate\n"
+        },
+        {
+          "lang": "",
+          "value": "Authorization: Bearer YOUR_API_KEY\nContent-Type: application/json\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"email\": \"user@example.com\",\n  \"verify_smtp\": true,\n  \"check_disposable\": true,\n  \"full_details\": false\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"success\",\n  \"email\": \"user@example.com\",\n  \"is_valid\": true,\n  \"validation_result\": {\n    \"syntax_valid\": true,\n    \"domain_valid\": true,\n    \"smtp_valid\": true,\n    \"is_disposable\": false,\n    \"is_catchall\": false\n  },\n  \"confidence_score\": 0.95,\n  \"details\": {\n    \"domain\": \"example.com\",\n    \"email_provider\": \"gmail\",\n    \"mx_records_found\": 5,\n    \"smtp_response_code\": 250,\n    \"validation_time_ms\": 1200\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Bulk Email Validation",
+      "level": 2,
+      "slug": "bulk-email-validation",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Validate Multiple Emails",
+      "level": 3,
+      "slug": "validate-multiple-emails",
+      "prose": "Validate hundreds or thousands of emails asynchronously. Returns a job ID for tracking progress.\n\n**Endpoint**:\n```\nPOST /emails/validate-bulk\n```\n\n**Request Headers**:\n```\nAuthorization: Bearer YOUR_API_KEY\nContent-Type: application/json\n```\n\n**Request Body**:\n```json\n{\n  \"emails\": [\n    \"user1@example.com\",\n    \"user2@gmail.com\",\n    \"user3@company.org\"\n  ],\n  \"verify_smtp\": true,\n  \"check_disposable\": true,\n  \"callback_url\": \"https://your-domain.com/webhook\",\n  \"callback_events\": [\"completed\", \"failed\"]\n}\n```\n\n**Parameters**:\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `emails` | array | Yes | Array of email addresses (max 10,000 per request) |\n| `verify_smtp` | boolean | No | Enable SMTP verification. Default: `true` |\n| `check_disposable` | boolean | No | Check disposable emails. Default: `true` |\n| `callback_url` | string | No | Webhook URL for job completion notification |\n| `callback_events` | array | No | Events to trigger callback: `[\"completed\", \"failed\"]` |\n\n**Response (202 Accepted)**:\n```json\n{\n  \"status\": \"processing\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"job_name\": \"bulk_validation_2026_03_18_001\",\n  \"total_emails\": 3,\n  \"progress\": {\n    \"processed\": 0,\n    \"valid\": 0,\n    \"invalid\": 0,\n    \"pending\": 3,\n    \"percentage\": 0\n  },\n  \"estimated_completion_time\": \"2026-03-18T10:15:00Z\",\n  \"created_at\": \"2026-03-18T10:05:00Z\"\n}\n```\n\n**Response Fields**:\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `status` | string | `processing`, `completed`, or `failed` |\n| `job_id` | string | Unique job identifier for tracking |\n| `total_emails` | number | Total emails submitted |\n| `progress.processed` | number | Emails validated |\n| `progress.percentage` | number | Overall completion percentage (0-100) |\n| `estimated_completion_time` | string | ISO 8601 timestamp |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`emails`",
+              "array",
+              "Yes",
+              "Array of email addresses (max 10,000 per request)"
+            ],
+            [
+              "`verify_smtp`",
+              "boolean",
+              "No",
+              "Enable SMTP verification. Default: `true`"
+            ],
+            [
+              "`check_disposable`",
+              "boolean",
+              "No",
+              "Check disposable emails. Default: `true`"
+            ],
+            [
+              "`callback_url`",
+              "string",
+              "No",
+              "Webhook URL for job completion notification"
+            ],
+            [
+              "`callback_events`",
+              "array",
+              "No",
+              "Events to trigger callback: `[\"completed\", \"failed\"]`"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`status`",
+              "string",
+              "`processing`, `completed`, or `failed`"
+            ],
+            [
+              "`job_id`",
+              "string",
+              "Unique job identifier for tracking"
+            ],
+            [
+              "`total_emails`",
+              "number",
+              "Total emails submitted"
+            ],
+            [
+              "`progress.processed`",
+              "number",
+              "Emails validated"
+            ],
+            [
+              "`progress.percentage`",
+              "number",
+              "Overall completion percentage (0-100)"
+            ],
+            [
+              "`estimated_completion_time`",
+              "string",
+              "ISO 8601 timestamp"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "POST /emails/validate-bulk\n"
+        },
+        {
+          "lang": "",
+          "value": "Authorization: Bearer YOUR_API_KEY\nContent-Type: application/json\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"emails\": [\n    \"user1@example.com\",\n    \"user2@gmail.com\",\n    \"user3@company.org\"\n  ],\n  \"verify_smtp\": true,\n  \"check_disposable\": true,\n  \"callback_url\": \"https://your-domain.com/webhook\",\n  \"callback_events\": [\"completed\", \"failed\"]\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"processing\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"job_name\": \"bulk_validation_2026_03_18_001\",\n  \"total_emails\": 3,\n  \"progress\": {\n    \"processed\": 0,\n    \"valid\": 0,\n    \"invalid\": 0,\n    \"pending\": 3,\n    \"percentage\": 0\n  },\n  \"estimated_completion_time\": \"2026-03-18T10:15:00Z\",\n  \"created_at\": \"2026-03-18T10:05:00Z\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Status & Results",
+      "level": 2,
+      "slug": "status-results",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Get Bulk Job Status",
+      "level": 3,
+      "slug": "get-bulk-job-status",
+      "prose": "Check the current status and progress of a bulk validation job.\n\n**Endpoint**:\n```\nGET /jobs/{job_id}\n```\n\n**Request Headers**:\n```\nAuthorization: Bearer YOUR_API_KEY\n```\n\n**Path Parameters**:\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `job_id` | string | Job ID returned from bulk validation request |\n\n**Response (200 OK)**:\n```json\n{\n  \"status\": \"processing\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"total_emails\": 3,\n  \"progress\": {\n    \"processed\": 2,\n    \"valid\": 1,\n    \"invalid\": 1,\n    \"pending\": 1,\n    \"percentage\": 66.67,\n    \"success_rate\": 50.0\n  },\n  \"estimated_completion_time\": \"2026-03-18T10:15:00Z\",\n  \"started_at\": \"2026-03-18T10:05:00Z\",\n  \"updated_at\": \"2026-03-18T10:10:00Z\"\n}\n```\n\n**Progress Fields**:\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `processed` | number | Emails validated so far |\n| `valid` | number | Valid emails count |\n| `invalid` | number | Invalid emails count |\n| `pending` | number | Emails awaiting validation |\n| `percentage` | number | Completion percentage (0-100) |\n| `success_rate` | number | Valid emails percentage |",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`job_id`",
+              "string",
+              "Job ID returned from bulk validation request"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`processed`",
+              "number",
+              "Emails validated so far"
+            ],
+            [
+              "`valid`",
+              "number",
+              "Valid emails count"
+            ],
+            [
+              "`invalid`",
+              "number",
+              "Invalid emails count"
+            ],
+            [
+              "`pending`",
+              "number",
+              "Emails awaiting validation"
+            ],
+            [
+              "`percentage`",
+              "number",
+              "Completion percentage (0-100)"
+            ],
+            [
+              "`success_rate`",
+              "number",
+              "Valid emails percentage"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "GET /jobs/{job_id}\n"
+        },
+        {
+          "lang": "",
+          "value": "Authorization: Bearer YOUR_API_KEY\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"processing\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"total_emails\": 3,\n  \"progress\": {\n    \"processed\": 2,\n    \"valid\": 1,\n    \"invalid\": 1,\n    \"pending\": 1,\n    \"percentage\": 66.67,\n    \"success_rate\": 50.0\n  },\n  \"estimated_completion_time\": \"2026-03-18T10:15:00Z\",\n  \"started_at\": \"2026-03-18T10:05:00Z\",\n  \"updated_at\": \"2026-03-18T10:10:00Z\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Get Validation Results",
+      "level": 3,
+      "slug": "get-validation-results",
+      "prose": "Retrieve detailed results of a completed bulk validation job.\n\n**Endpoint**:\n```\nGET /jobs/{job_id}/results\n```\n\n**Query Parameters**:\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `format` | string | No | Response format: `json` or `csv`. Default: `json` |\n| `filter` | string | No | Filter results: `all`, `valid`, or `invalid`. Default: `all` |\n| `page` | number | No | Pagination: page number (1-indexed). Default: 1 |\n| `limit` | number | No | Results per page (max 1000). Default: 100 |\n\n**Response (200 OK - JSON Format)**:\n```json\n{\n  \"status\": \"completed\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"total_emails\": 3,\n  \"summary\": {\n    \"valid\": 2,\n    \"invalid\": 1,\n    \"valid_percentage\": 66.67,\n    \"invalid_percentage\": 33.33,\n    \"processing_time_seconds\": 305\n  },\n  \"results\": [\n    {\n      \"email\": \"user1@example.com\",\n      \"is_valid\": true,\n      \"validation_result\": {\n        \"syntax_valid\": true,\n        \"domain_valid\": true,\n        \"smtp_valid\": true,\n        \"is_disposable\": false,\n        \"is_catchall\": false\n      },\n      \"confidence_score\": 0.98,\n      \"processed_at\": \"2026-03-18T10:05:30Z\"\n    },\n    {\n      \"email\": \"user2@gmail.com\",\n      \"is_valid\": true,\n      \"validation_result\": {\n        \"syntax_valid\": true,\n        \"domain_valid\": true,\n        \"smtp_valid\": true,\n        \"is_disposable\": false,\n        \"is_catchall\": false\n      },\n      \"confidence_score\": 0.97,\n      \"processed_at\": \"2026-03-18T10:05:35Z\"\n    },\n    {\n      \"email\": \"user3@invalid.com\",\n      \"is_valid\": false,\n      \"validation_result\": {\n        \"syntax_valid\": true,\n        \"domain_valid\": false,\n        \"smtp_valid\": false,\n        \"is_disposable\": false,\n        \"is_catchall\": false\n      },\n      \"confidence_score\": 0.02,\n      \"processed_at\": \"2026-03-18T10:05:40Z\"\n    }\n  ],\n  \"pagination\": {\n    \"current_page\": 1,\n    \"total_pages\": 1,\n    \"total_results\": 3\n  }\n}\n```\n\n**Response (200 OK - CSV Format)**:\n```csv\nemail,is_valid,syntax_valid,domain_valid,smtp_valid,is_disposable,confidence_score,processed_at\nuser1@example.com,true,true,true,true,false,0.98,2026-03-18T10:05:30Z\nuser2@gmail.com,true,true,true,true,false,0.97,2026-03-18T10:05:35Z\nuser3@invalid.com,false,true,false,false,false,0.02,2026-03-18T10:05:40Z\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`format`",
+              "string",
+              "No",
+              "Response format: `json` or `csv`. Default: `json`"
+            ],
+            [
+              "`filter`",
+              "string",
+              "No",
+              "Filter results: `all`, `valid`, or `invalid`. Default: `all`"
+            ],
+            [
+              "`page`",
+              "number",
+              "No",
+              "Pagination: page number (1-indexed). Default: 1"
+            ],
+            [
+              "`limit`",
+              "number",
+              "No",
+              "Results per page (max 1000). Default: 100"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "GET /jobs/{job_id}/results\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"completed\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"total_emails\": 3,\n  \"summary\": {\n    \"valid\": 2,\n    \"invalid\": 1,\n    \"valid_percentage\": 66.67,\n    \"invalid_percentage\": 33.33,\n    \"processing_time_seconds\": 305\n  },\n  \"results\": [\n    {\n      \"email\": \"user1@example.com\",\n      \"is_valid\": true,\n      \"validation_result\": {\n        \"syntax_valid\": true,\n        \"domain_valid\": true,\n        \"smtp_valid\": true,\n        \"is_disposable\": false,\n        \"is_catchall\": false\n      },\n      \"confidence_score\": 0.98,\n      \"processed_at\": \"2026-03-18T10:05:30Z\"\n    },\n    {\n      \"email\": \"user2@gmail.com\",\n      \"is_valid\": true,\n      \"validation_result\": {\n        \"syntax_valid\": true,\n        \"domain_valid\": true,\n        \"smtp_valid\": true,\n        \"is_disposable\": false,\n        \"is_catchall\": false\n      },\n      \"confidence_score\": 0.97,\n      \"processed_at\": \"2026-03-18T10:05:35Z\"\n    },\n    {\n      \"email\": \"user3@invalid.com\",\n      \"is_valid\": false,\n      \"validation_result\": {\n        \"syntax_valid\": true,\n        \"domain_valid\": false,\n        \"smtp_valid\": false,\n        \"is_disposable\": false,\n        \"is_catchall\": false\n      },\n      \"confidence_score\": 0.02,\n      \"processed_at\": \"2026-03-18T10:05:40Z\"\n    }\n  ],\n  \"pagination\": {\n    \"current_page\": 1,\n    \"total_pages\": 1,\n    \"total_results\": 3\n  }\n}\n"
+        },
+        {
+          "lang": "csv",
+          "value": "email,is_valid,syntax_valid,domain_valid,smtp_valid,is_disposable,confidence_score,processed_at\nuser1@example.com,true,true,true,true,false,0.98,2026-03-18T10:05:30Z\nuser2@gmail.com,true,true,true,true,false,0.97,2026-03-18T10:05:35Z\nuser3@invalid.com,false,true,false,false,false,0.02,2026-03-18T10:05:40Z\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Error Handling",
+      "level": 2,
+      "slug": "error-handling",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "HTTP Status Codes",
+      "level": 3,
+      "slug": "http-status-codes",
+      "prose": "| Code | Meaning | Example |\n|------|---------|---------|\n| 200 | OK | Successful validation request |\n| 202 | Accepted | Bulk job accepted, processing started |\n| 400 | Bad Request | Invalid email format or missing parameter |\n| 401 | Unauthorized | Invalid or missing API key |\n| 403 | Forbidden | Account restricted or rate limit exceeded |\n| 404 | Not Found | Job ID not found |\n| 422 | Unprocessable Entity | Validation logic error |\n| 429 | Too Many Requests | Rate limit exceeded |\n| 500 | Server Error | Internal server error |\n| 503 | Service Unavailable | Service temporarily unavailable |",
+      "tables": [
+        {
+          "headers": [
+            "Code",
+            "Meaning",
+            "Example"
+          ],
+          "rows": [
+            [
+              "200",
+              "OK",
+              "Successful validation request"
+            ],
+            [
+              "202",
+              "Accepted",
+              "Bulk job accepted, processing started"
+            ],
+            [
+              "400",
+              "Bad Request",
+              "Invalid email format or missing parameter"
+            ],
+            [
+              "401",
+              "Unauthorized",
+              "Invalid or missing API key"
+            ],
+            [
+              "403",
+              "Forbidden",
+              "Account restricted or rate limit exceeded"
+            ],
+            [
+              "404",
+              "Not Found",
+              "Job ID not found"
+            ],
+            [
+              "422",
+              "Unprocessable Entity",
+              "Validation logic error"
+            ],
+            [
+              "429",
+              "Too Many Requests",
+              "Rate limit exceeded"
+            ],
+            [
+              "500",
+              "Server Error",
+              "Internal server error"
+            ],
+            [
+              "503",
+              "Service Unavailable",
+              "Service temporarily unavailable"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Error Response Format",
+      "level": 3,
+      "slug": "error-response-format",
+      "prose": "```json\n{\n  \"status\": \"error\",\n  \"error_code\": \"INVALID_EMAIL_FORMAT\",\n  \"message\": \"The provided email address has invalid syntax\",\n  \"details\": {\n    \"email\": \"user@\",\n    \"reason\": \"Missing domain\"\n  },\n  \"timestamp\": \"2026-03-18T10:05:00Z\"\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"error\",\n  \"error_code\": \"INVALID_EMAIL_FORMAT\",\n  \"message\": \"The provided email address has invalid syntax\",\n  \"details\": {\n    \"email\": \"user@\",\n    \"reason\": \"Missing domain\"\n  },\n  \"timestamp\": \"2026-03-18T10:05:00Z\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Common Error Codes",
+      "level": 3,
+      "slug": "common-error-codes",
+      "prose": "| Code | Description | HTTP Status |\n|------|-------------|-------------|\n| `INVALID_EMAIL_FORMAT` | Email syntax is invalid | 400 |\n| `MISSING_PARAMETER` | Required parameter is missing | 400 |\n| `INVALID_API_KEY` | API key is invalid or expired | 401 |\n| `RATE_LIMIT_EXCEEDED` | Too many requests made | 429 |\n| `JOB_NOT_FOUND` | Job ID does not exist | 404 |\n| `BULK_SIZE_EXCEEDED` | More than 10,000 emails submitted | 422 |\n| `INTERNAL_ERROR` | Server-side validation failure | 500 |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Code",
+            "Description",
+            "HTTP Status"
+          ],
+          "rows": [
+            [
+              "`INVALID_EMAIL_FORMAT`",
+              "Email syntax is invalid",
+              "400"
+            ],
+            [
+              "`MISSING_PARAMETER`",
+              "Required parameter is missing",
+              "400"
+            ],
+            [
+              "`INVALID_API_KEY`",
+              "API key is invalid or expired",
+              "401"
+            ],
+            [
+              "`RATE_LIMIT_EXCEEDED`",
+              "Too many requests made",
+              "429"
+            ],
+            [
+              "`JOB_NOT_FOUND`",
+              "Job ID does not exist",
+              "404"
+            ],
+            [
+              "`BULK_SIZE_EXCEEDED`",
+              "More than 10,000 emails submitted",
+              "422"
+            ],
+            [
+              "`INTERNAL_ERROR`",
+              "Server-side validation failure",
+              "500"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rate Limiting",
+      "level": 2,
+      "slug": "rate-limiting",
+      "prose": "API requests are rate-limited per API key:\n\n| Plan | Requests/Hour | Bulk Limit | Concurrent Jobs |\n|------|---------------|-----------|-----------------|\n| Free | 100 | 100 emails | 1 |\n| Pro | 10,000 | 100,000 emails | 5 |\n| Enterprise | Unlimited | Unlimited | 20+ |\n\n**Rate Limit Headers**:\n```\nX-RateLimit-Limit: 10000\nX-RateLimit-Remaining: 9950\nX-RateLimit-Reset: 1710750300\n```\n\nWhen rate limit is exceeded, the API returns `429 Too Many Requests`.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Plan",
+            "Requests/Hour",
+            "Bulk Limit",
+            "Concurrent Jobs"
+          ],
+          "rows": [
+            [
+              "Free",
+              "100",
+              "100 emails",
+              "1"
+            ],
+            [
+              "Pro",
+              "10,000",
+              "100,000 emails",
+              "5"
+            ],
+            [
+              "Enterprise",
+              "Unlimited",
+              "Unlimited",
+              "20+"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "X-RateLimit-Limit: 10000\nX-RateLimit-Remaining: 9950\nX-RateLimit-Reset: 1710750300\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Examples",
+      "level": 2,
+      "slug": "examples",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example 1: Single Email Validation (cURL)",
+      "level": 3,
+      "slug": "example-1-single-email-validation-curl",
+      "prose": "```bash\ncurl -X POST {{MAILVETTER_BASE_URL}}/v1/emails/validate \\\n  -H \"Authorization: Bearer YOUR_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"email\": \"user@example.com\",\n    \"verify_smtp\": true,\n    \"full_details\": true\n  }'\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "curl -X POST {{MAILVETTER_BASE_URL}}/v1/emails/validate \\\n  -H \"Authorization: Bearer YOUR_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"email\": \"user@example.com\",\n    \"verify_smtp\": true,\n    \"full_details\": true\n  }'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Example 2: Bulk Email Validation (Python + Requests)",
+      "level": 3,
+      "slug": "example-2-bulk-email-validation-python-requests",
+      "prose": "```python\nimport requests\nimport json\n\nAPI_KEY = \"YOUR_API_KEY\"\nBASE_URL = \"{{MAILVETTER_BASE_URL}}/v1\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Submit bulk validation job",
+      "level": 1,
+      "slug": "submit-bulk-validation-job",
+      "prose": "emails = [\n    \"user1@example.com\",\n    \"user2@gmail.com\",\n    \"user3@company.org\",\n    \"invalid-email@\"\n]\n\nresponse = requests.post(\n    f\"{BASE_URL}/emails/validate-bulk\",\n    headers={\n        \"Authorization\": f\"Bearer {API_KEY}\",\n        \"Content-Type\": \"application/json\"\n    },\n    json={\n        \"emails\": emails,\n        \"verify_smtp\": True,\n        \"check_disposable\": True,\n        \"callback_url\": \"https://your-domain.com/webhook\"\n    }\n)\n\njob_data = response.json()\njob_id = job_data['job_id']\nprint(f\"Job ID: {job_id}\")\nprint(f\"Status: {job_data['status']}\")\nprint(f\"Progress: {job_data['progress']['percentage']}%\")\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example 3: Check Job Status & Results (Python)",
+      "level": 3,
+      "slug": "example-3-check-job-status-results-python",
+      "prose": "```python\nimport requests\nimport time\n\nAPI_KEY = \"YOUR_API_KEY\"\nBASE_URL = \"{{MAILVETTER_BASE_URL}}/v1\"\nJOB_ID = \"job_550e8400e29b41d4a716446655440000\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Poll job status",
+      "level": 1,
+      "slug": "poll-job-status",
+      "prose": "while True:\n    status_response = requests.get(\n        f\"{BASE_URL}/jobs/{JOB_ID}\",\n        headers={\"Authorization\": f\"Bearer {API_KEY}\"}\n    )\n    \n    status_data = status_response.json()\n    print(f\"Status: {status_data['status']}\")\n    print(f\"Progress: {status_data['progress']['percentage']}%\")\n    print(f\"Valid: {status_data['progress']['valid']}\")\n    print(f\"Invalid: {status_data['progress']['invalid']}\")\n    \n    if status_data['status'] == 'completed':\n        break\n    \n    time.sleep(5)  # Check every 5 seconds",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Get results",
+      "level": 1,
+      "slug": "get-results",
+      "prose": "results_response = requests.get(\n    f\"{BASE_URL}/jobs/{JOB_ID}/results?format=json&limit=100\",\n    headers={\"Authorization\": f\"Bearer {API_KEY}\"}\n)\n\nresults = results_response.json()\nprint(f\"\\nSummary:\")\nprint(f\"Valid: {results['summary']['valid_percentage']}%\")\nprint(f\"Invalid: {results['summary']['invalid_percentage']}%\")\n\nfor result in results['results']:\n    print(f\"\\n{result['email']}: {'✓ Valid' if result['is_valid'] else '✗ Invalid'}\")\n    print(f\"  Confidence: {result['confidence_score']}\")\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example 4: Get Results as CSV (cURL)",
+      "level": 3,
+      "slug": "example-4-get-results-as-csv-curl",
+      "prose": "```bash\ncurl -X GET \"{{MAILVETTER_BASE_URL}}/v1/jobs/job_550e8400e29b41d4a716446655440000/results?format=csv&filter=all\" \\\n  -H \"Authorization: Bearer YOUR_API_KEY\" \\\n  -o results.csv\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "curl -X GET \"{{MAILVETTER_BASE_URL}}/v1/jobs/job_550e8400e29b41d4a716446655440000/results?format=csv&filter=all\" \\\n  -H \"Authorization: Bearer YOUR_API_KEY\" \\\n  -o results.csv\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Example 5: Webhook Callback Example",
+      "level": 3,
+      "slug": "example-5-webhook-callback-example",
+      "prose": "When a bulk job completes, the API sends a POST request to your `callback_url`:\n\n**Request to your webhook**:\n```json\n{\n  \"event\": \"completed\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"status\": \"completed\",\n  \"summary\": {\n    \"total_emails\": 3,\n    \"valid\": 2,\n    \"invalid\": 1,\n    \"valid_percentage\": 66.67\n  },\n  \"timestamp\": \"2026-03-18T10:10:00Z\"\n}\n```\n\n**Your webhook handler** (Flask example):\n```python\nfrom flask import Flask, request, jsonify\n\napp = Flask(__name__)\n\n@app.route('/webhook', methods=['POST'])\ndef handle_webhook():\n    data = request.json\n    job_id = data['job_id']\n    status = data['status']\n    \n    print(f\"Job {job_id} completed\")\n    print(f\"Valid: {data['summary']['valid_percentage']}%\")\n    \n    # Fetch results\n    results = get_results(job_id)  # Your function\n    process_results(results)  # Your function\n    \n    return jsonify({\"status\": \"received\"}), 200\n\nif __name__ == '__main__':\n    app.run()\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"event\": \"completed\",\n  \"job_id\": \"job_550e8400e29b41d4a716446655440000\",\n  \"status\": \"completed\",\n  \"summary\": {\n    \"total_emails\": 3,\n    \"valid\": 2,\n    \"invalid\": 1,\n    \"valid_percentage\": 66.67\n  },\n  \"timestamp\": \"2026-03-18T10:10:00Z\"\n}\n"
+        },
+        {
+          "lang": "python",
+          "value": "from flask import Flask, request, jsonify\n\napp = Flask(__name__)\n\n@app.route('/webhook', methods=['POST'])\ndef handle_webhook():\n    data = request.json\n    job_id = data['job_id']\n    status = data['status']\n    \n    print(f\"Job {job_id} completed\")\n    print(f\"Valid: {data['summary']['valid_percentage']}%\")\n    \n    # Fetch results\n    results = get_results(job_id)  # Your function\n    process_results(results)  # Your function\n    \n    return jsonify({\"status\": \"received\"}), 200\n\nif __name__ == '__main__':\n    app.run()\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Webhook Security",
+      "level": 2,
+      "slug": "webhook-security",
+      "prose": "All webhook requests include an `X-Webhook-Signature` header for verification.\n\n**Verification** (Python):\n```python\nimport hmac\nimport hashlib\n\ndef verify_webhook(request_body, signature, secret_key):\n    expected_signature = hmac.new(\n        secret_key.encode(),\n        request_body,\n        hashlib.sha256\n    ).hexdigest()\n    return hmac.compare_digest(signature, expected_signature)\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "python",
+          "value": "import hmac\nimport hashlib\n\ndef verify_webhook(request_body, signature, secret_key):\n    expected_signature = hmac.new(\n        secret_key.encode(),\n        request_body,\n        hashlib.sha256\n    ).hexdigest()\n    return hmac.compare_digest(signature, expected_signature)\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Response Time & Timeout",
+      "level": 2,
+      "slug": "response-time-timeout",
+      "prose": "- **Single email validation**: 500ms - 2s (depends on SMTP verification)\n- **Bulk validation**: 5s - 5min (depends on email count and SMTP checks)\n- **Request timeout**: 30s\n- **Maximum job retention**: 30 days\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Single email validation**: 500ms - 2s (depends on SMTP verification)",
+              "checked": null
+            },
+            {
+              "text": "**Bulk validation**: 5s - 5min (depends on email count and SMTP checks)",
+              "checked": null
+            },
+            {
+              "text": "**Request timeout**: 30s",
+              "checked": null
+            },
+            {
+              "text": "**Maximum job retention**: 30 days",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Support & Resources",
+      "level": 2,
+      "slug": "support-resources",
+      "prose": "- **Documentation**: Contact360 internal docs — `docs/backend/apis/` (Email module), `docs/codebases/mailvetter-codebase-analysis.md`\n- **Runtime**: `backend(dev)/mailvetter/app/mailvetter-bak/`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Documentation**: Contact360 internal docs — `docs/backend/apis/` (Email module), `docs/codebases/mailvetter-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "**Runtime**: `backend(dev)/mailvetter/app/mailvetter-bak/`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Change Log",
+      "level": 2,
+      "slug": "change-log",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Version 1.0.0 (March 18, 2026)",
+      "level": 3,
+      "slug": "version-100-march-18-2026",
+      "prose": "- Initial API release\n- Single email validation endpoint\n- Bulk email validation endpoint\n- Job status tracking\n- CSV/JSON result exports\n- Webhook callbacks\n- Rate limiting per plan tier",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Initial API release",
+              "checked": null
+            },
+            {
+              "text": "Single email validation endpoint",
+              "checked": null
+            },
+            {
+              "text": "Bulk email validation endpoint",
+              "checked": null
+            },
+            {
+              "text": "Job status tracking",
+              "checked": null
+            },
+            {
+              "text": "CSV/JSON result exports",
+              "checked": null
+            },
+            {
+              "text": "Webhook callbacks",
+              "checked": null
+            },
+            {
+              "text": "Rate limiting per plan tier",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 contract note",
+      "level": 2,
+      "slug": "2026-contract-note",
+      "prose": "- Canonical API contract for new integrations is `/v1/*`.\n- Legacy endpoints may remain for compatibility but are deprecated for net-new consumers.\n- Preferred lifecycle vocabulary: `pending`, `processing`, `completed`, `failed`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Canonical API contract for new integrations is `/v1/*`.",
+              "checked": null
+            },
+            {
+              "text": "Legacy endpoints may remain for compatibility but are deprecated for net-new consumers.",
+              "checked": null
+            },
+            {
+              "text": "Preferred lifecycle vocabulary: `pending`, `processing`, `completed`, `failed`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

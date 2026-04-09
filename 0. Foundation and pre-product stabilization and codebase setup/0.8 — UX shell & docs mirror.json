@@ -1,0 +1,470 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "0. Foundation and pre-product stabilization and codebase setup/0.8 — UX shell & docs mirror.md",
+  "sha256_source": "33682dd6a601b08e0e6d695bc37df13e6a1537dec6161483ad81376cf4fef63c",
+  "generated_at": "2026-04-08T23:11:49.679824+00:00",
+  "title": "Version 0.8 — UX shell & docs mirror",
+  "version": "0.8",
+  "codename": "UX shell & docs mirror",
+  "era": 0,
+  "minor": 8,
+  "patch": null,
+  "status": "completed",
+  "summary": "Frontend UX surface (full shell evidence):",
+  "scope": "Frontend UX surface (full shell evidence):\nCross-reference: `docs/docsai-sync.md` (shell + constants sync requirements).",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"0.8.x UX shell and docs mirror\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    next[\"Next.js app shell\"] --> gql[\"Apollo/GraphQL client\"]\n    gql --> bearer[\"Authorization Bearer JWT\"]\n    bearer --> role[\"Role + page visibility gate\"]\n    role --> pages[\"Feature routes stub or MVP\"]\n    md[\"docs/architecture.md\"] --> sync[\"docsai-sync runbook\"]\n    sync --> django[\"admin/constants.py\"]\n    django --> docsui[\"DocsAI renders truth\"]"
+  ],
+  "micro_gate": "**Patch intent bands (typical):** `.0` charter · `.1`–`.2` scaffold · `.3`–`.5` hardening · `.6`–`.8` integration/drift · `.9` minor freeze / handoff to `0.(N+1).0`.\nTheme: **Glass**. Per-patch tables: each `0.8.P — … .md` file.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: 📌 Completed: DocsAI constants and admin mirror entries are synchronized with frontend route and component docs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/root (marketing)** — every marketing page including the landing page is annotated `\"use client\"` which disables server-side rendering; Next.js cannot produce SEO-friendly static HTML for search crawlers — audit each page and convert to Server Components (remove `\"use client\"`) or use `generateStaticParams` / `generateMetadata` for static generation at build time.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/root (marketing)** — no per-page `<head>` metadata is set on any marketing route (`/products/email-finder`, `/products/email-verifier`, etc.); root `layout.tsx` only sets a single global `title`/`description` — add `generateMetadata()` or static `export const metadata` to each product page with unique `title`, `description`, `openGraph`, and `twitter` fields.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/root (marketing)** — no `app/sitemap.ts` or `app/robots.ts` file exists; Next.js 13+ supports automatic sitemap/robots generation — add `sitemap.ts` listing all marketing routes and `robots.ts` allowing all crawlers with `sitemap` reference.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/root (marketing)** — add Schema.org JSON-LD structured data (`Product`, `SoftwareApplication`, `Organization`) to product pages (`/products/email-finder`, `/products/email-verifier`, `/products/prospect-finder`, `/products/ai-email-writer`) to improve rich-result eligibility in Google search.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/root (marketing)** — migrate font loading from `globals.css` `@import` to `next/font` (Google Fonts or local) to eliminate render-blocking font requests and reduce CLS (Cumulative Layout Shift).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `src/app/layout.tsx` has `title: \"Create Next App\"` and `description: \"Generated by create next app\"` — these are Next.js boilerplate placeholders; update metadata to `title: \"Mailhub — Email Reimagined\"` and a real product description before any user-facing deployment.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `src/components/LayoutClient.tsx` does not implement an authentication guard; any unauthenticated request to `/inbox`, `/sent`, `/spam`, `/draft` renders the full sidebar shell (with error or empty states) instead of redirecting to `/auth/login` — implement a `useEffect`-based session check (read `userId` from `localStorage`, verify with `GET /auth/user/:userId`, redirect if missing) or use middleware-based route protection.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `src/app/data.json` is a 600-line mock data file from a component library template (shadcn/ui data-table example) that is not related to email data and is checked into the repository; remove this file and replace any template references in `DataTable` with actual email data types.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/email (Mailhub)** — implement a `ComposeEmail` component and route (`/compose` or modal sheet) with `To`, `Subject`, `Body` fields and a `Send` button that calls `POST ${BACKEND_URL}/api/emails/send`; the sidebar \"Send\" FAB and the sent/draft folder structure imply compose functionality is expected but no compose UI exists.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — authenticated shell is production-quality: `app/(dashboard)/layout.tsx` gates all dashboard routes behind `useAuth()` + redirect to `/login`; `DashboardAccessGate` component adds per-page role/plan gating with loading state; `useSessionGuard` hook provides reusable role-aware redirect logic.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — JWT session management is fully implemented: `tokenManager.ts` stores access/refresh tokens in `localStorage`, `AuthContext` performs auto-refresh every 60s and on load, `graphqlClient.ts` handles 401 token refresh with retry queue, `useAuthRedirect` redirects authenticated users away from login page.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `app/(dashboard)/appointments` route directory is empty (no `page.tsx`); the route is referenced in the sidebar navigation structure but renders a 404 — either implement the appointments page or remove the route and sidebar entry until the appointments feature is built.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `app/(dashboard)/settings/page.tsx` is a stub that immediately redirects to `/profile` using `useRouter().replace(\"/profile\")`; the settings route has no content of its own; decide whether to merge settings into profile or build a dedicated settings page with notification preferences, API keys, and connected apps that are currently buried in profile tabs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `app/(dashboard)/admin/page.tsx` does the `SuperAdmin` role check in a `useEffect` (client-side after render); a `SuperAdmin`-gated page momentarily renders for non-admin users before redirect — move role gating to `DashboardAccessGate` or middleware so the page content never renders for unauthorized users.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Primary: dashboard layout, nav, auth flow, role-gated destinations.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Frontend UX surface (full shell evidence):",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Routes:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`/dashboard`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`/profile`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`/billing`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`/settings`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Components:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Full `MainLayout` (sidebar + topbar + content)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Full `Sidebar` navigation",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`CreditBudgetAlerts`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Context:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`RoleContext` fully populated",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Hooks:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`useDashboardPage`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`useSidebar`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Admin/templates:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`templates/base.html`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`SIDEBAR_MENU` constants mirrored",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Cross-reference: `docs/docsai-sync.md` (shell + constants sync requirements).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "User/session display fields only; no new business tables required for shell alone.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Completed: N/A or user table note",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **django docsai** (`contact3…) | patch `0.8.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 0.8 — UX shell & docs mirror",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (0.8.0 – 0.8.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

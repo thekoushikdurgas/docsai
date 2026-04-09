@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/SERVICE_TOPOLOGY.md",
+  "sha256_source": "ff38f1de1fe7c4cb1450e9c92cdd74accc6f26c1ca253db1948b8be919860ccc",
+  "generated_at": "2026-04-08T23:11:52.721297+00:00",
+  "title": "Service topology",
+  "raw_markdown": "---\ntitle: \"Service topology (gateway & downstream)\"\n---\n\n# Service topology\n\nThis hub ties together the **GraphQL gateway** (`appointment360`), **downstream HTTP/Lambda workers**, and where to find **era matrices** and **data lineage** for each surface. Endpoint specs link here under **Topology overview**.\n\n## Service registry\n\n| Service | Codebase / path | Runtime | Primary entry | Era matrix | Data lineage |\n| --- | --- | --- | --- | --- | --- |\n| **appointment360** (API gateway) | `contact360.io/api` | FastAPI + Strawberry GraphQL + asyncpg + PostgreSQL | `POST /graphql` | [appointment360_endpoint_era_matrix.md](appointment360_endpoint_era_matrix.md) | [../database/appointment360_data_lineage.md](../database/appointment360_data_lineage.md) |\n| **contact360.io/sync** (Connectra) | `contact360.io/sync` | Service behind contacts/companies/VQL | `POST /contacts/*`, `POST /companies/*`, VQL | [connectra_endpoint_era_matrix.md](connectra_endpoint_era_matrix.md) | [../database/connectra_data_lineage.md](../database/connectra_data_lineage.md) |\n| **S3 storage** | Lambda / storage layer | AWS S3 APIs | Presigned upload, object reads | [s3storage_endpoint_era_matrix.md](s3storage_endpoint_era_matrix.md) | [../database/s3storage_data_lineage.md](../database/s3storage_data_lineage.md) |\n| **Logs API** | Logging pipeline | HTTP ingest | Log batch endpoints | [logsapi_endpoint_era_matrix.md](logsapi_endpoint_era_matrix.md) | [../database/logsapi_data_lineage.md](../database/logsapi_data_lineage.md) |\n| **Email APIs** (finder/verify) | Email workers | Lambda / Go paths | Job-driven + GraphQL delegation | [emailapis_endpoint_era_matrix.md](emailapis_endpoint_era_matrix.md) | [../database/emailapis_data_lineage.md](../database/emailapis_data_lineage.md) |\n| **Jobs** (email + sync satellites) | `EC2/email.server`, `EC2/sync.server` | Workers + `scheduler_jobs` | GraphQL jobs module, retries | [jobs_endpoint_era_matrix.md](jobs_endpoint_era_matrix.md) | [../database/jobs_data_lineage.md](../database/jobs_data_lineage.md) |\n| **Email campaign** | Campaign engine | Service + DB | Sequences, templates | [emailcampaign_endpoint_era_matrix.md](emailcampaign_endpoint_era_matrix.md) | [../database/emailcampaign_data_lineage.md](../database/emailcampaign_data_lineage.md) |\n| **Mailvetter** | Verification | SMTP/DNS pipeline | Verify endpoints | [mailvetter_endpoint_era_matrix.md](mailvetter_endpoint_era_matrix.md) | [../database/mailvetter_data_lineage.md](../database/mailvetter_data_lineage.md) |\n| **Contact AI** | AI orchestration | HF / Gemini utilities | AI chat & tools | [contact_ai_endpoint_era_matrix.md](contact_ai_endpoint_era_matrix.md) | [../database/contact_ai_data_lineage.md](../database/contact_ai_data_lineage.md) |\n| **Sales Navigator** | LinkedIn channel | Ingest + sync | SN search / export | [salesnavigator_endpoint_era_matrix.md](salesnavigator_endpoint_era_matrix.md) | [../database/salesnavigator_data_lineage.md](../database/salesnavigator_data_lineage.md) |\n| **Email app (Mailhub)** | `contact360.io/email` | Next + REST / IMAP | Folder & message APIs | [emailapp_endpoint_era_matrix.md](emailapp_endpoint_era_matrix.md) | [../database/emailapp_data_lineage.md](../database/emailapp_data_lineage.md) |\n| **Admin (Django)** | `contact360.io/admin` | Django + DRF | HTML + JSON admin | [admin_endpoint_era_matrix.md](admin_endpoint_era_matrix.md) | [../database/admin_data_lineage.md](../database/admin_data_lineage.md) |\n\n**EC2 Go satellites (Gin):** In-repo counterparts under `EC2/*.server/` (e.g. **email**, **sync**, s3storage, ai, logsapi, extension) are reached **via the Python gateway** in the target architecture, not by browsers directly. HTTP route inventory and parity notes: **[EC2_GO_SATELLITE_ROUTES.md](EC2_GO_SATELLITE_ROUTES.md)**.\n\n## Request flow (dashboard & extension)\n\n```mermaid\nflowchart LR\n  subgraph clients [Clients]\n    D[Dashboard Next.js]\n    E[Browser extension]\n  end\n  subgraph gateway [Gateway]\n    G[appointment360 POST /graphql]\n  end\n  subgraph downstream [Downstream]\n    C[contact360.io/sync Connectra]\n    J[Jobs workers]\n    AI[Contact AI / Resume AI]\n    S3[S3 storage]\n    L[Logs API]\n    EM[Email APIs / Mailvetter]\n    SN[Sales Navigator ingest]\n  end\n  subgraph data [Data stores]\n    PG[(Postgres gateway)]\n    CP[(Connectra PG + ES)]\n    OB[(S3 / Redis / ES)]\n  end\n  D --> G\n  E --> G\n  G --> PG\n  G --> C\n  G --> J\n  G --> AI\n  G --> S3\n  G --> L\n  G --> EM\n  G --> SN\n  C --> CP\n  S3 --> OB\n```\n\n## Cross-service delegation (GraphQL → downstream)\n\nGateway resolvers declare **`lambda_services`** / HTTP delegates in endpoint JSON. Typical patterns:\n\n| Delegation target | Used for (examples) |\n| --- | --- |\n| **contact360.io/sync** | `graphql/GetContact`, `graphql/GetCompany`, VQL `contactQuery` / `companyQuery`, filters, counts — contacts & companies CRUD and search |\n| **Jobs** | Export/import jobs, retries, bulk CSV |\n| **S3 storage** | Multipart uploads, CSV artifacts, file metadata |\n| **Logs API** | `CreateLog`, batch logging |\n| **Email APIs / Mailvetter** | Finder, verifier, patterns |\n| **Contact AI** | AI chat, parsing, risk analysis |\n| **Sales Navigator** | Profile sync, SN search |\n\nSee each `*_graphql.md` **lambda_services** and **db_tables_read/write** for the exact chain. Naming rules for linking specs to DB snapshots are in [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md).\n\n## Era matrix index (all services)\n\n- [appointment360_endpoint_era_matrix.md](appointment360_endpoint_era_matrix.md)\n- [connectra_endpoint_era_matrix.md](connectra_endpoint_era_matrix.md)\n- [s3storage_endpoint_era_matrix.md](s3storage_endpoint_era_matrix.md)\n- [logsapi_endpoint_era_matrix.md](logsapi_endpoint_era_matrix.md)\n- [emailapis_endpoint_era_matrix.md](emailapis_endpoint_era_matrix.md)\n- [jobs_endpoint_era_matrix.md](jobs_endpoint_era_matrix.md)\n- [emailcampaign_endpoint_era_matrix.md](emailcampaign_endpoint_era_matrix.md)\n- [mailvetter_endpoint_era_matrix.md](mailvetter_endpoint_era_matrix.md)\n- [contact_ai_endpoint_era_matrix.md](contact_ai_endpoint_era_matrix.md)\n- [salesnavigator_endpoint_era_matrix.md](salesnavigator_endpoint_era_matrix.md)\n- [emailapp_endpoint_era_matrix.md](emailapp_endpoint_era_matrix.md)\n- [admin_endpoint_era_matrix.md](admin_endpoint_era_matrix.md)\n\n## Data lineage index (all docs)\n\n- [../database/appointment360_data_lineage.md](../database/appointment360_data_lineage.md)\n- [../database/connectra_data_lineage.md](../database/connectra_data_lineage.md)\n- [../database/s3storage_data_lineage.md](../database/s3storage_data_lineage.md)\n- [../database/logsapi_data_lineage.md](../database/logsapi_data_lineage.md)\n- [../database/emailapis_data_lineage.md](../database/emailapis_data_lineage.md)\n- [../database/jobs_data_lineage.md](../database/jobs_data_lineage.md)\n- [../database/emailcampaign_data_lineage.md](../database/emailcampaign_data_lineage.md)\n- [../database/mailvetter_data_lineage.md](../database/mailvetter_data_lineage.md)\n- [../database/contact_ai_data_lineage.md](../database/contact_ai_data_lineage.md)\n- [../database/salesnavigator_data_lineage.md](../database/salesnavigator_data_lineage.md)\n- [../database/emailapp_data_lineage.md](../database/emailapp_data_lineage.md)\n- [../database/admin_data_lineage.md](../database/admin_data_lineage.md)\n\n## Lambda & worker services (by path)\n\nShort labels for matrices that describe **non-gateway** surfaces (Mailhub UI, admin app, workers). Use the **Service registry** table above for canonical links.\n\n| Label | See |\n| --- | --- |\n| Mailhub / email frontend | [emailapp_endpoint_era_matrix.md](emailapp_endpoint_era_matrix.md), [../database/emailapp_data_lineage.md](../database/emailapp_data_lineage.md) |\n| Django admin | [admin_endpoint_era_matrix.md](admin_endpoint_era_matrix.md), [../database/admin_data_lineage.md](../database/admin_data_lineage.md) |\n| Connectra sync API | [connectra_endpoint_era_matrix.md](connectra_endpoint_era_matrix.md), [../database/connectra_data_lineage.md](../database/connectra_data_lineage.md) |\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Service registry",
+      "headers": [
+        "Service",
+        "Codebase / path",
+        "Runtime",
+        "Primary entry",
+        "Era matrix",
+        "Data lineage"
+      ],
+      "rows": [
+        [
+          "**appointment360** (API gateway)",
+          "`contact360.io/api`",
+          "FastAPI + Strawberry GraphQL + asyncpg + PostgreSQL",
+          "`POST /graphql`",
+          "[appointment360_endpoint_era_matrix.md](appointment360_endpoint_era_matrix.md)",
+          "[../database/appointment360_data_lineage.md](../database/appointment360_data_lineage.md)"
+        ],
+        [
+          "**contact360.io/sync** (Connectra)",
+          "`contact360.io/sync`",
+          "Service behind contacts/companies/VQL",
+          "`POST /contacts/*`, `POST /companies/*`, VQL",
+          "[connectra_endpoint_era_matrix.md](connectra_endpoint_era_matrix.md)",
+          "[../database/connectra_data_lineage.md](../database/connectra_data_lineage.md)"
+        ],
+        [
+          "**S3 storage**",
+          "Lambda / storage layer",
+          "AWS S3 APIs",
+          "Presigned upload, object reads",
+          "[s3storage_endpoint_era_matrix.md](s3storage_endpoint_era_matrix.md)",
+          "[../database/s3storage_data_lineage.md](../database/s3storage_data_lineage.md)"
+        ],
+        [
+          "**Logs API**",
+          "Logging pipeline",
+          "HTTP ingest",
+          "Log batch endpoints",
+          "[logsapi_endpoint_era_matrix.md](logsapi_endpoint_era_matrix.md)",
+          "[../database/logsapi_data_lineage.md](../database/logsapi_data_lineage.md)"
+        ],
+        [
+          "**Email APIs** (finder/verify)",
+          "Email workers",
+          "Lambda / Go paths",
+          "Job-driven + GraphQL delegation",
+          "[emailapis_endpoint_era_matrix.md](emailapis_endpoint_era_matrix.md)",
+          "[../database/emailapis_data_lineage.md](../database/emailapis_data_lineage.md)"
+        ],
+        [
+          "**Jobs** (email + sync satellites)",
+          "`EC2/email.server`, `EC2/sync.server`",
+          "Workers + `scheduler_jobs`",
+          "GraphQL jobs module, retries",
+          "[jobs_endpoint_era_matrix.md](jobs_endpoint_era_matrix.md)",
+          "[../database/jobs_data_lineage.md](../database/jobs_data_lineage.md)"
+        ],
+        [
+          "**Email campaign**",
+          "Campaign engine",
+          "Service + DB",
+          "Sequences, templates",
+          "[emailcampaign_endpoint_era_matrix.md](emailcampaign_endpoint_era_matrix.md)",
+          "[../database/emailcampaign_data_lineage.md](../database/emailcampaign_data_lineage.md)"
+        ],
+        [
+          "**Mailvetter**",
+          "Verification",
+          "SMTP/DNS pipeline",
+          "Verify endpoints",
+          "[mailvetter_endpoint_era_matrix.md](mailvetter_endpoint_era_matrix.md)",
+          "[../database/mailvetter_data_lineage.md](../database/mailvetter_data_lineage.md)"
+        ],
+        [
+          "**Contact AI**",
+          "AI orchestration",
+          "HF / Gemini utilities",
+          "AI chat & tools",
+          "[contact_ai_endpoint_era_matrix.md](contact_ai_endpoint_era_matrix.md)",
+          "[../database/contact_ai_data_lineage.md](../database/contact_ai_data_lineage.md)"
+        ],
+        [
+          "**Sales Navigator**",
+          "LinkedIn channel",
+          "Ingest + sync",
+          "SN search / export",
+          "[salesnavigator_endpoint_era_matrix.md](salesnavigator_endpoint_era_matrix.md)",
+          "[../database/salesnavigator_data_lineage.md](../database/salesnavigator_data_lineage.md)"
+        ],
+        [
+          "**Email app (Mailhub)**",
+          "`contact360.io/email`",
+          "Next + REST / IMAP",
+          "Folder & message APIs",
+          "[emailapp_endpoint_era_matrix.md](emailapp_endpoint_era_matrix.md)",
+          "[../database/emailapp_data_lineage.md](../database/emailapp_data_lineage.md)"
+        ],
+        [
+          "**Admin (Django)**",
+          "`contact360.io/admin`",
+          "Django + DRF",
+          "HTML + JSON admin",
+          "[admin_endpoint_era_matrix.md](admin_endpoint_era_matrix.md)",
+          "[../database/admin_data_lineage.md](../database/admin_data_lineage.md)"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Cross-service delegation (GraphQL → downstream)",
+      "headers": [
+        "Delegation target",
+        "Used for (examples)"
+      ],
+      "rows": [
+        [
+          "**contact360.io/sync**",
+          "`graphql/GetContact`, `graphql/GetCompany`, VQL `contactQuery` / `companyQuery`, filters, counts — contacts & companies CRUD and search"
+        ],
+        [
+          "**Jobs**",
+          "Export/import jobs, retries, bulk CSV"
+        ],
+        [
+          "**S3 storage**",
+          "Multipart uploads, CSV artifacts, file metadata"
+        ],
+        [
+          "**Logs API**",
+          "`CreateLog`, batch logging"
+        ],
+        [
+          "**Email APIs / Mailvetter**",
+          "Finder, verifier, patterns"
+        ],
+        [
+          "**Contact AI**",
+          "AI chat, parsing, risk analysis"
+        ],
+        [
+          "**Sales Navigator**",
+          "Profile sync, SN search"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lambda & worker services (by path)",
+      "headers": [
+        "Label",
+        "See"
+      ],
+      "rows": [
+        [
+          "Mailhub / email frontend",
+          "[emailapp_endpoint_era_matrix.md](emailapp_endpoint_era_matrix.md), [../database/emailapp_data_lineage.md](../database/emailapp_data_lineage.md)"
+        ],
+        [
+          "Django admin",
+          "[admin_endpoint_era_matrix.md](admin_endpoint_era_matrix.md), [../database/admin_data_lineage.md](../database/admin_data_lineage.md)"
+        ],
+        [
+          "Connectra sync API",
+          "[connectra_endpoint_era_matrix.md](connectra_endpoint_era_matrix.md), [../database/connectra_data_lineage.md](../database/connectra_data_lineage.md)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Service topology",
+      "level": 1,
+      "prose": "This hub ties together the **GraphQL gateway** (`appointment360`), **downstream HTTP/Lambda workers**, and where to find **era matrices** and **data lineage** for each surface. Endpoint specs link here under **Topology overview**."
+    },
+    {
+      "heading": "Service registry",
+      "level": 2,
+      "prose": "**EC2 Go satellites (Gin):** In-repo counterparts under `EC2/*.server/` (e.g. **email**, **sync**, s3storage, ai, logsapi, extension) are reached **via the Python gateway** in the target architecture, not by browsers directly. HTTP route inventory and parity notes: **[EC2_GO_SATELLITE_ROUTES.md](EC2_GO_SATELLITE_ROUTES.md)**."
+    },
+    {
+      "heading": "Cross-service delegation (GraphQL → downstream)",
+      "level": 2,
+      "prose": "Gateway resolvers declare **`lambda_services`** / HTTP delegates in endpoint JSON. Typical patterns: See each `*_graphql.md` **lambda_services** and **db_tables_read/write** for the exact chain. Naming rules for linking specs to DB snapshots are in [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md)."
+    },
+    {
+      "heading": "Lambda & worker services (by path)",
+      "level": 2,
+      "prose": "Short labels for matrices that describe **non-gateway** surfaces (Mailhub UI, admin app, workers). Use the **Service registry** table above for canonical links."
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Service topology (gateway & downstream)\"\n---\n\n| --- | --- | --- | --- | --- | --- |\n\n## Request flow (dashboard & extension)\n\n```mermaid\nflowchart LR\n  subgraph clients [Clients]\n    D[Dashboard Next.js]\n    E[Browser extension]\n  end\n  subgraph gateway [Gateway]\n    G[appointment360 POST /graphql]\n  end\n  subgraph downstream [Downstream]\n    C[contact360.io/sync Connectra]\n    J[Jobs workers]\n    AI[Contact AI / Resume AI]\n    S3[S3 storage]\n    L[Logs API]\n    EM[Email APIs / Mailvetter]\n    SN[Sales Navigator ingest]\n  end\n  subgraph data [Data stores]\n    PG[(Postgres gateway)]\n    CP[(Connectra PG + ES)]\n    OB[(S3 / Redis / ES)]\n  end\n  D --> G\n  E --> G\n  G --> PG\n  G --> C\n  G --> J\n  G --> AI\n  G --> S3\n  G --> L\n  G --> EM\n  G --> SN\n  C --> CP\n  S3 --> OB\n```\n\n## Era matrix index (all services)\n\n## Data lineage index (all docs)"
+}

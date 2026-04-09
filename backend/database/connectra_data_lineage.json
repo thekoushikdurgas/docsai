@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/database/connectra_data_lineage.md",
+  "sha256_source": "f4660919ed09d304bc0adda9230a25357693691eb0da51ce946e9dd733552849",
+  "generated_at": "2026-04-09T00:45:00.739549+00:00",
+  "title": "Connectra data lineage (contacts / companies / search)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Connectra data lineage (contacts / companies / search)",
+      "level": 1,
+      "slug": "connectra-data-lineage-contacts-companies-search",
+      "prose": "**Service:** `contact360.io/sync` (Go) — PostgreSQL authoritative rows + Elasticsearch query/index plane.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Scope",
+      "level": 2,
+      "slug": "scope",
+      "prose": "- Physical tables and indices live **outside** the gateway `docs/backend/database/*.sql` snapshot; this document is the **contract authority** for Connectra-owned storage referenced by [`03_CONTACTS_MODULE.md`](../graphql.modules/03_CONTACTS_MODULE.md) and [`04_COMPANIES_MODULE.md`](../graphql.modules/04_COMPANIES_MODULE.md).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Physical tables and indices live **outside** the gateway `docs/backend/database/*.sql` snapshot; this document is the **contract authority** for Connectra-owned storage referenced by [`03_CONTACTS_MODULE.md`](../graphql.modules/03_CONTACTS_MODULE.md) and [`04_COMPANIES_MODULE.md`](../graphql.modules/04_COMPANIES_MODULE.md).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`03_CONTACTS_MODULE.md`",
+          "href": "../graphql.modules/03_CONTACTS_MODULE.md"
+        },
+        {
+          "text": "`04_COMPANIES_MODULE.md`",
+          "href": "../graphql.modules/04_COMPANIES_MODULE.md"
+        }
+      ]
+    },
+    {
+      "heading": "Lineage notes",
+      "level": 2,
+      "slug": "lineage-notes",
+      "prose": "- **Dual write:** upserts land in PG then ES (ordering and failure handling per Connectra implementation).\n- **VQL:** translated to ES query + PG hydration — see `contact360.io/sync` and [`connectra-codebase-analysis.md`](../../codebases/connectra-codebase-analysis.md).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Dual write:** upserts land in PG then ES (ordering and failure handling per Connectra implementation).",
+              "checked": null
+            },
+            {
+              "text": "**VQL:** translated to ES query + PG hydration — see `contact360.io/sync` and [`connectra-codebase-analysis.md`](../../codebases/connectra-codebase-analysis.md).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`connectra-codebase-analysis.md`",
+          "href": "../../codebases/connectra-codebase-analysis.md"
+        }
+      ]
+    },
+    {
+      "heading": "Related",
+      "level": 2,
+      "slug": "related",
+      "prose": "- [`connectra_endpoint_era_matrix.md`](../endpoints/connectra_endpoint_era_matrix.md)\n- Imported analysis: [`EC2/sync.server/docs/imported/analysis/connectra-contact-company-task-pack.md`](../../../EC2/sync.server/docs/imported/analysis/connectra-contact-company-task-pack.md)\n\n*Extend this stub with table/index names and migration pointers when promoting Connectra schema docs into `docs/`.*",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[`connectra_endpoint_era_matrix.md`](../endpoints/connectra_endpoint_era_matrix.md)",
+              "checked": null
+            },
+            {
+              "text": "Imported analysis: [`EC2/sync.server/docs/imported/analysis/connectra-contact-company-task-pack.md`](../../../EC2/sync.server/docs/imported/analysis/connectra-contact-company-task-pack.md)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`connectra_endpoint_era_matrix.md`",
+          "href": "../endpoints/connectra_endpoint_era_matrix.md"
+        },
+        {
+          "text": "`EC2/sync.server/docs/imported/analysis/connectra-contact-company-task-pack.md`",
+          "href": "../../../EC2/sync.server/docs/imported/analysis/connectra-contact-company-task-pack.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

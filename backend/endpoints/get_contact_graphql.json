@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/get_contact_graphql.md",
+  "sha256_source": "f7c345444ddf72211a491df6471aa80b5a16e29e56499f21fce71181f3f3aa2a",
+  "generated_at": "2026-04-08T23:11:51.444498+00:00",
+  "title": "graphql/GetContact",
+  "raw_markdown": "---\ntitle: \"graphql/GetContact\"\nsource_json: get_contact_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/GetContact\n\n## Overview\n\nGet a single contact by UUID. Accepts uuid (ID!, required, valid UUID format). Returns Contact object with full details including id, firstName, lastName, email, phone, jobTitle, company information (id, name, domain, industry), contact metadata (linkedin_url, twitter_url), and social links. Uses Connectra service for data retrieval. Raises NotFoundError (404) if contact doesn't exist.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | get_contact_graphql |\n| _id | get_contact_graphql-001 |\n| endpoint_path | graphql/GetContact |\n| method | QUERY |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 3.x.x |\n| introduced_in | 3.0.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/contacts/queries.py |\n| router_file | contact360/dashboard/src/services/graphql/contactsService.ts |\n\n\n## GraphQL operation\n\n```graphql\nquery GetContact($uuid: ID!) { contacts { contact(uuid: $uuid) { id firstName lastName email phone jobTitle company { id name domain } } } }\n```\n\n## Data & infrastructure\n\n### db_tables_read\n\n- contacts\n- companies\n- contacts_index\n\n### lambda_services\n\n- contact360.io/sync\n\n## Service / repository methods\n\n### service_methods\n\n- contact\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /contacts | Contacts Page | contactsService | useContactDetail | secondary | data_fetching | 2026-03-24T00:00:00.000000+00:00 |\n\n\n### frontend_page_bindings\n\n- docs/frontend/pages/contacts_page.json\n- contact360.io/app/app/(dashboard)/contacts/page.tsx\n- contact360.io/app/src/services/graphql/contactsService.ts\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `get_contact_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x – 10.x)\n\n- **Lifecycle `era` (metadata):** `3.x.x` — Contact & Company Data System.\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `contacts` | READ | [contacts.sql](../database/tables/contacts.sql) |\n| `companies` | READ | [companies.sql](../database/tables/companies.sql) |\n| `tags` | READ | [tags.sql](../database/tables/tags.sql) |\n| `contact_tags` | READ | [contact_tags.sql](../database/tables/contact_tags.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [Connectra (Search/VQL)](../database/connectra_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Sync**: Real-time retrieval from `contact360.io/sync` endpoint.\n\n## Related endpoint graph\n\n- **Inbound**: `Contacts Page` (Search Result).\n- **Outbound**: `UpdateContact`.\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `get_contact_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "get_contact_graphql"
+        ],
+        [
+          "_id",
+          "get_contact_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/GetContact"
+        ],
+        [
+          "method",
+          "QUERY"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "3.x.x"
+        ],
+        [
+          "introduced_in",
+          "3.0.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/contacts/queries.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/contactsService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/contacts",
+          "Contacts Page",
+          "contactsService",
+          "useContactDetail",
+          "secondary",
+          "data_fetching",
+          "2026-03-24T00:00:00.000000+00:00"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`contacts`",
+          "READ",
+          "[contacts.sql](../database/tables/contacts.sql)"
+        ],
+        [
+          "`companies`",
+          "READ",
+          "[companies.sql](../database/tables/companies.sql)"
+        ],
+        [
+          "`tags`",
+          "READ",
+          "[tags.sql](../database/tables/tags.sql)"
+        ],
+        [
+          "`contact_tags`",
+          "READ",
+          "[contact_tags.sql](../database/tables/contact_tags.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Get a single contact by UUID. Accepts uuid (ID!, required, valid UUID format). Returns Contact object with full details including id, firstName, lastName, email, phone, jobTitle, company information (id, name, domain, industry), contact metadata (linkedin_url, twitter_url), and social links. Uses Connectra service for data retrieval. Raises NotFoundError (404) if contact doesn't exist."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `get_contact_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/GetContact\"\nsource_json: get_contact_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n\n## Data & infrastructure\n\n### db_tables_read\n\n- contacts_index\n\n### lambda_services\n\n- contact360.io/sync\n\n## Service / repository methods\n\n### service_methods\n\n### used_by_pages\n\n| --- | --- | --- | --- | --- | --- | --- |\n| /contacts | Contacts Page | contactsService | useContactDetail | secondary | data_fetching | 2026-03-24T00:00:00.000000+00:00 |\n\n### frontend_page_bindings\n\n- docs/frontend/pages/contacts_page.json\n- contact360.io/app/app/(dashboard)/contacts/page.tsx\n\n- **page_count:** 1\n- **Source:** `get_contact_graphql.json`\n\n## Era alignment (Contact360 0.x – 10.x)\n\n- **Lifecycle `era` (metadata):** `3.x.x` — Contact & Company Data System.\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [Connectra (Search/VQL)](../database/connectra_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Sync**: Real-time retrieval from `contact360.io/sync` endpoint.\n\n- **Inbound**: `Contacts Page` (Search Result).\n- **Outbound**: `UpdateContact`."
+}

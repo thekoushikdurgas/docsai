@@ -1,0 +1,1032 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/sync-codebase-analysis.md",
+  "sha256_source": "2ed194bcdac7ee1676c8b5b56b0c603060abe2fba19f7ee34436527ec2332e74",
+  "generated_at": "2026-04-08T23:26:47.397040+00:00",
+  "title": "Sync Codebase Analysis (contact360.io/sync)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Sync Codebase Analysis (contact360.io/sync)",
+      "level": 1,
+      "slug": "sync-codebase-analysis-contact360iosync",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`contact360.io/sync` (Connectra runtime) is Contact360's contact/company data plane service. It provides VQL-based querying, parallel upsert pipelines across PostgreSQL and Elasticsearch, filter metadata hydration, and background import/export jobs using S3-backed CSV workflows.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture snapshot",
+      "level": 2,
+      "slug": "runtime-architecture-snapshot",
+      "prose": "- Runtime: Go (Gin + Cobra + Zerolog).\n- Entry points: `main.go`, `cmd/server.go`, `cmd/jobs.go`.\n- API modules: `modules/contacts`, `modules/companies`, `modules/common`.\n- Query engine: `utilities/query.go` (VQL -> Elasticsearch bool query compiler).\n- Data model: PostgreSQL + Elasticsearch dual-store model with repository layer.\n- Jobs: polling workers in `jobs/jobs.go` with claim-and-transition status model.\n- Middleware: token-bucket rate limiting + API key authentication.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Runtime: Go (Gin + Cobra + Zerolog).",
+              "checked": null
+            },
+            {
+              "text": "Entry points: `main.go`, `cmd/server.go`, `cmd/jobs.go`.",
+              "checked": null
+            },
+            {
+              "text": "API modules: `modules/contacts`, `modules/companies`, `modules/common`.",
+              "checked": null
+            },
+            {
+              "text": "Query engine: `utilities/query.go` (VQL -> Elasticsearch bool query compiler).",
+              "checked": null
+            },
+            {
+              "text": "Data model: PostgreSQL + Elasticsearch dual-store model with repository layer.",
+              "checked": null
+            },
+            {
+              "text": "Jobs: polling workers in `jobs/jobs.go` with claim-and-transition status model.",
+              "checked": null
+            },
+            {
+              "text": "Middleware: token-bucket rate limiting + API key authentication.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ Contact and company query/count/batch-upsert endpoints are implemented.\n- [x] ✅ VQL compiler supports text, keyword, range, sorting, pagination, and cursor/search-after patterns.\n- [x] ✅ Parallel write orchestration is implemented for contacts/companies/filter-data upserts.\n- [x] ✅ Job runners for `first_time` and `retry` modes are implemented with recovery of in-flight states.\n- [x] ✅ API key auth and rate limiter middleware are active in server route chain.\n- [x] ✅ Health endpoint and graceful shutdown handling are present.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Contact and company query/count/batch-upsert endpoints are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ VQL compiler supports text, keyword, range, sorting, pagination, and cursor/search-after patterns.",
+              "checked": true
+            },
+            {
+              "text": "✅ Parallel write orchestration is implemented for contacts/companies/filter-data upserts.",
+              "checked": true
+            },
+            {
+              "text": "✅ Job runners for `first_time` and `retry` modes are implemented with recovery of in-flight states.",
+              "checked": true
+            },
+            {
+              "text": "✅ API key auth and rate limiter middleware are active in server route chain.",
+              "checked": true
+            },
+            {
+              "text": "✅ Health endpoint and graceful shutdown handling are present.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and authz model",
+      "level": 3,
+      "slug": "security-and-authz-model",
+      "prose": "- [ ] ⬜ Incomplete: authentication is shared `X-API-Key` only; no scoped key, tenant, or role-level authorization.\n- [ ] 🟡 In Progress: CORS allowlist is environment-configurable, but governance for production origin policy requires stricter release gates.\n- [ ] ⬜ Incomplete: service-level audit and key-rotation evidence is not first-class in runtime contract.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: authentication is shared `X-API-Key` only; no scoped key, tenant, or role-level authorization.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: CORS allowlist is environment-configurable, but governance for production origin policy requires stricter release gates.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: service-level audit and key-rotation evidence is not first-class in runtime contract.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Logging and observability drift",
+      "level": 3,
+      "slug": "logging-and-observability-drift",
+      "prose": "- [ ] 🟡 In Progress: structured logging exists, but legacy direct output patterns still exist in codebase (`clients/mongo.go` uses `fmt.Println`).\n- [ ] ⬜ Incomplete: canonical log-unification path (`logs.api`) is not explicitly integrated as single sink.\n- [ ] ⬜ Incomplete: route-level error budget/SLO evidence endpoints are incomplete for platform governance.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: structured logging exists, but legacy direct output patterns still exist in codebase (`clients/mongo.go` uses `fmt.Println`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: canonical log-unification path (`logs.api`) is not explicitly integrated as single sink.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: route-level error budget/SLO evidence endpoints are incomplete for platform governance.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage/control-plane drift",
+      "level": 3,
+      "slug": "storagecontrol-plane-drift",
+      "prose": "- [ ] ⬜ Incomplete: sync runtime still uses direct S3 connections/clients for presigned upload and job file operations.\n- [ ] 🟡 In Progress: direct S3 patterns are functional, but Contact360 standard calls for migration toward `s3storage` control plane where possible.\n- [ ] 📌 Planned: block new direct storage integrations and enforce mediated storage contracts.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: sync runtime still uses direct S3 connections/clients for presigned upload and job file operations.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: direct S3 patterns are functional, but Contact360 standard calls for migration toward `s3storage` control plane where possible.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: block new direct storage integrations and enforce mediated storage contracts.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Product completeness and roadmap gaps",
+      "level": 3,
+      "slug": "product-completeness-and-roadmap-gaps",
+      "prose": "- [ ] 🟡 In Progress: contact/company core is strong, but extension/sales/AI/campaign-specific modules are only partially represented through generic pipelines.\n- [ ] ⬜ Incomplete: campaign-specific data orchestration and compliance packs (`10.x.x`) are not complete.\n- [ ] 📌 Planned: richer ecosystem/public API lifecycle contracts with versioned boundaries.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: contact/company core is strong, but extension/sales/AI/campaign-specific modules are only partially represented through generic pipelines.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign-specific data orchestration and compliance packs (`10.x.x`) are not complete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: richer ecosystem/public API lifecycle contracts with versioned boundaries.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-service dependency map (release gating)",
+      "level": 2,
+      "slug": "cross-service-dependency-map-release-gating",
+      "prose": "- [x] ✅ `contact360.io/sync` <- `contact360.io/api` (Appointment360 gateway consumption).\n- [x] ✅ `contact360.io/sync` -> PostgreSQL and Elasticsearch for hybrid read/write behavior.\n- [x] ✅ `contact360.io/sync` -> S3 for upload URL generation and CSV job streams.\n- [ ] 🟡 In Progress: `contact360.io/sync` -> `lambda/logs.api` canonical logging integration.\n- [ ] 🟡 In Progress: `contact360.io/sync` -> `lambda/s3storage` storage-control-plane alignment.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `contact360.io/sync` <- `contact360.io/api` (Appointment360 gateway consumption).",
+              "checked": true
+            },
+            {
+              "text": "✅ `contact360.io/sync` -> PostgreSQL and Elasticsearch for hybrid read/write behavior.",
+              "checked": true
+            },
+            {
+              "text": "✅ `contact360.io/sync` -> S3 for upload URL generation and CSV job streams.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: `contact360.io/sync` -> `lambda/logs.api` canonical logging integration.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: `contact360.io/sync` -> `lambda/s3storage` storage-control-plane alignment.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage-control-plane migration map (direct S3 -> s3storage)",
+      "level": 2,
+      "slug": "storage-control-plane-migration-map-direct-s3---s3storage",
+      "prose": "- [x] ✅ Direct S3 integration currently powers upload and CSV job flows.\n- [ ] ⬜ Incomplete: no abstraction layer currently enforces `s3storage` mediation for storage operations.\n- [ ] 🟡 In Progress: plan migration of upload URL and job file I/O surfaces to shared storage control plane.\n- [ ] 📌 Planned: add CI/release checks preventing new direct S3 call sites.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Direct S3 integration currently powers upload and CSV job flows.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: no abstraction layer currently enforces `s3storage` mediation for storage operations.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: plan migration of upload URL and job file I/O surfaces to shared storage control plane.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add CI/release checks preventing new direct S3 call sites.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Log-unification migration map (local logs/print/console -> logs.api)",
+      "level": 2,
+      "slug": "log-unification-migration-map-local-logsprintconsole---logsapi",
+      "prose": "- [x] ✅ Zerolog-based structured logging is widely used.\n- [ ] 🟡 In Progress: remove remaining direct output/debug paths (e.g., `fmt.Println` in Mongo command monitor).\n- [ ] ⬜ Incomplete: define and enforce canonical `logs.api` event schema for this service.\n- [ ] 📌 Planned: include correlation IDs and cross-service trace propagation contract.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Zerolog-based structured logging is widely used.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: remove remaining direct output/debug paths (e.g., `fmt.Println` in Mongo command monitor).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define and enforce canonical `logs.api` event schema for this service.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: include correlation IDs and cross-service trace propagation contract.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Contact/company/common API contract surface is stable and implemented.\n- [ ] 🟡 In Progress: align VQL contract docs with gateway-facing expectations and examples.\n- [ ] ⬜ Incomplete: scoped-auth contract (tenant/user/service scope) is missing.\n- [ ] ⬜ Incomplete: versioned external/partner API boundary is not finalized.\n- [ ] 📌 Planned: campaign and ecosystem contract packs for later eras.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Contact/company/common API contract surface is stable and implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: align VQL contract docs with gateway-facing expectations and examples.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: scoped-auth contract (tenant/user/service scope) is missing.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: versioned external/partner API boundary is not finalized.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign and ecosystem contract packs for later eras.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Parallel upsert and hybrid query service patterns are implemented.\n- [ ] 🟡 In Progress: harden service governance around storage/logging unification.\n- [ ] ⬜ Incomplete: remove remaining legacy direct output/log calls.\n- [ ] ⬜ Incomplete: migrate direct S3 pathways toward shared storage control plane.\n- [ ] 📌 Planned: AI/campaign-specific service modules and orchestration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Parallel upsert and hybrid query service patterns are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden service governance around storage/logging unification.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove remaining legacy direct output/log calls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: migrate direct S3 pathways toward shared storage control plane.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI/campaign-specific service modules and orchestration.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Core endpoints for data fetch, count, upload-url, filters, and jobs are available.\n- [ ] 🟡 In Progress: improve deterministic error envelopes and operator diagnostics.\n- [ ] ⬜ Incomplete: richer status/timeline API for operational UIs and external consumers.\n- [ ] ⬜ Incomplete: public-facing endpoint productization docs and guardrails.\n- [ ] 📌 Planned: partner-safe endpoint catalog and onboarding surfaces.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core endpoints for data fetch, count, upload-url, filters, and jobs are available.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve deterministic error envelopes and operator diagnostics.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: richer status/timeline API for operational UIs and external consumers.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: public-facing endpoint productization docs and guardrails.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: partner-safe endpoint catalog and onboarding surfaces.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Dual-store data model (PG + ES) and deterministic UUID-based dedupe are implemented.\n- [ ] 🟡 In Progress: improve reconciliation evidence between ES and PG at runtime.\n- [ ] ⬜ Incomplete: stronger lineage/audit data for billing/compliance/campaign readiness.\n- [ ] ⬜ Incomplete: explicit idempotency evidence on all create-job paths.\n- [ ] 📌 Planned: tenant partitioning and compliance lineage upgrades.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Dual-store data model (PG + ES) and deterministic UUID-based dedupe are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve reconciliation evidence between ES and PG at runtime.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: stronger lineage/audit data for billing/compliance/campaign readiness.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit idempotency evidence on all create-job paths.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: tenant partitioning and compliance lineage upgrades.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Graceful shutdown and in-flight job recovery paths are implemented.\n- [ ] 🟡 In Progress: harden runtime SLO/error-budget monitoring and alerting.\n- [ ] ⬜ Incomplete: deployment and key-rotation governance evidence is incomplete.\n- [ ] ⬜ Incomplete: formal release gate matrix for storage/logging/auth drift not complete.\n- [ ] 📌 Planned: multi-tenant scaling policies and workload isolation controls.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Graceful shutdown and in-flight job recovery paths are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden runtime SLO/error-budget monitoring and alerting.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: deployment and key-rotation governance evidence is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formal release gate matrix for storage/logging/auth drift not complete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: multi-tenant scaling policies and workload isolation controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Go service scaffold, middleware chain, hybrid data architecture, and VQL core are established.\n- [x] ✅ Core contact/company/common routes and health endpoint exist.\n- [ ] 🟡 In Progress: foundational governance docs and release-gate parity need normalization.\n- [ ] ⬜ Incomplete: remove residual legacy logging patterns and tighten baseline security posture.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Go service scaffold, middleware chain, hybrid data architecture, and VQL core are established.",
+              "checked": true
+            },
+            {
+              "text": "✅ Core contact/company/common routes and health endpoint exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: foundational governance docs and release-gate parity need normalization.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove residual legacy logging patterns and tighten baseline security posture.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ Service can support usage-aware workflows through gateway orchestration.\n- [ ] 🟡 In Progress: add stronger billing/credit attribution evidence in job and request metadata.\n- [ ] ⬜ Incomplete: scoped authz model for credit-sensitive operations.\n- [ ] 📌 Planned: tenant-aware quota and billing policy enforcement.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Service can support usage-aware workflows through gateway orchestration.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: add stronger billing/credit attribution evidence in job and request metadata.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: scoped authz model for credit-sensitive operations.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: tenant-aware quota and billing policy enforcement.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ CSV import/export and email-adjacent data pipelines are implemented via jobs.\n- [ ] 🟡 In Progress: keep data-plane contracts aligned with email finder/verifier service evolution.\n- [ ] ⬜ Incomplete: full storage/logging standardization for email-heavy pipelines.\n- [ ] 📌 Planned: richer email campaign data readiness hooks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ CSV import/export and email-adjacent data pipelines are implemented via jobs.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: keep data-plane contracts aligned with email finder/verifier service evolution.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full storage/logging standardization for email-heavy pipelines.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: richer email campaign data readiness hooks.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [x] ✅ This is the primary implemented strength era (VQL + dual-store + batch upsert).\n- [x] ✅ Filter metadata and count/list pathways are implemented.\n- [ ] 🟡 In Progress: strengthen reconciliation and drift-detection automation.\n- [ ] ⬜ Incomplete: complete high-fidelity lineage for operational and compliance views.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ This is the primary implemented strength era (VQL + dual-store + batch upsert).",
+              "checked": true
+            },
+            {
+              "text": "✅ Filter metadata and count/list pathways are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: strengthen reconciliation and drift-detection automation.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete high-fidelity lineage for operational and compliance views.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] 🟡 In Progress: core data APIs can serve extension/sales use cases via gateway.\n- [ ] ⬜ Incomplete: explicit extension/sales provenance and diagnostics contracts are limited.\n- [ ] 📌 Planned: dedicated sync surfaces for extension/Sales Navigator ingestion quality.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: core data APIs can serve extension/sales use cases via gateway.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit extension/sales provenance and diagnostics contracts are limited.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: dedicated sync surfaces for extension/Sales Navigator ingestion quality.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [ ] ⬜ Incomplete: AI-specific data enrichment modules are not first-class in this runtime.\n- [ ] 🟡 In Progress: existing hybrid query architecture is reusable for AI contexts.\n- [ ] 📌 Planned: AI-ready metadata contracts and enrichment support modules.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: AI-specific data enrichment modules are not first-class in this runtime.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: existing hybrid query architecture is reusable for AI contexts.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI-ready metadata contracts and enrichment support modules.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ Worker recovery and claim-based job processing provide a resilience baseline.\n- [ ] 🟡 In Progress: improve SLO visibility and advanced failure diagnostics.\n- [ ] ⬜ Incomplete: full idempotency/replay protections across all write and job-create paths.\n- [ ] 📌 Planned: reliability scorecards and chaos/fault tests.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Worker recovery and claim-based job processing provide a resilience baseline.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve SLO visibility and advanced failure diagnostics.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full idempotency/replay protections across all write and job-create paths.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: reliability scorecards and chaos/fault tests.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ Dockerized runtime and CLI command modes are present.\n- [ ] 🟡 In Progress: deployment governance around auth/keys/storage/logging still maturing.\n- [ ] ⬜ Incomplete: production runbook and release-gate evidence not fully standardized.\n- [ ] 📌 Planned: staged rollout and rollback-safe data migration controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Dockerized runtime and CLI command modes are present.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: deployment governance around auth/keys/storage/logging still maturing.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: production runbook and release-gate evidence not fully standardized.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: staged rollout and rollback-safe data migration controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [x] ✅ Private APIs are operational for internal platform use.\n- [ ] 🟡 In Progress: clarify and enforce private/public contract boundaries.\n- [ ] ⬜ Incomplete: partner-safe API model, key scopes, and lifecycle versioning.\n- [ ] 📌 Planned: productized API docs and compatibility policy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Private APIs are operational for internal platform use.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: clarify and enforce private/public contract boundaries.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: partner-safe API model, key scopes, and lifecycle versioning.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: productized API docs and compatibility policy.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 🟡 In Progress: architecture can support ecosystem growth, but governance is partial.\n- [ ] ⬜ Incomplete: integration lifecycle controls, quotas, and platform observability are incomplete.\n- [ ] 📌 Planned: ecosystem-grade connector and tenant controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: architecture can support ecosystem growth, but governance is partial.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: integration lifecycle controls, quotas, and platform observability are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: ecosystem-grade connector and tenant controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] ⬜ Incomplete: dedicated campaign orchestration/compliance features are not complete in sync runtime.\n- [ ] ⬜ Incomplete: campaign evidence pipelines and suppression/compliance contracts are incomplete.\n- [ ] 📌 Planned: campaign-ready audience/export safeguards and immutable audit support.\n- [ ] 📌 Planned: integrated campaign runtime dependency gates across sync/gateway/jobs.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: dedicated campaign orchestration/compliance features are not complete in sync runtime.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign evidence pipelines and suppression/compliance contracts are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-ready audience/export safeguards and immutable audit support.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: integrated campaign runtime dependency gates across sync/gateway/jobs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [ ] ⬜ Incomplete: remove residual direct output logging and finish log-unification path.\n- [ ] 🟡 In Progress: design and execute direct S3 -> `s3storage` migration plan for sync runtime.\n- [ ] ⬜ Incomplete: implement scoped API credentials (tenant/service-level) beyond shared API key.\n- [ ] ⬜ Incomplete: add idempotency evidence and duplicate prevention for job creation paths.\n- [ ] 🟡 In Progress: introduce reconciliation/lineage evidence checks between Elasticsearch and PostgreSQL.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: remove residual direct output logging and finish log-unification path.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: design and execute direct S3 -> `s3storage` migration plan for sync runtime.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement scoped API credentials (tenant/service-level) beyond shared API key.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add idempotency evidence and duplicate prevention for job creation paths.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: introduce reconciliation/lineage evidence checks between Elasticsearch and PostgreSQL.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 - must close for release safety",
+      "level": 3,
+      "slug": "p0---must-close-for-release-safety",
+      "prose": "- [ ] ⬜ Incomplete: secure auth model hardening beyond shared API key.\n- [ ] ⬜ Incomplete: complete storage-control-plane and log-unification compliance for runtime.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: secure auth model hardening beyond shared API key.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete storage-control-plane and log-unification compliance for runtime.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2 - required for maturity",
+      "level": 3,
+      "slug": "p1p2---required-for-maturity",
+      "prose": "- [ ] 🟡 In Progress: reconciliation and lineage observability between ES/PG.\n- [ ] 🟡 In Progress: standardized error envelopes and SLO readiness for platform operations.\n- [ ] 📌 Planned: versioned endpoint governance and partner-safe contract expansion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: reconciliation and lineage observability between ES/PG.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: standardized error envelopes and SLO readiness for platform operations.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: versioned endpoint governance and partner-safe contract expansion.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+ - platform productization",
+      "level": 3,
+      "slug": "p3---platform-productization",
+      "prose": "- [ ] 📌 Planned: AI and ecosystem integration maturity packs.\n- [ ] 📌 Planned: full `10.x.x` campaign readiness and compliance controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: AI and ecosystem integration maturity packs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: full `10.x.x` campaign readiness and compliance controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

@@ -1,0 +1,1909 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/cli.md",
+  "sha256_source": "f3f6a64020c60794ea76b2b5853c8d09f5ba6021d75eb4bfaba352799b44f6f5",
+  "generated_at": "2026-04-08T23:26:47.944648+00:00",
+  "title": "Contact360 CLIs (docs)",
+  "sections": [
+    {
+      "heading": "Contact360 CLIs (docs)",
+      "level": 1,
+      "slug": "contact360-clis-docs",
+      "prose": "This file documents **two** command-line surfaces that live under `docs/`:\n\n1. **Docs CLI** — `docs/cli.py` — documentation health, era tasks, structure validation, data/SQL helpers, Postman-backed API test wrappers. Run from **`docs/`** (or put `docs/` on `PYTHONPATH`). Policy: [`doc-folder-structure-policy.md`](doc-folder-structure-policy.md).\n2. **API Testing CLI (Typer)** — `docs/scripts/api_cli.py` — test runs, discovery, monitoring, collections. Run from **`docs/scripts/`** (or set `PYTHONPATH` to `docs`).\n\nSee also: [`docs/README.md`](../README.md) (hub navigation), [`doc-folder-structure-policy.md`](doc-folder-structure-policy.md) (validation matrix, `validate-all` JSON).\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Docs CLI** — `docs/cli.py` — documentation health, era tasks, structure validation, data/SQL helpers, Postman-backed API test wrappers. Run from **`docs/`** (or put `docs/` on `PYTHONPATH`). Policy: [`doc-folder-structure-policy.md`](doc-folder-structure-policy.md).",
+              "checked": null
+            },
+            {
+              "text": "**API Testing CLI (Typer)** — `docs/scripts/api_cli.py` — test runs, discovery, monitoring, collections. Run from **`docs/scripts/`** (or set `PYTHONPATH` to `docs`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`doc-folder-structure-policy.md`",
+          "href": "doc-folder-structure-policy.md"
+        },
+        {
+          "text": "`docs/README.md`",
+          "href": "../README.md"
+        },
+        {
+          "text": "`doc-folder-structure-policy.md`",
+          "href": "doc-folder-structure-policy.md"
+        }
+      ]
+    },
+    {
+      "heading": "Contact360 API Testing CLI (apicli.py`)",
+      "level": 1,
+      "slug": "contact360-api-testing-cli-apiclipy",
+      "prose": "AI-powered command-line interface for automated API testing, monitoring, endpoint discovery, and collection management.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Features",
+      "level": 2,
+      "slug": "features",
+      "prose": "- **AI Agentic Learning**: Automatically learns from test results and endpoint behavior\n- **Intelligent Test Execution**: Run tests with smart prioritization based on historical data\n- **Continuous Monitoring**: Automated scheduled test runs with alerting\n- **Endpoint Discovery**: Scan, sync, and document API endpoints\n- **Postman Collection Management**: Generate, update, and manage Postman collections\n- **Interactive REPL**: Manual testing and exploration mode\n- **Enhanced Reporting**: Dashboards, trends, and insights\n- **Configuration Profiles**: Manage multiple test environments\n- **AI-Powered Analysis**: Analyze endpoints, detect anomalies, and get optimization suggestions\n- **Test Case Optimization**: AI suggests improvements for test coverage",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**AI Agentic Learning**: Automatically learns from test results and endpoint behavior",
+              "checked": null
+            },
+            {
+              "text": "**Intelligent Test Execution**: Run tests with smart prioritization based on historical data",
+              "checked": null
+            },
+            {
+              "text": "**Continuous Monitoring**: Automated scheduled test runs with alerting",
+              "checked": null
+            },
+            {
+              "text": "**Endpoint Discovery**: Scan, sync, and document API endpoints",
+              "checked": null
+            },
+            {
+              "text": "**Postman Collection Management**: Generate, update, and manage Postman collections",
+              "checked": null
+            },
+            {
+              "text": "**Interactive REPL**: Manual testing and exploration mode",
+              "checked": null
+            },
+            {
+              "text": "**Enhanced Reporting**: Dashboards, trends, and insights",
+              "checked": null
+            },
+            {
+              "text": "**Configuration Profiles**: Manage multiple test environments",
+              "checked": null
+            },
+            {
+              "text": "**AI-Powered Analysis**: Analyze endpoints, detect anomalies, and get optimization suggestions",
+              "checked": null
+            },
+            {
+              "text": "**Test Case Optimization**: AI suggests improvements for test coverage",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Installation",
+      "level": 2,
+      "slug": "installation",
+      "prose": "The CLI is part of the Contact360 project. Ensure you have the required dependencies:\n\n```bash\npip install typer rich requests python-dotenv schedule\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "pip install typer rich requests python-dotenv schedule\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Quick Start",
+      "level": 2,
+      "slug": "quick-start",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Entry points",
+      "level": 3,
+      "slug": "entry-points",
+      "prose": "| Surface | Working directory | Command |\n| --- | --- | --- |\n| **Docs Agent** (era tasks, validation, catalog) | `docs/` | `python main.py` |\n| **Docs CLI** (same actions non-interactive) | `docs/` | `python cli.py list`, `python cli.py validate-all`, … |\n| **API Testing CLI** (Typer) | `docs/scripts/` | `python api_cli.py test run` |\n| **Data ingestion REPL** | `docs/` | `python cli.py data ingest-local` |\n\nEnsure `docs/` is the current directory (or on `PYTHONPATH`) so `scripts` resolves to `docs/scripts`.",
+      "tables": [
+        {
+          "headers": [
+            "Surface",
+            "Working directory",
+            "Command"
+          ],
+          "rows": [
+            [
+              "**Docs Agent** (era tasks, validation, catalog)",
+              "`docs/`",
+              "`python main.py`"
+            ],
+            [
+              "**Docs CLI** (same actions non-interactive)",
+              "`docs/`",
+              "`python cli.py list`, `python cli.py validate-all`, …"
+            ],
+            [
+              "**API Testing CLI** (Typer)",
+              "`docs/scripts/`",
+              "`python api_cli.py test run`"
+            ],
+            [
+              "**Data ingestion REPL**",
+              "`docs/`",
+              "`python cli.py data ingest-local`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Docs CLI (from docs/)",
+      "level": 3,
+      "slug": "docs-cli-from-docs",
+      "prose": "```bash\npython cli.py list\npython cli.py list --json --category data\npython cli.py validate-all --write-latest\npython cli.py validate-structure --prefix docs/docs\npython cli.py validate-structure --era 3 --kind era_task\npython cli.py validate-structure --kind backend_api\npython cli.py validate-structure --kind endpoint_md\npython cli.py validate-structure --kind codebase_analysis\npython cli.py format-structure --prefix docs/docs              # dry-run (list would-change files)\npython cli.py format-structure --era 3 --kind era_task --apply\npython cli.py format-all --apply\npython cli.py format-all --apply --include-prose --write-latest\npython cli.py data analyze-company-names --dry-run\npython cli.py data comprehensive-analysis --dry-run\npython cli.py data analyze-company-names\npython cli.py data clean-db --dry-run\npython cli.py sql run --dry-run --no-log-files\n```\n\n**`api-test` argument order:** global flags come **before** the subcommand:\n\n```bash\npython cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json show-env\npython cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json discover\npython cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json pattern-generator -- --help",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python cli.py list\npython cli.py list --json --category data\npython cli.py validate-all --write-latest\npython cli.py validate-structure --prefix docs/docs\npython cli.py validate-structure --era 3 --kind era_task\npython cli.py validate-structure --kind backend_api\npython cli.py validate-structure --kind endpoint_md\npython cli.py validate-structure --kind codebase_analysis\npython cli.py format-structure --prefix docs/docs              # dry-run (list would-change files)\npython cli.py format-structure --era 3 --kind era_task --apply\npython cli.py format-all --apply\npython cli.py format-all --apply --include-prose --write-latest\npython cli.py data analyze-company-names --dry-run\npython cli.py data comprehensive-analysis --dry-run\npython cli.py data analyze-company-names\npython cli.py data clean-db --dry-run\npython cli.py sql run --dry-run --no-log-files\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Forward args to the underlying script:",
+      "level": 1,
+      "slug": "forward-args-to-the-underlying-script",
+      "prose": "python cli.py api-test --postman-env backend/postman/Contact360_Local.postman_environment.json pattern-generator -- --api-url http://localhost:8000\n```\n\n**Timeout default:** API test scripts now default to **300 seconds (5 minutes)** per request. Override with `TIMEOUT_SECONDS` (and `TIMEOUT` for legacy CLI profile compatibility).\n\n**Interactive Docs Agent** (menus **A–G**; section **B** includes validate **B7–B9** and format **B10–B11**): `python main.py`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Basic Usage (API CLI)",
+      "level": 3,
+      "slug": "basic-usage-api-cli",
+      "prose": "```bash\ncd docs/scripts",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Show Typer help panel",
+      "level": 1,
+      "slug": "show-typer-help-panel",
+      "prose": "python api_cli.py",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run all tests",
+      "level": 1,
+      "slug": "run-all-tests",
+      "prose": "python api_cli.py test run",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run tests for a specific category",
+      "level": 1,
+      "slug": "run-tests-for-a-specific-category",
+      "prose": "python api_cli.py test run-category \"Authentication\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run tests with intelligent prioritization",
+      "level": 1,
+      "slug": "run-tests-with-intelligent-prioritization",
+      "prose": "python api_cli.py test run-smart --limit 50",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Start interactive REPL",
+      "level": 1,
+      "slug": "start-interactive-repl",
+      "prose": "python api_cli.py interactive repl\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Command Reference",
+      "level": 2,
+      "slug": "command-reference",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Test Commands",
+      "level": 3,
+      "slug": "test-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "test run",
+      "level": 4,
+      "slug": "test-run",
+      "prose": "Run all tests or filtered subset.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run all tests",
+      "level": 1,
+      "slug": "run-all-tests",
+      "prose": "python api_cli.py test run",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Filter by category",
+      "level": 1,
+      "slug": "filter-by-category",
+      "prose": "python api_cli.py test run --category \"Billing\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Filter by HTTP method",
+      "level": 1,
+      "slug": "filter-by-http-method",
+      "prose": "python api_cli.py test run --method \"GET\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Specify test mode",
+      "level": 1,
+      "slug": "specify-test-mode",
+      "prose": "python api_cli.py test run --mode comprehensive",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Use specific profile",
+      "level": 1,
+      "slug": "use-specific-profile",
+      "prose": "python api_cli.py test run --profile production\n```\n\n**Options:**\n- `--category, -c`: Filter by category\n- `--method, -m`: Filter by HTTP method\n- `--mode`: Test mode (smoke, comprehensive, hybrid)\n- `--profile, -p`: Configuration profile\n- `--output, -o`: Output directory\n- `--verbose, -v`: Verbose output\n- `--csv-dir`: CSV directory path",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`--category, -c`: Filter by category",
+              "checked": null
+            },
+            {
+              "text": "`--method, -m`: Filter by HTTP method",
+              "checked": null
+            },
+            {
+              "text": "`--mode`: Test mode (smoke, comprehensive, hybrid)",
+              "checked": null
+            },
+            {
+              "text": "`--profile, -p`: Configuration profile",
+              "checked": null
+            },
+            {
+              "text": "`--output, -o`: Output directory",
+              "checked": null
+            },
+            {
+              "text": "`--verbose, -v`: Verbose output",
+              "checked": null
+            },
+            {
+              "text": "`--csv-dir`: CSV directory path",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "test run-category",
+      "level": 4,
+      "slug": "test-run-category",
+      "prose": "Run tests for a specific category.\n\n```bash\npython api_cli.py test run-category \"Email\" --mode hybrid\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py test run-category \"Email\" --mode hybrid\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "test run-endpoint",
+      "level": 4,
+      "slug": "test-run-endpoint",
+      "prose": "Run tests for a specific endpoint.\n\n```bash\npython api_cli.py test run-endpoint \"/api/v1/users/\" --method GET\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py test run-endpoint \"/api/v1/users/\" --method GET\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "test run-smart",
+      "level": 4,
+      "slug": "test-run-smart",
+      "prose": "Run tests with intelligent prioritization.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run top 50 prioritized tests",
+      "level": 1,
+      "slug": "run-top-50-prioritized-tests",
+      "prose": "python api_cli.py test run-smart --limit 50",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run with specific mode",
+      "level": 1,
+      "slug": "run-with-specific-mode",
+      "prose": "python api_cli.py test run-smart --limit 100 --mode comprehensive\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Discover Commands",
+      "level": 3,
+      "slug": "discover-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "discover scan",
+      "level": 4,
+      "slug": "discover-scan",
+      "prose": "Scan API for available endpoints (requires OpenAPI spec).\n\n```bash\npython api_cli.py discover scan --base-url http://localhost:8000\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py discover scan --base-url http://localhost:8000\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "discover sync-csv",
+      "level": 4,
+      "slug": "discover-sync-csv",
+      "prose": "Sync CSV file with current API state.\n\n```bash\npython api_cli.py discover sync-csv \"csv/api_endpoints.csv\"\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py discover sync-csv \"csv/api_endpoints.csv\"\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "discover generate-docs",
+      "level": 4,
+      "slug": "discover-generate-docs",
+      "prose": "Generate API documentation from CSV.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Generate Markdown docs",
+      "level": 1,
+      "slug": "generate-markdown-docs",
+      "prose": "python api_cli.py discover generate-docs --format markdown",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Generate HTML docs",
+      "level": 1,
+      "slug": "generate-html-docs",
+      "prose": "python api_cli.py discover generate-docs --format html --output ./docs",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Generate JSON docs",
+      "level": 1,
+      "slug": "generate-json-docs",
+      "prose": "python api_cli.py discover generate-docs --format json\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Monitor Commands",
+      "level": 3,
+      "slug": "monitor-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "monitor start",
+      "level": 4,
+      "slug": "monitor-start",
+      "prose": "Start continuous monitoring.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Start with default interval (300s)",
+      "level": 1,
+      "slug": "start-with-default-interval-300s",
+      "prose": "python api_cli.py monitor start",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Custom interval",
+      "level": 1,
+      "slug": "custom-interval",
+      "prose": "python api_cli.py monitor start --interval 600",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Monitor specific category",
+      "level": 1,
+      "slug": "monitor-specific-category",
+      "prose": "python api_cli.py monitor start --category \"Billing\" --interval 300\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "monitor stop",
+      "level": 4,
+      "slug": "monitor-stop",
+      "prose": "Stop continuous monitoring.\n\n```bash\npython api_cli.py monitor stop\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py monitor stop\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "monitor status",
+      "level": 4,
+      "slug": "monitor-status",
+      "prose": "Show monitoring status.\n\n```bash\npython api_cli.py monitor status\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py monitor status\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "monitor alerts",
+      "level": 4,
+      "slug": "monitor-alerts",
+      "prose": "Check for alerts based on recent test results.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check with default threshold (80% failure rate)",
+      "level": 1,
+      "slug": "check-with-default-threshold-80-failure-rate",
+      "prose": "python api_cli.py monitor alerts",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Custom threshold",
+      "level": 1,
+      "slug": "custom-threshold",
+      "prose": "python api_cli.py monitor alerts --threshold 0.5\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Collection Commands",
+      "level": 3,
+      "slug": "collection-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "collection generate",
+      "level": 4,
+      "slug": "collection-generate",
+      "prose": "Generate Postman collection from CSV.\n\n```bash\npython api_cli.py collection generate --output collection.json\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py collection generate --output collection.json\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "collection update",
+      "level": 4,
+      "slug": "collection-update",
+      "prose": "Update existing Postman collection.\n\n```bash\npython api_cli.py collection update collection.json --csv endpoints.csv\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py collection update collection.json --csv endpoints.csv\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "collection export",
+      "level": 4,
+      "slug": "collection-export",
+      "prose": "Export Postman collection to different formats.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Export to CSV",
+      "level": 1,
+      "slug": "export-to-csv",
+      "prose": "python api_cli.py collection export collection.json --format csv",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Export to OpenAPI",
+      "level": 1,
+      "slug": "export-to-openapi",
+      "prose": "python api_cli.py collection export collection.json --format openapi\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "collection import",
+      "level": 4,
+      "slug": "collection-import",
+      "prose": "Import endpoints from various formats.\n\n```bash\npython api_cli.py collection import endpoints.csv --output collection.json\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py collection import endpoints.csv --output collection.json\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Interactive Commands",
+      "level": 3,
+      "slug": "interactive-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "interactive repl",
+      "level": 4,
+      "slug": "interactive-repl",
+      "prose": "Start interactive REPL for manual testing.\n\n```bash\npython api_cli.py interactive repl --profile development\n```\n\n**REPL Commands:**\n- `get <endpoint>` - GET request\n- `post <endpoint> [json]` - POST request\n- `put <endpoint> [json]` - PUT request\n- `delete <endpoint>` - DELETE request\n- `auth` - Authenticate and get token\n- `headers` - Show current headers\n- `help` - Show help\n- `exit` - Exit REPL\n\n**Example:**\n```\napi> get /api/v1/users/\napi> post /api/v1/auth/login/ {\"email\": \"test@example.com\", \"password\": \"pass\"}\napi> auth\napi> exit\n```",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`get <endpoint>` - GET request",
+              "checked": null
+            },
+            {
+              "text": "`post <endpoint> [json]` - POST request",
+              "checked": null
+            },
+            {
+              "text": "`put <endpoint> [json]` - PUT request",
+              "checked": null
+            },
+            {
+              "text": "`delete <endpoint>` - DELETE request",
+              "checked": null
+            },
+            {
+              "text": "`auth` - Authenticate and get token",
+              "checked": null
+            },
+            {
+              "text": "`headers` - Show current headers",
+              "checked": null
+            },
+            {
+              "text": "`help` - Show help",
+              "checked": null
+            },
+            {
+              "text": "`exit` - Exit REPL",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py interactive repl --profile development\n"
+        },
+        {
+          "lang": "",
+          "value": "api> get /api/v1/users/\napi> post /api/v1/auth/login/ {\"email\": \"test@example.com\", \"password\": \"pass\"}\napi> auth\napi> exit\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Config Commands",
+      "level": 3,
+      "slug": "config-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "config show",
+      "level": 4,
+      "slug": "config-show",
+      "prose": "Show current configuration.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Show all profiles",
+      "level": 1,
+      "slug": "show-all-profiles",
+      "prose": "python api_cli.py config show",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Show specific profile",
+      "level": 1,
+      "slug": "show-specific-profile",
+      "prose": "python api_cli.py config show --profile production\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "config add",
+      "level": 4,
+      "slug": "config-add",
+      "prose": "Add a new configuration profile.\n\n```bash\npython api_cli.py config add production \\\n  --base-url https://api.example.com \\\n  --email admin@example.com \\\n  --password secret\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py config add production \\\n  --base-url https://api.example.com \\\n  --email admin@example.com \\\n  --password secret\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "config set-default",
+      "level": 4,
+      "slug": "config-set-default",
+      "prose": "Set default profile.\n\n```bash\npython api_cli.py config set-default production\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py config set-default production\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "config remove",
+      "level": 4,
+      "slug": "config-remove",
+      "prose": "Remove a configuration profile.\n\n```bash\npython api_cli.py config remove old-profile\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py config remove old-profile\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Dashboard Commands",
+      "level": 3,
+      "slug": "dashboard-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "dashboard show",
+      "level": 4,
+      "slug": "dashboard-show",
+      "prose": "Show dashboard from latest test results.\n\n```bash\npython api_cli.py dashboard show\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py dashboard show\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "dashboard trends",
+      "level": 4,
+      "slug": "dashboard-trends",
+      "prose": "Show trend analysis over time.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Last 7 days (default)",
+      "level": 1,
+      "slug": "last-7-days-default",
+      "prose": "python api_cli.py dashboard trends",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Last 30 days",
+      "level": 1,
+      "slug": "last-30-days",
+      "prose": "python api_cli.py dashboard trends --days 30\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "AI Agentic Commands",
+      "level": 3,
+      "slug": "ai-agentic-commands",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "ai learn",
+      "level": 4,
+      "slug": "ai-learn",
+      "prose": "Learn from historical test results to build knowledge base.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Learn from last 7 days (default)",
+      "level": 1,
+      "slug": "learn-from-last-7-days-default",
+      "prose": "python api_cli.py ai learn",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Learn from last 30 days",
+      "level": 1,
+      "slug": "learn-from-last-30-days",
+      "prose": "python api_cli.py ai learn --days 30\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "ai analyze",
+      "level": 4,
+      "slug": "ai-analyze",
+      "prose": "Analyze endpoints using AI insights.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Analyze specific endpoint",
+      "level": 1,
+      "slug": "analyze-specific-endpoint",
+      "prose": "python api_cli.py ai analyze --endpoint \"GET /api/v1/users/\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Analyze all endpoints in category",
+      "level": 1,
+      "slug": "analyze-all-endpoints-in-category",
+      "prose": "python api_cli.py ai analyze --category \"Authentication\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Analyze all learned endpoints",
+      "level": 1,
+      "slug": "analyze-all-learned-endpoints",
+      "prose": "python api_cli.py ai analyze\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "ai optimize",
+      "level": 4,
+      "slug": "ai-optimize",
+      "prose": "Get AI-powered optimization suggestions for an endpoint.\n\n```bash\npython api_cli.py ai optimize \"GET /api/v1/users/\"\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python api_cli.py ai optimize \"GET /api/v1/users/\"\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "ai suggest",
+      "level": 4,
+      "slug": "ai-suggest",
+      "prose": "Get AI suggestions for test case improvements.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Suggest for specific endpoint",
+      "level": 1,
+      "slug": "suggest-for-specific-endpoint",
+      "prose": "python api_cli.py ai suggest --endpoint \"POST /api/v1/auth/login/\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Suggest for all endpoints in category",
+      "level": 1,
+      "slug": "suggest-for-all-endpoints-in-category",
+      "prose": "python api_cli.py ai suggest --category \"Email\"\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "ai anomalies",
+      "level": 4,
+      "slug": "ai-anomalies",
+      "prose": "Detect anomalies in endpoint behavior.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check specific endpoint",
+      "level": 1,
+      "slug": "check-specific-endpoint",
+      "prose": "python api_cli.py ai anomalies --endpoint \"GET /api/v1/users/\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check all endpoints (high severity only)",
+      "level": 1,
+      "slug": "check-all-endpoints-high-severity-only",
+      "prose": "python api_cli.py ai anomalies --severity high",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check all endpoints",
+      "level": 1,
+      "slug": "check-all-endpoints",
+      "prose": "python api_cli.py ai anomalies\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "ai knowledge",
+      "level": 4,
+      "slug": "ai-knowledge",
+      "prose": "Manage AI knowledge base.\n\n```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Show knowledge base statistics",
+      "level": 1,
+      "slug": "show-knowledge-base-statistics",
+      "prose": "python api_cli.py ai knowledge",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Export knowledge base",
+      "level": 1,
+      "slug": "export-knowledge-base",
+      "prose": "python api_cli.py ai knowledge --export knowledge.json",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Import knowledge base",
+      "level": 1,
+      "slug": "import-knowledge-base",
+      "prose": "python api_cli.py ai knowledge --import knowledge.json\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Configuration",
+      "level": 2,
+      "slug": "configuration",
+      "prose": "Configuration is stored in `~/.contact360-cli/config.json`. You can manage profiles using the `config` commands or edit the file directly.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Environment Variables",
+      "level": 3,
+      "slug": "environment-variables",
+      "prose": "The CLI also supports environment variables:\n\n- `API_BASE_URL` - API base URL\n- `TEST_EMAIL` or `API_TEST_EMAIL` - Test user email\n- `TEST_PASSWORD` or `API_TEST_PASSWORD` - Test user password\n- `ACCESS_TOKEN` - Pre-configured access token\n- `REFRESH_TOKEN` - Pre-configured refresh token\n- `WRITE_KEY` - Write key for v1 endpoints\n- `ADMIN_EMAIL` or `TEST_ADMIN_EMAIL` - Admin email\n- `ADMIN_PASSWORD` or `TEST_ADMIN_PASSWORD` - Admin password",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`API_BASE_URL` - API base URL",
+              "checked": null
+            },
+            {
+              "text": "`TEST_EMAIL` or `API_TEST_EMAIL` - Test user email",
+              "checked": null
+            },
+            {
+              "text": "`TEST_PASSWORD` or `API_TEST_PASSWORD` - Test user password",
+              "checked": null
+            },
+            {
+              "text": "`ACCESS_TOKEN` - Pre-configured access token",
+              "checked": null
+            },
+            {
+              "text": "`REFRESH_TOKEN` - Pre-configured refresh token",
+              "checked": null
+            },
+            {
+              "text": "`WRITE_KEY` - Write key for v1 endpoints",
+              "checked": null
+            },
+            {
+              "text": "`ADMIN_EMAIL` or `TEST_ADMIN_EMAIL` - Admin email",
+              "checked": null
+            },
+            {
+              "text": "`ADMIN_PASSWORD` or `TEST_ADMIN_PASSWORD` - Admin password",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Profile Structure",
+      "level": 3,
+      "slug": "profile-structure",
+      "prose": "```json\n{\n  \"default_profile\": \"default\",\n  \"profiles\": {\n    \"default\": {\n      \"name\": \"default\",\n      \"base_url\": \"https://api.contact360.io\",\n      \"email\": \"test@example.com\",\n      \"password\": \"testpass123\",\n      \"timeout\": 30,\n      \"retry_max\": 3,\n      \"test_mode\": \"hybrid\"\n    }\n  }\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"default_profile\": \"default\",\n  \"profiles\": {\n    \"default\": {\n      \"name\": \"default\",\n      \"base_url\": \"https://api.contact360.io\",\n      \"email\": \"test@example.com\",\n      \"password\": \"testpass123\",\n      \"timeout\": 30,\n      \"retry_max\": 3,\n      \"test_mode\": \"hybrid\"\n    }\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Intelligence Features",
+      "level": 2,
+      "slug": "intelligence-features",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "AI Agentic Learning",
+      "level": 3,
+      "slug": "ai-agentic-learning",
+      "prose": "The CLI automatically learns from every test execution:\n- **Response Patterns**: Learns normal response structures and status codes\n- **Performance Baselines**: Tracks average, median, P95 response times\n- **Error Patterns**: Identifies common error messages and failure modes\n- **Endpoint Behavior**: Builds knowledge base of endpoint characteristics",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Response Patterns**: Learns normal response structures and status codes",
+              "checked": null
+            },
+            {
+              "text": "**Performance Baselines**: Tracks average, median, P95 response times",
+              "checked": null
+            },
+            {
+              "text": "**Error Patterns**: Identifies common error messages and failure modes",
+              "checked": null
+            },
+            {
+              "text": "**Endpoint Behavior**: Builds knowledge base of endpoint characteristics",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Smart Test Prioritization",
+      "level": 3,
+      "slug": "smart-test-prioritization",
+      "prose": "The `run-smart` command uses intelligent prioritization based on:\n- Recent failure history\n- Endpoint criticality (auth, billing get higher priority)\n- Historical performance data\n- Endpoint usage patterns",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Recent failure history",
+              "checked": null
+            },
+            {
+              "text": "Endpoint criticality (auth, billing get higher priority)",
+              "checked": null
+            },
+            {
+              "text": "Historical performance data",
+              "checked": null
+            },
+            {
+              "text": "Endpoint usage patterns",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "AI-Powered Analysis",
+      "level": 3,
+      "slug": "ai-powered-analysis",
+      "prose": "The AI agent provides:\n- **Reliability Scoring**: Calculates endpoint reliability based on success rates\n- **Anomaly Detection**: Identifies performance and status code anomalies\n- **Optimization Suggestions**: Recommends improvements for endpoint operation\n- **Test Case Suggestions**: Suggests missing test cases based on learned patterns",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Reliability Scoring**: Calculates endpoint reliability based on success rates",
+              "checked": null
+            },
+            {
+              "text": "**Anomaly Detection**: Identifies performance and status code anomalies",
+              "checked": null
+            },
+            {
+              "text": "**Optimization Suggestions**: Recommends improvements for endpoint operation",
+              "checked": null
+            },
+            {
+              "text": "**Test Case Suggestions**: Suggests missing test cases based on learned patterns",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Result Analysis",
+      "level": 3,
+      "slug": "result-analysis",
+      "prose": "After test runs, the CLI automatically:\n- Calculates health scores\n- Identifies problematic endpoints\n- Detects performance issues\n- Generates recommendations",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Calculates health scores",
+              "checked": null
+            },
+            {
+              "text": "Identifies problematic endpoints",
+              "checked": null
+            },
+            {
+              "text": "Detects performance issues",
+              "checked": null
+            },
+            {
+              "text": "Generates recommendations",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Pattern Detection",
+      "level": 3,
+      "slug": "pattern-detection",
+      "prose": "The intelligence layer detects:\n- Error patterns (authentication, validation, server errors)\n- Performance patterns (slow endpoints, inconsistent performance)\n- Category patterns (success rates by category)\n- Endpoint patterns (high failure rates, slow responses)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Error patterns (authentication, validation, server errors)",
+              "checked": null
+            },
+            {
+              "text": "Performance patterns (slow endpoints, inconsistent performance)",
+              "checked": null
+            },
+            {
+              "text": "Category patterns (success rates by category)",
+              "checked": null
+            },
+            {
+              "text": "Endpoint patterns (high failure rates, slow responses)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Examples",
+      "level": 2,
+      "slug": "examples",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example 1: Daily Test Run",
+      "level": 3,
+      "slug": "example-1-daily-test-run",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run comprehensive tests",
+      "level": 1,
+      "slug": "run-comprehensive-tests",
+      "prose": "python api_cli.py test run --mode comprehensive --output ./daily-reports",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "View dashboard",
+      "level": 1,
+      "slug": "view-dashboard",
+      "prose": "python api_cli.py dashboard show",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check for alerts",
+      "level": 1,
+      "slug": "check-for-alerts",
+      "prose": "python api_cli.py monitor alerts\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example 2: Continuous Monitoring",
+      "level": 3,
+      "slug": "example-2-continuous-monitoring",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Start monitoring with 5-minute intervals",
+      "level": 1,
+      "slug": "start-monitoring-with-5-minute-intervals",
+      "prose": "python api_cli.py monitor start --interval 300",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check status",
+      "level": 1,
+      "slug": "check-status",
+      "prose": "python api_cli.py monitor status",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "View trends",
+      "level": 1,
+      "slug": "view-trends",
+      "prose": "python api_cli.py dashboard trends --days 7\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example 3: Development Workflow",
+      "level": 3,
+      "slug": "example-3-development-workflow",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Quick smoke tests during development",
+      "level": 1,
+      "slug": "quick-smoke-tests-during-development",
+      "prose": "python api_cli.py test run --mode smoke --category \"User Profile\"",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Interactive testing",
+      "level": 1,
+      "slug": "interactive-testing",
+      "prose": "python api_cli.py interactive repl",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Generate documentation",
+      "level": 1,
+      "slug": "generate-documentation",
+      "prose": "python api_cli.py discover generate-docs --format markdown\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example 4: Production Testing",
+      "level": 3,
+      "slug": "example-4-production-testing",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Use production profile",
+      "level": 1,
+      "slug": "use-production-profile",
+      "prose": "python api_cli.py test run --profile production --mode comprehensive",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Generate Postman collection",
+      "level": 1,
+      "slug": "generate-postman-collection",
+      "prose": "python api_cli.py collection generate --output production_collection.json",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Export for sharing",
+      "level": 1,
+      "slug": "export-for-sharing",
+      "prose": "python api_cli.py collection export production_collection.json --format openapi\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Output Files",
+      "level": 2,
+      "slug": "output-files",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Test Reports",
+      "level": 3,
+      "slug": "test-reports",
+      "prose": "- `test_results_<timestamp>.json` - Detailed JSON results\n- `test_results_latest.json` - Latest results (symlink)\n- `test_report_<timestamp>.html` - HTML report\n- `test_report_latest.html` - Latest HTML report (symlink)\n- `dashboard_<timestamp>.json` - Dashboard data\n- `dashboard_latest.json` - Latest dashboard (symlink)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`test_results_<timestamp>.json` - Detailed JSON results",
+              "checked": null
+            },
+            {
+              "text": "`test_results_latest.json` - Latest results (symlink)",
+              "checked": null
+            },
+            {
+              "text": "`test_report_<timestamp>.html` - HTML report",
+              "checked": null
+            },
+            {
+              "text": "`test_report_latest.html` - Latest HTML report (symlink)",
+              "checked": null
+            },
+            {
+              "text": "`dashboard_<timestamp>.json` - Dashboard data",
+              "checked": null
+            },
+            {
+              "text": "`dashboard_latest.json` - Latest dashboard (symlink)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "CSV Updates",
+      "level": 3,
+      "slug": "csv-updates",
+      "prose": "The CLI automatically updates CSV files with test results:\n- Status codes\n- Response times\n- Success/failure status\n- Error messages\n- Test timestamps",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Status codes",
+              "checked": null
+            },
+            {
+              "text": "Response times",
+              "checked": null
+            },
+            {
+              "text": "Success/failure status",
+              "checked": null
+            },
+            {
+              "text": "Error messages",
+              "checked": null
+            },
+            {
+              "text": "Test timestamps",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Troubleshooting",
+      "level": 2,
+      "slug": "troubleshooting",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Authentication Issues",
+      "level": 3,
+      "slug": "authentication-issues",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check configuration",
+      "level": 1,
+      "slug": "check-configuration",
+      "prose": "python api_cli.py config show",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Test authentication in REPL",
+      "level": 1,
+      "slug": "test-authentication-in-repl",
+      "prose": "python api_cli.py interactive repl",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Then type: auth",
+      "level": 1,
+      "slug": "then-type-auth",
+      "prose": "```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "No Endpoints Found",
+      "level": 3,
+      "slug": "no-endpoints-found",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check CSV directory",
+      "level": 1,
+      "slug": "check-csv-directory",
+      "prose": "python api_cli.py test run --csv-dir ./csv --verbose",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Sync CSV",
+      "level": 1,
+      "slug": "sync-csv",
+      "prose": "python api_cli.py discover sync-csv \"csv/api_endpoints.csv\"\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Monitoring Not Working",
+      "level": 3,
+      "slug": "monitoring-not-working",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check status",
+      "level": 1,
+      "slug": "check-status",
+      "prose": "python api_cli.py monitor status",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Restart monitoring",
+      "level": 1,
+      "slug": "restart-monitoring",
+      "prose": "python api_cli.py monitor stop\npython api_cli.py monitor start\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Advanced Usage",
+      "level": 2,
+      "slug": "advanced-usage",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Custom Test Modes",
+      "level": 3,
+      "slug": "custom-test-modes",
+      "prose": "- **smoke**: Quick tests, minimal coverage\n- **comprehensive**: Full test suite with error cases\n- **hybrid**: Balanced approach (default)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**smoke**: Quick tests, minimal coverage",
+              "checked": null
+            },
+            {
+              "text": "**comprehensive**: Full test suite with error cases",
+              "checked": null
+            },
+            {
+              "text": "**hybrid**: Balanced approach (default)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Profile Management",
+      "level": 3,
+      "slug": "profile-management",
+      "prose": "```bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Create development profile",
+      "level": 1,
+      "slug": "create-development-profile",
+      "prose": "python api_cli.py config add dev \\\n  --base-url http://localhost:8000 \\\n  --email dev@example.com",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Create production profile",
+      "level": 1,
+      "slug": "create-production-profile",
+      "prose": "python api_cli.py config add prod \\\n  --base-url https://api.production.com \\\n  --access-token <token>",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Switch default",
+      "level": 1,
+      "slug": "switch-default",
+      "prose": "python api_cli.py config set-default prod\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Integration with CI/CD",
+      "level": 3,
+      "slug": "integration-with-cicd",
+      "prose": "```bash\n#!/bin/bash",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example CI script",
+      "level": 1,
+      "slug": "example-ci-script",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Run tests",
+      "level": 1,
+      "slug": "run-tests",
+      "prose": "python api_cli.py test run --mode comprehensive --output ./reports",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Check exit code",
+      "level": 1,
+      "slug": "check-exit-code",
+      "prose": "if [ $? -eq 0 ]; then\n    echo \"All tests passed\"\nelse\n    echo \"Tests failed\"\n    python api_cli.py monitor alerts\n    exit 1\nfi\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Architecture",
+      "level": 2,
+      "slug": "architecture",
+      "prose": "The CLI is built with a modular architecture:\n\n```\ncli/\n├── __init__.py\n├── config.py              # Configuration management\n├── commands/              # Command modules\n│   ├── test_commands.py\n│   ├── discover_commands.py\n│   ├── monitor_commands.py\n│   ├── collection_commands.py\n│   ├── interactive_commands.py\n│   ├── config_commands.py\n│   └── dashboard_commands.py\n└── intelligence/          # Intelligence layer\n    ├── analyzer.py        # Result analysis\n    ├── prioritizer.py     # Test prioritization\n    ├── scheduler.py       # Smart scheduling\n    ├── pattern_detector.py # Pattern detection\n    └── reporting.py       # Enhanced reporting\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "cli/\n├── __init__.py\n├── config.py              # Configuration management\n├── commands/              # Command modules\n│   ├── test_commands.py\n│   ├── discover_commands.py\n│   ├── monitor_commands.py\n│   ├── collection_commands.py\n│   ├── interactive_commands.py\n│   ├── config_commands.py\n│   └── dashboard_commands.py\n└── intelligence/          # Intelligence layer\n    ├── analyzer.py        # Result analysis\n    ├── prioritizer.py     # Test prioritization\n    ├── scheduler.py       # Smart scheduling\n    ├── pattern_detector.py # Pattern detection\n    └── reporting.py       # Enhanced reporting\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contributing",
+      "level": 2,
+      "slug": "contributing",
+      "prose": "When adding new features:\n\n1. Add command modules in `cli/commands/`\n2. Register commands in `main.py`\n3. Add intelligence features in `cli/intelligence/`\n4. Update this documentation",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Add command modules in `cli/commands/`",
+              "checked": null
+            },
+            {
+              "text": "Register commands in `main.py`",
+              "checked": null
+            },
+            {
+              "text": "Add intelligence features in `cli/intelligence/`",
+              "checked": null
+            },
+            {
+              "text": "Update this documentation",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "License",
+      "level": 2,
+      "slug": "license",
+      "prose": "Part of the Contact360 project.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_upsert_by_linkedin_url_graphql.md",
+  "sha256_source": "db21e03b984d76a0707f345061fe4ef1d043310ae13d08e9ced03f733cbf19c5",
+  "generated_at": "2026-04-08T23:11:52.264735+00:00",
+  "title": "graphql/UpsertByLinkedInUrl",
+  "raw_markdown": "---\ntitle: \"graphql/UpsertByLinkedInUrl\"\nsource_json: mutation_upsert_by_linkedin_url_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/UpsertByLinkedInUrl\n\n## Overview\n\nCreate or update a contact and/or company by LinkedIn URL. Accepts LinkedInUpsertInput with url (required), and optional contactData, contactMetadata, companyData, companyMetadata. Supports partial data for both contact and company. Returns LinkedInUpsertResponse with success, created flag, contact (ContactWithRelations), company (CompanyWithRelations), and errors array. Credits: 1 credit per upsert operation (FreeUser/ProUser only).\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_upsert_by_linkedin_url_graphql |\n| _id | mutation_upsert_by_linkedin_url_graphql-001 |\n| endpoint_path | graphql/UpsertByLinkedInUrl |\n| method | MUTATION |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 4.x |\n| introduced_in | 4.0.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/linkedin/mutations.py |\n| router_file | contact360/dashboard/src/services/graphql/linkedinService.ts |\n\n\n## GraphQL operation\n\n```graphql\nmutation UpsertByLinkedInUrl($input: LinkedInUpsertInput!) { linkedin { upsertByLinkedInUrl(input: $input) { success created contact { id firstName lastName email } company { id name } errors } } }\n```\n\n## Data & infrastructure\n\n### db_tables_read\n\n- contacts\n- companies\n\n### db_tables_write\n\n- contacts\n- companies\n- contacts_index\n- companies_index\n- filters_data\n\n### lambda_services\n\n- backend(dev)/salesnavigator\n- contact360.io/sync\n\n## Service / repository methods\n\n### service_methods\n\n- upsertByLinkedInUrl\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /linkedin | Linkedin Page | linkedinService | useLinkedIn | primary | data_mutation | 2026-01-20T00:00:00.000000+00:00 |\n\n\n### frontend_page_bindings\n\n- contact360.io/app/app/(dashboard)/linkedin/page.tsx\n- contact360.io/app/src/services/graphql/linkedinService.ts\n- contact360.io/app/src/hooks/useLinkedIn.ts\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `mutation_upsert_by_linkedin_url_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `4.x` — Contact AI (LinkedIn Sync).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `contacts` | READ/WRITE | [contacts.sql](../database/tables/contacts.sql) |\n| `companies` | READ/WRITE | [companies.sql](../database/tables/companies.sql) |\n| `contacts_index` | WRITE | [contacts_index.sql](../database/tables/contacts_index.sql) |\n| `companies_index` | WRITE | [companies_index.sql](../database/tables/companies_index.sql) |\n| `filters_data` | WRITE | [filters_data.sql](../database/tables/filters_data.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [Connectra (Search/VQL)](../database/connectra_data_lineage.md)\n- [Sales Navigator Service](../database/salesnavigator_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Sales Navigator**: Data enrichment via `backend(dev)/salesnavigator`.\n- **Sync**: Elastic/Search indexing via `contact360.io/sync`.\n\n## Related endpoint graph\n\n- **Inbound**: `Linkedin Page` (Upsert Action).\n- **Outbound**: `GetContact`, `GetCompany`.\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_upsert_by_linkedin_url_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_upsert_by_linkedin_url_graphql"
+        ],
+        [
+          "_id",
+          "mutation_upsert_by_linkedin_url_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/UpsertByLinkedInUrl"
+        ],
+        [
+          "method",
+          "MUTATION"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "4.x"
+        ],
+        [
+          "introduced_in",
+          "4.0.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/linkedin/mutations.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/linkedinService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/linkedin",
+          "Linkedin Page",
+          "linkedinService",
+          "useLinkedIn",
+          "primary",
+          "data_mutation",
+          "2026-01-20T00:00:00.000000+00:00"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`contacts`",
+          "READ/WRITE",
+          "[contacts.sql](../database/tables/contacts.sql)"
+        ],
+        [
+          "`companies`",
+          "READ/WRITE",
+          "[companies.sql](../database/tables/companies.sql)"
+        ],
+        [
+          "`contacts_index`",
+          "WRITE",
+          "[contacts_index.sql](../database/tables/contacts_index.sql)"
+        ],
+        [
+          "`companies_index`",
+          "WRITE",
+          "[companies_index.sql](../database/tables/companies_index.sql)"
+        ],
+        [
+          "`filters_data`",
+          "WRITE",
+          "[filters_data.sql](../database/tables/filters_data.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Create or update a contact and/or company by LinkedIn URL. Accepts LinkedInUpsertInput with url (required), and optional contactData, contactMetadata, companyData, companyMetadata. Supports partial data for both contact and company. Returns LinkedInUpsertResponse with success, created flag, contact (ContactWithRelations), company (CompanyWithRelations), and errors array. Credits: 1 credit per upsert operation (FreeUser/ProUser only)."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_upsert_by_linkedin_url_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/UpsertByLinkedInUrl\"\nsource_json: mutation_upsert_by_linkedin_url_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

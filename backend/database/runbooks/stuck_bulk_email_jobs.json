@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/database/runbooks/stuck_bulk_email_jobs.md",
+  "sha256_source": "319b8d9050ec2dc89d49e66cd51daa09c6c854e7e69f197b59ad0f654a503234",
+  "generated_at": "2026-04-09T00:45:00.747614+00:00",
+  "title": "Runbook: stuck bulk email / export jobs (Era 2.4)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Runbook: stuck bulk email / export jobs (Era 2.4)",
+      "level": 1,
+      "slug": "runbook-stuck-bulk-email-export-jobs-era-24",
+      "prose": "Operator steps when a **bulk finder**, **verifier**, or **pattern** job stops progressing or stays in `processing` / `in_queue` too long.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Preconditions",
+      "level": 2,
+      "slug": "preconditions",
+      "prose": "- Identify **`job_id`** from the dashboard Jobs table or GraphQL `job(jobId)`.\n- Confirm user still exists and owns the job (`scheduler_jobs.user_id` → `users.uuid`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Identify **`job_id`** from the dashboard Jobs table or GraphQL `job(jobId)`.",
+              "checked": null
+            },
+            {
+              "text": "Confirm user still exists and owns the job (`scheduler_jobs.user_id` → `users.uuid`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Triage",
+      "level": 2,
+      "slug": "triage",
+      "prose": "1. **Gateway / DB:** `SELECT job_id, status, job_type, source_service, status_payload, updated_at FROM scheduler_jobs WHERE job_id = :job_id;`\n2. **Worker truth:** If `source_service = email_server`, check `status_payload` from email.server for live errors (rate limit, Mailvetter, S3).\n3. **S3 input:** Verify multipart upload completed; input key present and readable.\n4. **Checkpoint:** If processor supports resume, confirm checkpoint cursor advanced; if not, treat as stuck worker.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Gateway / DB:** `SELECT job_id, status, job_type, source_service, status_payload, updated_at FROM scheduler_jobs WHERE job_id = :job_id;`",
+              "checked": null
+            },
+            {
+              "text": "**Worker truth:** If `source_service = email_server`, check `status_payload` from email.server for live errors (rate limit, Mailvetter, S3).",
+              "checked": null
+            },
+            {
+              "text": "**S3 input:** Verify multipart upload completed; input key present and readable.",
+              "checked": null
+            },
+            {
+              "text": "**Checkpoint:** If processor supports resume, confirm checkpoint cursor advanced; if not, treat as stuck worker.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mitigations",
+      "level": 2,
+      "slug": "mitigations",
+      "prose": "| Situation | Action |\n| --- | --- |\n| Transient provider error | Use GraphQL **`retryJob`** (if applicable to job family) after cooldown. |\n| Bad CSV / schema | Fix source file; create a **new** job (document idempotency token if re-uploading same file). |\n| Worker OOM / crash | Restart worker pod/process; rely on checkpoint resume — verify idempotency before manual DB edits. |\n| Duplicate job rows | Do not delete rows without lineage review; mark superseded in ops notes. |",
+      "tables": [
+        {
+          "headers": [
+            "Situation",
+            "Action"
+          ],
+          "rows": [
+            [
+              "Transient provider error",
+              "Use GraphQL **`retryJob`** (if applicable to job family) after cooldown."
+            ],
+            [
+              "Bad CSV / schema",
+              "Fix source file; create a **new** job (document idempotency token if re-uploading same file)."
+            ],
+            [
+              "Worker OOM / crash",
+              "Restart worker pod/process; rely on checkpoint resume — verify idempotency before manual DB edits."
+            ],
+            [
+              "Duplicate job rows",
+              "Do not delete rows without lineage review; mark superseded in ops notes."
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Escalation",
+      "level": 2,
+      "slug": "escalation",
+      "prose": "- Capture: `job_id`, user id, timestamps, last `status_payload`, S3 input/output keys.\n- Open incident with **Data Pipeline** + **Platform** if S3 or multipart metadata worker is implicated (see **Hard gate** risks in era doc `docs/2. Contact360 email system/2.4 — Bulk Processing.md`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Capture: `job_id`, user id, timestamps, last `status_payload`, S3 input/output keys.",
+              "checked": null
+            },
+            {
+              "text": "Open incident with **Data Pipeline** + **Platform** if S3 or multipart metadata worker is implicated (see **Hard gate** risks in era doc `docs/2. Contact360 email system/2.4 — Bulk Processing.md`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Links",
+      "level": 2,
+      "slug": "links",
+      "prose": "- GraphQL: [`16_JOBS_MODULE.md`](../graphql.modules/16_JOBS_MODULE.md)\n- DDL: [`../scheduler_jobs.sql`](../scheduler_jobs.sql)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "GraphQL: [`16_JOBS_MODULE.md`](../graphql.modules/16_JOBS_MODULE.md)",
+              "checked": null
+            },
+            {
+              "text": "DDL: [`../scheduler_jobs.sql`](../scheduler_jobs.sql)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`16_JOBS_MODULE.md`",
+          "href": "../graphql.modules/16_JOBS_MODULE.md"
+        },
+        {
+          "text": "`../scheduler_jobs.sql`",
+          "href": "../scheduler_jobs.sql"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

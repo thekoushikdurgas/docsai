@@ -1,0 +1,625 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "frontend/docs/salesnavigator-ui-bindings.md",
+  "sha256_source": "b1fa01768f6c126ca0f96510038a2919fec4d2512be8aed67e2a5f7d984874a9",
+  "generated_at": "2026-04-08T23:26:48.604711+00:00",
+  "title": "Sales Navigator — Frontend UI Bindings",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Sales Navigator — Frontend UI Bindings",
+      "level": 1,
+      "slug": "sales-navigator-frontend-ui-bindings",
+      "prose": "**Ingest runtime:** `contact360.extension` (FastAPI — `POST /v1/scrape`, `POST /v1/save-profiles`). Legacy/alternate tree: `backend(dev)/salesnavigator`.  \n**GraphQL module:** `23_SALES_NAVIGATOR_MODULE.md` (Appointment360 proxies saves).  \n**Primary era:** `4.x` (Extension & Sales Navigator maturity)\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "UI surface map",
+      "level": 2,
+      "slug": "ui-surface-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1. Browser Extension — Sales Navigator Page",
+      "level": 3,
+      "slug": "1-browser-extension-sales-navigator-page",
+      "prose": "**Context:** Extension popup injected on `linkedin.com/sales/search/...` pages.\n\n| UI element | Type | API call | Component |\n| --- | --- | --- | --- |\n| \"Save to Contact360\" button | Button | `POST /v1/save-profiles` (via GraphQL `saveSalesNavigatorProfiles`) | `SNSaveButton` |\n| \"Sync page\" CTA (scrape + save) | Button | `POST /v1/scrape` with `save:true` | `SNSyncCTA` |\n| Profile count badge (\"25 profiles found\") | Text/Badge | From extraction result | `SNProfileCountBadge` |\n| Save progress bar | Progress bar (indeterminate → determinate) | Loading state during save | `SNSaveProgress` |\n| Saved count indicator (\"18 saved\") | Text | `saved_count` from response | `SNSaveSummaryCard` |\n| Created vs. updated split | Text | `contacts_created` / `contacts_updated` | `SNSaveSummaryCard` |\n| Error toast | Toast notification | `errors[]` in response | `SNErrorToast` |\n| Error drawer (detail) | Drawer/Modal | Failed profiles list | `SNErrorDrawer` |\n| Retry button | Button | Re-call save | `SNRetryButton` |\n| Data quality badge per profile | Badge (green/yellow/red) | `data_quality_score` | `DataQualityBadge` |\n| Already-in-Contact360 indicator | Badge/Checkbox state | UUID match returned | `AlreadySavedBadge` |\n| Select all / deselect all | Checkbox | Client-side selection | `ProfileSelectAll` |\n| Individual profile checkbox | Checkbox | Per-profile selection | `ProfileCheckbox` |\n| SN search context header | Text | `search_context.search_id` | `SNSearchContextHeader` |\n| Pagination info (\"Page 2 of 8\") | Text | `pagination` from metadata | `SNPaginationInfo` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "UI element",
+            "Type",
+            "API call",
+            "Component"
+          ],
+          "rows": [
+            [
+              "\"Save to Contact360\" button",
+              "Button",
+              "`POST /v1/save-profiles` (via GraphQL `saveSalesNavigatorProfiles`)",
+              "`SNSaveButton`"
+            ],
+            [
+              "\"Sync page\" CTA (scrape + save)",
+              "Button",
+              "`POST /v1/scrape` with `save:true`",
+              "`SNSyncCTA`"
+            ],
+            [
+              "Profile count badge (\"25 profiles found\")",
+              "Text/Badge",
+              "From extraction result",
+              "`SNProfileCountBadge`"
+            ],
+            [
+              "Save progress bar",
+              "Progress bar (indeterminate → determinate)",
+              "Loading state during save",
+              "`SNSaveProgress`"
+            ],
+            [
+              "Saved count indicator (\"18 saved\")",
+              "Text",
+              "`saved_count` from response",
+              "`SNSaveSummaryCard`"
+            ],
+            [
+              "Created vs. updated split",
+              "Text",
+              "`contacts_created` / `contacts_updated`",
+              "`SNSaveSummaryCard`"
+            ],
+            [
+              "Error toast",
+              "Toast notification",
+              "`errors[]` in response",
+              "`SNErrorToast`"
+            ],
+            [
+              "Error drawer (detail)",
+              "Drawer/Modal",
+              "Failed profiles list",
+              "`SNErrorDrawer`"
+            ],
+            [
+              "Retry button",
+              "Button",
+              "Re-call save",
+              "`SNRetryButton`"
+            ],
+            [
+              "Data quality badge per profile",
+              "Badge (green/yellow/red)",
+              "`data_quality_score`",
+              "`DataQualityBadge`"
+            ],
+            [
+              "Already-in-Contact360 indicator",
+              "Badge/Checkbox state",
+              "UUID match returned",
+              "`AlreadySavedBadge`"
+            ],
+            [
+              "Select all / deselect all",
+              "Checkbox",
+              "Client-side selection",
+              "`ProfileSelectAll`"
+            ],
+            [
+              "Individual profile checkbox",
+              "Checkbox",
+              "Per-profile selection",
+              "`ProfileCheckbox`"
+            ],
+            [
+              "SN search context header",
+              "Text",
+              "`search_context.search_id`",
+              "`SNSearchContextHeader`"
+            ],
+            [
+              "Pagination info (\"Page 2 of 8\")",
+              "Text",
+              "`pagination` from metadata",
+              "`SNPaginationInfo`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2. Dashboard — SN Ingestion Panel",
+      "level": 3,
+      "slug": "2-dashboard-sn-ingestion-panel",
+      "prose": "**Context:** `/contacts/import` or `/settings/integrations/sales-navigator` page.\n\n| UI element | Type | API call | Component |\n| --- | --- | --- | --- |\n| Manual profiles upload textarea | Input (textarea) | `POST /v1/save-profiles` | `SNManualUploadInput` |\n| Upload button | Button | `POST /v1/save-profiles` | `SNUploadButton` |\n| Sync history table | Table | `GET /contacts?source=sales_navigator` (Connectra) | `SNSyncHistoryTable` |\n| Sync session detail row | Row | Session metadata | `SNSyncSessionRow` |\n| Last synced timestamp | Text | `created_at` | `SNLastSyncedAt` |\n| Ingestion stats card | Card | `saved_count`, `errors`, `data_quality_avg` | `SNIngestionStatsCard` |\n| Source filter chip | Filter chip | `source=sales_navigator` on contacts search | `SNSourceFilterChip` |\n| \"Recently imported from SN\" section | Section header | Contacts with `source=sales_navigator` sort newest | `SNRecentImportSection` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "UI element",
+            "Type",
+            "API call",
+            "Component"
+          ],
+          "rows": [
+            [
+              "Manual profiles upload textarea",
+              "Input (textarea)",
+              "`POST /v1/save-profiles`",
+              "`SNManualUploadInput`"
+            ],
+            [
+              "Upload button",
+              "Button",
+              "`POST /v1/save-profiles`",
+              "`SNUploadButton`"
+            ],
+            [
+              "Sync history table",
+              "Table",
+              "`GET /contacts?source=sales_navigator` (Connectra)",
+              "`SNSyncHistoryTable`"
+            ],
+            [
+              "Sync session detail row",
+              "Row",
+              "Session metadata",
+              "`SNSyncSessionRow`"
+            ],
+            [
+              "Last synced timestamp",
+              "Text",
+              "`created_at`",
+              "`SNLastSyncedAt`"
+            ],
+            [
+              "Ingestion stats card",
+              "Card",
+              "`saved_count`, `errors`, `data_quality_avg`",
+              "`SNIngestionStatsCard`"
+            ],
+            [
+              "Source filter chip",
+              "Filter chip",
+              "`source=sales_navigator` on contacts search",
+              "`SNSourceFilterChip`"
+            ],
+            [
+              "\"Recently imported from SN\" section",
+              "Section header",
+              "Contacts with `source=sales_navigator` sort newest",
+              "`SNRecentImportSection`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3. Contact Row / Contact Detail Page",
+      "level": 3,
+      "slug": "3-contact-row-contact-detail-page",
+      "prose": "**Context:** Contacts table and individual contact detail page.\n\n| UI element | Type | Source | Component |\n| --- | --- | --- | --- |\n| \"Source: Sales Navigator\" badge | Badge | `contact.source` | `ContactSourceBadge` |\n| SN profile URL link | Link | `contact.linkedin_sales_url` | `SNProfileLink` |\n| LinkedIn URL link | Link | `contact.linkedin_url` | `LinkedInProfileLink` |\n| Seniority chip | Chip | `contact.seniority` | `SeniorityChip` |\n| Department chip(s) | Chip(s) | `contact.departments[]` | `DepartmentChips` |\n| Connection degree badge | Badge | `contact.connection_degree` | `ConnectionDegreeBadge` |\n| Recently hired indicator | Icon/Badge | `contact.recently_hired` | `RecentlyHiredBadge` |\n| Data quality score bar | Progress bar (thin) | `contact.data_quality_score` | `DataQualityBar` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "UI element",
+            "Type",
+            "Source",
+            "Component"
+          ],
+          "rows": [
+            [
+              "\"Source: Sales Navigator\" badge",
+              "Badge",
+              "`contact.source`",
+              "`ContactSourceBadge`"
+            ],
+            [
+              "SN profile URL link",
+              "Link",
+              "`contact.linkedin_sales_url`",
+              "`SNProfileLink`"
+            ],
+            [
+              "LinkedIn URL link",
+              "Link",
+              "`contact.linkedin_url`",
+              "`LinkedInProfileLink`"
+            ],
+            [
+              "Seniority chip",
+              "Chip",
+              "`contact.seniority`",
+              "`SeniorityChip`"
+            ],
+            [
+              "Department chip(s)",
+              "Chip(s)",
+              "`contact.departments[]`",
+              "`DepartmentChips`"
+            ],
+            [
+              "Connection degree badge",
+              "Badge",
+              "`contact.connection_degree`",
+              "`ConnectionDegreeBadge`"
+            ],
+            [
+              "Recently hired indicator",
+              "Icon/Badge",
+              "`contact.recently_hired`",
+              "`RecentlyHiredBadge`"
+            ],
+            [
+              "Data quality score bar",
+              "Progress bar (thin)",
+              "`contact.data_quality_score`",
+              "`DataQualityBar`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4. Contacts Table — Filters and Search",
+      "level": 3,
+      "slug": "4-contacts-table-filters-and-search",
+      "prose": "| UI element | Type | Mapping | Component |\n| --- | --- | --- | --- |\n| Source filter: \"Sales Navigator\" | Radio/Checkbox filter | `source=sales_navigator` | `ContactSourceFilter` |\n| Seniority filter | Checkbox multi-select | `seniority` enum | `SeniorityFilter` |\n| Department filter | Checkbox multi-select | `departments[]` | `DepartmentFilter` |\n| Connection degree filter | Radio group | `connection_degree` | `ConnectionDegreeFilter` |\n| \"Imported from SN\" date range | Date range input | `created_at` with source filter | `SNImportDateRange` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "UI element",
+            "Type",
+            "Mapping",
+            "Component"
+          ],
+          "rows": [
+            [
+              "Source filter: \"Sales Navigator\"",
+              "Radio/Checkbox filter",
+              "`source=sales_navigator`",
+              "`ContactSourceFilter`"
+            ],
+            [
+              "Seniority filter",
+              "Checkbox multi-select",
+              "`seniority` enum",
+              "`SeniorityFilter`"
+            ],
+            [
+              "Department filter",
+              "Checkbox multi-select",
+              "`departments[]`",
+              "`DepartmentFilter`"
+            ],
+            [
+              "Connection degree filter",
+              "Radio group",
+              "`connection_degree`",
+              "`ConnectionDegreeFilter`"
+            ],
+            [
+              "\"Imported from SN\" date range",
+              "Date range input",
+              "`created_at` with source filter",
+              "`SNImportDateRange`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Hook map",
+      "level": 2,
+      "slug": "hook-map",
+      "prose": "| Hook | Responsibility | API call |\n| --- | --- | --- |\n| `useSaveProfiles(profiles)` | Save profile array to Contact360 | `POST /v1/save-profiles` |\n| `useScrapeAndSave(html, options)` | Parse HTML + save | `POST /v1/scrape` |\n| `useSNSyncStatus()` | Poll sync result + loading/error state | Local state |\n| `useSNHistory()` | Load SN ingestion history | Connectra contacts filter |\n| `useSNProfileCount(html)` | Count profiles in HTML without saving | `POST /v1/scrape` (`save:false`) |\n| `useContactSourceFilter(source)` | Apply source filter in contacts table | Connectra VQL |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Hook",
+            "Responsibility",
+            "API call"
+          ],
+          "rows": [
+            [
+              "`useSaveProfiles(profiles)`",
+              "Save profile array to Contact360",
+              "`POST /v1/save-profiles`"
+            ],
+            [
+              "`useScrapeAndSave(html, options)`",
+              "Parse HTML + save",
+              "`POST /v1/scrape`"
+            ],
+            [
+              "`useSNSyncStatus()`",
+              "Poll sync result + loading/error state",
+              "Local state"
+            ],
+            [
+              "`useSNHistory()`",
+              "Load SN ingestion history",
+              "Connectra contacts filter"
+            ],
+            [
+              "`useSNProfileCount(html)`",
+              "Count profiles in HTML without saving",
+              "`POST /v1/scrape` (`save:false`)"
+            ],
+            [
+              "`useContactSourceFilter(source)`",
+              "Apply source filter in contacts table",
+              "Connectra VQL"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Progress bar states",
+      "level": 2,
+      "slug": "progress-bar-states",
+      "prose": "| State | Progress value | Message |\n| --- | --- | --- |\n| Idle | 0 | — |\n| Extracting (HTML parse) | 20% | \"Extracting profiles…\" |\n| Deduplicating | 40% | \"Deduplicating…\" |\n| Saving to Contact360 | 60–90% | \"Saving profiles…\" |\n| Complete (success) | 100% | \"X profiles saved\" |\n| Complete (partial error) | 100% (amber) | \"X saved, Y failed\" |\n| Error | — | Error toast / drawer |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "State",
+            "Progress value",
+            "Message"
+          ],
+          "rows": [
+            [
+              "Idle",
+              "0",
+              "—"
+            ],
+            [
+              "Extracting (HTML parse)",
+              "20%",
+              "\"Extracting profiles…\""
+            ],
+            [
+              "Deduplicating",
+              "40%",
+              "\"Deduplicating…\""
+            ],
+            [
+              "Saving to Contact360",
+              "60–90%",
+              "\"Saving profiles…\""
+            ],
+            [
+              "Complete (success)",
+              "100%",
+              "\"X profiles saved\""
+            ],
+            [
+              "Complete (partial error)",
+              "100% (amber)",
+              "\"X saved, Y failed\""
+            ],
+            [
+              "Error",
+              "—",
+              "Error toast / drawer"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Checkbox and radio button usage",
+      "level": 2,
+      "slug": "checkbox-and-radio-button-usage",
+      "prose": "| Element | Purpose | Values |\n| --- | --- | --- |\n| Profile checkboxes | Select profiles from SN page to save | Per-profile boolean |\n| Select-all checkbox | Toggle all profiles on page | All / None / Indeterminate |\n| Source filter radio | Filter contacts by data source | `all` / `sales_navigator` / `organic` |\n| Connection degree radio | Filter by SN connection level | `1st` / `2nd` / `3rd` |\n| Save options checkbox | \"Include metadata\" when scraping | true/false |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Element",
+            "Purpose",
+            "Values"
+          ],
+          "rows": [
+            [
+              "Profile checkboxes",
+              "Select profiles from SN page to save",
+              "Per-profile boolean"
+            ],
+            [
+              "Select-all checkbox",
+              "Toggle all profiles on page",
+              "All / None / Indeterminate"
+            ],
+            [
+              "Source filter radio",
+              "Filter contacts by data source",
+              "`all` / `sales_navigator` / `organic`"
+            ],
+            [
+              "Connection degree radio",
+              "Filter by SN connection level",
+              "`1st` / `2nd` / `3rd`"
+            ],
+            [
+              "Save options checkbox",
+              "\"Include metadata\" when scraping",
+              "true/false"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era delivery schedule",
+      "level": 2,
+      "slug": "era-delivery-schedule",
+      "prose": "| Era | UI deliverables |\n| --- | --- |\n| `0.x` | No user-facing UI; service stubs only |\n| `1.x` | Auth/actor context in save calls; no visual change |\n| `2.x` | Email field coverage indicator in profile preview |\n| `3.x` | Contact detail badges: source, seniority, department; contact filter chips |\n| `4.x` | **Full extension popup UI**: save button, progress bar, error drawer, retry, quality badge; dashboard ingestion panel |\n| `5.x` | AI-ready field coverage badge; \"SN contacts eligible for AI\" indicator |\n| `6.x` | Partial-save UX (saved/failed split); retry-after feedback; loading state improvements |\n| `7.x` | Role-gated save actions; audit log view |\n| `8.x` | API quota display for SN usage; rate limit feedback UX |\n| `9.x` | Connector health card; integration status panel |\n| `10.x` | Campaign audience builder: SN-sourced segment filter; provenance badge |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "UI deliverables"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "No user-facing UI; service stubs only"
+            ],
+            [
+              "`1.x`",
+              "Auth/actor context in save calls; no visual change"
+            ],
+            [
+              "`2.x`",
+              "Email field coverage indicator in profile preview"
+            ],
+            [
+              "`3.x`",
+              "Contact detail badges: source, seniority, department; contact filter chips"
+            ],
+            [
+              "`4.x`",
+              "**Full extension popup UI**: save button, progress bar, error drawer, retry, quality badge; dashboard ingestion panel"
+            ],
+            [
+              "`5.x`",
+              "AI-ready field coverage badge; \"SN contacts eligible for AI\" indicator"
+            ],
+            [
+              "`6.x`",
+              "Partial-save UX (saved/failed split); retry-after feedback; loading state improvements"
+            ],
+            [
+              "`7.x`",
+              "Role-gated save actions; audit log view"
+            ],
+            [
+              "`8.x`",
+              "API quota display for SN usage; rate limit feedback UX"
+            ],
+            [
+              "`9.x`",
+              "Connector health card; integration status panel"
+            ],
+            [
+              "`10.x`",
+              "Campaign audience builder: SN-sourced segment filter; provenance badge"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-references",
+      "level": 2,
+      "slug": "cross-references",
+      "prose": "- Codebase: `docs/codebases/salesnavigator-codebase-analysis.md`\n- GraphQL module: `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`\n- Era task packs: `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`\n- Data lineage: `docs/backend/database/salesnavigator_data_lineage.md`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Codebase: `docs/codebases/salesnavigator-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "GraphQL module: `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "Era task packs: `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "Data lineage: `docs/backend/database/salesnavigator_data_lineage.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Implementation status snapshot",
+      "level": 2,
+      "slug": "implementation-status-snapshot",
+      "prose": "- Implemented: auth/session binding (`graphqlSession.js`), Lambda transport (`lambdaClient.js`), profile merge/dedup (`profileMerger.js`), and backend save/scrape contracts.\n- Pending: full popup/content shell bindings (`manifest.json`, popup UI actions, content script lifecycle wiring).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Implemented: auth/session binding (`graphqlSession.js`), Lambda transport (`lambdaClient.js`), profile merge/dedup (`profileMerger.js`), and backend save/scrape contracts.",
+              "checked": null
+            },
+            {
+              "text": "Pending: full popup/content shell bindings (`manifest.json`, popup UI actions, content script lifecycle wiring).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 addendum",
+      "level": 2,
+      "slug": "2026-addendum",
+      "prose": "- Primary integration flow: extension popup -> SN scrape/save action -> Lambda SN API -> Connectra upsert.\n- CORS wildcard policy is a known risk and should be reflected in reliability/security UX notes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary integration flow: extension popup -> SN scrape/save action -> Lambda SN API -> Connectra upsert.",
+              "checked": null
+            },
+            {
+              "text": "CORS wildcard policy is a known risk and should be reflected in reliability/security UX notes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

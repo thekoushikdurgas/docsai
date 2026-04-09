@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/get_company_contacts_graphql.md",
+  "sha256_source": "bfe0cf0f89a31249f260760ed5e1cb4e8dcdc488b0eb0729b92115f671c90969",
+  "generated_at": "2026-04-08T23:11:51.414622+00:00",
+  "title": "graphql/GetCompanyContacts",
+  "raw_markdown": "---\ntitle: \"graphql/GetCompanyContacts\"\nsource_json: get_company_contacts_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/GetCompanyContacts\n\n## Overview\n\nGet contacts belonging to a specific company. Accepts companyId (ID!, required, valid UUID format) and optional VQLQueryInput with filters, sort, pagination, fields. Returns ContactConnection with items (array of Contact), total count, limit, offset, hasNext, hasPrevious. Automatically filters contacts by company_id. Uses Connectra service for data retrieval. Raises NotFoundError (404) if company doesn't exist.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | get_company_contacts_graphql |\n| _id | get_company_contacts_graphql-001 |\n| endpoint_path | graphql/GetCompanyContacts |\n| method | QUERY |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 3.x |\n| introduced_in | 3.0.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/companies/queries.py |\n| router_file | contact360/dashboard/src/services/graphql/companiesService.ts |\n\n\n## GraphQL operation\n\n```graphql\nquery GetCompanyContacts($companyId: ID!, $input: VQLQueryInput) { companies { companyContacts(companyId: $companyId, input: $input) { items { id firstName lastName email jobTitle } total hasNext } } }\n```\n\n## Data & infrastructure\n\n### db_tables_read\n\n- contacts\n- companies\n- contacts_index\n\n### lambda_services\n\n- contact360.io/sync\n\n## Service / repository methods\n\n### service_methods\n\n- companyContacts\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /companies/[id] | Companies Id Page | companiesService | useCompanyContacts | primary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n\n\n### frontend_page_bindings\n\n- docs/frontend/pages/companies_page.json\n- contact360.io/app/app/(dashboard)/companies/page.tsx\n- contact360.io/app/src/services/graphql/companiesService.ts\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `get_company_contacts_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `3.x` — Company Data (Contact Linking).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `contacts` | READ | [contacts.sql](../database/tables/contacts.sql) |\n| `companies` | READ | [companies.sql](../database/tables/companies.sql) |\n| `contacts_index` | READ | [contacts_index.sql](../database/tables/contacts_index.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [Connectra (Search/VQL)](../database/connectra_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Sync**: Real-time retrieval via `contact360.io/sync`.\n\n## Related endpoint graph\n\n- **Inbound**: `Company Detail` (Contacts Tab).\n- **Outbound**: `GetContact` (drill-down).\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `get_company_contacts_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "get_company_contacts_graphql"
+        ],
+        [
+          "_id",
+          "get_company_contacts_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/GetCompanyContacts"
+        ],
+        [
+          "method",
+          "QUERY"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "3.x"
+        ],
+        [
+          "introduced_in",
+          "3.0.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/companies/queries.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/companiesService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/companies/[id]",
+          "Companies Id Page",
+          "companiesService",
+          "useCompanyContacts",
+          "primary",
+          "data_fetching",
+          "2026-01-20T00:00:00.000000+00:00"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`contacts`",
+          "READ",
+          "[contacts.sql](../database/tables/contacts.sql)"
+        ],
+        [
+          "`companies`",
+          "READ",
+          "[companies.sql](../database/tables/companies.sql)"
+        ],
+        [
+          "`contacts_index`",
+          "READ",
+          "[contacts_index.sql](../database/tables/contacts_index.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Get contacts belonging to a specific company. Accepts companyId (ID!, required, valid UUID format) and optional VQLQueryInput with filters, sort, pagination, fields. Returns ContactConnection with items (array of Contact), total count, limit, offset, hasNext, hasPrevious. Automatically filters contacts by company_id. Uses Connectra service for data retrieval. Raises NotFoundError (404) if company doesn't exist."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `get_company_contacts_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/GetCompanyContacts\"\nsource_json: get_company_contacts_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

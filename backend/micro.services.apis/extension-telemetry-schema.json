@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/micro.services.apis/extension-telemetry-schema.md",
+  "sha256_source": "09becdef4ef23f96c508a047f22454d367bca5df5f0201ecf86c87586c2e27bf",
+  "generated_at": "2026-04-08T23:26:46.773636+00:00",
+  "title": "Extension Telemetry Schema (telemetryClient.js)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Extension Telemetry Schema (telemetryClient.js)",
+      "level": 1,
+      "slug": "extension-telemetry-schema-telemetryclientjs",
+      "prose": "Describes the log event payload emitted by `contact360.extension/utils/telemetryClient.js` to the Logs API.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Overview",
+      "level": 2,
+      "slug": "overview",
+      "prose": "The telemetry client is a best-effort, fire-and-forget emitter. If no `LOGS_API_BASE_URL` is configured, all calls are no-ops — no errors are thrown and no retry is attempted.\n\nThe client is loaded as a plain IIFE and exposes a single function on `window.Contact360Telemetry`.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Configuration",
+      "level": 2,
+      "slug": "configuration",
+      "prose": "Configuration is resolved at call time from `window.Contact360Constants.LAMBDA_API_CONFIG`:\n\n| Config key | Type | Default | Description |\n|---|---|---|---|\n| `LOGS_API_BASE_URL` | `string` | `\"\"` (disabled) | Base URL of the Logs API server (e.g. `https://logs.api` or `http://54.x.x.x:8090`) |\n| `LOGS_API_ENDPOINT` | `string` | `\"/api/v1/logs\"` | Path suffix for the log ingest endpoint |\n| `LOGS_API_KEY` | `string` | `\"\"` (omitted) | Optional API key sent as `X-API-Key` header |\n\nRuntime values can be overridden by the extension popup's Settings tab and written to `chrome.storage.local` (keys `c360_logs_api_base_url`, `c360_logs_api_key`).\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Config key",
+            "Type",
+            "Default",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`LOGS_API_BASE_URL`",
+              "`string`",
+              "`\"\"` (disabled)",
+              "Base URL of the Logs API server (e.g. `https://logs.api` or `http://54.x.x.x:8090`)"
+            ],
+            [
+              "`LOGS_API_ENDPOINT`",
+              "`string`",
+              "`\"/api/v1/logs\"`",
+              "Path suffix for the log ingest endpoint"
+            ],
+            [
+              "`LOGS_API_KEY`",
+              "`string`",
+              "`\"\"` (omitted)",
+              "Optional API key sent as `X-API-Key` header"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Emitter API",
+      "level": 2,
+      "slug": "emitter-api",
+      "prose": "```js\n// Exposed on window.Contact360Telemetry\nwindow.Contact360Telemetry.emit(eventType, payload?)\n```\n\n| Parameter | Type | Description |\n|---|---|---|\n| `eventType` | `string` | A namespaced event label (see Event catalog below) |\n| `payload` | `Record<string, unknown>` (optional) | Arbitrary key-value metadata merged into `metadata` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Parameter",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`eventType`",
+              "`string`",
+              "A namespaced event label (see Event catalog below)"
+            ],
+            [
+              "`payload`",
+              "`Record<string, unknown>` (optional)",
+              "Arbitrary key-value metadata merged into `metadata`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "js",
+          "value": "// Exposed on window.Contact360Telemetry\nwindow.Contact360Telemetry.emit(eventType, payload?)\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "HTTP Request Shape",
+      "level": 2,
+      "slug": "http-request-shape",
+      "prose": "**Method:** `POST`\n\n**URL:** `${LOGS_API_BASE_URL}${LOGS_API_ENDPOINT}` (trailing slash stripped)\n\n**Headers:**\n\n```\nContent-Type: application/json\nX-API-Key: <LOGS_API_KEY>         # omitted when key is empty\n```\n\n**Body:**\n\n```json\n{\n  \"logs\": [\n    {\n      \"level\": \"info\",\n      \"service_type\": \"extension\",\n      \"action_type\": \"<eventType>\",\n      \"metadata\": {\n        \"<...caller payload fields...>\",\n        \"telemetry_schema_version\": \"<TELEMETRY_SCHEMA_VERSION>\"\n      }\n    }\n  ]\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "Content-Type: application/json\nX-API-Key: <LOGS_API_KEY>         # omitted when key is empty\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"logs\": [\n    {\n      \"level\": \"info\",\n      \"service_type\": \"extension\",\n      \"action_type\": \"<eventType>\",\n      \"metadata\": {\n        \"<...caller payload fields...>\",\n        \"telemetry_schema_version\": \"<TELEMETRY_SCHEMA_VERSION>\"\n      }\n    }\n  ]\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Fixed fields",
+      "level": 3,
+      "slug": "fixed-fields",
+      "prose": "| Field | Value |\n|---|---|\n| `level` | Always `\"info\"` |\n| `service_type` | Always `\"extension\"` |\n| `metadata.telemetry_schema_version` | Read from `window.Contact360Constants.TELEMETRY_SCHEMA_VERSION` or `\"unknown\"` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Field",
+            "Value"
+          ],
+          "rows": [
+            [
+              "`level`",
+              "Always `\"info\"`"
+            ],
+            [
+              "`service_type`",
+              "Always `\"extension\"`"
+            ],
+            [
+              "`metadata.telemetry_schema_version`",
+              "Read from `window.Contact360Constants.TELEMETRY_SCHEMA_VERSION` or `\"unknown\"`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Event Catalog",
+      "level": 2,
+      "slug": "event-catalog",
+      "prose": "| `action_type` | Emitted by | Key payload fields |\n|---|---|---|\n| `extension.capture.start` | `background.js` capture handler | `tab_url`, `profile_count` |\n| `extension.capture.complete` | `background.js` capture success | `saved_count`, `retry_count`, `failed_count` |\n| `extension.capture.error` | `background.js` capture failure | `error_message` |\n| `extension.page.load` | `content.js` init | `tab_url`, `detected_platform` |\n| `extension.auth.refresh` | `background.js` token refresh | `outcome: \"ok\" \\| \"failed\"` |\n| `extension.settings.save` | `popup.js` save action | (no extra payload) |\n| `extension.gateway.reachable` | `popup.js` health check | `gateway_url` |\n| `extension.gateway.unreachable` | `popup.js` health check | `gateway_url`, `error_message` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "`action_type`",
+            "Emitted by",
+            "Key payload fields"
+          ],
+          "rows": [
+            [
+              "`extension.capture.start`",
+              "`background.js` capture handler",
+              "`tab_url`, `profile_count`"
+            ],
+            [
+              "`extension.capture.complete`",
+              "`background.js` capture success",
+              "`saved_count`, `retry_count`, `failed_count`"
+            ],
+            [
+              "`extension.capture.error`",
+              "`background.js` capture failure",
+              "`error_message`"
+            ],
+            [
+              "`extension.page.load`",
+              "`content.js` init",
+              "`tab_url`, `detected_platform`"
+            ],
+            [
+              "`extension.auth.refresh`",
+              "`background.js` token refresh",
+              "`outcome: \"ok\" \\",
+              "\"failed\"`"
+            ],
+            [
+              "`extension.settings.save`",
+              "`popup.js` save action",
+              "(no extra payload)"
+            ],
+            [
+              "`extension.gateway.reachable`",
+              "`popup.js` health check",
+              "`gateway_url`"
+            ],
+            [
+              "`extension.gateway.unreachable`",
+              "`popup.js` health check",
+              "`gateway_url`, `error_message`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Logs API Server",
+      "level": 2,
+      "slug": "logs-api-server",
+      "prose": "Events are ingested by `EC2/log.server` — a Go service (`contact360.io/logsapi`). Visibility:\n\n- **admin.contact360.io** — searchable via the admin log viewer (Logs page)\n- **GraphQL** — `queryLogs` / `searchLogs` queries (see [query_query_logs_graphql.md](../endpoints/query_query_logs_graphql.md), [query_search_logs_graphql.md](../endpoints/query_search_logs_graphql.md))\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**admin.contact360.io** — searchable via the admin log viewer (Logs page)",
+              "checked": null
+            },
+            {
+              "text": "**GraphQL** — `queryLogs` / `searchLogs` queries (see [query_query_logs_graphql.md](../endpoints/query_query_logs_graphql.md), [query_search_logs_graphql.md](../endpoints/query_search_logs_graphql.md))",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "query_query_logs_graphql.md",
+          "href": "../endpoints/query_query_logs_graphql.md"
+        },
+        {
+          "text": "query_search_logs_graphql.md",
+          "href": "../endpoints/query_search_logs_graphql.md"
+        }
+      ]
+    },
+    {
+      "heading": "Related documentation",
+      "level": 2,
+      "slug": "related-documentation",
+      "prose": "| Doc | Purpose |\n|---|---|\n| [extension-graphql-session.md](extension-graphql-session.md) | JWT refresh contract |\n| [logsapi.api.md](logsapi.api.md) | Logs API service contract |\n| [salesnavigator.api.md](salesnavigator.api.md) | Extension server flows |\n| [mutation_create_log_graphql.md](../endpoints/mutation_create_log_graphql.md) | Single log mutation |\n| [mutation_create_logs_batch_graphql.md](../endpoints/mutation_create_logs_batch_graphql.md) | Batch log mutation |\n| [logsapi_endpoint_era_matrix.md](../endpoints/logsapi_endpoint_era_matrix.md) | Logs API route inventory |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Doc",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "[extension-graphql-session.md](extension-graphql-session.md)",
+              "JWT refresh contract"
+            ],
+            [
+              "[logsapi.api.md](logsapi.api.md)",
+              "Logs API service contract"
+            ],
+            [
+              "[salesnavigator.api.md](salesnavigator.api.md)",
+              "Extension server flows"
+            ],
+            [
+              "[mutation_create_log_graphql.md](../endpoints/mutation_create_log_graphql.md)",
+              "Single log mutation"
+            ],
+            [
+              "[mutation_create_logs_batch_graphql.md](../endpoints/mutation_create_logs_batch_graphql.md)",
+              "Batch log mutation"
+            ],
+            [
+              "[logsapi_endpoint_era_matrix.md](../endpoints/logsapi_endpoint_era_matrix.md)",
+              "Logs API route inventory"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "extension-graphql-session.md",
+          "href": "extension-graphql-session.md"
+        },
+        {
+          "text": "logsapi.api.md",
+          "href": "logsapi.api.md"
+        },
+        {
+          "text": "salesnavigator.api.md",
+          "href": "salesnavigator.api.md"
+        },
+        {
+          "text": "mutation_create_log_graphql.md",
+          "href": "../endpoints/mutation_create_log_graphql.md"
+        },
+        {
+          "text": "mutation_create_logs_batch_graphql.md",
+          "href": "../endpoints/mutation_create_logs_batch_graphql.md"
+        },
+        {
+          "text": "logsapi_endpoint_era_matrix.md",
+          "href": "../endpoints/logsapi_endpoint_era_matrix.md"
+        }
+      ]
+    },
+    {
+      "heading": "Era traceability",
+      "level": 2,
+      "slug": "era-traceability",
+      "prose": "| Era | Milestone |\n|---|---|\n| 0.x | `telemetryClient.js` loaded in content + background; `LOGS_API_BASE_URL` wired via constants |\n| 4.x | Logs URL + key configurable via popup Settings tab; written to `chrome.storage.local` |\n| 6.x | Event catalog expanded for capture, auth, gateway events; schema version token added |\n| 7.x | `EC2/log.server` (Go) becomes primary ingest endpoint; Python lambda deprecated |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Milestone"
+          ],
+          "rows": [
+            [
+              "0.x",
+              "`telemetryClient.js` loaded in content + background; `LOGS_API_BASE_URL` wired via constants"
+            ],
+            [
+              "4.x",
+              "Logs URL + key configurable via popup Settings tab; written to `chrome.storage.local`"
+            ],
+            [
+              "6.x",
+              "Event catalog expanded for capture, auth, gateway events; schema version token added"
+            ],
+            [
+              "7.x",
+              "`EC2/log.server` (Go) becomes primary ingest endpoint; Python lambda deprecated"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

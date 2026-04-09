@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_create_campaign_rest.md",
+  "sha256_source": "2dd98ec81e9b8ae5aa874a40bcd17ebbb4a1678ba6b704f77cca8841943c97d5",
+  "generated_at": "2026-04-08T23:11:51.601134+00:00",
+  "title": "POST /campaign",
+  "raw_markdown": "---\ntitle: \"POST /campaign\"\nsource_json: mutation_create_campaign_rest.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# POST /campaign\n\n## Overview\n\nCreate and enqueue a new email campaign. Accepts template_id, name, audience_source (csv|segment|vql|sn_batch), optional segment_id, vql_query, filepath, and scheduled_at. Creates a campaigns row, enqueues campaign:send Asynq task on Redis. The worker resolves audience, inserts recipients, and dispatches 5 concurrent EmailWorker goroutines.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_create_campaign_rest |\n| _id | mutation_create_campaign_rest-001 |\n| endpoint_path | POST /campaign |\n| method | POST |\n| api_version | rest-v1 |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-03-24T00:00:00.000000+00:00 |\n| updated_at | 2026-03-24T00:00:00.000000+00:00 |\n| era_introduced | 0.x |\n\n\n### era_milestones\n\n| Era | Milestone |\n| --- | --- |\n| 0.x | Basic campaign create with CSV filepath |\n| 1.x | Auth middleware, credit guard, user_id/org_id attribution |\n| 2.x | Rate limit, provider auth |\n| 3.x | Audience source: segment/VQL via Connectra |\n| 4.x | Audience source: sn_batch |\n| 10.x | Scheduled send, A/B test flag |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| auth_scheme | JWT Bearer (planned; currently missing middleware) |\n| rate_limit | planned (9.x entitlement guard) |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service | backend(dev)/email campaign |\n| service_file | api/handlers.go:CreateCampaign |\n| task_file | tasks/campaign.go:CampaignPayload |\n| worker_file | worker/campaign_worker.go:HandleCampaignTask |\n\n\n## GraphQL operation\n\n```graphql\nmutation CreateCampaign($input: CreateCampaignInput!) { campaigns { createCampaign(input: $input) { id status } } }\n```\n\n## Request body\n\n| Field | Value |\n| --- | --- |\n| template_id | string (UUID, required) |\n| name | string (required) |\n| filepath | string (CSV path, deprecated 3.x+) |\n| audience_source | csv \\\\| segment \\\\| vql \\\\| sn_batch |\n| segment_id | string (optional) |\n| vql_query | string (optional) |\n| scheduled_at | RFC3339 timestamp (optional) |\n\n\n## Response\n\n```json\n{\n  \"201\": {\n    \"campaign_id\": \"string\",\n    \"status\": \"pending\"\n  },\n  \"400\": \"Bad request\",\n  \"401\": \"Unauthorized (missing/invalid JWT)\",\n  \"402\": \"Insufficient credits (1.x+)\",\n  \"429\": \"Entitlement limit exceeded (9.x+)\"\n}\n```\n\n## Data & infrastructure\n\n### db_tables_read\n\n- templates\n\n### db_tables_write\n\n- campaigns\n\n### redis_write\n\n- Asynq task queue (campaign:send)\n\n### used_by_pages\n\n- /campaigns/new\n\n### frontend_page_bindings\n\n| page_path | page_title | via_hook | via_service | usage_type | usage_context |\n| --- | --- | --- | --- | --- | --- |\n| /campaigns/new | Campaign Wizard | useCampaignWizard | campaignsService | primary | form_submission |\n\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `mutation_create_campaign_rest.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `10.x` — Email Campaign.\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `campaigns` | WRITE | [campaigns.sql](../database/tables/campaigns.sql) |\n| `campaign_sequences` | WRITE | [campaign_sequences.sql](../database/tables/campaign_sequences.sql) |\n| `campaign_templates` | READ | [campaign_templates.sql](../database/tables/campaign_templates.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Email Campaign Backend** (`backend(dev)/email campaign`): Campaign creation via Go/Gin REST API with Redis + Asynq task queuing.\n\n## Related endpoint graph\n\n- **Inbound**: `Campaign Wizard Page` (Frontend form_submission).\n- **Outbound**: `GetCampaign` (verify creation), `ScheduleCampaign` (activate), `EnrollContactsSequence` (add contacts).\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_create_campaign_rest.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_create_campaign_rest"
+        ],
+        [
+          "_id",
+          "mutation_create_campaign_rest-001"
+        ],
+        [
+          "endpoint_path",
+          "POST /campaign"
+        ],
+        [
+          "method",
+          "POST"
+        ],
+        [
+          "api_version",
+          "rest-v1"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-03-24T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-24T00:00:00.000000+00:00"
+        ],
+        [
+          "era_introduced",
+          "0.x"
+        ]
+      ]
+    },
+    {
+      "section_heading": "era_milestones",
+      "headers": [
+        "Era",
+        "Milestone"
+      ],
+      "rows": [
+        [
+          "0.x",
+          "Basic campaign create with CSV filepath"
+        ],
+        [
+          "1.x",
+          "Auth middleware, credit guard, user_id/org_id attribution"
+        ],
+        [
+          "2.x",
+          "Rate limit, provider auth"
+        ],
+        [
+          "3.x",
+          "Audience source: segment/VQL via Connectra"
+        ],
+        [
+          "4.x",
+          "Audience source: sn_batch"
+        ],
+        [
+          "10.x",
+          "Scheduled send, A/B test flag"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "auth_scheme",
+          "JWT Bearer (planned; currently missing middleware)"
+        ],
+        [
+          "rate_limit",
+          "planned (9.x entitlement guard)"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service",
+          "backend(dev)/email campaign"
+        ],
+        [
+          "service_file",
+          "api/handlers.go:CreateCampaign"
+        ],
+        [
+          "task_file",
+          "tasks/campaign.go:CampaignPayload"
+        ],
+        [
+          "worker_file",
+          "worker/campaign_worker.go:HandleCampaignTask"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Request body",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "template_id",
+          "string (UUID, required)"
+        ],
+        [
+          "name",
+          "string (required)"
+        ],
+        [
+          "filepath",
+          "string (CSV path, deprecated 3.x+)"
+        ],
+        [
+          "audience_source",
+          "csv \\\\",
+          "segment \\\\",
+          "vql \\\\",
+          "sn_batch"
+        ],
+        [
+          "segment_id",
+          "string (optional)"
+        ],
+        [
+          "vql_query",
+          "string (optional)"
+        ],
+        [
+          "scheduled_at",
+          "RFC3339 timestamp (optional)"
+        ]
+      ]
+    },
+    {
+      "section_heading": "frontendpagebindings",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_hook",
+        "via_service",
+        "usage_type",
+        "usage_context"
+      ],
+      "rows": [
+        [
+          "/campaigns/new",
+          "Campaign Wizard",
+          "useCampaignWizard",
+          "campaignsService",
+          "primary",
+          "form_submission"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`campaigns`",
+          "WRITE",
+          "[campaigns.sql](../database/tables/campaigns.sql)"
+        ],
+        [
+          "`campaign_sequences`",
+          "WRITE",
+          "[campaign_sequences.sql](../database/tables/campaign_sequences.sql)"
+        ],
+        [
+          "`campaign_templates`",
+          "READ",
+          "[campaign_templates.sql](../database/tables/campaign_templates.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Create and enqueue a new email campaign. Accepts template_id, name, audience_source (csv|segment|vql|sn_batch), optional segment_id, vql_query, filepath, and scheduled_at. Creates a campaigns row, enqueues campaign:send Asynq task on Redis. The worker resolves audience, inserts recipients, and dispatches 5 concurrent EmailWorker goroutines."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_create_campaign_rest.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"POST /campaign\"\nsource_json: mutation_create_campaign_rest.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-03-24T00:00:00.000000+00:00 |\n| updated_at | 2026-03-24T00:00:00.000000+00:00 |\n\n## GraphQL operation\n\n```graphql\nmutation CreateCampaign($input: CreateCampaignInput!) { campaigns { createCampaign(input: $input) { id status } } }\n```\n\n## Response\n\n```json\n{\n  \"201\": {\n    \"campaign_id\": \"string\",\n    \"status\": \"pending\"\n  },\n  \"400\": \"Bad request\",\n  \"401\": \"Unauthorized (missing/invalid JWT)\",\n  \"402\": \"Insufficient credits (1.x+)\",\n  \"429\": \"Entitlement limit exceeded (9.x+)\"\n}\n```\n\n## Data & infrastructure\n\n### db_tables_read\n\n### db_tables_write\n\n### redis_write\n\n- Asynq task queue (campaign:send)\n\n### used_by_pages\n\n### frontend_page_bindings\n\n| --- | --- | --- | --- | --- | --- |\n\n- **page_count:** 1\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `10.x` — Email Campaign.\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Email Campaign Backend** (`backend(dev)/email campaign`): Campaign creation via Go/Gin REST API with Redis + Asynq task queuing.\n\n- **Inbound**: `Campaign Wizard Page` (Frontend form_submission).\n- **Outbound**: `GetCampaign` (verify creation), `ScheduleCampaign` (activate), `EnrollContactsSequence` (add contacts)."
+}

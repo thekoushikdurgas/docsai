@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/shared_defs",
+  "title": "Contact360 docs — shared JSON shapes",
+  "description": "Reusable fragments for all doc kinds. Matches docs/scripts/convert_md_to_json.py enrich_sections() and table/link extraction.",
+  "$defs": {
+    "link": {
+      "type": "object",
+      "required": ["text", "href"],
+      "properties": {
+        "text": { "type": "string" },
+        "href": { "type": "string" }
+      }
+    },
+    "markdown_table": {
+      "type": "object",
+      "required": ["headers", "rows"],
+      "properties": {
+        "headers": { "type": "array", "items": { "type": "string" } },
+        "rows": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "section_heading": { "type": ["string", "null"] }
+      }
+    },
+    "list_item": {
+      "type": "object",
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string" },
+        "checked": { "type": ["boolean", "null"] }
+      }
+    },
+    "list_block": {
+      "type": "object",
+      "required": ["ordered", "items"],
+      "properties": {
+        "ordered": { "type": "boolean" },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/list_item" } }
+      }
+    },
+    "code_block": {
+      "type": "object",
+      "required": ["lang", "value"],
+      "properties": {
+        "lang": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+    "enriched_section": {
+      "type": "object",
+      "description": "One top-level markdown section with derived structure; full source text remains in raw_markdown on the envelope.",
+      "required": ["heading", "level", "prose", "tables", "lists", "code_blocks", "links"],
+      "properties": {
+        "heading": { "type": "string" },
+        "level": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "slug": { "type": "string" },
+        "prose": { "type": "string" },
+        "tables": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/markdown_table" }
+        },
+        "lists": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/list_block" }
+        },
+        "code_blocks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/code_block" }
+        },
+        "links": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/link" }
+        },
+        "blockquotes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional; present on document kind when extended"
+        }
+      },
+      "additionalProperties": true
+    },
+    "simple_section": {
+      "type": "object",
+      "description": "Heading + body only (era_task extras, endpoint_matrix sections)",
+      "required": ["heading", "level", "prose"],
+      "properties": {
+        "heading": { "type": "string" },
+        "level": { "type": "integer" },
+        "prose": { "type": "string" },
+        "code_blocks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/code_block" }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

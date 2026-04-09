@@ -1,0 +1,1415 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/docsai-sync.md",
+  "sha256_source": "eb9dd1953c6eca6adbbe248ee6d5b13d6b74641830ab82020a5f4b551c0321d0",
+  "generated_at": "2026-04-08T23:26:48.016310+00:00",
+  "title": "DocsAI Sync Runbook",
+  "sections": [
+    {
+      "heading": "DocsAI Sync Runbook",
+      "level": 1,
+      "slug": "docsai-sync-runbook",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose",
+      "level": 2,
+      "slug": "purpose",
+      "prose": "DocsAI uses hardcoded constants for architecture and roadmap views. This runbook defines mandatory sync rules between markdown docs and DocsAI constants.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Sync rules",
+      "level": 2,
+      "slug": "sync-rules",
+      "prose": "1. If `docs/docs/architecture.md` changes, update `contact360.io/admin/apps/architecture/constants.py` in the same change set.\n2. If `docs/docs/roadmap.md` changes, update `contact360.io/admin/apps/roadmap/constants.py` in the same change set.\n3. If **`docs/docs/backend-language-strategy.md`** changes, update any language/stack bullets mirrored in DocsAI architecture constants or internal admin copy in the same change set.\n4. If release taxonomy/policy changes in `docs/docs/version-policy.md`, verify corresponding roadmap/version entries still match.\n5. When the **canonical Go/EC2 service list** changes (new `EC2/*.server/` satellites, module paths, or migration inventory), update **`contact360.io/admin/apps/architecture/constants.py`** (`CONTACT360_PROJECT_STRUCTURE`, `CONTACT360_SERVICES`, and related tech bullets) in the same change set as **`docs/docs/architecture.md`**.\n6. When **EC2 HTTP routes** change, update **`docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`** and, on cutover, the matching **`docs/backend/endpoints/*_endpoint_era_matrix.json`** files.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "If `docs/docs/architecture.md` changes, update `contact360.io/admin/apps/architecture/constants.py` in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "If `docs/docs/roadmap.md` changes, update `contact360.io/admin/apps/roadmap/constants.py` in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "If **`docs/docs/backend-language-strategy.md`** changes, update any language/stack bullets mirrored in DocsAI architecture constants or internal admin copy in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "If release taxonomy/policy changes in `docs/docs/version-policy.md`, verify corresponding roadmap/version entries still match.",
+              "checked": null
+            },
+            {
+              "text": "When the **canonical Go/EC2 service list** changes (new `EC2/*.server/` satellites, module paths, or migration inventory), update **`contact360.io/admin/apps/architecture/constants.py`** (`CONTACT360_PROJECT_STRUCTURE`, `CONTACT360_SERVICES`, and related tech bullets) in the same change set as **`docs/docs/architecture.md`**.",
+              "checked": null
+            },
+            {
+              "text": "When **EC2 HTTP routes** change, update **`docs/backend/endpoints/EC2_GO_SATELLITE_ROUTES.md`** and, on cutover, the matching **`docs/backend/endpoints/*_endpoint_era_matrix.json`** files.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Update checklist",
+      "level": 2,
+      "slug": "update-checklist",
+      "prose": "- Architecture updates:\n  - Update folder/service names and descriptions in `docs/docs/architecture.md`.\n  - Mirror those changes in `contact360.io/admin/apps/architecture/constants.py`.\n  - Verify data-flow labels still match the architecture narrative.\n\n- Roadmap updates:\n  - Update stage details in `docs/docs/roadmap.md` (`status`, `depends_on`, `risk`, `definition_of_done`, `kpi`, `ships_in`).\n  - Mirror stage additions/updates in `contact360.io/admin/apps/roadmap/constants.py`.\n  - Ensure every stage still maps to a release in `docs/docs/versions.md`.\n\n- Versioning updates:\n  - Update policy in `docs/docs/version-policy.md` when versioning rules change.\n  - Update release entries in `docs/docs/versions.md` with scope and stage mapping.\n  - Confirm cross-links between roadmap and versions remain valid.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Architecture updates:",
+              "checked": null
+            },
+            {
+              "text": "Update folder/service names and descriptions in `docs/docs/architecture.md`.",
+              "checked": null
+            },
+            {
+              "text": "Mirror those changes in `contact360.io/admin/apps/architecture/constants.py`.",
+              "checked": null
+            },
+            {
+              "text": "Verify data-flow labels still match the architecture narrative.",
+              "checked": null
+            },
+            {
+              "text": "Roadmap updates:",
+              "checked": null
+            },
+            {
+              "text": "Update stage details in `docs/docs/roadmap.md` (`status`, `depends_on`, `risk`, `definition_of_done`, `kpi`, `ships_in`).",
+              "checked": null
+            },
+            {
+              "text": "Mirror stage additions/updates in `contact360.io/admin/apps/roadmap/constants.py`.",
+              "checked": null
+            },
+            {
+              "text": "Ensure every stage still maps to a release in `docs/docs/versions.md`.",
+              "checked": null
+            },
+            {
+              "text": "Versioning updates:",
+              "checked": null
+            },
+            {
+              "text": "Update policy in `docs/docs/version-policy.md` when versioning rules change.",
+              "checked": null
+            },
+            {
+              "text": "Update release entries in `docs/docs/versions.md` with scope and stage mapping.",
+              "checked": null
+            },
+            {
+              "text": "Confirm cross-links between roadmap and versions remain valid.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verification steps (DocsAI UI)",
+      "level": 2,
+      "slug": "verification-steps-docsai-ui",
+      "prose": "1. Open DocsAI architecture dashboard and confirm structure/service cards reflect the latest `constants.py`.\n2. Open DocsAI roadmap dashboard and confirm stage list, statuses, and feature bullets match the roadmap constants.\n3. Spot-check at least one updated stage from each of:\n   - `1.x` user/billing/credit baseline,\n   - `2.x` email system,\n   - `3.x` contact and company data (Connectra),\n   - `4.x` extension and Sales Navigator,\n   - `5.x` AI workflows.\n4. If mismatch appears, treat constants files as stale and re-sync before finalizing release docs.\n5. For admin governance updates, verify the documented state of `settings_view` forms (placeholder vs wired) remains synchronized.\n6. For reliability updates touching admin operations, keep migration status of `_analyze_jobs`, `_generate_json_jobs`, and `_upload_jobs` explicit (in-memory vs database; optional Redis only if `USE_REDIS_CACHE=True`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Open DocsAI architecture dashboard and confirm structure/service cards reflect the latest `constants.py`.",
+              "checked": null
+            },
+            {
+              "text": "Open DocsAI roadmap dashboard and confirm stage list, statuses, and feature bullets match the roadmap constants.",
+              "checked": null
+            },
+            {
+              "text": "Spot-check at least one updated stage from each of:",
+              "checked": null
+            },
+            {
+              "text": "`1.x` user/billing/credit baseline,",
+              "checked": null
+            },
+            {
+              "text": "`2.x` email system,",
+              "checked": null
+            },
+            {
+              "text": "`3.x` contact and company data (Connectra),",
+              "checked": null
+            },
+            {
+              "text": "`4.x` extension and Sales Navigator,",
+              "checked": null
+            },
+            {
+              "text": "`5.x` AI workflows.",
+              "checked": null
+            },
+            {
+              "text": "If mismatch appears, treat constants files as stale and re-sync before finalizing release docs.",
+              "checked": null
+            },
+            {
+              "text": "For admin governance updates, verify the documented state of `settings_view` forms (placeholder vs wired) remains synchronized.",
+              "checked": null
+            },
+            {
+              "text": "For reliability updates touching admin operations, keep migration status of `_analyze_jobs`, `_generate_json_jobs`, and `_upload_jobs` explicit (in-memory vs database; optional Redis only if `USE_REDIS_CACHE=True`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Release hygiene note",
+      "level": 2,
+      "slug": "release-hygiene-note",
+      "prose": "Do not ship docs-only version updates unless roadmap and DocsAI mirrors are synchronized.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deep sync workflow for staged execution",
+      "level": 2,
+      "slug": "deep-sync-workflow-for-staged-execution",
+      "prose": "For every minor release stage (`X.Y.0`), process docs in this order:\n\n1. Update `docs/roadmap.md` stage metadata and task bullets.\n2. Mirror the same stage in `contact360.io/admin/apps/roadmap/constants.py`.\n3. Add/update release record in `docs/versions.md` with `roadmap_mapping`.\n4. If service ownership changes, update `docs/architecture.md` and its constants mirror.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Update `docs/roadmap.md` stage metadata and task bullets.",
+              "checked": null
+            },
+            {
+              "text": "Mirror the same stage in `contact360.io/admin/apps/roadmap/constants.py`.",
+              "checked": null
+            },
+            {
+              "text": "Add/update release record in `docs/versions.md` with `roadmap_mapping`.",
+              "checked": null
+            },
+            {
+              "text": "If service ownership changes, update `docs/architecture.md` and its constants mirror.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small-task packet template (use per stage)",
+      "level": 2,
+      "slug": "small-task-packet-template-use-per-stage",
+      "prose": "- **Task 1: Contract update**\n  - Update stage or release contract text in markdown.\n  - Mirror contract labels/fields in DocsAI constants.\n- **Task 2: Ownership update**\n  - Ensure `owner`, affected services, and UI surface are explicit.\n  - Verify traceability row exists in roadmap.\n- **Task 3: Verification update**\n  - Confirm DocsAI page renders the new stage content.\n  - Confirm release entry references the same stage id(s).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Task 1: Contract update**",
+              "checked": null
+            },
+            {
+              "text": "Update stage or release contract text in markdown.",
+              "checked": null
+            },
+            {
+              "text": "Mirror contract labels/fields in DocsAI constants.",
+              "checked": null
+            },
+            {
+              "text": "**Task 2: Ownership update**",
+              "checked": null
+            },
+            {
+              "text": "Ensure `owner`, affected services, and UI surface are explicit.",
+              "checked": null
+            },
+            {
+              "text": "Verify traceability row exists in roadmap.",
+              "checked": null
+            },
+            {
+              "text": "**Task 3: Verification update**",
+              "checked": null
+            },
+            {
+              "text": "Confirm DocsAI page renders the new stage content.",
+              "checked": null
+            },
+            {
+              "text": "Confirm release entry references the same stage id(s).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Drift prevention rules",
+      "level": 2,
+      "slug": "drift-prevention-rules",
+      "prose": "- No stage may be marked `completed` in docs unless constants are updated in the same change set.\n- If roadmap stage ids change, update all `Roadmap mapping` references in `docs/versions.md`.\n- Treat `docs/architecture.md` ownership tables as the canonical source for service responsibility.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "No stage may be marked `completed` in docs unless constants are updated in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "If roadmap stage ids change, update all `Roadmap mapping` references in `docs/versions.md`.",
+              "checked": null
+            },
+            {
+              "text": "Treat `docs/architecture.md` ownership tables as the canonical source for service responsibility.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Governance era docs (supplementary)",
+      "level": 2,
+      "slug": "governance-era-docs-supplementary",
+      "prose": "Era-specific operational docs are indexed in `docs/governance.md` and enforced by `.github/workflows/ci.yml` (`test -f docs/...`). When you add a new governance-tracked doc:\n\n1. Add the file under `docs/`.\n2. Add a bullet to `docs/governance.md`.\n3. Add `test -f \"docs/<filename>\"` to `.github/workflows/ci.yml`.\n4. Append an entry to `CONTACT360_GOVERNANCE_DOC_INDEX` in `contact360.io/admin/apps/architecture/constants.py` so DocsAI can surface the path (optional but recommended for release hygiene).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Add the file under `docs/`.",
+              "checked": null
+            },
+            {
+              "text": "Add a bullet to `docs/governance.md`.",
+              "checked": null
+            },
+            {
+              "text": "Add `test -f \"docs/<filename>\"` to `.github/workflows/ci.yml`.",
+              "checked": null
+            },
+            {
+              "text": "Append an entry to `CONTACT360_GOVERNANCE_DOC_INDEX` in `contact360.io/admin/apps/architecture/constants.py` so DocsAI can surface the path (optional but recommended for release hygiene).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extended docs sync scope",
+      "level": 2,
+      "slug": "extended-docs-sync-scope",
+      "prose": "When extending docs beyond roadmap/constants, keep these files aligned:\n\n- `docs/backend.md` with `docs/architecture.md` (service list, datastores, gateway pattern). Backend-only renames (lambda folder, health notes) should be reflected here without duplicating the full product architecture doc.\n- `docs/frontend.md` with `docs/architecture.md` and `docs/codebase.md` when dashboard, marketing, DocsAI, extension, or email-app paths and ownership change (filename in-repo is `frontend.md`).\n- If `contact360.io/email` route/security behavior changes, update `docs/codebases/email-codebase-analysis.md` in the same change set.\n- Bulk/billing GraphQL and job-service contracts: keep `contact360.io/api/sql/apis/14_BILLING_MODULE.md`, `16_JOBS_MODULE.md`, and gateway code in sync; reflect release status in `docs/versions.md` and `docs/roadmap.md`.\n- `docs/codebase.md` with `docs/architecture.md` repository and service naming.\n- `docs/commands/*.md` with `docs/architecture.md`, `docs/governance.md`, and `docs/version-policy.md` when operational command contracts, service paths, or release cut practices change.\n- `docs/frontend/README.md` / `docs/frontend/pages/README.md` with `docs/frontend.md` and `docs/version-policy.md` when page inventory or era-to-surface mapping changes.\n- `docs/flowchart.md` with `docs/roadmap.md` stage flow and service sequence.\n- `docs/versions/version_*.md` with `docs/versions.md` and `docs/roadmap.md` when a planned minor’s scope or owner changes.\n- `docs/version-policy.md` planning rules with `docs/versions.md` entry format.\n- Canonical path naming for extension and service folders (for example `extension/contact360360`, no stale `extention/*` aliases in active sections).\n- **Service register:** `docs/architecture.md` → *Service register (canonical)* must match on-disk services (`contact360.io/*`, `lambda/*`, `backend(dev)/*` as applicable) and be mirrored in `contact360.io/admin/apps/architecture/constants.py` (`CONTACT360_PROJECT_STRUCTURE`, `CONTACT360_SERVICES`). When adding or removing a service row, update `docs/codebase.md`, `docs/flowchart.md`, and the *Feature-to-service traceability matrix* in `docs/roadmap.md` if that service appears there.\n- **Release vs horizon:** If you change how majors `7.x`–`10.x` are described, align `docs/versions.md` (planning alignment blurb), `docs/roadmap.md`, `docs/architecture.md` (*Planning horizon*), and `docs/version-policy.md` (*Major themes*).\n- **Version scheme canonical source:** `docs/version-policy.md` is the single source of truth for major era theme names. When an era is renamed, update `docs/roadmap.md` section headers, `docs/versions.md` release index, `docs/architecture.md` execution architecture table, `docs/flowchart.md` era strip, `docs/codebase.md` deep breakdown, and `docs/governance.md` version era summary — in that order.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/backend.md` with `docs/architecture.md` (service list, datastores, gateway pattern). Backend-only renames (lambda folder, health notes) should be reflected here without duplicating the full product architecture doc.",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend.md` with `docs/architecture.md` and `docs/codebase.md` when dashboard, marketing, DocsAI, extension, or email-app paths and ownership change (filename in-repo is `frontend.md`).",
+              "checked": null
+            },
+            {
+              "text": "If `contact360.io/email` route/security behavior changes, update `docs/codebases/email-codebase-analysis.md` in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "Bulk/billing GraphQL and job-service contracts: keep `contact360.io/api/sql/apis/14_BILLING_MODULE.md`, `16_JOBS_MODULE.md`, and gateway code in sync; reflect release status in `docs/versions.md` and `docs/roadmap.md`.",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebase.md` with `docs/architecture.md` repository and service naming.",
+              "checked": null
+            },
+            {
+              "text": "`docs/commands/*.md` with `docs/architecture.md`, `docs/governance.md`, and `docs/version-policy.md` when operational command contracts, service paths, or release cut practices change.",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/README.md` / `docs/frontend/pages/README.md` with `docs/frontend.md` and `docs/version-policy.md` when page inventory or era-to-surface mapping changes.",
+              "checked": null
+            },
+            {
+              "text": "`docs/flowchart.md` with `docs/roadmap.md` stage flow and service sequence.",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions/version_*.md` with `docs/versions.md` and `docs/roadmap.md` when a planned minor’s scope or owner changes.",
+              "checked": null
+            },
+            {
+              "text": "`docs/version-policy.md` planning rules with `docs/versions.md` entry format.",
+              "checked": null
+            },
+            {
+              "text": "Canonical path naming for extension and service folders (for example `extension/contact360360`, no stale `extention/*` aliases in active sections).",
+              "checked": null
+            },
+            {
+              "text": "**Service register:** `docs/architecture.md` → *Service register (canonical)* must match on-disk services (`contact360.io/*`, `lambda/*`, `backend(dev)/*` as applicable) and be mirrored in `contact360.io/admin/apps/architecture/constants.py` (`CONTACT360_PROJECT_STRUCTURE`, `CONTACT360_SERVICES`). When adding or removing a service row, update `docs/codebase.md`, `docs/flowchart.md`, and the *Feature-to-service traceability matrix* in `docs/roadmap.md` if that service appears there.",
+              "checked": null
+            },
+            {
+              "text": "**Release vs horizon:** If you change how majors `7.x`–`10.x` are described, align `docs/versions.md` (planning alignment blurb), `docs/roadmap.md`, `docs/architecture.md` (*Planning horizon*), and `docs/version-policy.md` (*Major themes*).",
+              "checked": null
+            },
+            {
+              "text": "**Version scheme canonical source:** `docs/version-policy.md` is the single source of truth for major era theme names. When an era is renamed, update `docs/roadmap.md` section headers, `docs/versions.md` release index, `docs/architecture.md` execution architecture table, `docs/flowchart.md` era strip, `docs/codebase.md` deep breakdown, and `docs/governance.md` version era summary — in that order.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage sync additions (mandatory for storage-related updates)",
+      "level": 2,
+      "slug": "s3storage-sync-additions-mandatory-for-storage-related-updates",
+      "prose": "When storage behavior changes in `lambda/s3storage/`, keep these docs aligned in the same change set:\n\n1. `docs/codebases/s3storage-codebase-analysis.md` (deep analysis + era task packs).\n2. `docs/architecture.md` (`s3storage` role in execution architecture and service register).\n3. `docs/roadmap.md` (stage-level storage implications, especially `2.4`, `6.6`, `8.x`, `10.x`).\n4. `docs/versions.md` (release scope and owner mappings touching storage behavior).\n5. `docs/flowchart.md` (multipart and metadata-worker flow updates when contract changes).\n\nIf storage contract changes affect APIs/endpoints, also update:\n\n- `docs/backend/apis/07_S3_MODULE.md`\n- `docs/backend/endpoints/*.json` entries for upload/download/multipart operations\n- `docs/backend/postman/Storage_Backend_s3storage.postman_collection.json`\n\nFor any change to `docs/versions/version_*.md`, verify these sections are present and filled with concrete storage evidence (not placeholders):\n\n- `Backend API and Endpoint Scope`\n- `Database and Data Lineage Scope`\n- `Frontend UX Surface Scope`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/s3storage-codebase-analysis.md` (deep analysis + era task packs).",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md` (`s3storage` role in execution architecture and service register).",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md` (stage-level storage implications, especially `2.4`, `6.6`, `8.x`, `10.x`).",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions.md` (release scope and owner mappings touching storage behavior).",
+              "checked": null
+            },
+            {
+              "text": "`docs/flowchart.md` (multipart and metadata-worker flow updates when contract changes).",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/07_S3_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/*.json` entries for upload/download/multipart operations",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/postman/Storage_Backend_s3storage.postman_collection.json`",
+              "checked": null
+            },
+            {
+              "text": "`Backend API and Endpoint Scope`",
+              "checked": null
+            },
+            {
+              "text": "`Database and Data Lineage Scope`",
+              "checked": null
+            },
+            {
+              "text": "`Frontend UX Surface Scope`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extended backend module sync additions",
+      "level": 2,
+      "slug": "extended-backend-module-sync-additions",
+      "prose": "- add new backend module docs to sync checklist",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "add new backend module docs to sync checklist",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extended sync checklist for inventory docs",
+      "level": 2,
+      "slug": "extended-sync-checklist-for-inventory-docs",
+      "prose": "When updating release/roadmap scopes, also verify:\n\n1. `docs/backend/apis/*.md` module metadata (era, introduced_in, frontend binding, data stores touched).\n2. `docs/backend/endpoints/*.json` endpoint metadata (`era`, `introduced_in`, `deprecated_in`, `frontend_page_bindings`, `db_tables_read`, `db_tables_write`, `auth_required`, `rbac_roles`, `rate_limited`).\n3. `docs/frontend/pages/*.json` page metadata (`era`, `introduced_in`, tabs, UI element inventory, hooks/services/contexts, graphql bindings, flow identifiers).\n4. `docs/versions/version_*.md` six mandatory scope/evidence sections are present and synced to roadmap and versions index.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/backend/apis/*.md` module metadata (era, introduced_in, frontend binding, data stores touched).",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/*.json` endpoint metadata (`era`, `introduced_in`, `deprecated_in`, `frontend_page_bindings`, `db_tables_read`, `db_tables_write`, `auth_required`, `rbac_roles`, `rate_limited`).",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/pages/*.json` page metadata (`era`, `introduced_in`, tabs, UI element inventory, hooks/services/contexts, graphql bindings, flow identifiers).",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions/version_*.md` six mandatory scope/evidence sections are present and synced to roadmap and versions index.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "logs.api sync additions",
+      "level": 2,
+      "slug": "logsapi-sync-additions",
+      "prose": "- Any logs.api architecture/contract update must be mirrored in DocsAI architecture and roadmap constants when stage metadata or service ownership changes.\n- Per-minor files `docs/versions/version_*.md` must include concrete logging evidence in backend/data/frontend scope blocks for logging-impacting minors.\n- Docs reviews must validate that logs.api storage backend references remain S3 CSV (not MongoDB) unless code changes the backend implementation.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Any logs.api architecture/contract update must be mirrored in DocsAI architecture and roadmap constants when stage metadata or service ownership changes.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor files `docs/versions/version_*.md` must include concrete logging evidence in backend/data/frontend scope blocks for logging-impacting minors.",
+              "checked": null
+            },
+            {
+              "text": "Docs reviews must validate that logs.api storage backend references remain S3 CSV (not MongoDB) unless code changes the backend implementation.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin navigation/deploy/graph sync additions",
+      "level": 2,
+      "slug": "admin-navigationdeploygraph-sync-additions",
+      "prose": "When updating `contact360.io/admin` controls, synchronize these docs in the same change set.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "SIDEBAR_MENU sync rule",
+      "level": 3,
+      "slug": "sidebar_menu-sync-rule",
+      "prose": "If `contact360.io/admin/apps/core/navigation.py` (`SIDEBAR_MENU`) changes:\n\n1. Update `docs/frontend.md` (DocsAI admin surfaces section and navigation context).\n2. Update `docs/codebases/admin-codebase-analysis.md` (navigation inventory).\n3. Validate affected stage/era references in `docs/roadmap.md` and `docs/versions.md` if route ownership moved.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Update `docs/frontend.md` (DocsAI admin surfaces section and navigation context).",
+              "checked": null
+            },
+            {
+              "text": "Update `docs/codebases/admin-codebase-analysis.md` (navigation inventory).",
+              "checked": null
+            },
+            {
+              "text": "Validate affected stage/era references in `docs/roadmap.md` and `docs/versions.md` if route ownership moved.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin deployment sync rule",
+      "level": 3,
+      "slug": "admin-deployment-sync-rule",
+      "prose": "If any `contact360.io/admin/deploy/*.sh` behavior or usage changes:\n\n1. Update `docs/governance.md` (Admin deployment governance section).\n2. Update relevant release notes in `docs/versions.md` when deployment or runbook expectations change.\n3. Re-verify DocsAI deployment references in this runbook.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Update `docs/governance.md` (Admin deployment governance section).",
+              "checked": null
+            },
+            {
+              "text": "Update relevant release notes in `docs/versions.md` when deployment or runbook expectations change.",
+              "checked": null
+            },
+            {
+              "text": "Re-verify DocsAI deployment references in this runbook.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin graph viewer sync rule",
+      "level": 3,
+      "slug": "admin-graph-viewer-sync-rule",
+      "prose": "If either graph component changes:\n\n- `contact360.io/admin/static/js/components/relationship-graph-viewer.js`\n- `contact360.io/admin/static/js/components/graph.js`\n\nThen update:\n\n1. `docs/frontend/components.md` (admin graph component catalog).\n2. `docs/flowchart.md` (admin documentation dashboard and graph data-flow diagrams).\n3. `docs/codebases/admin-codebase-analysis.md` (graph architecture notes).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`contact360.io/admin/static/js/components/relationship-graph-viewer.js`",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/admin/static/js/components/graph.js`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/components.md` (admin graph component catalog).",
+              "checked": null
+            },
+            {
+              "text": "`docs/flowchart.md` (admin documentation dashboard and graph data-flow diagrams).",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/admin-codebase-analysis.md` (graph architecture notes).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email runtime sync rule",
+      "level": 2,
+      "slug": "email-runtime-sync-rule",
+      "prose": "If `emailapis` / `emailapigo` contract behavior changes, update these docs in the same change set:\n\n- `docs/codebases/emailapis-codebase-analysis.md`\n- `docs/governance.md`\n- `docs/backend/apis/15_EMAIL_MODULE.md`\n- `docs/backend/endpoints/emailapis_endpoint_era_matrix.json`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/emailapis-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/governance.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/15_EMAIL_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/emailapis_endpoint_era_matrix.json`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Jobs runtime sync rule",
+      "level": 2,
+      "slug": "jobs-runtime-sync-rule",
+      "prose": "If `contact360.io/jobs/` contract behavior changes, update these docs in the same change set:\n\n- `docs/codebases/jobs-codebase-analysis.md`\n- `docs/backend/apis/16_JOBS_MODULE.md`\n- `docs/backend/apis/JOBS_ERA_TASK_PACKS.md`\n- `docs/backend/database/jobs_data_lineage.md`\n- `docs/frontend/jobs-ui-bindings.md`\n- `docs/roadmap.md`, `docs/versions.md`, and `docs/architecture.md` where cross-era/service ownership is affected\n\nDocsAI verification additions:\n\n1. In DocsAI architecture view, verify TKD Job data ownership and flow text mirrors markdown.\n2. In DocsAI roadmap view, verify jobs cross-era stream references are present for relevant eras.\n3. Spot-check at least one jobs-linked stage in `2.x`, `3.x`, `6.x`, and `10.x`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/jobs-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/16_JOBS_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/JOBS_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/jobs_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/jobs-ui-bindings.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md`, `docs/versions.md`, and `docs/architecture.md` where cross-era/service ownership is affected",
+              "checked": null
+            },
+            {
+              "text": "In DocsAI architecture view, verify TKD Job data ownership and flow text mirrors markdown.",
+              "checked": null
+            },
+            {
+              "text": "In DocsAI roadmap view, verify jobs cross-era stream references are present for relevant eras.",
+              "checked": null
+            },
+            {
+              "text": "Spot-check at least one jobs-linked stage in `2.x`, `3.x`, `6.x`, and `10.x`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contact AI runtime sync rule",
+      "level": 2,
+      "slug": "contact-ai-runtime-sync-rule",
+      "prose": "If `backend(dev)/contact.ai` contract behavior changes (routes, auth, model IDs, streaming format), update these docs in the same change set:\n\n- `docs/codebases/contact-ai-codebase-analysis.md`\n- `docs/backend/apis/17_AI_CHATS_MODULE.md`\n- `docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md`\n- `docs/backend/database/contact_ai_data_lineage.md`\n- `docs/frontend/contact-ai-ui-bindings.md`\n- `docs/backend/endpoints/contact_ai_endpoint_era_matrix.json`\n- `docs/roadmap.md`, `docs/versions.md`, and `docs/architecture.md` where cross-era/service ownership is affected\n\nIf `ModelSelection` enum values change:\n\n- Update `docs/backend/apis/17_AI_CHATS_MODULE.md` ModelSelection table.\n- Update `docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md` enum table.\n- Update `docs/backend/endpoints/contact_ai_endpoint_era_matrix.json` `model_selection_enum` field.\n- Update `LambdaAIClient` mapping shim in `contact360.io/api/app/clients/lambda_ai_client.py`.\n\nDocsAI verification additions for contact.ai:\n\n1. In DocsAI architecture view, verify Contact AI data ownership and flow text mirrors `docs/architecture.md`.\n2. In DocsAI roadmap view, verify contact.ai cross-era stream references are present for `5.x`, `6.x`, `8.x`, and `10.x`.\n3. Spot-check AI chat features section in `5.x` era docs for alignment with `docs/codebases/contact-ai-codebase-analysis.md`.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/contact-ai-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/17_AI_CHATS_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/contact_ai_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/contact-ai-ui-bindings.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/contact_ai_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md`, `docs/versions.md`, and `docs/architecture.md` where cross-era/service ownership is affected",
+              "checked": null
+            },
+            {
+              "text": "Update `docs/backend/apis/17_AI_CHATS_MODULE.md` ModelSelection table.",
+              "checked": null
+            },
+            {
+              "text": "Update `docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md` enum table.",
+              "checked": null
+            },
+            {
+              "text": "Update `docs/backend/endpoints/contact_ai_endpoint_era_matrix.json` `model_selection_enum` field.",
+              "checked": null
+            },
+            {
+              "text": "Update `LambdaAIClient` mapping shim in `contact360.io/api/app/clients/lambda_ai_client.py`.",
+              "checked": null
+            },
+            {
+              "text": "In DocsAI architecture view, verify Contact AI data ownership and flow text mirrors `docs/architecture.md`.",
+              "checked": null
+            },
+            {
+              "text": "In DocsAI roadmap view, verify contact.ai cross-era stream references are present for `5.x`, `6.x`, `8.x`, and `10.x`.",
+              "checked": null
+            },
+            {
+              "text": "Spot-check AI chat features section in `5.x` era docs for alignment with `docs/codebases/contact-ai-codebase-analysis.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension sync rules",
+      "level": 2,
+      "slug": "extension-sync-rules",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule EXT-1 — Extension module paths",
+      "level": 3,
+      "slug": "rule-ext-1-extension-module-paths",
+      "prose": "Any reference to extension auth, client, or merger modules must use the canonical path `extension/contact360/{auth|utils}/`:\n\n- `extension/contact360/auth/graphqlSession.js`\n- `extension/contact360/utils/lambdaClient.js`\n- `extension/contact360/utils/profileMerger.js`\n\nIf documentation references `extention/` (old spelling) or different module paths, it must be updated to the canonical form above.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`extension/contact360/auth/graphqlSession.js`",
+              "checked": null
+            },
+            {
+              "text": "`extension/contact360/utils/lambdaClient.js`",
+              "checked": null
+            },
+            {
+              "text": "`extension/contact360/utils/profileMerger.js`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule EXT-2 — Lambda SN API endpoint",
+      "level": 3,
+      "slug": "rule-ext-2-lambda-sn-api-endpoint",
+      "prose": "All documentation of the profile save endpoint must use:\n```\nPOST /v1/save-profiles\n```\nDo not document this as `/save-profiles`, `/profiles/save`, or any other variant without an explicit versioning note.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "POST /v1/save-profiles\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Rule EXT-3 — Token storage keys",
+      "level": 3,
+      "slug": "rule-ext-3-token-storage-keys",
+      "prose": "Documentation of token storage must always refer to the two canonical keys:\n\n- `accessToken`\n- `refreshToken`\n\nBoth keys must be documented as stored in `chrome.storage.local` (never `storage.sync`). If key names change in `graphqlSession.js`, the following docs must be updated in the same PR:\n\n- `docs/codebases/extension-codebase-analysis.md`\n- `docs/audit-compliance.md` (token audit section)\n- `docs/governance.md` (token security rules)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`accessToken`",
+              "checked": null
+            },
+            {
+              "text": "`refreshToken`",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/extension-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/audit-compliance.md` (token audit section)",
+              "checked": null
+            },
+            {
+              "text": "`docs/governance.md` (token security rules)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule EXT-4 — Extension era tagging",
+      "level": 3,
+      "slug": "rule-ext-4-extension-era-tagging",
+      "prose": "Extension contributions must be tagged with their primary era in all docs:\n\n- Auth/token lifecycle → era `1.x`\n- Profile capture and dedup → era `3.x`\n- SN maturity and reliability patterns → era `4.x`\n- API governance → era `8.x`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth/token lifecycle → era `1.x`",
+              "checked": null
+            },
+            {
+              "text": "Profile capture and dedup → era `3.x`",
+              "checked": null
+            },
+            {
+              "text": "SN maturity and reliability patterns → era `4.x`",
+              "checked": null
+            },
+            {
+              "text": "API governance → era `8.x`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Sales Navigator service sync rules",
+      "level": 2,
+      "slug": "sales-navigator-service-sync-rules",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule SN-1 — REST API contract drift",
+      "level": 3,
+      "slug": "rule-sn-1-rest-api-contract-drift",
+      "prose": "If any route in `backend(dev)/salesnavigator/app/api/v1/endpoints/` changes (added, renamed, removed), update these docs atomically in the same PR:\n\n- `docs/codebases/salesnavigator-codebase-analysis.md`\n- `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`\n- `docs/backend/endpoints/salesnavigator_endpoint_era_matrix.json`\n- `backend(dev)/salesnavigator/docs/api.md` (the service's own API reference)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/salesnavigator-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/salesnavigator_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "`backend(dev)/salesnavigator/docs/api.md` (the service's own API reference)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule SN-2 — Docs drift prevention",
+      "level": 3,
+      "slug": "rule-sn-2-docs-drift-prevention",
+      "prose": "`docs/api.md` in the service repo must ONLY document routes that are actually implemented. If `POST /v1/scrape-html-with-fetch` is documented but not implemented, it must be removed from docs or implemented before the next release. This rule is a P0 gate for `4.x` release.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule SN-3 — UUID contract",
+      "level": 3,
+      "slug": "rule-sn-3-uuid-contract",
+      "prose": "Any change to `generate_contact_uuid()` or `generate_company_uuid()` in `app/services/sales_navigator/utils.py` must update:\n\n- `docs/backend/database/salesnavigator_data_lineage.md`\n- `docs/codebases/salesnavigator-codebase-analysis.md`\n- `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md` (UUID generation section)\n\nUUID contract changes are breaking — require migration evidence before production deployment.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/backend/database/salesnavigator_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/salesnavigator-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md` (UUID generation section)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule SN-4 — Field mapping changes",
+      "level": 3,
+      "slug": "rule-sn-4-field-mapping-changes",
+      "prose": "Any change to `app/services/mappers.py` (new fields, renamed fields, seniority/department logic) must update:\n\n- `docs/backend/database/salesnavigator_data_lineage.md` (field table)\n- `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md` (field mapping section)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/backend/database/salesnavigator_data_lineage.md` (field table)",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md` (field mapping section)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule SN-5 — Era task pack sync",
+      "level": 3,
+      "slug": "rule-sn-5-era-task-pack-sync",
+      "prose": "For every era task pack for `salesnavigator`, the corresponding era folder file must be consistent with `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`.\n\nDocsAI verification additions for salesnavigator:\n\n1. In DocsAI architecture view, verify Sales Navigator service is listed under `4.x` era services with correct path `backend(dev)/salesnavigator/`.\n2. In DocsAI roadmap view, verify `4.x` stage mentions SN ingestion reliability and extension UX.\n3. Verify `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md` has no undocumented gap between actual routes and documented routes.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "In DocsAI architecture view, verify Sales Navigator service is listed under `4.x` era services with correct path `backend(dev)/salesnavigator/`.",
+              "checked": null
+            },
+            {
+              "text": "In DocsAI roadmap view, verify `4.x` stage mentions SN ingestion reliability and extension UX.",
+              "checked": null
+            },
+            {
+              "text": "Verify `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md` has no undocumented gap between actual routes and documented routes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email app sync rules",
+      "level": 2,
+      "slug": "email-app-sync-rules",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule EMAIL-1 — Route inventory sync",
+      "level": 3,
+      "slug": "rule-email-1-route-inventory-sync",
+      "prose": "When routes are added/renamed in `contact360.io/email/src/app/`, update:\n\n- `docs/codebases/email-codebase-analysis.md`\n- `docs/frontend.md`\n- relevant era task-pack docs",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/email-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend.md`",
+              "checked": null
+            },
+            {
+              "text": "relevant era task-pack docs",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule EMAIL-2 — Endpoint contract sync",
+      "level": 3,
+      "slug": "rule-email-2-endpoint-contract-sync",
+      "prose": "When fetch endpoints change in `contact360.io/email`, update:\n\n- `docs/backend/endpoints/emailapp_endpoint_era_matrix.json`\n- `docs/backend/database/emailapp_data_lineage.md`\n- `docs/backend/apis/EMAILAPP_ERA_TASK_PACKS.md`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/backend/endpoints/emailapp_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/emailapp_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/EMAILAPP_ERA_TASK_PACKS.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule EMAIL-3 — Security sync",
+      "level": 3,
+      "slug": "rule-email-3-security-sync",
+      "prose": "Any change to localStorage credential/session behavior in `imap-context.tsx` must update:\n\n- `docs/audit-compliance.md`\n- `docs/governance.md`\n- `docs/codebases/email-codebase-analysis.md`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/audit-compliance.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/governance.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/email-codebase-analysis.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter service sync rules",
+      "level": 2,
+      "slug": "mailvetter-service-sync-rules",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule MV-1 — API contract drift",
+      "level": 3,
+      "slug": "rule-mv-1-api-contract-drift",
+      "prose": "If any route changes under `backend(dev)/mailvetter/app/mailvetter-bak/internal/api/` or handlers, update atomically in the same PR:\n\n- `docs/codebases/mailvetter-codebase-analysis.md`\n- `docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`\n- `docs/backend/postman/README.md` (mailvetter checklist)\n- `docs/backend/apis/15_EMAIL_MODULE.md` (gateway verifier contract references)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/mailvetter-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/postman/README.md` (mailvetter checklist)",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/15_EMAIL_MODULE.md` (gateway verifier contract references)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule MV-2 — Canonical path policy",
+      "level": 3,
+      "slug": "rule-mv-2-canonical-path-policy",
+      "prose": "`/v1/*` is canonical for all new consumers. Legacy `/verify|/upload|/status|/results` are compatibility-only and must be marked deprecated in docs.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule MV-3 — Scoring contract sync",
+      "level": 3,
+      "slug": "rule-mv-3-scoring-contract-sync",
+      "prose": "Any scoring/status change in `internal/validator/scoring.go` must update:\n\n- `docs/codebases/mailvetter-codebase-analysis.md`\n- `docs/backend/database/mailvetter_data_lineage.md`\n- `docs/frontend.md` verifier status mapping section",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/mailvetter-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/mailvetter_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend.md` verifier status mapping section",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule MV-4 — Data schema sync",
+      "level": 3,
+      "slug": "rule-mv-4-data-schema-sync",
+      "prose": "Any `jobs`/`results` schema change in `internal/store/db.go` must update:\n\n- `docs/backend/database/mailvetter_data_lineage.md`\n- `docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`\n- affected era task packs (`docs/0...10/mailvetter-*-task-pack.md`)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/backend/database/mailvetter_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "affected era task packs (`docs/0...10/mailvetter-*-task-pack.md`)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin and service sync extensions",
+      "level": 2,
+      "slug": "admin-and-service-sync-extensions",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule ADM-1 — Constants and canonical docs sync",
+      "level": 3,
+      "slug": "rule-adm-1-constants-and-canonical-docs-sync",
+      "prose": "Any material update to admin architecture/roadmap behavior must synchronize:\n\n- `docs/architecture.md`\n- `docs/roadmap.md`\n- `contact360.io/admin/apps/architecture/constants.py`\n- `contact360.io/admin/apps/roadmap/constants.py`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/architecture.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md`",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/admin/apps/architecture/constants.py`",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/admin/apps/roadmap/constants.py`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule EGO-1 — Endpoint matrix sync",
+      "level": 3,
+      "slug": "rule-ego-1-endpoint-matrix-sync",
+      "prose": "Any `lambda/emailapigo` endpoint contract change must update:\n\n- `docs/backend/endpoints/emailapigo_endpoint_era_matrix.json`\n- `docs/backend/apis/EMAILAPIGO_ERA_TASK_PACKS.md`\n- related era task packs in `docs/0...10/`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/backend/endpoints/emailapigo_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/EMAILAPIGO_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "related era task packs in `docs/0...10/`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule S3S-1 — Multipart contract sync",
+      "level": 3,
+      "slug": "rule-s3s-1-multipart-contract-sync",
+      "prose": "Any multipart session/state contract update in `lambda/s3storage` must update:\n\n- `docs/codebases/s3storage-codebase-analysis.md`\n- `docs/backend/database/s3storage_data_lineage.md`\n- `docs/backend/endpoints/s3storage_endpoint_era_matrix.json`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/s3storage-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/s3storage_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/s3storage_endpoint_era_matrix.json`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rule LOG-1 — Storage contract sync",
+      "level": 3,
+      "slug": "rule-log-1-storage-contract-sync",
+      "prose": "Any logs storage contract update in `lambda/logs.api` must update:\n\n- `docs/codebases/logsapi-codebase-analysis.md`\n- `docs/backend/database/logsapi_data_lineage.md`\n- `docs/backend/endpoints/logsapi_endpoint_era_matrix.json`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/codebases/logsapi-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/logsapi_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/logsapi_endpoint_era_matrix.json`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "AI Workspace Logs & Sync Activity",
+      "level": 2,
+      "slug": "ai-workspace-logs-sync-activity",
+      "prose": "Legacy Cursor session extracts (exploration notes, not canonical specs) may exist only in git history for paths formerly under `docs/analysis/_quarantine/`. Use [`contact360.io/root/docs/imported/analysis/README.md`](../../contact360.io/root/docs/imported/analysis/README.md) and era folders `docs/<0–10>. …/` for execution.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`contact360.io/root/docs/imported/analysis/README.md`",
+          "href": "../../contact360.io/root/docs/imported/analysis/README.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

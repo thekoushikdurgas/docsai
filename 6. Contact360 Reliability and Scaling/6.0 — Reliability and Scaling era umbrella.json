@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "6. Contact360 Reliability and Scaling/6.0 — Reliability and Scaling era umbrella.md",
+  "sha256_source": "944d20b890d1d639805caaaf9c3219b7657c2afa79e5c78539476dfcf73fe467",
+  "generated_at": "2026-04-08T23:11:50.520644+00:00",
+  "title": "Version 6.0",
+  "version": "6.0",
+  "codename": "Reliability and Scaling era umbrella",
+  "era": 6,
+  "minor": 0,
+  "patch": null,
+  "status": "completed",
+  "summary": "See also: [`docs/flowchart.md`](../flowchart.md).",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stageNode[\"6.0.0 — Reliability era umbrella\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    releaseGate[\"Era alignment gate\"]\n\n    stageNode --> contract\n    stageNode --> service\n    stageNode --> surface\n    stageNode --> data\n    stageNode --> ops\n    contract --> releaseGate\n    service --> releaseGate\n    surface --> releaseGate\n    data --> releaseGate\n    ops --> releaseGate",
+    "flowchart LR\n    health[\"Health and SLO probes\"]\n    idem[\"Idempotent writes\"]\n    queues[\"Queues and DLQ\"]\n    traces[\"Trace correlation\"]\n    store[\"Durable storage and lifecycle\"]\n    guard[\"Throttle and abuse guard\"]\n    rc[\"6.9 RC gate\"]\n\n    health --> idem --> queues --> traces --> store --> guard --> rc",
+    "flowchart LR\n    umbrella[\"6.0.0 program charter\"] --> minors[\"6.1 to 6.9 minors\"]\n    minors --> gate[\"6.9 RC sign-off\"]",
+    "flowchart LR\n  contract[Contract]\n  service[Service]\n  surface[Surface]\n  data[Data]\n  ops[Ops]\n  gate[Release gate]\n\n  contract --> gate\n  service --> gate\n  surface --> gate\n  data --> gate\n  ops --> gate"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter, `.1-.2` scaffold, `.3-.5` hardening, `.6-.8` integration, `.9` freeze/handoff.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "planned",
+        "text": "Planned: Publish era-wide definitions: SLO vs SLI, error budget, idempotency key TTL, DLQ message envelope, `X-Trace-Id` propagation contract.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Map each Stage 6.N to owning service scope in **Service task slices** inside `6.N.P — *.md` patch files in this folder.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — Product **GraphQL** remains on `contact360.io/api` (Python); satellite HTTP contracts live under `docs/backend/apis/` and must stay versioned with gateway clients.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **[appointment360]** — Diff and document schema for operations like ConnectraClient, LAMBDA_AI_API_URL, LAMBDA_CONNECTRA_API_URL; align with roadmap | area: `backend-api` | files: `docs/backend/apis/*.md`, `contact360.io/api/app/graphql/schema.py` | reason: Keep GraphQL/REST contracts aligned for era 6.0 patch 6.0.0",
+        "codebase": "appointment360",
+        "area": "backend-api",
+        "files": [
+          "docs/backend/apis/*.md"
+        ]
+      }
+    ],
+    "service": [
+      {
+        "status": "planned",
+        "text": "Planned: Confirm Appointment360 middleware readiness: RED metrics, `/health/slo`, idempotency, abuse guard, body size, rate limit (`docs/codebases/appointment360-codebase-analysis.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Confirm async plane ownership: **email.server** / **sync.server** job workers, Mailvetter queue, email campaign Asynq, Kafka consumers — DLQ/replay runbooks started.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **Go/Gin satellites** in scope for this era (`appointment360`, `connectra`, `emailapis`, `email`/`sync` workers, `s3storage`, `logsapi`, `mailvetter`, `app`): verify health endpoints, timeouts, and gateway downstream URLs in compose/config; no new Python satellites unless documented exception (`docs/docs/backend-language-strategy.md`).",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — service slice: - [x] ✅ com…) | patch `6.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[emailapis]** — harden primary worker/gateway i…) | patch `6.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "planned",
+        "text": "Planned: Dashboard cross-cutting patterns: loading skeletons, error `Alert` + retry, optional offline/degraded banners (`docs/frontend/components.md` Era 6).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "🔵 Planned: Planned public status surface: `docs/frontend/pages/status_page.json` (`/status` on marketing).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Cross-era reliability UX: `docs/frontend/README.md` Era `6.x`, `docs/frontend/components.md` Era 6 patterns, planned `status_page`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `6.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "planned",
+        "text": "Planned: Lineage inventory: optional `idempotency_keys` table, `job_events`, Redis-backed idempotency/abuse state, S3 multipart session durability.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **PostgreSQL-first** per `docs/docs/data-stores-postgres.md`; gateway idempotency and sessions use Postgres.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **Redis exit**: campaign (Asynq) and mailvetter queues migrate to Postgres-backed workers or approved broker; remove `redis` from compose when no service depends on it.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Cross-era: PostgreSQL (Appointment360, Mailvetter jobs/results), jobs scheduler DB, Connectra PG+ES, logs.api S3 CSV, campaign DB — lineage updates when 6.x hardening touches persistence.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `6.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "planned",
+        "text": "Planned: SLO dashboard placeholders per environment; incident commander runbook index; `reliability-rc-hardening.md` as 6.9 exit gate.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: **[architecture]** — **Observability**: correlate `X-Request-ID` gateway → satellites; rollback path documented per release.",
+        "codebase": "architecture",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `6.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 6.0",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus — reliability spine",
+      "level": 3,
+      "prose": "See also: [`docs/flowchart.md`](../flowchart.md)."
+    },
+    {
+      "heading": "Cross-minor index",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist (era-wide)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow/Graph Delta",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (6.0.0 - 6.0.9)",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

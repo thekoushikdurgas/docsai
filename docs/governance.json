@@ -1,0 +1,2027 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/governance.md",
+  "sha256_source": "1c3637d35d6af6331fbec61d24dde7cc3a20e8c764ae62f7ba0e6db23fe34d10",
+  "generated_at": "2026-04-08T23:26:48.160688+00:00",
+  "title": "Contact360 Docs and Service Governance",
+  "sections": [
+    {
+      "heading": "Contact360 Docs and Service Governance",
+      "level": 1,
+      "slug": "contact360-docs-and-service-governance",
+      "prose": "This file defines baseline governance for the monorepo and service skeletons.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Monorepo baseline",
+      "level": 2,
+      "slug": "monorepo-baseline",
+      "prose": "- **Backend languages:** The customer **GraphQL API** is **`contact360.io/api` (Python)**. **Satellite backends** target **Go + Gin** unless an exception is documented in **`docs/docs/backend-language-strategy.md`**. Do not imply the gateway is being rewritten to Go without an explicit program charter.\n- **Browser-facing data APIs:** New **customer** data planes exposed to dashboard or extension **must** go through **GraphQL** (`contact360.io/api`) unless a documented exception is approved (e.g. mailbox REST for `contact360.io/email`, internal service-to-service routes). Exceptions require architecture + governance review and updates to **`docs/docs/architecture.md`**.\n- **New HTTP services:** Default **Go + Gin** for satellite APIs per **`docs/docs/backend-language-strategy.md`**; place new EC2 implementations under **`EC2/<service>.server/`** with module paths `contact360.io/...` unless embedding Python ML in-process.\n- Product surfaces and APIs live under `contact360.io/`.\n- `contact360.io/email/` is a first-class product surface and must be included in release/docs sync where email UI behavior changes.\n- Lambda-style services live under `lambda/`.\n- Optional backend workspaces live under `backend(dev)/`.\n- Browser extension code is canonical in `extension/contact360/`.\n- **Frontend page inventory (supplementary):** `docs/frontend/` — JSON page specs under `docs/frontend/pages/`, CSV exports under `docs/frontend/excel/`, overview in `docs/frontend/README.md`. The **canonical live UI map** remains **`docs/frontend.md`** (dashboard `contact360.io/app/`, marketing `root/`, DocsAI `admin/`, extension).\n- **Command governance pack:** `docs/commands/` — standardized GitHub, deployment, test, production, and release checklist command docs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Backend languages:** The customer **GraphQL API** is **`contact360.io/api` (Python)**. **Satellite backends** target **Go + Gin** unless an exception is documented in **`docs/docs/backend-language-strategy.md`**. Do not imply the gateway is being rewritten to Go without an explicit program charter.",
+              "checked": null
+            },
+            {
+              "text": "**Browser-facing data APIs:** New **customer** data planes exposed to dashboard or extension **must** go through **GraphQL** (`contact360.io/api`) unless a documented exception is approved (e.g. mailbox REST for `contact360.io/email`, internal service-to-service routes). Exceptions require architecture + governance review and updates to **`docs/docs/architecture.md`**.",
+              "checked": null
+            },
+            {
+              "text": "**New HTTP services:** Default **Go + Gin** for satellite APIs per **`docs/docs/backend-language-strategy.md`**; place new EC2 implementations under **`EC2/<service>.server/`** with module paths `contact360.io/...` unless embedding Python ML in-process.",
+              "checked": null
+            },
+            {
+              "text": "Product surfaces and APIs live under `contact360.io/`.",
+              "checked": null
+            },
+            {
+              "text": "`contact360.io/email/` is a first-class product surface and must be included in release/docs sync where email UI behavior changes.",
+              "checked": null
+            },
+            {
+              "text": "Lambda-style services live under `lambda/`.",
+              "checked": null
+            },
+            {
+              "text": "Optional backend workspaces live under `backend(dev)/`.",
+              "checked": null
+            },
+            {
+              "text": "Browser extension code is canonical in `extension/contact360/`.",
+              "checked": null
+            },
+            {
+              "text": "**Frontend page inventory (supplementary):** `docs/frontend/` — JSON page specs under `docs/frontend/pages/`, CSV exports under `docs/frontend/excel/`, overview in `docs/frontend/README.md`. The **canonical live UI map** remains **`docs/frontend.md`** (dashboard `contact360.io/app/`, marketing `root/`, DocsAI `admin/`, extension).",
+              "checked": null
+            },
+            {
+              "text": "**Command governance pack:** `docs/commands/` — standardized GitHub, deployment, test, production, and release checklist command docs.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mandatory docs synchronization",
+      "level": 2,
+      "slug": "mandatory-docs-synchronization",
+      "prose": "When editing architecture or roadmap docs, mirror updates in DocsAI constants:\n\n- `docs/docs/architecture.md` -> `contact360.io/admin/apps/architecture/constants.py`\n- `docs/docs/roadmap.md` -> `contact360.io/admin/apps/roadmap/constants.py`\n- If language/stack bullets change, align `docs/docs/backend-language-strategy.md` with the same narrative in architecture constants.\n\nFollow the full runbook in `docs/docsai-sync.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/docs/architecture.md` -> `contact360.io/admin/apps/architecture/constants.py`",
+              "checked": null
+            },
+            {
+              "text": "`docs/docs/roadmap.md` -> `contact360.io/admin/apps/roadmap/constants.py`",
+              "checked": null
+            },
+            {
+              "text": "If language/stack bullets change, align `docs/docs/backend-language-strategy.md` with the same narrative in architecture constants.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task evidence (era folders)",
+      "level": 2,
+      "slug": "task-evidence-era-folders",
+      "prose": "When marking work complete in era task markdown, use the bullet template in **`docs/docs/task-evidence-template.md`** (Evidence / API / Tests / Done because) instead of placeholder text.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "CI baseline",
+      "level": 2,
+      "slug": "ci-baseline",
+      "prose": "Repo-level checks run via `.github/workflows/ci.yml` to ensure:\n\n- required top-level directories exist,\n- DocsAI constants files exist,\n- and core docs files are present.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "required top-level directories exist,",
+              "checked": null
+            },
+            {
+              "text": "DocsAI constants files exist,",
+              "checked": null
+            },
+            {
+              "text": "and core docs files are present.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Docs validation artifacts (docs/result/, docs/errors/)",
+      "level": 2,
+      "slug": "docs-validation-artifacts-docsresult-docserrors",
+      "prose": "- `python cli.py validate-all --write-latest` emits timestamped JSON plus `latest.json` in both folders (see `docs/docs/doc-folder-structure-policy.md`).\n- **Do not commit** generated `*.json` in those directories by default: `docs/.gitignore` excludes them. Commit the `README.md` stubs only.\n- **CI:** prefer uploading `docs/result/latest.json` (and optionally `docs/errors/latest.json`) as workflow artifacts for green/red gates instead of storing them in git.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`python cli.py validate-all --write-latest` emits timestamped JSON plus `latest.json` in both folders (see `docs/docs/doc-folder-structure-policy.md`).",
+              "checked": null
+            },
+            {
+              "text": "**Do not commit** generated `*.json` in those directories by default: `docs/.gitignore` excludes them. Commit the `README.md` stubs only.",
+              "checked": null
+            },
+            {
+              "text": "**CI:** prefer uploading `docs/result/latest.json` (and optionally `docs/errors/latest.json`) as workflow artifacts for green/red gates instead of storing them in git.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Release hygiene",
+      "level": 2,
+      "slug": "release-hygiene",
+      "prose": "- No major/minor stage status transitions without doc + constants sync.\n- No new service path aliases unless reflected in architecture docs.\n- No release promotion with plaintext mailbox credentials in client storage or direct credential headers (`X-Email`/`X-Password`) on production paths.\n- Extension `4.5.0` readiness requires baseline shell artifacts: `manifest.json`, background service worker, content script, and popup UI wiring.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "No major/minor stage status transitions without doc + constants sync.",
+              "checked": null
+            },
+            {
+              "text": "No new service path aliases unless reflected in architecture docs.",
+              "checked": null
+            },
+            {
+              "text": "No release promotion with plaintext mailbox credentials in client storage or direct credential headers (`X-Email`/`X-Password`) on production paths.",
+              "checked": null
+            },
+            {
+              "text": "Extension `4.5.0` readiness requires baseline shell artifacts: `manifest.json`, background service worker, content script, and popup UI wiring.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Version era summary (canonical)",
+      "level": 2,
+      "slug": "version-era-summary-canonical",
+      "prose": "| Version | Theme |\n| ------- | ----- |\n| `0.x.x` | Foundation and pre-product stabilization and codebase setup |\n| `1.x.x` | Contact360 user and billing and credit system |\n| `2.x.x` | Contact360 email system |\n| `3.x.x` | Contact360 contact and company data system |\n| `4.x.x` | Contact360 Extension and Sales Navigator maturity |\n| `5.x.x` | Contact360 AI workflows |\n| `6.x.x` | Contact360 Reliability and Scaling |\n| `7.x.x` | Contact360 deployment |\n| `8.x.x` | Contact360 public and private APIs and endpoints |\n| `9.x.x` | Contact360 Ecosystem integrations and Platform productization |\n| `10.x.x` | Contact360 email campaign |\n\nFull definitions in `docs/version-policy.md`.",
+      "tables": [
+        {
+          "headers": [
+            "Version",
+            "Theme"
+          ],
+          "rows": [
+            [
+              "`0.x.x`",
+              "Foundation and pre-product stabilization and codebase setup"
+            ],
+            [
+              "`1.x.x`",
+              "Contact360 user and billing and credit system"
+            ],
+            [
+              "`2.x.x`",
+              "Contact360 email system"
+            ],
+            [
+              "`3.x.x`",
+              "Contact360 contact and company data system"
+            ],
+            [
+              "`4.x.x`",
+              "Contact360 Extension and Sales Navigator maturity"
+            ],
+            [
+              "`5.x.x`",
+              "Contact360 AI workflows"
+            ],
+            [
+              "`6.x.x`",
+              "Contact360 Reliability and Scaling"
+            ],
+            [
+              "`7.x.x`",
+              "Contact360 deployment"
+            ],
+            [
+              "`8.x.x`",
+              "Contact360 public and private APIs and endpoints"
+            ],
+            [
+              "`9.x.x`",
+              "Contact360 Ecosystem integrations and Platform productization"
+            ],
+            [
+              "`10.x.x`",
+              "Contact360 email campaign"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.4–1.7 (user analytics, notifications, admin, security) — code map",
+      "level": 2,
+      "slug": "stage-1417-user-analytics-notifications-admin-security-code-map",
+      "prose": "| Stage | Intent | Primary locations |\n| ----- | ------ | ----------------- |\n| 1.4 User analytics | Usage ledger, feature limits, activity | Dashboard `contact360.io/app/app/(dashboard)/usage/page.tsx`, `src/hooks/useUsage.ts`, `src/services/graphql/usageService.ts`, API `usage` GraphQL module |\n| 1.5 Notifications | Low-credit UI, payment-submission feedback | `src/components/layout/CreditBudgetAlerts.tsx` (wired in `MainLayout.tsx`), `UpiPaymentModal.tsx` success toast |\n| 1.6 Admin | Credits, packages, payment review | DocsAI/Django `contact360.io/admin/` — `apps/admin/services/admin_client.py` (`list_payment_submissions`, `approve_payment_submission`), GraphQL `approvePayment` / `declinePayment` |\n| 1.7 Security baseline | GraphQL rate limit | `contact360.io/api/app/core/middleware.py` (`GraphQLRateLimitMiddleware`), enabled when `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` is greater than 0 in `app/core/config.py` and `main.py` |",
+      "tables": [
+        {
+          "headers": [
+            "Stage",
+            "Intent",
+            "Primary locations"
+          ],
+          "rows": [
+            [
+              "1.4 User analytics",
+              "Usage ledger, feature limits, activity",
+              "Dashboard `contact360.io/app/app/(dashboard)/usage/page.tsx`, `src/hooks/useUsage.ts`, `src/services/graphql/usageService.ts`, API `usage` GraphQL module"
+            ],
+            [
+              "1.5 Notifications",
+              "Low-credit UI, payment-submission feedback",
+              "`src/components/layout/CreditBudgetAlerts.tsx` (wired in `MainLayout.tsx`), `UpiPaymentModal.tsx` success toast"
+            ],
+            [
+              "1.6 Admin",
+              "Credits, packages, payment review",
+              "DocsAI/Django `contact360.io/admin/` — `apps/admin/services/admin_client.py` (`list_payment_submissions`, `approve_payment_submission`), GraphQL `approvePayment` / `declinePayment`"
+            ],
+            [
+              "1.7 Security baseline",
+              "GraphQL rate limit",
+              "`contact360.io/api/app/core/middleware.py` (`GraphQLRateLimitMiddleware`), enabled when `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` is greater than 0 in `app/core/config.py` and `main.py`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email finder / verifier (roadmap 2.1–2.3) — code map",
+      "level": 2,
+      "slug": "email-finder-verifier-roadmap-2123-code-map",
+      "prose": "| Area | Primary locations |\n| ---- | ----------------- |\n| Tier-1 pattern generation (10 formats) | `lambda/emailapis/app/utils/email_generator.py` (`_generate_tier1_patterns`, `generate_email_combinations`) |\n| High-throughput Go path | `lambda/emailapigo/` (finder pipelines); orchestration via `lambda/emailapis/` |\n| Gateway + credits (1 per finder) | `contact360.io/api/app/graphql/modules/email/queries.py`, `app/services/credit_service.py` |\n| Verifier (Mailvetter / APIs) | `backend(dev)/mailvetter/`, `lambda/emailapis` verification routes |\n| Bulk processing (Stage 2.4) | `contact360.io/jobs/app/processors/email_finder_export_stream.py`, `email_verify_export_stream.py`, `lambda/s3storage/` |",
+      "tables": [
+        {
+          "headers": [
+            "Area",
+            "Primary locations"
+          ],
+          "rows": [
+            [
+              "Tier-1 pattern generation (10 formats)",
+              "`lambda/emailapis/app/utils/email_generator.py` (`_generate_tier1_patterns`, `generate_email_combinations`)"
+            ],
+            [
+              "High-throughput Go path",
+              "`lambda/emailapigo/` (finder pipelines); orchestration via `lambda/emailapis/`"
+            ],
+            [
+              "Gateway + credits (1 per finder)",
+              "`contact360.io/api/app/graphql/modules/email/queries.py`, `app/services/credit_service.py`"
+            ],
+            [
+              "Verifier (Mailvetter / APIs)",
+              "`backend(dev)/mailvetter/`, `lambda/emailapis` verification routes"
+            ],
+            [
+              "Bulk processing (Stage 2.4)",
+              "`contact360.io/jobs/app/processors/email_finder_export_stream.py`, `email_verify_export_stream.py`, `lambda/s3storage/`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Connectra VQL — frozen filter taxonomy (Stage 3.1)",
+      "level": 2,
+      "slug": "connectra-vql-frozen-filter-taxonomy-stage-31",
+      "prose": "- **Contract doc:** `docs/vql-filter-taxonomy.md` — field lists and `VQLQuery` shape; must stay aligned with `contact360.io/api/app/utils/vql_converter.py` and `contact360.io/sync/utilities/structures.go`.\n- **Service entrypoints:** `ListByFilters` / `CountByFilters` on `contact360.io/sync/modules/contacts/service/contactService.go` (and companies service).\n- **Dual-write and read hydration:** `docs/connectra-service.md` — ES query + PG hydrate, `BulkUpsert` to PG + ES + `filter_data`.\n- **Enrichment / dedupe / UUID rules:** `docs/enrichment-dedup.md`.\n- **Dashboard search UX (Stage 3.4):** `docs/3. Contact360 contact and company data system/dashboard-search-ux.md`.\n- **Extension auth / token refresh (Stage 4.1):** `docs/extension-auth.md`, `extension/contact360/auth/graphqlSession.js` (optional hooks in `extention/contact360/utils/lambdaClient.js`).\n- **Sales Navigator ingestion (Stage 4.2):** `docs/sales-navigator-ingestion.md`.\n- **Extension sync integrity (Stage 4.3):** `docs/extension-sync-integrity.md`.\n- **Extension telemetry (Stage 4.4):** `docs/extension-telemetry.md`.\n- **AI workflows (Era 5 / Stages 5.1–5.4):** `docs/ai-workflows.md` — HF chat + SSE streaming client, Gemini utilities, confidence fields, cost-governance pointers.\n- **AI cost governance (Era 5):** `docs/ai-cost-governance.md` — quotas, provider caps, prompt versioning checklist.\n- **SLO + idempotency baseline (Era 6 / Stages 6.1–6.2):** `docs/6. Contact360 Reliability and Scaling/slo-idempotency.md` — RED metrics (`/health/slo`) and GraphQL idempotency key replay on guarded billing writes.\n- **Queue observability baseline (Era 6 / Stages 6.3–6.4):** `docs/6. Contact360 Reliability and Scaling/queue-observability.md` — trace propagation + DLQ/replay runbook expectations.\n- **Performance/storage/abuse baseline (Era 6 / Stages 6.5–6.8):** `docs/6. Contact360 Reliability and Scaling/performance-storage-abuse.md` — GraphQL body-size cap, per-mutation write throttle, storage lifecycle and cost runbook guardrails.\n- **Reliability RC hardening (Era 6 / Stage 6.9):** `docs/6. Contact360 Reliability and Scaling/reliability-rc-hardening.md` — health/SLO gates, smoke suite, incident runbook, sign-off table.\n- **RBAC + gateway authz (Era 7 / Stages 7.1–7.2):** `docs/7. Contact360 deployment/rbac-authz.md` — role matrix, `require_auth` / `require_profile_roles`, service API keys.\n- **Audit + lifecycle baseline (Era 7 / Stages 7.3–7.5):** `docs/audit-compliance.md` — activity logging, logs.api retention, data lifecycle runbook.\n- **Tenant security + observability (Era 7 / Stages 7.6–7.8):** `docs/tenant-security-observability.md` — JWT scoping, security controls, trace/SLO references.\n- **Deployment RC (Era 7 / Stage 7.9):** `docs/7. Contact360 deployment/analytics-era-rc.md` — deployment era RC gate and smoke checklist.\n- **Analytics taxonomy + instrumentation (Era 8 / Stages 8.1–8.2):** `docs/8. Contact360 public and private apis and endpoints/analytics-platform.md` — event taxonomy, instrumentation, quality, reporting baseline.\n- **Private API contracts + public API surface (Era 8 / Stages 8.3–8.5):** `docs/public-api-surface.md` — GraphQL as contract, private API baseline, limits, versioning expectations.\n- **Webhooks + replay (Era 8 / Stages 8.6–8.7):** `docs/8. Contact360 public and private apis and endpoints/webhooks-replay.md` — signed events, retries, DLQ, replay.\n- **Partner identity + analytics/reporting APIs (Era 8 / Stages 8.7–8.8):** `docs/integration-partner-governance.md` — contract rules, partner identity, tenant-safe integration access.\n- **APIs RC (Era 8 / Stage 8.9):** `docs/integration-era-rc.md` — API compatibility RC gate and sign-off.\n- **Integration contract governance + connector framework (Era 9 / Stages 9.1–9.3):** `docs/9. Contact360 Ecosystem integrations and Platform productization/connectors-commercial.md` — connector pattern, observability, metering hooks.\n- **Platform productization (Era 9 / Stages 9.4–9.9):** `docs/platform-productization.md` — tenant model, entitlements, SLA ops, residency, lifecycle.\n- **Campaign foundation (Era 10 / Stage 10.1):** `docs/campaign-foundation.md` — entity, policy gate, suppression, templates.\n- **Campaign execution (Era 10 / Stage 10.2):** `docs/campaign-execution-engine.md` — state machine, idempotent send, pause/resume.\n- **Campaign deliverability (Era 10 / Stage 10.3):** `docs/campaign-deliverability.md` — Mailvetter, bounces, warmup.\n- **Campaign observability + release (Era 10 / Stage 10.4):** `docs/campaign-observability-release.md`.\n- **Campaign commercial + compliance (Era 10 / Stage 10.5):** `docs/campaign-commercial-compliance.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Contract doc:** `docs/vql-filter-taxonomy.md` — field lists and `VQLQuery` shape; must stay aligned with `contact360.io/api/app/utils/vql_converter.py` and `contact360.io/sync/utilities/structures.go`.",
+              "checked": null
+            },
+            {
+              "text": "**Service entrypoints:** `ListByFilters` / `CountByFilters` on `contact360.io/sync/modules/contacts/service/contactService.go` (and companies service).",
+              "checked": null
+            },
+            {
+              "text": "**Dual-write and read hydration:** `docs/connectra-service.md` — ES query + PG hydrate, `BulkUpsert` to PG + ES + `filter_data`.",
+              "checked": null
+            },
+            {
+              "text": "**Enrichment / dedupe / UUID rules:** `docs/enrichment-dedup.md`.",
+              "checked": null
+            },
+            {
+              "text": "**Dashboard search UX (Stage 3.4):** `docs/3. Contact360 contact and company data system/dashboard-search-ux.md`.",
+              "checked": null
+            },
+            {
+              "text": "**Extension auth / token refresh (Stage 4.1):** `docs/extension-auth.md`, `extension/contact360/auth/graphqlSession.js` (optional hooks in `extention/contact360/utils/lambdaClient.js`).",
+              "checked": null
+            },
+            {
+              "text": "**Sales Navigator ingestion (Stage 4.2):** `docs/sales-navigator-ingestion.md`.",
+              "checked": null
+            },
+            {
+              "text": "**Extension sync integrity (Stage 4.3):** `docs/extension-sync-integrity.md`.",
+              "checked": null
+            },
+            {
+              "text": "**Extension telemetry (Stage 4.4):** `docs/extension-telemetry.md`.",
+              "checked": null
+            },
+            {
+              "text": "**AI workflows (Era 5 / Stages 5.1–5.4):** `docs/ai-workflows.md` — HF chat + SSE streaming client, Gemini utilities, confidence fields, cost-governance pointers.",
+              "checked": null
+            },
+            {
+              "text": "**AI cost governance (Era 5):** `docs/ai-cost-governance.md` — quotas, provider caps, prompt versioning checklist.",
+              "checked": null
+            },
+            {
+              "text": "**SLO + idempotency baseline (Era 6 / Stages 6.1–6.2):** `docs/6. Contact360 Reliability and Scaling/slo-idempotency.md` — RED metrics (`/health/slo`) and GraphQL idempotency key replay on guarded billing writes.",
+              "checked": null
+            },
+            {
+              "text": "**Queue observability baseline (Era 6 / Stages 6.3–6.4):** `docs/6. Contact360 Reliability and Scaling/queue-observability.md` — trace propagation + DLQ/replay runbook expectations.",
+              "checked": null
+            },
+            {
+              "text": "**Performance/storage/abuse baseline (Era 6 / Stages 6.5–6.8):** `docs/6. Contact360 Reliability and Scaling/performance-storage-abuse.md` — GraphQL body-size cap, per-mutation write throttle, storage lifecycle and cost runbook guardrails.",
+              "checked": null
+            },
+            {
+              "text": "**Reliability RC hardening (Era 6 / Stage 6.9):** `docs/6. Contact360 Reliability and Scaling/reliability-rc-hardening.md` — health/SLO gates, smoke suite, incident runbook, sign-off table.",
+              "checked": null
+            },
+            {
+              "text": "**RBAC + gateway authz (Era 7 / Stages 7.1–7.2):** `docs/7. Contact360 deployment/rbac-authz.md` — role matrix, `require_auth` / `require_profile_roles`, service API keys.",
+              "checked": null
+            },
+            {
+              "text": "**Audit + lifecycle baseline (Era 7 / Stages 7.3–7.5):** `docs/audit-compliance.md` — activity logging, logs.api retention, data lifecycle runbook.",
+              "checked": null
+            },
+            {
+              "text": "**Tenant security + observability (Era 7 / Stages 7.6–7.8):** `docs/tenant-security-observability.md` — JWT scoping, security controls, trace/SLO references.",
+              "checked": null
+            },
+            {
+              "text": "**Deployment RC (Era 7 / Stage 7.9):** `docs/7. Contact360 deployment/analytics-era-rc.md` — deployment era RC gate and smoke checklist.",
+              "checked": null
+            },
+            {
+              "text": "**Analytics taxonomy + instrumentation (Era 8 / Stages 8.1–8.2):** `docs/8. Contact360 public and private apis and endpoints/analytics-platform.md` — event taxonomy, instrumentation, quality, reporting baseline.",
+              "checked": null
+            },
+            {
+              "text": "**Private API contracts + public API surface (Era 8 / Stages 8.3–8.5):** `docs/public-api-surface.md` — GraphQL as contract, private API baseline, limits, versioning expectations.",
+              "checked": null
+            },
+            {
+              "text": "**Webhooks + replay (Era 8 / Stages 8.6–8.7):** `docs/8. Contact360 public and private apis and endpoints/webhooks-replay.md` — signed events, retries, DLQ, replay.",
+              "checked": null
+            },
+            {
+              "text": "**Partner identity + analytics/reporting APIs (Era 8 / Stages 8.7–8.8):** `docs/integration-partner-governance.md` — contract rules, partner identity, tenant-safe integration access.",
+              "checked": null
+            },
+            {
+              "text": "**APIs RC (Era 8 / Stage 8.9):** `docs/integration-era-rc.md` — API compatibility RC gate and sign-off.",
+              "checked": null
+            },
+            {
+              "text": "**Integration contract governance + connector framework (Era 9 / Stages 9.1–9.3):** `docs/9. Contact360 Ecosystem integrations and Platform productization/connectors-commercial.md` — connector pattern, observability, metering hooks.",
+              "checked": null
+            },
+            {
+              "text": "**Platform productization (Era 9 / Stages 9.4–9.9):** `docs/platform-productization.md` — tenant model, entitlements, SLA ops, residency, lifecycle.",
+              "checked": null
+            },
+            {
+              "text": "**Campaign foundation (Era 10 / Stage 10.1):** `docs/campaign-foundation.md` — entity, policy gate, suppression, templates.",
+              "checked": null
+            },
+            {
+              "text": "**Campaign execution (Era 10 / Stage 10.2):** `docs/campaign-execution-engine.md` — state machine, idempotent send, pause/resume.",
+              "checked": null
+            },
+            {
+              "text": "**Campaign deliverability (Era 10 / Stage 10.3):** `docs/campaign-deliverability.md` — Mailvetter, bounces, warmup.",
+              "checked": null
+            },
+            {
+              "text": "**Campaign observability + release (Era 10 / Stage 10.4):** `docs/campaign-observability-release.md`.",
+              "checked": null
+            },
+            {
+              "text": "**Campaign commercial + compliance (Era 10 / Stage 10.5):** `docs/campaign-commercial-compliance.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.x-10.x backend code map",
+      "level": 2,
+      "slug": "stage-8x-10x-backend-code-map",
+      "prose": "- 8.x webhooks\n- 9.x integrations\n- 10.x campaigns",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "8.x webhooks",
+              "checked": null
+            },
+            {
+              "text": "9.x integrations",
+              "checked": null
+            },
+            {
+              "text": "10.x campaigns",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Documentation integrity gates (extended)",
+      "level": 2,
+      "slug": "documentation-integrity-gates-extended",
+      "prose": "- No roadmap release update is considered complete unless `docs/backend/endpoints/*.json` and `docs/frontend/pages/*.json` include era/version metadata.\n- API module docs in `docs/backend/apis/*.md` must declare endpoint version introduction and frontend binding references.\n- Per-minor version docs must include backend/database/frontend/UI/flow/release evidence sections for every planned and released minor.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "No roadmap release update is considered complete unless `docs/backend/endpoints/*.json` and `docs/frontend/pages/*.json` include era/version metadata.",
+              "checked": null
+            },
+            {
+              "text": "API module docs in `docs/backend/apis/*.md` must declare endpoint version introduction and frontend binding references.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor version docs must include backend/database/frontend/UI/flow/release evidence sections for every planned and released minor.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage governance controls (cross-era)",
+      "level": 2,
+      "slug": "s3storage-governance-controls-cross-era",
+      "prose": "- All `lambda/s3storage/` contract updates must include matching docs updates in:\n  - `docs/codebases/s3storage-codebase-analysis.md`\n  - `docs/architecture.md`\n  - `docs/roadmap.md`\n  - `docs/versions.md`\n- Direct `boto3`/`aioboto3` S3 calls from application services outside `lambda/s3storage` are prohibited after 2.x and require migration plans.\n- Storage lifecycle changes (upload/delete/metadata) require explicit evidence under Data/Ops tracks before release promotion.\n- Multipart contract changes require updated Postman coverage and failure-path test evidence.\n- Metadata schema or write-path changes require reconciliation plan and rollback notes.\n- Security-sensitive storage changes (TTL, auth, retention) require audit/compliance review before shipping.\n- Per-minor release docs under `docs/versions/version_*.md` must maintain concrete storage evidence in backend/data/frontend scope sections for any storage-impacting minor.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `lambda/s3storage/` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/s3storage-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions.md`",
+              "checked": null
+            },
+            {
+              "text": "Direct `boto3`/`aioboto3` S3 calls from application services outside `lambda/s3storage` are prohibited after 2.x and require migration plans.",
+              "checked": null
+            },
+            {
+              "text": "Storage lifecycle changes (upload/delete/metadata) require explicit evidence under Data/Ops tracks before release promotion.",
+              "checked": null
+            },
+            {
+              "text": "Multipart contract changes require updated Postman coverage and failure-path test evidence.",
+              "checked": null
+            },
+            {
+              "text": "Metadata schema or write-path changes require reconciliation plan and rollback notes.",
+              "checked": null
+            },
+            {
+              "text": "Security-sensitive storage changes (TTL, auth, retention) require audit/compliance review before shipping.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must maintain concrete storage evidence in backend/data/frontend scope sections for any storage-impacting minor.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "logs.api governance controls (cross-era)",
+      "level": 2,
+      "slug": "logsapi-governance-controls-cross-era",
+      "prose": "- All `lambda/logs.api/` contract updates must include matching docs updates in:\n  - `docs/codebases/logsapi-codebase-analysis.md`\n  - `docs/architecture.md`\n  - `docs/roadmap.md`\n  - `docs/versions.md`\n- Any auth model change for logs.api must include explicit key-rotation and revocation evidence.\n- Retention policy changes must include lifecycle policy evidence and rollback notes.\n- Query/aggregation behavior changes must include performance and correctness validation evidence.\n- Per-minor release docs under `docs/versions/version_*.md` must maintain concrete logs evidence in backend/data/frontend scope sections for any logging-impacting minor.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `lambda/logs.api/` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/logsapi-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions.md`",
+              "checked": null
+            },
+            {
+              "text": "Any auth model change for logs.api must include explicit key-rotation and revocation evidence.",
+              "checked": null
+            },
+            {
+              "text": "Retention policy changes must include lifecycle policy evidence and rollback notes.",
+              "checked": null
+            },
+            {
+              "text": "Query/aggregation behavior changes must include performance and correctness validation evidence.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must maintain concrete logs evidence in backend/data/frontend scope sections for any logging-impacting minor.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin deployment governance (contact360.io/admin/deploy)",
+      "level": 2,
+      "slug": "admin-deployment-governance-contact360ioadmindeploy",
+      "prose": "Use the deployment script set as a governed lifecycle, not as ad-hoc shell commands.\n\n| Script | Use case | Governance rule |\n| --- | --- | --- |\n| `deploy-to-ec2.sh` | recommended single-command deploy (pre + full + post) | default path for first deploy and major re-deploy |\n| `pre-deployment-check.sh` | validate env and config without mutation | mandatory before `full-deploy.sh` in manual mode |\n| `full-deploy.sh` | full stack bootstrap and deployment | allowed for fresh instances and controlled rebuilds |\n| `post-deployment-verify.sh` | service/health/log verification | mandatory after each deployment |\n| `deploy.sh` | standard update after baseline setup | allowed only when baseline setup already exists |\n| `remote-deploy.sh` | CI/CD-triggered remote update | requires audit note in release log |\n\nRequired evidence for deployment-related doc updates:\n\n- deployment command used and target mode (http-only or domain+SSL),\n- pre-check result summary,\n- post-verify result summary including health endpoint status,\n- rollback path and operator owner.",
+      "tables": [
+        {
+          "headers": [
+            "Script",
+            "Use case",
+            "Governance rule"
+          ],
+          "rows": [
+            [
+              "`deploy-to-ec2.sh`",
+              "recommended single-command deploy (pre + full + post)",
+              "default path for first deploy and major re-deploy"
+            ],
+            [
+              "`pre-deployment-check.sh`",
+              "validate env and config without mutation",
+              "mandatory before `full-deploy.sh` in manual mode"
+            ],
+            [
+              "`full-deploy.sh`",
+              "full stack bootstrap and deployment",
+              "allowed for fresh instances and controlled rebuilds"
+            ],
+            [
+              "`post-deployment-verify.sh`",
+              "service/health/log verification",
+              "mandatory after each deployment"
+            ],
+            [
+              "`deploy.sh`",
+              "standard update after baseline setup",
+              "allowed only when baseline setup already exists"
+            ],
+            [
+              "`remote-deploy.sh`",
+              "CI/CD-triggered remote update",
+              "requires audit note in release log"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "deployment command used and target mode (http-only or domain+SSL),",
+              "checked": null
+            },
+            {
+              "text": "pre-check result summary,",
+              "checked": null
+            },
+            {
+              "text": "post-verify result summary including health endpoint status,",
+              "checked": null
+            },
+            {
+              "text": "rollback path and operator owner.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Marketing app deployment notes (contact360.io/root)",
+      "level": 2,
+      "slug": "marketing-app-deployment-notes-contact360ioroot",
+      "prose": "- Build/start contracts should remain aligned with `contact360.io/root/package.json`.\n- Environment contract must include GraphQL endpoint and dashboard auth-CTA target URL.\n- Public marketing deploys must preserve unauthenticated behavior and forced-light theme layout behavior.\n- If marketing route/catalog changes, update:\n  - `docs/frontend.md`\n  - `docs/frontend/components.md`\n  - `docs/frontend/hooks-services-contexts.md`\n  - `docs/flowchart.md`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Build/start contracts should remain aligned with `contact360.io/root/package.json`.",
+              "checked": null
+            },
+            {
+              "text": "Environment contract must include GraphQL endpoint and dashboard auth-CTA target URL.",
+              "checked": null
+            },
+            {
+              "text": "Public marketing deploys must preserve unauthenticated behavior and forced-light theme layout behavior.",
+              "checked": null
+            },
+            {
+              "text": "If marketing route/catalog changes, update:",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/components.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/hooks-services-contexts.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/flowchart.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "connectra governance controls (cross-era)",
+      "level": 2,
+      "slug": "connectra-governance-controls-cross-era",
+      "prose": "- All `contact360.io/sync/` contract updates must include matching docs updates in:\n  - `docs/codebases/connectra-codebase-analysis.md`\n  - `docs/architecture.md`\n  - `docs/roadmap.md`\n  - `docs/versions.md`\n- VQL filter taxonomy changes require `docs/3. Contact360 contact and company data system/vql-filter-taxonomy.md` updates in the same change set.\n- ES index mapping changes require integration tests for `ListByFilters` and `CountByFilters`.\n- Batch-upsert schema changes require rollback plan and idempotency verification evidence.\n- Per-minor release docs under `docs/versions/version_*.md` must include concrete Connectra evidence for backend/data/frontend sections whenever sync behavior changes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `contact360.io/sync/` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/connectra-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions.md`",
+              "checked": null
+            },
+            {
+              "text": "VQL filter taxonomy changes require `docs/3. Contact360 contact and company data system/vql-filter-taxonomy.md` updates in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "ES index mapping changes require integration tests for `ListByFilters` and `CountByFilters`.",
+              "checked": null
+            },
+            {
+              "text": "Batch-upsert schema changes require rollback plan and idempotency verification evidence.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must include concrete Connectra evidence for backend/data/frontend sections whenever sync behavior changes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailapis / emailapigo governance controls (cross-era)",
+      "level": 2,
+      "slug": "emailapis-emailapigo-governance-controls-cross-era",
+      "prose": "- All `lambda/emailapis/` or `lambda/emailapigo/` contract updates must include matching docs updates in:\n  - `docs/codebases/emailapis-codebase-analysis.md`\n  - `docs/architecture.md`\n  - `docs/roadmap.md`\n  - `docs/versions.md`\n- Provider selection or naming changes (`truelist`/`mailvetter`/`icypeas`) require explicit contract drift review and migration notes.\n- Status semantic changes (`valid`, `invalid`, `catchall`, `unknown`, related states) require end-to-end mapping updates in frontend, GraphQL, and runtime docs.\n- Bulk finder/verifier behavior changes require updated retry/idempotency evidence and failure-path test notes.\n- Per-minor release docs under `docs/versions/version_*.md` must maintain concrete email evidence in backend/data/frontend scope sections for any email-impacting minor.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `lambda/emailapis/` or `lambda/emailapigo/` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/emailapis-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions.md`",
+              "checked": null
+            },
+            {
+              "text": "Provider selection or naming changes (`truelist`/`mailvetter`/`icypeas`) require explicit contract drift review and migration notes.",
+              "checked": null
+            },
+            {
+              "text": "Status semantic changes (`valid`, `invalid`, `catchall`, `unknown`, related states) require end-to-end mapping updates in frontend, GraphQL, and runtime docs.",
+              "checked": null
+            },
+            {
+              "text": "Bulk finder/verifier behavior changes require updated retry/idempotency evidence and failure-path test notes.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must maintain concrete email evidence in backend/data/frontend scope sections for any email-impacting minor.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobs governance controls (cross-era)",
+      "level": 2,
+      "slug": "jobs-governance-controls-cross-era",
+      "prose": "- All `contact360.io/jobs/` contract updates must include matching docs updates in:\n  - `docs/codebases/jobs-codebase-analysis.md`\n  - `docs/backend/apis/16_JOBS_MODULE.md`\n  - `docs/backend/apis/JOBS_ERA_TASK_PACKS.md`\n  - `docs/backend/database/jobs_data_lineage.md`\n  - `docs/frontend/jobs-ui-bindings.md`\n- Any lifecycle/status semantic change must update flow diagrams and UI status mappings in the same change set.\n- Any processor registry change must include endpoint mapping updates and era task-pack updates.\n- Any retry/idempotency behavior change must include rollback/runbook notes and reliability evidence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `contact360.io/jobs/` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/jobs-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/16_JOBS_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/JOBS_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/jobs_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/jobs-ui-bindings.md`",
+              "checked": null
+            },
+            {
+              "text": "Any lifecycle/status semantic change must update flow diagrams and UI status mappings in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "Any processor registry change must include endpoint mapping updates and era task-pack updates.",
+              "checked": null
+            },
+            {
+              "text": "Any retry/idempotency behavior change must include rollback/runbook notes and reliability evidence.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Jobs CI baseline checks",
+      "level": 2,
+      "slug": "jobs-ci-baseline-checks",
+      "prose": "- Processor registry integrity test: every registered `job_type` resolves to a callable processor.\n- Endpoint contract parity test: documented create/status/retry endpoints match implemented routes.\n- Status vocabulary test: allowed statuses remain `open/in_queue/processing/completed/failed/retry`.\n- Timeline evidence test: lifecycle transitions emit `job_events` entries for auditability.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Processor registry integrity test: every registered `job_type` resolves to a callable processor.",
+              "checked": null
+            },
+            {
+              "text": "Endpoint contract parity test: documented create/status/retry endpoints match implemented routes.",
+              "checked": null
+            },
+            {
+              "text": "Status vocabulary test: allowed statuses remain `open/in_queue/processing/completed/failed/retry`.",
+              "checked": null
+            },
+            {
+              "text": "Timeline evidence test: lifecycle transitions emit `job_events` entries for auditability.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "email campaign governance controls (cross-era)",
+      "level": 2,
+      "slug": "email-campaign-governance-controls-cross-era",
+      "prose": "- All `backend(dev)/email campaign` contract updates must include matching docs updates in:\n  - `docs/codebases/emailcampaign-codebase-analysis.md`\n  - `docs/architecture.md`\n  - `docs/backend.md`\n  - `docs/versions.md`\n- Schema changes (new columns/tables) must update `db/schema.sql` AND matching migration scripts. Schema drift between `schema.sql` and live DB is a release blocker.\n- Template system changes (S3 key structure, cache strategy) must include integration test evidence before deployment.\n- SMTP provider or credential changes require explicit end-to-end test delivery to sandbox inbox before promotion.\n- Suppression list semantic changes require explicit migration/backfill evidence and suppression check regression test.\n- Campaign status vocabulary changes must update `docs/backend/apis/22_CAMPAIGNS_MODULE.md` and all frontend status badge components in the same change set.\n- Per-minor release docs under `docs/versions/version_*.md` must include concrete email campaign evidence in backend/data/frontend scope sections whenever campaign behavior changes.\n- Any audience source change (CSV / segment / VQL / SN) requires recipient resolution integration test with Connectra.\n- Sequence engine changes require step-type vocabulary to remain in `docs/10. Contact360 email campaign/emailcampaign-email-campaign-task-pack.md`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `backend(dev)/email campaign` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/emailcampaign-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions.md`",
+              "checked": null
+            },
+            {
+              "text": "Schema changes (new columns/tables) must update `db/schema.sql` AND matching migration scripts. Schema drift between `schema.sql` and live DB is a release blocker.",
+              "checked": null
+            },
+            {
+              "text": "Template system changes (S3 key structure, cache strategy) must include integration test evidence before deployment.",
+              "checked": null
+            },
+            {
+              "text": "SMTP provider or credential changes require explicit end-to-end test delivery to sandbox inbox before promotion.",
+              "checked": null
+            },
+            {
+              "text": "Suppression list semantic changes require explicit migration/backfill evidence and suppression check regression test.",
+              "checked": null
+            },
+            {
+              "text": "Campaign status vocabulary changes must update `docs/backend/apis/22_CAMPAIGNS_MODULE.md` and all frontend status badge components in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must include concrete email campaign evidence in backend/data/frontend scope sections whenever campaign behavior changes.",
+              "checked": null
+            },
+            {
+              "text": "Any audience source change (CSV / segment / VQL / SN) requires recipient resolution integration test with Connectra.",
+              "checked": null
+            },
+            {
+              "text": "Sequence engine changes require step-type vocabulary to remain in `docs/10. Contact360 email campaign/emailcampaign-email-campaign-task-pack.md`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email Campaign CI baseline checks",
+      "level": 2,
+      "slug": "email-campaign-ci-baseline-checks",
+      "prose": "- Schema parity test: `schema.sql` tables match production DB schema via `pg_dump --schema-only` diff.\n- Auth guard test: unauthenticated `POST /campaign` and `POST /templates` return 401.\n- Suppression test: recipient in `suppression_list` receives no email after campaign send.\n- Unsubscribe token test: `GET /unsub?token=...` with valid JWT adds email to suppression and updates recipient status.\n- Template render test: Go template variables (`{{.FirstName}}`, `{{.UnsubscribeURL}}`) render correctly for all recipient fields.\n- Worker idempotency test: re-queuing same campaign_id does not duplicate sends.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Schema parity test: `schema.sql` tables match production DB schema via `pg_dump --schema-only` diff.",
+              "checked": null
+            },
+            {
+              "text": "Auth guard test: unauthenticated `POST /campaign` and `POST /templates` return 401.",
+              "checked": null
+            },
+            {
+              "text": "Suppression test: recipient in `suppression_list` receives no email after campaign send.",
+              "checked": null
+            },
+            {
+              "text": "Unsubscribe token test: `GET /unsub?token=...` with valid JWT adds email to suppression and updates recipient status.",
+              "checked": null
+            },
+            {
+              "text": "Template render test: Go template variables (`{{.FirstName}}`, `{{.UnsubscribeURL}}`) render correctly for all recipient fields.",
+              "checked": null
+            },
+            {
+              "text": "Worker idempotency test: re-queuing same campaign_id does not duplicate sends.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact.ai governance controls (cross-era)",
+      "level": 2,
+      "slug": "contactai-governance-controls-cross-era",
+      "prose": "- All `backend(dev)/contact.ai` contract updates must include matching docs updates in:\n  - `docs/codebases/contact-ai-codebase-analysis.md`\n  - `docs/backend/apis/17_AI_CHATS_MODULE.md`\n  - `docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md`\n  - `docs/backend/database/contact_ai_data_lineage.md`\n  - `docs/frontend/contact-ai-ui-bindings.md`\n  - `docs/backend/endpoints/contact_ai_endpoint_era_matrix.json`\n- Any `ModelSelection` enum change must update the mapping shim in `LambdaAIClient` AND all enum tables in docs in the same change set.\n- Any `/api/v1/ai/` utility endpoint change must update `contact_ai_endpoint_era_matrix.json` and the relevant era task packs.\n- JSONB `messages` schema changes must update `contact_ai_data_lineage.md` and include backward compatibility evidence.\n- SSE streaming contract changes must include client reconnect documentation and error event format spec.\n- GDPR-relevant changes (user deletion, chat retention) require erasure cascade evidence and `7.x`+ retention policy documentation.\n- Per-minor release docs under `docs/versions/version_*.md` must include AI chat evidence in backend/data/frontend scope sections when AI behavior changes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `backend(dev)/contact.ai` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/contact-ai-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/17_AI_CHATS_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/CONTACT_AI_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/contact_ai_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/contact-ai-ui-bindings.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/contact_ai_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "Any `ModelSelection` enum change must update the mapping shim in `LambdaAIClient` AND all enum tables in docs in the same change set.",
+              "checked": null
+            },
+            {
+              "text": "Any `/api/v1/ai/` utility endpoint change must update `contact_ai_endpoint_era_matrix.json` and the relevant era task packs.",
+              "checked": null
+            },
+            {
+              "text": "JSONB `messages` schema changes must update `contact_ai_data_lineage.md` and include backward compatibility evidence.",
+              "checked": null
+            },
+            {
+              "text": "SSE streaming contract changes must include client reconnect documentation and error event format spec.",
+              "checked": null
+            },
+            {
+              "text": "GDPR-relevant changes (user deletion, chat retention) require erasure cascade evidence and `7.x`+ retention policy documentation.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must include AI chat evidence in backend/data/frontend scope sections when AI behavior changes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contact AI CI baseline checks",
+      "level": 2,
+      "slug": "contact-ai-ci-baseline-checks",
+      "prose": "- Auth guard test: endpoints without `X-API-Key` return 401.\n- User isolation test: chat owned by user A is not accessible by user B (`X-User-ID` enforcement).\n- ModelSelection mapping test: all GraphQL enum values map to valid HF model IDs.\n- Message cap test: chat with 100 messages rejects the 101st with appropriate error.\n- Ownership check test: `PUT`/`DELETE` on another user's chat returns 403.\n- Health endpoint test: `GET /health` and `GET /health/db` return 200 with `{\"status\":\"ok\"}`.\n- SSE stream test: `POST /message/stream` emits `data: [DONE]\\n\\n` token on completion.\n- Utility stateless test: `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters` do not write to `ai_chats` table.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth guard test: endpoints without `X-API-Key` return 401.",
+              "checked": null
+            },
+            {
+              "text": "User isolation test: chat owned by user A is not accessible by user B (`X-User-ID` enforcement).",
+              "checked": null
+            },
+            {
+              "text": "ModelSelection mapping test: all GraphQL enum values map to valid HF model IDs.",
+              "checked": null
+            },
+            {
+              "text": "Message cap test: chat with 100 messages rejects the 101st with appropriate error.",
+              "checked": null
+            },
+            {
+              "text": "Ownership check test: `PUT`/`DELETE` on another user's chat returns 403.",
+              "checked": null
+            },
+            {
+              "text": "Health endpoint test: `GET /health` and `GET /health/db` return 200 with `{\"status\":\"ok\"}`.",
+              "checked": null
+            },
+            {
+              "text": "SSE stream test: `POST /message/stream` emits `data: [DONE]\\n\\n` token on completion.",
+              "checked": null
+            },
+            {
+              "text": "Utility stateless test: `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters` do not write to `ai_chats` table.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "appointment360 (contact360.io/api) governance controls (cross-era)",
+      "level": 2,
+      "slug": "appointment360-contact360ioapi-governance-controls-cross-era",
+      "prose": "- All `contact360.io/api` contract updates must include matching docs updates in:\n  - `docs/codebases/appointment360-codebase-analysis.md`\n  - `docs/architecture.md`\n  - `docs/backend.md`\n  - `docs/versions.md`\n  - Relevant `docs/backend/apis/NN_MODULE.md` for the affected GraphQL module\n- **Schema composition rule:** any new GraphQL module added to `schema.py` must be documented in `docs/backend/apis/` before merging. Module numbers must be allocated from the era task-pack index.\n- **Downstream client rule:** any new `app/clients/*.py` file must have a corresponding env var entry in `config.py`, `.env.example`, and a health check hook in `/health`.\n- **Middleware change rule:** any add/remove/reorder of middleware layers must update the 8-layer table in `docs/codebases/appointment360-codebase-analysis.md` and `docs/architecture.md` in the same PR.\n- **Debug write rule (critical):** inline file writes (`open(..., 'a')` or `debug.log` writes) are **release blockers** in any production module. Every module must pass a static lint check that no file write occurs outside of `app/services/` or explicit storage clients.\n- **Context integrity rule:** `Context.user` must only be populated from a valid, non-blacklisted JWT. Any change to the JWT extraction path must include a blacklist lookup regression test.\n- **Idempotency key rule:** mutations listed in `IDEMPOTENCY_REQUIRED_MUTATIONS` must always be tested with duplicate-key replay scenarios. Removing a mutation from the list requires approval and a rollback plan.\n- **Abuse guard rule:** any mutation added to `ABUSE_GUARDED_MUTATIONS` must include a corresponding rate-limit regression test that verifies `429` response after threshold.\n- **Rate limit rule:** `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` must be non-zero in any production deployment. A zero value is a release blocker for `6.x+` environments.\n- **DataLoader rule:** any new resolver that fetches related entities by FK must use a DataLoader. Direct ORM fetches in list resolvers are rejected in code review for `3.x+` modules.\n- **Campaign module rule:** all mutations that proxy to the email campaign service must verify the campaign service's critical bugs (schema drift, `GetUnsubToken` fix, SMTP auth) are resolved before `10.x` production promotion.\n- Per-minor release docs under `docs/versions/version_*.md` must include Appointment360 evidence in backend/data/frontend scope sections whenever a new GraphQL module is activated.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `contact360.io/api` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/appointment360-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/architecture.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/versions.md`",
+              "checked": null
+            },
+            {
+              "text": "Relevant `docs/backend/apis/NN_MODULE.md` for the affected GraphQL module",
+              "checked": null
+            },
+            {
+              "text": "**Schema composition rule:** any new GraphQL module added to `schema.py` must be documented in `docs/backend/apis/` before merging. Module numbers must be allocated from the era task-pack index.",
+              "checked": null
+            },
+            {
+              "text": "**Downstream client rule:** any new `app/clients/*.py` file must have a corresponding env var entry in `config.py`, `.env.example`, and a health check hook in `/health`.",
+              "checked": null
+            },
+            {
+              "text": "**Middleware change rule:** any add/remove/reorder of middleware layers must update the 8-layer table in `docs/codebases/appointment360-codebase-analysis.md` and `docs/architecture.md` in the same PR.",
+              "checked": null
+            },
+            {
+              "text": "**Debug write rule (critical):** inline file writes (`open(..., 'a')` or `debug.log` writes) are **release blockers** in any production module. Every module must pass a static lint check that no file write occurs outside of `app/services/` or explicit storage clients.",
+              "checked": null
+            },
+            {
+              "text": "**Context integrity rule:** `Context.user` must only be populated from a valid, non-blacklisted JWT. Any change to the JWT extraction path must include a blacklist lookup regression test.",
+              "checked": null
+            },
+            {
+              "text": "**Idempotency key rule:** mutations listed in `IDEMPOTENCY_REQUIRED_MUTATIONS` must always be tested with duplicate-key replay scenarios. Removing a mutation from the list requires approval and a rollback plan.",
+              "checked": null
+            },
+            {
+              "text": "**Abuse guard rule:** any mutation added to `ABUSE_GUARDED_MUTATIONS` must include a corresponding rate-limit regression test that verifies `429` response after threshold.",
+              "checked": null
+            },
+            {
+              "text": "**Rate limit rule:** `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` must be non-zero in any production deployment. A zero value is a release blocker for `6.x+` environments.",
+              "checked": null
+            },
+            {
+              "text": "**DataLoader rule:** any new resolver that fetches related entities by FK must use a DataLoader. Direct ORM fetches in list resolvers are rejected in code review for `3.x+` modules.",
+              "checked": null
+            },
+            {
+              "text": "**Campaign module rule:** all mutations that proxy to the email campaign service must verify the campaign service's critical bugs (schema drift, `GetUnsubToken` fix, SMTP auth) are resolved before `10.x` production promotion.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must include Appointment360 evidence in backend/data/frontend scope sections whenever a new GraphQL module is activated.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Appointment360 CI baseline checks",
+      "level": 2,
+      "slug": "appointment360-ci-baseline-checks",
+      "prose": "- Auth guard test: `query me` without `Authorization` header returns `401` / `UNAUTHENTICATED` error.\n- Token blacklist test: using a blacklisted access token returns `401`.\n- Schema composition test: importing `schema.py` with all modules succeeds without circular imports.\n- Health endpoint test: `GET /health`, `GET /health/db`, `GET /health/logging`, `GET /health/slo` return 200.\n- Body size guard test: POST body > `GRAPHQL_MAX_BODY_BYTES` returns `413`.\n- Complexity guard test: query exceeding `GRAPHQL_COMPLEXITY_LIMIT` returns complexity error.\n- Idempotency replay test: sending same mutation with identical `X-Idempotency-Key` twice returns identical response.\n- Rate limit test: sending > `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` requests from same IP returns `429`.\n- DB session commit test: successful mutation commits session; exception causes rollback without data leak.\n- ConnectraClient round-trip test: `contacts(query)` GraphQL call reaches mocked Connectra and maps response to `ContactType`.\n- Debug write static test: no module under `app/graphql/modules/` contains `open(` with write mode.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth guard test: `query me` without `Authorization` header returns `401` / `UNAUTHENTICATED` error.",
+              "checked": null
+            },
+            {
+              "text": "Token blacklist test: using a blacklisted access token returns `401`.",
+              "checked": null
+            },
+            {
+              "text": "Schema composition test: importing `schema.py` with all modules succeeds without circular imports.",
+              "checked": null
+            },
+            {
+              "text": "Health endpoint test: `GET /health`, `GET /health/db`, `GET /health/logging`, `GET /health/slo` return 200.",
+              "checked": null
+            },
+            {
+              "text": "Body size guard test: POST body > `GRAPHQL_MAX_BODY_BYTES` returns `413`.",
+              "checked": null
+            },
+            {
+              "text": "Complexity guard test: query exceeding `GRAPHQL_COMPLEXITY_LIMIT` returns complexity error.",
+              "checked": null
+            },
+            {
+              "text": "Idempotency replay test: sending same mutation with identical `X-Idempotency-Key` twice returns identical response.",
+              "checked": null
+            },
+            {
+              "text": "Rate limit test: sending > `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE` requests from same IP returns `429`.",
+              "checked": null
+            },
+            {
+              "text": "DB session commit test: successful mutation commits session; exception causes rollback without data leak.",
+              "checked": null
+            },
+            {
+              "text": "ConnectraClient round-trip test: `contacts(query)` GraphQL call reaches mocked Connectra and maps response to `ContactType`.",
+              "checked": null
+            },
+            {
+              "text": "Debug write static test: no module under `app/graphql/modules/` contains `open(` with write mode.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension deployment governance",
+      "level": 2,
+      "slug": "extension-deployment-governance",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Canonical extension package path",
+      "level": 3,
+      "slug": "canonical-extension-package-path",
+      "prose": "- `extension/contact360/` — canonical path for the Chrome extension logic layer\n- Old spelling `extention/contact360/` must not appear in new work; update to `extension/` in any migrated docs",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`extension/contact360/` — canonical path for the Chrome extension logic layer",
+              "checked": null
+            },
+            {
+              "text": "Old spelling `extention/contact360/` must not appear in new work; update to `extension/` in any migrated docs",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension environment configuration",
+      "level": 3,
+      "slug": "extension-environment-configuration",
+      "prose": "- `LAMBDA_SN_API_URL` — base URL for `POST /v1/save-profiles`; must be set in extension config before build/packaging\n- `APPOINTMENT360_GRAPHQL_URL` — GraphQL endpoint for `auth.refreshToken`; must be set in extension config\n- Extension does NOT use `.env` files; runtime config is bundled at build time or injected via `manifest.json` permissions / content script parameters",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`LAMBDA_SN_API_URL` — base URL for `POST /v1/save-profiles`; must be set in extension config before build/packaging",
+              "checked": null
+            },
+            {
+              "text": "`APPOINTMENT360_GRAPHQL_URL` — GraphQL endpoint for `auth.refreshToken`; must be set in extension config",
+              "checked": null
+            },
+            {
+              "text": "Extension does NOT use `.env` files; runtime config is bundled at build time or injected via `manifest.json` permissions / content script parameters",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension build and packaging rules",
+      "level": 3,
+      "slug": "extension-build-and-packaging-rules",
+      "prose": "- Extension JS files (`auth/`, `utils/`) are consumed directly (no transpile step required for current ES6+ target)\n- A full extension build packages popup HTML, content scripts, and these utility modules into the Chrome extension `.zip`/`.crx`\n- Do not commit bundled/minified extension artefacts to the monorepo; distribute via Chrome Web Store or internal MDM",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Extension JS files (`auth/`, `utils/`) are consumed directly (no transpile step required for current ES6+ target)",
+              "checked": null
+            },
+            {
+              "text": "A full extension build packages popup HTML, content scripts, and these utility modules into the Chrome extension `.zip`/`.crx`",
+              "checked": null
+            },
+            {
+              "text": "Do not commit bundled/minified extension artefacts to the monorepo; distribute via Chrome Web Store or internal MDM",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension token security rules",
+      "level": 3,
+      "slug": "extension-token-security-rules",
+      "prose": "- `accessToken` and `refreshToken` stored in `chrome.storage.local` only (never `storage.sync`)\n- Tokens must never be logged, included in error reports, or transmitted to any endpoint other than Appointment360 GraphQL\n- Token refresh buffer is 300 seconds; this value must be documented if changed",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`accessToken` and `refreshToken` stored in `chrome.storage.local` only (never `storage.sync`)",
+              "checked": null
+            },
+            {
+              "text": "Tokens must never be logged, included in error reports, or transmitted to any endpoint other than Appointment360 GraphQL",
+              "checked": null
+            },
+            {
+              "text": "Token refresh buffer is 300 seconds; this value must be documented if changed",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Release hygiene for extension changes",
+      "level": 3,
+      "slug": "release-hygiene-for-extension-changes",
+      "prose": "- Any change to `auth/graphqlSession.js` that alters token storage keys (`accessToken`, `refreshToken`) must be considered a **breaking change** and requires a version bump\n- Any change to `utils/lambdaClient.js` that alters the `/v1/save-profiles` request schema must be co-ordinated with a Lambda SN API update and both deployed together",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Any change to `auth/graphqlSession.js` that alters token storage keys (`accessToken`, `refreshToken`) must be considered a **breaking change** and requires a version bump",
+              "checked": null
+            },
+            {
+              "text": "Any change to `utils/lambdaClient.js` that alters the `/v1/save-profiles` request schema must be co-ordinated with a Lambda SN API update and both deployed together",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "salesnavigator service governance controls (cross-era)",
+      "level": 2,
+      "slug": "salesnavigator-service-governance-controls-cross-era",
+      "prose": "- All `backend(dev)/salesnavigator` contract updates must include matching docs updates in:\n  - `docs/codebases/salesnavigator-codebase-analysis.md`\n  - `docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`\n  - `docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`\n  - `docs/backend/database/salesnavigator_data_lineage.md`\n  - `docs/frontend/salesnavigator-ui-bindings.md`\n  - `docs/backend/endpoints/salesnavigator_endpoint_era_matrix.json`\n- **Docs drift rule (P0):** `backend(dev)/salesnavigator/docs/api.md` must only document implemented routes. Any route in docs that is not implemented is a release blocker.\n- **UUID contract stability:** `generate_contact_uuid()` and `generate_company_uuid()` changes are breaking. Require migration evidence and data lineage doc update before production deployment.\n- **Field mapping changes:** Any `mappers.py` change affecting contact/company fields written to Connectra requires `salesnavigator_data_lineage.md` update in the same PR.\n- **CORS policy:** CORS `*` is a known security gap. Do not widen CORS further; tighten to known origins before `6.x` release.\n- **API key rotation:** `API_KEY` and `CONNECTRA_API_KEY` must be in the org's secret rotation schedule. Document rotation procedure in ops runbook.\n- **GDPR controls (7.x+):** SN-sourced contacts are subject to right-to-erasure. Erasure cascade must be verified via Connectra delete by UUID, with evidence in the compliance bundle.\n- Per-minor release docs under `docs/versions/version_*.md` must include SN ingest evidence in backend/data scope sections when SN behavior changes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `backend(dev)/salesnavigator` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/salesnavigator-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/23_SALES_NAVIGATOR_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/SALESNAVIGATOR_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/salesnavigator_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/salesnavigator-ui-bindings.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/salesnavigator_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "**Docs drift rule (P0):** `backend(dev)/salesnavigator/docs/api.md` must only document implemented routes. Any route in docs that is not implemented is a release blocker.",
+              "checked": null
+            },
+            {
+              "text": "**UUID contract stability:** `generate_contact_uuid()` and `generate_company_uuid()` changes are breaking. Require migration evidence and data lineage doc update before production deployment.",
+              "checked": null
+            },
+            {
+              "text": "**Field mapping changes:** Any `mappers.py` change affecting contact/company fields written to Connectra requires `salesnavigator_data_lineage.md` update in the same PR.",
+              "checked": null
+            },
+            {
+              "text": "**CORS policy:** CORS `*` is a known security gap. Do not widen CORS further; tighten to known origins before `6.x` release.",
+              "checked": null
+            },
+            {
+              "text": "**API key rotation:** `API_KEY` and `CONNECTRA_API_KEY` must be in the org's secret rotation schedule. Document rotation procedure in ops runbook.",
+              "checked": null
+            },
+            {
+              "text": "**GDPR controls (7.x+):** SN-sourced contacts are subject to right-to-erasure. Erasure cascade must be verified via Connectra delete by UUID, with evidence in the compliance bundle.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must include SN ingest evidence in backend/data scope sections when SN behavior changes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Sales Navigator CI baseline checks",
+      "level": 2,
+      "slug": "sales-navigator-ci-baseline-checks",
+      "prose": "- Auth guard test: `POST /v1/save-profiles` without `X-API-Key` returns 403.\n- Empty profiles test: `POST /v1/save-profiles` with `profiles: []` returns 422.\n- Deduplication test: two profiles with same `profile_url` → only one record in Connectra.\n- UUID determinism test: same `profile_url` + `email` → same UUID on second call.\n- Partial success test: batch with one invalid profile → `success: true` with `errors` list.\n- Health test: `GET /v1/health` returns 200.\n- Max profiles test: `POST /v1/save-profiles` with 1001 profiles returns 422.\n- Scrape HTML test: `POST /v1/scrape` with valid SN HTML + `save:false` returns profiles without Connectra call.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth guard test: `POST /v1/save-profiles` without `X-API-Key` returns 403.",
+              "checked": null
+            },
+            {
+              "text": "Empty profiles test: `POST /v1/save-profiles` with `profiles: []` returns 422.",
+              "checked": null
+            },
+            {
+              "text": "Deduplication test: two profiles with same `profile_url` → only one record in Connectra.",
+              "checked": null
+            },
+            {
+              "text": "UUID determinism test: same `profile_url` + `email` → same UUID on second call.",
+              "checked": null
+            },
+            {
+              "text": "Partial success test: batch with one invalid profile → `success: true` with `errors` list.",
+              "checked": null
+            },
+            {
+              "text": "Health test: `GET /v1/health` returns 200.",
+              "checked": null
+            },
+            {
+              "text": "Max profiles test: `POST /v1/save-profiles` with 1001 profiles returns 422.",
+              "checked": null
+            },
+            {
+              "text": "Scrape HTML test: `POST /v1/scrape` with valid SN HTML + `save:false` returns profiles without Connectra call.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "mailvetter governance controls (cross-era)",
+      "level": 2,
+      "slug": "mailvetter-governance-controls-cross-era",
+      "prose": "- All `backend(dev)/mailvetter` contract updates must include matching docs updates in:\n  - `docs/codebases/mailvetter-codebase-analysis.md`\n  - `docs/backend/apis/15_EMAIL_MODULE.md`\n  - `docs/backend/apis/MAILVETTER_ERA_TASK_PACKS.md`\n  - `docs/backend/database/mailvetter_data_lineage.md`\n  - `docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`\n- **Canonical route rule (P0):** `/v1/*` is the only canonical API contract. Legacy `/verify|/upload|/status|/results` routes are compatibility only and must not be used for new integrations.\n- **Limiter rule:** in-memory limiter is non-production for multi-instance deployments; Redis-backed limiter required before scale-out releases.\n- **Secret isolation rule:** `WEBHOOK_SECRET_KEY` and `API_SECRET_KEY` must remain distinct. Fallback from webhook secret to API secret is a release blocker in `7.x+`.\n- **Status vocabulary rule:** job lifecycle terms must remain synchronized across API docs, DB rows, UI, and webhook event payloads.\n- **Migration discipline rule:** schema changes to `jobs`/`results` must be delivered via explicit migration scripts; startup auto-migration cannot be sole migration path for production.\n- Per-minor release docs under `docs/versions/version_*.md` must include verifier evidence when mailvetter behavior changes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "All `backend(dev)/mailvetter` contract updates must include matching docs updates in:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/mailvetter-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/15_EMAIL_MODULE.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/MAILVETTER_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/mailvetter_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/mailvetter_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "**Canonical route rule (P0):** `/v1/*` is the only canonical API contract. Legacy `/verify|/upload|/status|/results` routes are compatibility only and must not be used for new integrations.",
+              "checked": null
+            },
+            {
+              "text": "**Limiter rule:** in-memory limiter is non-production for multi-instance deployments; Redis-backed limiter required before scale-out releases.",
+              "checked": null
+            },
+            {
+              "text": "**Secret isolation rule:** `WEBHOOK_SECRET_KEY` and `API_SECRET_KEY` must remain distinct. Fallback from webhook secret to API secret is a release blocker in `7.x+`.",
+              "checked": null
+            },
+            {
+              "text": "**Status vocabulary rule:** job lifecycle terms must remain synchronized across API docs, DB rows, UI, and webhook event payloads.",
+              "checked": null
+            },
+            {
+              "text": "**Migration discipline rule:** schema changes to `jobs`/`results` must be delivered via explicit migration scripts; startup auto-migration cannot be sole migration path for production.",
+              "checked": null
+            },
+            {
+              "text": "Per-minor release docs under `docs/versions/version_*.md` must include verifier evidence when mailvetter behavior changes.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter CI baseline checks",
+      "level": 2,
+      "slug": "mailvetter-ci-baseline-checks",
+      "prose": "- Auth guard test: missing/invalid Bearer key on `/v1/*` returns 401.\n- Single verify schema test: `POST /v1/emails/validate` returns required fields and valid status enum.\n- Bulk limit test: free tier payload above allowed count returns `BULK_SIZE_EXCEEDED`.\n- Concurrent job limit test: excess parallel bulk submissions return `CONCURRENT_JOB_LIMIT`.\n- Queue-to-result test: queued bulk request increments `processed_count` to `total_count` and emits results.\n- Result export test: `/v1/jobs/:job_id/results?format=csv` returns parseable CSV with expected headers.\n- Webhook signature test: callbacks include valid `X-Webhook-Signature`.\n- Job retention test: cleanup removes data older than 30 days without FK break.\n- SMTP timeout resilience test: transient SMTP timeout does not crash worker loop.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth guard test: missing/invalid Bearer key on `/v1/*` returns 401.",
+              "checked": null
+            },
+            {
+              "text": "Single verify schema test: `POST /v1/emails/validate` returns required fields and valid status enum.",
+              "checked": null
+            },
+            {
+              "text": "Bulk limit test: free tier payload above allowed count returns `BULK_SIZE_EXCEEDED`.",
+              "checked": null
+            },
+            {
+              "text": "Concurrent job limit test: excess parallel bulk submissions return `CONCURRENT_JOB_LIMIT`.",
+              "checked": null
+            },
+            {
+              "text": "Queue-to-result test: queued bulk request increments `processed_count` to `total_count` and emits results.",
+              "checked": null
+            },
+            {
+              "text": "Result export test: `/v1/jobs/:job_id/results?format=csv` returns parseable CSV with expected headers.",
+              "checked": null
+            },
+            {
+              "text": "Webhook signature test: callbacks include valid `X-Webhook-Signature`.",
+              "checked": null
+            },
+            {
+              "text": "Job retention test: cleanup removes data older than 30 days without FK break.",
+              "checked": null
+            },
+            {
+              "text": "SMTP timeout resilience test: transient SMTP timeout does not crash worker loop.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email app governance controls — contact360.io/email",
+      "level": 2,
+      "slug": "email-app-governance-controls-contact360ioemail",
+      "prose": "- Any endpoint contract change consumed by `contact360.io/email` must update in same PR:\n  - `docs/codebases/email-codebase-analysis.md`\n  - `docs/backend/apis/EMAILAPP_ERA_TASK_PACKS.md`\n  - `docs/backend/database/emailapp_data_lineage.md`\n  - `docs/backend/endpoints/emailapp_endpoint_era_matrix.json`\n- Local storage key changes (`userId`, `mailhub_active_account`) are breaking to session continuity and require migration notes.\n- Security gate: plaintext IMAP password persistence in localStorage is disallowed for production-grade releases (must migrate to backend mailbox session token).\n- DOMPurify rules in email detail rendering are part of secure-render contract and must be documented when changed.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Any endpoint contract change consumed by `contact360.io/email` must update in same PR:",
+              "checked": null
+            },
+            {
+              "text": "`docs/codebases/email-codebase-analysis.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/apis/EMAILAPP_ERA_TASK_PACKS.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/database/emailapp_data_lineage.md`",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend/endpoints/emailapp_endpoint_era_matrix.json`",
+              "checked": null
+            },
+            {
+              "text": "Local storage key changes (`userId`, `mailhub_active_account`) are breaking to session continuity and require migration notes.",
+              "checked": null
+            },
+            {
+              "text": "Security gate: plaintext IMAP password persistence in localStorage is disallowed for production-grade releases (must migrate to backend mailbox session token).",
+              "checked": null
+            },
+            {
+              "text": "DOMPurify rules in email detail rendering are part of secure-render contract and must be documented when changed.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact360.io/admin governance controls (cross-era)",
+      "level": 2,
+      "slug": "contact360ioadmin-governance-controls-cross-era",
+      "prose": "- Secret handling must be env-only; insecure fallback secrets are release blockers.\n- Privileged routes require explicit permission-map tests (`super_admin`, `admin_or_super_admin`, public exceptions).\n- Destructive admin actions must support idempotency keys and immutable audit events.\n- Outbound integration clients (`appointment360`, `logs.api`, `s3storage`, job satellites via gateway) must enforce auth header correctness per service contract.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Secret handling must be env-only; insecure fallback secrets are release blockers.",
+              "checked": null
+            },
+            {
+              "text": "Privileged routes require explicit permission-map tests (`super_admin`, `admin_or_super_admin`, public exceptions).",
+              "checked": null
+            },
+            {
+              "text": "Destructive admin actions must support idempotency keys and immutable audit events.",
+              "checked": null
+            },
+            {
+              "text": "Outbound integration clients (`appointment360`, `logs.api`, `s3storage`, job satellites via gateway) must enforce auth header correctness per service contract.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin CI baseline checks",
+      "level": 2,
+      "slug": "admin-ci-baseline-checks",
+      "prose": "- Auth guard test on protected admin routes.\n- Permission matrix parity test for each admin URL surface.\n- Billing approve/decline idempotency replay test.\n- Client credential/env validation test in startup profile.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth guard test on protected admin routes.",
+              "checked": null
+            },
+            {
+              "text": "Permission matrix parity test for each admin URL surface.",
+              "checked": null
+            },
+            {
+              "text": "Billing approve/decline idempotency replay test.",
+              "checked": null
+            },
+            {
+              "text": "Client credential/env validation test in startup profile.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "lambda/emailapigo governance controls (cross-era)",
+      "level": 2,
+      "slug": "lambdaemailapigo-governance-controls-cross-era",
+      "prose": "- Hardcoded credentials/endpoints are prohibited; logging and external clients must be env-driven.\n- Cache upsert identity contract must be preserved with explicit unique-key enforcement.\n- CORS and auth rules must be environment-scoped, not wildcard defaults.\n- Migration behavior must be explicit and pipeline-driven for production.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Hardcoded credentials/endpoints are prohibited; logging and external clients must be env-driven.",
+              "checked": null
+            },
+            {
+              "text": "Cache upsert identity contract must be preserved with explicit unique-key enforcement.",
+              "checked": null
+            },
+            {
+              "text": "CORS and auth rules must be environment-scoped, not wildcard defaults.",
+              "checked": null
+            },
+            {
+              "text": "Migration behavior must be explicit and pipeline-driven for production.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "EmailAPIGo CI baseline checks",
+      "level": 2,
+      "slug": "emailapigo-ci-baseline-checks",
+      "prose": "- Auth guard and scoped-key validation.\n- Rate limit behavior validation.\n- Cache upsert identity uniqueness test.\n- Deterministic provider fallback-chain contract test.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth guard and scoped-key validation.",
+              "checked": null
+            },
+            {
+              "text": "Rate limit behavior validation.",
+              "checked": null
+            },
+            {
+              "text": "Cache upsert identity uniqueness test.",
+              "checked": null
+            },
+            {
+              "text": "Deterministic provider fallback-chain contract test.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "lambda/emailapis governance controls (cross-era)",
+      "level": 2,
+      "slug": "lambdaemailapis-governance-controls-cross-era",
+      "prose": "- API key model must support rotation and scoped entitlements.\n- Status vocabulary is a governed contract across providers and downstream consumers.\n- Bulk endpoints require idempotency contract and replay-safe semantics.\n- CORS policy must be environment allowlist based for production.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "API key model must support rotation and scoped entitlements.",
+              "checked": null
+            },
+            {
+              "text": "Status vocabulary is a governed contract across providers and downstream consumers.",
+              "checked": null
+            },
+            {
+              "text": "Bulk endpoints require idempotency contract and replay-safe semantics.",
+              "checked": null
+            },
+            {
+              "text": "CORS policy must be environment allowlist based for production.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "EmailAPIs CI baseline checks",
+      "level": 2,
+      "slug": "emailapis-ci-baseline-checks",
+      "prose": "- Auth guard and scoped-key validation.\n- Status vocabulary contract parity test.\n- Bulk idempotency replay test.\n- Provider fallback-chain behavior test.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Auth guard and scoped-key validation.",
+              "checked": null
+            },
+            {
+              "text": "Status vocabulary contract parity test.",
+              "checked": null
+            },
+            {
+              "text": "Bulk idempotency replay test.",
+              "checked": null
+            },
+            {
+              "text": "Provider fallback-chain behavior test.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Canonical storage routing rule",
+      "level": 2,
+      "slug": "canonical-storage-routing-rule",
+      "prose": "All service file/artifact storage must route through lambda/s3storage.\n\n| Service | Status |\n| --- | --- |\n| appointment360 | ✅ uses S3StorageClient |\n| contact360.io/jobs | 📌 Planned migrate direct S3 paths |\n| backend(dev)/contact.ai | 📌 Planned audit/migrate |\n| backend(dev)/email campaign | 📌 Planned migrate direct S3 paths |\n| backend(dev)/mailvetter | 📌 Planned audit/migrate |\n| backend(dev)/resumeai | 📌 Planned confirm/migrate |\n| contact360.io/admin | 📌 Planned confirm/migrate |",
+      "tables": [
+        {
+          "headers": [
+            "Service",
+            "Status"
+          ],
+          "rows": [
+            [
+              "appointment360",
+              "✅ uses S3StorageClient"
+            ],
+            [
+              "contact360.io/jobs",
+              "📌 Planned migrate direct S3 paths"
+            ],
+            [
+              "backend(dev)/contact.ai",
+              "📌 Planned audit/migrate"
+            ],
+            [
+              "backend(dev)/email campaign",
+              "📌 Planned migrate direct S3 paths"
+            ],
+            [
+              "backend(dev)/mailvetter",
+              "📌 Planned audit/migrate"
+            ],
+            [
+              "backend(dev)/resumeai",
+              "📌 Planned confirm/migrate"
+            ],
+            [
+              "contact360.io/admin",
+              "📌 Planned confirm/migrate"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Quality Gates & Checklists",
+      "level": 2,
+      "slug": "quality-gates-checklists",
+      "prose": "- [Era Subchecklist Template](promsts/checklists/era-subchecklist-template.md)\n- [Prompt Quality Gate](promsts/checklists/prompt-quality-gate.md)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[Era Subchecklist Template](promsts/checklists/era-subchecklist-template.md)",
+              "checked": null
+            },
+            {
+              "text": "[Prompt Quality Gate](promsts/checklists/prompt-quality-gate.md)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "Era Subchecklist Template",
+          "href": "promsts/checklists/era-subchecklist-template.md"
+        },
+        {
+          "text": "Prompt Quality Gate",
+          "href": "promsts/checklists/prompt-quality-gate.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

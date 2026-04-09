@@ -1,0 +1,416 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/appointment360_endpoint_era_matrix.md",
+  "sha256_source": "89db5c546ccbab5c6d84c01e1291b3304e465f5271632d98e28d17ab70153f6d",
+  "generated_at": "2026-04-08T23:11:51.336801+00:00",
+  "title": "appointment360",
+  "raw_markdown": "---\ntitle: \"appointment360 — era matrix\"\nsource_json: appointment360_endpoint_era_matrix.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# appointment360\n\n## Service metadata\n\n| Field | Value |\n| --- | --- |\n| service | appointment360 |\n| codebase | contact360.io/api |\n| runtime | FastAPI + Strawberry GraphQL + asyncpg + PostgreSQL |\n| primary_endpoint | POST /graphql |\n| description | GraphQL-only gateway. All dashboard and extension requests enter through /graphql. No REST feature routes. 29 nested GraphQL namespaces in schema (plus 10.x campaign modules scaffold-only). Orchestrates Connectra, email.server/sync.server job APIs (via gateway clients), Lambda Email, Lambda AI, Resume AI, S3 Storage, Logs API, DocsAI. |\n| data_lineage_reference | docs/backend/database/appointment360_data_lineage.md |\n| era_task_packs | docs/backend/apis/APPOINTMENT360_ERA_TASK_PACKS.md |\n| codebase_analysis | docs/codebases/appointment360-codebase-analysis.md |\n\n\n## health_endpoints\n\n- GET /health\n- GET /health/db\n- GET /health/logging\n- GET /health/slo\n- GET /health/token-blacklist\n\n## auth_modes\n\n- Bearer JWT (HS256)\n- X-API-Key (8.x+)\n\n## graphql_modules (by era)\n\n| Era | Modules |\n| --- | --- |\n| 0.x | auth, health |\n| 1.x | users, billing, usage, activities |\n| 2.x | email, jobs, upload |\n| 3.x | contacts, companies, s3, savedSearches |\n| 4.x | linkedin, salesNavigator |\n| 5.x | aiChats, resume |\n| 6.x | analytics |\n| 7.x | admin |\n| 8.x | pages, profile, twoFactor |\n| 9.x | notifications, featureOverview, webhooks, integrations |\n| 10.x | campaigns, sequences, campaignTemplates (scaffold — not mounted in `schema.py` yet) |\n\n\n## module_index\n\n| number | module | era | doc | queries | mutations |\n| --- | --- | --- | --- | --- | --- |\n| 01 | auth | 0.x | 01_AUTH_MODULE.md | ['me', 'session'] | ['login', 'register', 'logout', 'refresh_token'] |\n| 02 | users | 1.x | 02_USERS_MODULE.md | ['user', 'users', 'userStats'] | ['update_profile', 'upload_avatar', 'update_user', 'promote_to_admin', 'promote_to_super_admin'] |\n| 03 | contacts | 3.x | 03_CONTACTS_MODULE.md | ['contact', 'contacts', 'contactCount', 'contactQuery', 'filters', 'filterData'] | ['createContact', 'batchCreateContacts', 'importContacts', 'updateContact', 'deleteContact', 'exportContacts'] |\n| 04 | companies | 3.x | 04_COMPANIES_MODULE.md | ['company', 'companies', 'companyCount', 'companyQuery', 'companyContacts', 'filters', 'filterData'] | ['createCompany', 'exportCompanies', 'importCompanies', 'updateCompany', 'deleteCompany'] |\n| 05 | notifications | 9.x | 05_NOTIFICATIONS_MODULE.md | ['notifications', 'notification', 'unreadCount', 'notificationPreferences'] | ['markNotificationAsRead', 'markNotificationsAsRead', 'deleteNotifications', 'updateNotificationPreferences'] |\n| 06 | webhooks | 9.x | 06_WEBHOOKS_MODULE.md | [] | [] |\n| 07 | s3 | 3.x | 07_S3_MODULE.md | ['s3Files', 's3FileData', 's3FileInfo', 's3FileDownloadUrl', 's3FileSchema', 's3FileStats', 's3BucketMetadata'] | ['initiateCsvUpload', 'completeCsvUpload', 'deleteFile'] |\n| 08 | health | 0.x | 08_HEALTH_MODULE.md | ['apiMetadata', 'apiHealth', 'vqlHealth', 'vqlStats', 'performanceStats'] | [] |\n| 09 | usage | 1.x | 09_USAGE_MODULE.md | ['usage', 'featureOverview'] | ['trackUsage', 'resetUsage'] |\n| 10 | upload | 2.x | 10_UPLOAD_MODULE.md | ['uploadStatus', 'presignedUrl'] | ['initiateUpload', 'registerPart', 'completeUpload', 'abortUpload'] |\n| 11 | activities | 1.x | 11_ACTIVITIES_MODULE.md | ['activities', 'activityStats'] | [] |\n| 13 | admin | 7.x | 13_ADMIN_MODULE.md | ['users', 'usersWithBuckets', 'userStats', 'userHistory', 'logStatistics', 'logs', 'searchLogs'] | ['updateUserRole', 'updateUserCredits', 'deleteUser', 'promoteToAdmin', 'promoteToSuperAdmin', 'createLog', 'createLogsBatch', 'updateLog', 'deleteLog', 'deleteLogsBulk'] |\n| 14 | billing | 1.x | 14_BILLING_MODULE.md | ['billing', 'plans', 'addons', 'invoices', 'paymentInstructions', 'paymentSubmissions'] | ['subscribe', 'purchaseAddon', 'submitPaymentProof', 'approvePayment', 'declinePayment'] |\n| 15 | email | 2.x | 15_EMAIL_MODULE.md | ['findEmails', 'findEmailsBulk', 'verifySingleEmail', 'verifyEmailsBulk', 'emailJobStatus', 'webSearch', 'exportEmails', 'verifyexportEmail', 'predictEmailPattern', 'predictEmailPatternBulk'] | ['addEmailPattern', 'addEmailPatternBulk'] |\n| 16 | jobs | 2.x | 16_JOBS_MODULE.md | ['job', 'jobs'] | ['createEmailFinderExport', 'createEmailVerifyExport', 'createEmailPatternExport', 'createContact360Export', 'createContact360Import', 'pauseJob', 'resumeJob', 'terminateJob', 'retryJob'] |\n| 17 | aiChats | 5.x | 17_AI_CHATS_MODULE.md | ['aiChat', 'aiChats'] | ['createAIChat', 'updateAIChat', 'deleteAIChat', 'sendMessage', 'analyzeEmailRisk', 'generateCompanySummary', 'parseContactFilters'] |\n| 18 | analytics | 6.x | 18_ANALYTICS_MODULE.md | ['performanceMetrics', 'aggregateMetrics'] | ['submitPerformanceMetric'] |\n| 19 | pages | 8.x | 19_PAGES_MODULE.md | ['page', 'pages', 'pageContent', 'pagesByType', 'pageTypes', 'pageStatistics', 'pagesByState', 'pagesByStateCount', 'pagesByUserType', 'pagesByDocsaiUserType', 'myPages', 'pageAccessControl', 'pageSections', 'pageComponents', 'pageEndpoints', 'pageVersions', 'dashboardPages', 'marketingPages'] | [] |\n| 20 | integrations | 9.x | 20_INTEGRATIONS_MODULE.md | [] | [] |\n| 21 | linkedin | 4.x | 21_LINKEDIN_MODULE.md | [] | ['search', 'upsertByLinkedInUrl'] |\n| 22 | campaigns | 10.x | 22_CAMPAIGNS_MODULE.md | [] | [] |\n| 23 | salesNavigator | 4.x | 23_SALES_NAVIGATOR_MODULE.md | ['salesNavigatorRecords'] | ['saveSalesNavigatorProfiles'] |\n| 24 | sequences | 10.x | 24_SEQUENCES_MODULE.md | [] | [] |\n| 25 | campaignTemplates | 10.x | 25_CAMPAIGN_TEMPLATES_MODULE.md | [] | [] |\n| 26 | savedSearches | 3.x | 26_SAVED_SEARCHES_MODULE.md | ['listSavedSearches', 'getSavedSearch'] | ['createSavedSearch', 'updateSavedSearch', 'deleteSavedSearch', 'updateSavedSearchUsage'] |\n| 27 | twoFactor | 8.x | 27_TWO_FACTOR_MODULE.md | ['get2FAStatus'] | ['setup2FA', 'verify2FA', 'disable2FA', 'regenerateBackupCodes'] |\n| 28 | profile | 8.x | 28_PROFILE_MODULE.md | ['listAPIKeys', 'listSessions', 'listTeamMembers'] | ['createAPIKey', 'deleteAPIKey', 'revokeSession', 'revokeAllOtherSessions', 'inviteTeamMember', 'updateTeamMemberRole', 'removeTeamMember'] |\n| 29 | resume | 5.x | 29_RESUME_MODULE.md | ['resumes', 'resume'] | ['saveResume', 'deleteResume'] |\n\n\n## era_by_era\n\n### 0.x\n\n- **description:** Service bootstrap — FastAPI app, middleware stack, DB session lifecycle, health endpoints\n**active_modules**\n\n- auth\n- health\n\n**db_tables_added**\n\n- users\n- token_blacklist\n\n**downstream_clients_added**\n\n\n**gaps_at_0x**\n\n- No feature modules\n- No downstream clients\n- Rate limit not yet configured\n\n**config_keys_required**\n\n- SECRET_KEY\n- ACCESS_TOKEN_EXPIRE_MINUTES\n- DATABASE_URL\n- POSTGRES_*\n\n\n### 1.x\n\n- **description:** User, billing, credit system — auth mutations, credit deduction, billing service\n**active_modules**\n\n- auth\n- health\n- users\n- billing\n- usage\n- activities\n\n**db_tables_added**\n\n- credits\n- plans\n- subscriptions\n- payment_submissions\n- activities\n\n**downstream_clients_added**\n\n\n- **behavioral_changes:** Idempotency required on billing mutations. Credit deduction on all feature operations.\n**config_keys_required**\n\n- ACCESS_TOKEN_EXPIRE_MINUTES\n- REFRESH_TOKEN_EXPIRE_DAYS\n- IDEMPOTENCY_REQUIRED_MUTATIONS\n\n\n### 2.x\n\n- **description:** Email system — finder/verifier, jobs orchestration, bulk export/import\n**active_modules**\n\n- email\n- jobs\n- upload\n\n**db_tables_added**\n\n\n**downstream_clients_added**\n\n- LambdaEmailClient\n- EmailServerJobsClient\n\n- **behavioral_changes:** Email find/verify credit deduction. Job polling UI via query job(jobId).\n**bugs_to_fix**\n\n- Remove debug file writes from email/queries.py and jobs/mutations.py\n\n**config_keys_required**\n\n- LAMBDA_EMAIL_API_URL\n- LAMBDA_EMAIL_API_KEY\n- CONNECTRA_BASE_URL\n- CONNECTRA_API_KEY\n\n\n### 3.x\n\n- **description:** Contacts and companies — ConnectraClient, VQL converter, DataLoaders, saved searches\n**active_modules**\n\n- contacts\n- companies\n- s3\n- savedSearches\n\n**db_tables_added**\n\n- saved_searches\n\n**downstream_clients_added**\n\n- ConnectraClient\n- LambdaS3StorageClient\n\n- **behavioral_changes:** All contact/company data routed through Connectra. VQLQueryInput → Connectra REST. DataLoaders required.\n**config_keys_required**\n\n- CONNECTRA_BASE_URL\n- CONNECTRA_API_KEY\n- CONNECTRA_TIMEOUT\n- LAMBDA_S3STORAGE_API_URL\n- LAMBDA_S3STORAGE_API_KEY\n\n\n### 4.x\n\n- **description:** Extension and Sales Navigator — LinkedIn mutations, SN search and save, extension session auth\n**active_modules**\n\n- linkedin\n- salesNavigator\n\n**db_tables_added**\n\n- sessions\n\n**downstream_clients_added**\n\n- SalesNavigatorClient\n\n- **behavioral_changes:** Extension Bearer tokens validated. SN search credit deduction. Upsert by LinkedIn URL.\n**config_keys_required**\n\n- LAMBDA_SN_API_URL\n- LAMBDA_SN_API_KEY\n\n\n### 5.x\n\n- **description:** AI workflows — AI chats, company summary, email risk, NL filter parsing, resume\n**active_modules**\n\n- aiChats\n- resume\n\n**db_tables_added**\n\n- ai_chats\n- ai_chat_messages\n- resumes\n\n**downstream_clients_added**\n\n- LambdaAIClient\n- ResumeAIClient\n\n- **behavioral_changes:** AI credit deduction per message. SSE streaming for sendAiMessage. Utility mutations stateless (no DB write).\n**config_keys_required**\n\n- LAMBDA_AI_API_URL\n- LAMBDA_AI_API_KEY\n- RESUME_AI_BASE_URL\n- RESUME_AI_API_KEY\n\n\n### 6.x\n\n- **description:** Reliability and scaling — rate limiting, abuse guard, idempotency, complexity/timeout extensions, SLO\n**active_modules**\n\n- analytics\n\n**db_tables_added**\n\n\n- **behavioral_changes:** GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE must be > 0. Redis state for idempotency/abuse guard. QueryComplexityExtension and QueryTimeoutExtension enabled.\n**config_keys_required**\n\n- GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE\n- GRAPHQL_COMPLEXITY_LIMIT\n- GRAPHQL_QUERY_TIMEOUT\n- REDIS_URL\n- ENABLE_REDIS_CACHE\n- SLO_ERROR_BUDGET_PERCENT\n\n\n### 7.x\n\n- **description:** Deployment hardening — CI/CD, Dockerfile, SuperAdmin RBAC guards, Alembic migration hygiene\n**active_modules**\n\n- admin\n\n**db_tables_added**\n\n\n- **behavioral_changes:** require_super_admin guard on all admin mutations. Production: DEBUG=false, GraphiQL disabled.\n**config_keys_required**\n\n- ENVIRONMENT\n- DEBUG\n- TRUSTED_HOSTS\n- CORS_ORIGINS\n\n\n### 8.x\n\n- **description:** Public and private APIs — Pages/DocsAI, saved searches, profile/API keys, 2FA, X-API-Key public auth\n**active_modules**\n\n- pages\n- profile\n- twoFactor\n\n**db_tables_added**\n\n- api_keys\n- sessions\n\n**db_columns_added**\n\n- {'table': 'users', 'column': 'totp_secret', 'type': 'TEXT NULL'}\n\n**downstream_clients_added**\n\n- DocsAIClient\n\n- **behavioral_changes:** X-API-Key auth path added. Public API rate limiting separate from authenticated. DOCSAI_ENABLED flag.\n**config_keys_required**\n\n- DOCSAI_API_URL\n- DOCSAI_API_KEY\n- DOCSAI_ENABLED\n\n\n### 9.x\n\n- **description:** Ecosystem integrations — notifications, analytics events, admin panel, tenant model, webhooks\n**active_modules**\n\n- notifications\n- featureOverview\n- webhooks\n- integrations\n\n**db_tables_added**\n\n- notifications\n- events\n- feature_flags\n- workspaces\n\n- **behavioral_changes:** Notifications polling every 30s from dashboard. Plan-based feature gates. Webhook outbound dispatch.\n**config_keys_required**\n\n- WEBHOOK_SECRET\n\n\n### 10.x\n\n- **description:** Email campaign — campaigns, sequences, campaign templates GraphQL modules; proxy to email campaign service (resolver modules exist as scaffold; not yet mounted on root schema)\n**active_modules**\n\n- campaigns (scaffold)\n- sequences (scaffold)\n- campaignTemplates (scaffold)\n\n**db_tables_added**\n\n\n**downstream_clients_added**\n\n- CampaignServiceClient\n\n- **behavioral_changes:** Campaign data owned by email campaign service DB. appointment360 records campaign_id in activities. Credit deduction per recipient count.\n**prerequisites**\n\n- email campaign service schema drift bugs must be fixed\n- GetUnsubToken DB.Exec → DB.Get bug must be fixed\n- SMTP nil auth bug must be fixed\n\n**config_keys_required**\n\n- CAMPAIGN_SERVICE_URL\n- CAMPAIGN_SERVICE_API_KEY\n\n\n## known_gaps\n\n- AP-0.1 resolved: resolver/client debug artifact regression guard added (`tests/test_no_debug_artifacts.py`) and risky runtime paths are clean\n- AP-0.2 resolved: production startup now fails closed for wildcard `ALLOWED_ORIGINS`/`TRUSTED_HOSTS` and enforces URL/API-key pairing (plus enablement checks) for downstream services\n- AP-0.2 evidence: `deploy/env.example` and `deploy/env.production.template` now use redacted/empty placeholders (no real-looking API Gateway URLs or token-like keys)\n- AP-1.2 resolved: abuse guard now supports PostgreSQL-backed shared window state (`graphql_abuse_guard_events`), and production enforces postgres backends for idempotency/upload sessions/abuse guard\n- AP-1.3 resolved: `/health/slo` now exports guarded mutation SLI metrics (`guarded_mutation_sli`) including per-mutation request/success/error/rate-limited and latency fields\n- 10.x GraphQL: `campaigns`, `sequences`, and `campaignTemplates` modules under `app/graphql/modules/campaigns/` are not imported in `schema.py`; `module_index` rows 22/24/25 use empty operation lists until wired\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment\n\nSee **era_focus** and route tables above — themes match [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md#era-tags-on-endpoints).\n\n## Database & lineage\n\n- Service: `appointment360`\n- Use the matching row in [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md#lambda--worker-services-by-path) and the lineage file linked there.\n\n## Related\n\n- [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md)\n- [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md)\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `appointment360_endpoint_era_matrix.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Service metadata",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service",
+          "appointment360"
+        ],
+        [
+          "codebase",
+          "contact360.io/api"
+        ],
+        [
+          "runtime",
+          "FastAPI + Strawberry GraphQL + asyncpg + PostgreSQL"
+        ],
+        [
+          "primary_endpoint",
+          "POST /graphql"
+        ],
+        [
+          "description",
+          "GraphQL-only gateway. All dashboard and extension requests enter through /graphql. No REST feature routes. 29 nested GraphQL namespaces in schema (plus 10.x campaign modules scaffold-only). Orchestrates Connectra, email.server/sync.server job APIs (via gateway clients), Lambda Email, Lambda AI, Resume AI, S3 Storage, Logs API, DocsAI."
+        ],
+        [
+          "data_lineage_reference",
+          "docs/backend/database/appointment360_data_lineage.md"
+        ],
+        [
+          "era_task_packs",
+          "docs/backend/apis/APPOINTMENT360_ERA_TASK_PACKS.md"
+        ],
+        [
+          "codebase_analysis",
+          "docs/codebases/appointment360-codebase-analysis.md"
+        ]
+      ]
+    },
+    {
+      "section_heading": "graphql_modules (by era)",
+      "headers": [
+        "Era",
+        "Modules"
+      ],
+      "rows": [
+        [
+          "0.x",
+          "auth, health"
+        ],
+        [
+          "1.x",
+          "users, billing, usage, activities"
+        ],
+        [
+          "2.x",
+          "email, jobs, upload"
+        ],
+        [
+          "3.x",
+          "contacts, companies, s3, savedSearches"
+        ],
+        [
+          "4.x",
+          "linkedin, salesNavigator"
+        ],
+        [
+          "5.x",
+          "aiChats, resume"
+        ],
+        [
+          "6.x",
+          "analytics"
+        ],
+        [
+          "7.x",
+          "admin"
+        ],
+        [
+          "8.x",
+          "pages, profile, twoFactor"
+        ],
+        [
+          "9.x",
+          "notifications, featureOverview, webhooks, integrations"
+        ],
+        [
+          "10.x",
+          "campaigns, sequences, campaignTemplates (scaffold — not mounted in `schema.py` yet)"
+        ]
+      ]
+    },
+    {
+      "section_heading": "module_index",
+      "headers": [
+        "number",
+        "module",
+        "era",
+        "doc",
+        "queries",
+        "mutations"
+      ],
+      "rows": [
+        [
+          "01",
+          "auth",
+          "0.x",
+          "01_AUTH_MODULE.md",
+          "['me', 'session']",
+          "['login', 'register', 'logout', 'refresh_token']"
+        ],
+        [
+          "02",
+          "users",
+          "1.x",
+          "02_USERS_MODULE.md",
+          "['user', 'users', 'userStats']",
+          "['update_profile', 'upload_avatar', 'update_user', 'promote_to_admin', 'promote_to_super_admin']"
+        ],
+        [
+          "03",
+          "contacts",
+          "3.x",
+          "03_CONTACTS_MODULE.md",
+          "['contact', 'contacts', 'contactCount', 'contactQuery', 'filters', 'filterData']",
+          "['createContact', 'batchCreateContacts', 'importContacts', 'updateContact', 'deleteContact', 'exportContacts']"
+        ],
+        [
+          "04",
+          "companies",
+          "3.x",
+          "04_COMPANIES_MODULE.md",
+          "['company', 'companies', 'companyCount', 'companyQuery', 'companyContacts', 'filters', 'filterData']",
+          "['createCompany', 'exportCompanies', 'importCompanies', 'updateCompany', 'deleteCompany']"
+        ],
+        [
+          "05",
+          "notifications",
+          "9.x",
+          "05_NOTIFICATIONS_MODULE.md",
+          "['notifications', 'notification', 'unreadCount', 'notificationPreferences']",
+          "['markNotificationAsRead', 'markNotificationsAsRead', 'deleteNotifications', 'updateNotificationPreferences']"
+        ],
+        [
+          "06",
+          "webhooks",
+          "9.x",
+          "06_WEBHOOKS_MODULE.md",
+          "[]",
+          "[]"
+        ],
+        [
+          "07",
+          "s3",
+          "3.x",
+          "07_S3_MODULE.md",
+          "['s3Files', 's3FileData', 's3FileInfo', 's3FileDownloadUrl', 's3FileSchema', 's3FileStats', 's3BucketMetadata']",
+          "['initiateCsvUpload', 'completeCsvUpload', 'deleteFile']"
+        ],
+        [
+          "08",
+          "health",
+          "0.x",
+          "08_HEALTH_MODULE.md",
+          "['apiMetadata', 'apiHealth', 'vqlHealth', 'vqlStats', 'performanceStats']",
+          "[]"
+        ],
+        [
+          "09",
+          "usage",
+          "1.x",
+          "09_USAGE_MODULE.md",
+          "['usage', 'featureOverview']",
+          "['trackUsage', 'resetUsage']"
+        ],
+        [
+          "10",
+          "upload",
+          "2.x",
+          "10_UPLOAD_MODULE.md",
+          "['uploadStatus', 'presignedUrl']",
+          "['initiateUpload', 'registerPart', 'completeUpload', 'abortUpload']"
+        ],
+        [
+          "11",
+          "activities",
+          "1.x",
+          "11_ACTIVITIES_MODULE.md",
+          "['activities', 'activityStats']",
+          "[]"
+        ],
+        [
+          "13",
+          "admin",
+          "7.x",
+          "13_ADMIN_MODULE.md",
+          "['users', 'usersWithBuckets', 'userStats', 'userHistory', 'logStatistics', 'logs', 'searchLogs']",
+          "['updateUserRole', 'updateUserCredits', 'deleteUser', 'promoteToAdmin', 'promoteToSuperAdmin', 'createLog', 'createLogsBatch', 'updateLog', 'deleteLog', 'deleteLogsBulk']"
+        ],
+        [
+          "14",
+          "billing",
+          "1.x",
+          "14_BILLING_MODULE.md",
+          "['billing', 'plans', 'addons', 'invoices', 'paymentInstructions', 'paymentSubmissions']",
+          "['subscribe', 'purchaseAddon', 'submitPaymentProof', 'approvePayment', 'declinePayment']"
+        ],
+        [
+          "15",
+          "email",
+          "2.x",
+          "15_EMAIL_MODULE.md",
+          "['findEmails', 'findEmailsBulk', 'verifySingleEmail', 'verifyEmailsBulk', 'emailJobStatus', 'webSearch', 'exportEmails', 'verifyexportEmail', 'predictEmailPattern', 'predictEmailPatternBulk']",
+          "['addEmailPattern', 'addEmailPatternBulk']"
+        ],
+        [
+          "16",
+          "jobs",
+          "2.x",
+          "16_JOBS_MODULE.md",
+          "['job', 'jobs']",
+          "['createEmailFinderExport', 'createEmailVerifyExport', 'createEmailPatternExport', 'createContact360Export', 'createContact360Import', 'pauseJob', 'resumeJob', 'terminateJob', 'retryJob']"
+        ],
+        [
+          "17",
+          "aiChats",
+          "5.x",
+          "17_AI_CHATS_MODULE.md",
+          "['aiChat', 'aiChats']",
+          "['createAIChat', 'updateAIChat', 'deleteAIChat', 'sendMessage', 'analyzeEmailRisk', 'generateCompanySummary', 'parseContactFilters']"
+        ],
+        [
+          "18",
+          "analytics",
+          "6.x",
+          "18_ANALYTICS_MODULE.md",
+          "['performanceMetrics', 'aggregateMetrics']",
+          "['submitPerformanceMetric']"
+        ],
+        [
+          "19",
+          "pages",
+          "8.x",
+          "19_PAGES_MODULE.md",
+          "['page', 'pages', 'pageContent', 'pagesByType', 'pageTypes', 'pageStatistics', 'pagesByState', 'pagesByStateCount', 'pagesByUserType', 'pagesByDocsaiUserType', 'myPages', 'pageAccessControl', 'pageSections', 'pageComponents', 'pageEndpoints', 'pageVersions', 'dashboardPages', 'marketingPages']",
+          "[]"
+        ],
+        [
+          "20",
+          "integrations",
+          "9.x",
+          "20_INTEGRATIONS_MODULE.md",
+          "[]",
+          "[]"
+        ],
+        [
+          "21",
+          "linkedin",
+          "4.x",
+          "21_LINKEDIN_MODULE.md",
+          "[]",
+          "['search', 'upsertByLinkedInUrl']"
+        ],
+        [
+          "22",
+          "campaigns",
+          "10.x",
+          "22_CAMPAIGNS_MODULE.md",
+          "[]",
+          "[]"
+        ],
+        [
+          "23",
+          "salesNavigator",
+          "4.x",
+          "23_SALES_NAVIGATOR_MODULE.md",
+          "['salesNavigatorRecords']",
+          "['saveSalesNavigatorProfiles']"
+        ],
+        [
+          "24",
+          "sequences",
+          "10.x",
+          "24_SEQUENCES_MODULE.md",
+          "[]",
+          "[]"
+        ],
+        [
+          "25",
+          "campaignTemplates",
+          "10.x",
+          "25_CAMPAIGN_TEMPLATES_MODULE.md",
+          "[]",
+          "[]"
+        ],
+        [
+          "26",
+          "savedSearches",
+          "3.x",
+          "26_SAVED_SEARCHES_MODULE.md",
+          "['listSavedSearches', 'getSavedSearch']",
+          "['createSavedSearch', 'updateSavedSearch', 'deleteSavedSearch', 'updateSavedSearchUsage']"
+        ],
+        [
+          "27",
+          "twoFactor",
+          "8.x",
+          "27_TWO_FACTOR_MODULE.md",
+          "['get2FAStatus']",
+          "['setup2FA', 'verify2FA', 'disable2FA', 'regenerateBackupCodes']"
+        ],
+        [
+          "28",
+          "profile",
+          "8.x",
+          "28_PROFILE_MODULE.md",
+          "['listAPIKeys', 'listSessions', 'listTeamMembers']",
+          "['createAPIKey', 'deleteAPIKey', 'revokeSession', 'revokeAllOtherSessions', 'inviteTeamMember', 'updateTeamMemberRole', 'removeTeamMember']"
+        ],
+        [
+          "29",
+          "resume",
+          "5.x",
+          "29_RESUME_MODULE.md",
+          "['resumes', 'resume']",
+          "['saveResume', 'deleteResume']"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "0.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **downstream_clients_added** **gaps_at_0x** **config_keys_required**"
+    },
+    {
+      "heading": "1.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **downstream_clients_added** **config_keys_required**"
+    },
+    {
+      "heading": "2.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **downstream_clients_added** **bugs_to_fix** **config_keys_required**"
+    },
+    {
+      "heading": "3.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **downstream_clients_added** **config_keys_required**"
+    },
+    {
+      "heading": "4.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **downstream_clients_added** **config_keys_required**"
+    },
+    {
+      "heading": "5.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **downstream_clients_added** **config_keys_required**"
+    },
+    {
+      "heading": "6.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **config_keys_required**"
+    },
+    {
+      "heading": "7.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **config_keys_required**"
+    },
+    {
+      "heading": "8.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **db_columns_added** **downstream_clients_added** **config_keys_required**"
+    },
+    {
+      "heading": "9.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **config_keys_required**"
+    },
+    {
+      "heading": "10.x",
+      "level": 3,
+      "prose": "**active_modules** **db_tables_added** **downstream_clients_added** **prerequisites** **config_keys_required**"
+    },
+    {
+      "heading": "known_gaps",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Era alignment",
+      "level": 2,
+      "prose": "See **era_focus** and route tables above — themes match [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md#era-tags-on-endpoints)."
+    },
+    {
+      "heading": "Related",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `appointment360_endpoint_era_matrix.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"appointment360 — era matrix\"\nsource_json: appointment360_endpoint_era_matrix.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

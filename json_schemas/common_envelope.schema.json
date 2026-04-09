@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/common_envelope",
+  "title": "Common Document Envelope",
+  "description": "Shared envelope for typed docs. When non_parsed_raw_markdown is empty, raw_markdown is omitted (structured fields are sufficient). When non_parsed_raw_markdown is non-empty, raw_markdown must hold the full source for gap reconciliation.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "kind",
+    "source_path",
+    "sha256_source",
+    "generated_at",
+    "title",
+    "non_parsed_raw_markdown"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "JSON schema version; increment when envelope fields change"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["index", "hub", "era_task", "graphql_module", "endpoint_matrix", "page_spec", "document"],
+      "description": "Content kind; determines which kind-specific schema applies"
+    },
+    "source_path": {
+      "type": "string",
+      "description": "Relative path of the source .md file from docs/"
+    },
+    "sha256_source": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hex digest of the original markdown file"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp when this JSON was generated"
+    },
+    "title": {
+      "type": "string",
+      "description": "Document title extracted from the first # heading"
+    },
+    "raw_markdown": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Full original markdown (UTF-8). Required only when non_parsed_raw_markdown is non-empty; omitted when the heuristic found no gaps."
+    },
+    "non_parsed_raw_markdown": {
+      "type": "string",
+      "minLength": 0,
+      "description": "Heuristic gap capture: always includes YAML front matter when present; body is line- and fenced-code–aware, compared to structured fields via substring, heading/title match, and token-overlap thresholds (adaptive 0.86–0.97). If estimated unparsed body would exceed ~35% of full raw length, body gaps are omitted so this field does not duplicate most of raw_markdown."
+    }
+  }
+}

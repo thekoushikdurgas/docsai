@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "0. Foundation and pre-product stabilization and codebase setup/0.5.10 — Satellite.md",
+  "sha256_source": "bb53c5ae43b84c0c14c586ae6f8177525726aceafa247b538fc01289ffb5c78b",
+  "generated_at": "2026-04-08T23:11:49.652346+00:00",
+  "title": "Version 0.5.10 — Satellite",
+  "version": "0.5.10",
+  "codename": "Satellite",
+  "era": 0,
+  "minor": 5,
+  "patch": 10,
+  "status": "completed",
+  "summary": "Five-track delivery (contract / service / surface / data / ops) for this doc:",
+  "scope": null,
+  "flowcharts": [
+    "flowchart LR\n  contract[Contract]\n  service[Service]\n  surface[Surface]\n  data[Data]\n  ops[Ops]\n  gate[Release gate]\n\n  contract --> gate\n  service --> gate\n  surface --> gate\n  data --> gate\n  ops --> gate"
+  ],
+  "micro_gate": "",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "unknown",
+        "text": "Documented s3storage satellite queue: Postgres `s3storage_metadata_jobs` via `internal/pgqueue` (not Redis/Asynq).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "unknown",
+        "text": "`go.mod` toolchain line + `golang:1.23-alpine` with `GOTOOLCHAIN=auto` in Dockerfile so `go mod download` / build can use the required Go version.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`internal/api/router.go`: `X-Request-ID`, session TTL sweeper, avatar `ext` query, complete-on-queue-error still removes upload session.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`cmd/worker/main.go`: graceful shutdown on SIGINT/SIGTERM.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "unknown",
+        "text": "No dashboard MV3/UI change in this patch; satellite serves presigned flows consumed by `contact360.io/app` and workers only.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "unknown",
+        "text": "Queue durability for metadata jobs: Postgres `s3storage_metadata_jobs` via `internal/pgqueue`; multipart session TTL sweep limits orphan state in memory.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "unknown",
+        "text": "`docker-compose.yml` for local Postgres + api + worker; uses **`.env.compose`** (gitignored, copy from `.env.compose.example`) so `docker compose config` does not load a full production `.env`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "`scripts/api_tester.py` (stdlib) and `scripts/sql_cli.py` (psycopg2-binary).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 0.5.10 — Satellite",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Evidence",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

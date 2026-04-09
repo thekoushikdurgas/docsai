@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/era_task",
+  "title": "Era Task Document",
+  "description": "Generated from docs/[0-10]. */X.Y.Z — Codename.md era patch/minor files",
+  "allOf": [{ "$ref": "common_envelope.schema.json" }],
+  "properties": {
+    "kind": { "const": "era_task" },
+    "version": {
+      "type": "string",
+      "description": "Semantic version string e.g. '0.3' or '0.3.5'"
+    },
+    "codename": {
+      "type": ["string", "null"],
+      "description": "Codename from filename e.g. 'Service mesh contracts'"
+    },
+    "era": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Era number (0-10)"
+    },
+    "minor": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Minor version number"
+    },
+    "patch": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Patch number (null for minor-level docs)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "in_progress", "planned", "incomplete"],
+      "description": "Status from the Status bullet in the doc"
+    },
+    "summary": {
+      "type": ["string", "null"],
+      "description": "Summary paragraph from the doc"
+    },
+    "scope": {
+      "type": ["string", "null"],
+      "description": "Scope section prose"
+    },
+    "flowcharts": {
+      "type": "array",
+      "description": "Mermaid diagram strings from ## Flowchart sections",
+      "items": { "type": "string" }
+    },
+    "micro_gate": {
+      "type": ["string", "null"],
+      "description": "## Micro-gate section prose"
+    },
+    "evidence_gate": {
+      "type": ["string", "null"],
+      "description": "## Evidence gate section prose"
+    },
+    "task_tracks": {
+      "type": "object",
+      "description": "Five tracks: Contract / Service / Surface / Data / Ops",
+      "properties": {
+        "contract": { "$ref": "#/$defs/task_list" },
+        "service": { "$ref": "#/$defs/task_list" },
+        "surface": { "$ref": "#/$defs/task_list" },
+        "data": { "$ref": "#/$defs/task_list" },
+        "ops": { "$ref": "#/$defs/task_list" }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Any additional sections not covered by task_tracks",
+      "items": {
+        "type": "object",
+        "required": ["heading", "level", "prose"],
+        "properties": {
+          "heading": { "type": "string" },
+          "level": { "type": "integer" },
+          "prose": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "task_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["completed", "in_progress", "planned", "incomplete", "unknown"],
+            "description": "Parsed from emoji prefix: ✅=completed 🟡=in_progress 📌=planned"
+          },
+          "text": { "type": "string", "description": "Full task text with emoji stripped" },
+          "codebase": { "type": ["string", "null"], "description": "[codebase] tag if present" },
+          "area": { "type": ["string", "null"], "description": "area: tag if present" },
+          "files": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "files: references if present"
+          }
+        }
+      }
+    }
+  }
+}

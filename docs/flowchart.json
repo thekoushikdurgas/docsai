@@ -1,0 +1,1102 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/flowchart.md",
+  "sha256_source": "149dd84feedcd63055eebcd42f5731d3148473dc516c3c44d7c0cf0857fff1c4",
+  "generated_at": "2026-04-08T23:26:48.058201+00:00",
+  "title": "Contact360 Flowcharts",
+  "sections": [
+    {
+      "heading": "Contact360 Flowcharts",
+      "level": 1,
+      "slug": "contact360-flowcharts",
+      "prose": "**Docs hub:** Era work is filed under `docs/0. …` through `docs/10. …` (see [`docs/README.md`](../README.md#era-map-0xx-to-10xx)). Each **minor** markdown file in those folders includes a `## Flowchart` section; this page is the **master** cross-system view and includes the era progression strip below.\n\n**Sync contract:** After minors or API/UI changes, follow [`docs-sync-contract.md`](docs-sync-contract.md) (frontend pages, endpoint matrices, codebase analyses, admin observability).\n\n**Plan execution log:** codebase checkpoint after bulk plan work — see [`docs/codebases/ERA_IMPLEMENTATION_PROGRESS.md`](../codebases/ERA_IMPLEMENTATION_PROGRESS.md) and [`docs/codebases/P0_BLOCKERS_VERIFICATION.md`](../codebases/P0_BLOCKERS_VERIFICATION.md).\n\n**Implementation note:** The GraphQL hub is **`contact360.io/api` (Python)**; downstream services may be Go/Gin or Python per **`docs/docs/backend-language-strategy.md`**. Diagrams below describe logical flows, not a single runtime language.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`docs/README.md`",
+          "href": "../README.md#era-map-0xx-to-10xx"
+        },
+        {
+          "text": "`docs-sync-contract.md`",
+          "href": "docs-sync-contract.md"
+        },
+        {
+          "text": "`docs/codebases/ERA_IMPLEMENTATION_PROGRESS.md`",
+          "href": "../codebases/ERA_IMPLEMENTATION_PROGRESS.md"
+        },
+        {
+          "text": "`docs/codebases/P0_BLOCKERS_VERIFICATION.md`",
+          "href": "../codebases/P0_BLOCKERS_VERIFICATION.md"
+        }
+      ]
+    },
+    {
+      "heading": "Core request flow",
+      "level": 2,
+      "slug": "core-request-flow",
+      "prose": "```mermaid\nflowchart LR\n    user[\"User / Workspace\"]\n    dash[\"Next.js dashboard / Extension\"]\n    mkt[\"Next.js marketing\"]\n    gateway[\"appointment360 GraphQL\"]\n    finder[\"emailapis / emailapigo\"]\n    emailApp[\"Next.js email app\"]\n    verify[\"mailvetter\"]\n    search[\"connectra EC2\"]\n    jobs[\"email.server + sync.server\\n(async jobs)\"]\n    files[\"s3storage EC2\"]\n    logs[\"logs EC2\"]\n    ai[\"ai.server EC2\"]\n    ext[\"extension.server EC2\"]\n    campaign[\"email campaign EC2\"]\n\n    user --> dash --> gateway\n    user --> mkt\n    mkt -->|\"reads (GraphQL)\"| gateway\n    mkt -->|\"auth CTAs\"| dash\n    gateway --> finder\n    emailApp --> finder\n    emailApp --> verify\n    gateway --> verify\n    gateway --> search\n    gateway --> jobs\n    gateway --> ai\n    gateway --> campaign\n    gateway --> ext\n    jobs --> files\n    gateway --> logs\n    jobs --> logs\n```\n\nMarketing is unauthenticated: it may call GraphQL for **read-only** product data where configured, and routes **sign-in / sign-up** flows to the dashboard for authenticated actions.\n\n**Code paths (this monorepo):** GraphQL gateway → `contact360.io/api/`; Connectra → `contact360.io/sync/`; TKD Job → `contact360.io/jobs/`; dashboard → `contact360.io/app/`; marketing → `contact360.io/root/`. Shared email/log/storage **source** still lives under `lambda/*` (built as Docker images in production); Mailvetter and several integrations may live under `backend(dev)/` depending on checkout. **Deployment topology (EC2, subdomains, RDS/OpenSearch/S3):** `deploy/aws/SYSTEM_DESIGN.md`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    user[\"User / Workspace\"]\n    dash[\"Next.js dashboard / Extension\"]\n    mkt[\"Next.js marketing\"]\n    gateway[\"appointment360 GraphQL\"]\n    finder[\"emailapis / emailapigo\"]\n    emailApp[\"Next.js email app\"]\n    verify[\"mailvetter\"]\n    search[\"connectra EC2\"]\n    jobs[\"email.server + sync.server\\n(async jobs)\"]\n    files[\"s3storage EC2\"]\n    logs[\"logs EC2\"]\n    ai[\"ai.server EC2\"]\n    ext[\"extension.server EC2\"]\n    campaign[\"email campaign EC2\"]\n\n    user --> dash --> gateway\n    user --> mkt\n    mkt -->|\"reads (GraphQL)\"| gateway\n    mkt -->|\"auth CTAs\"| dash\n    gateway --> finder\n    emailApp --> finder\n    emailApp --> verify\n    gateway --> verify\n    gateway --> search\n    gateway --> jobs\n    gateway --> ai\n    gateway --> campaign\n    gateway --> ext\n    jobs --> files\n    gateway --> logs\n    jobs --> logs\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Stage execution decomposition flow (per minor)",
+      "level": 2,
+      "slug": "stage-execution-decomposition-flow-per-minor",
+      "prose": "```mermaid\nflowchart TD\n    stage[\"Roadmap stage X.Y\"]\n    contract[\"Contract tasks\"]\n    service[\"Service tasks\"]\n    surface[\"Surface tasks\"]\n    data[\"Data tasks\"]\n    ops[\"Ops tasks\"]\n    release[\"Version entry + release gate\"]\n\n    stage --> contract\n    stage --> service\n    stage --> surface\n    stage --> data\n    stage --> ops\n    contract --> release\n    service --> release\n    surface --> release\n    data --> release\n    ops --> release\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    stage[\"Roadmap stage X.Y\"]\n    contract[\"Contract tasks\"]\n    service[\"Service tasks\"]\n    surface[\"Surface tasks\"]\n    data[\"Data tasks\"]\n    ops[\"Ops tasks\"]\n    release[\"Version entry + release gate\"]\n\n    stage --> contract\n    stage --> service\n    stage --> surface\n    stage --> data\n    stage --> ops\n    contract --> release\n    service --> release\n    surface --> release\n    data --> release\n    ops --> release\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Era transition flow (7.x -> 10.x)",
+      "level": 2,
+      "slug": "era-transition-flow-7x---10x",
+      "prose": "```mermaid\nflowchart LR\n    v7[\"7.x Deployment\"]\n    v8[\"8.x Public & Private APIs\"]\n    v9[\"9.x Ecosystem + Productization\"]\n    v10[\"10.x Email Campaign\"]\n\n    v7 -->|\"secure & auditable deployment\"| v8\n    v8 -->|\"stable versioned APIs\"| v9\n    v9 -->|\"ecosystem + tenant maturity\"| v10\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    v7[\"7.x Deployment\"]\n    v8[\"8.x Public & Private APIs\"]\n    v9[\"9.x Ecosystem + Productization\"]\n    v10[\"10.x Email Campaign\"]\n\n    v7 -->|\"secure & auditable deployment\"| v8\n    v8 -->|\"stable versioned APIs\"| v9\n    v9 -->|\"ecosystem + tenant maturity\"| v10\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contact360 master view",
+      "level": 2,
+      "slug": "contact360-master-view",
+      "prose": "This section ties together three layers already documented above:\n\n- **Runtime:** [Core request flow](#core-request-flow) — authenticated and marketing paths through Appointment360 GraphQL to finder, verifier, Connectra, jobs, AI, and storage.\n- **Delivery:** [Stage execution decomposition flow](#stage-execution-decomposition-flow-per-minor) — contract / service / surface / data / ops tracks feeding a version entry and release gate (see [`docs/version-policy.md`](version-policy.md)).\n- **Era roadmap:** Long-horizon majors from Foundation through Email Campaign (see [`docs/version-policy.md`](version-policy.md) for full theme definitions).\n\n**Per-minor drill-down:** Canonical minors live under **`docs/0. Foundation …`** through **`docs/10. Contact360 email campaign`** (see [`docs/README.md`](../README.md) era index). Each minor markdown file (e.g. `1.0 — User Genesis.md`) includes a **## Flowchart** section with the five-track delivery diagram and a **### Runtime focus** diagram. Optional historical stubs under `docs/versions/version_*.md` are not required for execution. Use era folders for release planning detail; use this page for the full system picture.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Runtime:** [Core request flow](#core-request-flow) — authenticated and marketing paths through Appointment360 GraphQL to finder, verifier, Connectra, jobs, AI, and storage.",
+              "checked": null
+            },
+            {
+              "text": "**Delivery:** [Stage execution decomposition flow](#stage-execution-decomposition-flow-per-minor) — contract / service / surface / data / ops tracks feeding a version entry and release gate (see [`docs/version-policy.md`](version-policy.md)).",
+              "checked": null
+            },
+            {
+              "text": "**Era roadmap:** Long-horizon majors from Foundation through Email Campaign (see [`docs/version-policy.md`](version-policy.md) for full theme definitions).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "Core request flow",
+          "href": "#core-request-flow"
+        },
+        {
+          "text": "Stage execution decomposition flow",
+          "href": "#stage-execution-decomposition-flow-per-minor"
+        },
+        {
+          "text": "`docs/version-policy.md`",
+          "href": "version-policy.md"
+        },
+        {
+          "text": "`docs/version-policy.md`",
+          "href": "version-policy.md"
+        },
+        {
+          "text": "`docs/README.md`",
+          "href": "../README.md"
+        }
+      ]
+    },
+    {
+      "heading": "Era progression strip (0.x → 10.x)",
+      "level": 3,
+      "slug": "era-progression-strip-0x-10x",
+      "prose": "```mermaid\nflowchart LR\n    era0[\"0.x Foundation\"]\n    era1[\"1.x User/Billing/Credit\"]\n    era2[\"2.x Email System\"]\n    era3[\"3.x Contact & Company Data\"]\n    era4[\"4.x Extension & SN\"]\n    era5[\"5.x AI Workflows\"]\n    era6[\"6.x Reliability & Scaling\"]\n    era7[\"7.x Deployment\"]\n    era8[\"8.x Public & Private APIs\"]\n    era9[\"9.x Ecosystem & Productization\"]\n    era10[\"10.x Email Campaign\"]\n\n    era0 --> era1 --> era2 --> era3 --> era4 --> era5 --> era6 --> era7 --> era8 --> era9 --> era10\n```\n\nThemes align with [`docs/version-policy.md`](version-policy.md) (*Major themes*) and [`docs/versions.md`](versions.md).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    era0[\"0.x Foundation\"]\n    era1[\"1.x User/Billing/Credit\"]\n    era2[\"2.x Email System\"]\n    era3[\"3.x Contact & Company Data\"]\n    era4[\"4.x Extension & SN\"]\n    era5[\"5.x AI Workflows\"]\n    era6[\"6.x Reliability & Scaling\"]\n    era7[\"7.x Deployment\"]\n    era8[\"8.x Public & Private APIs\"]\n    era9[\"9.x Ecosystem & Productization\"]\n    era10[\"10.x Email Campaign\"]\n\n    era0 --> era1 --> era2 --> era3 --> era4 --> era5 --> era6 --> era7 --> era8 --> era9 --> era10\n"
+        }
+      ],
+      "links": [
+        {
+          "text": "`docs/version-policy.md`",
+          "href": "version-policy.md"
+        },
+        {
+          "text": "`docs/versions.md`",
+          "href": "versions.md"
+        }
+      ]
+    },
+    {
+      "heading": "Frontend surfaces by product era (UI track)",
+      "level": 2,
+      "slug": "frontend-surfaces-by-product-era-ui-track",
+      "prose": "Maps Contact360 **version eras** to **where users interact** (dashboard, marketing, extension). Detailed page lists: [`docs/frontend/README.md`](frontend/README.md) and [`docs/frontend/pages/README.md`](frontend/pages/README.md).\n\n```mermaid\nflowchart TB\n    subgraph e1[\"1.x User / billing / credit\"]\n        a1[\"Auth · profile · billing · usage\"]\n    end\n    subgraph e2[\"2.x Email system\"]\n        a2[\"Finder · verifier · bulk / jobs\"]\n    end\n    subgraph e3[\"3.x Contact & company data\"]\n        a3[\"Contacts · companies · search UX\"]\n    end\n    subgraph e4[\"4.x Extension & SN\"]\n        a4[\"extension/contact360\"]\n    end\n    subgraph e5[\"5.x AI workflows\"]\n        a5[\"AI chat · AI-assisted flows\"]\n    end\n    subgraph e8[\"8.x Public & private APIs\"]\n        a8[\"API docs · integrations · analytics UI\"]\n    end\n    subgraph e10[\"10.x Email campaign\"]\n        a10[\"Campaign UI when shipped\"]\n    end\n    e1 --> e2 --> e3\n    e3 --> e4\n    e4 --> e5\n    e5 -.->|\"6.x–7.x: reliability + deployment\"| e8\n    e8 -.->|\"9.x ecosystem\"| e10\n```\n\n**Canonical UI paths:** [`docs/frontend.md`](frontend.md) (`contact360.io/app`, `root`, `admin`, `extension/contact360`).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TB\n    subgraph e1[\"1.x User / billing / credit\"]\n        a1[\"Auth · profile · billing · usage\"]\n    end\n    subgraph e2[\"2.x Email system\"]\n        a2[\"Finder · verifier · bulk / jobs\"]\n    end\n    subgraph e3[\"3.x Contact & company data\"]\n        a3[\"Contacts · companies · search UX\"]\n    end\n    subgraph e4[\"4.x Extension & SN\"]\n        a4[\"extension/contact360\"]\n    end\n    subgraph e5[\"5.x AI workflows\"]\n        a5[\"AI chat · AI-assisted flows\"]\n    end\n    subgraph e8[\"8.x Public & private APIs\"]\n        a8[\"API docs · integrations · analytics UI\"]\n    end\n    subgraph e10[\"10.x Email campaign\"]\n        a10[\"Campaign UI when shipped\"]\n    end\n    e1 --> e2 --> e3\n    e3 --> e4\n    e4 --> e5\n    e5 -.->|\"6.x–7.x: reliability + deployment\"| e8\n    e8 -.->|\"9.x ecosystem\"| e10\n"
+        }
+      ],
+      "links": [
+        {
+          "text": "`docs/frontend/README.md`",
+          "href": "frontend/README.md"
+        },
+        {
+          "text": "`docs/frontend/pages/README.md`",
+          "href": "frontend/pages/README.md"
+        },
+        {
+          "text": "`docs/frontend.md`",
+          "href": "frontend.md"
+        }
+      ]
+    },
+    {
+      "heading": "UI user journey flows",
+      "level": 2,
+      "slug": "ui-user-journey-flows",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Auth and onboarding flow (1.x)",
+      "level": 3,
+      "slug": "auth-and-onboarding-flow-1x",
+      "prose": "```mermaid\nflowchart TD\n    landing[\"Landing page\\n(contact360.io/root/)\"]\n    cta[\"Sign up CTA\"]\n    register[\"Register page\\n/register\"]\n    login[\"Login page\\n/login\"]\n    session[\"Session created\\n(JWT token stored)\"]\n    dashboard[\"Dashboard\\n/dashboard\"]\n    gated[\"DashboardAccessGate\\n(role check)\"]\n\n    landing --> cta --> register\n    register -->|\"submit\"| session\n    landing --> login\n    login -->|\"submit\"| session\n    session --> gated --> dashboard\n```\n\n**Components:** `AuthErrorBanner`, register/login form fields, `useLoginForm`, `useRegisterForm`, `AuthContext`, `RoleContext`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    landing[\"Landing page\\n(contact360.io/root/)\"]\n    cta[\"Sign up CTA\"]\n    register[\"Register page\\n/register\"]\n    login[\"Login page\\n/login\"]\n    session[\"Session created\\n(JWT token stored)\"]\n    dashboard[\"Dashboard\\n/dashboard\"]\n    gated[\"DashboardAccessGate\\n(role check)\"]\n\n    landing --> cta --> register\n    register -->|\"submit\"| session\n    landing --> login\n    login -->|\"submit\"| session\n    session --> gated --> dashboard\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email finder flow (2.x)",
+      "level": 3,
+      "slug": "email-finder-flow-2x",
+      "prose": "```mermaid\nflowchart TD\n    user[\"User enters:\\nFirst Name · Last Name · Domain\"]\n    submit[\"Submit\\n(useEmailFinderSingle)\"]\n    credit[\"Credit check\\n(RoleContext / featureAccess)\"]\n    api[\"emailService → GraphQL\\nFindEmail\"]\n    gateway[\"Appointment360\\n(credit deduction)\"]\n    emailapis[\"emailapis / emailapigo\\n(10-pattern generation)\"]\n    result[\"Result card\\n(email + confidence)\"]\n    log[\"Activity log\\n(logs.api)\"]\n\n    user --> submit --> credit\n    credit -->|\"has credits\"| api\n    credit -->|\"no credits\"| blocked[\"CreditBudgetAlerts\\n(low-credit warning)\"]\n    api --> gateway --> emailapis --> result\n    gateway --> log\n```\n\n**Components:** Email input row, `EmailVerifierResult`, `CreditBudgetAlerts`\n**Hooks:** `useEmailFinderSingle`\n**Services:** `emailService`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    user[\"User enters:\\nFirst Name · Last Name · Domain\"]\n    submit[\"Submit\\n(useEmailFinderSingle)\"]\n    credit[\"Credit check\\n(RoleContext / featureAccess)\"]\n    api[\"emailService → GraphQL\\nFindEmail\"]\n    gateway[\"Appointment360\\n(credit deduction)\"]\n    emailapis[\"emailapis / emailapigo\\n(10-pattern generation)\"]\n    result[\"Result card\\n(email + confidence)\"]\n    log[\"Activity log\\n(logs.api)\"]\n\n    user --> submit --> credit\n    credit -->|\"has credits\"| api\n    credit -->|\"no credits\"| blocked[\"CreditBudgetAlerts\\n(low-credit warning)\"]\n    api --> gateway --> emailapis --> result\n    gateway --> log\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email verifier flow (2.x)",
+      "level": 3,
+      "slug": "email-verifier-flow-2x",
+      "prose": "```mermaid\nflowchart TD\n    input[\"Email input\\n(single or bulk CSV)\"]\n    mode{\"Single\\nor bulk?\"}\n    single[\"EmailVerifierSingle\\n(submit form)\"]\n    bulk[\"FilesUploadModal\\n→ FilesCreateJobModal\"]\n    gql1[\"emailService\\nVerifyEmail\"]\n    gql2[\"jobsService\\n→ email / sync satellites\"]\n    mailvetter[\"mailvetter\\n(DNS/SMTP/SPF/DMARC)\"]\n    result1[\"EmailVerifierResult\\n(status badge + confidence bar)\"]\n    result2[\"JobsCard / JobsTable\\n(progress bar + status polling)\"]\n\n    input --> mode\n    mode -->|single| single --> gql1 --> mailvetter --> result1\n    mode -->|bulk| bulk --> gql2 --> mailvetter --> result2\n```\n\n**UI elements:** Progress bar (bulk), confidence bar (single), status badge\n**Hooks:** `useEmailVerifierSingle`, `useEmailVerifierBulk`, `useNewExport`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    input[\"Email input\\n(single or bulk CSV)\"]\n    mode{\"Single\\nor bulk?\"}\n    single[\"EmailVerifierSingle\\n(submit form)\"]\n    bulk[\"FilesUploadModal\\n→ FilesCreateJobModal\"]\n    gql1[\"emailService\\nVerifyEmail\"]\n    gql2[\"jobsService\\n→ email / sync satellites\"]\n    mailvetter[\"mailvetter\\n(DNS/SMTP/SPF/DMARC)\"]\n    result1[\"EmailVerifierResult\\n(status badge + confidence bar)\"]\n    result2[\"JobsCard / JobsTable\\n(progress bar + status polling)\"]\n\n    input --> mode\n    mode -->|single| single --> gql1 --> mailvetter --> result1\n    mode -->|bulk| bulk --> gql2 --> mailvetter --> result2\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contacts search and filter flow (3.x)",
+      "level": 3,
+      "slug": "contacts-search-and-filter-flow-3x",
+      "prose": "```mermaid\nflowchart TD\n    page[\"Contacts page\\n/contacts\"]\n    toolbar[\"DataToolbar\\n(search input + add button)\"]\n    filters[\"ContactsFilters / VQLQueryBuilder\\n(multi-select, range, text conditions)\"]\n    savedSearch[\"SavedSearchesModal\\n(load saved filter set)\"]\n    table[\"ContactsTable\\n(sortable, paginated)\"]\n    select[\"Row checkboxes\\n(multi-select)\"]\n    float[\"ContactsFloatingActions\\n(export / delete)\"]\n    export[\"ExportModal\\n(column picker)\"]\n    detail[\"ContactsMetadata panel\\n(DataPageLayout right panel)\"]\n\n    page --> toolbar\n    page --> filters\n    filters -->|\"apply VQL\"| table\n    savedSearch -->|\"load filters\"| filters\n    table --> select --> float\n    float -->|\"export\"| export\n    table -->|\"click row\"| detail\n    toolbar -->|\"search input\"| table\n```\n\n**Components:** `VQLQueryBuilder`, `ContactsFilters`, `FloatingActionBar`, `ExportModal`, `TablePagination`\n**Hooks:** `useContactsPage`, `useContactsFilters`, `useSavedSearches`, `useContactExport`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    page[\"Contacts page\\n/contacts\"]\n    toolbar[\"DataToolbar\\n(search input + add button)\"]\n    filters[\"ContactsFilters / VQLQueryBuilder\\n(multi-select, range, text conditions)\"]\n    savedSearch[\"SavedSearchesModal\\n(load saved filter set)\"]\n    table[\"ContactsTable\\n(sortable, paginated)\"]\n    select[\"Row checkboxes\\n(multi-select)\"]\n    float[\"ContactsFloatingActions\\n(export / delete)\"]\n    export[\"ExportModal\\n(column picker)\"]\n    detail[\"ContactsMetadata panel\\n(DataPageLayout right panel)\"]\n\n    page --> toolbar\n    page --> filters\n    filters -->|\"apply VQL\"| table\n    savedSearch -->|\"load filters\"| filters\n    table --> select --> float\n    float -->|\"export\"| export\n    table -->|\"click row\"| detail\n    toolbar -->|\"search input\"| table\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Bulk CSV job flow (2.x / jobs)",
+      "level": 3,
+      "slug": "bulk-csv-job-flow-2x-jobs",
+      "prose": "```mermaid\nflowchart TD\n    upload[\"FilesUploadModal\\n(drag-and-drop CSV)\"]\n    s3[\"s3Service\\n(presigned upload → S3)\"]\n    preview[\"DataPreviewTable\\n(first N rows)\"]\n    schema[\"FilesSchemaPanel\\n(column types)\"]\n    createJob[\"FilesCreateJobModal\\n(job type: finder / verifier)\"]\n    mapping[\"EmailMappingModal\\n(column → field mapping)\"]\n    jobApi[\"jobsService\\nCreateJob\"]\n    satellite[\"email.server /\\nsync.server worker\"]\n    polling[\"JobsCard / JobsTable\\n(progress bar + status)\"]\n    output[\"FilesDownloadModal\\n(download CSV result)\"]\n\n    upload --> s3 --> preview\n    preview --> schema\n    preview --> createJob\n    createJob --> mapping --> jobApi --> satellite\n    satellite -->|\"progress updates\"| polling\n    polling -->|\"completed\"| output\n```\n\n**UI elements:** File drag-and-drop, progress bar, radio buttons (job type), column mapping dropdowns, download button\n**Hooks:** `useNewExport`, `useCsvUpload`, `useFilePreview`, `useJobs`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    upload[\"FilesUploadModal\\n(drag-and-drop CSV)\"]\n    s3[\"s3Service\\n(presigned upload → S3)\"]\n    preview[\"DataPreviewTable\\n(first N rows)\"]\n    schema[\"FilesSchemaPanel\\n(column types)\"]\n    createJob[\"FilesCreateJobModal\\n(job type: finder / verifier)\"]\n    mapping[\"EmailMappingModal\\n(column → field mapping)\"]\n    jobApi[\"jobsService\\nCreateJob\"]\n    satellite[\"email.server /\\nsync.server worker\"]\n    polling[\"JobsCard / JobsTable\\n(progress bar + status)\"]\n    output[\"FilesDownloadModal\\n(download CSV result)\"]\n\n    upload --> s3 --> preview\n    preview --> schema\n    preview --> createJob\n    createJob --> mapping --> jobApi --> satellite\n    satellite -->|\"progress updates\"| polling\n    polling -->|\"completed\"| output\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Billing and credit purchase flow (1.x)",
+      "level": 3,
+      "slug": "billing-and-credit-purchase-flow-1x",
+      "prose": "```mermaid\nflowchart TD\n    low[\"CreditBudgetAlerts\\n(low credit threshold reached)\"]\n    billing[\"Billing page\\n/billing\"]\n    plans[\"Plan cards\\n(2-3 tiers)\"]\n    upi[\"UpiPaymentModal\\n(UPI QR + proof upload)\"]\n    submit[\"billingService\\nCreatePayment\"]\n    pending[\"Payment pending\\n(admin review)\"]\n    admin[\"Admin review\\n/admin → approvePayment\"]\n    credited[\"Credits applied\\n(useBilling polling)\"]\n\n    low -->|\"upgrade CTA\"| billing\n    billing --> plans --> upi\n    upi -->|\"upload proof + reference\"| submit --> pending\n    pending -->|\"admin approves\"| admin --> credited\n```\n\n**Components:** `UpiPaymentModal`, plan cards\n**UI elements:** File input, text input, submit button, progress indicator\n**Hooks:** `useBilling`, `useAdmin`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    low[\"CreditBudgetAlerts\\n(low credit threshold reached)\"]\n    billing[\"Billing page\\n/billing\"]\n    plans[\"Plan cards\\n(2-3 tiers)\"]\n    upi[\"UpiPaymentModal\\n(UPI QR + proof upload)\"]\n    submit[\"billingService\\nCreatePayment\"]\n    pending[\"Payment pending\\n(admin review)\"]\n    admin[\"Admin review\\n/admin → approvePayment\"]\n    credited[\"Credits applied\\n(useBilling polling)\"]\n\n    low -->|\"upgrade CTA\"| billing\n    billing --> plans --> upi\n    upi -->|\"upload proof + reference\"| submit --> pending\n    pending -->|\"admin approves\"| admin --> credited\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "AI chat flow (5.x)",
+      "level": 3,
+      "slug": "ai-chat-flow-5x",
+      "prose": "```mermaid\nflowchart TD\n    aiPage[\"AI chat page\\n/ai-chat\"]\n    input[\"Message input\\n(text area + send button)\"]\n    stream[\"useAIChat\\n(streaming SSE)\"]\n    gateway[\"Appointment360\\nGraphQL mutation\"]\n    lambdaAI[\"contact.ai\\n(HF/Gemini streaming)\"]\n    tokens[\"Token chunks\\n(SSE data: events)\"]\n    display[\"Chat message display\\n(streaming text render)\"]\n    confidence[\"Confidence badge\\n(when present)\"]\n    cost[\"AI quota check\\n(featureAccess)\"]\n\n    aiPage --> input --> stream\n    stream --> cost\n    cost -->|\"quota ok\"| gateway --> lambdaAI\n    lambdaAI -->|\"SSE chunks\"| tokens --> display\n    display --> confidence\n```\n\n**UI elements:** Streaming text display, AI confidence badge, typing indicator, stop button\n**Components:** Chat message components, `EmailAssistantPanel`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    aiPage[\"AI chat page\\n/ai-chat\"]\n    input[\"Message input\\n(text area + send button)\"]\n    stream[\"useAIChat\\n(streaming SSE)\"]\n    gateway[\"Appointment360\\nGraphQL mutation\"]\n    lambdaAI[\"contact.ai\\n(HF/Gemini streaming)\"]\n    tokens[\"Token chunks\\n(SSE data: events)\"]\n    display[\"Chat message display\\n(streaming text render)\"]\n    confidence[\"Confidence badge\\n(when present)\"]\n    cost[\"AI quota check\\n(featureAccess)\"]\n\n    aiPage --> input --> stream\n    stream --> cost\n    cost -->|\"quota ok\"| gateway --> lambdaAI\n    lambdaAI -->|\"SSE chunks\"| tokens --> display\n    display --> confidence\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Profile and settings flow (1.x)",
+      "level": 3,
+      "slug": "profile-and-settings-flow-1x",
+      "prose": "```mermaid\nflowchart TD\n    profile[\"Profile page\\n/profile\"]\n    tabs[\"Tabs:\\nGeneral · Security · Sessions · API Keys · Team\"]\n    general[\"ProfileTabGeneral\\n(name, email, password)\"]\n    sessions[\"useSessions\\n(list + revoke)\"]\n    twofa[\"TwoFactorModal\\n(enable/disable TOTP)\"]\n    apikeys[\"useAPIKeys\\n(create + revoke)\"]\n    team[\"useTeam\\n(invite + list members)\"]\n\n    profile --> tabs\n    tabs -->|\"General\"| general\n    tabs -->|\"Security\"| twofa\n    tabs -->|\"Sessions\"| sessions\n    tabs -->|\"API Keys\"| apikeys\n    tabs -->|\"Team\"| team\n```\n\n**UI elements:** Tabs, text inputs, toggle buttons, table rows with revoke buttons\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    profile[\"Profile page\\n/profile\"]\n    tabs[\"Tabs:\\nGeneral · Security · Sessions · API Keys · Team\"]\n    general[\"ProfileTabGeneral\\n(name, email, password)\"]\n    sessions[\"useSessions\\n(list + revoke)\"]\n    twofa[\"TwoFactorModal\\n(enable/disable TOTP)\"]\n    apikeys[\"useAPIKeys\\n(create + revoke)\"]\n    team[\"useTeam\\n(invite + list members)\"]\n\n    profile --> tabs\n    tabs -->|\"General\"| general\n    tabs -->|\"Security\"| twofa\n    tabs -->|\"Sessions\"| sessions\n    tabs -->|\"API Keys\"| apikeys\n    tabs -->|\"Team\"| team\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Admin control flow (1.x / 7.x)",
+      "level": 3,
+      "slug": "admin-control-flow-1x-7x",
+      "prose": "```mermaid\nflowchart TD\n    adminPage[\"Admin page\\n/admin\"]\n    tabs2[\"Tabs:\\nUsers · Payments · Settings\"]\n    users[\"User list\\n(useAdmin)\"]\n    adjust[\"Adjust credits modal\\n(text input)\"]\n    payments[\"Payment submissions list\"]\n    review[\"Approve / Decline\\n(adminService)\"]\n    stats[\"StatsGrid\\n(total users, active, by plan)\"]\n\n    adminPage --> tabs2\n    tabs2 -->|\"Users\"| users --> adjust\n    tabs2 -->|\"Payments\"| payments --> review\n    adminPage --> stats\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    adminPage[\"Admin page\\n/admin\"]\n    tabs2[\"Tabs:\\nUsers · Payments · Settings\"]\n    users[\"User list\\n(useAdmin)\"]\n    adjust[\"Adjust credits modal\\n(text input)\"]\n    payments[\"Payment submissions list\"]\n    review[\"Approve / Decline\\n(adminService)\"]\n    stats[\"StatsGrid\\n(total users, active, by plan)\"]\n\n    adminPage --> tabs2\n    tabs2 -->|\"Users\"| users --> adjust\n    tabs2 -->|\"Payments\"| payments --> review\n    adminPage --> stats\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Dashboard overview flow (1.x / 8.x)",
+      "level": 3,
+      "slug": "dashboard-overview-flow-1x-8x",
+      "prose": "```mermaid\nflowchart TD\n    dash[\"Dashboard\\n/dashboard\"]\n    guard[\"DashboardAccessGate\\n+ DashboardComponentGuard\"]\n    stats[\"StatsGrid\\n(admin only)\"]\n    chart[\"DashboardLineChart\\n(performance over time)\"]\n    feed[\"DashboardActivityFeed\\n(recent 5 activities)\"]\n    exports[\"DashboardPendingExports\\n(in-progress jobs)\"]\n    usage[\"UsageOverview\\n(credit usage)\"]\n    upgrade[\"DashboardUpgradeBanner\\n(free users)\"]\n    quickActions[\"DashboardQuickActions\\n(shortcut buttons)\"]\n\n    dash --> guard\n    guard --> stats\n    guard --> chart\n    guard --> feed\n    guard --> exports\n    guard --> usage\n    guard --> upgrade\n    guard --> quickActions\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    dash[\"Dashboard\\n/dashboard\"]\n    guard[\"DashboardAccessGate\\n+ DashboardComponentGuard\"]\n    stats[\"StatsGrid\\n(admin only)\"]\n    chart[\"DashboardLineChart\\n(performance over time)\"]\n    feed[\"DashboardActivityFeed\\n(recent 5 activities)\"]\n    exports[\"DashboardPendingExports\\n(in-progress jobs)\"]\n    usage[\"UsageOverview\\n(credit usage)\"]\n    upgrade[\"DashboardUpgradeBanner\\n(free users)\"]\n    quickActions[\"DashboardQuickActions\\n(shortcut buttons)\"]\n\n    dash --> guard\n    guard --> stats\n    guard --> chart\n    guard --> feed\n    guard --> exports\n    guard --> usage\n    guard --> upgrade\n    guard --> quickActions\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Component interaction map (key patterns)",
+      "level": 2,
+      "slug": "component-interaction-map-key-patterns",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Modal lifecycle",
+      "level": 3,
+      "slug": "modal-lifecycle",
+      "prose": "```mermaid\nflowchart LR\n    trigger[\"User action\\n(button click)\"]\n    hook[\"useModal()\\n(isOpen, open, close, data)\"]\n    modal[\"Modal base component\\n(backdrop + close)\"]\n    feature[\"Feature modal content\\n(e.g. UpiPaymentModal)\"]\n    confirm[\"ConfirmModal\\n(destructive actions)\"]\n    close[\"onClose callback\\n→ refetch / toast\"]\n\n    trigger --> hook --> modal\n    modal --> feature\n    modal --> confirm\n    feature --> close\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    trigger[\"User action\\n(button click)\"]\n    hook[\"useModal()\\n(isOpen, open, close, data)\"]\n    modal[\"Modal base component\\n(backdrop + close)\"]\n    feature[\"Feature modal content\\n(e.g. UpiPaymentModal)\"]\n    confirm[\"ConfirmModal\\n(destructive actions)\"]\n    close[\"onClose callback\\n→ refetch / toast\"]\n\n    trigger --> hook --> modal\n    modal --> feature\n    modal --> confirm\n    feature --> close\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Data table with filters",
+      "level": 3,
+      "slug": "data-table-with-filters",
+      "prose": "```mermaid\nflowchart TD\n    toolbar[\"DataToolbar\\n(search text + action buttons)\"]\n    filters[\"Filter panel\\n(FilterSection groups)\"]\n    query[\"Page API layer\\n(queryBuilder + batchedFetch)\"]\n    table[\"Data table\\n(sortable columns)\"]\n    paginate[\"TablePagination\\n(page size / index)\"]\n    select[\"Row checkbox\\n(multi-select state)\"]\n    float[\"FloatingActionBar\\n(bulk actions)\"]\n    detail[\"Detail panel\\n(DataPageLayout right slot)\"]\n\n    toolbar --> query\n    filters --> query\n    paginate --> query\n    query --> table\n    table --> select --> float\n    table -->|\"click row\"| detail\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    toolbar[\"DataToolbar\\n(search text + action buttons)\"]\n    filters[\"Filter panel\\n(FilterSection groups)\"]\n    query[\"Page API layer\\n(queryBuilder + batchedFetch)\"]\n    table[\"Data table\\n(sortable columns)\"]\n    paginate[\"TablePagination\\n(page size / index)\"]\n    select[\"Row checkbox\\n(multi-select state)\"]\n    float[\"FloatingActionBar\\n(bulk actions)\"]\n    detail[\"Detail panel\\n(DataPageLayout right slot)\"]\n\n    toolbar --> query\n    filters --> query\n    paginate --> query\n    query --> table\n    table --> select --> float\n    table -->|\"click row\"| detail\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Progress bar types",
+      "level": 3,
+      "slug": "progress-bar-types",
+      "prose": "```mermaid\nflowchart LR\n    subgraph bars[\"Progress bar variants\"]\n        credit[\"Credit balance bar\\n(CreditBudgetAlerts, Sidebar)\"]\n        upload[\"Upload progress bar\\n(FilesUploadModal)\"]\n        job[\"Job processing bar\\n(JobsCard)\"]\n        conf[\"Confidence score bar\\n(EmailVerifierResult)\"]\n        bulk[\"Bulk result stacked bar\\n(EmailVerifierBulkResults)\"]\n    end\n    credit -->|\"color: green→yellow→red\"| note1[\"Threshold-driven color\"]\n    upload -->|\"% from multipart S3\"| note2[\"Real-time\"]\n    job -->|\"polled 60s interval\"| note3[\"Polled\"]\n    conf -->|\"0–100% from API\"| note4[\"Static result\"]\n    bulk -->|\"valid/invalid stacked\"| note5[\"Stacked proportional\"]\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    subgraph bars[\"Progress bar variants\"]\n        credit[\"Credit balance bar\\n(CreditBudgetAlerts, Sidebar)\"]\n        upload[\"Upload progress bar\\n(FilesUploadModal)\"]\n        job[\"Job processing bar\\n(JobsCard)\"]\n        conf[\"Confidence score bar\\n(EmailVerifierResult)\"]\n        bulk[\"Bulk result stacked bar\\n(EmailVerifierBulkResults)\"]\n    end\n    credit -->|\"color: green→yellow→red\"| note1[\"Threshold-driven color\"]\n    upload -->|\"% from multipart S3\"| note2[\"Real-time\"]\n    job -->|\"polled 60s interval\"| note3[\"Polled\"]\n    conf -->|\"0–100% from API\"| note4[\"Static result\"]\n    bulk -->|\"valid/invalid stacked\"| note5[\"Stacked proportional\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Deep small-task breakdown checklist",
+      "level": 2,
+      "slug": "deep-small-task-breakdown-checklist",
+      "prose": "- Define stage objective and contract boundary.\n- Split work into contract/service/surface/data/ops packets.\n- Attach owner, KPI, and acceptance check per packet.\n- Mirror docs updates in roadmap + versions + docsai sync artifacts.\n- Run release-candidate checks before next major transition.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Define stage objective and contract boundary.",
+              "checked": null
+            },
+            {
+              "text": "Split work into contract/service/surface/data/ops packets.",
+              "checked": null
+            },
+            {
+              "text": "Attach owner, KPI, and acceptance check per packet.",
+              "checked": null
+            },
+            {
+              "text": "Mirror docs updates in roadmap + versions + docsai sync artifacts.",
+              "checked": null
+            },
+            {
+              "text": "Run release-candidate checks before next major transition.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Related documentation",
+      "level": 2,
+      "slug": "related-documentation",
+      "prose": "- `docs/architecture.md` — service register and data flow (complements diagrams above).\n- `docs/backend.md` / `docs/frontend.md` — which code paths implement each arrow.\n- `docs/frontend/README.md` — page inventory folder, era-to-surface table, links to JSON/CSV.\n- `docs/frontend/components.md` — detailed per-era component catalog with UI element breakdowns.\n- `docs/frontend/design-system.md` — design tokens, form elements, pattern library.\n- `docs/frontend/hooks-services-contexts.md` — full hook/service/context/lib catalog.\n- `docs/roadmap.md` / `docs/versions.md` — stage and release mapping; optional `docs/versions/version_*.md` per-minor stubs (each may include a **Flowchart** section).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/architecture.md` — service register and data flow (complements diagrams above).",
+              "checked": null
+            },
+            {
+              "text": "`docs/backend.md` / `docs/frontend.md` — which code paths implement each arrow.",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/README.md` — page inventory folder, era-to-surface table, links to JSON/CSV.",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/components.md` — detailed per-era component catalog with UI element breakdowns.",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/design-system.md` — design tokens, form elements, pattern library.",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/hooks-services-contexts.md` — full hook/service/context/lib catalog.",
+              "checked": null
+            },
+            {
+              "text": "`docs/roadmap.md` / `docs/versions.md` — stage and release mapping; optional `docs/versions/version_*.md` per-minor stubs (each may include a **Flowchart** section).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Backend API sequence diagrams (by era)",
+      "level": 2,
+      "slug": "backend-api-sequence-diagrams-by-era",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x Login + credit deduction",
+      "level": 3,
+      "slug": "1x-login-credit-deduction",
+      "prose": "```mermaid\nsequenceDiagram\n    participant UI as Dashboard\n    participant G as GraphQL\n    participant DB as Postgres\n    UI->>G: auth.login\n    G->>DB: validate user\n    DB-->>G: user\n    G-->>UI: tokens\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "sequenceDiagram\n    participant UI as Dashboard\n    participant G as GraphQL\n    participant DB as Postgres\n    UI->>G: auth.login\n    G->>DB: validate user\n    DB-->>G: user\n    G-->>UI: tokens\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "10.x Campaign execution",
+      "level": 3,
+      "slug": "10x-campaign-execution",
+      "prose": "```mermaid\nsequenceDiagram\n    participant UI as Campaign Builder\n    participant G as GraphQL\n    participant J as Jobs\n    participant M as Mail service\n    UI->>G: scheduleCampaign\n    G->>J: enqueue\n    J->>M: send batch\n    M-->>J: delivery results\n    J-->>G: stats\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "sequenceDiagram\n    participant UI as Campaign Builder\n    participant G as GraphQL\n    participant J as Jobs\n    participant M as Mail service\n    UI->>G: scheduleCampaign\n    G->>J: enqueue\n    J->>M: send batch\n    M-->>J: delivery results\n    J-->>G: stats\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Era flow coverage checklist",
+      "level": 2,
+      "slug": "era-flow-coverage-checklist",
+      "prose": "Ensure flow diagrams include at minimum one dedicated path for each era:\n`1.x` auth-billing-credit, `2.x` finder-verifier, `3.x` contact-company search, `4.x` extension-sync, `5.x` AI flow, `6.x` reliability/queue, `7.x` governance, `8.x` API/webhook, `9.x` integration platform, `10.x` campaigns.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage multipart and metadata flow",
+      "level": 2,
+      "slug": "s3storage-multipart-and-metadata-flow",
+      "prose": "```mermaid\nsequenceDiagram\n    participant UI as Dashboard/Client\n    participant G as Appointment360\n    participant S as s3storage API\n    participant B as S3 Bucket\n    participant W as Metadata Worker\n\n    UI->>G: initiate upload intent\n    G->>S: POST /api/v1/uploads/initiate-csv\n    S-->>G: uploadId + fileKey + part config\n    G-->>UI: multipart session contract\n\n    loop per chunk\n        UI->>S: GET /uploads/{uploadId}/parts/{n}\n        S-->>UI: presigned part URL\n        UI->>B: PUT chunk\n        B-->>UI: ETag\n        UI->>S: POST /uploads/{uploadId}/parts/{n} (etag)\n    end\n\n    UI->>S: POST /uploads/{uploadId}/complete\n    S->>B: complete_multipart_upload\n    S->>W: async invoke metadata job\n    W->>B: read file + update metadata.json\n    S-->>UI: upload completed\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "sequenceDiagram\n    participant UI as Dashboard/Client\n    participant G as Appointment360\n    participant S as s3storage API\n    participant B as S3 Bucket\n    participant W as Metadata Worker\n\n    UI->>G: initiate upload intent\n    G->>S: POST /api/v1/uploads/initiate-csv\n    S-->>G: uploadId + fileKey + part config\n    G-->>UI: multipart session contract\n\n    loop per chunk\n        UI->>S: GET /uploads/{uploadId}/parts/{n}\n        S-->>UI: presigned part URL\n        UI->>B: PUT chunk\n        B-->>UI: ETag\n        UI->>S: POST /uploads/{uploadId}/parts/{n} (etag)\n    end\n\n    UI->>S: POST /uploads/{uploadId}/complete\n    S->>B: complete_multipart_upload\n    S->>W: async invoke metadata job\n    W->>B: read file + update metadata.json\n    S-->>UI: upload completed\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "s3storage era task strip (0.x -> 10.x)",
+      "level": 2,
+      "slug": "s3storage-era-task-strip-0x---10x",
+      "prose": "```mermaid\nflowchart LR\n    a0[\"0.x bootstrap contract\"]\n    a1[\"1.x user/billing artifacts\"]\n    a2[\"2.x multipart durability\"]\n    a3[\"3.x ingestion lineage\"]\n    a4[\"4.x extension provenance\"]\n    a5[\"5.x AI artifact governance\"]\n    a6[\"6.x reliability/SLO/idempotency\"]\n    a7[\"7.x authz/retention controls\"]\n    a8[\"8.x versioned storage APIs\"]\n    a9[\"9.x entitlement and quota model\"]\n    a10[\"10.x campaign compliance artifacts\"]\n\n    a0 --> a1 --> a2 --> a3 --> a4 --> a5 --> a6 --> a7 --> a8 --> a9 --> a10\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    a0[\"0.x bootstrap contract\"]\n    a1[\"1.x user/billing artifacts\"]\n    a2[\"2.x multipart durability\"]\n    a3[\"3.x ingestion lineage\"]\n    a4[\"4.x extension provenance\"]\n    a5[\"5.x AI artifact governance\"]\n    a6[\"6.x reliability/SLO/idempotency\"]\n    a7[\"7.x authz/retention controls\"]\n    a8[\"8.x versioned storage APIs\"]\n    a9[\"9.x entitlement and quota model\"]\n    a10[\"10.x campaign compliance artifacts\"]\n\n    a0 --> a1 --> a2 --> a3 --> a4 --> a5 --> a6 --> a7 --> a8 --> a9 --> a10\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "jobs execution flow",
+      "level": 2,
+      "slug": "jobs-execution-flow",
+      "prose": "```mermaid\nflowchart LR\n    api[\"jobs API\"]\n    sched[\"Scheduler\"]\n    kafka[\"Kafka topic\"]\n    cons[\"Consumer\"]\n    pool[\"Worker pool\"]\n    proc[\"Processor\"]\n    db[\"jobs Postgres\"]\n    art[\"S3/PG/OpenSearch artifacts\"]\n\n    api --> db\n    sched --> db\n    sched --> kafka\n    kafka --> cons --> pool --> proc\n    proc --> db\n    proc --> art\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    api[\"jobs API\"]\n    sched[\"Scheduler\"]\n    kafka[\"Kafka topic\"]\n    cons[\"Consumer\"]\n    pool[\"Worker pool\"]\n    proc[\"Processor\"]\n    db[\"jobs Postgres\"]\n    art[\"S3/PG/OpenSearch artifacts\"]\n\n    api --> db\n    sched --> db\n    sched --> kafka\n    kafka --> cons --> pool --> proc\n    proc --> db\n    proc --> art\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "jobs state machine",
+      "level": 2,
+      "slug": "jobs-state-machine",
+      "prose": "```mermaid\nflowchart LR\n    open[\"open\"] --> inq[\"in_queue\"] --> processing[\"processing\"]\n    processing --> completed[\"completed\"]\n    processing --> failed[\"failed\"]\n    failed --> retry[\"retry\"]\n    retry --> inq\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    open[\"open\"] --> inq[\"in_queue\"] --> processing[\"processing\"]\n    processing --> completed[\"completed\"]\n    processing --> failed[\"failed\"]\n    failed --> retry[\"retry\"]\n    retry --> inq\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "jobs processor flow stubs",
+      "level": 2,
+      "slug": "jobs-processor-flow-stubs",
+      "prose": "```mermaid\nflowchart TD\n    input1[\"S3 CSV\"] --> finder[\"email_finder_export_stream\"] --> out1[\"S3 result CSV\"]\n    input2[\"S3 CSV\"] --> verify[\"email_verify_export_stream\"] --> out2[\"S3 result CSV + status\"]\n    input3[\"S3 CSV\"] --> imp[\"contact360_import_prepare\"] --> pg1[\"Contact360 PG\"] --> es1[\"OpenSearch\"]\n    vql[\"VQL query\"] --> exp[\"contact360_export_stream\"] --> out3[\"S3 export CSV\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    input1[\"S3 CSV\"] --> finder[\"email_finder_export_stream\"] --> out1[\"S3 result CSV\"]\n    input2[\"S3 CSV\"] --> verify[\"email_verify_export_stream\"] --> out2[\"S3 result CSV + status\"]\n    input3[\"S3 CSV\"] --> imp[\"contact360_import_prepare\"] --> pg1[\"Contact360 PG\"] --> es1[\"OpenSearch\"]\n    vql[\"VQL query\"] --> exp[\"contact360_export_stream\"] --> out3[\"S3 export CSV\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "jobs era strip (0.x -> 10.x)",
+      "level": 2,
+      "slug": "jobs-era-strip-0x---10x",
+      "prose": "```mermaid\nflowchart LR\n    j0[\"0.x baseline scheduler\"]\n    j1[\"1.x billing-aware jobs\"]\n    j2[\"2.x email stream jobs\"]\n    j3[\"3.x contact import/export jobs\"]\n    j4[\"4.x extension/SN jobs\"]\n    j5[\"5.x AI batch jobs\"]\n    j6[\"6.x reliability hardening\"]\n    j7[\"7.x authz/audit governance\"]\n    j8[\"8.x versioned API + callbacks\"]\n    j9[\"9.x tenant quotas/isolation\"]\n    j10[\"10.x campaign compliance jobs\"]\n\n    j0 --> j1 --> j2 --> j3 --> j4 --> j5 --> j6 --> j7 --> j8 --> j9 --> j10\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    j0[\"0.x baseline scheduler\"]\n    j1[\"1.x billing-aware jobs\"]\n    j2[\"2.x email stream jobs\"]\n    j3[\"3.x contact import/export jobs\"]\n    j4[\"4.x extension/SN jobs\"]\n    j5[\"5.x AI batch jobs\"]\n    j6[\"6.x reliability hardening\"]\n    j7[\"7.x authz/audit governance\"]\n    j8[\"8.x versioned API + callbacks\"]\n    j9[\"9.x tenant quotas/isolation\"]\n    j10[\"10.x campaign compliance jobs\"]\n\n    j0 --> j1 --> j2 --> j3 --> j4 --> j5 --> j6 --> j7 --> j8 --> j9 --> j10\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "logs.api write and query flow",
+      "level": 2,
+      "slug": "logsapi-write-and-query-flow",
+      "prose": "```mermaid\nflowchart LR\n    producer[\"Gateway and workers\"] --> endpoint[\"logs.api endpoints\"]\n    endpoint --> service[\"log_service\"] --> repo[\"log_repository\"]\n    repo --> s3[\"S3 CSV objects\"]\n    repo --> cache[\"Query cache\"]\n    reader[\"Admin/API/campaign surfaces\"] --> endpoint\n```\n\n```mermaid\nflowchart TD\n    queryReq[\"Query request\"] --> cacheCheck[\"Cache lookup\"]\n    cacheCheck -->|\"hit\"| cachedResp[\"Return cached response\"]\n    cacheCheck -->|\"miss\"| scanPath[\"S3 CSV scan/filter/sort\"]\n    scanPath --> streamPath[\"CSV streaming for large sets\"]\n    streamPath --> cacheWrite[\"Cache result\"] --> responseOut[\"Return response\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    producer[\"Gateway and workers\"] --> endpoint[\"logs.api endpoints\"]\n    endpoint --> service[\"log_service\"] --> repo[\"log_repository\"]\n    repo --> s3[\"S3 CSV objects\"]\n    repo --> cache[\"Query cache\"]\n    reader[\"Admin/API/campaign surfaces\"] --> endpoint\n"
+        },
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    queryReq[\"Query request\"] --> cacheCheck[\"Cache lookup\"]\n    cacheCheck -->|\"hit\"| cachedResp[\"Return cached response\"]\n    cacheCheck -->|\"miss\"| scanPath[\"S3 CSV scan/filter/sort\"]\n    scanPath --> streamPath[\"CSV streaming for large sets\"]\n    streamPath --> cacheWrite[\"Cache result\"] --> responseOut[\"Return response\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Connectra VQL two-phase read flow",
+      "level": 2,
+      "slug": "connectra-vql-two-phase-read-flow",
+      "prose": "```mermaid\nflowchart LR\n    vqlInput[\"VQL query\"] --> compiler[\"ToElasticsearchQuery\"]\n    compiler --> esQuery[\"Elasticsearch bool query\"]\n    esQuery --> esHits[\"ES hit IDs + cursors\"]\n    esHits --> pgFetch[\"PG batch fetch by UUID\"]\n    esHits --> companyFetch[\"PG company fetch (if populate)\"]\n    pgFetch --> join[\"In-memory O(n) hash join\"]\n    companyFetch --> join\n    join --> response[\"ContactResponse array\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    vqlInput[\"VQL query\"] --> compiler[\"ToElasticsearchQuery\"]\n    compiler --> esQuery[\"Elasticsearch bool query\"]\n    esQuery --> esHits[\"ES hit IDs + cursors\"]\n    esHits --> pgFetch[\"PG batch fetch by UUID\"]\n    esHits --> companyFetch[\"PG company fetch (if populate)\"]\n    pgFetch --> join[\"In-memory O(n) hash join\"]\n    companyFetch --> join\n    join --> response[\"ContactResponse array\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Connectra parallel write flow (5 stores)",
+      "level": 2,
+      "slug": "connectra-parallel-write-flow-5-stores",
+      "prose": "```mermaid\nflowchart TD\n    batchUpsert[\"BulkUpsert request\"] --> wg[\"WaitGroup add(5)\"]\n    wg --> pgContacts[\"goroutine: PG contacts\"]\n    wg --> esContacts[\"goroutine: ES contacts\"]\n    wg --> pgCompanies[\"goroutine: PG companies\"]\n    wg --> esCompanies[\"goroutine: ES companies\"]\n    wg --> filtersData[\"goroutine: filters_data\"]\n    pgContacts --> wait[\"WaitGroup.Wait()\"]\n    esContacts --> wait\n    pgCompanies --> wait\n    esCompanies --> wait\n    filtersData --> wait\n    wait --> result[\"[]string UUIDs or error\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    batchUpsert[\"BulkUpsert request\"] --> wg[\"WaitGroup add(5)\"]\n    wg --> pgContacts[\"goroutine: PG contacts\"]\n    wg --> esContacts[\"goroutine: ES contacts\"]\n    wg --> pgCompanies[\"goroutine: PG companies\"]\n    wg --> esCompanies[\"goroutine: ES companies\"]\n    wg --> filtersData[\"goroutine: filters_data\"]\n    pgContacts --> wait[\"WaitGroup.Wait()\"]\n    esContacts --> wait\n    pgCompanies --> wait\n    esCompanies --> wait\n    filtersData --> wait\n    wait --> result[\"[]string UUIDs or error\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Connectra job state machine",
+      "level": 2,
+      "slug": "connectra-job-state-machine",
+      "prose": "```mermaid\nflowchart LR\n    openStatus[\"OPEN\"] -->|\"poll first_time\"| inQueue[\"IN_QUEUE\"]\n    inQueue -->|\"channel dispatch\"| processing[\"PROCESSING\"]\n    processing -->|\"success\"| completed[\"COMPLETED\"]\n    processing -->|\"failure\"| failed[\"FAILED\"]\n    failed -->|\"run_after passed\"| retryQueue[\"RETRY_IN_QUEUED\"]\n    retryQueue -->|\"retry runner\"| processing\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    openStatus[\"OPEN\"] -->|\"poll first_time\"| inQueue[\"IN_QUEUE\"]\n    inQueue -->|\"channel dispatch\"| processing[\"PROCESSING\"]\n    processing -->|\"success\"| completed[\"COMPLETED\"]\n    processing -->|\"failure\"| failed[\"FAILED\"]\n    failed -->|\"run_after passed\"| retryQueue[\"RETRY_IN_QUEUED\"]\n    retryQueue -->|\"retry runner\"| processing\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Marketing auth and content flow (contact360.io/root)",
+      "level": 2,
+      "slug": "marketing-auth-and-content-flow-contact360ioroot",
+      "prose": "```mermaid\nflowchart TD\n    publicUser[\"PublicUser\"] --> marketingLayout[\"MarketingLayout(useForceLightTheme)\"]\n    marketingLayout --> landingSections[\"LandingSections(Hero,Features,Pricing,AIWriter)\"]\n    landingSections --> marketingHooks[\"MarketingHooks(useLandingContent,useMarketingPage,usePricing)\"]\n    marketingHooks --> marketingGql[\"MarketingGraphQLServices\"]\n    marketingGql --> appointmentGraphql[\"Appointment360GraphQL\"]\n    landingSections --> authCta[\"AuthCTAButtons\"]\n    authCta --> dashboardAuth[\"DashboardLoginOrRegister\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    publicUser[\"PublicUser\"] --> marketingLayout[\"MarketingLayout(useForceLightTheme)\"]\n    marketingLayout --> landingSections[\"LandingSections(Hero,Features,Pricing,AIWriter)\"]\n    landingSections --> marketingHooks[\"MarketingHooks(useLandingContent,useMarketingPage,usePricing)\"]\n    marketingHooks --> marketingGql[\"MarketingGraphQLServices\"]\n    marketingGql --> appointmentGraphql[\"Appointment360GraphQL\"]\n    landingSections --> authCta[\"AuthCTAButtons\"]\n    authCta --> dashboardAuth[\"DashboardLoginOrRegister\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "DocsAI documentation dashboard data flow (contact360.io/admin)",
+      "level": 2,
+      "slug": "docsai-documentation-dashboard-data-flow-contact360ioadmin",
+      "prose": "```mermaid\nflowchart TD\n    adminUser[\"AdminUser\"] --> docsDashboardView[\"DocumentationDashboardView\"]\n    docsDashboardView --> parallelFetch[\"ParallelFetch(pages,endpoints,relationships)\"]\n    parallelFetch --> redisCheck[\"RedisCacheCheck\"]\n    parallelFetch --> s3IndexRead[\"S3IndexRead\"]\n    redisCheck --> graphPayload[\"RelationshipGraphPayload\"]\n    s3IndexRead --> graphPayload\n    graphPayload --> d3Viewer[\"RelationshipGraphViewer(D3)\"]\n    graphPayload --> cyViewer[\"GraphViewer(Cytoscape)\"]\n    d3Viewer --> dashboardUi[\"DashboardTabsFiltersProgress\"]\n    cyViewer --> dashboardUi\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    adminUser[\"AdminUser\"] --> docsDashboardView[\"DocumentationDashboardView\"]\n    docsDashboardView --> parallelFetch[\"ParallelFetch(pages,endpoints,relationships)\"]\n    parallelFetch --> redisCheck[\"RedisCacheCheck\"]\n    parallelFetch --> s3IndexRead[\"S3IndexRead\"]\n    redisCheck --> graphPayload[\"RelationshipGraphPayload\"]\n    s3IndexRead --> graphPayload\n    graphPayload --> d3Viewer[\"RelationshipGraphViewer(D3)\"]\n    graphPayload --> cyViewer[\"GraphViewer(Cytoscape)\"]\n    d3Viewer --> dashboardUi[\"DashboardTabsFiltersProgress\"]\n    cyViewer --> dashboardUi\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "DocsAI admin access-control chain",
+      "level": 2,
+      "slug": "docsai-admin-access-control-chain",
+      "prose": "```mermaid\nflowchart LR\n    requestNode[\"IncomingRequest\"] --> decoratorGate[\"DecoratorGate(require_super_admin_or_admin)\"]\n    decoratorGate --> djangoView[\"DjangoViewHandler\"]\n    djangoView --> graphqlClientNode[\"GraphQLClient(httpx,retry,backoff)\"]\n    graphqlClientNode --> appointmentApi[\"Appointment360GraphQL\"]\n    djangoView --> localStore[\"DjangoLocalStore(SQLite)\"]\n    djangoView --> auditOutput[\"AdminAuditOutput\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    requestNode[\"IncomingRequest\"] --> decoratorGate[\"DecoratorGate(require_super_admin_or_admin)\"]\n    decoratorGate --> djangoView[\"DjangoViewHandler\"]\n    djangoView --> graphqlClientNode[\"GraphQLClient(httpx,retry,backoff)\"]\n    graphqlClientNode --> appointmentApi[\"Appointment360GraphQL\"]\n    djangoView --> localStore[\"DjangoLocalStore(SQLite)\"]\n    djangoView --> auditOutput[\"AdminAuditOutput\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email Campaign — campaign send flow (backend(dev)/email campaign)",
+      "level": 2,
+      "slug": "email-campaign-campaign-send-flow-backenddevemail-campaign",
+      "prose": "```mermaid\nflowchart TD\n    dashUser[\"DashboardUser\"] --> wizardUI[\"CampaignWizardUI\"]\n    wizardUI --> gatewayGql[\"Appointment360GraphQL(createCampaign)\"]\n    gatewayGql --> campaignApi[\"EmailCampaignAPI(POST /campaign)\"]\n    campaignApi --> pgCampaign[\"PostgreSQL(campaigns row)\"]\n    campaignApi --> asynqEnqueue[\"Asynq(enqueue campaign:send task)\"]\n    asynqEnqueue --> redis[\"Redis(task queue)\"]\n    redis --> campaignWorker[\"CampaignWorker(HandleCampaignTask)\"]\n    campaignWorker --> audienceResolve[\"AudienceResolve(CSV|Connectra|SN)\"]\n    audienceResolve --> connectra[\"Connectra REST(/contacts/search)\"]\n    audienceResolve --> pgRecipients[\"PostgreSQL(recipients rows insert)\"]\n    campaignWorker --> fanout[\"FanOut(5 EmailWorker goroutines)\"]\n    fanout --> suppressCheck[\"SuppressionCheck(suppression_list)\"]\n    suppressCheck -->|\"suppressed\"| skipSend[\"SkipSend(status=skipped)\"]\n    suppressCheck -->|\"not suppressed\"| templateFetch[\"TemplateFetch(S3 GetObject + cache)\"]\n    templateFetch --> render[\"GoTemplateRender(TemplateData{Name,Email,UnsubURL})\"]\n    render --> smtpSend[\"smtp.SendMail(SMTP provider)\"]\n    smtpSend -->|\"success\"| incSent[\"IncrementSent + recipients.status=sent\"]\n    smtpSend -->|\"failure\"| incFailed[\"IncrementFailed + recipients.status=failed\"]\n    incSent --> campaignComplete[\"Campaign status → completed\"]\n    incFailed --> campaignComplete\n    campaignComplete --> logsApi[\"logs.api(campaign lifecycle event)\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    dashUser[\"DashboardUser\"] --> wizardUI[\"CampaignWizardUI\"]\n    wizardUI --> gatewayGql[\"Appointment360GraphQL(createCampaign)\"]\n    gatewayGql --> campaignApi[\"EmailCampaignAPI(POST /campaign)\"]\n    campaignApi --> pgCampaign[\"PostgreSQL(campaigns row)\"]\n    campaignApi --> asynqEnqueue[\"Asynq(enqueue campaign:send task)\"]\n    asynqEnqueue --> redis[\"Redis(task queue)\"]\n    redis --> campaignWorker[\"CampaignWorker(HandleCampaignTask)\"]\n    campaignWorker --> audienceResolve[\"AudienceResolve(CSV|Connectra|SN)\"]\n    audienceResolve --> connectra[\"Connectra REST(/contacts/search)\"]\n    audienceResolve --> pgRecipients[\"PostgreSQL(recipients rows insert)\"]\n    campaignWorker --> fanout[\"FanOut(5 EmailWorker goroutines)\"]\n    fanout --> suppressCheck[\"SuppressionCheck(suppression_list)\"]\n    suppressCheck -->|\"suppressed\"| skipSend[\"SkipSend(status=skipped)\"]\n    suppressCheck -->|\"not suppressed\"| templateFetch[\"TemplateFetch(S3 GetObject + cache)\"]\n    templateFetch --> render[\"GoTemplateRender(TemplateData{Name,Email,UnsubURL})\"]\n    render --> smtpSend[\"smtp.SendMail(SMTP provider)\"]\n    smtpSend -->|\"success\"| incSent[\"IncrementSent + recipients.status=sent\"]\n    smtpSend -->|\"failure\"| incFailed[\"IncrementFailed + recipients.status=failed\"]\n    incSent --> campaignComplete[\"Campaign status → completed\"]\n    incFailed --> campaignComplete\n    campaignComplete --> logsApi[\"logs.api(campaign lifecycle event)\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email Campaign — unsubscribe flow",
+      "level": 2,
+      "slug": "email-campaign-unsubscribe-flow",
+      "prose": "```mermaid\nflowchart LR\n    emailRecipient[\"EmailRecipient\"] --> unsubLink[\"UnsubscribeLink(JWT token in email footer)\"]\n    unsubLink --> unsubEndpoint[\"GET /unsub?token=...\"]\n    unsubEndpoint --> jwtValidate[\"JWT Validate(HS256, 30d expiry)\"]\n    jwtValidate -->|\"invalid\"| errorResp[\"401 Bad Token\"]\n    jwtValidate -->|\"valid\"| extractClaims[\"Extract(email, campaign_id)\"]\n    extractClaims --> suppressInsert[\"INSERT suppression_list(email, reason=unsubscribe)\"]\n    extractClaims --> updateRecipient[\"UPDATE recipients SET status=unsubscribed\"]\n    suppressInsert --> confirmPage[\"UnsubscribeConfirmationPage\"]\n    updateRecipient --> confirmPage\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    emailRecipient[\"EmailRecipient\"] --> unsubLink[\"UnsubscribeLink(JWT token in email footer)\"]\n    unsubLink --> unsubEndpoint[\"GET /unsub?token=...\"]\n    unsubEndpoint --> jwtValidate[\"JWT Validate(HS256, 30d expiry)\"]\n    jwtValidate -->|\"invalid\"| errorResp[\"401 Bad Token\"]\n    jwtValidate -->|\"valid\"| extractClaims[\"Extract(email, campaign_id)\"]\n    extractClaims --> suppressInsert[\"INSERT suppression_list(email, reason=unsubscribe)\"]\n    extractClaims --> updateRecipient[\"UPDATE recipients SET status=unsubscribed\"]\n    suppressInsert --> confirmPage[\"UnsubscribeConfirmationPage\"]\n    updateRecipient --> confirmPage\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email Campaign — template lifecycle flow",
+      "level": 2,
+      "slug": "email-campaign-template-lifecycle-flow",
+      "prose": "```mermaid\nflowchart TD\n    designer[\"CampaignDesigner\"] --> templateBuilderUI[\"TemplateBuilderUI(HTML editor + preview)\"]\n    templateBuilderUI --> createTemplate[\"POST /templates(title,subject,html_body)\"]\n    createTemplate --> s3Upload[\"S3 PutObject(templates/{id}.html)\"]\n    createTemplate --> pgTemplate[\"PostgreSQL templates row(id,name,subject,s3_key)\"]\n    pgTemplate --> cacheInvalidate[\"InMemoryCache invalidate\"]\n    templateBuilderUI --> previewTemplate[\"POST /templates/:id/preview\"]\n    previewTemplate --> s3Fetch[\"S3 GetObject(or cache hit)\"]\n    s3Fetch --> goRender[\"GoTemplateRender(sample TemplateData)\"]\n    goRender --> htmlPreview[\"HTML Preview Response\"]\n    templateBuilderUI --> aiGenerate[\"POST /templates/generate(AI prompt)\"]\n    aiGenerate --> aiService[\"AIService(generate HTML body)\"]\n    aiService --> s3Upload\n    aiService --> pgTemplate\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    designer[\"CampaignDesigner\"] --> templateBuilderUI[\"TemplateBuilderUI(HTML editor + preview)\"]\n    templateBuilderUI --> createTemplate[\"POST /templates(title,subject,html_body)\"]\n    createTemplate --> s3Upload[\"S3 PutObject(templates/{id}.html)\"]\n    createTemplate --> pgTemplate[\"PostgreSQL templates row(id,name,subject,s3_key)\"]\n    pgTemplate --> cacheInvalidate[\"InMemoryCache invalidate\"]\n    templateBuilderUI --> previewTemplate[\"POST /templates/:id/preview\"]\n    previewTemplate --> s3Fetch[\"S3 GetObject(or cache hit)\"]\n    s3Fetch --> goRender[\"GoTemplateRender(sample TemplateData)\"]\n    goRender --> htmlPreview[\"HTML Preview Response\"]\n    templateBuilderUI --> aiGenerate[\"POST /templates/generate(AI prompt)\"]\n    aiGenerate --> aiService[\"AIService(generate HTML body)\"]\n    aiService --> s3Upload\n    aiService --> pgTemplate\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contact AI — chat message flow (backend(dev)/contact.ai)",
+      "level": 2,
+      "slug": "contact-ai-chat-message-flow-backenddevcontactai",
+      "prose": "```mermaid\nflowchart TD\n    dashUser[\"DashboardUser\"] --> chatInput[\"ChatInput(textarea, model selector)\"]\n    chatInput --> gqlMutation[\"sendMessage GraphQL Mutation\"]\n    gqlMutation --> lambdaClient[\"LambdaAIClient(appointment360)\"]\n    lambdaClient --> contactAiMsg[\"POST /api/v1/ai-chats/{id}/message\"]\n    contactAiMsg --> ownerCheck[\"OwnershipCheck(user_id match)\"]\n    ownerCheck -->|\"forbidden\"| forbiddenErr[\"403 ForbiddenError\"]\n    ownerCheck -->|\"ok\"| appendUser[\"Append user message to ai_chats.messages\"]\n    appendUser --> hfInference[\"HFService.chat_completion(model, messages)\"]\n    hfInference -->|\"HF success\"| aiReply[\"AI reply token\"]\n    hfInference -->|\"HF failure\"| geminifall[\"Gemini API fallback\"]\n    geminifall --> aiReply\n    aiReply --> appendAi[\"Append AI reply to ai_chats.messages\"]\n    appendAi --> pgWrite[\"PostgreSQL WRITE ai_chats\"]\n    pgWrite --> returnChat[\"Return updated AIChat\"]\n    returnChat --> chatThread[\"ChatThread re-renders messages\"]\n    chatThread --> contactsInMsg[\"ContactsInMessage renders embedded contacts\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    dashUser[\"DashboardUser\"] --> chatInput[\"ChatInput(textarea, model selector)\"]\n    chatInput --> gqlMutation[\"sendMessage GraphQL Mutation\"]\n    gqlMutation --> lambdaClient[\"LambdaAIClient(appointment360)\"]\n    lambdaClient --> contactAiMsg[\"POST /api/v1/ai-chats/{id}/message\"]\n    contactAiMsg --> ownerCheck[\"OwnershipCheck(user_id match)\"]\n    ownerCheck -->|\"forbidden\"| forbiddenErr[\"403 ForbiddenError\"]\n    ownerCheck -->|\"ok\"| appendUser[\"Append user message to ai_chats.messages\"]\n    appendUser --> hfInference[\"HFService.chat_completion(model, messages)\"]\n    hfInference -->|\"HF success\"| aiReply[\"AI reply token\"]\n    hfInference -->|\"HF failure\"| geminifall[\"Gemini API fallback\"]\n    geminifall --> aiReply\n    aiReply --> appendAi[\"Append AI reply to ai_chats.messages\"]\n    appendAi --> pgWrite[\"PostgreSQL WRITE ai_chats\"]\n    pgWrite --> returnChat[\"Return updated AIChat\"]\n    returnChat --> chatThread[\"ChatThread re-renders messages\"]\n    chatThread --> contactsInMsg[\"ContactsInMessage renders embedded contacts\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contact AI — SSE streaming flow (backend(dev)/contact.ai)",
+      "level": 2,
+      "slug": "contact-ai-sse-streaming-flow-backenddevcontactai",
+      "prose": "```mermaid\nflowchart TD\n    dashUser2[\"DashboardUser\"] --> chatInput2[\"ChatInput\"]\n    chatInput2 --> useStream[\"useStreamMessage() hook\"]\n    useStream --> sseConn[\"SSE connection: POST /api/v1/ai-chats/{id}/message/stream\"]\n    sseConn --> contactAiStream[\"contact.ai SSE endpoint\"]\n    contactAiStream --> hfStream[\"HFService.stream_chat(messages, model)\"]\n    hfStream -->|\"token chunk\"| sseEvent[\"data: token\\\\n\\\\n\"]\n    sseEvent --> streamText[\"StreamingText: append token\"]\n    hfStream -->|\"stream done\"| doneEvent[\"data: [DONE]\\\\n\\\\n\"]\n    doneEvent --> streamEnd[\"StreamingText done; AILoadingSpinner hidden\"]\n    hfStream -->|\"timeout/error\"| errEvent[\"data: error_json\\\\n\\\\n\"]\n    errEvent --> aiErrorState[\"AIErrorState: show retry button\"]\n    aiErrorState --> retryBtn[\"User clicks retry → useStreamMessage() reconnect\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    dashUser2[\"DashboardUser\"] --> chatInput2[\"ChatInput\"]\n    chatInput2 --> useStream[\"useStreamMessage() hook\"]\n    useStream --> sseConn[\"SSE connection: POST /api/v1/ai-chats/{id}/message/stream\"]\n    sseConn --> contactAiStream[\"contact.ai SSE endpoint\"]\n    contactAiStream --> hfStream[\"HFService.stream_chat(messages, model)\"]\n    hfStream -->|\"token chunk\"| sseEvent[\"data: token\\\\n\\\\n\"]\n    sseEvent --> streamText[\"StreamingText: append token\"]\n    hfStream -->|\"stream done\"| doneEvent[\"data: [DONE]\\\\n\\\\n\"]\n    doneEvent --> streamEnd[\"StreamingText done; AILoadingSpinner hidden\"]\n    hfStream -->|\"timeout/error\"| errEvent[\"data: error_json\\\\n\\\\n\"]\n    errEvent --> aiErrorState[\"AIErrorState: show retry button\"]\n    aiErrorState --> retryBtn[\"User clicks retry → useStreamMessage() reconnect\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contact AI — utility AI flows (stateless)",
+      "level": 2,
+      "slug": "contact-ai-utility-ai-flows-stateless",
+      "prose": "```mermaid\nflowchart LR\n    emailField[\"Contact email field hover\"] --> emailRiskHook[\"useEmailRisk(email)\"]\n    emailRiskHook --> analyzeGql[\"analyzeEmailRisk GraphQL mutation\"]\n    analyzeGql --> lambdaClientUtil[\"LambdaAIClient\"]\n    lambdaClientUtil --> emailAnalyzeEndpoint[\"POST /api/v1/ai/email/analyze\"]\n    emailAnalyzeEndpoint --> hfJsonTask[\"HFService.json_task(email risk prompt)\"]\n    hfJsonTask --> riskResult[\"EmailRiskAnalysisResponse\"]\n    riskResult --> emailRiskBadge[\"EmailRiskBadge(score, isRoleBased, isDisposable)\"]\n\n    companyTab[\"Company detail tab click\"] --> companySummaryHook[\"useCompanySummary(name,industry)\"]\n    companySummaryHook --> summaryGql[\"generateCompanySummary GraphQL mutation\"]\n    summaryGql --> lambdaClientUtil\n    lambdaClientUtil --> summaryEndpoint[\"POST /api/v1/ai/company/summary\"]\n    summaryEndpoint --> hfJsonTask2[\"HFService.json_task(summary prompt)\"]\n    hfJsonTask2 --> summaryResult[\"CompanySummaryResponse\"]\n    summaryResult --> companySummaryTab[\"CompanySummaryTab renders text\"]\n\n    nlInput[\"AI filter input (NL query)\"] --> parseHook[\"useParseFilters(query)\"]\n    parseHook --> parseGql[\"parseContactFilters GraphQL mutation\"]\n    parseGql --> lambdaClientUtil\n    lambdaClientUtil --> parseEndpoint[\"POST /api/v1/ai/parse-filters\"]\n    parseEndpoint --> hfJsonTask3[\"HFService.json_task(filter extract prompt)\"]\n    hfJsonTask3 --> filterResult[\"ParseFiltersResponse(jobTitles,location,seniority,...)\"]\n    filterResult --> filterChips[\"AIFilterInput: render filter chips → apply to Connectra VQL\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    emailField[\"Contact email field hover\"] --> emailRiskHook[\"useEmailRisk(email)\"]\n    emailRiskHook --> analyzeGql[\"analyzeEmailRisk GraphQL mutation\"]\n    analyzeGql --> lambdaClientUtil[\"LambdaAIClient\"]\n    lambdaClientUtil --> emailAnalyzeEndpoint[\"POST /api/v1/ai/email/analyze\"]\n    emailAnalyzeEndpoint --> hfJsonTask[\"HFService.json_task(email risk prompt)\"]\n    hfJsonTask --> riskResult[\"EmailRiskAnalysisResponse\"]\n    riskResult --> emailRiskBadge[\"EmailRiskBadge(score, isRoleBased, isDisposable)\"]\n\n    companyTab[\"Company detail tab click\"] --> companySummaryHook[\"useCompanySummary(name,industry)\"]\n    companySummaryHook --> summaryGql[\"generateCompanySummary GraphQL mutation\"]\n    summaryGql --> lambdaClientUtil\n    lambdaClientUtil --> summaryEndpoint[\"POST /api/v1/ai/company/summary\"]\n    summaryEndpoint --> hfJsonTask2[\"HFService.json_task(summary prompt)\"]\n    hfJsonTask2 --> summaryResult[\"CompanySummaryResponse\"]\n    summaryResult --> companySummaryTab[\"CompanySummaryTab renders text\"]\n\n    nlInput[\"AI filter input (NL query)\"] --> parseHook[\"useParseFilters(query)\"]\n    parseHook --> parseGql[\"parseContactFilters GraphQL mutation\"]\n    parseGql --> lambdaClientUtil\n    lambdaClientUtil --> parseEndpoint[\"POST /api/v1/ai/parse-filters\"]\n    parseEndpoint --> hfJsonTask3[\"HFService.json_task(filter extract prompt)\"]\n    hfJsonTask3 --> filterResult[\"ParseFiltersResponse(jobTitles,location,seniority,...)\"]\n    filterResult --> filterChips[\"AIFilterInput: render filter chips → apply to Connectra VQL\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contact AI — era strip",
+      "level": 2,
+      "slug": "contact-ai-era-strip",
+      "prose": "```mermaid\nflowchart LR\n    era0x[\"0.x: skeleton + DDL\"] --> era1x[\"1.x: user_id FK + IAM\"]\n    era1x --> era2x[\"2.x: analyzeEmailRisk stub\"]\n    era2x --> era3x[\"3.x: parseFilters + companySummary stubs\"]\n    era3x --> era4x[\"4.x: SN contact JSONB compat\"]\n    era4x --> era5x[\"5.x ★ ALL live: chat+stream+utilities\"]\n    era5x --> era6x[\"6.x: SLO + SSE reliability + TTL\"]\n    era6x --> era7x[\"7.x: RBAC + audit + retention\"]\n    era7x --> era8x[\"8.x: scoped keys + rate limit headers\"]\n    era8x --> era9x[\"9.x: webhook + connector\"]\n    era9x --> era10x[\"10.x: campaign AI generation\"]\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    era0x[\"0.x: skeleton + DDL\"] --> era1x[\"1.x: user_id FK + IAM\"]\n    era1x --> era2x[\"2.x: analyzeEmailRisk stub\"]\n    era2x --> era3x[\"3.x: parseFilters + companySummary stubs\"]\n    era3x --> era4x[\"4.x: SN contact JSONB compat\"]\n    era4x --> era5x[\"5.x ★ ALL live: chat+stream+utilities\"]\n    era5x --> era6x[\"6.x: SLO + SSE reliability + TTL\"]\n    era6x --> era7x[\"7.x: RBAC + audit + retention\"]\n    era7x --> era8x[\"8.x: scoped keys + rate limit headers\"]\n    era8x --> era9x[\"9.x: webhook + connector\"]\n    era9x --> era10x[\"10.x: campaign AI generation\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Sales Navigator — Save flow",
+      "level": 2,
+      "slug": "sales-navigator-save-flow",
+      "prose": "```mermaid\nflowchart TD\n    ExtOrDash[\"Extension Popup or Dashboard\\nSN Save Button / Sync CTA\"]\n    ExtOrDash -->|\"Profile array or raw HTML + X-Request-ID\"| GQL[\"Appointment360\\nGraphQL Gateway\\nsaveSalesNavigatorProfiles\"]\n    GQL -->|\"POST /v1/save-profiles\"| SNSVC[\"Sales Navigator Service\\n(FastAPI Lambda)\"]\n    SNSVC --> Dedup[\"SaveService\\nDeduplicate by profile_url\\n(keep best completeness)\"]\n    Dedup --> Map[\"mappers.py\\nSN fields → Contact/Company\\nUUID5 generation\\nseniority/departments inference\"]\n    Map --> Chunk[\"Chunker\\n500 profiles/chunk\\nmax 3 parallel chunks\"]\n    Chunk -->|\"POST /companies/bulk\"| Connectra[\"Connectra\\nBulk upsert companies\\n(PostgreSQL + Elasticsearch)\"]\n    Chunk -->|\"POST /contacts/bulk\"| Connectra\n    Connectra --> Result[\"Aggregate results\\nsaved_count, created, updated, errors\"]\n    Result --> GQL\n    GQL --> UI[\"Extension / Dashboard UI\\nProgress bar complete\\nSaveSummaryCard\\nErrorDrawer if errors\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    ExtOrDash[\"Extension Popup or Dashboard\\nSN Save Button / Sync CTA\"]\n    ExtOrDash -->|\"Profile array or raw HTML + X-Request-ID\"| GQL[\"Appointment360\\nGraphQL Gateway\\nsaveSalesNavigatorProfiles\"]\n    GQL -->|\"POST /v1/save-profiles\"| SNSVC[\"Sales Navigator Service\\n(FastAPI Lambda)\"]\n    SNSVC --> Dedup[\"SaveService\\nDeduplicate by profile_url\\n(keep best completeness)\"]\n    Dedup --> Map[\"mappers.py\\nSN fields → Contact/Company\\nUUID5 generation\\nseniority/departments inference\"]\n    Map --> Chunk[\"Chunker\\n500 profiles/chunk\\nmax 3 parallel chunks\"]\n    Chunk -->|\"POST /companies/bulk\"| Connectra[\"Connectra\\nBulk upsert companies\\n(PostgreSQL + Elasticsearch)\"]\n    Chunk -->|\"POST /contacts/bulk\"| Connectra\n    Connectra --> Result[\"Aggregate results\\nsaved_count, created, updated, errors\"]\n    Result --> GQL\n    GQL --> UI[\"Extension / Dashboard UI\\nProgress bar complete\\nSaveSummaryCard\\nErrorDrawer if errors\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Sales Navigator — HTML scrape flow (POST /v1/scrape)",
+      "level": 2,
+      "slug": "sales-navigator-html-scrape-flow-post-v1scrape",
+      "prose": "```mermaid\nflowchart TD\n    Extension[\"Browser Extension\\nSN Search Page HTML\"]\n    Extension -->|\"POST /v1/scrape {html, save:true}\"| SNSVC[\"Sales Navigator Service\"]\n    SNSVC --> Extract[\"extraction.py\\nBeautifulSoup parse\\nLead cards → profile objects\\ndata_quality_score computed\"]\n    Extract --> Profiles[\"Profile array\\n(name, title, company, location,\\nprofile_url, lead_id, connection_degree...)\"]\n    Profiles -->|\"if save=true\"| SavePath[\"SaveService\\n(same as save-profiles flow)\"]\n    Profiles -->|\"if save=false\"| ReturnOnly[\"Return profiles\\nto extension\\n(preview mode)\"]\n    SavePath --> Connectra[\"Connectra bulk upsert\"]\n    Connectra --> Response[\"ScrapeHtmlResponse\\n{success, profiles, page_metadata,\\nsave_summary, errors}\"]\n    ReturnOnly --> Response\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    Extension[\"Browser Extension\\nSN Search Page HTML\"]\n    Extension -->|\"POST /v1/scrape {html, save:true}\"| SNSVC[\"Sales Navigator Service\"]\n    SNSVC --> Extract[\"extraction.py\\nBeautifulSoup parse\\nLead cards → profile objects\\ndata_quality_score computed\"]\n    Extract --> Profiles[\"Profile array\\n(name, title, company, location,\\nprofile_url, lead_id, connection_degree...)\"]\n    Profiles -->|\"if save=true\"| SavePath[\"SaveService\\n(same as save-profiles flow)\"]\n    Profiles -->|\"if save=false\"| ReturnOnly[\"Return profiles\\nto extension\\n(preview mode)\"]\n    SavePath --> Connectra[\"Connectra bulk upsert\"]\n    Connectra --> Response[\"ScrapeHtmlResponse\\n{success, profiles, page_metadata,\\nsave_summary, errors}\"]\n    ReturnOnly --> Response\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Sales Navigator — Era evolution flow",
+      "level": 2,
+      "slug": "sales-navigator-era-evolution-flow",
+      "prose": "```mermaid\nflowchart LR\n    era0[\"0.x: Scaffold\\nHealth only\"]\n    era1[\"1.x: Actor context\\nBilling stub\"]\n    era2[\"2.x: Email field\\nvalidation\"]\n    era3[\"3.x: Full field\\nmapping + provenance\"]\n    era4[\"4.x ★ PRIMARY\\nFull extension UX\\nHTML extraction hardened\"]\n    era5[\"5.x: AI-ready\\nfields quality gate\"]\n    era6[\"6.x: Rate limit\\nIdempotency CORS\"]\n    era7[\"7.x: RBAC\\nAudit events GDPR\"]\n    era8[\"8.x: Versioned\\nRate-limit headers\"]\n    era9[\"9.x: Connectors\\nWebhook delivery\"]\n    era10[\"10.x: Campaign\\nAudience provenance\"]\n\n    era0 --> era1 --> era2 --> era3 --> era4 --> era5 --> era6 --> era7 --> era8 --> era9 --> era10\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    era0[\"0.x: Scaffold\\nHealth only\"]\n    era1[\"1.x: Actor context\\nBilling stub\"]\n    era2[\"2.x: Email field\\nvalidation\"]\n    era3[\"3.x: Full field\\nmapping + provenance\"]\n    era4[\"4.x ★ PRIMARY\\nFull extension UX\\nHTML extraction hardened\"]\n    era5[\"5.x: AI-ready\\nfields quality gate\"]\n    era6[\"6.x: Rate limit\\nIdempotency CORS\"]\n    era7[\"7.x: RBAC\\nAudit events GDPR\"]\n    era8[\"8.x: Versioned\\nRate-limit headers\"]\n    era9[\"9.x: Connectors\\nWebhook delivery\"]\n    era10[\"10.x: Campaign\\nAudience provenance\"]\n\n    era0 --> era1 --> era2 --> era3 --> era4 --> era5 --> era6 --> era7 --> era8 --> era9 --> era10\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Appointment360 — GraphQL request lifecycle flow",
+      "level": 2,
+      "slug": "appointment360-graphql-request-lifecycle-flow",
+      "prose": "```mermaid\nflowchart TD\n    Client[\"Dashboard / Extension\"]\n    Client -->|\"POST /graphql Bearer JWT\"| MW[\"Middleware Stack\\n(CORS → TrustedHost → GZip → REDMetrics\\n→ Timing → RequestId → TraceId\\n→ BodySize → Idempotency → AbuseGuard → RateLimit)\"]\n    MW --> Router[\"GraphQL Router (Strawberry)\"]\n    Router --> Context[\"get_context()\\nJWT decode → load User from DB\\nopen AsyncSession\\ninit DataLoaders\"]\n    Context --> Extensions[\"QueryComplexityExtension\\nQueryTimeoutExtension\"]\n    Extensions --> Resolver[\"Resolver execution\\n(module query / mutation)\"]\n    Resolver -->|contacts / companies| Connectra[\"ConnectraClient\\nGET /contacts/query\\nGET /companies/query\"]\n    Resolver -->|jobs create / status| JobClients[\"EmailServerJobsClient /\\nConnectraClient\"]\n    Resolver -->|email finder/verifier| LambdaEmail[\"LambdaEmailClient\\nPOST /find-email\\nPOST /verify-email\"]\n    Resolver -->|AI chats| LambdaAI[\"LambdaAIClient\\nPOST /ai-chats\\nPOST /message/stream\"]\n    Resolver -->|files / exports| S3Storage[\"LambdaS3StorageClient\\nGET /files\\nPOST /upload\"]\n    Resolver -->|pages / help content| DocsAI[\"DocsAIClient\\nGET /pages\"]\n    Resolver -->|user/billing/credits| DB[\"PostgreSQL\\n(appointment360 DB)\"]\n    Resolver --> DBCommit[\"DatabaseCommitMiddleware\\nSession commit / rollback\"]\n    DBCommit --> Response[\"GraphQL response\\n+ X-Process-Time + X-Trace-Id headers\"]\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    Client[\"Dashboard / Extension\"]\n    Client -->|\"POST /graphql Bearer JWT\"| MW[\"Middleware Stack\\n(CORS → TrustedHost → GZip → REDMetrics\\n→ Timing → RequestId → TraceId\\n→ BodySize → Idempotency → AbuseGuard → RateLimit)\"]\n    MW --> Router[\"GraphQL Router (Strawberry)\"]\n    Router --> Context[\"get_context()\\nJWT decode → load User from DB\\nopen AsyncSession\\ninit DataLoaders\"]\n    Context --> Extensions[\"QueryComplexityExtension\\nQueryTimeoutExtension\"]\n    Extensions --> Resolver[\"Resolver execution\\n(module query / mutation)\"]\n    Resolver -->|contacts / companies| Connectra[\"ConnectraClient\\nGET /contacts/query\\nGET /companies/query\"]\n    Resolver -->|jobs create / status| JobClients[\"EmailServerJobsClient /\\nConnectraClient\"]\n    Resolver -->|email finder/verifier| LambdaEmail[\"LambdaEmailClient\\nPOST /find-email\\nPOST /verify-email\"]\n    Resolver -->|AI chats| LambdaAI[\"LambdaAIClient\\nPOST /ai-chats\\nPOST /message/stream\"]\n    Resolver -->|files / exports| S3Storage[\"LambdaS3StorageClient\\nGET /files\\nPOST /upload\"]\n    Resolver -->|pages / help content| DocsAI[\"DocsAIClient\\nGET /pages\"]\n    Resolver -->|user/billing/credits| DB[\"PostgreSQL\\n(appointment360 DB)\"]\n    Resolver --> DBCommit[\"DatabaseCommitMiddleware\\nSession commit / rollback\"]\n    DBCommit --> Response[\"GraphQL response\\n+ X-Process-Time + X-Trace-Id headers\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Appointment360 — Authentication and token lifecycle flow",
+      "level": 2,
+      "slug": "appointment360-authentication-and-token-lifecycle-flow",
+      "prose": "```mermaid\nflowchart TD\n    Register[\"mutation register(email, password)\"]\n    Register --> HashPW[\"bcrypt password hash\"]\n    HashPW --> CreateUser[\"INSERT INTO users\"]\n    CreateUser --> IssueTokens[\"Issue: access_token (30m HS256)\\n+ refresh_token (7d HS256)\"]\n    IssueTokens --> ClientStores[\"Client stores tokens\\n(cookie / localStorage)\"]\n\n    Login[\"mutation login(email, password)\"]\n    Login --> VerifyPW[\"verify bcrypt hash\"]\n    VerifyPW --> IssueTokens\n\n    Request[\"Subsequent GraphQL request\\nAuthorization: Bearer access_token\"]\n    Request --> DecodeJWT[\"get_context():\\ndecode JWT → user_uuid\"]\n    DecodeJWT --> CheckBlacklist[\"SELECT token_blacklist WHERE token_hash = ?\"]\n    CheckBlacklist -->|not blacklisted| LoadUser[\"SELECT users WHERE uuid = user_uuid\\n(TTLCache hit → skip DB)\"]\n    LoadUser --> ContextReady[\"Context.user populated\\nResolver proceeds\"]\n    CheckBlacklist -->|blacklisted| Reject[\"Return UNAUTHENTICATED error\"]\n\n    Logout[\"mutation logout\"]\n    Logout --> InsertBlacklist[\"INSERT INTO token_blacklist\\n(token_hash, expires_at)\"]\n\n    Refresh[\"mutation refresh_token(refresh_token)\"]\n    Refresh --> ValidateRefresh[\"Decode refresh JWT\\nVerify not blacklisted\"]\n    ValidateRefresh --> NewAccess[\"Issue new access_token (30m)\"]\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    Register[\"mutation register(email, password)\"]\n    Register --> HashPW[\"bcrypt password hash\"]\n    HashPW --> CreateUser[\"INSERT INTO users\"]\n    CreateUser --> IssueTokens[\"Issue: access_token (30m HS256)\\n+ refresh_token (7d HS256)\"]\n    IssueTokens --> ClientStores[\"Client stores tokens\\n(cookie / localStorage)\"]\n\n    Login[\"mutation login(email, password)\"]\n    Login --> VerifyPW[\"verify bcrypt hash\"]\n    VerifyPW --> IssueTokens\n\n    Request[\"Subsequent GraphQL request\\nAuthorization: Bearer access_token\"]\n    Request --> DecodeJWT[\"get_context():\\ndecode JWT → user_uuid\"]\n    DecodeJWT --> CheckBlacklist[\"SELECT token_blacklist WHERE token_hash = ?\"]\n    CheckBlacklist -->|not blacklisted| LoadUser[\"SELECT users WHERE uuid = user_uuid\\n(TTLCache hit → skip DB)\"]\n    LoadUser --> ContextReady[\"Context.user populated\\nResolver proceeds\"]\n    CheckBlacklist -->|blacklisted| Reject[\"Return UNAUTHENTICATED error\"]\n\n    Logout[\"mutation logout\"]\n    Logout --> InsertBlacklist[\"INSERT INTO token_blacklist\\n(token_hash, expires_at)\"]\n\n    Refresh[\"mutation refresh_token(refresh_token)\"]\n    Refresh --> ValidateRefresh[\"Decode refresh JWT\\nVerify not blacklisted\"]\n    ValidateRefresh --> NewAccess[\"Issue new access_token (30m)\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Appointment360 — Era activation spine",
+      "level": 2,
+      "slug": "appointment360-era-activation-spine",
+      "prose": "```mermaid\nflowchart LR\n    era0[\"0.x: App + middleware bootstrap\\nDB session lifecycle\\nHealth endpoints\"]\n    era0 --> era1[\"1.x: Auth + billing + credits\\nJWT issue/blacklist\\nCredit deduction\"]\n    era1 --> era2[\"2.x: Email module\\nJobs module\\nLambdaEmail + job satellites\"]\n    era2 --> era3[\"3.x: Contacts + companies\\nConnectraClient + VQL converter\\nDataLoaders\"]\n    era3 --> era4[\"4.x: LinkedIn + Sales Navigator\\nExtension session auth\\nSN credit deduction\"]\n    era4 --> era5[\"5.x: AI chats + resume\\nLambdaAIClient + ResumeAIClient\"]\n    era5 --> era6[\"6.x: Rate limit + abuse guard\\nIdempotency + complexity/timeout\\nRedis state sharing\"]\n    era6 --> era7[\"7.x: Deployment hardening\\nCI/CD + Dockerfile\\nSuperAdmin RBAC guards\"]\n    era7 --> era8[\"8.x: Pages + saved searches\\nAPI keys + 2FA\\nPublic X-API-Key auth\"]\n    era8 --> era9[\"9.x: Notifications + analytics\\nTenant model\\nAdmin panel\"]\n    era9 --> era10[\"10.x: Campaigns module\\nSequences + templates\\nCampaign wizard\"]\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    era0[\"0.x: App + middleware bootstrap\\nDB session lifecycle\\nHealth endpoints\"]\n    era0 --> era1[\"1.x: Auth + billing + credits\\nJWT issue/blacklist\\nCredit deduction\"]\n    era1 --> era2[\"2.x: Email module\\nJobs module\\nLambdaEmail + job satellites\"]\n    era2 --> era3[\"3.x: Contacts + companies\\nConnectraClient + VQL converter\\nDataLoaders\"]\n    era3 --> era4[\"4.x: LinkedIn + Sales Navigator\\nExtension session auth\\nSN credit deduction\"]\n    era4 --> era5[\"5.x: AI chats + resume\\nLambdaAIClient + ResumeAIClient\"]\n    era5 --> era6[\"6.x: Rate limit + abuse guard\\nIdempotency + complexity/timeout\\nRedis state sharing\"]\n    era6 --> era7[\"7.x: Deployment hardening\\nCI/CD + Dockerfile\\nSuperAdmin RBAC guards\"]\n    era7 --> era8[\"8.x: Pages + saved searches\\nAPI keys + 2FA\\nPublic X-API-Key auth\"]\n    era8 --> era9[\"9.x: Notifications + analytics\\nTenant model\\nAdmin panel\"]\n    era9 --> era10[\"10.x: Campaigns module\\nSequences + templates\\nCampaign wizard\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter — bulk verification flow",
+      "level": 2,
+      "slug": "mailvetter-bulk-verification-flow",
+      "prose": "```mermaid\nflowchart TD\n    A[\"Client / Gateway\"] -->|\"POST /v1/emails/validate-bulk\"| B[\"ValidateBulkHandler\"]\n    B --> C[\"Normalize + dedupe emails\"]\n    C --> D[\"Plan checks\\nbulk limit + concurrent jobs\"]\n    D --> E[\"Create jobs row\\nstatus=pending\"]\n    E --> F[\"Enqueue tasks to Redis\\nqueue: tasks:verify\"]\n    F --> G[\"Worker pool BLPOP consumers\"]\n    G --> H[\"VerifyEmailWithOptions\\nDNS + SMTP + OSINT + scoring\"]\n    H --> I[\"Insert result row\"]\n    I --> J[\"Update jobs counters\\nprocessed/valid/invalid\"]\n    J --> K{\"processed >= total?\"}\n    K -->|No| G\n    K -->|Yes| L[\"Set status=completed\\ncompleted_at=now()\"]\n    L --> M[\"Dispatch webhook\\nX-Webhook-Signature\"]\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    A[\"Client / Gateway\"] -->|\"POST /v1/emails/validate-bulk\"| B[\"ValidateBulkHandler\"]\n    B --> C[\"Normalize + dedupe emails\"]\n    C --> D[\"Plan checks\\nbulk limit + concurrent jobs\"]\n    D --> E[\"Create jobs row\\nstatus=pending\"]\n    E --> F[\"Enqueue tasks to Redis\\nqueue: tasks:verify\"]\n    F --> G[\"Worker pool BLPOP consumers\"]\n    G --> H[\"VerifyEmailWithOptions\\nDNS + SMTP + OSINT + scoring\"]\n    H --> I[\"Insert result row\"]\n    I --> J[\"Update jobs counters\\nprocessed/valid/invalid\"]\n    J --> K{\"processed >= total?\"}\n    K -->|No| G\n    K -->|Yes| L[\"Set status=completed\\ncompleted_at=now()\"]\n    L --> M[\"Dispatch webhook\\nX-Webhook-Signature\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter — single verification scoring flow",
+      "level": 2,
+      "slug": "mailvetter-single-verification-scoring-flow",
+      "prose": "```mermaid\nflowchart LR\n    Req[\"POST /v1/emails/validate\"] --> Parse[\"Parse + validate email\"]\n    Parse --> DNS[\"CheckDNS + IdentifyProvider\"]\n    Parse --> SMTP[\"CheckSMTP + VRFY + ghost probe\"]\n    Parse --> Signals[\"Signals: SPF/DMARC/domain age\\nTeams/SharePoint/Calendar\\nGitHub/Adobe/Gravatar/HIBP\"]\n    DNS --> Score[\"CalculateRobustScore\"]\n    SMTP --> Score\n    Signals --> Score\n    Score --> Status[\"status: valid/catch_all/risky/invalid/unknown\"]\n    Status --> Reach[\"reachability: safe/risky/bad\"]\n    Reach --> Resp[\"JSON response\\nscore + score_details + analysis\"]\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    Req[\"POST /v1/emails/validate\"] --> Parse[\"Parse + validate email\"]\n    Parse --> DNS[\"CheckDNS + IdentifyProvider\"]\n    Parse --> SMTP[\"CheckSMTP + VRFY + ghost probe\"]\n    Parse --> Signals[\"Signals: SPF/DMARC/domain age\\nTeams/SharePoint/Calendar\\nGitHub/Adobe/Gravatar/HIBP\"]\n    DNS --> Score[\"CalculateRobustScore\"]\n    SMTP --> Score\n    Signals --> Score\n    Score --> Status[\"status: valid/catch_all/risky/invalid/unknown\"]\n    Status --> Reach[\"reachability: safe/risky/bad\"]\n    Reach --> Resp[\"JSON response\\nscore + score_details + analysis\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter — era activation spine",
+      "level": 2,
+      "slug": "mailvetter-era-activation-spine",
+      "prose": "```mermaid\nflowchart LR\n    e0[\"0.x: API/worker foundation\\nv1 contract baseline\"] --> e1[\"1.x: key ownership\\nplan limits + credits\"]\n    e1 --> e2[\"2.x: core verifier GA\\nbulk jobs + results\"]\n    e2 --> e3[\"3.x: contact/company linkage\\nverification lineage\"]\n    e3 --> e4[\"4.x: extension/SN provenance\\nanti-abuse controls\"]\n    e4 --> e5[\"5.x: AI explainability\\nreason codes\"]\n    e5 --> e6[\"6.x: reliability hardening\\ndistributed limiter + idempotency\"]\n    e6 --> e7[\"7.x: deployment governance\\nmigration discipline\"]\n    e7 --> e8[\"8.x: public/private API\\nscoped keys + OpenAPI\"]\n    e8 --> e9[\"9.x: ecosystem webhooks\\nconnector reliability\"]\n    e9 --> e10[\"10.x: campaign preflight\\ncompliance traceability\"]\n```\n\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    e0[\"0.x: API/worker foundation\\nv1 contract baseline\"] --> e1[\"1.x: key ownership\\nplan limits + credits\"]\n    e1 --> e2[\"2.x: core verifier GA\\nbulk jobs + results\"]\n    e2 --> e3[\"3.x: contact/company linkage\\nverification lineage\"]\n    e3 --> e4[\"4.x: extension/SN provenance\\nanti-abuse controls\"]\n    e4 --> e5[\"5.x: AI explainability\\nreason codes\"]\n    e5 --> e6[\"6.x: reliability hardening\\ndistributed limiter + idempotency\"]\n    e6 --> e7[\"7.x: deployment governance\\nmigration discipline\"]\n    e7 --> e8[\"8.x: public/private API\\nscoped keys + OpenAPI\"]\n    e8 --> e9[\"9.x: ecosystem webhooks\\nconnector reliability\"]\n    e9 --> e10[\"10.x: campaign preflight\\ncompliance traceability\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Extension runtime flow",
+      "level": 2,
+      "slug": "extension-runtime-flow",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension token refresh and profile save flow",
+      "level": 3,
+      "slug": "extension-token-refresh-and-profile-save-flow",
+      "prose": "```mermaid\nflowchart TD\n    A[Extension popup / content script] --> B{getValidAccessToken}\n    B -->|token valid| C[Return accessToken]\n    B -->|token expired / near expiry| D[refreshAccessToken via GraphQL]\n    D --> E[POST /graphql mutation auth.refreshToken]\n    E --> F[Appointment360 validates refreshToken]\n    F -->|ok| G[Return new accessToken + refreshToken]\n    G --> H[storeTokens to chrome.storage.local]\n    H --> C\n    F -->|fail| I[Redirect to login]\n    C --> J[deduplicateProfiles on scraped list]\n    J --> K[lambdaClient.saveProfiles batched array]\n    K --> L[POST /v1/save-profiles with Bearer token]\n    L --> M[Lambda SN API]\n    M --> N[POST /contacts/bulk to Connectra]\n    M --> O[POST /companies/bulk to Connectra]\n    N --> P[Elasticsearch contact index updated]\n    O --> Q[Elasticsearch company index updated]\n    L -->|error| R[Retry with back-off + jitter]\n    R -->|max retries exceeded| S[Return error list to popup]\n    S --> T[Extension popup shows error toast]\n    K --> U[Extension popup updates progress bar]\n    P --> V[Contacts available in Contact360 dashboard]\n    Q --> V\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n    A[Extension popup / content script] --> B{getValidAccessToken}\n    B -->|token valid| C[Return accessToken]\n    B -->|token expired / near expiry| D[refreshAccessToken via GraphQL]\n    D --> E[POST /graphql mutation auth.refreshToken]\n    E --> F[Appointment360 validates refreshToken]\n    F -->|ok| G[Return new accessToken + refreshToken]\n    G --> H[storeTokens to chrome.storage.local]\n    H --> C\n    F -->|fail| I[Redirect to login]\n    C --> J[deduplicateProfiles on scraped list]\n    J --> K[lambdaClient.saveProfiles batched array]\n    K --> L[POST /v1/save-profiles with Bearer token]\n    L --> M[Lambda SN API]\n    M --> N[POST /contacts/bulk to Connectra]\n    M --> O[POST /companies/bulk to Connectra]\n    N --> P[Elasticsearch contact index updated]\n    O --> Q[Elasticsearch company index updated]\n    L -->|error| R[Retry with back-off + jitter]\n    R -->|max retries exceeded| S[Return error list to popup]\n    S --> T[Extension popup shows error toast]\n    K --> U[Extension popup updates progress bar]\n    P --> V[Contacts available in Contact360 dashboard]\n    Q --> V\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Extension shell implementation delta",
+      "level": 3,
+      "slug": "extension-shell-implementation-delta",
+      "prose": "```mermaid\nflowchart LR\n    extensionUI[\"Extension popup (implemented)\"] --> contentScript[\"Content script scrape bridge (implemented)\"]\n    contentScript --> bgWorker[\"Background service worker orchestration (implemented)\"]\n    bgWorker --> lambdaClient[\"lambdaClient.js (implemented)\"]\n    lambdaClient --> salesnavAPI[\"Sales Navigator Lambda (implemented)\"]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    extensionUI[\"Extension popup (implemented)\"] --> contentScript[\"Content script scrape bridge (implemented)\"]\n    contentScript --> bgWorker[\"Background service worker orchestration (implemented)\"]\n    bgWorker --> lambdaClient[\"lambdaClient.js (implemented)\"]\n    lambdaClient --> salesnavAPI[\"Sales Navigator Lambda (implemented)\"]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Extension access control chain",
+      "level": 3,
+      "slug": "extension-access-control-chain",
+      "prose": "```mermaid\nflowchart LR\n    CS[Content script scrapes SN page] --> GM[profileMerger.deduplicateProfiles]\n    GM --> GV[getValidAccessToken]\n    GV -->|chrome.storage.local hit| LC[lambdaClient.saveProfiles]\n    GV -->|token expired| RT[GraphQL auth.refreshToken]\n    RT -->|success| LC\n    RT -->|failure| ER[Show login required banner]\n    LC -->|success| PB[Update progress bar + count badge]\n    LC -->|failure| ET[Show error toast + retry]\n```\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n    CS[Content script scrapes SN page] --> GM[profileMerger.deduplicateProfiles]\n    GM --> GV[getValidAccessToken]\n    GV -->|chrome.storage.local hit| LC[lambdaClient.saveProfiles]\n    GV -->|token expired| RT[GraphQL auth.refreshToken]\n    RT -->|success| LC\n    RT -->|failure| ER[Show login required banner]\n    LC -->|success| PB[Update progress bar + count badge]\n    LC -->|failure| ET[Show error toast + retry]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Email app runtime flow",
+      "level": 2,
+      "slug": "email-app-runtime-flow",
+      "prose": "```mermaid\nflowchart TD\n  A[User opens /inbox] --> B{activeAccount in ImapContext}\n  B -->|missing| C[Prompt connect account in /account/{userId}]\n  B -->|present| D[GET /api/emails/{folder}]\n  B -->|present| K[Send Authorization + mailbox session headers]\n  D --> E[Render DataTable]\n  E --> F[User clicks row]\n  F --> G[Route /email/{mailId}?folder=...]\n  G --> H[GET /api/emails/{mailId}?folder=...]\n  H --> I[DOMPurify sanitize HTML]\n  I --> J[Render sanitized email body]\n```\n\n```mermaid\nflowchart LR\n  U[Account settings page] --> P[POST /api/user/imap/{userId}]\n  P --> R[GET /api/user/{userId}]\n  R --> S[Update connectedAccounts list]\n  S --> T[setActiveAccount in ImapContext]\n  T --> V[localStorage: id/provider/email only]\n  T --> W[sessionStorage: mailbox session token]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n  A[User opens /inbox] --> B{activeAccount in ImapContext}\n  B -->|missing| C[Prompt connect account in /account/{userId}]\n  B -->|present| D[GET /api/emails/{folder}]\n  B -->|present| K[Send Authorization + mailbox session headers]\n  D --> E[Render DataTable]\n  E --> F[User clicks row]\n  F --> G[Route /email/{mailId}?folder=...]\n  G --> H[GET /api/emails/{mailId}?folder=...]\n  H --> I[DOMPurify sanitize HTML]\n  I --> J[Render sanitized email body]\n"
+        },
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n  U[Account settings page] --> P[POST /api/user/imap/{userId}]\n  P --> R[GET /api/user/{userId}]\n  R --> S[Update connectedAccounts list]\n  S --> T[setActiveAccount in ImapContext]\n  T --> V[localStorage: id/provider/email only]\n  T --> W[sessionStorage: mailbox session token]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Admin runtime flow",
+      "level": 2,
+      "slug": "admin-runtime-flow",
+      "prose": "```mermaid\nflowchart TD\n  Req[Admin Request] --> AuthMW[Appointment360AuthMiddleware]\n  AuthMW --> RoleMW[SuperAdminMiddleware]\n  RoleMW --> View[Admin View Handler]\n  View --> GQL[Appointment360 GraphQL Client]\n  View --> Logs[logs.api Client]\n  View --> Jobs[jobs GraphQL + satellites]\n  View --> Storage[s3storage Client]\n  GQL --> Resp[HTTP Response]\n  Logs --> Resp\n  Jobs --> Resp\n  Storage --> Resp\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n  Req[Admin Request] --> AuthMW[Appointment360AuthMiddleware]\n  AuthMW --> RoleMW[SuperAdminMiddleware]\n  RoleMW --> View[Admin View Handler]\n  View --> GQL[Appointment360 GraphQL Client]\n  View --> Logs[logs.api Client]\n  View --> Jobs[jobs GraphQL + satellites]\n  View --> Storage[s3storage Client]\n  GQL --> Resp[HTTP Response]\n  Logs --> Resp\n  Jobs --> Resp\n  Storage --> Resp\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "s3storage upload flow (current)",
+      "level": 2,
+      "slug": "s3storage-upload-flow-current",
+      "prose": "```mermaid\nflowchart TD\n  Init[Initiate Upload] --> Sess[multipart_sessions in Postgres]\n  Sess --> Part[Register Part URLs]\n  Part --> Complete[Complete Upload]\n  Complete --> Worker[s3storage-metadata-worker invoke]\n  Worker --> Meta[metadata.json update]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n  Init[Initiate Upload] --> Sess[multipart_sessions in Postgres]\n  Sess --> Part[Register Part URLs]\n  Part --> Complete[Complete Upload]\n  Complete --> Worker[s3storage-metadata-worker invoke]\n  Worker --> Meta[metadata.json update]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "logs.api ingest flow",
+      "level": 2,
+      "slug": "logsapi-ingest-flow",
+      "prose": "```mermaid\nflowchart TD\n  LReq[POST /logs or /logs/batch] --> Normalize[Normalize and validate payload]\n  Normalize --> S3Write[Append rows to S3 CSV]\n  S3Write --> CacheInv[Invalidate/query cache windows]\n  CacheInv --> Query[Search/query/statistics paths]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart TD\n  LReq[POST /logs or /logs/batch] --> Normalize[Normalize and validate payload]\n  Normalize --> S3Write[Append rows to S3 CSV]\n  S3Write --> CacheInv[Invalidate/query cache windows]\n  CacheInv --> Query[Search/query/statistics paths]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "emailapigo finder fallback flow",
+      "level": 2,
+      "slug": "emailapigo-finder-fallback-flow",
+      "prose": "```mermaid\nflowchart LR\n  Start[Finder request] --> Ctra[Connectra source]\n  Ctra --> Pattern[Pattern table lookup]\n  Pattern --> Gen[Generator expansion]\n  Gen --> Web[Web search fallback]\n  Web --> Icy[IcyPeas provider fallback]\n  Icy --> Final[Candidate set + verification path]\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "mermaid",
+          "value": "flowchart LR\n  Start[Finder request] --> Ctra[Connectra source]\n  Ctra --> Pattern[Pattern table lookup]\n  Pattern --> Gen[Generator expansion]\n  Gen --> Web[Web search fallback]\n  Web --> Icy[IcyPeas provider fallback]\n  Icy --> Final[Candidate set + verification path]\n"
+        }
+      ],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

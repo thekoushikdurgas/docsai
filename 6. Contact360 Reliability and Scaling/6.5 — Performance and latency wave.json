@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "6. Contact360 Reliability and Scaling/6.5 — Performance and latency wave.md",
+  "sha256_source": "9608999caf87c3d4cee87e276ffa12b13846616630bf8783ab0bd7c89fa5c898",
+  "generated_at": "2026-04-08T23:11:50.610702+00:00",
+  "title": "Version 6.5",
+  "version": "6.5",
+  "codename": "Performance and latency wave",
+  "era": 6,
+  "minor": 5,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch ladder:** Codenames `Void` → `Bloom` per minor (`.0`–`.9`) — see patch table below.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stageNode[\"6.5.0 — Performance\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    releaseGate[\"6.5 gate: P95 wins\"]\n\n    stageNode --> contract\n    stageNode --> service\n    stageNode --> surface\n    stageNode --> data\n    stageNode --> ops\n    contract --> releaseGate\n    service --> releaseGate\n    surface --> releaseGate\n    data --> releaseGate\n    ops --> releaseGate",
+    "flowchart LR\n    pools[\"DB pools\"]\n    dl[\"DataLoader\"]\n    bulk[\"Bulk concurrency\"]\n    timeout[\"Query timeouts\"]\n\n    pools --> dl --> bulk --> timeout",
+    "flowchart LR\n    e[\"6.4 observability\"] --> f[\"6.5 performance\"]\n    f --> g[\"6.6 storage\"]",
+    "flowchart LR\n  contract[Contract]\n  service[Service]\n  surface[Surface]\n  data[Data]\n  ops[Ops]\n  gate[Release gate]\n\n  contract --> gate\n  service --> gate\n  surface --> gate\n  data --> gate\n  ops --> gate"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter, `.1-.2` scaffold, `.3-.5` hardening, `.6-.8` integration, `.9` freeze/handoff.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Query P95 SLO; ES vs PG path latency budgets (**Service task slices** in `6.x` patches — Connectra).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `GRAPHQL_QUERY_TIMEOUT`, pool size, rate limit interplay documented.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **`save_service.py` chunk size** — `CHUNK_SIZE = 500` and `MAX_PARALLEL_CHUNKS = 3` are hardcoded constants; extract to `Settings` or environment variables so they can be tuned per Connectra capacity without code deploy.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **`LambdaClient.js` batch tuning** — `OPTIMAL_BATCH_SIZE: 100`, `MIN_BATCH_SIZE: 10`, `batchTimeout: 1000ms` are hardcoded; expose via `constants.js` / `chrome.storage.local` to allow extension-side tuning.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add p95 target for `POST /v1/save-profiles` with 25-profile batch (< 3s) and 500-profile batch (< 15s); wire as CloudWatch alarm on `salesnavigator-api` Lambda.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **Connectra cold-start** — Lambda cold start on first `POST /v1/save-profiles` may take > 5s; document warm-up strategy (scheduled EventBridge ping) or provisioned concurrency for production.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **Rate limiter is global, not per-API-key** — `rateMiddleware.go` uses a single package-level token bucket shared by all callers; a single high-traffic client can exhaust the limit for all others; refactor to a per-API-key `sync.Map` of token buckets so each key has its own rate budget.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **Stale job recovery interval hardcoded** — `jobs.go` `StaleJobRecovery` uses `time.NewTicker(5 * time.Minute)` hardcoded; make this configurable via `conf.JobConfig` (e.g. `STALE_JOB_RECOVERY_INTERVAL_MINUTES` env var) so it can be tuned per environment.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **Connectra `BulkUpsert` concurrency** — `batchInsertService.go` `UpsertBatch` runs companies and contacts in parallel goroutines; evaluate whether `BatchSize` tuning in `JobConfig` is aligned with PG connection pool size and ES bulk request limits; document recommended values.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **Connectra `server.Shutdown` timeout** — `cmd/server.go` calls `srv.Shutdown(context.TODO())` with no timeout; add `context.WithTimeout(context.Background(), 30*time.Second)` to ensure graceful shutdown completes within a known bound.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Concurrency limits, provider timeout matrix, circuit breaker tuning.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **emailapigo** bulk finder — `sem := make(chan struct{}, 15)` is hardcoded; add `BULK_CONCURRENCY_LIMIT` env var to config and template (default 15) so it can be tuned per environment.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **emailapis** query cache — `ENABLE_QUERY_CACHING=True` already in config but verify `QUERY_CACHE_TTL` and `QUERY_CACHE_MAX_SIZE` are wired in SAM template globals; add cache-hit rate metric log line.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add rate-limit middleware to `lambda/emailapis` (FastAPI) returning `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After` headers on bulk finder/verifier endpoints.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add rate-limit middleware to `lambda/emailapigo` (Gin) returning same headers on bulk endpoints; align per-API-key limits with Python adapter.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/jobs** — `rate_limit.py` `RateLimitMiddleware` uses a global token bucket (`rate_limiter`) shared by all API callers; a single high-volume client can exhaust the budget for all others; replace with a per-`X-API-Key` bucket map using `asyncio.Lock`-protected `dict[str, TokenBucketRateLimiter]` so each key has an isolated rate budget.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/jobs** — `rate_limit.py` 429 response contains no `X-RateLimit-Limit`, `X-RateLimit-Remaining`, or `Retry-After` headers; add these three headers to the 429 `JSONResponse` body and HTTP headers so clients can back off intelligently.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/jobs** — `scheduler.py` `_recovery_loop` runs every `TICKER_INTERVAL` seconds (default 30s) regardless of whether any stale jobs were found; add exponential backoff for idle recovery loops (no stale jobs → double interval up to max 10 min) and reset to `TICKER_INTERVAL` when stale jobs are found.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/jobs** — benchmark `WorkerPool` throughput: measure jobs-per-second for `email_finder_export_stream` with `WORKER_POOL_SIZE_FIRST_TIME=10` vs 20 vs 50; document optimal values for `THREAD_POOL_SIZE`, `MAX_WORKERS_IO`, and `JOB_CHANNEL_SIZE` in `example.env`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/jobs** — add S3 multipart upload support to `clients/s3.py` for large export CSV files > 100MB; current `upload_bytes` loads the full file into memory which will OOM the container for large contact exports.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — contacts and companies tables use `@tanstack/react-virtual` for virtualized row rendering; lazy-loaded modals (VQL builder, export modal, saved searches modal) use `next/dynamic` to split bundle weight.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `useDashboardData` hook fetches activities, usage stats, and dashboard metrics on every mount with no caching or stale-while-revalidate strategy; navigating away and back to `/dashboard` triggers a full re-fetch — add a TTL-based cache (e.g., 60s stale window) in the hook or use SWR/React Query to avoid redundant API calls.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `useBilling` hook fetches billing info, plans, addons, invoices, and payment instructions in a single `Promise.all` on every mount; the plans and addons data rarely changes — cache plans/addons client-side with a 5-minute TTL to reduce API load on the billing page.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Enable `ENABLE_CACHE_WARMING=true` in `lambda/logs.api` SAM template globals; verify warm Lambda hit rate on `GET /logs`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Replace offset-based `GET /logs` pagination with cursor (`created_at` + `log_id`); align with `lambda/logs.api/docs/LOG_EVENT_CONTRACT.md` pagination recommendation.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Pre-compute hourly/daily aggregation buckets (DynamoDB or S3 JSON side-car) to serve `GET /logs/statistics` without full CSV scan.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Evaluate S3 Select or prefix-based partitioning (`YYYY/MM/DD/HH`) for `GET /logs/search` to avoid full-file scans.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **[appointment360]** — service slice…) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **[emailapis]** — harden primary wor…) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Frontend: defer heavy fetch; pagination; skeletons during slow queries.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Perceived performance: skeletons, optimistic UI only where idempotent.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Read replicas, ES refresh tradeoffs; index hot spots.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **redis exit**: campaign (as…) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Pool sizing per service; Connectra PG + ES index maintenance windows.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Perf regression dashboards; compare release-over-release P95.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `6.5.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 6.5",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus — latency",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown — acceptance",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow/Graph Delta",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (6.5.0 - 6.5.9)",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

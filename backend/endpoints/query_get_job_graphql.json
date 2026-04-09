@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/query_get_job_graphql.md",
+  "sha256_source": "07faa560a0b0045252a358fe4fd270a96c26a09b7a217119ab340da7ecb908dd",
+  "generated_at": "2026-04-08T23:11:52.464060+00:00",
+  "title": "graphql/GetJob",
+  "raw_markdown": "---\ntitle: \"graphql/GetJob\"\nsource_json: query_get_job_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/GetJob\n\n## Overview\n\nGet a scheduler job by ID from GraphQL jobs module and enrich with live TKD Job payloads (`statusPayload`, `timelinePayload`, `dagPayload`) when requested. Used by job detail views and status polling surfaces.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | query_get_job_graphql |\n| _id | query_get_job_graphql-001 |\n| endpoint_path | graphql/GetJob |\n| method | QUERY |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 4.x |\n| introduced_in | 4.0.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/jobs/queries.py |\n| router_file | contact360/dashboard/src/services/graphql/jobsService.ts |\n\n\n## GraphQL operation\n\n```graphql\nquery GetJob($uuid: ID!) { jobs { job(uuid: $uuid) { uuid jobType status data jobResponse createdAt updatedAt } } }\n```\n\n## Data & infrastructure\n\n### db_tables_read\n\n- scheduler_jobs\n- job_node\n- job_events\n- edges\n\n### lambda_services\n\n- contact360.io/sync\n- contact360.io/jobs\n\n## Service / repository methods\n\n### service_methods\n\n- getJob\n- job\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /jobs | Jobs Page | jobsService | useExpandedJobDetails | secondary | data_fetching | 2026-03-24T00:00:00.000000+00:00 |\n\n\n### frontend_page_bindings\n\n- contact360.io/app/app/(dashboard)/jobs/page.tsx\n- contact360.io/app/src/services/graphql/jobsService.ts\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `query_get_job_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `4.x` — Bulk Operations & Automation (Job Retrieval).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `scheduler_jobs` | READ | [scheduler_jobs.sql](../database/tables/scheduler_jobs.sql) |\n| `job_nodes` | READ | [job_nodes.sql](../database/tables/job_nodes.sql) |\n| `job_events` | READ | [job_events.sql](../database/tables/job_events.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [TKD Jobs Service](../database/jobs_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Jobs**: Status fetching via `contact360.io/jobs`.\n\n## Related endpoint graph\n\n- **Inbound**: `Jobs Page`, `Polling Hook`.\n- **Outbound**: `ListJobs`, `RetryJob`.\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `query_get_job_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "query_get_job_graphql"
+        ],
+        [
+          "_id",
+          "query_get_job_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/GetJob"
+        ],
+        [
+          "method",
+          "QUERY"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "4.x"
+        ],
+        [
+          "introduced_in",
+          "4.0.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/jobs/queries.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/jobsService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/jobs",
+          "Jobs Page",
+          "jobsService",
+          "useExpandedJobDetails",
+          "secondary",
+          "data_fetching",
+          "2026-03-24T00:00:00.000000+00:00"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`scheduler_jobs`",
+          "READ",
+          "[scheduler_jobs.sql](../database/tables/scheduler_jobs.sql)"
+        ],
+        [
+          "`job_nodes`",
+          "READ",
+          "[job_nodes.sql](../database/tables/job_nodes.sql)"
+        ],
+        [
+          "`job_events`",
+          "READ",
+          "[job_events.sql](../database/tables/job_events.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Get a scheduler job by ID from GraphQL jobs module and enrich with live TKD Job payloads (`statusPayload`, `timelinePayload`, `dagPayload`) when requested. Used by job detail views and status polling surfaces."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `query_get_job_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/GetJob\"\nsource_json: query_get_job_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

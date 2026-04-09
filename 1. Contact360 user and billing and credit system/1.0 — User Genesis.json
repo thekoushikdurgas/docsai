@@ -1,0 +1,571 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "1. Contact360 user and billing and credit system/1.0 — User Genesis.md",
+  "sha256_source": "aac11f12037cece7fc99968e34a46111185fd6c783dc0cd73dba5db1ba791392",
+  "generated_at": "2026-04-08T23:11:49.703905+00:00",
+  "title": "Version 1.0 — User Genesis",
+  "version": "1.0",
+  "codename": "User Genesis",
+  "era": 1,
+  "minor": 0,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"1.0.x User Genesis\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    signup[\"register mutation\"] --> jwt[\"access plus refresh tokens\"]\n    jwt --> starter[\"credits seeded e.g. 50 starter\"]\n    starter --> finder[\"email finder GraphQL\"]\n    finder --> deduct[\"deduct_credit feature gate\"]\n    deduct --> lambda[\"emailapis or emailapigo\"]\n    lambda --> results[\"results to app\"]\n    results --> gate[\"1.0 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.\nTheme: **Ignition** — names in per-patch `1.0.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Freeze **auth** types: `login`, `register`, `logout`, `refresh_token`, `me` — see **Service task slices** in `1.0.P` patch files (scope from former `appointment360-user-billing-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Document **finder credit cost** vs verifier (per roadmap 1.2 policy).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `usage(feature)` response shape for header credits counter.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `1.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Contract**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Email finder query fields:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "GraphQL: `findEmails(input: EmailFinderInput!)`,",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Lambda endpoint mapping: POST `/email/finder/`,",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "response: `EmailFinderResponse { emails[], total, success }`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Input contract for `EmailFinderInput` matches required fields (`firstName`, `lastName`, `domain`, optional `website`) per [`docs/backend/apis/15_EMAIL_MODULE.md`](../backend/apis/15_EMAIL_MODULE.md).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Service**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Normalize identity keys (case-insensitive domain; trimmed names) so cache keys don’t split logically identical inputs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Finder results map to `EmailResult { uuid, email, status, source }` and preserve `source` (“connectra”, “pattern”, “generator”).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Ensure finder spends the correct feature bucket used by `UsageQuery` (`EMAIL_FINDER` / normalized equivalent).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Surface**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Finder UI `FinderSingleSearch` validates inputs, calls the finder request binding, and renders:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "“Verified Contact Found”,",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "fields: Name, Company Domain, Email Address, Confidence Percentage.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Copy action uses the found email result.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Data**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Ensure usage rows are created/updated for `EMAIL_FINDER` on first successful finder.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Ensure credits update lineage ties `user_uuid` → `credits.feature`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Ops**",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Contract tests:",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "finder returns `success=true` and populated `emails` list,",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "finder failure returns structured GraphQL errors without leaking provider internals.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Codebases: `[appointment360][emailapis][connectra][app]`",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Implement **password hash**, **JWT HS256**, **token_blacklist** on logout.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **`deduct_credit(user_uuid, feature, amount)`** before expensive email operations.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **`require_auth`** on protected resolvers; block at zero balance with explicit error.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `1.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **app:** `/login`, `/register`, profile stub, finder/verifier entry pages, credits in header.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **root:** marketing CTAs to auth (per connectra pack).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **app:** `SessionContext` and `RoleContext` providers wired into app layout for auth gating.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **app:** `UpiPaymentModal` integration reference for credit top-up (delivery in `1.3`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `1.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Auth pages, dashboard shell, finder/verifier flows, credits display.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **`users`**, **`credits`** (or equivalent), **`token_blacklist`** migrations applied.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Lineage: user uuid as foreign key for usage rows.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `1.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**PostgreSQL (gateway):** users, credits, token_blacklist; usage/activity as per schema.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**S3:** optional — not required for core `1.0.0` auth path.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Migrations + sample ledger row",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: **contact360.io/api** — SQLAlchemy models for `users`, `user_profiles`, `token_blacklist`, `subscription_plans`, `plan_periods`, `addons`, `user_subscriptions`, `user_addon_purchases`, `payment_submissions`, `two_factor` all defined in `app/models/` with Alembic migrations in `alembic/`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Smoke: signup → first finder → ledger decrement trace.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Document rollback: feature flag to disable finder if credit bug.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `src/components/login-form.tsx` stores `data.id` (`userId`) in `localStorage` after login (`localStorage.setItem(\"userId\", data.id)`) but does NOT store a JWT or session token; all `Authorization: Bearer` headers in subsequent API calls (`account/[userId]/page.tsx`, `email-list.tsx`, `email/[mailId]/page.tsx`) are commented out — complete the auth flow: store the JWT returned by `POST /auth/login`, include it as `Authorization: Bearer <token>` on all protected API calls, and implement token refresh / logout.",
+        "codebase": "userId",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `src/app/account/[userId]/page.tsx` declares `const [token, setToken] = useState<string | null>(null)` and reads `localStorage.getItem(\"token\")` but `login-form.tsx` never sets a `\"token\"` key in localStorage (it sets `\"userId\"`); the token is never available for authenticated API calls — align the localStorage key: either store `token` in `login-form.tsx` or use `\"userId\"` consistently.",
+        "codebase": "userId",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/email (Mailhub)** — implement session expiry handling: when any API call returns `401 Unauthorized`, clear `localStorage` (`mailhub_active_account`, `userId`, `token`), set context state to null, and redirect to `/auth/login`; currently a `401` just returns an empty email list with no user feedback.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/email (Mailhub)** — add `GET /auth/me` (or `GET /auth/user/:userId`) session validation to `LayoutClient.tsx`; on first mount, verify the stored session is still valid before rendering the email shell; this prevents stale `userId` values from causing confusing UX after backend token expiry.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — full JWT auth flow implemented: `authService.ts` calls `mutation Login/Register/RefreshToken` via GraphQL; `AuthContext` stores tokens via `tokenManager.ts`, auto-refreshes every 60s, maps backend role strings to `UserRole` enum (`FreeUser`, `ProUser`, `Admin`, `SuperAdmin`), and exposes `login`, `register`, `logout`, `refreshUser` hooks.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — role-based access control implemented via `RoleContext` + `featureAccess.ts`; features (`AI_CHAT`, `BULK_EXPORT`, `API_KEYS`, `TEAM_MANAGEMENT`, `EMAIL_FINDER`, `VERIFIER`, `LINKEDIN`, `DATA_SEARCH`, `ADVANCED_FILTERS`, `SAVE_SEARCHES`, `BULK_VERIFICATION`, `IMPORT`) are mapped to minimum role and free-tier limits.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `billing/page.tsx` defines local `FALLBACK_PLANS` and `FALLBACK_ADDONS` arrays with hardcoded prices (Starter $29, Pro $99, Enterprise \"Custom\") that are shown when the `useBilling` API call fails; these fallback values may go stale — replace with a skeleton loading state and a retry button instead of silently showing outdated pricing.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `billingService.ts` `subscribe()` and `purchaseAddon()` mutations submit payment intent but actual UPI payment verification is handled by `submitPaymentProof` uploading a screenshot S3 key — there is no automated payment verification; the billing flow depends on manual admin review of uploaded screenshots — document this process and add an `Invoice` status indicator so users know their payment is pending review.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/app (Dashboard)** — complete 2FA setup/teardown flow in `ProfileTabSecurity`: `twoFactorService.ts` exists in the services directory but the enable/verify-TOTP-code/disable UI flow in the profile security tab needs to be audited and completed.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/app (Dashboard)** — wire S3 upload step in `UpiPaymentModal`: `billingService.submitPaymentProof` accepts `screenshotS3Key` but the modal's proof upload button needs to call `s3Service.ts` upload first before submitting — wire the full upload → submit flow end-to-end.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `1.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 1.0 — User Genesis",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (1.0.0 – 1.0.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "1.0.0 — Genesis (Shipped MVP baseline)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][emailapis][app][connectra]`"
+    },
+    {
+      "heading": "1.0.1 — Spark (Auth edge cases)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.0.2 — Flame (Credit deduction correctness)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][emailapis]`"
+    },
+    {
+      "heading": "1.0.4 — Blaze (Verifier / results)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][emailapis][app]`"
+    },
+    {
+      "heading": "1.0.5 — Torch (Token refresh)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.0.6 — Ember (Usage query)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.0.7 — Fuel (Error envelopes)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.0.8 — Flare (Extension token buffer, if applicable)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app][root]`"
+    },
+    {
+      "heading": "1.0.9 — Ignite (Patch freeze → 1.1)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app][emailapis][jobs]`"
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

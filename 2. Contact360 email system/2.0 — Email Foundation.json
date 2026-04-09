@@ -1,0 +1,501 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "2. Contact360 email system/2.0 — Email Foundation.md",
+  "sha256_source": "c7751659dba9c3d516b697003a2b1774ced37a11cbffd7e8547e42af674eda7a",
+  "generated_at": "2026-04-08T23:11:49.942113+00:00",
+  "title": "Version 2.0 — Email Foundation",
+  "version": "2.0",
+  "codename": "Email Foundation",
+  "era": 2,
+  "minor": 0,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** `.0` charter · `.1`–`.3` core path · `.4`–`.6` hardening · `.7`–`.8` integration · `.9` minor freeze / handoff.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"2.0.x Email Foundation\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    gql[\"GraphQL email module\"] --> find[\"finder mutation or query\"]\n    find --> go[\"emailapigo worker patterns plus cache\"]\n    go --> verify[\"Mailvetter v1 validate path\"]\n    verify --> norm[\"status plus confidence normalize\"]\n    norm --> cred[\"credit deduction gateway\"]\n    cred --> ui[\"dashboard results plus activity\"]\n    ui --> gate[\"2.0 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.3` core path · `.4`–`.6` hardening · `.7`–`.8` integration · `.9` minor freeze / handoff.\nTheme: **Spark** — codenames in per-patch `2.0.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Freeze **GraphQL email** field names and error codes for finder + verifier single paths — **Service task slices** in `2.0.P` patch files (scope from former `appointment360-email-system-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Document **Lambda** invocation payload and provider selection order — **Service task slices** in `2.0.P` patch files (scope from former `emailapis-email-system-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Lock **Mailvetter v1** `POST /v1/emails/validate` request/response for gateway mapping — **Service task slices** in `2.0.P` patch files (scope from former `mailvetter-email-system-task-pack.md`).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **s3storage** — freeze multipart API contract (initiate/parts/register/complete/abort) per [`lambda/s3storage/docs/API.md`](../../lambda/s3storage/docs/API.md) and lock retry-safe completion semantics.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **emailapis/emailapigo** — publish provider parity matrix: same input → normalized `valid`/`invalid`/`catchall`/`unknown` output for both Python (`TruelistClient`) and Go (`MailvetterClient`) adapters; document the Truelist → Mailvetter provider migration plan and cutover criteria.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **emailapis** — add `MAILVETTER_API_KEY` and `MAILVETTER_BASE_URL` to Python `config.py` Settings and `template.yaml`; Go (`emailapigo`) already uses Mailvetter — Python must reach parity before Truelist is deprecated.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "GraphQL modules: `docs/backend/apis/15_EMAIL_MODULE.md`, `docs/backend/apis/16_JOBS_MODULE.md`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Endpoint matrices: `docs/backend/endpoints/*graphql*.json` + service era matrices",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[appointment360]** — refine duplicate task (was…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: ensure verifier calls reach **mailve…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: remove or gate **inline debug file w…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **s3storage** — enforce `X-Idempotency-Key` for initiate/complete/abort under client retries; store idempotency state alongside session JSON in S3.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **s3storage** — add end-to-end failure-path tests: partial upload, worker timeout, duplicate complete (must not double-charge storage or metadata).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **emailapis** — `email_verification_service.py` still instantiates `TruelistClient` as primary provider; Go `emailapigo` has fully migrated to Mailvetter — migrate Python to add `MailvetterClient` and align provider routing with Go adapter.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **emailapigo** — router.go has `// TODO: email verification and pattern endpoints mirroring Python paths` — implement GET `/email-patterns/` list and search endpoints parity with Python `emailapis`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **emailapis** — add `LOG_BASE_URL`/`LOG_API_KEY` propagation to Go `emailapigo` config and template so both Python and Go adapters ship events to `logs.api`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **app:** email studio tabs wired to …) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: map ui labels to **frozen status voc…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/email (Mailhub)** — email client UI shell exists with Inbox, Sent, Spam, Drafts routes and individual email detail view with `DOMPurify` HTML sanitization.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `src/components/email-list.tsx` uses `any` types throughout: `emails: any[]`, `folder: any`, `data: any` in `DataTable` — define a proper `EmailDto` TypeScript interface (matching the backend API response) and replace all `any` types; the same applies to `data-table.tsx` which accepts `data: any`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `email-list.tsx` has `import { act } from \"react\"` on line 9 which is an unused import (a leftover from testing scaffolding); remove the import to prevent lint warnings and confusion.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — `src/app/page.tsx` (the \"Mailhub\" landing) has `console.log(BACKEND_URL)` on line 19 — this leaks the backend URL into browser DevTools in production; remove this debug log.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/email (Mailhub)** — no compose email UI exists; the sidebar shows Inbox/Sent/Spam/Drafts but there is no route or component for composing a new email or replying — add a `ComposeEmail` sheet/modal component and wire it to `POST ${BACKEND_URL}/api/emails/send`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/email (Mailhub)** — add email reply/forward action to the `EmailPage` (`/email/[mailId]`); the current detail view only shows the email body with no reply or forward button; add a reply form below the email body that pre-fills `To`, `Subject` (with `Re:` prefix), and sends via the backend.",
+        "codebase": "mailId",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/email (Mailhub)** — implement email list pagination: `email-list.tsx` fetches all emails from `GET /api/emails/{folder}` without any `limit` or `offset` parameters; add server-side pagination (page size 25) and a \"Load more\" or cursor-based pagination control in the `DataTable`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Email Studio: single finder, single verifier, basic results list, activity snippet.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: **`email_finder_cache`** / **`email_…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: activity rows for verification event…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **s3storage** — add metadata reconciliation command: compare S3 objects vs `metadata.json` entries, flag drift, schedule periodic runs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **redis exit**: campaign (as…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Email finder persistence: `email_finder_cache`, `email_patterns` (see `docs/backend/database/emailapis_data_lineage.md`)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Mailvetter persistence (single + job model): `jobs`, `results` (see `docs/backend/database/mailvetter_data_lineage.md`)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Activity/usage/credits tables as referenced by the gateway (see `docs/backend.md` and `docs/audit-compliance.md`)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**PostgreSQL:** user-scoped email activity; patterns/cache references per schema.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**External:** Mailvetter job store (single path); no bulk S3 output requirement for `2.0` baseline.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Cache/pattern lineage note linked",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: smoke: dashboard finder → verify → r…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: ✅ completed: 📌 planned: baseline logs: request id from app →…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/jobs** — `email_finder_export_stream`, `email_verify_export_stream`, and `email_pattern_import_stream` processors are registered in the jobs scheduler and execute streaming enrichment from S3 CSV → `lambda/emailapis` → output CSV → S3.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/jobs** — `email_finder_export_stream` processor uses `EMAIL_API_BASE_URL` which defaults to empty string `\"\"` in `Settings`; if not configured, the processor fails with a connection error without a clear startup validation message — add `config_validator.py` check that `EMAIL_API_BASE_URL` is non-empty when any email processor job type is registered.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/jobs** — `email_verify_export_stream` processor reuses `EmailExportDAGRequest` (the same schema as email finder export) but verification should add an `email_column` field to specify which CSV column contains the pre-existing email addresses to verify — the current schema shares the finder `csv_columns` structure which may not map correctly for pure verification jobs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/jobs** — add `email_campaign_send_stream` processor to the registry for future bulk email campaign delivery; this processor will consume a campaign job from the queue, fetch recipient list from S3, and dispatch via the email send API in configurable batch sizes.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — Email Studio UI implemented: `app/(dashboard)/email/page.tsx` has Finder tab (single + bulk sub-tabs) and Verifier tab (single + bulk sub-tabs) with `useEmailFinderSingle`, `useEmailVerifierSingle`, `useEmailVerifierBulk` hooks wired to GraphQL.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — Bulk email export job creation implemented: `email/page.tsx` calls `createEmailFinderExport` and `createEmailVerifyExport` from `jobsService.ts`; CSV column mapping modal (`EmailMappingModal`) allows users to map uploaded CSV headers to required fields.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ✅ Completed: **contact360.io/app (Dashboard)** — `EmailAssistantPanel` component exists as a third tab (\"assistant\") in the Email page alongside finder and verifier.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `email/page.tsx` `EmailAssistantPanel` is rendered as the \"assistant\" tab but its implementation is unclear — audit whether `EmailAssistantPanel` calls a real AI endpoint or contains placeholder/mock content; if mocked, wire it to the real `contact.ai` Lambda or GraphQL AI module.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/app (Dashboard)** — `jobsService.ts` `defaultEmailExportPayload` hardcodes `row_limit: 100` and `chunk_size: 10` as defaults with no UI controls to change these values; for large bulk email export jobs, users cannot adjust batch size or row limits from the UI — add optional advanced settings fields to the `ScheduleJobModal` or email bulk upload flow.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `2.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 2.0 — Email Foundation",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Codebase file targets (what you’ll actually change in 2.0.x)",
+      "level": 2,
+      "prose": "Grounded in:"
+    },
+    {
+      "heading": "Frontend components and hooks (2.0 baseline)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (2.0.0 – 2.0.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

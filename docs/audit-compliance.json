@@ -1,0 +1,1431 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/audit-compliance.md",
+  "sha256_source": "a118f900a99d21066c5a344938f1834cd054acf84457e74d14ca8b61767ff79c",
+  "generated_at": "2026-04-08T23:26:47.838630+00:00",
+  "title": "Audit, Compliance, and Governance (All Eras: 0.x–10.x)",
+  "sections": [
+    {
+      "heading": "Audit, Compliance, and Governance (All Eras: 0.x–10.x)",
+      "level": 1,
+      "slug": "audit-compliance-and-governance-all-eras-0x10x",
+      "prose": "> **Scope:** This document covers the full era range. Each service section details per-era compliance requirements from `0.x` (foundation) through `10.x` (email campaign). For full RBAC policy and role-enforcement patterns, see **`docs/7. Contact360 deployment/rbac-authz.md`**. For release and governance process, see **`docs/governance.md`**.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "RBAC matrix",
+      "level": 2,
+      "slug": "rbac-matrix",
+      "prose": "| Capability | FreeUser | ProUser | Admin | SuperAdmin |\n|---|---|---|---|---|\n| Manage webhooks | no | yes | yes | yes |\n| Manage integrations | no | yes | yes | yes |\n| Create/schedule campaigns | no | yes | yes | yes |\n| Approve billing submissions | no | no | yes | yes |",
+      "tables": [
+        {
+          "headers": [
+            "Capability",
+            "FreeUser",
+            "ProUser",
+            "Admin",
+            "SuperAdmin"
+          ],
+          "rows": [
+            [
+              "Manage webhooks",
+              "no",
+              "yes",
+              "yes",
+              "yes"
+            ],
+            [
+              "Manage integrations",
+              "no",
+              "yes",
+              "yes",
+              "yes"
+            ],
+            [
+              "Create/schedule campaigns",
+              "no",
+              "yes",
+              "yes",
+              "yes"
+            ],
+            [
+              "Approve billing submissions",
+              "no",
+              "no",
+              "yes",
+              "yes"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Audit event schema",
+      "level": 2,
+      "slug": "audit-event-schema",
+      "prose": "- event_id, event_time, actor_user_id, actor_role\n- tenant_id, service, action, status\n- target_type, target_id, request_id, metadata",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "event_id, event_time, actor_user_id, actor_role",
+              "checked": null
+            },
+            {
+              "text": "tenant_id, service, action, status",
+              "checked": null
+            },
+            {
+              "text": "target_type, target_id, request_id, metadata",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Tenant isolation",
+      "level": 2,
+      "slug": "tenant-isolation",
+      "prose": "- Tenant scoped access required for all mutable resources\n- Cross-tenant references return not-found semantics",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Tenant scoped access required for all mutable resources",
+              "checked": null
+            },
+            {
+              "text": "Cross-tenant references return not-found semantics",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service implementation language (governance note)",
+      "level": 2,
+      "slug": "service-implementation-language-governance-note",
+      "prose": "Audit and security reviews must distinguish **(a)** the **Python GraphQL gateway** (`contact360.io/api`), which is the primary customer API surface, from **(b)** **Go/Gin** and other satellite services. Language choice does not change tenant isolation or audit field requirements; it affects **build pipelines, dependency scanning, and SCA** per runtime. Canonical policy: **`docs/docs/backend-language-strategy.md`**.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "EC2 Go satellites (compliance scope)",
+      "level": 2,
+      "slug": "ec2-go-satellites-compliance-scope",
+      "prose": "When reviewing **`EC2/s3storage.server`**, **`EC2/log.server`**, **`EC2/ai.server`**, and **`EC2/extension.server`**:\n\n- **Data residency / PII:** Treat S3 object keys and CSV payloads as **sensitive**; ensure bucket policies, encryption, and retention match tenant policy (see `s3storage` / `logs.api` era tables elsewhere in this doc).\n- **AI (`ai.server`):** Log only redacted prompts where required; HF API keys must be injected via secrets manager / env — never committed.\n- **Extension (`extension.server`):** `POST /v1/save-profiles` must enforce API key / mTLS as deployed; **HTML scrape** remains client-side (`501` on server scrape route).\n- **Jobs (`EC2/job.server`):** `job_events` table and metrics endpoints support audit trails for async work; ensure DB migrations applied in regulated environments.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Data residency / PII:** Treat S3 object keys and CSV payloads as **sensitive**; ensure bucket policies, encryption, and retention match tenant policy (see `s3storage` / `logs.api` era tables elsewhere in this doc).",
+              "checked": null
+            },
+            {
+              "text": "**AI (`ai.server`):** Log only redacted prompts where required; HF API keys must be injected via secrets manager / env — never committed.",
+              "checked": null
+            },
+            {
+              "text": "**Extension (`extension.server`):** `POST /v1/save-profiles` must enforce API key / mTLS as deployed; **HTML scrape** remains client-side (`501` on server scrape route).",
+              "checked": null
+            },
+            {
+              "text": "**Jobs (`EC2/job.server`):** `job_events` table and metrics endpoints support audit trails for async work; ensure DB migrations applied in regulated environments.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-specific RBAC and evidence mapping",
+      "level": 2,
+      "slug": "era-specific-rbac-and-evidence-mapping",
+      "prose": "- `7.x` is the RBAC baseline era and defines role enforcement patterns.\n- `8.x` extends controls to partner/public API access and webhook identities.\n- `9.x` extends controls to tenant/workspace/admin self-serve governance.\n- `10.x` applies compliance controls to campaign consent, suppression, and opt-out audit trails.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`7.x` is the RBAC baseline era and defines role enforcement patterns.",
+              "checked": null
+            },
+            {
+              "text": "`8.x` extends controls to partner/public API access and webhook identities.",
+              "checked": null
+            },
+            {
+              "text": "`9.x` extends controls to tenant/workspace/admin self-serve governance.",
+              "checked": null
+            },
+            {
+              "text": "`10.x` applies compliance controls to campaign consent, suppression, and opt-out audit trails.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 security findings (must close before era promotion)",
+      "level": 2,
+      "slug": "p0-security-findings-must-close-before-era-promotion",
+      "prose": "- `2.x` blocker: `contact360.io/email/src/context/imap-context.tsx` stores mailbox credentials in plaintext local storage.\n- `2.x` blocker: `contact360.io/email/src/app/email/[mailId]/page.tsx` and `contact360.io/email/src/app/account/[userId]/page.tsx` rely on direct `X-Email` / `X-Password` transport.\n- `0.x`/`7.x` blocker: admin `.env` examples include insecure default secret key patterns and must be rotated/replaced with placeholder values.\n- `4.x` blocker: `extension/contact360/.example.env` uses real-looking key values and must be sanitized to placeholder-only examples.\n- `4.x` release requirement: extension `manifest.json` CSP must explicitly allow the Lambda API domain before store submission.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`2.x` blocker: `contact360.io/email/src/context/imap-context.tsx` stores mailbox credentials in plaintext local storage.",
+              "checked": null
+            },
+            {
+              "text": "`2.x` blocker: `contact360.io/email/src/app/email/[mailId]/page.tsx` and `contact360.io/email/src/app/account/[userId]/page.tsx` rely on direct `X-Email` / `X-Password` transport.",
+              "checked": null
+            },
+            {
+              "text": "`0.x`/`7.x` blocker: admin `.env` examples include insecure default secret key patterns and must be rotated/replaced with placeholder values.",
+              "checked": null
+            },
+            {
+              "text": "`4.x` blocker: `extension/contact360/.example.env` uses real-looking key values and must be sanitized to placeholder-only examples.",
+              "checked": null
+            },
+            {
+              "text": "`4.x` release requirement: extension `manifest.json` CSP must explicitly allow the Lambda API domain before store submission.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage compliance controls by era",
+      "level": 2,
+      "slug": "s3storage-compliance-controls-by-era",
+      "prose": "- `1.x`: enforce file type and size policy for user/billing artifacts.\n- `2.x`: require multipart completion traceability (`uploadId`, part registration, completion evidence).\n- `6.x`: require idempotent storage lifecycle operations and reconciliation evidence.\n- `7.x`: enforce service-to-service authz for storage endpoints and retention policy controls.\n- `8.x`: enforce versioned storage API behavior with compatibility tests.\n- `10.x`: enforce immutable campaign compliance artifacts and retention/audit verifiability.\n\nMandatory evidence pack for storage-impacting releases:\n\n- endpoint contract diff (if changed),\n- metadata integrity/reconciliation report,\n- access-control validation report,\n- retention/deletion policy validation report.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`1.x`: enforce file type and size policy for user/billing artifacts.",
+              "checked": null
+            },
+            {
+              "text": "`2.x`: require multipart completion traceability (`uploadId`, part registration, completion evidence).",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: require idempotent storage lifecycle operations and reconciliation evidence.",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: enforce service-to-service authz for storage endpoints and retention policy controls.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: enforce versioned storage API behavior with compatibility tests.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: enforce immutable campaign compliance artifacts and retention/audit verifiability.",
+              "checked": null
+            },
+            {
+              "text": "endpoint contract diff (if changed),",
+              "checked": null
+            },
+            {
+              "text": "metadata integrity/reconciliation report,",
+              "checked": null
+            },
+            {
+              "text": "access-control validation report,",
+              "checked": null
+            },
+            {
+              "text": "retention/deletion policy validation report.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "logs.api compliance controls by era",
+      "level": 2,
+      "slug": "logsapi-compliance-controls-by-era",
+      "prose": "- `1.x`: user and billing event traceability with actor and request identifiers.\n- `2.x`: bulk email workflow event retention and queryability.\n- `6.x`: reliability evidence from logs-based SLO metrics and incident timelines.\n- `7.x`: deployment and RBAC governance audit trails with retention policy checks.\n- `8.x`: public/private API access auditing and investigation-grade filtering.\n- `10.x`: campaign consent/suppression/send event audit integrity for compliance reviews.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`1.x`: user and billing event traceability with actor and request identifiers.",
+              "checked": null
+            },
+            {
+              "text": "`2.x`: bulk email workflow event retention and queryability.",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: reliability evidence from logs-based SLO metrics and incident timelines.",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: deployment and RBAC governance audit trails with retention policy checks.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: public/private API access auditing and investigation-grade filtering.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: campaign consent/suppression/send event audit integrity for compliance reviews.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobs compliance controls by era",
+      "level": 2,
+      "slug": "jobs-compliance-controls-by-era",
+      "prose": "- `2.x`: ensure email bulk job events and status transitions are queryable and reproducible.\n- `3.x`: ensure Contact360 import/export jobs preserve query and artifact lineage evidence.\n- `6.x`: enforce retry/idempotency evidence and stale-recovery auditability.\n- `7.x`: treat `job_events` as immutable audit trail for privileged operations and retries.\n- `8.x`: include partner callback delivery audit evidence for public/private API jobs.\n- `9.x`: include tenant-isolated job visibility and quota/audit controls.\n- `10.x`: use timeline evidence (`GET /api/v1/jobs/{uuid}/timeline`) for campaign compliance bundles.\n\nRequired evidence for jobs-impacting releases:\n\n- lifecycle/status transition report,\n- retry/audit trace report,\n- timeline endpoint sample evidence pack,\n- retention and access-control validation report.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`2.x`: ensure email bulk job events and status transitions are queryable and reproducible.",
+              "checked": null
+            },
+            {
+              "text": "`3.x`: ensure Contact360 import/export jobs preserve query and artifact lineage evidence.",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: enforce retry/idempotency evidence and stale-recovery auditability.",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: treat `job_events` as immutable audit trail for privileged operations and retries.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: include partner callback delivery audit evidence for public/private API jobs.",
+              "checked": null
+            },
+            {
+              "text": "`9.x`: include tenant-isolated job visibility and quota/audit controls.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: use timeline evidence (`GET /api/v1/jobs/{uuid}/timeline`) for campaign compliance bundles.",
+              "checked": null
+            },
+            {
+              "text": "lifecycle/status transition report,",
+              "checked": null
+            },
+            {
+              "text": "retry/audit trace report,",
+              "checked": null
+            },
+            {
+              "text": "timeline endpoint sample evidence pack,",
+              "checked": null
+            },
+            {
+              "text": "retention and access-control validation report.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "DocsAI admin decorator access matrix",
+      "level": 2,
+      "slug": "docsai-admin-decorator-access-matrix",
+      "prose": "| Admin feature/view area | Access decorator expectation | Audit significance |\n| --- | --- | --- |\n| Main admin dashboard controls | `require_admin_or_super_admin` | operational control trail |\n| Payment approval/decline flows | `require_admin_or_super_admin` (super-admin override where configured) | financial decision evidence |\n| User management and history | `require_admin_or_super_admin` | identity and entitlement audit |\n| System logs and log queries | `require_admin_or_super_admin` | incident and compliance investigation trail |\n| Sensitive system settings | `require_super_admin` | high-privilege change governance |\n| Architecture/roadmap governance edits | `require_super_admin` or stricter workflow gate | release-governance and policy traceability |",
+      "tables": [
+        {
+          "headers": [
+            "Admin feature/view area",
+            "Access decorator expectation",
+            "Audit significance"
+          ],
+          "rows": [
+            [
+              "Main admin dashboard controls",
+              "`require_admin_or_super_admin`",
+              "operational control trail"
+            ],
+            [
+              "Payment approval/decline flows",
+              "`require_admin_or_super_admin` (super-admin override where configured)",
+              "financial decision evidence"
+            ],
+            [
+              "User management and history",
+              "`require_admin_or_super_admin`",
+              "identity and entitlement audit"
+            ],
+            [
+              "System logs and log queries",
+              "`require_admin_or_super_admin`",
+              "incident and compliance investigation trail"
+            ],
+            [
+              "Sensitive system settings",
+              "`require_super_admin`",
+              "high-privilege change governance"
+            ],
+            [
+              "Architecture/roadmap governance edits",
+              "`require_super_admin` or stricter workflow gate",
+              "release-governance and policy traceability"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "DocsAI audit surface checklist",
+      "level": 2,
+      "slug": "docsai-audit-surface-checklist",
+      "prose": "The following views/actions must emit or preserve audit-relevant evidence:\n\n- Billing payment submission review (`approve` / `decline` actions)\n- User profile/role/package administrative changes\n- System log query and export operations\n- Billing settings updates (UPI/phone/email/QR and related configuration)\n- Deployment/governance state transitions referenced by admin tooling",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Billing payment submission review (`approve` / `decline` actions)",
+              "checked": null
+            },
+            {
+              "text": "User profile/role/package administrative changes",
+              "checked": null
+            },
+            {
+              "text": "System log query and export operations",
+              "checked": null
+            },
+            {
+              "text": "Billing settings updates (UPI/phone/email/QR and related configuration)",
+              "checked": null
+            },
+            {
+              "text": "Deployment/governance state transitions referenced by admin tooling",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact.ai compliance controls by era",
+      "level": 2,
+      "slug": "contactai-compliance-controls-by-era",
+      "prose": "**Service:** `backend(dev)/contact.ai` — FastAPI Lambda, `ai_chats` PostgreSQL table, HF Inference / Gemini.\n\n| Era | Compliance control | Evidence artifact |\n| --- | --- | --- |\n| `0.x` | `ai_chats` DDL migration idempotency | Migration script review; CI smoke test |\n| `1.x` | `user_id` FK referential integrity; cascade strategy | FK constraint test; cascade behavior documented |\n| `2.x` | Email PII handling in `analyzeEmailRisk` utility | HF data retention policy review; no persistence confirmed |\n| `3.x` | Contact PII in `parseContactFilters` output (stateless) | Confirm no PII stored outside `ai_chats.messages` JSONB |\n| `4.x` | SN contact provenance in `messages.contacts[]` JSONB | Field-level consent documentation for embedded contact data |\n| `5.x` | Model version audit in message metadata | `model_version` field in JSONB; reproducibility evidence |\n| `5.x` | User isolation: `X-User-ID` ownership enforcement | Ownership check test evidence; 403 on cross-user access |\n| `6.x` | Chat TTL and archival policy | Archival job evidence; max age documented |\n| `6.x` | Concurrent write protection (optimistic lock) | `version` column; race condition test evidence |\n| `7.x` | GDPR right-to-erasure cascade | `ai_chats` DELETE on user deletion; audit log entry |\n| `7.x` | Audit log for chat create/delete/message-send events | `logs.api` event schema; event trail sample |\n| `7.x` | Role-based AI feature gating | Plan-level gate test evidence; upgrade prompt on deny |\n| `8.x` | Rate limit compliance: `Retry-After`, `X-RateLimit-*` headers | Header presence test; token bucket config documented |\n| `8.x` | API key scope isolation | Scoped key validation test; `ai:chat` vs `ai:utilities` |\n| `9.x` | Webhook delivery audit trail | Delivery log schema; retry evidence; DLQ handling |\n| `10.x` | Campaign AI generation compliance evidence | `campaign_ai_log` table; `generation_id`, model version, prompt hash |\n| `10.x` | AI-generated content disclosure | \"AI-generated\" badge on campaign subject/body; `generation_id` link |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Compliance control",
+            "Evidence artifact"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "`ai_chats` DDL migration idempotency",
+              "Migration script review; CI smoke test"
+            ],
+            [
+              "`1.x`",
+              "`user_id` FK referential integrity; cascade strategy",
+              "FK constraint test; cascade behavior documented"
+            ],
+            [
+              "`2.x`",
+              "Email PII handling in `analyzeEmailRisk` utility",
+              "HF data retention policy review; no persistence confirmed"
+            ],
+            [
+              "`3.x`",
+              "Contact PII in `parseContactFilters` output (stateless)",
+              "Confirm no PII stored outside `ai_chats.messages` JSONB"
+            ],
+            [
+              "`4.x`",
+              "SN contact provenance in `messages.contacts[]` JSONB",
+              "Field-level consent documentation for embedded contact data"
+            ],
+            [
+              "`5.x`",
+              "Model version audit in message metadata",
+              "`model_version` field in JSONB; reproducibility evidence"
+            ],
+            [
+              "`5.x`",
+              "User isolation: `X-User-ID` ownership enforcement",
+              "Ownership check test evidence; 403 on cross-user access"
+            ],
+            [
+              "`6.x`",
+              "Chat TTL and archival policy",
+              "Archival job evidence; max age documented"
+            ],
+            [
+              "`6.x`",
+              "Concurrent write protection (optimistic lock)",
+              "`version` column; race condition test evidence"
+            ],
+            [
+              "`7.x`",
+              "GDPR right-to-erasure cascade",
+              "`ai_chats` DELETE on user deletion; audit log entry"
+            ],
+            [
+              "`7.x`",
+              "Audit log for chat create/delete/message-send events",
+              "`logs.api` event schema; event trail sample"
+            ],
+            [
+              "`7.x`",
+              "Role-based AI feature gating",
+              "Plan-level gate test evidence; upgrade prompt on deny"
+            ],
+            [
+              "`8.x`",
+              "Rate limit compliance: `Retry-After`, `X-RateLimit-*` headers",
+              "Header presence test; token bucket config documented"
+            ],
+            [
+              "`8.x`",
+              "API key scope isolation",
+              "Scoped key validation test; `ai:chat` vs `ai:utilities`"
+            ],
+            [
+              "`9.x`",
+              "Webhook delivery audit trail",
+              "Delivery log schema; retry evidence; DLQ handling"
+            ],
+            [
+              "`10.x`",
+              "Campaign AI generation compliance evidence",
+              "`campaign_ai_log` table; `generation_id`, model version, prompt hash"
+            ],
+            [
+              "`10.x`",
+              "AI-generated content disclosure",
+              "\"AI-generated\" badge on campaign subject/body; `generation_id` link"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Required evidence for contact.ai-impacting releases",
+      "level": 3,
+      "slug": "required-evidence-for-contactai-impacting-releases",
+      "prose": "- User isolation test report (403 on cross-user chat access).\n- PII handling confirmation (no email/contact PII stored in utility calls).\n- Model version audit entry in message JSONB for chat sends.\n- GDPR erasure test evidence (user deletion → `ai_chats` cascade).\n- Rate limit header validation report for all endpoints.\n\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "User isolation test report (403 on cross-user chat access).",
+              "checked": null
+            },
+            {
+              "text": "PII handling confirmation (no email/contact PII stored in utility calls).",
+              "checked": null
+            },
+            {
+              "text": "Model version audit entry in message JSONB for chat sends.",
+              "checked": null
+            },
+            {
+              "text": "GDPR erasure test evidence (user deletion → `ai_chats` cascade).",
+              "checked": null
+            },
+            {
+              "text": "Rate limit header validation report for all endpoints.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension audit and compliance surface",
+      "level": 2,
+      "slug": "extension-audit-and-compliance-surface",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension RBAC / access control",
+      "level": 3,
+      "slug": "extension-rbac-access-control",
+      "prose": "| Capability | Who can use | Control mechanism |\n| --- | --- | --- |\n| Scrape SN profiles | Authenticated user with valid `accessToken` | `getValidAccessToken()` gating |\n| Submit profiles to Lambda | Authenticated user with valid `accessToken` | `Authorization: Bearer` header on every request |\n| Token refresh | Any user session with valid `refreshToken` | `auth.refreshToken` GraphQL mutation on Appointment360 |\n| Access `chrome.storage.local` | Extension runtime only | Chrome MV3 API boundary — not accessible outside extension |",
+      "tables": [
+        {
+          "headers": [
+            "Capability",
+            "Who can use",
+            "Control mechanism"
+          ],
+          "rows": [
+            [
+              "Scrape SN profiles",
+              "Authenticated user with valid `accessToken`",
+              "`getValidAccessToken()` gating"
+            ],
+            [
+              "Submit profiles to Lambda",
+              "Authenticated user with valid `accessToken`",
+              "`Authorization: Bearer` header on every request"
+            ],
+            [
+              "Token refresh",
+              "Any user session with valid `refreshToken`",
+              "`auth.refreshToken` GraphQL mutation on Appointment360"
+            ],
+            [
+              "Access `chrome.storage.local`",
+              "Extension runtime only",
+              "Chrome MV3 API boundary — not accessible outside extension"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension audit event contract",
+      "level": 3,
+      "slug": "extension-audit-event-contract",
+      "prose": "| Event | Triggered by | Audit evidence |\n| --- | --- | --- |\n| Token refresh | `refreshAccessToken()` call | Appointment360 GraphQL auth log (server-side) |\n| Profile batch submitted | `saveProfiles()` success | Lambda SN API server-side log |\n| Profile batch failed | `saveProfiles()` error | Error object returned to caller; Lambda SN API error log |\n| Dedup completed | `deduplicateProfiles()` | No server-side audit — client-side only; dedup ratio can be logged to Logs API if wired |",
+      "tables": [
+        {
+          "headers": [
+            "Event",
+            "Triggered by",
+            "Audit evidence"
+          ],
+          "rows": [
+            [
+              "Token refresh",
+              "`refreshAccessToken()` call",
+              "Appointment360 GraphQL auth log (server-side)"
+            ],
+            [
+              "Profile batch submitted",
+              "`saveProfiles()` success",
+              "Lambda SN API server-side log"
+            ],
+            [
+              "Profile batch failed",
+              "`saveProfiles()` error",
+              "Error object returned to caller; Lambda SN API error log"
+            ],
+            [
+              "Dedup completed",
+              "`deduplicateProfiles()`",
+              "No server-side audit — client-side only; dedup ratio can be logged to Logs API if wired"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension token security checklist",
+      "level": 3,
+      "slug": "extension-token-security-checklist",
+      "prose": "- 📌 Planned: `accessToken` never logged to console, error report, or network request other than `Authorization` header\n- 📌 Planned: `refreshToken` never logged to console, error report, or network request other than `auth.refreshToken` mutation body\n- 📌 Planned: Both tokens stored only in `chrome.storage.local`; never in `localStorage`, `sessionStorage`, or `chrome.storage.sync`\n- 📌 Planned: Token expiry buffer (300 s) is documented and tested\n- 📌 Planned: Token rotation on refresh: old tokens are immediately replaced in storage after a successful refresh",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: `accessToken` never logged to console, error report, or network request other than `Authorization` header",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: `refreshToken` never logged to console, error report, or network request other than `auth.refreshToken` mutation body",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Both tokens stored only in `chrome.storage.local`; never in `localStorage`, `sessionStorage`, or `chrome.storage.sync`",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Token expiry buffer (300 s) is documented and tested",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Token rotation on refresh: old tokens are immediately replaced in storage after a successful refresh",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension data privacy checklist",
+      "level": 3,
+      "slug": "extension-data-privacy-checklist",
+      "prose": "| Data category | Handling |\n| --- | --- |\n| LinkedIn profile URLs | Used as dedup key; submitted to Lambda SN API |\n| Profile names, titles, companies | Submitted to Lambda SN API → Connectra |\n| Email addresses (if present in profile) | Submitted to Lambda SN API → Connectra |\n| Phone numbers (if present in profile) | Submitted to Lambda SN API → Connectra |\n| `accessToken` / `refreshToken` | Stored in `chrome.storage.local` only; never sent to third parties |\n\n> All scraped data is subject to the Contact360 data privacy policy and must only be captured and processed in the context of a valid authenticated user session.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Data category",
+            "Handling"
+          ],
+          "rows": [
+            [
+              "LinkedIn profile URLs",
+              "Used as dedup key; submitted to Lambda SN API"
+            ],
+            [
+              "Profile names, titles, companies",
+              "Submitted to Lambda SN API → Connectra"
+            ],
+            [
+              "Email addresses (if present in profile)",
+              "Submitted to Lambda SN API → Connectra"
+            ],
+            [
+              "Phone numbers (if present in profile)",
+              "Submitted to Lambda SN API → Connectra"
+            ],
+            [
+              "`accessToken` / `refreshToken`",
+              "Stored in `chrome.storage.local` only; never sent to third parties"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "salesnavigator service compliance controls by era",
+      "level": 2,
+      "slug": "salesnavigator-service-compliance-controls-by-era",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Scope",
+      "level": 3,
+      "slug": "scope",
+      "prose": "Service: `backend(dev)/salesnavigator`\nDeployment: AWS Lambda (SAM)\nData flows to: Connectra (PostgreSQL + Elasticsearch)",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-specific compliance notes",
+      "level": 3,
+      "slug": "era-specific-compliance-notes",
+      "prose": "| Era | Compliance requirement |\n| --- | --- |\n| `0.x` | UUID5 deterministic contract documented; no PII ingested yet |\n| `1.x` | Actor context (`user_id`, `org_id`) injected into Connectra records for audit traceability |\n| `2.x` | Email and phone data handled — confirm processing basis (user consent via B2B data source policy) |\n| `3.x` | Provenance tags (`source=sales_navigator`, `lead_id`, `search_id`) enable source-of-record queries |\n| `4.x` | PII ingested at scale — privacy policy must cover SN scraping; user notified of saved contacts |\n| `5.x` | AI-context exposure of SN data — confirm AI service data retention and PII policy alignment |\n| `6.x` | Chunk idempotency tokens prevent duplicate PII submissions; audit trail for partial failures |\n| `7.x` | RBAC enforced; per-tenant API keys; immutable audit event per save session; GDPR right-to-erasure via Connectra |\n| `8.x` | Rate limit headers; usage tracking per API key; quota model documented for compliance |\n| `9.x` | Connector audit trail; webhook delivery log; tenant-isolated lineage |\n| `10.x` | Campaign audience provenance: `lead_id`/`search_id` traceable to source SN session; suppression non-overwrite guard |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Compliance requirement"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "UUID5 deterministic contract documented; no PII ingested yet"
+            ],
+            [
+              "`1.x`",
+              "Actor context (`user_id`, `org_id`) injected into Connectra records for audit traceability"
+            ],
+            [
+              "`2.x`",
+              "Email and phone data handled — confirm processing basis (user consent via B2B data source policy)"
+            ],
+            [
+              "`3.x`",
+              "Provenance tags (`source=sales_navigator`, `lead_id`, `search_id`) enable source-of-record queries"
+            ],
+            [
+              "`4.x`",
+              "PII ingested at scale — privacy policy must cover SN scraping; user notified of saved contacts"
+            ],
+            [
+              "`5.x`",
+              "AI-context exposure of SN data — confirm AI service data retention and PII policy alignment"
+            ],
+            [
+              "`6.x`",
+              "Chunk idempotency tokens prevent duplicate PII submissions; audit trail for partial failures"
+            ],
+            [
+              "`7.x`",
+              "RBAC enforced; per-tenant API keys; immutable audit event per save session; GDPR right-to-erasure via Connectra"
+            ],
+            [
+              "`8.x`",
+              "Rate limit headers; usage tracking per API key; quota model documented for compliance"
+            ],
+            [
+              "`9.x`",
+              "Connector audit trail; webhook delivery log; tenant-isolated lineage"
+            ],
+            [
+              "`10.x`",
+              "Campaign audience provenance: `lead_id`/`search_id` traceable to source SN session; suppression non-overwrite guard"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GDPR controls (7.x+)",
+      "level": 3,
+      "slug": "gdpr-controls-7x",
+      "prose": "| Control | Implementation |\n| --- | --- |\n| Right to erasure | Delete contact by UUID via Connectra; UUID deterministic from SN URL + email |\n| Data minimization | Only fields from SN lead card are captured; no external enrichment by SN service itself |\n| Purpose limitation | SN data is used for Contact360 contact enrichment only; not sold or shared with third parties |\n| Subject access request | Contact records traceable via `source=sales_navigator` + `lead_id` filter |\n| Consent basis | B2B professional context (LinkedIn Sales Navigator); user must verify compliance with LI ToS |",
+      "tables": [
+        {
+          "headers": [
+            "Control",
+            "Implementation"
+          ],
+          "rows": [
+            [
+              "Right to erasure",
+              "Delete contact by UUID via Connectra; UUID deterministic from SN URL + email"
+            ],
+            [
+              "Data minimization",
+              "Only fields from SN lead card are captured; no external enrichment by SN service itself"
+            ],
+            [
+              "Purpose limitation",
+              "SN data is used for Contact360 contact enrichment only; not sold or shared with third parties"
+            ],
+            [
+              "Subject access request",
+              "Contact records traceable via `source=sales_navigator` + `lead_id` filter"
+            ],
+            [
+              "Consent basis",
+              "B2B professional context (LinkedIn Sales Navigator); user must verify compliance with LI ToS"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "RBAC for SN operations (7.x+)",
+      "level": 3,
+      "slug": "rbac-for-sn-operations-7x",
+      "prose": "| Capability | FreeUser | ProUser | Admin | SuperAdmin |\n| --- | --- | --- | --- | --- |\n| Save SN profiles (up to daily limit) | limited | yes | yes | yes |\n| Bulk SN ingest (>100 profiles) | no | yes | yes | yes |\n| View SN sync history | no | yes | yes | yes |\n| Admin: view all org SN sessions | no | no | yes | yes |\n| Force re-ingest / override | no | no | no | yes |",
+      "tables": [
+        {
+          "headers": [
+            "Capability",
+            "FreeUser",
+            "ProUser",
+            "Admin",
+            "SuperAdmin"
+          ],
+          "rows": [
+            [
+              "Save SN profiles (up to daily limit)",
+              "limited",
+              "yes",
+              "yes",
+              "yes"
+            ],
+            [
+              "Bulk SN ingest (>100 profiles)",
+              "no",
+              "yes",
+              "yes",
+              "yes"
+            ],
+            [
+              "View SN sync history",
+              "no",
+              "yes",
+              "yes",
+              "yes"
+            ],
+            [
+              "Admin: view all org SN sessions",
+              "no",
+              "no",
+              "yes",
+              "yes"
+            ],
+            [
+              "Force re-ingest / override",
+              "no",
+              "no",
+              "no",
+              "yes"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Audit event schema for SN saves",
+      "level": 3,
+      "slug": "audit-event-schema-for-sn-saves",
+      "prose": "```json\n{\n  \"event\": \"sn_save\",\n  \"user_id\": \"<uuid>\",\n  \"org_id\": \"<uuid>\",\n  \"profiles_submitted\": 25,\n  \"profiles_saved\": 23,\n  \"profiles_failed\": 2,\n  \"session_id\": \"<uuid>\",\n  \"source_ip\": \"<ip>\",\n  \"timestamp\": \"<ISO8601>\",\n  \"data_quality_avg\": 72.4\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"event\": \"sn_save\",\n  \"user_id\": \"<uuid>\",\n  \"org_id\": \"<uuid>\",\n  \"profiles_submitted\": 25,\n  \"profiles_saved\": 23,\n  \"profiles_failed\": 2,\n  \"session_id\": \"<uuid>\",\n  \"source_ip\": \"<ip>\",\n  \"timestamp\": \"<ISO8601>\",\n  \"data_quality_avg\": 72.4\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Compliance checklists",
+      "level": 3,
+      "slug": "compliance-checklists",
+      "prose": "**PII handling checklist:**\n- 📌 Planned: Email addresses from SN profiles are submitted to Connectra with processing basis documented\n- 📌 Planned: Phone numbers from SN profiles are submitted to Connectra with processing basis documented\n- 📌 Planned: LinkedIn profile URLs treated as personal identifiers — subject to erasure\n- 📌 Planned: `data_quality_score` does not expose PII; contains only numeric metadata\n\n**GDPR right-to-erasure checklist (7.x+):**\n- 📌 Planned: Contact erasure request → look up UUID via `linkedin_sales_url` or `email` → Connectra delete by UUID\n- 📌 Planned: Verify all SN-sourced contacts for a user can be enumerated via `source=sales_navigator` + `user_id` filter\n- 📌 Planned: Erasure cascade does not affect contacts from other sources with same UUID (impossible by UUID uniqueness)\n\n**Campaign compliance (10.x):**\n- 📌 Planned: Campaign audience from SN contacts traceable to `lead_id` + `search_id` + `session_id`\n- 📌 Planned: Unsubscribed SN contacts must not be re-added to campaign audiences on re-ingest\n- 📌 Planned: Evidence bundle for campaign recipients: SN session → contact UUID → campaign recipient",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: Email addresses from SN profiles are submitted to Connectra with processing basis documented",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Phone numbers from SN profiles are submitted to Connectra with processing basis documented",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: LinkedIn profile URLs treated as personal identifiers — subject to erasure",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: `data_quality_score` does not expose PII; contains only numeric metadata",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Contact erasure request → look up UUID via `linkedin_sales_url` or `email` → Connectra delete by UUID",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Verify all SN-sourced contacts for a user can be enumerated via `source=sales_navigator` + `user_id` filter",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Erasure cascade does not affect contacts from other sources with same UUID (impossible by UUID uniqueness)",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Campaign audience from SN contacts traceable to `lead_id` + `search_id` + `session_id`",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Unsubscribed SN contacts must not be re-added to campaign audiences on re-ingest",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Evidence bundle for campaign recipients: SN session → contact UUID → campaign recipient",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mailvetter (backend(dev)/mailvetter) audit and compliance controls",
+      "level": 2,
+      "slug": "mailvetter-backenddevmailvetter-audit-and-compliance-controls",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data classes processed",
+      "level": 3,
+      "slug": "data-classes-processed",
+      "prose": "- Email address (direct personal data)\n- Verification metadata (`status`, `score`, `score_details`)\n- Operational metadata (`job_id`, `owner_key`, callback URL, timestamps)\n- Optional signal metadata from SMTP/DNS/OSINT probes",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Email address (direct personal data)",
+              "checked": null
+            },
+            {
+              "text": "Verification metadata (`status`, `score`, `score_details`)",
+              "checked": null
+            },
+            {
+              "text": "Operational metadata (`job_id`, `owner_key`, callback URL, timestamps)",
+              "checked": null
+            },
+            {
+              "text": "Optional signal metadata from SMTP/DNS/OSINT probes",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Compliance requirements by era",
+      "level": 3,
+      "slug": "compliance-requirements-by-era",
+      "prose": "| Era | Control objective | Required evidence |\n| --- | --- | --- |\n| `0.x` | Baseline logging and retention for verification jobs | Job creation + completion records and retention policy |\n| `1.x` | API key ownership and usage attribution | Key owner mapping and request audit trail |\n| `2.x` | Verification decision explainability | Persisted `score_details` and reproducible scoring output |\n| `3.x` | Contact/company linkage lineage | Mapping from verification result to contact/company identifiers |\n| `4.x` | Source provenance (extension/SN/dashboard) | `source` and `source_session_id` metadata in records |\n| `5.x` | AI-safe explainability and PII minimization | Redaction policy and test evidence |\n| `6.x` | Reliability and incident auditability | Queue lag, retry, failure, and recovery evidence |\n| `7.x` | Deployment/change governance | Migration logs, release approvals, rollback evidence |\n| `8.x` | Public/private API key governance | Scoped key policy, rotation logs, endpoint audit |\n| `9.x` | Partner webhook and connector governance | Signed delivery logs, retry/dead-letter records |\n| `10.x` | Campaign verification compliance | Recipient-level verification snapshot and suppression-safe evidence |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Control objective",
+            "Required evidence"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Baseline logging and retention for verification jobs",
+              "Job creation + completion records and retention policy"
+            ],
+            [
+              "`1.x`",
+              "API key ownership and usage attribution",
+              "Key owner mapping and request audit trail"
+            ],
+            [
+              "`2.x`",
+              "Verification decision explainability",
+              "Persisted `score_details` and reproducible scoring output"
+            ],
+            [
+              "`3.x`",
+              "Contact/company linkage lineage",
+              "Mapping from verification result to contact/company identifiers"
+            ],
+            [
+              "`4.x`",
+              "Source provenance (extension/SN/dashboard)",
+              "`source` and `source_session_id` metadata in records"
+            ],
+            [
+              "`5.x`",
+              "AI-safe explainability and PII minimization",
+              "Redaction policy and test evidence"
+            ],
+            [
+              "`6.x`",
+              "Reliability and incident auditability",
+              "Queue lag, retry, failure, and recovery evidence"
+            ],
+            [
+              "`7.x`",
+              "Deployment/change governance",
+              "Migration logs, release approvals, rollback evidence"
+            ],
+            [
+              "`8.x`",
+              "Public/private API key governance",
+              "Scoped key policy, rotation logs, endpoint audit"
+            ],
+            [
+              "`9.x`",
+              "Partner webhook and connector governance",
+              "Signed delivery logs, retry/dead-letter records"
+            ],
+            [
+              "`10.x`",
+              "Campaign verification compliance",
+              "Recipient-level verification snapshot and suppression-safe evidence"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mandatory controls",
+      "level": 3,
+      "slug": "mandatory-controls",
+      "prose": "- 📌 Planned: All webhook callbacks are signed with `X-Webhook-Signature` and verified by consumers.\n- 📌 Planned: `WEBHOOK_SECRET_KEY` is distinct from API auth secret; rotation documented.\n- 📌 Planned: `jobs` and `results` retention policy enforced (default 30 days) with periodic cleanup evidence.\n- 📌 Planned: Verification outputs used in campaign decisions are traceable to specific job/result records.\n- 📌 Planned: Legacy endpoints are marked deprecated and excluded from new compliance integrations.\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: All webhook callbacks are signed with `X-Webhook-Signature` and verified by consumers.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: `WEBHOOK_SECRET_KEY` is distinct from API auth secret; rotation documented.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: `jobs` and `results` retention policy enforced (default 30 days) with periodic cleanup evidence.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Verification outputs used in campaign decisions are traceable to specific job/result records.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Legacy endpoints are marked deprecated and excluded from new compliance integrations.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email app compliance surface — contact360.io/email",
+      "level": 2,
+      "slug": "email-app-compliance-surface-contact360ioemail",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Access and auth",
+      "level": 3,
+      "slug": "access-and-auth",
+      "prose": "| Capability | Control |\n| --- | --- |\n| Login | `POST /auth/login` with server session cookie |\n| Logout | `POST /logout` |\n| Profile read/update | Authenticated cookie session |\n| IMAP account connect | Authenticated account settings operation |",
+      "tables": [
+        {
+          "headers": [
+            "Capability",
+            "Control"
+          ],
+          "rows": [
+            [
+              "Login",
+              "`POST /auth/login` with server session cookie"
+            ],
+            [
+              "Logout",
+              "`POST /logout`"
+            ],
+            [
+              "Profile read/update",
+              "Authenticated cookie session"
+            ],
+            [
+              "IMAP account connect",
+              "Authenticated account settings operation"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data sensitivity notes",
+      "level": 3,
+      "slug": "data-sensitivity-notes",
+      "prose": "- Email bodies are sensitive content and are rendered only after DOMPurify sanitization.\n- `mailhub_active_account` localStorage blob currently contains mailbox credentials context; this is a high-risk pattern.\n- Custom headers `X-Email` and `X-Password` are currently used for mailbox reads and should be retired in favor of backend mailbox session IDs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Email bodies are sensitive content and are rendered only after DOMPurify sanitization.",
+              "checked": null
+            },
+            {
+              "text": "`mailhub_active_account` localStorage blob currently contains mailbox credentials context; this is a high-risk pattern.",
+              "checked": null
+            },
+            {
+              "text": "Custom headers `X-Email` and `X-Password` are currently used for mailbox reads and should be retired in favor of backend mailbox session IDs.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Audit checklist",
+      "level": 3,
+      "slug": "audit-checklist",
+      "prose": "- 📌 Planned: Track account switch events (`setActiveAccount`) as audit-relevant action.\n- 📌 Planned: Log IMAP connect operations with actor and timestamp.\n- 📌 Planned: Ensure logout invalidates backend session.\n- 📌 Planned: Ensure credential material is never logged client-side.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: Track account switch events (`setActiveAccount`) as audit-relevant action.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Log IMAP connect operations with actor and timestamp.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Ensure logout invalidates backend session.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Ensure credential material is never logged client-side.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin compliance surface — contact360.io/admin",
+      "level": 2,
+      "slug": "admin-compliance-surface-contact360ioadmin",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current gap summary",
+      "level": 3,
+      "slug": "current-gap-summary",
+      "prose": "- High-risk admin mutations (billing approve/decline, log delete/update, job retry) require stronger immutable audit emission coverage.\n- Idempotency is not consistently enforced for destructive operational actions.\n- Credit change history needs explicit before/after evidence with actor metadata.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "High-risk admin mutations (billing approve/decline, log delete/update, job retry) require stronger immutable audit emission coverage.",
+              "checked": null
+            },
+            {
+              "text": "Idempotency is not consistently enforced for destructive operational actions.",
+              "checked": null
+            },
+            {
+              "text": "Credit change history needs explicit before/after evidence with actor metadata.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Required controls",
+      "level": 3,
+      "slug": "required-controls",
+      "prose": "- `ADM-0.4`: idempotency keys for destructive and replay-prone admin operations.\n- `ADM-1.1`: credit-change audit timeline with actor, reason, and diff evidence.\n- Role-policy matrix tests to ensure protected admin routes cannot be accessed outside approved roles.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`ADM-0.4`: idempotency keys for destructive and replay-prone admin operations.",
+              "checked": null
+            },
+            {
+              "text": "`ADM-1.1`: credit-change audit timeline with actor, reason, and diff evidence.",
+              "checked": null
+            },
+            {
+              "text": "Role-policy matrix tests to ensure protected admin routes cannot be accessed outside approved roles.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage compliance surface — lambda/s3storage",
+      "level": 2,
+      "slug": "s3storage-compliance-surface-lambdas3storage",
+      "prose": "- Missing universal API auth on non-health endpoints remains a compliance blocker.\n- Upload/delete/metadata lifecycle actions require immutable audit event coverage.\n- Multipart state durability and reconciliation controls are required for reliable evidence trails.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Missing universal API auth on non-health endpoints remains a compliance blocker.",
+              "checked": null
+            },
+            {
+              "text": "Upload/delete/metadata lifecycle actions require immutable audit event coverage.",
+              "checked": null
+            },
+            {
+              "text": "Multipart state durability and reconciliation controls are required for reliable evidence trails.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailapigo/emailapis compliance surface",
+      "level": 2,
+      "slug": "emailapigoemailapis-compliance-surface",
+      "prose": "- Env-only secret management is mandatory (`EGO-0.4`).\n- Bulk verification/finder paths require immutable audit trails and replay-safe identifiers.\n- Status taxonomy and lineage fields must be consistent for audit and incident reconstruction.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Env-only secret management is mandatory (`EGO-0.4`).",
+              "checked": null
+            },
+            {
+              "text": "Bulk verification/finder paths require immutable audit trails and replay-safe identifiers.",
+              "checked": null
+            },
+            {
+              "text": "Status taxonomy and lineage fields must be consistent for audit and incident reconstruction.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "email campaign compliance update",
+      "level": 2,
+      "slug": "email-campaign-compliance-update",
+      "prose": "- `EC-0.2` unsubscribe query-path bug is compliance-relevant because suppression evidence may be unreliable until fixed.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`EC-0.2` unsubscribe query-path bug is compliance-relevant because suppression evidence may be unreliable until fixed.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

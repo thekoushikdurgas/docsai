@@ -1,0 +1,373 @@
+{
+  "schema_version": 1,
+  "kind": "page_spec",
+  "source_path": "frontend/pages/email_page.md",
+  "sha256_source": "53e5ba6d97eceafc9559b69cc92df44bd336127c9cd6d34ce927b2a6f5a39fed",
+  "generated_at": "2026-04-08T23:26:48.944663+00:00",
+  "title": "Email",
+  "raw_markdown": "---\ntitle: \"Email\"\npage_id: email_page\nsource_json: email_page.json\ngenerator: json_to_markdown.py\n---\n\n# Email\n\n## Overview\n\n- **page_id:** email_page\n- **page_type:** dashboard\n- **codebase:** app\n- **surface:** App (Dashboard)\n- **era_tags:** 0.x, 2.x, 5.x, 8.x, 11.x\n- **flow_id:** email\n- **_id:** email_page-001\n\n## Metadata\n\n- **route:** /email\n- **file_path:** contact360.io/app/app/(dashboard)/email/page.tsx\n- **purpose:** Email Finder and Verifier page with Finder | Verifier tabs. Finder: single and bulk email search by name/domain. Verifier: single and bulk email verification with risk analysis.\n- **s3_key:** data/pages/email_page.json\n- **status:** published\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None\n- **page_state:** development\n- **last_updated:** 2026-03-29T10:30:00Z\n### uses_endpoints (6)\n\n- `graphql/FindEmails` — Find single email by first name, last name, domain.\n- `graphql/FindEmailsBulk` — Bulk email finder export job creation.\n- `graphql/VerifySingleEmail` — Verify a single email address for validity and risk.\n- `graphql/VerifyEmailsBulk` — Bulk email verification export job creation.\n- `graphql/AnalyzeEmailRisk` — AI-powered email risk analysis (Gemini).\n- `graphql/GetActivities` — Get finder/verifier activity history.\n- `graphql/GetEmailAssistantSuggestions` — AI suggestions for follow-ups (era 5.x).\n\n### UI components (metadata)\n\n- **EmailPage** — `app/(dashboard)/email/page.tsx`\n- **EmailFinderSingle** — `components/email/EmailFinderSingle.tsx`\n- **EmailVerifierSingle** — `components/email/EmailVerifierSingle.tsx`\n- **EmailBulkDropZone** — `components/email/EmailBulkDropZone.tsx`\n- **EmailAssistantPanel** — `components/email/EmailAssistantPanel.tsx`\n- **EmailCreditsBanner** — `components/email/EmailCreditsBanner.tsx`\n- **EmailMappingModal** — `components/email/EmailMappingModal.tsx`\n- **EmailVerifierBulkResults** — `components/email/EmailVerifierBulkResults.tsx`\n- **EmailExportColumnMappingFields** — `components/email/EmailExportFields.tsx`\n- **LottiePlayer** — `components/shared/LottiePlayer.tsx`\n- **Modal** — `components/ui/Modal.tsx`\n- **Button** — `components/ui/Button.tsx`\n\n- **versions:** []\n- **endpoint_count:** 6\n### api_versions\n\n- graphql\n\n- **codebase:** app\n- **canonical_repo:** contact360.io/app\n\n## Content sections (summary)\n\n### title\n\nEmail\n\n### description\n\nEmail Finder and Verifier page with Finder | Verifier tabs. Finder: single and bulk email search by name/domain. Verifier: single and bulk email verification with risk analysis.\n\n\n## Sections (UI structure)\n\n### headings\n\n| id | level | text |\n| --- | --- | --- |\n| email-title | 1 | Email Tools |\n| finder-single | 2 | Find Email |\n| verifier-single | 2 | Verify Email |\n| bulk-section | 2 | Bulk Operations |\n| history | 2 | Recent History |\n\n\n### subheadings\n\n| id | level | text |\n| --- | --- | --- |\n| finder-bulk-header | 3 | Upload CSV for bulk email finding |\n| verifier-bulk-header | 3 | Upload CSV for bulk verification |\n| risk-analysis | 3 | AI Risk Analysis |\n\n\n### tabs\n\n| content_ref | id | label |\n| --- | --- | --- |\n| email-finder-tab | finder | Finder |\n| email-verifier-tab | verifier | Verifier |\n| email-assistant-tab | assistant | Assistant |\n\n\n### buttons\n\n| action | component | id | label | loading_state | tab | type |\n| --- | --- | --- | --- | --- | --- | --- |\n| handleFinderSubmit | EmailFinderSingle | find-email-submit | Find Email | Searching... | finder | primary |\n| finderBulkUpload.selectFile | EmailBulkDropZone | finder-bulk-upload | Upload CSV |  | finder | secondary |\n| handleStartEnrichment | EmailMappingModal | finder-bulk-submit | Start Enrichment |  | finder | primary |\n| handleVerifierSubmit | EmailVerifierSingle | verify-email-submit | Verify Email | Verifying... | verifier | primary |\n| verifierBulkUpload.selectFile | EmailBulkDropZone | verifier-bulk-upload | Upload CSV |  | verifier | secondary |\n| handleStartVerifierBulk | Modal | verifier-bulk-submit | Start Verification |  | verifier | primary |\n| handleCopyFinderResult | EmailFinderSingle | copy-email | Copy |  |  | icon |\n| handleGenerateSuggestions | EmailAssistantPanel | generate-draft | Generate Draft | Generating... | assistant | primary |\n| handleCopySuggestion | EmailAssistantPanel | copy-draft | Copy Draft |  | assistant | secondary |\n\n\n### input_boxes\n\n- **[0]**\n  - **id:** first-name\n  - **label:** First Name\n  - **type:** text\n  - **placeholder:** John\n  - **required:** True\n  - **validation:** Non-empty\n  - **component:** FinderSingleSearch\n  - **tab:** finder\n\n- **[1]**\n  - **id:** last-name\n  - **label:** Last Name\n  - **type:** text\n  - **placeholder:** Doe\n  - **required:** True\n  - **validation:** Non-empty\n  - **component:** FinderSingleSearch\n  - **tab:** finder\n\n- **[2]**\n  - **id:** company-domain\n  - **label:** Company Domain\n  - **type:** text\n  - **placeholder:** company.com\n  - **required:** True\n  - **validation:** Domain format via emailUtils.validateDomain\n  - **component:** FinderSingleSearch\n  - **tab:** finder\n\n- **[3]**\n  - **id:** verify-email-input\n  - **label:** Email Address\n  - **type:** email\n  - **placeholder:** email@company.com\n  - **required:** True\n  - **validation:** RFC 5322 email format\n  - **component:** VerifierEmailTab\n  - **tab:** verifier\n\n- **[4]**\n  - **id:** bulk-csv-upload-finder\n  - **label:** CSV file\n  - **type:** file\n  - **accept:** .csv\n  - **required:** True\n  - **component:** FinderBulkUpload\n  - **tab:** finder\n\n- **[5]**\n  - **id:** bulk-csv-upload-verifier\n  - **label:** CSV file\n  - **type:** file\n  - **accept:** .csv\n  - **required:** True\n  - **component:** VerifierBulkTab\n  - **tab:** verifier\n\n\n\n### text_blocks\n\n| component | content | id | type |\n| --- | --- | --- | --- |\n| UsageCounter | {credits} finder credits remaining | credits-counter | stat |\n| MetricsBanner | Processed {total} · Found {found} · Failed {failed} | metrics-banner | info |\n| FinderSingleSearch | Enter first name, last name, and company domain to find an email. | empty-finder | empty-state |\n| FinderSingleSearch | Found: {email} ({confidence}% confidence) | result-email | result |\n| VerifierEmailTab | Valid — this email exists and is deliverable | result-status-valid | success |\n| VerifierEmailTab | Invalid — this email does not exist | result-status-invalid | error |\n| VerifierEmailTab | Catchall — domain accepts all emails, cannot confirm deliverability | result-status-catchall | warning |\n\n\n### checkboxes\n\n\n\n### radio_buttons\n\n\n\n### progress_bars\n\n| color_logic | component | id | label | purpose | type |\n| --- | --- | --- | --- | --- | --- |\n| green > 70%, amber 40-70%, red < 40% | FinderSingleSearch | confidence-score | Email confidence score | 0–100% confidence that the found email is correct | determinate |\n| green for valid, amber for catchall, red for invalid | VerifierEmailTab | verifier-confidence | Deliverability confidence | 0–100% confidence in email deliverability | determinate |\n|  | VerifierBulkTab | bulk-processing-progress | Bulk processing progress | Tracks CSV processing: rows done / total | determinate |\n\n\n### graphs\n\n| chart_type | component | data_source | id | label | segments |\n| --- | --- | --- | --- | --- | --- |\n| stacked_bar | VerifierBulkTab | emailService.VerifyEmailsBulk result | bulk-results-stacked-bar | Bulk verification results breakdown | ['valid', 'invalid', 'catchall', 'unknown'] |\n\n\n### flows\n\n| component | id | label | steps |\n| --- | --- | --- | --- |\n| EmailFinderSingle | single-finder-flow | Single email finder flow | ['Enter first name + last name + domain', 'Submit → useEmailFinderSingle → emailService.FindEmails', 'Result: email + confidence bar + copy button'] |\n| EmailMappingModal | bulk-finder-flow | Bulk email finder flow | ['Upload CSV', 'Map columns (name, domain)', 'Submit → createEmailFinderExport job', 'Track in Jobs page'] |\n| EmailAssistantPanel | ai-assistant-flow | AI email assistant flow | ['Paste recipient response', 'Submit → generate follow-up drafts', 'Copy chosen draft to clipboard'] |\n\n\n### components\n\n| file_path | name | purpose |\n| --- | --- | --- |\n- **EmailMainTabs** — `components/features/email/EmailMainTabs.tsx`\n- **EmailFinderSingle** — `components/email/EmailFinderSingle.tsx`\n- **EmailVerifierSingle** — `components/email/EmailVerifierSingle.tsx`\n- **EmailBulkDropZone** — `components/email/EmailBulkDropZone.tsx`\n- **EmailMappingModal** — `components/email/EmailMappingModal.tsx`\n- **EmailAssistantPanel** — `components/email/EmailAssistantPanel.tsx`\n- **EmailCreditsBanner** — `components/email/EmailCreditsBanner.tsx`\n- **EmailVerifierBulkResults** — `components/email/EmailVerifierBulkResults.tsx`\n- **EmailExportColumnMappingFields** — `components/email/EmailExportColumnMappingFields.tsx`\n\n\n### hooks\n\n| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| hooks/index.ts | useEmailFinderSingle | Single-enrichment GQL resolver | 2.x |\n| hooks/index.ts | useEmailVerifierSingle | Multi-provider SMTP verification | 2.x |\n| hooks/index.ts | useEmailVerifierBulk | Batch verification and stats aggregation | 2.x |\n| hooks/index.ts | useCsvUpload | S3 multipart upload with progress tracking | 6.x |\n| context/AuthContext.ts | useAuth | User role/credits context for banners | 1.x |\n\n\n### services\n\n| file_path | name | operations |\n| --- | --- | --- |\n- **emailService** — `FindEmails`, `VerifySingleEmail`, `GetActivities`.\n- **jobsService** — `createEmailFinderExport`, `createEmailVerifyExport`.\n- **aiChatsService** — `AnalyzeEmailRisk`, `GetEmailAssistantSuggestions`.\n\n\n### contexts\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | User session for API calls |\n| context/RoleContext.tsx | RoleContext | Credit check before submit; gated bulk features |\n\n\n### utilities\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| lib/email/emailUtils.ts | emailUtils | formatEmail, extractDomain, generatePatterns |\n| lib/email/emailValidation.ts | emailValidation | validateEmailInput, validateDomain, validateEmailFinderInputs |\n| lib/clipboard.ts | clipboard | Copy email result to clipboard |\n\n\n### ui_components\n\n\n\n### endpoints\n\n| hook | method | operation | service |\n| --- | --- | --- | --- |\n| useFinder | QUERY | FindEmails | emailService |\n| useFinder | QUERY | FindEmailsBulk | emailService |\n| useVerifier | QUERY | VerifySingleEmail | emailService |\n| useEmailVerifierBulk | QUERY | VerifyEmailsBulk | emailService |\n| useVerifier | MUTATION | AnalyzeEmailRisk | geminiService |\n\n\n## UI elements (top-level)\n\n### buttons\n\n| id | label | type | action | loading_state | component | tab |\n| --- | --- | --- | --- | --- | --- | --- |\n| find-email-submit | Find Email | primary | emailService.FindEmails | Searching... | FinderSingleSearch | finder |\n| finder-bulk-upload | Upload CSV | secondary | open file picker → FinderBulkUpload |  | FinderBulkUpload | finder |\n| finder-bulk-submit | Find Emails in Bulk | primary | emailService.FindEmailsBulk (up to 50) |  | FinderBulkUpload | finder |\n| verify-email-submit | Verify Email | primary | emailService.VerifySingleEmail | Verifying... | VerifierEmailTab | verifier |\n| verifier-bulk-upload | Upload CSV | secondary | open file picker → VerifierBulkTab |  | VerifierBulkTab | verifier |\n| verifier-bulk-submit | Verify in Bulk | primary | emailService.VerifyEmailsBulk (up to 1000) |  | VerifierBulkTab | verifier |\n| copy-email | Copy | icon | clipboard.copyToClipboard(email) |  | FinderSingleSearch |  |\n| analyze-risk | Analyze Risk | secondary | geminiService.AnalyzeEmailRisk (AI) |  | EmailRiskAnalyzer | verifier |\n| export-results | Export Results | secondary | download CSV of results |  | VerifierBulkTab |  |\n| clear-results | Clear | ghost | reset finder/verifier state |  | FinderSingleSearch |  |\n\n\n### inputs\n\n| id | label | type | placeholder | required | validation | component | tab |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| first-name | First Name | text | John | True | Non-empty | FinderSingleSearch | finder |\n| last-name | Last Name | text | Doe | True | Non-empty | FinderSingleSearch | finder |\n| company-domain | Company Domain | text | company.com | True | Domain format via emailUtils.validateDomain | FinderSingleSearch | finder |\n| verify-email-input | Email Address | email | email@company.com | True | RFC 5322 email format | VerifierEmailTab | verifier |\n| bulk-csv-upload-finder | CSV file | file |  | True |  | FinderBulkUpload | finder |\n| bulk-csv-upload-verifier | CSV file | file |  | True |  | VerifierBulkTab | verifier |\n\n\n### checkboxes\n\n[]\n\n### radio_buttons\n\n[]\n\n### progress_bars\n\n| id | label | purpose | type | color_logic | component |\n| --- | --- | --- | --- | --- | --- |\n| confidence-score | Email confidence score | 0–100% confidence that the found email is correct | determinate | green > 70%, amber 40-70%, red < 40% | FinderSingleSearch |\n| verifier-confidence | Deliverability confidence | 0–100% confidence in email deliverability | determinate | green for valid, amber for catchall, red for invalid | VerifierEmailTab |\n| bulk-processing-progress | Bulk processing progress | Tracks CSV processing: rows done / total | determinate |  | VerifierBulkTab |\n\n\n### toasts\n\n[]\n\n## Graphql Bindings\n\n| hook | operation | service | type |\n| --- | --- | --- | --- |\n| useFinder | FindEmails, FindEmailsBulk | emailService | query |\n| useVerifier | VerifySingleEmail, VerifyEmailsBulk | emailService | query |\n| useVerifier | AnalyzeEmailRisk | geminiService | mutation |\n\n\n## Hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useEmailFinderSingle.ts | useFinder | Finder form state, submit, result, credit check |\n| hooks/useEmailVerifierSingle.ts | useVerifier | Verifier form state, submit, result |\n| hooks/useEmailVerifierBulk.ts | useEmailVerifierBulk | Bulk verifier job state and progress polling |\n\n\n## Services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/emailService.ts | emailService | ['FindEmails', 'FindEmailsBulk', 'VerifySingleEmail', 'VerifyEmailsBulk', 'GetActivities'] |\n| services/graphql/aiChatsService.ts | geminiService | ['AnalyzeEmailRisk'] |\n\n\n## Backend Bindings\n\n| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql email module resolvers | finder/verifier/read and bulk operations |\n| downstream services | emailapis/emailapigo/mailvetter (via gateway orchestration) | email lookup and verification execution |\n\n\n## Data Sources\n\n- Appointment360 GraphQL gateway\n- emailapis/emailapigo runtime stores and provider integrations via backend\n\n\n## Flow summary\n\nemail UI tabs -> finder/verifier hooks -> GraphQL gateway -> email services pipeline -> results/progress/exports rendered in app\n\n\n<!-- AUTO:design-nav:start -->\n\n## Era coverage (Contact360 0.x–10.x)\n\nThis page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **2.x** — Email system — finder & verifier flows, bulk/jobs, Mailhub folders, product marketing pages.\n- **8.x** — Public & private APIs — API docs, integrations story, export contracts, developer surfaces.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/email`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.\n\n## Backend API documentation\n\n- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md).\n\n### Peer pages (same codebase)\n\n- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| `FindEmails` | [query_find_emails_graphql.md](../../backend/endpoints/query_find_emails_graphql.md) | QUERY | 2.x |\n| `VerifySingleEmail` | [mutation_verify_single_email_graphql.md](../../backend/endpoints/mutation_verify_single_email_graphql.md) | MUTATION | 2.x |\n| `VerifyEmailsBulk` | [mutation_verify_bulk_emails_graphql.md](../../backend/endpoints/mutation_verify_bulk_emails_graphql.md) | MUTATION | 2.x |\n| `AnalyzeEmailRisk` | [mutation_analyze_email_risk_graphql.md](../../backend/endpoints/mutation_analyze_email_risk_graphql.md) | MUTATION | 2.x |\n| `GetActivities` | [get_activities_graphql.md](../../backend/endpoints/get_activities_graphql.md) | QUERY | 0.x |\n| `GetEmailAssistantSuggestions` | *unresolved — add to endpoint index* | — | — |\n\n**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): \n`graphql/GetEmailAssistantSuggestions`\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n---\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*\n",
+  "front_matter": {
+    "title": "\"Email\"",
+    "page_id": "email_page",
+    "source_json": "email_page.json",
+    "generator": "json_to_markdown.py"
+  },
+  "page_id": "email_page",
+  "page_type": "dashboard",
+  "codebase": "app",
+  "surface": "App (Dashboard)",
+  "era_tags": [
+    "0.x",
+    "2.x",
+    "5.x",
+    "8.x",
+    "11.x"
+  ],
+  "flow_id": "email",
+  "metadata": {
+    "route": "/email",
+    "file_path": "contact360.io/app/app/(dashboard)/email/page.tsx",
+    "purpose": "Email Finder and Verifier page with Finder | Verifier tabs. Finder: single and bulk email search by name/domain. Verifier: single and bulk email verification with risk analysis.",
+    "s3_key": "data/pages/email_page.json",
+    "status": "published",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "None",
+    "page_state": "development",
+    "last_updated": "2026-03-29T10:30:00Z"
+  },
+  "uses_endpoints": [
+    {
+      "endpoint": "graphql/FindEmails",
+      "description": "Find single email by first name, last name, domain."
+    },
+    {
+      "endpoint": "graphql/FindEmailsBulk",
+      "description": "Bulk email finder export job creation."
+    },
+    {
+      "endpoint": "graphql/VerifySingleEmail",
+      "description": "Verify a single email address for validity and risk."
+    },
+    {
+      "endpoint": "graphql/VerifyEmailsBulk",
+      "description": "Bulk email verification export job creation."
+    },
+    {
+      "endpoint": "graphql/AnalyzeEmailRisk",
+      "description": "AI-powered email risk analysis (Gemini)."
+    },
+    {
+      "endpoint": "graphql/GetActivities",
+      "description": "Get finder/verifier activity history."
+    },
+    {
+      "endpoint": "graphql/GetEmailAssistantSuggestions",
+      "description": "AI suggestions for follow-ups (era 5.x)."
+    }
+  ],
+  "ui_components": [
+    {
+      "name": "EmailPage",
+      "file_path": "app/(dashboard)/email/page.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailFinderSingle",
+      "file_path": "components/email/EmailFinderSingle.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailVerifierSingle",
+      "file_path": "components/email/EmailVerifierSingle.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailBulkDropZone",
+      "file_path": "components/email/EmailBulkDropZone.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailAssistantPanel",
+      "file_path": "components/email/EmailAssistantPanel.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailCreditsBanner",
+      "file_path": "components/email/EmailCreditsBanner.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailMappingModal",
+      "file_path": "components/email/EmailMappingModal.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailVerifierBulkResults",
+      "file_path": "components/email/EmailVerifierBulkResults.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailExportColumnMappingFields",
+      "file_path": "components/email/EmailExportFields.tsx",
+      "description": null
+    },
+    {
+      "name": "LottiePlayer",
+      "file_path": "components/shared/LottiePlayer.tsx",
+      "description": null
+    },
+    {
+      "name": "Modal",
+      "file_path": "components/ui/Modal.tsx",
+      "description": null
+    },
+    {
+      "name": "Button",
+      "file_path": "components/ui/Button.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailMainTabs",
+      "file_path": "components/features/email/EmailMainTabs.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailFinderSingle",
+      "file_path": "components/email/EmailFinderSingle.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailVerifierSingle",
+      "file_path": "components/email/EmailVerifierSingle.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailBulkDropZone",
+      "file_path": "components/email/EmailBulkDropZone.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailMappingModal",
+      "file_path": "components/email/EmailMappingModal.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailAssistantPanel",
+      "file_path": "components/email/EmailAssistantPanel.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailCreditsBanner",
+      "file_path": "components/email/EmailCreditsBanner.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailVerifierBulkResults",
+      "file_path": "components/email/EmailVerifierBulkResults.tsx",
+      "description": null
+    },
+    {
+      "name": "EmailExportColumnMappingFields",
+      "file_path": "components/email/EmailExportColumnMappingFields.tsx",
+      "description": null
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Email",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "api_versions",
+      "level": 3,
+      "prose": "- graphql\n\n- **codebase:** app\n- **canonical_repo:** contact360.io/app"
+    },
+    {
+      "heading": "Content sections (summary)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "title",
+      "level": 3,
+      "prose": "Email"
+    },
+    {
+      "heading": "description",
+      "level": 3,
+      "prose": "Email Finder and Verifier page with Finder | Verifier tabs. Finder: single and bulk email search by name/domain. Verifier: single and bulk email verification with risk analysis."
+    },
+    {
+      "heading": "Sections (UI structure)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "headings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| email-title | 1 | Email Tools |\n| finder-single | 2 | Find Email |\n| verifier-single | 2 | Verify Email |\n| bulk-section | 2 | Bulk Operations |\n| history | 2 | Recent History |"
+    },
+    {
+      "heading": "subheadings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| finder-bulk-header | 3 | Upload CSV for bulk email finding |\n| verifier-bulk-header | 3 | Upload CSV for bulk verification |\n| risk-analysis | 3 | AI Risk Analysis |"
+    },
+    {
+      "heading": "tabs",
+      "level": 3,
+      "prose": "| content_ref | id | label |\n| --- | --- | --- |\n| email-finder-tab | finder | Finder |\n| email-verifier-tab | verifier | Verifier |\n| email-assistant-tab | assistant | Assistant |"
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| action | component | id | label | loading_state | tab | type |\n| --- | --- | --- | --- | --- | --- | --- |\n| handleFinderSubmit | EmailFinderSingle | find-email-submit | Find Email | Searching... | finder | primary |\n| finderBulkUpload.selectFile | EmailBulkDropZone | finder-bulk-upload | Upload CSV |  | finder | secondary |\n| handleStartEnrichment | EmailMappingModal | finder-bulk-submit | Start Enrichment |  | finder | primary |\n| handleVerifierSubmit | EmailVerifierSingle | verify-email-submit | Verify Email | Verifying... | verifier | primary |\n| verifierBulkUpload.selectFile | EmailBulkDropZone | verifier-bulk-upload | Upload CSV |  | verifier | secondary |\n| handleStartVerifierBulk | Modal | verifier-bulk-submit | Start Verification |  | verifier | primary |\n| handleCopyFinderResult | EmailFinderSingle | copy-email | Copy |  |  | icon |\n| handleGenerateSuggestions | EmailAssistantPanel | generate-draft | Generate Draft | Generating... | assistant | primary |\n| handleCopySuggestion | EmailAssistantPanel | copy-draft | Copy Draft |  | assistant | secondary |"
+    },
+    {
+      "heading": "input_boxes",
+      "level": 3,
+      "prose": "- **[0]**\n  - **id:** first-name\n  - **label:** First Name\n  - **type:** text\n  - **placeholder:** John\n  - **required:** True\n  - **validation:** Non-empty\n  - **component:** FinderSingleSearch\n  - **tab:** finder\n\n- **[1]**\n  - **id:** last-name\n  - **label:** Last Name\n  - **type:** text\n  - **placeholder:** Doe\n  - **required:** True\n  - **validation:** Non-empty\n  - **component:** FinderSingleSearch\n  - **tab:** finder\n\n- **[2]**\n  - **id:** company-domain\n  - **label:** Company Domain\n  - **type:** text\n  - **placeholder:** company.com\n  - **required:** True\n  - **validation:** Domain format via emailUtils.validateDomain\n  - **component:** FinderSingleSearch\n  - **tab:** finder\n\n- **[3]**\n  - **id:** verify-email-input\n  - **label:** Email Address\n  - **type:** email\n  - **placeholder:** email@company.com\n  - **required:** True\n  - **validation:** RFC 5322 email format\n  - **component:** VerifierEmailTab\n  - **tab:** verifier\n\n- **[4]**\n  - **id:** bulk-csv-upload-finder\n  - **label:** CSV file\n  - **type:** file\n  - **accept:** .csv\n  - **required:** True\n  - **component:** FinderBulkUpload\n  - **tab:** finder\n\n- **[5]**\n  - **id:** bulk-csv-upload-verifier\n  - **label:** CSV file\n  - **type:** file\n  - **accept:** .csv\n  - **required:** True\n  - **component:** VerifierBulkTab\n  - **tab:** verifier"
+    },
+    {
+      "heading": "text_blocks",
+      "level": 3,
+      "prose": "| component | content | id | type |\n| --- | --- | --- | --- |\n| UsageCounter | {credits} finder credits remaining | credits-counter | stat |\n| MetricsBanner | Processed {total} · Found {found} · Failed {failed} | metrics-banner | info |\n| FinderSingleSearch | Enter first name, last name, and company domain to find an email. | empty-finder | empty-state |\n| FinderSingleSearch | Found: {email} ({confidence}% confidence) | result-email | result |\n| VerifierEmailTab | Valid — this email exists and is deliverable | result-status-valid | success |\n| VerifierEmailTab | Invalid — this email does not exist | result-status-invalid | error |\n| VerifierEmailTab | Catchall — domain accepts all emails, cannot confirm deliverability | result-status-catchall | warning |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "| color_logic | component | id | label | purpose | type |\n| --- | --- | --- | --- | --- | --- |\n| green > 70%, amber 40-70%, red < 40% | FinderSingleSearch | confidence-score | Email confidence score | 0–100% confidence that the found email is correct | determinate |\n| green for valid, amber for catchall, red for invalid | VerifierEmailTab | verifier-confidence | Deliverability confidence | 0–100% confidence in email deliverability | determinate |\n|  | VerifierBulkTab | bulk-processing-progress | Bulk processing progress | Tracks CSV processing: rows done / total | determinate |"
+    },
+    {
+      "heading": "graphs",
+      "level": 3,
+      "prose": "| chart_type | component | data_source | id | label | segments |\n| --- | --- | --- | --- | --- | --- |\n| stacked_bar | VerifierBulkTab | emailService.VerifyEmailsBulk result | bulk-results-stacked-bar | Bulk verification results breakdown | ['valid', 'invalid', 'catchall', 'unknown'] |"
+    },
+    {
+      "heading": "flows",
+      "level": 3,
+      "prose": "| component | id | label | steps |\n| --- | --- | --- | --- |\n| EmailFinderSingle | single-finder-flow | Single email finder flow | ['Enter first name + last name + domain', 'Submit → useEmailFinderSingle → emailService.FindEmails', 'Result: email + confidence bar + copy button'] |\n| EmailMappingModal | bulk-finder-flow | Bulk email finder flow | ['Upload CSV', 'Map columns (name, domain)', 'Submit → createEmailFinderExport job', 'Track in Jobs page'] |\n| EmailAssistantPanel | ai-assistant-flow | AI email assistant flow | ['Paste recipient response', 'Submit → generate follow-up drafts', 'Copy chosen draft to clipboard'] |"
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "prose": "| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| hooks/index.ts | useEmailFinderSingle | Single-enrichment GQL resolver | 2.x |\n| hooks/index.ts | useEmailVerifierSingle | Multi-provider SMTP verification | 2.x |\n| hooks/index.ts | useEmailVerifierBulk | Batch verification and stats aggregation | 2.x |\n| hooks/index.ts | useCsvUpload | S3 multipart upload with progress tracking | 6.x |\n| context/AuthContext.ts | useAuth | User role/credits context for banners | 1.x |"
+    },
+    {
+      "heading": "services",
+      "level": 3,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n- **emailService** — `FindEmails`, `VerifySingleEmail`, `GetActivities`.\n- **jobsService** — `createEmailFinderExport`, `createEmailVerifyExport`.\n- **aiChatsService** — `AnalyzeEmailRisk`, `GetEmailAssistantSuggestions`."
+    },
+    {
+      "heading": "contexts",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | User session for API calls |\n| context/RoleContext.tsx | RoleContext | Credit check before submit; gated bulk features |"
+    },
+    {
+      "heading": "utilities",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| lib/email/emailUtils.ts | emailUtils | formatEmail, extractDomain, generatePatterns |\n| lib/email/emailValidation.ts | emailValidation | validateEmailInput, validateDomain, validateEmailFinderInputs |\n| lib/clipboard.ts | clipboard | Copy email result to clipboard |"
+    },
+    {
+      "heading": "UI elements (top-level)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| id | label | type | action | loading_state | component | tab |\n| --- | --- | --- | --- | --- | --- | --- |\n| find-email-submit | Find Email | primary | emailService.FindEmails | Searching... | FinderSingleSearch | finder |\n| finder-bulk-upload | Upload CSV | secondary | open file picker → FinderBulkUpload |  | FinderBulkUpload | finder |\n| finder-bulk-submit | Find Emails in Bulk | primary | emailService.FindEmailsBulk (up to 50) |  | FinderBulkUpload | finder |\n| verify-email-submit | Verify Email | primary | emailService.VerifySingleEmail | Verifying... | VerifierEmailTab | verifier |\n| verifier-bulk-upload | Upload CSV | secondary | open file picker → VerifierBulkTab |  | VerifierBulkTab | verifier |\n| verifier-bulk-submit | Verify in Bulk | primary | emailService.VerifyEmailsBulk (up to 1000) |  | VerifierBulkTab | verifier |\n| copy-email | Copy | icon | clipboard.copyToClipboard(email) |  | FinderSingleSearch |  |\n| analyze-risk | Analyze Risk | secondary | geminiService.AnalyzeEmailRisk (AI) |  | EmailRiskAnalyzer | verifier |\n| export-results | Export Results | secondary | download CSV of results |  | VerifierBulkTab |  |\n| clear-results | Clear | ghost | reset finder/verifier state |  | FinderSingleSearch |  |"
+    },
+    {
+      "heading": "inputs",
+      "level": 3,
+      "prose": "| id | label | type | placeholder | required | validation | component | tab |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| first-name | First Name | text | John | True | Non-empty | FinderSingleSearch | finder |\n| last-name | Last Name | text | Doe | True | Non-empty | FinderSingleSearch | finder |\n| company-domain | Company Domain | text | company.com | True | Domain format via emailUtils.validateDomain | FinderSingleSearch | finder |\n| verify-email-input | Email Address | email | email@company.com | True | RFC 5322 email format | VerifierEmailTab | verifier |\n| bulk-csv-upload-finder | CSV file | file |  | True |  | FinderBulkUpload | finder |\n| bulk-csv-upload-verifier | CSV file | file |  | True |  | VerifierBulkTab | verifier |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "| id | label | purpose | type | color_logic | component |\n| --- | --- | --- | --- | --- | --- |\n| confidence-score | Email confidence score | 0–100% confidence that the found email is correct | determinate | green > 70%, amber 40-70%, red < 40% | FinderSingleSearch |\n| verifier-confidence | Deliverability confidence | 0–100% confidence in email deliverability | determinate | green for valid, amber for catchall, red for invalid | VerifierEmailTab |\n| bulk-processing-progress | Bulk processing progress | Tracks CSV processing: rows done / total | determinate |  | VerifierBulkTab |"
+    },
+    {
+      "heading": "toasts",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "Graphql Bindings",
+      "level": 2,
+      "prose": "| hook | operation | service | type |\n| --- | --- | --- | --- |\n| useFinder | FindEmails, FindEmailsBulk | emailService | query |\n| useVerifier | VerifySingleEmail, VerifyEmailsBulk | emailService | query |\n| useVerifier | AnalyzeEmailRisk | geminiService | mutation |"
+    },
+    {
+      "heading": "Hooks",
+      "level": 2,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useEmailFinderSingle.ts | useFinder | Finder form state, submit, result, credit check |\n| hooks/useEmailVerifierSingle.ts | useVerifier | Verifier form state, submit, result |\n| hooks/useEmailVerifierBulk.ts | useEmailVerifierBulk | Bulk verifier job state and progress polling |"
+    },
+    {
+      "heading": "Services",
+      "level": 2,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/emailService.ts | emailService | ['FindEmails', 'FindEmailsBulk', 'VerifySingleEmail', 'VerifyEmailsBulk', 'GetActivities'] |\n| services/graphql/aiChatsService.ts | geminiService | ['AnalyzeEmailRisk'] |"
+    },
+    {
+      "heading": "Backend Bindings",
+      "level": 2,
+      "prose": "| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql email module resolvers | finder/verifier/read and bulk operations |\n| downstream services | emailapis/emailapigo/mailvetter (via gateway orchestration) | email lookup and verification execution |"
+    },
+    {
+      "heading": "Data Sources",
+      "level": 2,
+      "prose": "- Appointment360 GraphQL gateway\n- emailapis/emailapigo runtime stores and provider integrations via backend"
+    },
+    {
+      "heading": "Flow summary",
+      "level": 2,
+      "prose": "email UI tabs -> finder/verifier hooks -> GraphQL gateway -> email services pipeline -> results/progress/exports rendered in app\n\n\n<!-- AUTO:design-nav:start -->"
+    },
+    {
+      "heading": "Era coverage (Contact360 0.x–10.x)",
+      "level": 2,
+      "prose": "This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **2.x** — Email system — finder & verifier flows, bulk/jobs, Mailhub folders, product marketing pages.\n- **8.x** — Public & private APIs — API docs, integrations story, export contracts, developer surfaces.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md)."
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era."
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/email`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth."
+    },
+    {
+      "heading": "Backend API documentation",
+      "level": 2,
+      "prose": "- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md)."
+    },
+    {
+      "heading": "Peer pages (same codebase)",
+      "level": 3,
+      "prose": "- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Email\"\npage_id: email_page\nsource_json: email_page.json\ngenerator: json_to_markdown.py\n---\n\n## Overview\n\n- **page_id:** email_page\n- **page_type:** dashboard\n\n- **era_tags:** 0.x, 2.x, 5.x, 8.x, 11.x\n- **flow_id:** email\n- **_id:** email_page-001\n\n## Metadata\n\n- **s3_key:** data/pages/email_page.json\n\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None\n- **page_state:** development\n- **last_updated:** 2026-03-29T10:30:00Z\n### uses_endpoints (6)\n\n### UI components (metadata)\n\n- **endpoint_count:** 6\n\n### ui_components\n\n| hook | method | operation | service |\n\n| GraphQL operation | Endpoint spec | Method | Era |\n\n| `FindEmails` | [query_find_emails_graphql.md](../../backend/endpoints/query_find_emails_graphql.md) | QUERY | 2.x |\n| `VerifySingleEmail` | [mutation_verify_single_email_graphql.md](../../backend/endpoints/mutation_verify_single_email_graphql.md) | MUTATION | 2.x |\n| `VerifyEmailsBulk` | [mutation_verify_bulk_emails_graphql.md](../../backend/endpoints/mutation_verify_bulk_emails_graphql.md) | MUTATION | 2.x |\n| `AnalyzeEmailRisk` | [mutation_analyze_email_risk_graphql.md](../../backend/endpoints/mutation_analyze_email_risk_graphql.md) | MUTATION | 2.x |\n| `GetActivities` | [get_activities_graphql.md](../../backend/endpoints/get_activities_graphql.md) | QUERY | 0.x |\n| `GetEmailAssistantSuggestions` | *unresolved — add to endpoint index* | — | — |\n\n**Unresolved operations** (not found in `index.md` / `endpoints_index.md`): \n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*"
+}

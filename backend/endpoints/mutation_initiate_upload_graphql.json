@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/mutation_initiate_upload_graphql.md",
+  "sha256_source": "e577f9d4ca95190e36e2c5d4d9f5fab7bf4acb5212f5f23060e480eb905ad1bc",
+  "generated_at": "2026-04-08T23:11:52.030806+00:00",
+  "title": "graphql/InitiateUpload",
+  "raw_markdown": "---\ntitle: \"graphql/InitiateUpload\"\nsource_json: mutation_initiate_upload_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/InitiateUpload\n\n## Overview\n\nInitialize multipart upload session for large files. Accepts InitiateUploadInput with filename (required, String), fileSize (required, Int, max 10GB), contentType (optional, String). Returns InitiateUploadResponse with uploadId (String), fileKey (format: {prefix}{user_uuid}/{timestamp}_{filename}), s3UploadId (String), chunkSize (Int, default 100MB), numParts (Int). Creates upload session in UploadSessionManager for tracking. S3 multipart upload is initiated. Raises BadRequestError (400) if file size exceeds limit. Raises ServiceUnavailableError (503) if S3 is unavailable.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | mutation_initiate_upload_graphql |\n| _id | mutation_initiate_upload_graphql-001 |\n| endpoint_path | graphql/InitiateUpload |\n| method | MUTATION |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 2.x |\n| introduced_in | 2.0.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/upload/mutations.py |\n| router_file | contact360/dashboard/src/services/graphql/uploadService.ts |\n\n\n## GraphQL operation\n\n```graphql\nmutation InitiateUpload($input: InitiateUploadInput!) { upload { initiateUpload(input: $input) { uploadId fileKey s3UploadId chunkSize numParts } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- initiateUpload\n\n## Inventory\n\n- **page_count:** 0\n- **Source:** `mutation_initiate_upload_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `2.x` — Email & Storage Foundation (Upload Init).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `upload_sessions` | WRITE | [upload_sessions.sql](../database/tables/upload_sessions.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [S3 Storage Service](../database/s3storage_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **S3Storage**: Multipart upload initialization via `lambda/s3storage`.\n\n## Related endpoint graph\n\n- **Inbound**: `Import Page`, `Upload Dialog`.\n- **Outbound**: `RegisterUploadPart`, `CompleteUpload`.\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `mutation_initiate_upload_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "mutation_initiate_upload_graphql"
+        ],
+        [
+          "_id",
+          "mutation_initiate_upload_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/InitiateUpload"
+        ],
+        [
+          "method",
+          "MUTATION"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "2.x"
+        ],
+        [
+          "introduced_in",
+          "2.0.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/upload/mutations.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/uploadService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`upload_sessions`",
+          "WRITE",
+          "[upload_sessions.sql](../database/tables/upload_sessions.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Initialize multipart upload session for large files. Accepts InitiateUploadInput with filename (required, String), fileSize (required, Int, max 10GB), contentType (optional, String). Returns InitiateUploadResponse with uploadId (String), fileKey (format: {prefix}{user_uuid}/{timestamp}_{filename}), s3UploadId (String), chunkSize (Int, default 100MB), numParts (Int). Creates upload session in UploadSessionManager for tracking. S3 multipart upload is initiated. Raises BadRequestError (400) if file size exceeds limit. Raises ServiceUnavailableError (503) if S3 is unavailable."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `mutation_initiate_upload_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/InitiateUpload\"\nsource_json: mutation_initiate_upload_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n\n```graphql\nmutation InitiateUpload($input: InitiateUploadInput!) { upload { initiateUpload(input: $input) { uploadId fileKey s3UploadId chunkSize numParts } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- **page_count:** 0\n- **Source:** `mutation_initiate_upload_graphql.json`\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `2.x` — Email & Storage Foundation (Upload Init).\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n- [S3 Storage Service](../database/s3storage_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **S3Storage**: Multipart upload initialization via `lambda/s3storage`.\n\n- **Inbound**: `Import Page`, `Upload Dialog`.\n- **Outbound**: `RegisterUploadPart`, `CompleteUpload`."
+}

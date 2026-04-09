@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/query_get_me_graphql.md",
+  "sha256_source": "30516fe9ab3df27faa3597ccca450cfb5abb0a4a68e3625d69356068ae3c53ba",
+  "generated_at": "2026-04-08T23:11:52.482235+00:00",
+  "title": "graphql/GetMe",
+  "raw_markdown": "---\ntitle: \"graphql/GetMe\"\nsource_json: query_get_me_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/GetMe\n\n## Overview\n\nGet current authenticated user information. No input required. Returns User object with uuid, email, name, isActive, lastSignInAt, createdAt, updatedAt, and profile (jobTitle, bio, role, credits, subscription info). Returns null if user is not authenticated. Used for session validation and displaying user info in the UI.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | query_get_me_graphql |\n| _id | query_get_me_graphql-001 |\n| endpoint_path | graphql/GetMe |\n| method | QUERY |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n| era | 0.x |\n| introduced_in | 0.4.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limited | False |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | contact360.io/api/app/graphql/modules/auth/queries.py |\n| router_file | contact360/dashboard/src/services/graphql/authService.ts |\n\n\n## GraphQL operation\n\n```graphql\nquery { auth { me { uuid email name profile { jobTitle bio role credits } } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- me\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /profile | Profile Page | authService | useProfilePage | primary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n\n\n## Inventory\n\n- **page_count:** 1\n- **Source:** `query_get_me_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `0.x` — Foundation (Identity).\n\n## Database tables → SQL snapshots\n\n| Table | Operation | Lineage / Snapshot |\n| --- | --- | --- |\n| `users` | READ | [users.sql](../database/tables/users.sql) |\n| `user_profiles` | READ | [user_profiles.sql](../database/tables/user_profiles.sql) |\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Subscription Status**: Aggregates data from `billing` service layer.\n\n## Related endpoint graph\n\n- **Inbound**: `Standard Layout` (Global), `Login`.\n- **Outbound**: `GetBilling` (current tier).\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `query_get_me_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "query_get_me_graphql"
+        ],
+        [
+          "_id",
+          "query_get_me_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/GetMe"
+        ],
+        [
+          "method",
+          "QUERY"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-03-29T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "0.x"
+        ],
+        [
+          "introduced_in",
+          "0.4.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limited",
+          "False"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "contact360.io/api/app/graphql/modules/auth/queries.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/authService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/profile",
+          "Profile Page",
+          "authService",
+          "useProfilePage",
+          "primary",
+          "data_fetching",
+          "2026-01-20T00:00:00.000000+00:00"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Database tables → SQL snapshots",
+      "headers": [
+        "Table",
+        "Operation",
+        "Lineage / Snapshot"
+      ],
+      "rows": [
+        [
+          "`users`",
+          "READ",
+          "[users.sql](../database/tables/users.sql)"
+        ],
+        [
+          "`user_profiles`",
+          "READ",
+          "[user_profiles.sql](../database/tables/user_profiles.sql)"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Get current authenticated user information. No input required. Returns User object with uuid, email, name, isActive, lastSignInAt, createdAt, updatedAt, and profile (jobTitle, bio, role, credits, subscription info). Returns null if user is not authenticated. Used for session validation and displaying user info in the UI."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `query_get_me_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/GetMe\"\nsource_json: query_get_me_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n| created_at | 2026-01-20T00:00:00.000000+00:00 |\n| updated_at | 2026-03-29T00:00:00.000000+00:00 |\n\n## Service / repository methods\n\n### service_methods\n\n### used_by_pages\n\n| --- | --- | --- | --- | --- | --- | --- |\n| /profile | Profile Page | authService | useProfilePage | primary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n\n- **page_count:** 1\n- **Source:** `query_get_me_graphql.json`\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `0.x` — Foundation (Identity).\n\n## Lineage & infrastructure docs\n\n- [Contact360 API Lineage](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- **Subscription Status**: Aggregates data from `billing` service layer.\n\n- **Inbound**: `Standard Layout` (Global), `Login`.\n- **Outbound**: `GetBilling` (current tier)."
+}

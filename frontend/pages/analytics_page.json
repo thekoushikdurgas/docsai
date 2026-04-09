@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "kind": "page_spec",
+  "source_path": "frontend/pages/analytics_page.md",
+  "sha256_source": "d9e667230ca91f7122b9f7aae5d6aea8cfec13077f47113f9bd8217c5c60a28c",
+  "generated_at": "2026-04-08T23:26:48.752396+00:00",
+  "title": "Analytics",
+  "raw_markdown": "---\ntitle: \"Analytics\"\npage_id: analytics_page\nsource_json: analytics_page.json\ngenerator: json_to_markdown.py\n---\n\n# Analytics\n\n## Overview\n\n- **page_id:** analytics_page\n- **page_type:** dashboard\n- **codebase:** app\n- **surface:** App (Dashboard)\n- **era_tags:** 0.x, 6.x, 11.x\n- **flow_id:** analytics\n- **_id:** analytics_page-001\n\n## Metadata\n\n- **route:** /analytics\n- **file_path:** contact360.io/app/app/(dashboard)/analytics/page.tsx\n- **purpose:** Analytics Studio: Performance monitoring and diagnostic dashboard for LCP, FID, CLS, TTFB, and API latency trends.\n- **status:** shipped\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None\n- **page_state:** development\n- **last_updated:** 2026-03-29T00:00:00Z\n\n### uses_endpoints (1)\n\n- `graphql/PerformanceMetrics` — Get performance metrics with optional date range and metric name filters. Batched via analyticsPageApi.\n\n### UI components (metadata)\n\n- **AnalyticsPage** — `app/(dashboard)/analytics/page.tsx`\n- **StatCard** — `components/shared/StatCard.tsx`\n- **Button** — `components/ui/Button.tsx`\n- **Input** — `components/ui/Input.tsx`\n- **Badge** — `components/ui/Badge.tsx`\n- **LoadingSpinner** — `components/shared/LoadingSpinner.tsx`\n- **ErrorState** — `components/shared/ErrorState.tsx`\n- **SVG Chart** — (Internal SVG implementation)\n\n- **versions:** []\n- **endpoint_count:** 1\n\n### api_versions\n\n- graphql\n\n- **codebase:** app\n- **canonical_repo:** contact360.io/app\n\n## Content sections (summary)\n\n### title\n\nAnalytics\n\n### description\n\nAnalytics dashboard for performance metrics (LCP, FID, CLS, TTFB, FCP, TTI, API latency, filter latency, page load time). Includes date range filtering and metric summary cards.\n\n## Sections (UI structure)\n\n### headings\n\n| id | level | text |\n| --- | --- | --- |\n| analytics-title | 1 | Analytics |\n| performance-overview | 2 | Performance Overview |\n| metrics-detail | 2 | Metrics |\n\n### subheadings\n\n| id | level | text |\n| --- | --- | --- |\n| web-vitals | 3 | Web Vitals (LCP, FID, CLS, FCP, TTFB) |\n| api-perf | 3 | API Performance |\n| filter-perf | 3 | Filter Latency |\n\n### tabs\n\n| content_ref | id | label |\n| --- | --- | --- |\n| analytics-web-vitals | web-vitals | Web Vitals |\n| analytics-api | api | API Latency |\n| analytics-page-load | page-load | Page Load |\n\n### buttons\n\n| action | component | id | label | type | era |\n| --- | --- | --- | --- | --- | --- |\n| handleExport | Button | export-analytics | Export | primary | 6.x |\n| handleSync | Button | sync-analytics | Sync | outline | 6.x |\n| refetch (error state) | ErrorState | retry-analytics | Retry | primary | 6.x |\n\n### input_boxes\n\n| component | id | label | placeholder | required | type | era |\n| --- | --- | --- | --- | --- | --- | --- |\n| AnalyticsHeader | date-start | Start date |  | False | date | 0.x |\n| AnalyticsHeader | date-end | End date |  | False | date | 0.x |\n| AnalyticsHeader | metric-selector | Select metric |  | False | select | 0.x |\n\n### text_blocks\n\n| component | content | id | type | era |\n| --- | --- | --- | --- | --- |\n| LoadingSpinner | Synchronizing with neural cluster... | sync-loading | info | 6.x |\n| Badge | 24 Hour Window | time-window | badge | 6.x |\n| Badge | Recorded Traces | trace-count | badge | 6.x |\n\n### checkboxes\n\n### radio_buttons\n\n### progress_bars\n\n### graphs\n\n- **[0]**\n  - **id:** telemetry-svg-chart\n  - **label:** Performance metrics over time\n  - **chart_type:** svg-path\n  - **data_source:** generateChartPath()\n  - **x_axis:** Date/time\n  - **y_axis:** Metric value (ms or score)\n  - **multi_series:** False (single metric focus)\n  - **component:** Custom SVG in AnalyticsPage\n  - **era:** 6.x\n\n- **[1]**\n  - **id:** metrics-overview-cards\n  - **label:** Metric summary stat cards\n  - **chart_type:** stat_cards\n  - **data_source:** analyticsService.PerformanceMetrics\n  - **metrics:** ['Total Events', 'Avg Value', 'Peak Value', 'Reliability Score']\n  - **component:** StatCard\n  - **era:** 6.x\n\n### flows\n\n### components\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| components/shared/StatCard.tsx | StatCard | Generic statistics visualization card |\n| components/shared/LoadingSpinner.tsx | LoadingSpinner | Application-wide loading state |\n| components/shared/ErrorState.tsx | ErrorState | Generic error handling view |\n| components/ui/Button.tsx | Button | Action trigger |\n| components/ui/Input.tsx | Input | Form field |\n| components/ui/Badge.tsx | Badge | Status/label indicator |\n\n### hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useAnalytics.ts | useAnalytics | Data fetching for performance metrics |\n\n### services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/analyticsService.ts | analyticsService | ['PerformanceMetrics'] |\n\n### contexts\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | User-scoped analytics |\n\n### utilities\n\n### ui_components\n\n### endpoints\n\n| hook | method | operation | service |\n| --- | --- | --- | --- |\n| useAnalyticsPage | QUERY | PerformanceMetrics | analyticsService |\n\n## UI elements (top-level)\n\n### buttons\n\n| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| apply-date-range | Apply | primary | refetch with new date range | AnalyticsHeader |\n| export-metrics | Export CSV | secondary | download metrics CSV | MetricsTable |\n| refresh-analytics | Refresh | icon | useAnalyticsPage.refetch() | AnalyticsHeader |\n\n### inputs\n\n| id | label | type | component |\n| --- | --- | --- | --- |\n| date-from | From | date | AnalyticsHeader |\n| date-to | To | date | AnalyticsHeader |\n| metric-filter | Metric | select | AnalyticsHeader |\n\n### checkboxes\n\n[]\n\n### radio_buttons\n\n[]\n\n### progress_bars\n\n[]\n\n### toasts\n\n[]\n\n## Hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useAnalytics.ts | useAnalyticsPage | Fetch performance metrics with date range filter |\n\n## Services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/analyticsService.ts | analyticsService | ['PerformanceMetrics'] |\n\n## Backend Bindings\n\n| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql/PerformanceMetrics | dashboard data and mutations via services/hooks |\n\n## Data Sources\n\n- Appointment360 GraphQL gateway\n- Service modules: analyticsService\n- Backend-owned data stores (via GraphQL modules)\n\n## Flow summary\n\napp page UI -> useAnalyticsPage -> analyticsService -> GraphQL gateway -> backend modules -> rendered states\n\n<!-- AUTO:design-nav:start -->\n\n## Era coverage (Contact360 0.x–10.x)\n\nThis page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **1.x** — User / billing / credit — profile, usage, billing, register/login, credit UX, admin app stats.\n- **6.x** — Reliability & scaling — analytics, activities, jobs, status, error/retry/skeleton patterns.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/analytics`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.\n\n## Backend API documentation\n\n- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md).\n\n### Peer pages (same codebase)\n\n- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| `PerformanceMetrics` | [query_get_performance_metrics_graphql.md](../../backend/endpoints/query_get_performance_metrics_graphql.md) | QUERY | 6.x |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n---\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*\n",
+  "front_matter": {
+    "title": "\"Analytics\"",
+    "page_id": "analytics_page",
+    "source_json": "analytics_page.json",
+    "generator": "json_to_markdown.py"
+  },
+  "page_id": "analytics_page",
+  "page_type": "dashboard",
+  "codebase": "app",
+  "surface": "App (Dashboard)",
+  "era_tags": [
+    "0.x",
+    "6.x",
+    "11.x"
+  ],
+  "flow_id": "analytics",
+  "metadata": {
+    "route": "/analytics",
+    "file_path": "contact360.io/app/app/(dashboard)/analytics/page.tsx",
+    "purpose": "Analytics Studio: Performance monitoring and diagnostic dashboard for LCP, FID, CLS, TTFB, and API latency trends.",
+    "status": "shipped",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "None",
+    "page_state": "development",
+    "last_updated": "2026-03-29T00:00:00Z"
+  },
+  "uses_endpoints": [
+    {
+      "endpoint": "graphql/PerformanceMetrics",
+      "description": "Get performance metrics with optional date range and metric name filters. Batched via analyticsPageApi."
+    }
+  ],
+  "ui_components": [
+    {
+      "name": "AnalyticsPage",
+      "file_path": "app/(dashboard)/analytics/page.tsx",
+      "description": null
+    },
+    {
+      "name": "StatCard",
+      "file_path": "components/shared/StatCard.tsx",
+      "description": null
+    },
+    {
+      "name": "Button",
+      "file_path": "components/ui/Button.tsx",
+      "description": null
+    },
+    {
+      "name": "Input",
+      "file_path": "components/ui/Input.tsx",
+      "description": null
+    },
+    {
+      "name": "Badge",
+      "file_path": "components/ui/Badge.tsx",
+      "description": null
+    },
+    {
+      "name": "LoadingSpinner",
+      "file_path": "components/shared/LoadingSpinner.tsx",
+      "description": null
+    },
+    {
+      "name": "ErrorState",
+      "file_path": "components/shared/ErrorState.tsx",
+      "description": null
+    },
+    {
+      "name": "SVG Chart",
+      "file_path": "(Internal SVG implementation)",
+      "description": null
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Analytics",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "api_versions",
+      "level": 3,
+      "prose": "- graphql\n\n- **codebase:** app\n- **canonical_repo:** contact360.io/app"
+    },
+    {
+      "heading": "Content sections (summary)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "title",
+      "level": 3,
+      "prose": "Analytics"
+    },
+    {
+      "heading": "description",
+      "level": 3,
+      "prose": "Analytics dashboard for performance metrics (LCP, FID, CLS, TTFB, FCP, TTI, API latency, filter latency, page load time). Includes date range filtering and metric summary cards."
+    },
+    {
+      "heading": "Sections (UI structure)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "headings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| analytics-title | 1 | Analytics |\n| performance-overview | 2 | Performance Overview |\n| metrics-detail | 2 | Metrics |"
+    },
+    {
+      "heading": "subheadings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| web-vitals | 3 | Web Vitals (LCP, FID, CLS, FCP, TTFB) |\n| api-perf | 3 | API Performance |\n| filter-perf | 3 | Filter Latency |"
+    },
+    {
+      "heading": "tabs",
+      "level": 3,
+      "prose": "| content_ref | id | label |\n| --- | --- | --- |\n| analytics-web-vitals | web-vitals | Web Vitals |\n| analytics-api | api | API Latency |\n| analytics-page-load | page-load | Page Load |"
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| action | component | id | label | type | era |\n| --- | --- | --- | --- | --- | --- |\n| handleExport | Button | export-analytics | Export | primary | 6.x |\n| handleSync | Button | sync-analytics | Sync | outline | 6.x |\n| refetch (error state) | ErrorState | retry-analytics | Retry | primary | 6.x |"
+    },
+    {
+      "heading": "input_boxes",
+      "level": 3,
+      "prose": "| component | id | label | placeholder | required | type | era |\n| --- | --- | --- | --- | --- | --- | --- |\n| AnalyticsHeader | date-start | Start date |  | False | date | 0.x |\n| AnalyticsHeader | date-end | End date |  | False | date | 0.x |\n| AnalyticsHeader | metric-selector | Select metric |  | False | select | 0.x |"
+    },
+    {
+      "heading": "text_blocks",
+      "level": 3,
+      "prose": "| component | content | id | type | era |\n| --- | --- | --- | --- | --- |\n| LoadingSpinner | Synchronizing with neural cluster... | sync-loading | info | 6.x |\n| Badge | 24 Hour Window | time-window | badge | 6.x |\n| Badge | Recorded Traces | trace-count | badge | 6.x |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "graphs",
+      "level": 3,
+      "prose": "- **[0]**\n  - **id:** telemetry-svg-chart\n  - **label:** Performance metrics over time\n  - **chart_type:** svg-path\n  - **data_source:** generateChartPath()\n  - **x_axis:** Date/time\n  - **y_axis:** Metric value (ms or score)\n  - **multi_series:** False (single metric focus)\n  - **component:** Custom SVG in AnalyticsPage\n  - **era:** 6.x\n\n- **[1]**\n  - **id:** metrics-overview-cards\n  - **label:** Metric summary stat cards\n  - **chart_type:** stat_cards\n  - **data_source:** analyticsService.PerformanceMetrics\n  - **metrics:** ['Total Events', 'Avg Value', 'Peak Value', 'Reliability Score']\n  - **component:** StatCard\n  - **era:** 6.x"
+    },
+    {
+      "heading": "flows",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useAnalytics.ts | useAnalytics | Data fetching for performance metrics |"
+    },
+    {
+      "heading": "services",
+      "level": 3,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/analyticsService.ts | analyticsService | ['PerformanceMetrics'] |"
+    },
+    {
+      "heading": "contexts",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| context/AuthContext.tsx | AuthContext | User-scoped analytics |"
+    },
+    {
+      "heading": "utilities",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI elements (top-level)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| apply-date-range | Apply | primary | refetch with new date range | AnalyticsHeader |\n| export-metrics | Export CSV | secondary | download metrics CSV | MetricsTable |\n| refresh-analytics | Refresh | icon | useAnalyticsPage.refetch() | AnalyticsHeader |"
+    },
+    {
+      "heading": "inputs",
+      "level": 3,
+      "prose": "| id | label | type | component |\n| --- | --- | --- | --- |\n| date-from | From | date | AnalyticsHeader |\n| date-to | To | date | AnalyticsHeader |\n| metric-filter | Metric | select | AnalyticsHeader |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "toasts",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "Hooks",
+      "level": 2,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useAnalytics.ts | useAnalyticsPage | Fetch performance metrics with date range filter |"
+    },
+    {
+      "heading": "Services",
+      "level": 2,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/analyticsService.ts | analyticsService | ['PerformanceMetrics'] |"
+    },
+    {
+      "heading": "Backend Bindings",
+      "level": 2,
+      "prose": "| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql/PerformanceMetrics | dashboard data and mutations via services/hooks |"
+    },
+    {
+      "heading": "Data Sources",
+      "level": 2,
+      "prose": "- Appointment360 GraphQL gateway\n- Service modules: analyticsService\n- Backend-owned data stores (via GraphQL modules)"
+    },
+    {
+      "heading": "Flow summary",
+      "level": 2,
+      "prose": "app page UI -> useAnalyticsPage -> analyticsService -> GraphQL gateway -> backend modules -> rendered states\n\n<!-- AUTO:design-nav:start -->"
+    },
+    {
+      "heading": "Era coverage (Contact360 0.x–10.x)",
+      "level": 2,
+      "prose": "This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **1.x** — User / billing / credit — profile, usage, billing, register/login, credit UX, admin app stats.\n- **6.x** — Reliability & scaling — analytics, activities, jobs, status, error/retry/skeleton patterns.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md)."
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era."
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/analytics`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth."
+    },
+    {
+      "heading": "Backend API documentation",
+      "level": 2,
+      "prose": "- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md)."
+    },
+    {
+      "heading": "Peer pages (same codebase)",
+      "level": 3,
+      "prose": "- [activities_page](activities_page.md)\n- [admin_page](admin_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Analytics\"\npage_id: analytics_page\nsource_json: analytics_page.json\ngenerator: json_to_markdown.py\n---\n\n- **page_id:** analytics_page\n- **page_type:** dashboard\n\n- **era_tags:** 0.x, 6.x, 11.x\n- **flow_id:** analytics\n- **_id:** analytics_page-001\n\n## Metadata\n\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** None\n- **page_state:** development\n- **last_updated:** 2026-03-29T00:00:00Z\n\n### uses_endpoints (1)\n\n### UI components (metadata)\n\n- **endpoint_count:** 1\n\n| components/shared/StatCard.tsx | StatCard | Generic statistics visualization card |\n| components/shared/LoadingSpinner.tsx | LoadingSpinner | Application-wide loading state |\n| components/shared/ErrorState.tsx | ErrorState | Generic error handling view |\n| components/ui/Button.tsx | Button | Action trigger |\n| components/ui/Input.tsx | Input | Form field |\n| components/ui/Badge.tsx | Badge | Status/label indicator |\n\n### ui_components\n\n| hook | method | operation | service |\n\n| useAnalyticsPage | QUERY | PerformanceMetrics | analyticsService |\n\n| GraphQL operation | Endpoint spec | Method | Era |\n\n| `PerformanceMetrics` | [query_get_performance_metrics_graphql.md](../../backend/endpoints/query_get_performance_metrics_graphql.md) | QUERY | 6.x |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*"
+}

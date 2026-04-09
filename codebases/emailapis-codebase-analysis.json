@@ -1,0 +1,1852 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/emailapis-codebase-analysis.md",
+  "sha256_source": "059828e21a9e49d77660cdb39d9ee7a194e7a7d3f46e08538e3a98ba058d4c49",
+  "generated_at": "2026-04-08T23:26:47.062381+00:00",
+  "title": "emailapigo / EC2/email.server — Codebase Deep Analysis (Contact360 eras 0.x–10.x)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "emailapigo / EC2/email.server — Codebase Deep Analysis (Contact360 eras 0.x–10.x)",
+      "level": 1,
+      "slug": "emailapigo-ec2emailserver-codebase-deep-analysis-contact360-eras-0x10x",
+      "prose": "@EC2/email.server  read this codebase and this codebase is go gin framework and it has a worker pool with workers where you worker job related jobs api like job list and job status and job retry and job delete or block or terminated with redis queue and mailtester.ninja and mailvetter as provider where my project storage section will be managed by this codebase like @EC2/sync.server @EC2/email.server @EC2/job.server  , so to completed my codebase breaks the tasks in 0-10 era minor 121 files so the codebase ready for my project because it connect to  @contact360.io/api  codebase and track logs ans status ans full system will be track in @contact360.io/admin  codebase and track all dependences of my codebase and also track all endpoints from @docs/backend/endpoints  and postman @docs/backend/postman  and database @docs/backend/database  and all tech @docs/tech  and flowchart @docs/flowchart  and codebase @docs/codebases  and other docs @docs/docs , Learn, understand, and analyse this deeply, and then break your tasks into smaller tasks",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service summary",
+      "level": 2,
+      "slug": "service-summary",
+      "prose": "`EC2/email.server` (`github.com/ayan/emailapigo`) is the **canonical Go runtime** for Contact360's email operations: email finding, verification, pattern management, and web-search fallback. It is a **Gin HTTP API + Asynq/Redis worker pool** backed by PostgreSQL (GORM) and AWS S3 for large CSV batch flows.\n\nIt is the Go counterpart to the retired `lambda/emailapis` Python FastAPI service and feeds the `contact360.io/api` (Python Strawberry GraphQL gateway) via `LambdaEmailClient` → `LAMBDA_EMAIL_API_URL`.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture",
+      "level": 2,
+      "slug": "runtime-architecture",
+      "prose": "```\ncontact360.io/api (Python FastAPI + Strawberry GraphQL)\n        │  HTTP + X-API-Key (LambdaEmailClient)\n        ▼\nEC2/email.server  (Go, Gin, port 3000/8080 per .env)\n  ├── internal/api/router.go         (HTTP routes)\n  ├── internal/services/             (finder, verifier, pattern, S3CSV, web-search)\n  ├── internal/clients/              (Mailtester, Mailvetter, Connectra, Truelist, IcyPeas, OpenAI, DuckDuckGo)\n  ├── internal/repositories/         (email_patterns, email_finder_cache — PostgreSQL/GORM)\n  ├── internal/models/               (Job, EmailPattern, EmailFinderCache)\n  ├── internal/tasks/ + worker/      (Asynq queues: mailtester, mailvetter, email_finder, default)\n  └── internal/logging/              (batch logger → logs API Gateway)\n\ncmd/worker/main.go  →  4 asynq.Server instances (Redis)\n        ├── queue:mailtester    concurrency=5\n        ├── queue:mailvetter    concurrency=1\n        ├── queue:email_finder  concurrency=4\n        └── queue:default       concurrency=1\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "contact360.io/api (Python FastAPI + Strawberry GraphQL)\n        │  HTTP + X-API-Key (LambdaEmailClient)\n        ▼\nEC2/email.server  (Go, Gin, port 3000/8080 per .env)\n  ├── internal/api/router.go         (HTTP routes)\n  ├── internal/services/             (finder, verifier, pattern, S3CSV, web-search)\n  ├── internal/clients/              (Mailtester, Mailvetter, Connectra, Truelist, IcyPeas, OpenAI, DuckDuckGo)\n  ├── internal/repositories/         (email_patterns, email_finder_cache — PostgreSQL/GORM)\n  ├── internal/models/               (Job, EmailPattern, EmailFinderCache)\n  ├── internal/tasks/ + worker/      (Asynq queues: mailtester, mailvetter, email_finder, default)\n  └── internal/logging/              (batch logger → logs API Gateway)\n\ncmd/worker/main.go  →  4 asynq.Server instances (Redis)\n        ├── queue:mailtester    concurrency=5\n        ├── queue:mailvetter    concurrency=1\n        ├── queue:email_finder  concurrency=4\n        └── queue:default       concurrency=1\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "All source files (45 files total)",
+      "level": 2,
+      "slug": "all-source-files-45-files-total",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Top-level",
+      "level": 3,
+      "slug": "top-level",
+      "prose": "| File | Role |\n|------|------|\n| `main.go` | Boot: godotenv → InitDB → SetupRouter → Lambda or http.Server on PORT |\n| `go.mod` | Module `github.com/ayan/emailapigo`, Go 1.24 |\n| `Dockerfile` | Builds `./main.go` → `/app/email-api`, exposes 3000 |\n| `Dockerfile.worker` | Builds `./cmd/worker/main.go` → `/app/email-worker` |\n| `docker-compose.yml` | Redis + api + worker |\n| `docker-compose.email.yml` | API port 8080:8080, worker Dockerfile.worker |\n| `Makefile` | Build/run helpers |\n| `template.yaml` | AWS SAM (Lambda+API Gateway fallback path) |\n| `.env.example` | All env vars documented |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`main.go`",
+              "Boot: godotenv → InitDB → SetupRouter → Lambda or http.Server on PORT"
+            ],
+            [
+              "`go.mod`",
+              "Module `github.com/ayan/emailapigo`, Go 1.24"
+            ],
+            [
+              "`Dockerfile`",
+              "Builds `./main.go` → `/app/email-api`, exposes 3000"
+            ],
+            [
+              "`Dockerfile.worker`",
+              "Builds `./cmd/worker/main.go` → `/app/email-worker`"
+            ],
+            [
+              "`docker-compose.yml`",
+              "Redis + api + worker"
+            ],
+            [
+              "`docker-compose.email.yml`",
+              "API port 8080:8080, worker Dockerfile.worker"
+            ],
+            [
+              "`Makefile`",
+              "Build/run helpers"
+            ],
+            [
+              "`template.yaml`",
+              "AWS SAM (Lambda+API Gateway fallback path)"
+            ],
+            [
+              "`.env.example`",
+              "All env vars documented"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "cmd/worker/",
+      "level": 3,
+      "slug": "cmdworker",
+      "prose": "| File | Role |\n|------|------|\n| `cmd/worker/main.go` | Starts 4 asynq.Server instances; shared ServeMux |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`cmd/worker/main.go`",
+              "Starts 4 asynq.Server instances; shared ServeMux"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/api/",
+      "level": 3,
+      "slug": "internalapi",
+      "prose": "| File | Role |\n|------|------|\n| `internal/api/router.go` | All 16 HTTP routes; service/client wiring |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/api/router.go`",
+              "All 16 HTTP routes; service/client wiring"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/clients/",
+      "level": 3,
+      "slug": "internalclients",
+      "prose": "| File | Role |\n|------|------|\n| `internal/clients/connectra_client.go` | POST to Connectra `/contacts` |\n| `internal/clients/database.go` | GORM Postgres init + AutoMigrate gate |\n| `internal/clients/duckduckgo_client.go` | HTML scrape `https://html.duckduckgo.com/html/` |\n| `internal/clients/icypeas_client.go` | POST `/email-search`, `/bulk-single-searchs/read` |\n| `internal/clients/mailtester.go` | GET `{MAILTESTER_BASE_URL}/ninja?email&key` |\n| `internal/clients/mailvetter_client.go` | GET `{MAILVETTER_BASE_URL}/verify?email` + Bearer |\n| `internal/clients/openai_client.go` | POST `https://api.openai.com/v1/chat/completions` |\n| `internal/clients/truelist_client.go` | POST `{TRUELIST_BASE_URL}/api/v1/verify_inline?email` |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/clients/connectra_client.go`",
+              "POST to Connectra `/contacts`"
+            ],
+            [
+              "`internal/clients/database.go`",
+              "GORM Postgres init + AutoMigrate gate"
+            ],
+            [
+              "`internal/clients/duckduckgo_client.go`",
+              "HTML scrape `https://html.duckduckgo.com/html/`"
+            ],
+            [
+              "`internal/clients/icypeas_client.go`",
+              "POST `/email-search`, `/bulk-single-searchs/read`"
+            ],
+            [
+              "`internal/clients/mailtester.go`",
+              "GET `{MAILTESTER_BASE_URL}/ninja?email&key`"
+            ],
+            [
+              "`internal/clients/mailvetter_client.go`",
+              "GET `{MAILVETTER_BASE_URL}/verify?email` + Bearer"
+            ],
+            [
+              "`internal/clients/openai_client.go`",
+              "POST `https://api.openai.com/v1/chat/completions`"
+            ],
+            [
+              "`internal/clients/truelist_client.go`",
+              "POST `{TRUELIST_BASE_URL}/api/v1/verify_inline?email`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/config/",
+      "level": 3,
+      "slug": "internalconfig",
+      "prose": "| File | Role |\n|------|------|\n| `internal/config/config.go` | Singleton Config; caarlos0/env; 30 env vars |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/config/config.go`",
+              "Singleton Config; caarlos0/env; 30 env vars"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/emailpatterns/`",
+      "level": 3,
+      "slug": "internalemailpatterns",
+      "prose": "| File | Role |\n|------|------|\n| `internal/email_patterns/detector.go` | Pattern type detection |\n| `internal/email_patterns/patterns.go` | Pattern name pieces |\n| `internal/email_patterns/renderer.go` | Pattern string renderer |\n| `internal/email_patterns/tokens.go` | Tokenizer for names/patterns |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/email_patterns/detector.go`",
+              "Pattern type detection"
+            ],
+            [
+              "`internal/email_patterns/patterns.go`",
+              "Pattern name pieces"
+            ],
+            [
+              "`internal/email_patterns/renderer.go`",
+              "Pattern string renderer"
+            ],
+            [
+              "`internal/email_patterns/tokens.go`",
+              "Tokenizer for names/patterns"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/errors/",
+      "level": 3,
+      "slug": "internalerrors",
+      "prose": "| File | Role |\n|------|------|\n| `internal/errors/errors.go` | Domain errors + HTTPStatus mapper |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/errors/errors.go`",
+              "Domain errors + HTTPStatus mapper"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/logging/",
+      "level": 3,
+      "slug": "internallogging",
+      "prose": "| File | Role |\n|------|------|\n| `internal/logging/batch_logger.go` | BatchLogHandler; forwards to logs API Gateway |\n| `internal/logging/logger.go` | ServiceLogger wrapper |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/logging/batch_logger.go`",
+              "BatchLogHandler; forwards to logs API Gateway"
+            ],
+            [
+              "`internal/logging/logger.go`",
+              "ServiceLogger wrapper"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/middleware/",
+      "level": 3,
+      "slug": "internalmiddleware",
+      "prose": "| File | Role |\n|------|------|\n| `internal/middleware/auth.go` | APIKeyMiddleware: header X-API-Key |\n| `internal/middleware/monitoring.go` | MonitoringMiddleware: duration metrics |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/middleware/auth.go`",
+              "APIKeyMiddleware: header X-API-Key"
+            ],
+            [
+              "`internal/middleware/monitoring.go`",
+              "MonitoringMiddleware: duration metrics"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/models/",
+      "level": 3,
+      "slug": "internalmodels",
+      "prose": "| File | Role |\n|------|------|\n| `internal/models/email_finder_cache.go` | GORM model → table `email_finder_cache` |\n| `internal/models/email_pattern.go` | GORM model → table `email_patterns` |\n| `internal/models/job.go` | Plain struct → table `emailapi_jobs` (raw SQL) |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/models/email_finder_cache.go`",
+              "GORM model → table `email_finder_cache`"
+            ],
+            [
+              "`internal/models/email_pattern.go`",
+              "GORM model → table `email_patterns`"
+            ],
+            [
+              "`internal/models/job.go`",
+              "Plain struct → table `emailapi_jobs` (raw SQL)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/repositories/",
+      "level": 3,
+      "slug": "internalrepositories",
+      "prose": "| File | Role |\n|------|------|\n| `internal/repositories/email_finder_cache_repository.go` | Upsert/lookup cache; ON CONFLICT composite |\n| `internal/repositories/email_pattern_repository.go` | CRUD + search for patterns |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/repositories/email_finder_cache_repository.go`",
+              "Upsert/lookup cache; ON CONFLICT composite"
+            ],
+            [
+              "`internal/repositories/email_pattern_repository.go`",
+              "CRUD + search for patterns"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/schemas/",
+      "level": 3,
+      "slug": "internalschemas",
+      "prose": "| File | Role |\n|------|------|\n| `internal/schemas/requests.go` | 15 request structs (finder, verifier, pattern, S3CSV, web-search) |\n| `internal/schemas/responses.go` | 14 response structs + EmailVerificationStatus enum |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/schemas/requests.go`",
+              "15 request structs (finder, verifier, pattern, S3CSV, web-search)"
+            ],
+            [
+              "`internal/schemas/responses.go`",
+              "14 response structs + EmailVerificationStatus enum"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/services/",
+      "level": 3,
+      "slug": "internalservices",
+      "prose": "| File | Role |\n|------|------|\n| `internal/services/email_finder_service.go` | Finder orchestration: cache → Connectra → pattern → generate → race-verify |\n| `internal/services/email_generation_service.go` | Thin wrapper: generate email candidates |\n| `internal/services/email_pattern_service.go` | Pattern add/bulk/predict logic |\n| `internal/services/email_verification_service.go` | VerifySingle + VerifyParallel (5 concurrent, ~1.1s stagger) |\n| `internal/services/s3csv_service.go` | Stream S3 CSV → enqueue rows; merge results → S3 |\n| `internal/services/web_search_service.go` | DuckDuckGo scrape + OpenAI extraction |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/services/email_finder_service.go`",
+              "Finder orchestration: cache → Connectra → pattern → generate → race-verify"
+            ],
+            [
+              "`internal/services/email_generation_service.go`",
+              "Thin wrapper: generate email candidates"
+            ],
+            [
+              "`internal/services/email_pattern_service.go`",
+              "Pattern add/bulk/predict logic"
+            ],
+            [
+              "`internal/services/email_verification_service.go`",
+              "VerifySingle + VerifyParallel (5 concurrent, ~1.1s stagger)"
+            ],
+            [
+              "`internal/services/s3csv_service.go`",
+              "Stream S3 CSV → enqueue rows; merge results → S3"
+            ],
+            [
+              "`internal/services/web_search_service.go`",
+              "DuckDuckGo scrape + OpenAI extraction"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/tasks/",
+      "level": 3,
+      "slug": "internaltasks",
+      "prose": "| File | Role |\n|------|------|\n| `internal/tasks/queues.go` | Queue name constants |\n| `internal/tasks/types.go` | Task payload structs (EmailVerify, S3CSVVerify, EmailFind, S3CSVFind) |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/tasks/queues.go`",
+              "Queue name constants"
+            ],
+            [
+              "`internal/tasks/types.go`",
+              "Task payload structs (EmailVerify, S3CSVVerify, EmailFind, S3CSVFind)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/utils/",
+      "level": 3,
+      "slug": "internalutils",
+      "prose": "| File | Role |\n|------|------|\n| `internal/utils/cache_metrics.go` | In-process CacheMetrics (response time, hits, misses) |\n| `internal/utils/domain.go` | Domain normalisation helpers |\n| `internal/utils/email_generator.go` | Email candidate generator (prefix patterns) |\n| `internal/utils/logger.go` | slog helper |\n| `internal/utils/unmask_email.go` | Unmask obfuscated email strings |",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/utils/cache_metrics.go`",
+              "In-process CacheMetrics (response time, hits, misses)"
+            ],
+            [
+              "`internal/utils/domain.go`",
+              "Domain normalisation helpers"
+            ],
+            [
+              "`internal/utils/email_generator.go`",
+              "Email candidate generator (prefix patterns)"
+            ],
+            [
+              "`internal/utils/logger.go`",
+              "slog helper"
+            ],
+            [
+              "`internal/utils/unmask_email.go`",
+              "Unmask obfuscated email strings"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "internal/worker/",
+      "level": 3,
+      "slug": "internalworker",
+      "prose": "| File | Role |\n|------|------|\n| `internal/worker/email_finder_worker.go` | Asynq task: email:find → finderSvc + store result in Redis hash |\n| `internal/worker/generic_worker.go` | Generic verify worker (mailvetter path) |\n| `internal/worker/mailtester_worker.go` | Asynq task: email:verify:mailtester → Mailtester + DB update |\n| `internal/worker/s3csv_finder_worker.go` | Asynq task: email:s3csv:find → per-row finder |\n| `internal/worker/s3csv_worker.go` | Asynq task: email:s3csv:verify:mailtester → per-row verify |\n| `internal/worker/server.go` | Queue constants + RegisterVerifyHandlers + RegisterFinderHandlers |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "File",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`internal/worker/email_finder_worker.go`",
+              "Asynq task: email:find → finderSvc + store result in Redis hash"
+            ],
+            [
+              "`internal/worker/generic_worker.go`",
+              "Generic verify worker (mailvetter path)"
+            ],
+            [
+              "`internal/worker/mailtester_worker.go`",
+              "Asynq task: email:verify:mailtester → Mailtester + DB update"
+            ],
+            [
+              "`internal/worker/s3csv_finder_worker.go`",
+              "Asynq task: email:s3csv:find → per-row finder"
+            ],
+            [
+              "`internal/worker/s3csv_worker.go`",
+              "Asynq task: email:s3csv:verify:mailtester → per-row verify"
+            ],
+            [
+              "`internal/worker/server.go`",
+              "Queue constants + RegisterVerifyHandlers + RegisterFinderHandlers"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "HTTP routes (complete)",
+      "level": 2,
+      "slug": "http-routes-complete",
+      "prose": "All auth-protected routes require **`X-API-Key`** header matching `API_KEY`.\n\n| Method | Path | Auth | Description |\n|--------|------|------|-------------|\n| GET | `/health` | Public | Diagnostics (all integrations configured?) |\n| GET | `/` | Public | Service info |\n| GET | `/metrics` | Public | Cache hit/miss, response time |\n| GET | `/jobs` | ✅ | List 50 most recent emailapi_jobs |\n| POST | `/email/finder/` | ✅ | Single email find (query params: first_name, last_name, domain) |\n| POST | `/email/finder/bulk` | ✅ | Bulk email find (JSON body); semaphore 15 goroutines |\n| POST | `/email/finder/bulk/job` | ✅ | Enqueue bulk find to Asynq; returns job_id |\n| POST | `/email/single/verifier/` | ✅ | Single email verify (JSON body; provider field) |\n| POST | `/email/bulk/verifier/` | ✅ | Parallel bulk verify (5 concurrent, 1.1s stagger) |\n| POST | `/email/bulk/verifier/job` | ✅ | Enqueue bulk verify to Asynq; returns job_id |\n| POST | `/email/verify/s3` | ✅ | Stream S3 CSV → verify per row (background goroutine) |\n| POST | `/email/finder/s3` | ✅ | Stream S3 CSV → find per row (background goroutine) |\n| POST | `/web/web-search` | ✅ | DuckDuckGo + OpenAI email discovery |\n| GET | `/jobs/:id/status` | ✅ | Job progress: PG + Redis hash polling |\n| POST | `/email-patterns/add` | ✅ | Add single email pattern (email or pattern_format) |\n| POST | `/email-patterns/add/bulk` | ✅ | Add batch email patterns |\n\n**Missing vs docs contract (gaps):**\n- `POST /email-patterns/predict` — in requests.go but no route registered → ⬜ TODO\n- `POST /email-patterns/predict/bulk` — in requests.go but no route registered → ⬜ TODO\n- `POST /email/single/verifier/find` (SingleEmailVerifierFindResponse) — response type exists, no route → ⬜ TODO\n- `/health/db`, `/health/ready`, `/health/live` — not present; only `/health` → 🟡 partial\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Method",
+            "Path",
+            "Auth",
+            "Description"
+          ],
+          "rows": [
+            [
+              "GET",
+              "`/health`",
+              "Public",
+              "Diagnostics (all integrations configured?)"
+            ],
+            [
+              "GET",
+              "`/`",
+              "Public",
+              "Service info"
+            ],
+            [
+              "GET",
+              "`/metrics`",
+              "Public",
+              "Cache hit/miss, response time"
+            ],
+            [
+              "GET",
+              "`/jobs`",
+              "✅",
+              "List 50 most recent emailapi_jobs"
+            ],
+            [
+              "POST",
+              "`/email/finder/`",
+              "✅",
+              "Single email find (query params: first_name, last_name, domain)"
+            ],
+            [
+              "POST",
+              "`/email/finder/bulk`",
+              "✅",
+              "Bulk email find (JSON body); semaphore 15 goroutines"
+            ],
+            [
+              "POST",
+              "`/email/finder/bulk/job`",
+              "✅",
+              "Enqueue bulk find to Asynq; returns job_id"
+            ],
+            [
+              "POST",
+              "`/email/single/verifier/`",
+              "✅",
+              "Single email verify (JSON body; provider field)"
+            ],
+            [
+              "POST",
+              "`/email/bulk/verifier/`",
+              "✅",
+              "Parallel bulk verify (5 concurrent, 1.1s stagger)"
+            ],
+            [
+              "POST",
+              "`/email/bulk/verifier/job`",
+              "✅",
+              "Enqueue bulk verify to Asynq; returns job_id"
+            ],
+            [
+              "POST",
+              "`/email/verify/s3`",
+              "✅",
+              "Stream S3 CSV → verify per row (background goroutine)"
+            ],
+            [
+              "POST",
+              "`/email/finder/s3`",
+              "✅",
+              "Stream S3 CSV → find per row (background goroutine)"
+            ],
+            [
+              "POST",
+              "`/web/web-search`",
+              "✅",
+              "DuckDuckGo + OpenAI email discovery"
+            ],
+            [
+              "GET",
+              "`/jobs/:id/status`",
+              "✅",
+              "Job progress: PG + Redis hash polling"
+            ],
+            [
+              "POST",
+              "`/email-patterns/add`",
+              "✅",
+              "Add single email pattern (email or pattern_format)"
+            ],
+            [
+              "POST",
+              "`/email-patterns/add/bulk`",
+              "✅",
+              "Add batch email patterns"
+            ]
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`POST /email-patterns/predict` — in requests.go but no route registered → ⬜ TODO",
+              "checked": null
+            },
+            {
+              "text": "`POST /email-patterns/predict/bulk` — in requests.go but no route registered → ⬜ TODO",
+              "checked": null
+            },
+            {
+              "text": "`POST /email/single/verifier/find` (SingleEmailVerifierFindResponse) — response type exists, no route → ⬜ TODO",
+              "checked": null
+            },
+            {
+              "text": "`/health/db`, `/health/ready`, `/health/live` — not present; only `/health` → 🟡 partial",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Asynq worker pool",
+      "level": 2,
+      "slug": "asynq-worker-pool",
+      "prose": "| Queue | Concurrency | Task type | Handler |\n|-------|-------------|-----------|---------|\n| `mailtester` | 5 | `email:verify:mailtester` | MailtesterWorker |\n| `mailtester` | 5 | `email:s3csv:verify:mailtester` | S3CSVWorker |\n| `mailvetter` | 1 | `email:verify:mailvetter` | GenericVerifyWorker |\n| `email_finder` | 4 | `email:find` | EmailFinderWorker |\n| `email_finder` | 4 | `email:s3csv:find` | S3CSVFinderWorker |\n| `default` | 1 | (unused) | — |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Queue",
+            "Concurrency",
+            "Task type",
+            "Handler"
+          ],
+          "rows": [
+            [
+              "`mailtester`",
+              "5",
+              "`email:verify:mailtester`",
+              "MailtesterWorker"
+            ],
+            [
+              "`mailtester`",
+              "5",
+              "`email:s3csv:verify:mailtester`",
+              "S3CSVWorker"
+            ],
+            [
+              "`mailvetter`",
+              "1",
+              "`email:verify:mailvetter`",
+              "GenericVerifyWorker"
+            ],
+            [
+              "`email_finder`",
+              "4",
+              "`email:find`",
+              "EmailFinderWorker"
+            ],
+            [
+              "`email_finder`",
+              "4",
+              "`email:s3csv:find`",
+              "S3CSVFinderWorker"
+            ],
+            [
+              "`default`",
+              "1",
+              "(unused)",
+              "—"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Database tables",
+      "level": 2,
+      "slug": "database-tables",
+      "prose": "| Table | Engine | Notes |\n|-------|--------|-------|\n| `email_finder_cache` | GORM model | Composite key `(first_name, last_name, domain)`; ON CONFLICT upsert |\n| `email_patterns` | GORM model | AutoMigrate in `development` ENV only |\n| `emailapi_jobs` | Raw SQL (GORM Exec/Raw) | NOT a GORM model; no AutoMigrate; must be created by migration |\n\n**Critical gap:** `emailapi_jobs` table has **no migration file** in this repo. Rows are inserted/updated with raw SQL but the table DDL is absent — must exist in `contact360.io/api` or a shared migrations folder.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Table",
+            "Engine",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "`email_finder_cache`",
+              "GORM model",
+              "Composite key `(first_name, last_name, domain)`; ON CONFLICT upsert"
+            ],
+            [
+              "`email_patterns`",
+              "GORM model",
+              "AutoMigrate in `development` ENV only"
+            ],
+            [
+              "`emailapi_jobs`",
+              "Raw SQL (GORM Exec/Raw)",
+              "NOT a GORM model; no AutoMigrate; must be created by migration"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Redis key schema",
+      "level": 2,
+      "slug": "redis-key-schema",
+      "prose": "| Key pattern | Type | TTL | Usage |\n|-------------|------|-----|-------|\n| `job:{id}:total` | string (int) | 1h (verify), 24h (S3) | Expected row count for completion check |\n| `job:{id}` | hash | indefinite | email → JSON result (bulk verifier / finder) |\n| `job:{id}:rows` | hash | indefinite | row_index → JSON result (S3 CSV verify / find) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Key pattern",
+            "Type",
+            "TTL",
+            "Usage"
+          ],
+          "rows": [
+            [
+              "`job:{id}:total`",
+              "string (int)",
+              "1h (verify), 24h (S3)",
+              "Expected row count for completion check"
+            ],
+            [
+              "`job:{id}`",
+              "hash",
+              "indefinite",
+              "email → JSON result (bulk verifier / finder)"
+            ],
+            [
+              "`job:{id}:rows`",
+              "hash",
+              "indefinite",
+              "row_index → JSON result (S3 CSV verify / find)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "External service dependencies",
+      "level": 2,
+      "slug": "external-service-dependencies",
+      "prose": "| Service | Env var | Endpoint | Notes |\n|---------|---------|----------|-------|\n| **Mailtester.ninja** | `MAILTESTER_BASE_URL`, `MAILTESTER_API_KEY` | `GET /ninja?email&key` | Primary verifier; fallback to Mailvetter on \"Limited\" |\n| **Mailvetter** | `MAILVETTER_API_KEY`, `MAILVETTER_BASE_URL` | `GET /verify?email` + Bearer | Fallback verifier; bulk concurrency=1 |\n| **Truelist** | `TRUELIST_API_KEY`, `TRUELIST_BASE_URL` | `POST /api/v1/verify_inline?email` | Secondary verifier |\n| **IcyPeas** | `ICYPEAS_API_KEY`, `ICYPEAS_BASE_URL` | `POST /email-search` | Email finder provider |\n| **Connectra (sync.server)** | `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY` | `POST /contacts` | Candidate lookup in finder |\n| **OpenAI** | `OPENAI_API_KEY`, `OPENAI_MODEL` | `POST /v1/chat/completions` | Email extraction from web search |\n| **DuckDuckGo** | `PROXY_ADDR` | `POST https://html.duckduckgo.com/html/` | Web search HTML scrape |\n| **AWS S3** | `S3_BUCKET_NAME`, AWS SDK v2 | S3 get/put | CSV stream input/output |\n| **Logs API** | Hardcoded URL in `batch_logger.go` | `POST .../logs/batch` | Batch log forwarding |\n| **Redis** | `REDIS_ADDR` | `localhost:6379` default | Asynq queues + job result store |\n| **PostgreSQL** | `DATABASE_URL` | GORM Postgres driver | email_patterns, email_finder_cache, emailapi_jobs |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Service",
+            "Env var",
+            "Endpoint",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "**Mailtester.ninja**",
+              "`MAILTESTER_BASE_URL`, `MAILTESTER_API_KEY`",
+              "`GET /ninja?email&key`",
+              "Primary verifier; fallback to Mailvetter on \"Limited\""
+            ],
+            [
+              "**Mailvetter**",
+              "`MAILVETTER_API_KEY`, `MAILVETTER_BASE_URL`",
+              "`GET /verify?email` + Bearer",
+              "Fallback verifier; bulk concurrency=1"
+            ],
+            [
+              "**Truelist**",
+              "`TRUELIST_API_KEY`, `TRUELIST_BASE_URL`",
+              "`POST /api/v1/verify_inline?email`",
+              "Secondary verifier"
+            ],
+            [
+              "**IcyPeas**",
+              "`ICYPEAS_API_KEY`, `ICYPEAS_BASE_URL`",
+              "`POST /email-search`",
+              "Email finder provider"
+            ],
+            [
+              "**Connectra (sync.server)**",
+              "`CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY`",
+              "`POST /contacts`",
+              "Candidate lookup in finder"
+            ],
+            [
+              "**OpenAI**",
+              "`OPENAI_API_KEY`, `OPENAI_MODEL`",
+              "`POST /v1/chat/completions`",
+              "Email extraction from web search"
+            ],
+            [
+              "**DuckDuckGo**",
+              "`PROXY_ADDR`",
+              "`POST https://html.duckduckgo.com/html/`",
+              "Web search HTML scrape"
+            ],
+            [
+              "**AWS S3**",
+              "`S3_BUCKET_NAME`, AWS SDK v2",
+              "S3 get/put",
+              "CSV stream input/output"
+            ],
+            [
+              "**Logs API**",
+              "Hardcoded URL in `batch_logger.go`",
+              "`POST .../logs/batch`",
+              "Batch log forwarding"
+            ],
+            [
+              "**Redis**",
+              "`REDIS_ADDR`",
+              "`localhost:6379` default",
+              "Asynq queues + job result store"
+            ],
+            [
+              "**PostgreSQL**",
+              "`DATABASE_URL`",
+              "GORM Postgres driver",
+              "email_patterns, email_finder_cache, emailapi_jobs"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Known bugs and issues",
+      "level": 2,
+      "slug": "known-bugs-and-issues",
+      "prose": "1. **Port mismatch:** `config.go` defaults to `PORT=3000`, but `docker-compose.email.yml` maps `8080:8080`. The container listens on `:3000` while Docker exposes `:8080` → HTTP 000 on probes. → **Fix: align `PORT=8080` in `.env`/compose**.\n2. **`emailapi_jobs` DDL missing:** No CREATE TABLE in repo; service panics or silently corrupts if table absent.\n3. **`MAILVETTER_BASE_URL` default typo:** `mailvaiter.com` (not `mailvetter`); must be overridden in production.\n4. **`/email/bulk/verifier/job` queue selection bug:** only `mailtester` or `mailvetter`; `mailvetter` task type registered in `server.go` but `TypeEmailVerify+\":mailvetter\"` uses `GenericVerifyWorker` — confirm behavior parity with mailtester worker.\n5. **No test files:** zero `*_test.go` files — no unit, integration, or regression coverage.\n6. **`GET /jobs/:id/status` registered inside `webGroup` block but on `authGroup`** — code style inconsistency (works at runtime but confusing).\n7. **Batch logger URL hardcoded:** `https://c2cox8ij6c.execute-api.us-east-1.amazonaws.com/logs/batch` — should come from `LAMBDA_LOGS_API_URL` env var like other services use.\n8. **`WorkerConcurrency` config field missing:** `router.go` uses `cfg.WorkerConcurrency` but it is NOT in `config.go` → compile error if referenced elsewhere. (Currently only used in extension.server; confirm email.server compile is clean.)\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Port mismatch:** `config.go` defaults to `PORT=3000`, but `docker-compose.email.yml` maps `8080:8080`. The container listens on `:3000` while Docker exposes `:8080` → HTTP 000 on probes. → **Fix: align `PORT=8080` in `.env`/compose**.",
+              "checked": null
+            },
+            {
+              "text": "**`emailapi_jobs` DDL missing:** No CREATE TABLE in repo; service panics or silently corrupts if table absent.",
+              "checked": null
+            },
+            {
+              "text": "**`MAILVETTER_BASE_URL` default typo:** `mailvaiter.com` (not `mailvetter`); must be overridden in production.",
+              "checked": null
+            },
+            {
+              "text": "**`/email/bulk/verifier/job` queue selection bug:** only `mailtester` or `mailvetter`; `mailvetter` task type registered in `server.go` but `TypeEmailVerify+\":mailvetter\"` uses `GenericVerifyWorker` — confirm behavior parity with mailtester worker.",
+              "checked": null
+            },
+            {
+              "text": "**No test files:** zero `*_test.go` files — no unit, integration, or regression coverage.",
+              "checked": null
+            },
+            {
+              "text": "**`GET /jobs/:id/status` registered inside `webGroup` block but on `authGroup`** — code style inconsistency (works at runtime but confusing).",
+              "checked": null
+            },
+            {
+              "text": "**Batch logger URL hardcoded:** `https://c2cox8ij6c.execute-api.us-east-1.amazonaws.com/logs/batch` — should come from `LAMBDA_LOGS_API_URL` env var like other services use.",
+              "checked": null
+            },
+            {
+              "text": "**`WorkerConcurrency` config field missing:** `router.go` uses `cfg.WorkerConcurrency` but it is NOT in `config.go` → compile error if referenced elsewhere. (Currently only used in extension.server; confirm email.server compile is clean.)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Integration with contact360.io/api",
+      "level": 2,
+      "slug": "integration-with-contact360ioapi",
+      "prose": "The Python gateway calls email.server through `app/clients/lambda_email_client.py` using env var `LAMBDA_EMAIL_API_URL`. Relevant gateway GraphQL operations that delegate to email.server:\n\n| Gateway mutation/query | Delegated path |\n|------------------------|----------------|\n| `FindEmail` | `POST /email/finder/` |\n| `BulkFindEmails` | `POST /email/finder/bulk` |\n| `VerifyEmail` | `POST /email/single/verifier/` |\n| `BulkVerifyEmails` | `POST /email/bulk/verifier/` |\n| `AddEmailPattern` | `POST /email-patterns/add` |\n| `AddEmailPatternBulk` | `POST /email-patterns/add/bulk` |\n| Job status polling | `GET /jobs/:id/status` |\n| S3 CSV verify | `POST /email/verify/s3` |\n| S3 CSV find | `POST /email/finder/s3` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Gateway mutation/query",
+            "Delegated path"
+          ],
+          "rows": [
+            [
+              "`FindEmail`",
+              "`POST /email/finder/`"
+            ],
+            [
+              "`BulkFindEmails`",
+              "`POST /email/finder/bulk`"
+            ],
+            [
+              "`VerifyEmail`",
+              "`POST /email/single/verifier/`"
+            ],
+            [
+              "`BulkVerifyEmails`",
+              "`POST /email/bulk/verifier/`"
+            ],
+            [
+              "`AddEmailPattern`",
+              "`POST /email-patterns/add`"
+            ],
+            [
+              "`AddEmailPatternBulk`",
+              "`POST /email-patterns/add/bulk`"
+            ],
+            [
+              "Job status polling",
+              "`GET /jobs/:id/status`"
+            ],
+            [
+              "S3 CSV verify",
+              "`POST /email/verify/s3`"
+            ],
+            [
+              "S3 CSV find",
+              "`POST /email/finder/s3`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Completion status from runtime",
+      "level": 2,
+      "slug": "completion-status-from-runtime",
+      "prose": "- [x] ✅ Go API server boots, CORS, gzip, API key middleware working.\n- [x] ✅ Email finder (single + bulk + job) routes implemented.\n- [x] ✅ Email verifier (single + bulk + job) routes implemented.\n- [x] ✅ Email pattern add (single + bulk) routes implemented.\n- [x] ✅ S3 CSV finder and verifier routes implemented (background streaming).\n- [x] ✅ Asynq worker pool for all 4 queues is working.\n- [x] ✅ Redis job result store with hash per job_id.\n- [x] ✅ Finder flow: cache → Connectra → pattern → generate → race-verify.\n- [x] ✅ Web search route (DuckDuckGo + OpenAI) implemented.\n- [x] ✅ Batch logging forwarding to logs API.\n- [ ] 🟡 In Progress: port mismatch (3000 vs 8080) causing Docker probe failures.\n- [ ] ⬜ Incomplete: `emailapi_jobs` table DDL not in repo.\n- [ ] ⬜ Incomplete: `/email-patterns/predict` and `/email-patterns/predict/bulk` routes not wired.\n- [ ] ⬜ Incomplete: liveness/readiness health probes (`/health/live`, `/health/ready`, `/health/db`) absent.\n- [ ] ⬜ Incomplete: zero test coverage.\n- [ ] ⬜ Incomplete: batch logger URL hardcoded.\n- [ ] ⬜ Incomplete: status vocabulary (`valid|invalid|catchall|unknown|risky`) not frozen.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Go API server boots, CORS, gzip, API key middleware working.",
+              "checked": true
+            },
+            {
+              "text": "✅ Email finder (single + bulk + job) routes implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Email verifier (single + bulk + job) routes implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Email pattern add (single + bulk) routes implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ S3 CSV finder and verifier routes implemented (background streaming).",
+              "checked": true
+            },
+            {
+              "text": "✅ Asynq worker pool for all 4 queues is working.",
+              "checked": true
+            },
+            {
+              "text": "✅ Redis job result store with hash per job_id.",
+              "checked": true
+            },
+            {
+              "text": "✅ Finder flow: cache → Connectra → pattern → generate → race-verify.",
+              "checked": true
+            },
+            {
+              "text": "✅ Web search route (DuckDuckGo + OpenAI) implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Batch logging forwarding to logs API.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: port mismatch (3000 vs 8080) causing Docker probe failures.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `emailapi_jobs` table DDL not in repo.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: `/email-patterns/predict` and `/email-patterns/predict/bulk` routes not wired.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: liveness/readiness health probes (`/health/live`, `/health/ready`, `/health/db`) absent.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: zero test coverage.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: batch logger URL hardcoded.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: status vocabulary (`valid|invalid|catchall|unknown|risky`) not frozen.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks",
+      "level": 2,
+      "slug": "active-risks",
+      "prose": "| Risk | Severity | Status |\n|------|----------|--------|\n| Port 3000 vs 8080 mismatch → Docker broken | P0 | ⬜ |\n| `emailapi_jobs` DDL missing → runtime SQL failure | P0 | ⬜ |\n| Mailvetter base URL typo `mailvaiter.com` | P0 | ⬜ |\n| No tests — regressions invisible | P1 | ⬜ |\n| Batch logger URL hardcoded vs env | P1 | ⬜ |\n| Provider contract (`mailvetter` vs `truelist`) not frozen | P1 | 🟡 |\n| Status vocab not canonical across gateway/emailapigo | P1 | ⬜ |\n| Predict endpoints (schema exists, route missing) | P2 | ⬜ |\n| CORS wildcard possible if `CORS_ALLOWED_ORIGINS` unset | P2 | 🟡 |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Risk",
+            "Severity",
+            "Status"
+          ],
+          "rows": [
+            [
+              "Port 3000 vs 8080 mismatch → Docker broken",
+              "P0",
+              "⬜"
+            ],
+            [
+              "`emailapi_jobs` DDL missing → runtime SQL failure",
+              "P0",
+              "⬜"
+            ],
+            [
+              "Mailvetter base URL typo `mailvaiter.com`",
+              "P0",
+              "⬜"
+            ],
+            [
+              "No tests — regressions invisible",
+              "P1",
+              "⬜"
+            ],
+            [
+              "Batch logger URL hardcoded vs env",
+              "P1",
+              "⬜"
+            ],
+            [
+              "Provider contract (`mailvetter` vs `truelist`) not frozen",
+              "P1",
+              "🟡"
+            ],
+            [
+              "Status vocab not canonical across gateway/emailapigo",
+              "P1",
+              "⬜"
+            ],
+            [
+              "Predict endpoints (schema exists, route missing)",
+              "P2",
+              "⬜"
+            ],
+            [
+              "CORS wildcard possible if `CORS_ALLOWED_ORIGINS` unset",
+              "P2",
+              "🟡"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x–10.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0x10x",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x — Foundation",
+      "level": 3,
+      "slug": "0xx-foundation",
+      "prose": "- [x] ✅ Go Gin scaffold, config, CORS, API key, health, logging bootstrap.\n- [x] ✅ GORM DB init, email_patterns + email_finder_cache AutoMigrate.\n- [ ] ⬜ Fix port mismatch (`PORT=3000` default → should be `8080`).\n- [ ] ⬜ Add `emailapi_jobs` migration SQL file to repo.\n- [ ] ⬜ Move batch logger URL to env var.\n- [ ] ⬜ Add `/health/live`, `/health/ready`, `/health/db` endpoints.\n- [ ] ⬜ Add `WorkerConcurrency` to config struct.\n- [ ] ⬜ Fix Mailvetter base URL default typo.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Go Gin scaffold, config, CORS, API key, health, logging bootstrap.",
+              "checked": true
+            },
+            {
+              "text": "✅ GORM DB init, email_patterns + email_finder_cache AutoMigrate.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Fix port mismatch (`PORT=3000` default → should be `8080`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add `emailapi_jobs` migration SQL file to repo.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Move batch logger URL to env var.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add `/health/live`, `/health/ready`, `/health/db` endpoints.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add `WorkerConcurrency` to config struct.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Fix Mailvetter base URL default typo.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x — User / billing / credit",
+      "level": 3,
+      "slug": "1xx-user-billing-credit",
+      "prose": "- [ ] 🟡 Credit-impact fields (`user_id`, `tenant_id`) on all email operation responses.\n- [ ] ⬜ Propagate `X-User-ID` header from gateway to email.server; log per-user operations.\n- [ ] ⬜ Enforce per-user credit deduction lineage on finder/verifier paths.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 Credit-impact fields (`user_id`, `tenant_id`) on all email operation responses.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Propagate `X-User-ID` header from gateway to email.server; log per-user operations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Enforce per-user credit deduction lineage on finder/verifier paths.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x — Email system",
+      "level": 3,
+      "slug": "2xx-email-system",
+      "prose": "- [x] ✅ Core finder/verifier/pattern endpoints live.\n- [x] ✅ Bulk endpoints with semaphore concurrency.\n- [x] ✅ Job-based async bulk (Asynq + Redis hash).\n- [x] ✅ S3 CSV stream verify + find.\n- [ ] ⬜ Wire `/email-patterns/predict` and `/email-patterns/predict/bulk` routes.\n- [ ] ⬜ Freeze status vocabulary (`valid|invalid|catchall|unknown|risky`) in `responses.go`.\n- [ ] ⬜ Align provider contract: `truelist` vs `mailvetter` → define priority order.\n- [ ] ⬜ Add idempotency keys to bulk verify/find (prevent double-enqueue).\n- [ ] ⬜ Add replay-safe bulk handler (dedup by job_id + index).\n- [ ] ⬜ Ensure `email:s3csv:verify:mailvetter` task type registered (only mailtester currently).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core finder/verifier/pattern endpoints live.",
+              "checked": true
+            },
+            {
+              "text": "✅ Bulk endpoints with semaphore concurrency.",
+              "checked": true
+            },
+            {
+              "text": "✅ Job-based async bulk (Asynq + Redis hash).",
+              "checked": true
+            },
+            {
+              "text": "✅ S3 CSV stream verify + find.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Wire `/email-patterns/predict` and `/email-patterns/predict/bulk` routes.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Freeze status vocabulary (`valid|invalid|catchall|unknown|risky`) in `responses.go`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Align provider contract: `truelist` vs `mailvetter` → define priority order.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add idempotency keys to bulk verify/find (prevent double-enqueue).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add replay-safe bulk handler (dedup by job_id + index).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Ensure `email:s3csv:verify:mailvetter` task type registered (only mailtester currently).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x — Contact / company data",
+      "level": 3,
+      "slug": "3xx-contact-company-data",
+      "prose": "- [ ] 🟡 Connectra integration in finder tested end-to-end.\n- [ ] ⬜ Candidate merge strategy documented for when Connectra returns multiple contacts.\n- [ ] ⬜ Add lineage fields (`source`, `request_id`) to `email_finder_cache` rows.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 Connectra integration in finder tested end-to-end.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Candidate merge strategy documented for when Connectra returns multiple contacts.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add lineage fields (`source`, `request_id`) to `email_finder_cache` rows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x — Extension / Sales Navigator",
+      "level": 3,
+      "slug": "4xx-extension-sales-navigator",
+      "prose": "- [ ] 📌 Extension-origin email requests should carry `source: extension` metadata.\n- [ ] ⬜ Define extension-safe retry contract for `/email/finder/` calls from background.js.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Extension-origin email requests should carry `source: extension` metadata.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Define extension-safe retry contract for `/email/finder/` calls from background.js.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x — AI workflows",
+      "level": 3,
+      "slug": "5xx-ai-workflows",
+      "prose": "- [ ] 🟡 OpenAI client wired for web-search email extraction.\n- [ ] ⬜ Add structured confidence/scoring to AI-assisted email discovery results.\n- [ ] ⬜ Add safe logging redaction for AI context fields (PII minimisation).\n- [ ] 📌 Define AI fallback policy when OpenAI is unavailable.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 OpenAI client wired for web-search email extraction.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add structured confidence/scoring to AI-assisted email discovery results.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add safe logging redaction for AI context fields (PII minimisation).",
+              "checked": false
+            },
+            {
+              "text": "📌 Define AI fallback policy when OpenAI is unavailable.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x — Reliability / scaling",
+      "level": 3,
+      "slug": "6xx-reliability-scaling",
+      "prose": "- [ ] ⬜ Add circuit breaker for each external provider (Mailtester, Mailvetter, Truelist, IcyPeas).\n- [ ] ⬜ Unified provider degradation strategy (fallback chain, backoff, dead-letter).\n- [ ] ⬜ Add SLO metrics: bulk success rate, per-provider latency p50/p95.\n- [ ] ⬜ Add `/metrics` Prometheus exporter (replace in-process CacheMetrics only approach).\n- [ ] ⬜ Redis connection pool sizing and backpressure controls.\n- [ ] ⬜ Add `MaxRetry` per-provider config (currently hardcoded `3`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Add circuit breaker for each external provider (Mailtester, Mailvetter, Truelist, IcyPeas).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Unified provider degradation strategy (fallback chain, backoff, dead-letter).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add SLO metrics: bulk success rate, per-provider latency p50/p95.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add `/metrics` Prometheus exporter (replace in-process CacheMetrics only approach).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Redis connection pool sizing and backpressure controls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add `MaxRetry` per-provider config (currently hardcoded `3`).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x — Deployment",
+      "level": 3,
+      "slug": "7xx-deployment",
+      "prose": "- [ ] ⬜ Fix Docker port mismatch — `PORT=8080` in `.env.example` + compose.\n- [ ] ⬜ `go build ./...` CI gate in Makefile / GitHub Actions.\n- [ ] ⬜ Add `CORS_ALLOWED_ORIGINS` required-in-production validation.\n- [ ] ⬜ Add readiness probe path (`/health/ready`) checking Redis + DB + S3 connectivity.\n- [ ] ⬜ Add `emailapi_jobs` DDL to `db/` migrations folder.\n- [ ] ⬜ Remove stale `template.yaml` / SAM references or clearly document Lambda-fallback intent.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Fix Docker port mismatch — `PORT=8080` in `.env.example` + compose.",
+              "checked": false
+            },
+            {
+              "text": "⬜ `go build ./...` CI gate in Makefile / GitHub Actions.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add `CORS_ALLOWED_ORIGINS` required-in-production validation.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add readiness probe path (`/health/ready`) checking Redis + DB + S3 connectivity.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Add `emailapi_jobs` DDL to `db/` migrations folder.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Remove stale `template.yaml` / SAM references or clearly document Lambda-fallback intent.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x — Public/private APIs",
+      "level": 3,
+      "slug": "8xx-publicprivate-apis",
+      "prose": "- [ ] ⬜ Version prefix `/v1/` on all routes (currently flat paths).\n- [ ] ⬜ Freeze external contract; publish breaking-change policy.\n- [ ] ⬜ Partner-safe error envelope (no stack traces; standard `{ \"error\": { \"code\", \"message\" } }`).\n- [ ] 📌 Publish Postman collection `EC2_email.server.postman_collection.json` aligned with Go routes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Version prefix `/v1/` on all routes (currently flat paths).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Freeze external contract; publish breaking-change policy.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Partner-safe error envelope (no stack traces; standard `{ \"error\": { \"code\", \"message\" } }`).",
+              "checked": false
+            },
+            {
+              "text": "📌 Publish Postman collection `EC2_email.server.postman_collection.json` aligned with Go routes.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x — Ecosystem integrations",
+      "level": 3,
+      "slug": "9xx-ecosystem-integrations",
+      "prose": "- [ ] 📌 Tenant-aware throttling (`X-Tenant-ID` on queues).\n- [ ] ⬜ Cross-service trace correlation (`X-Request-ID`, `X-Trace-ID` propagation).\n- [ ] 📌 Partner usage quotas for bulk finder/verifier.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Tenant-aware throttling (`X-Tenant-ID` on queues).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Cross-service trace correlation (`X-Request-ID`, `X-Trace-ID` propagation).",
+              "checked": false
+            },
+            {
+              "text": "📌 Partner usage quotas for bulk finder/verifier.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x — Email campaign",
+      "level": 3,
+      "slug": "10xx-email-campaign",
+      "prose": "- [ ] 📌 Campaign-triggered bulk verify path with immutable result storage.\n- [ ] ⬜ Campaign compliance lineage: retain verification evidence per campaign_id.\n- [ ] 📌 Campaign release gate: block send if bulk verify success rate < threshold.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Campaign-triggered bulk verify path with immutable result storage.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Campaign compliance lineage: retain verification evidence per campaign_id.",
+              "checked": false
+            },
+            {
+              "text": "📌 Campaign release gate: block send if bulk verify success rate < threshold.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (P0 → P2)",
+      "level": 2,
+      "slug": "immediate-execution-queue-p0-p2",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 — must fix before production readiness",
+      "level": 3,
+      "slug": "p0-must-fix-before-production-readiness",
+      "prose": "- [ ] **FIX-1**: Set `PORT` default to `8080` in `config.go`; align `docker-compose.email.yml` and `.env.example`.\n- [ ] **FIX-2**: Create `db/migrations/001_emailapi_jobs.sql` with `emailapi_jobs` DDL matching `router.go` raw SQL columns.\n- [ ] **FIX-3**: Fix `MAILVETTER_BASE_URL` default from `mailvaiter.com` to correct host.\n- [ ] **FIX-4**: Move `batch_logger.go` hardcoded logs API URL to `LAMBDA_LOGS_API_URL` env var.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**FIX-1**: Set `PORT` default to `8080` in `config.go`; align `docker-compose.email.yml` and `.env.example`.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-2**: Create `db/migrations/001_emailapi_jobs.sql` with `emailapi_jobs` DDL matching `router.go` raw SQL columns.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-3**: Fix `MAILVETTER_BASE_URL` default from `mailvaiter.com` to correct host.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-4**: Move `batch_logger.go` hardcoded logs API URL to `LAMBDA_LOGS_API_URL` env var.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1 — before Era 2.x sign-off",
+      "level": 3,
+      "slug": "p1-before-era-2x-sign-off",
+      "prose": "- [ ] **FIX-5**: Wire `/email-patterns/predict` route using existing `EmailPatternPredictRequest` and `EmailPatternPredictResponse`.\n- [ ] **FIX-6**: Wire `/email-patterns/predict/bulk` route using existing `BulkEmailPatternPredictRequest`.\n- [ ] **FIX-7**: Add `WorkerConcurrency int` to `config.Config` (avoids potential compile error in shared usage).\n- [ ] **FIX-8**: Register `email:s3csv:verify:mailvetter` task type + handler for Mailvetter S3 CSV path parity.\n- [ ] **FIX-9**: Freeze `EmailVerificationStatus` values as const block; add `risky` and `unknown` handling policy.\n- [ ] **FIX-10**: Add `/health/db` (GORM ping) and `/health/ready` (Redis ping + DB ping) endpoints.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**FIX-5**: Wire `/email-patterns/predict` route using existing `EmailPatternPredictRequest` and `EmailPatternPredictResponse`.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-6**: Wire `/email-patterns/predict/bulk` route using existing `BulkEmailPatternPredictRequest`.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-7**: Add `WorkerConcurrency int` to `config.Config` (avoids potential compile error in shared usage).",
+              "checked": false
+            },
+            {
+              "text": "**FIX-8**: Register `email:s3csv:verify:mailvetter` task type + handler for Mailvetter S3 CSV path parity.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-9**: Freeze `EmailVerificationStatus` values as const block; add `risky` and `unknown` handling policy.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-10**: Add `/health/db` (GORM ping) and `/health/ready` (Redis ping + DB ping) endpoints.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P2 — before Era 6.x sign-off",
+      "level": 3,
+      "slug": "p2-before-era-6x-sign-off",
+      "prose": "- [ ] **FIX-11**: Add at least one `*_test.go` per service package (finder, verifier, pattern).\n- [ ] **FIX-12**: Provider priority config: `PROVIDER_PRIMARY` / `PROVIDER_FALLBACK` env vars instead of hardcoded logic.\n- [ ] **FIX-13**: Add `X-Request-ID` middleware; propagate to all provider HTTP calls and Redis writes.\n- [ ] **FIX-14**: Add Prometheus `/metrics` with `email_find_duration_ms_bucket`, `email_verify_duration_ms_bucket`.\n- [ ] **FIX-15**: Validate `CORS_ALLOWED_ORIGINS` non-empty when `APP_ENV=production`.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**FIX-11**: Add at least one `*_test.go` per service package (finder, verifier, pattern).",
+              "checked": false
+            },
+            {
+              "text": "**FIX-12**: Provider priority config: `PROVIDER_PRIMARY` / `PROVIDER_FALLBACK` env vars instead of hardcoded logic.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-13**: Add `X-Request-ID` middleware; propagate to all provider HTTP calls and Redis writes.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-14**: Add Prometheus `/metrics` with `email_find_duration_ms_bucket`, `email_verify_duration_ms_bucket`.",
+              "checked": false
+            },
+            {
+              "text": "**FIX-15**: Validate `CORS_ALLOWED_ORIGINS` non-empty when `APP_ENV=production`.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register",
+      "level": 2,
+      "slug": "2026-gap-register",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0",
+      "level": 3,
+      "slug": "p0",
+      "prose": "- [ ] `EMAILGO-0.1` Port + Docker compose fix (3000→8080).\n- [ ] `EMAILGO-0.2` `emailapi_jobs` DDL migration.\n- [ ] `EMAILGO-0.3` Mailvetter URL typo fix.\n- [ ] `EMAILGO-0.4` Batch logger URL env var.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`EMAILGO-0.1` Port + Docker compose fix (3000→8080).",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-0.2` `emailapi_jobs` DDL migration.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-0.3` Mailvetter URL typo fix.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-0.4` Batch logger URL env var.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2",
+      "level": 3,
+      "slug": "p1p2",
+      "prose": "- [ ] `EMAILGO-2.1` Predict endpoint routes.\n- [ ] `EMAILGO-2.2` Bulk idempotency keys.\n- [ ] `EMAILGO-2.3` Status vocabulary freeze.\n- [ ] `EMAILGO-2.4` Provider fallback chain config.\n- [ ] `EMAILGO-6.1` Circuit breaker per provider.\n- [ ] `EMAILGO-6.2` SLO metrics (Prometheus).\n- [ ] `EMAILGO-7.1` Readiness/liveness probes.\n- [ ] `EMAILGO-7.2` CI build gate.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`EMAILGO-2.1` Predict endpoint routes.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-2.2` Bulk idempotency keys.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-2.3` Status vocabulary freeze.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-2.4` Provider fallback chain config.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-6.1` Circuit breaker per provider.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-6.2` SLO metrics (Prometheus).",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-7.1` Readiness/liveness probes.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-7.2` CI build gate.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+",
+      "level": 3,
+      "slug": "p3",
+      "prose": "- [ ] `EMAILGO-8.1` API versioning `/v1/`.\n- [ ] `EMAILGO-9.1` Trace correlation headers.\n- [ ] `EMAILGO-10.1` Campaign verification evidence lineage.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`EMAILGO-8.1` API versioning `/v1/`.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-9.1` Trace correlation headers.",
+              "checked": false
+            },
+            {
+              "text": "`EMAILGO-10.1` Campaign verification evidence lineage.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

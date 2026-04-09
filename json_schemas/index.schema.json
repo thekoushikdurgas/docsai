@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/index",
+  "title": "Folder Index",
+  "description": "Generated from README.md under any docs/ folder (see folder_kind_map.json rule readme_index). Includes full raw_markdown plus navigation_tables, links, and enriched sections for tooling.",
+  "allOf": [{ "$ref": "common_envelope.schema.json" }],
+  "properties": {
+    "kind": { "const": "index" },
+    "folder": {
+      "type": "string",
+      "description": "Folder path relative to docs/ (e.g. '.', 'backend/endpoints')"
+    },
+    "era_index": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Era number 0-10 when folder name starts with 'N. '; null for non-era folders"
+    },
+    "summary": {
+      "type": ["string", "null"],
+      "description": "Optional short summary extracted from README"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "in_progress", "planned", "incomplete"],
+      "description": "Folder-level status from README"
+    },
+    "children": {
+      "type": "array",
+      "description": "Sibling JSON files in the same folder (refreshed by generate_indexes.py)",
+      "items": {
+        "type": "object",
+        "required": ["title", "path", "kind"],
+        "properties": {
+          "title": { "type": "string" },
+          "path": { "type": "string" },
+          "kind": { "type": "string" },
+          "version": { "type": ["string", "null"] },
+          "status": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "navigation_tables": {
+      "type": "array",
+      "description": "GFM tables extracted from README body",
+      "items": { "$ref": "shared_defs.schema.json#/$defs/markdown_table" }
+    },
+    "links": {
+      "type": "array",
+      "description": "Markdown links extracted from README body",
+      "items": { "$ref": "shared_defs.schema.json#/$defs/link" }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Heading-split sections with tables, lists, code, links (same shape as hub/document)",
+      "items": { "$ref": "shared_defs.schema.json#/$defs/enriched_section" }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set when generate_indexes.py refreshes children[]"
+    }
+  }
+}

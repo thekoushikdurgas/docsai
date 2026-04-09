@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "1. Contact360 user and billing and credit system/1.1 — Billing Maturity.md",
+  "sha256_source": "b37422daa7a1b117cbc15fe31e84ca2454173b3bafc2d831b39d62df457d9bd6",
+  "generated_at": "2026-04-08T23:11:49.720481+00:00",
+  "title": "Version 1.1 — Billing Maturity",
+  "version": "1.1",
+  "codename": "Billing Maturity",
+  "era": 1,
+  "minor": 1,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"1.1.x Billing Maturity\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    csv[\"CSV upload via app or gateway\"]\n    csv --> s3[\"s3storage object / upload module\"]\n    s3 --> job[\"jobs create DAG\"]\n    job --> bulk[\"bulk finder or verify processor\"]\n    bulk --> batch[\"batch credit deduction\"]\n    batch --> bill[\"billing or purchaseAddon path\"]\n    bill --> gate[\"1.1 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.\nTheme: **Pipeline** — codenames in per-patch `1.1.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Credit-aware **job create** payload; pre-check credits before enqueue.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **Billing** mutations: `subscribe`, `purchaseAddon`, `submitPaymentProof` — idempotency keys per middleware.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Bulk **row-level** failure vs credit charge policy documented.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `1.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Jobs: attach **user_uuid** / billing metadata on `job_node.data`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Gateway: reconcile **job completion** with usage ledger.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: emailapis: bulk **status vocabulary** aligned with billing reconciliation.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `1.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Bulk upload UI, job progress, credit warning before start.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Billing / UPI or proof modal wiring per roadmap 1.3 code pointers.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `1.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Bulk flows, billing page hooks, modals (`UpiPaymentModal` pattern per governance).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `job_events` include correlation IDs for billing.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Payment submission rows if applicable.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `1.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Jobs DB: `job_node`, `job_events` with billing trace.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Gateway DB: credits, subscriptions/plans, payment submissions.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: Event + ledger samples",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Alert on job failure spike affecting paid users.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Runbook: retry vs refund credit policy.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `1.1.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 1.1 — Billing Maturity",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (1.1.0 – 1.1.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "1.1.0 — Channel (Billing + bulk charter)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][jobs][s3storage][emailapis][mailvetter]`"
+    },
+    {
+      "heading": "1.1.1 — Intake (CSV ingest)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[s3storage][appointment360][app]`"
+    },
+    {
+      "heading": "1.1.2 — Valve (Credit pre-check)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.1.3 — Pump (Job enqueue)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[jobs][appointment360]`"
+    },
+    {
+      "heading": "1.1.4 — Flow (Processor steady-state)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[jobs][emailapis][appointment360]`"
+    },
+    {
+      "heading": "1.1.5 — Pressure (Batch deduction)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][jobs][logsapi]`"
+    },
+    {
+      "heading": "1.1.6 — Surge (Failure handling)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[jobs][appointment360][emailapis]`"
+    },
+    {
+      "heading": "1.1.7 — Vent (Partial completion policy)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[jobs][appointment360][app]`"
+    },
+    {
+      "heading": "1.1.8 — Drain (Reconciliation)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][jobs][logsapi]`"
+    },
+    {
+      "heading": "1.1.9 — Release (Handoff 1.2 / 1.3 minors)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app][jobs][s3storage][emailapis]`"
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

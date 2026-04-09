@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "1. Contact360 user and billing and credit system/1.9 — Identity and Session Hardening.md",
+  "sha256_source": "1c0c60da1e28f9516e7635aed1d3a4c5346ab75fcc55518d79e3c4ddce5d21f1",
+  "generated_at": "2026-04-08T23:11:49.822311+00:00",
+  "title": "Version 1.9 — Identity and Session Hardening",
+  "version": "1.9",
+  "codename": "Identity and Session Hardening",
+  "era": 1,
+  "minor": 9,
+  "patch": null,
+  "status": "completed",
+  "summary": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.",
+  "scope": "",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"1.9.x Identity and Session Hardening\"]\n    contract[\"Contract\"]\n    service[\"Service\"]\n    surface[\"Surface\"]\n    data[\"Data\"]\n    ops[\"Ops\"]\n    gate[\"Release gate\"]\n    stage --> contract --> gate\n    stage --> service --> gate\n    stage --> surface --> gate\n    stage --> data --> gate\n    stage --> ops --> gate",
+    "flowchart LR\n    user[\"authenticated user\"]\n    user --> setup[\"twoFactor setup mutation\"]\n    setup --> totp[\"TOTP verify\"]\n    totp --> gate2[\"2FA gated mutation e.g. billing\"]\n    gate2 --> sess[\"refresh plus blacklist policy\"]\n    sess --> audit[\"session audit events\"]\n    audit --> rel[\"1.9 release gate\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.2` P0-heavy **Service task slices** · `.3`–`.6` P1 / surface-data · `.7`–`.9` ops + minor freeze.\nTheme: **Key**.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `twoFactor` module in schema — align with `docs/backend/apis` stubs.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `1.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Secure secret storage for TOTP seed; constant-time verify.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Recovery codes policy (optional).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `1.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Enrollment UX; QR display; backup codes download.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **next.js** customer surface…) | patch `1.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Security settings page, confirmations.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: `two_factor_secrets` or column on users — encrypted at rest.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `1.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "2FA secrets, audit of enable/disable.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "planned",
+        "text": "Planned: encryption note",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Lockout / support reset runbook.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[appointment360]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `1.9.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/appointment360-codebase-analysis.md",
+        "codebase": "appointment360",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 1.9 — Identity and Session Hardening",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (1.9.0 – 1.9.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "1.9.0 — Factor (Charter)",
+      "level": 3,
+      "prose": "**Contract**(per [`docs/backend/apis/27_TWO_FACTOR_MODULE.md`](../backend/apis/27_TWO_FACTOR_MODULE.md).)**Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.9.1 — Secret (Storage)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360]`"
+    },
+    {
+      "heading": "1.9.2 — Code (TOTP)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.9.3 — Verify (Server)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.9.4 — Challenge (Step-up)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app][admin]`"
+    },
+    {
+      "heading": "1.9.5 — Session (Refresh)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.9.6 — Token (Blacklist tie-in)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360]`"
+    },
+    {
+      "heading": "1.9.7 — Revoke (Device logout)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.9.8 — Enforce (Policy)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app]`"
+    },
+    {
+      "heading": "1.9.9 — Seal (Seal freeze)",
+      "level": 3,
+      "prose": "**Contract****Service****Surface****Data****Ops**Codebases: `[appointment360][app][admin]`"
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Master Task Checklist",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Backend API and Endpoints",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Frontend UX",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Flow and Graph",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Validation",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

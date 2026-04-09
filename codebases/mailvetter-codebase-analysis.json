@@ -1,0 +1,996 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/mailvetter-codebase-analysis.md",
+  "sha256_source": "02fd1ecaeb468d4ba5286b6e3059e9f30c320ef13f2351b1aa680056b5eaf98e",
+  "generated_at": "2026-04-08T23:26:47.257750+00:00",
+  "title": "Mailvetter Codebase Analysis (backend(dev)/mailvetter)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Mailvetter Codebase Analysis (backend(dev)/mailvetter)",
+      "level": 1,
+      "slug": "mailvetter-codebase-analysis-backenddevmailvetter",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`backend(dev)/mailvetter` is Contact360's deep email-verification engine for synchronous and async bulk checks. It runs as split API/worker Go services with Redis queueing and PostgreSQL result persistence, and is the verification backbone for email quality before downstream outreach and campaign execution.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ Auth-protected v1 verifier API is implemented (`/v1/emails/validate`, `/v1/emails/validate-bulk`, `/v1/jobs/:job_id`, `/v1/jobs/:job_id/results`).\n- [x] ✅ Bulk ingestion pipeline exists: dedupe -> create job -> enqueue Redis tasks -> worker execution.\n- [x] ✅ Worker writes result rows and transactional job progress counters.\n- [x] ✅ Webhook dispatch with HMAC signature and retry loop is implemented.\n- [x] ✅ Result export supports JSON and CSV.\n- [x] ✅ Job retention cleanup loop (30-day delete) is implemented in worker runtime.\n- [x] ✅ Rate-limit headers are emitted and plan-aware rate limiting logic is present.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Auth-protected v1 verifier API is implemented (`/v1/emails/validate`, `/v1/emails/validate-bulk`, `/v1/jobs/:job_id`, `/v1/jobs/:job_id/results`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Bulk ingestion pipeline exists: dedupe -> create job -> enqueue Redis tasks -> worker execution.",
+              "checked": true
+            },
+            {
+              "text": "✅ Worker writes result rows and transactional job progress counters.",
+              "checked": true
+            },
+            {
+              "text": "✅ Webhook dispatch with HMAC signature and retry loop is implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Result export supports JSON and CSV.",
+              "checked": true
+            },
+            {
+              "text": "✅ Job retention cleanup loop (30-day delete) is implemented in worker runtime.",
+              "checked": true
+            },
+            {
+              "text": "✅ Rate-limit headers are emitted and plan-aware rate limiting logic is present.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract and API surface",
+      "level": 3,
+      "slug": "contract-and-api-surface",
+      "prose": "- [ ] ⬜ Incomplete: legacy endpoints (`/verify`, `/upload`, `/status`, `/results`) are still live, causing contract drift.\n- [ ] 🟡 In Progress: v1 routes are operational, but full deprecation gates and migration messaging for legacy consumers are missing.\n- [ ] ⬜ Incomplete: status lifecycle is effectively `pending/completed`; explicit `failed` and `completed_with_errors` paths are not fully formalized.\n- [ ] 📌 Planned: canonical OpenAPI contract + parity test suite for all v1 endpoints.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: legacy endpoints (`/verify`, `/upload`, `/status`, `/results`) are still live, causing contract drift.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: v1 routes are operational, but full deprecation gates and migration messaging for legacy consumers are missing.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: status lifecycle is effectively `pending/completed`; explicit `failed` and `completed_with_errors` paths are not fully formalized.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: canonical OpenAPI contract + parity test suite for all v1 endpoints.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Auth, multitenancy, and security",
+      "level": 3,
+      "slug": "auth-multitenancy-and-security",
+      "prose": "- [ ] ⬜ Incomplete: auth middleware still supports fallback to single shared `API_SECRET_KEY`.\n- [ ] ⬜ Incomplete: webhook secret falls back to API secret, weakening separation of duties.\n- [ ] 🟡 In Progress: API-key plan controls exist, but tenant-level key governance and rotation policy are incomplete.\n- [ ] 📌 Planned: scoped service/tenant key model aligned with Contact360 private APIs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: auth middleware still supports fallback to single shared `API_SECRET_KEY`.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: webhook secret falls back to API secret, weakening separation of duties.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: API-key plan controls exist, but tenant-level key governance and rotation policy are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: scoped service/tenant key model aligned with Contact360 private APIs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Reliability and ops",
+      "level": 3,
+      "slug": "reliability-and-ops",
+      "prose": "- [ ] 🟡 In Progress: Redis-backed limiter exists, but operationally hardened distributed limits and outage behavior need completion.\n- [ ] ⬜ Incomplete: no idempotency key/duplicate-submission guard on bulk job creation.\n- [ ] ⬜ Incomplete: schema migrations run at service startup in runtime, increasing deploy risk.\n- [ ] ⬜ Incomplete: worker and API logs rely on `fmt/log` and are not fully unified with `logs.api` governance.\n- [ ] 📌 Planned: cross-service trace propagation and SLO/error-budget evidence.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: Redis-backed limiter exists, but operationally hardened distributed limits and outage behavior need completion.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no idempotency key/duplicate-submission guard on bulk job creation.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: schema migrations run at service startup in runtime, increasing deploy risk.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: worker and API logs rely on `fmt/log` and are not fully unified with `logs.api` governance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: cross-service trace propagation and SLO/error-budget evidence.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-service dependency map (release gating)",
+      "level": 2,
+      "slug": "cross-service-dependency-map-release-gating",
+      "prose": "- [x] ✅ `contact360.io/api` and related backend services can consume mailvetter verification APIs.\n- [x] ✅ `mailvetter` depends on Redis (`tasks:verify`) for async task transport.\n- [x] ✅ `mailvetter` depends on PostgreSQL (`jobs`, `results`) for state and payload storage.\n- [x] ✅ webhook callbacks provide outbound integration points for async completion events.\n- [ ] 🟡 In Progress: formalized consumer contract mapping in `docs/backend/apis` and endpoint matrix.\n- [ ] 📌 Planned: campaign-runtime verification orchestration contract with `backend(dev)/email campaign`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `contact360.io/api` and related backend services can consume mailvetter verification APIs.",
+              "checked": true
+            },
+            {
+              "text": "✅ `mailvetter` depends on Redis (`tasks:verify`) for async task transport.",
+              "checked": true
+            },
+            {
+              "text": "✅ `mailvetter` depends on PostgreSQL (`jobs`, `results`) for state and payload storage.",
+              "checked": true
+            },
+            {
+              "text": "✅ webhook callbacks provide outbound integration points for async completion events.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: formalized consumer contract mapping in `docs/backend/apis` and endpoint matrix.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign-runtime verification orchestration contract with `backend(dev)/email campaign`.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage-control-plane migration map (direct S3 -> s3storage)",
+      "level": 2,
+      "slug": "storage-control-plane-migration-map-direct-s3---s3storage",
+      "prose": "- [x] ✅ Core mailvetter runtime currently centers on DB + Redis and does not require direct S3 for primary verification pipeline.\n- [ ] 📌 Planned: if export artifacts move to object storage, enforce `s3storage` control-plane mediation instead of direct SDK writes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core mailvetter runtime currently centers on DB + Redis and does not require direct S3 for primary verification pipeline.",
+              "checked": true
+            },
+            {
+              "text": "📌 Planned: if export artifacts move to object storage, enforce `s3storage` control-plane mediation instead of direct SDK writes.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Log-unification migration map (local logs/print/console -> logs.api)",
+      "level": 2,
+      "slug": "log-unification-migration-map-local-logsprintconsole---logsapi",
+      "prose": "- [ ] ⬜ Incomplete: API and worker use `fmt.Printf`, `log.Println`, `log.Printf` extensively in runtime code.\n- [ ] 🟡 In Progress: some operational metadata exists, but structured log schema and correlation IDs are incomplete.\n- [ ] 📌 Planned: emit canonical verification/audit events to `logs.api` with trace and tenant context.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: API and worker use `fmt.Printf`, `log.Println`, `log.Printf` extensively in runtime code.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: some operational metadata exists, but structured log schema and correlation IDs are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: emit canonical verification/audit events to `logs.api` with trace and tenant context.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Core v1 endpoint set and response shapes are implemented.\n- [ ] 🟡 In Progress: route canonicalization around `/v1/*` with documented migration path.\n- [ ] ⬜ Incomplete: decommission legacy endpoints and static legacy route dependencies.\n- [ ] ⬜ Incomplete: status-state contract hardening (`pending`, `processing`, `completed`, `failed`, optional `completed_with_errors`).\n- [ ] 📌 Planned: endpoint parity tests plus generated OpenAPI as canonical truth.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core v1 endpoint set and response shapes are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: route canonicalization around `/v1/*` with documented migration path.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: decommission legacy endpoints and static legacy route dependencies.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: status-state contract hardening (`pending`, `processing`, `completed`, `failed`, optional `completed_with_errors`).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: endpoint parity tests plus generated OpenAPI as canonical truth.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Bulk job service and worker execution model are implemented.\n- [x] ✅ verification scoring and detail payload generation are implemented.\n- [ ] 🟡 In Progress: plan-aware limits and concurrency controls are partially mature.\n- [ ] ⬜ Incomplete: idempotency keys and duplicate-bulk safeguards.\n- [ ] 📌 Planned: richer failure taxonomy and retry/requeue policy controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Bulk job service and worker execution model are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ verification scoring and detail payload generation are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: plan-aware limits and concurrency controls are partially mature.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: idempotency keys and duplicate-bulk safeguards.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: richer failure taxonomy and retry/requeue policy controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ JSON/CSV results and progress endpoints are available.\n- [ ] 🟡 In Progress: consumer-facing consistency between job state and result payload semantics.\n- [ ] ⬜ Incomplete: legacy static UI remains coupled to deprecated endpoints.\n- [ ] 📌 Planned: standardized UI integration contracts for dashboard, extension, and campaign surfaces.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ JSON/CSV results and progress endpoints are available.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: consumer-facing consistency between job state and result payload semantics.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: legacy static UI remains coupled to deprecated endpoints.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: standardized UI integration contracts for dashboard, extension, and campaign surfaces.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ `jobs` and `results` schema plus indices are in place.\n- [x] ✅ result JSON payload capture exists.\n- [ ] 🟡 In Progress: retention logic exists, but policy-level governance and evidence are incomplete.\n- [ ] ⬜ Incomplete: migration discipline (separate migration pipeline) and schema version governance.\n- [ ] 📌 Planned: lineage model linking verification jobs to contacts/campaign recipients.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `jobs` and `results` schema plus indices are in place.",
+              "checked": true
+            },
+            {
+              "text": "✅ result JSON payload capture exists.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: retention logic exists, but policy-level governance and evidence are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: migration discipline (separate migration pipeline) and schema version governance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: lineage model linking verification jobs to contacts/campaign recipients.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ graceful worker shutdown and cleanup loops are implemented.\n- [ ] 🟡 In Progress: rate limiting and webhook retries exist, but production observability is incomplete.\n- [ ] ⬜ Incomplete: secrets hardening and auth/webhook secret separation.\n- [ ] ⬜ Incomplete: full structured logging and cross-service trace propagation.\n- [ ] 📌 Planned: release gates and runbooks for high-volume verification events.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ graceful worker shutdown and cleanup loops are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: rate limiting and webhook retries exist, but production observability is incomplete.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: secrets hardening and auth/webhook secret separation.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full structured logging and cross-service trace propagation.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: release gates and runbooks for high-volume verification events.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ service bootstrap, API+worker split, Redis/Postgres plumbing, and core schema creation are implemented.\n- [x] ✅ baseline health route and runtime startup flow are implemented.\n- [ ] 🟡 In Progress: foundational hardening for migration discipline and structured operations.\n- [ ] ⬜ Incomplete: remove legacy compatibility debt from bootstrap runtime.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ service bootstrap, API+worker split, Redis/Postgres plumbing, and core schema creation are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ baseline health route and runtime startup flow are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: foundational hardening for migration discipline and structured operations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove legacy compatibility debt from bootstrap runtime.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ API-key plan framework exists and is used for limits.\n- [ ] 🟡 In Progress: owner-key usage patterns partially support tenancy accounting.\n- [ ] ⬜ Incomplete: billing/credit-grade usage attribution and scoped key governance.\n- [ ] 📌 Planned: integration to centralized Contact360 credit and entitlement system.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ API-key plan framework exists and is used for limits.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: owner-key usage patterns partially support tenancy accounting.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: billing/credit-grade usage attribution and scoped key governance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: integration to centralized Contact360 credit and entitlement system.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ primary verification era is operational: single/bulk verification and job result retrieval.\n- [x] ✅ SMTP/DNS/disposable/catch-all signal pipeline is implemented.\n- [ ] 🟡 In Progress: contract tightening for status taxonomy and deterministic failure envelopes.\n- [ ] ⬜ Incomplete: idempotency + bulk duplicate protections.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ primary verification era is operational: single/bulk verification and job result retrieval.",
+              "checked": true
+            },
+            {
+              "text": "✅ SMTP/DNS/disposable/catch-all signal pipeline is implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: contract tightening for status taxonomy and deterministic failure envelopes.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: idempotency + bulk duplicate protections.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [x] ✅ result payload includes rich verification evidence in JSON for downstream mapping.\n- [ ] 🟡 In Progress: partial linkage readiness to contact/company records.\n- [ ] ⬜ Incomplete: explicit lineage references between verification result and contact/entity IDs.\n- [ ] 📌 Planned: first-class contract for contact/company-integrated verification workflows.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ result payload includes rich verification evidence in JSON for downstream mapping.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: partial linkage readiness to contact/company records.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit lineage references between verification result and contact/entity IDs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: first-class contract for contact/company-integrated verification workflows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] 🟡 In Progress: APIs can serve extension/SN ingress through upstream services.\n- [ ] ⬜ Incomplete: explicit anti-abuse and provenance contract for extension-originated bulk jobs.\n- [ ] 📌 Planned: extension/SN verification orchestration templates and source tagging.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: APIs can serve extension/SN ingress through upstream services.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit anti-abuse and provenance contract for extension-originated bulk jobs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: extension/SN verification orchestration templates and source tagging.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [x] ✅ verifier already produces explainable signals useful for AI scoring layers.\n- [ ] 🟡 In Progress: alignment of score-details schema for AI consumers.\n- [ ] ⬜ Incomplete: formal AI-ready output contract and confidence normalization policy.\n- [ ] 📌 Planned: verifier outputs wired as first-class features in AI workflow packs.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ verifier already produces explainable signals useful for AI scoring layers.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: alignment of score-details schema for AI consumers.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formal AI-ready output contract and confidence normalization policy.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: verifier outputs wired as first-class features in AI workflow packs.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ worker concurrency control, queue polling backoff, graceful shutdown, and cleanup loops are implemented.\n- [ ] 🟡 In Progress: Redis-backed limiting and retry behavior provide partial resilience.\n- [ ] ⬜ Incomplete: full idempotency, failure-state handling, and SLO/error-budget instrumentation.\n- [ ] 📌 Planned: chaos/load testing and capacity gates for high-volume batches.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ worker concurrency control, queue polling backoff, graceful shutdown, and cleanup loops are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: Redis-backed limiting and retry behavior provide partial resilience.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full idempotency, failure-state handling, and SLO/error-budget instrumentation.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: chaos/load testing and capacity gates for high-volume batches.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ containerized deployment shape exists (API/worker/Redis/Postgres compositions).\n- [ ] 🟡 In Progress: deployment readiness with existing startup migration behavior.\n- [ ] ⬜ Incomplete: explicit migration pipeline and blue/green-safe rollout controls.\n- [ ] 📌 Planned: hardened production runbooks and secret management policy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ containerized deployment shape exists (API/worker/Redis/Postgres compositions).",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: deployment readiness with existing startup migration behavior.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit migration pipeline and blue/green-safe rollout controls.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: hardened production runbooks and secret management policy.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [x] ✅ private authenticated endpoint model exists.\n- [ ] 🟡 In Progress: rate limit headers and plan controls are present but governance is partial.\n- [ ] ⬜ Incomplete: public/private API formalization, scoped key models, and strict contract publishing.\n- [ ] 📌 Planned: full v1 OpenAPI plus compatibility guarantees.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ private authenticated endpoint model exists.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: rate limit headers and plan controls are present but governance is partial.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: public/private API formalization, scoped key models, and strict contract publishing.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: full v1 OpenAPI plus compatibility guarantees.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [x] ✅ webhook callback mechanism provides integration primitive.\n- [ ] 🟡 In Progress: retry/signed delivery exists but ecosystem governance is partial.\n- [ ] ⬜ Incomplete: partner-grade webhook observability, replay tooling, and contract lifecycle.\n- [ ] 📌 Planned: integration marketplace-grade connector patterns.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ webhook callback mechanism provides integration primitive.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: retry/signed delivery exists but ecosystem governance is partial.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: partner-grade webhook observability, replay tooling, and contract lifecycle.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: integration marketplace-grade connector patterns.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [x] ✅ verification job outputs can serve campaign recipient preflight checks.\n- [ ] 🟡 In Progress: campaign systems can consume validity scores and summary outputs.\n- [ ] ⬜ Incomplete: dedicated campaign preflight contract and verification gating policies.\n- [ ] 📌 Planned: full campaign orchestration with recipient-level verification evidence and suppression flows.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ verification job outputs can serve campaign recipient preflight checks.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: campaign systems can consume validity scores and summary outputs.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: dedicated campaign preflight contract and verification gating policies.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: full campaign orchestration with recipient-level verification evidence and suppression flows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [ ] ⬜ Incomplete: remove legacy API routes and lock v1 as canonical.\n- [ ] ⬜ Incomplete: decouple `WEBHOOK_SECRET_KEY` from API secret fallback.\n- [ ] ⬜ Incomplete: add idempotency keys and duplicate-submission protection for bulk jobs.\n- [ ] 🟡 In Progress: complete distributed limiter hardening and outage behavior strategy.\n- [ ] ⬜ Incomplete: move migrations out of runtime startup into controlled pipeline.\n- [ ] 🟡 In Progress: standardize status model and add explicit failed/completed_with_errors semantics.\n- [ ] ⬜ Incomplete: migrate runtime logging to unified structured schema (`logs.api` aligned).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: remove legacy API routes and lock v1 as canonical.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: decouple `WEBHOOK_SECRET_KEY` from API secret fallback.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add idempotency keys and duplicate-submission protection for bulk jobs.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: complete distributed limiter hardening and outage behavior strategy.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: move migrations out of runtime startup into controlled pipeline.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: standardize status model and add explicit failed/completed_with_errors semantics.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: migrate runtime logging to unified structured schema (`logs.api` aligned).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 - must close for release safety",
+      "level": 3,
+      "slug": "p0---must-close-for-release-safety",
+      "prose": "- [ ] ⬜ Incomplete (`MV-0`): freeze canonical API on `/v1/*` and retire legacy endpoint usage.\n- [ ] ⬜ Incomplete (`MV-1`): normalize lifecycle vocabulary (`pending|processing|completed|failed|completed_with_errors`).\n- [ ] ⬜ Incomplete (`MV-2`): remove webhook-secret fallback to API secret.\n- [ ] ⬜ Incomplete (`MV-3`): implement idempotent bulk-job creation + replay-safe submission.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete (`MV-0`): freeze canonical API on `/v1/*` and retire legacy endpoint usage.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete (`MV-1`): normalize lifecycle vocabulary (`pending|processing|completed|failed|completed_with_errors`).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete (`MV-2`): remove webhook-secret fallback to API secret.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete (`MV-3`): implement idempotent bulk-job creation + replay-safe submission.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2 - required for maturity",
+      "level": 3,
+      "slug": "p1p2---required-for-maturity",
+      "prose": "- [ ] 🟡 In Progress (`MV-4`): distributed rate-limit behavior and operator visibility hardening.\n- [ ] 🟡 In Progress (`MV-5`): migration discipline with explicit, pre-deploy migration stage.\n- [ ] ⬜ Incomplete (`MV-6`): log + trace correlation across API, worker, and downstream consumers.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress (`MV-4`): distributed rate-limit behavior and operator visibility hardening.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress (`MV-5`): migration discipline with explicit, pre-deploy migration stage.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete (`MV-6`): log + trace correlation across API, worker, and downstream consumers.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+ - platform productization",
+      "level": 3,
+      "slug": "p3---platform-productization",
+      "prose": "- [ ] 📌 Planned (`MV-7`): webhook ecosystem reliability tooling (replay, DLQ, delivery metrics).\n- [ ] 📌 Planned (`MV-8`): campaign preflight orchestration contracts with policy gates.\n- [ ] 📌 Planned (`MV-9`): OpenAPI parity and endpoint contract tests for all v1 routes.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned (`MV-7`): webhook ecosystem reliability tooling (replay, DLQ, delivery metrics).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned (`MV-8`): campaign preflight orchestration contracts with policy gates.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned (`MV-9`): OpenAPI parity and endpoint contract tests for all v1 routes.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

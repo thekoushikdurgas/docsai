@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "kind": "page_spec",
+  "source_path": "frontend/pages/admin_page.md",
+  "sha256_source": "6fcff148074fcc6e02a69c6022ce92a98a8161ef76ebce3ec46ee5b86979bb3e",
+  "generated_at": "2026-04-08T23:26:48.714554+00:00",
+  "title": "Admin",
+  "raw_markdown": "---\ntitle: \"Admin\"\npage_id: admin_page\nsource_json: admin_page.json\ngenerator: json_to_markdown.py\n---\n\n# Admin\n\n## Overview\n\n- **page_id:** admin_page\n- **page_type:** dashboard\n- **codebase:** app\n- **surface:** dashboard\n- **era_tags:** 1.x, 7.x, 9.x\n- **flow_id:** admin\n- **_id:** admin_page-001\n\n## Metadata\n\n- **route:** /admin\n- **file_path:** contact360.io/app/app/(dashboard)/admin/page.tsx\n- **purpose:** Admin Console: System-wide oversight for organizations, users, and global configuration.\n- **status:** shipped\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** SuperAdmin only; non-SuperAdmin users are redirected to /dashboard\n- **page_state:** development\n- **last_updated:** 2026-03-29T00:00:00Z\n- **uses_endpoints:** []\n\n### UI components (metadata)\n\n- **AdminPage** — `app/(dashboard)/admin/page.tsx`\n- **Shield** — `lucide-react`\n- **RefreshCw** — `lucide-react`\n- **Trash2** — `lucide-react`\n- **PenSquare** — `lucide-react`\n- **Button** — `components/ui/Button.tsx`\n- **Badge** — `components/ui/Badge.tsx`\n- **LoadingSpinner** — `components/shared/LoadingSpinner.tsx`\n- **ErrorState** — `components/shared/ErrorState.tsx`\n- **EmptyState** — `components/shared/EmptyState.tsx`\n\n- **versions:** []\n- **endpoint_count:** 0\n- **api_versions:** []\n- **codebase:** app\n- **canonical_repo:** contact360.io/app\n\n## Content sections (summary)\n\n### title\n\nAdmin\n\n### description\n\nSuperAdmin control panel to inspect user stats (total/active) and manage users (view, delete). Non-SuperAdmin users see an access denied message or are redirected.\n\n## Sections (UI structure)\n\n### headings\n\n| id | level | text |\n| --- | --- | --- |\n| admin-title | 1 | Admin Console |\n| platform-stats | 2 | Platform Statistics |\n| user-management | 2 | User Management |\n\n### subheadings\n\n| id | level | text |\n| --- | --- | --- |\n| total-users | 3 | Total Users |\n| active-users | 3 | Active Users |\n\n### tabs\n\n| content_ref | id | label |\n| --- | --- | --- |\n| admin-users | users | Users |\n| admin-payments | payments | Payments |\n| admin-platform | platform | Platform |\n\n### buttons\n\n| action | component | id | label | type |\n| --- | --- | --- | --- | --- |\n| adminService → ConfirmModal → delete user | AdminUserTable | delete-user | Delete User | danger |\n| adminService.AdjustCredits → credits input modal | AdminUserTable | adjust-credits | Adjust Credits | secondary |\n| adminService.ApprovePaymentSubmission | AdminPaymentsTable | approve-payment | Approve | primary |\n| adminService.DeclinePaymentSubmission | AdminPaymentsTable | decline-payment | Decline | danger |\n| refetch UserStats | PageHeader | refresh-stats | Refresh | icon |\n\n### input_boxes\n\n| component | id | label | placeholder | required | type |\n| --- | --- | --- | --- | --- | --- |\n| AdminUserTable | search-users | Search users | Search by name or email |  | search |\n| AdjustCreditsModal | credit-amount | Credit amount | e.g. 500 | True | number |\n| AdjustCreditsModal | credit-reason | Reason | e.g. Bonus credits | False | text |\n\n### text_blocks\n\n| component | content | id | type | visibility |\n| --- | --- | --- | --- | --- |\n| StatsGrid | {totalUsers} total users | stats-total-users | stat |  |\n| StatsGrid | {activeUsers} active (last 30 days) | stats-active-users | stat |  |\n| AdminPage | Access denied. SuperAdmin only. | no-access | error | non-superAdmin |\n\n### checkboxes\n\n### radio_buttons\n\n### progress_bars\n\n### graphs\n\n| chart_type | component | data_source | id | label | metrics | visibility |\n| --- | --- | --- | --- | --- | --- | --- |\n| stat_cards | StatsGrid | adminService.UserStats | user-stats-cards | Platform user statistics | ['total users', 'active users', 'by role', 'by plan'] | superAdmin only |\n\n### flows\n\n| component | id | label | steps |\n| --- | --- | --- |\n| AdminPaymentsTable | approve-payment-flow | Payment approval flow | ['View pending payment submissions in Payments tab', \"Click 'Approve' on a submission\", 'adminService.ApprovePaymentSubmission', 'Credits automatically added to user account', \"Toast: 'Payment approve |\n\n### components\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| components/shared/StatsGrid.tsx | StatsGrid | Total/active user stats cards |\n| components/features/admin/AdminUserTable.tsx | AdminUserTable | User list with search, adjust credits, delete |\n| components/features/admin/AdminPaymentsTable.tsx | AdminPaymentsTable | Payment submissions with approve/decline |\n\n### hooks\n\n| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| context/AuthContext.ts | useAuth | User role verification (SuperAdmin check) | 0.x |\n| hooks/useAdmin.ts | useAdmin | Platform-wide user management and stats | 1.x, 7.x |\n\n### services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/adminService.ts | adminService | ['UserStats', 'ListUsers', 'AdjustCredits', 'ListPaymentSubmissions', 'ApprovePaymentSubmission', 'DeclinePaymentSubmission'] |\n\n### contexts\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| context/RoleContext.tsx | RoleContext | isSuperAdmin gate — redirects non-superAdmin to /dashboard |\n\n### utilities\n\n### ui_components\n\n### endpoints\n\n| hook | method | operation | service |\n| --- | --- | --- | --- |\n| useAdmin | QUERY | UserStats | adminService |\n| useAdmin | QUERY | ListUsers | adminService |\n| useAdmin | MUTATION | AdjustCredits | adminService |\n| useAdmin | MUTATION | ApprovePaymentSubmission | adminService |\n\n## UI elements (top-level)\n\n### buttons\n\n| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| delete-user | Delete User | danger | adminService → ConfirmModal → delete user | AdminUserTable |\n| adjust-credits | Adjust Credits | secondary | adminService.AdjustCredits → credits input modal | AdminUserTable |\n| approve-payment | Approve | primary | adminService.ApprovePaymentSubmission | AdminPaymentsTable |\n| decline-payment | Decline | danger | adminService.DeclinePaymentSubmission | AdminPaymentsTable |\n| refresh-stats | Refresh | icon | refetch UserStats | PageHeader |\n\n### inputs\n\n| id | label | type | placeholder | component |\n| --- | --- | --- | --- | --- |\n| search-users | Search users | search | Search by name or email | AdminUserTable |\n| credit-amount | Credit amount | number | e.g. 500 | AdjustCreditsModal |\n| credit-reason | Reason | text | e.g. Bonus credits | AdjustCreditsModal |\n\n### checkboxes\n\n[]\n\n### radio_buttons\n\n[]\n\n### progress_bars\n\n[]\n\n### toasts\n\n[]\n\n## Graphql Bindings\n\n| hook | operation | service | type |\n| --- | --- | --- | --- |\n| useAdmin | UserStats, ListUsers, ListPaymentSubmissions | adminService | query |\n| useAdmin | AdjustCredits, ApprovePaymentSubmission, DeclinePaymentSubmission | adminService | mutation |\n\n## Hooks\n\n| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useAdmin.ts | useAdmin | UserStats, ListUsers, AdjustCredits, payment approval |\n\n## Services\n\n| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/adminService.ts | adminService | ['UserStats', 'ListUsers', 'AdjustCredits', 'ListPaymentSubmissions', 'ApprovePaymentSubmission', 'DeclinePaymentSubmission'] |\n\n## Backend Bindings\n\n| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql admin module operations | admin control plane actions in app dashboard |\n| docsai admin linkage | contact360.io/admin governance surfaces | complementary operational governance outside app dashboard |\n\n## Data Sources\n\n- Appointment360 GraphQL gateway\n- admin module data stores and logs\n- DocsAI governance context references\n\n## Flow summary\n\napp admin dashboard -> useAdmin/adminService -> GraphQL admin operations -> user/payment/admin state updates with superAdmin gating\n\n<!-- AUTO:design-nav:start -->\n\n## Era coverage (Contact360 0.x–10.x)\n\nThis page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **1.x** — User / billing / credit — profile, usage, billing, register/login, credit UX, admin app stats.\n- **7.x** — Deployment — governance, deployments surface, RBAC-sensitive admin views.\n- **9.x** — Ecosystem & productization — integrations hub, dynamic dashboard pages, platform marketing.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md).\n\n## Page design (symbols)\n\nNotation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era.\n\n## Navigation (connections)\n\n- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/admin`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth.\n\n## Backend API documentation\n\n- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md).\n\n### Peer pages (same codebase)\n\n- [activities_page](activities_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->\n\n## Backend endpoint specs (GraphQL)\n\n| GraphQL operation | Endpoint spec | Method | Era |\n| --- | --- | --- | --- |\n| — | *No `graphql/...` references in this page spec* | — | — |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n<!-- AUTO:endpoint-links:end -->\n---\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*\n",
+  "front_matter": {
+    "title": "\"Admin\"",
+    "page_id": "admin_page",
+    "source_json": "admin_page.json",
+    "generator": "json_to_markdown.py"
+  },
+  "page_id": "admin_page",
+  "page_type": "dashboard",
+  "codebase": "app",
+  "surface": "dashboard",
+  "era_tags": [
+    "1.x",
+    "7.x",
+    "9.x"
+  ],
+  "flow_id": "admin",
+  "metadata": {
+    "route": "/admin",
+    "file_path": "contact360.io/app/app/(dashboard)/admin/page.tsx",
+    "purpose": "Admin Console: System-wide oversight for organizations, users, and global configuration.",
+    "status": "shipped",
+    "authentication": "Required (protected by useSessionGuard and DashboardAccessGate)",
+    "authorization": "SuperAdmin only; non-SuperAdmin users are redirected to /dashboard",
+    "page_state": "development",
+    "last_updated": "2026-03-29T00:00:00Z"
+  },
+  "uses_endpoints": [],
+  "ui_components": [
+    {
+      "name": "AdminPage",
+      "file_path": "app/(dashboard)/admin/page.tsx",
+      "description": null
+    },
+    {
+      "name": "Shield",
+      "file_path": "lucide-react",
+      "description": null
+    },
+    {
+      "name": "RefreshCw",
+      "file_path": "lucide-react",
+      "description": null
+    },
+    {
+      "name": "Trash2",
+      "file_path": "lucide-react",
+      "description": null
+    },
+    {
+      "name": "PenSquare",
+      "file_path": "lucide-react",
+      "description": null
+    },
+    {
+      "name": "Button",
+      "file_path": "components/ui/Button.tsx",
+      "description": null
+    },
+    {
+      "name": "Badge",
+      "file_path": "components/ui/Badge.tsx",
+      "description": null
+    },
+    {
+      "name": "LoadingSpinner",
+      "file_path": "components/shared/LoadingSpinner.tsx",
+      "description": null
+    },
+    {
+      "name": "ErrorState",
+      "file_path": "components/shared/ErrorState.tsx",
+      "description": null
+    },
+    {
+      "name": "EmptyState",
+      "file_path": "components/shared/EmptyState.tsx",
+      "description": null
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Admin",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Content sections (summary)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "title",
+      "level": 3,
+      "prose": "Admin"
+    },
+    {
+      "heading": "description",
+      "level": 3,
+      "prose": "SuperAdmin control panel to inspect user stats (total/active) and manage users (view, delete). Non-SuperAdmin users see an access denied message or are redirected."
+    },
+    {
+      "heading": "Sections (UI structure)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "headings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| admin-title | 1 | Admin Console |\n| platform-stats | 2 | Platform Statistics |\n| user-management | 2 | User Management |"
+    },
+    {
+      "heading": "subheadings",
+      "level": 3,
+      "prose": "| id | level | text |\n| --- | --- | --- |\n| total-users | 3 | Total Users |\n| active-users | 3 | Active Users |"
+    },
+    {
+      "heading": "tabs",
+      "level": 3,
+      "prose": "| content_ref | id | label |\n| --- | --- | --- |\n| admin-users | users | Users |\n| admin-payments | payments | Payments |\n| admin-platform | platform | Platform |"
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| action | component | id | label | type |\n| --- | --- | --- | --- | --- |\n| adminService → ConfirmModal → delete user | AdminUserTable | delete-user | Delete User | danger |\n| adminService.AdjustCredits → credits input modal | AdminUserTable | adjust-credits | Adjust Credits | secondary |\n| adminService.ApprovePaymentSubmission | AdminPaymentsTable | approve-payment | Approve | primary |\n| adminService.DeclinePaymentSubmission | AdminPaymentsTable | decline-payment | Decline | danger |\n| refetch UserStats | PageHeader | refresh-stats | Refresh | icon |"
+    },
+    {
+      "heading": "input_boxes",
+      "level": 3,
+      "prose": "| component | id | label | placeholder | required | type |\n| --- | --- | --- | --- | --- | --- |\n| AdminUserTable | search-users | Search users | Search by name or email |  | search |\n| AdjustCreditsModal | credit-amount | Credit amount | e.g. 500 | True | number |\n| AdjustCreditsModal | credit-reason | Reason | e.g. Bonus credits | False | text |"
+    },
+    {
+      "heading": "text_blocks",
+      "level": 3,
+      "prose": "| component | content | id | type | visibility |\n| --- | --- | --- | --- | --- |\n| StatsGrid | {totalUsers} total users | stats-total-users | stat |  |\n| StatsGrid | {activeUsers} active (last 30 days) | stats-active-users | stat |  |\n| AdminPage | Access denied. SuperAdmin only. | no-access | error | non-superAdmin |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "graphs",
+      "level": 3,
+      "prose": "| chart_type | component | data_source | id | label | metrics | visibility |\n| --- | --- | --- | --- | --- | --- | --- |\n| stat_cards | StatsGrid | adminService.UserStats | user-stats-cards | Platform user statistics | ['total users', 'active users', 'by role', 'by plan'] | superAdmin only |"
+    },
+    {
+      "heading": "flows",
+      "level": 3,
+      "prose": "| component | id | label | steps |\n| --- | --- | --- |\n| AdminPaymentsTable | approve-payment-flow | Payment approval flow | ['View pending payment submissions in Payments tab', \"Click 'Approve' on a submission\", 'adminService.ApprovePaymentSubmission', 'Credits automatically added to user account', \"Toast: 'Payment approve |"
+    },
+    {
+      "heading": "hooks",
+      "level": 3,
+      "prose": "| file_path | name | purpose | era |\n| --- | --- | --- | --- |\n| context/AuthContext.ts | useAuth | User role verification (SuperAdmin check) | 0.x |\n| hooks/useAdmin.ts | useAdmin | Platform-wide user management and stats | 1.x, 7.x |"
+    },
+    {
+      "heading": "services",
+      "level": 3,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/adminService.ts | adminService | ['UserStats', 'ListUsers', 'AdjustCredits', 'ListPaymentSubmissions', 'ApprovePaymentSubmission', 'DeclinePaymentSubmission'] |"
+    },
+    {
+      "heading": "contexts",
+      "level": 3,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| context/RoleContext.tsx | RoleContext | isSuperAdmin gate — redirects non-superAdmin to /dashboard |"
+    },
+    {
+      "heading": "utilities",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "UI elements (top-level)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "buttons",
+      "level": 3,
+      "prose": "| id | label | type | action | component |\n| --- | --- | --- | --- | --- |\n| delete-user | Delete User | danger | adminService → ConfirmModal → delete user | AdminUserTable |\n| adjust-credits | Adjust Credits | secondary | adminService.AdjustCredits → credits input modal | AdminUserTable |\n| approve-payment | Approve | primary | adminService.ApprovePaymentSubmission | AdminPaymentsTable |\n| decline-payment | Decline | danger | adminService.DeclinePaymentSubmission | AdminPaymentsTable |\n| refresh-stats | Refresh | icon | refetch UserStats | PageHeader |"
+    },
+    {
+      "heading": "inputs",
+      "level": 3,
+      "prose": "| id | label | type | placeholder | component |\n| --- | --- | --- | --- | --- |\n| search-users | Search users | search | Search by name or email | AdminUserTable |\n| credit-amount | Credit amount | number | e.g. 500 | AdjustCreditsModal |\n| credit-reason | Reason | text | e.g. Bonus credits | AdjustCreditsModal |"
+    },
+    {
+      "heading": "checkboxes",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "radio_buttons",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "progress_bars",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "toasts",
+      "level": 3,
+      "prose": "[]"
+    },
+    {
+      "heading": "Graphql Bindings",
+      "level": 2,
+      "prose": "| hook | operation | service | type |\n| --- | --- | --- | --- |\n| useAdmin | UserStats, ListUsers, ListPaymentSubmissions | adminService | query |\n| useAdmin | AdjustCredits, ApprovePaymentSubmission, DeclinePaymentSubmission | adminService | mutation |"
+    },
+    {
+      "heading": "Hooks",
+      "level": 2,
+      "prose": "| file_path | name | purpose |\n| --- | --- | --- |\n| hooks/useAdmin.ts | useAdmin | UserStats, ListUsers, AdjustCredits, payment approval |"
+    },
+    {
+      "heading": "Services",
+      "level": 2,
+      "prose": "| file_path | name | operations |\n| --- | --- | --- |\n| services/graphql/adminService.ts | adminService | ['UserStats', 'ListUsers', 'AdjustCredits', 'ListPaymentSubmissions', 'ApprovePaymentSubmission', 'DeclinePaymentSubmission'] |"
+    },
+    {
+      "heading": "Backend Bindings",
+      "level": 2,
+      "prose": "| layer | path | usage |\n| --- | --- | --- |\n| gateway | graphql admin module operations | admin control plane actions in app dashboard |\n| docsai admin linkage | contact360.io/admin governance surfaces | complementary operational governance outside app dashboard |"
+    },
+    {
+      "heading": "Data Sources",
+      "level": 2,
+      "prose": "- Appointment360 GraphQL gateway\n- admin module data stores and logs\n- DocsAI governance context references"
+    },
+    {
+      "heading": "Flow summary",
+      "level": 2,
+      "prose": "app admin dashboard -> useAdmin/adminService -> GraphQL admin operations -> user/payment/admin state updates with superAdmin gating\n\n<!-- AUTO:design-nav:start -->"
+    },
+    {
+      "heading": "Era coverage (Contact360 0.x–10.x)",
+      "level": 2,
+      "prose": "This page is tagged for the following product eras (see [docs/version-policy.md](../../version-policy.md)):\n\n- **1.x** — User / billing / credit — profile, usage, billing, register/login, credit UX, admin app stats.\n- **7.x** — Deployment — governance, deployments surface, RBAC-sensitive admin views.\n- **9.x** — Ecosystem & productization — integrations hub, dynamic dashboard pages, platform marketing.\n\nOther eras may apply indirectly via shared layout/components documented in [../../frontend.md](../../frontend.md)."
+    },
+    {
+      "heading": "Page design (symbols)",
+      "level": 2,
+      "prose": "Notation: [DESIGN_SYMBOLS.md](DESIGN_SYMBOLS.md).\n\n**Composite layout:** [L] > [H] > main feature region — `{GQL}` via hooks/services; `(btn)` `(in)` `(sel)` `(tbl)` `(pb)` `(cb)` `(rb)` `(md)` per **Sections (UI structure)** above; `[G]` where graphs/flows exist.\n\n**Controls inventory:** Structured **Sections (UI structure)** above list **tabs**, **buttons**, **input_boxes**, **text_blocks**, **checkboxes**, **radio_buttons**, **progress_bars**, **graphs**, **flows**, **components**, **hooks**, **services**, **contexts** — align implementation with [../../frontend.md](../../frontend.md) component catalog by era."
+    },
+    {
+      "heading": "Navigation (connections)",
+      "level": 2,
+      "prose": "- **Master graphs & handoffs:** [index.md#how-pages-connect-cross-host-navigation](index.md#how-pages-connect-cross-host-navigation)\n- **Registry row:** [index.md#all-pages](index.md#all-pages)\n- **Django admin / DocsAI:** [admin_surface.md](admin_surface.md) (operators; not Next.js routes)\n\n**Route (registry):** `/admin`\n\n**Codebase:** `contact360.io/app` (Next.js dashboard, GraphQL).\n\n**Typical inbound:** `Sidebar` / `MainLayout`, [dashboard_page.md](dashboard_page.md) quick actions, bookmarks to route. **Typical outbound:** sidebar peers (see **Peer pages**), `router.push` / `<Link>` from **### buttons** table above.\n\n**Cross-host:** marketing [landing_page.md](landing_page.md) → [login_page.md](login_page.md) / [register_page.md](register_page.md); product pages on **root** deep-link to app auth."
+    },
+    {
+      "heading": "Backend API documentation",
+      "level": 2,
+      "prose": "- **Page → GraphQL endpoint specs:** run `python docs/frontend/pages/link_endpoint_specs.py` to refresh the `AUTO:endpoint-links` table in this file.\n- **Endpoint ↔ database naming & Connectra scope:** [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).\n- **Service topology:** [SERVICE_TOPOLOGY.md](../../backend/endpoints/SERVICE_TOPOLOGY.md)."
+    },
+    {
+      "heading": "Peer pages (same codebase)",
+      "level": 3,
+      "prose": "- [activities_page](activities_page.md)\n- [ai_chat_page](ai_chat_page.md)\n- [analytics_page](analytics_page.md)\n- [billing_page](billing_page.md)\n- [campaign_builder_page](campaign_builder_page.md)\n- [campaign_templates_page](campaign_templates_page.md)\n- [campaigns_page](campaigns_page.md)\n- [companies_page](companies_page.md)\n- [contacts_page](contacts_page.md)\n- [dashboard_page](dashboard_page.md)\n- [dashboard_pageid_page](dashboard_pageid_page.md)\n- [deployment_page](deployment_page.md)\n- [email_page](email_page.md)\n- [export_page](export_page.md)\n- [files_page](files_page.md)\n- [finder_page](finder_page.md)\n- [jobs_page](jobs_page.md)\n- [linkedin_page](linkedin_page.md)\n- [live_voice_page](live_voice_page.md)\n- [login_page](login_page.md)\n- [profile_page](profile_page.md)\n- [register_page](register_page.md)\n- [root_page](root_page.md)\n- [sequences_page](sequences_page.md)\n- [settings_page](settings_page.md)\n- [status_page](status_page.md)\n- [usage_page](usage_page.md)\n- [verifier_page](verifier_page.md)\n\n<!-- AUTO:design-nav:end -->\n\n<!-- AUTO:endpoint-links:start -->"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"Admin\"\npage_id: admin_page\nsource_json: admin_page.json\ngenerator: json_to_markdown.py\n---\n\n## Overview\n\n- **page_id:** admin_page\n- **page_type:** dashboard\n\n- **era_tags:** 1.x, 7.x, 9.x\n- **flow_id:** admin\n- **_id:** admin_page-001\n\n## Metadata\n\n- **authentication:** Required (protected by useSessionGuard and DashboardAccessGate)\n- **authorization:** SuperAdmin only; non-SuperAdmin users are redirected to /dashboard\n- **page_state:** development\n- **last_updated:** 2026-03-29T00:00:00Z\n- **uses_endpoints:** []\n\n### UI components (metadata)\n\n- **versions:** []\n- **endpoint_count:** 0\n- **api_versions:** []\n\n- **canonical_repo:** contact360.io/app\n\n| components/features/admin/AdminUserTable.tsx | AdminUserTable | User list with search, adjust credits, delete |\n| components/features/admin/AdminPaymentsTable.tsx | AdminPaymentsTable | Payment submissions with approve/decline |\n\n### ui_components\n\n| hook | method | operation | service |\n\n| GraphQL operation | Endpoint spec | Method | Era |\n\n| — | *No `graphql/...` references in this page spec* | — | — |\n\n*Regenerate this table with* `python docs/frontend/pages/link_endpoint_specs.py`*. Naming rules: [ENDPOINT_DATABASE_LINKS.md](../../backend/endpoints/ENDPOINT_DATABASE_LINKS.md).*\n\n*Generated from JSON. Edit `*_page.json` and re-run `python json_to_markdown.py`.*"
+}

@@ -1,0 +1,742 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/micro.services.apis/connectra.api.md",
+  "sha256_source": "bb9dc87c2cddadfdb050b323dee16a7d660a651c70c8c4f0c7e455cd5ed9807c",
+  "generated_at": "2026-04-08T23:26:46.716030+00:00",
+  "title": "Connectra API (EC2/sync.server)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Connectra API (EC2/sync.server)",
+      "level": 1,
+      "slug": "connectra-api-ec2syncserver",
+      "prose": "Go/Gin service (**Connectra**): VQL search against OpenSearch, Postgres-backed filters, batch upsert, CSV import/export **jobs**, and S3 presigned URL helpers. The Contact360 gateway uses **`CONNECTRA_BASE_URL`** with **`CONNECTRA_API_KEY`** on the **`X-API-Key`** header.\n\n**Code:** `EC2/sync.server/cmd/server.go` (middleware, `GET /health`), `modules/contacts/routes.go`, `modules/companies/routes.go`, `modules/common/routes.go`.\n\n**Default listen:** `:<PORT>` with **`PORT`** default **`8000`** (`conf.AppConfig.Port`).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Operation inventory",
+      "level": 2,
+      "slug": "operation-inventory",
+      "prose": "| Method | Path | Auth |\n| --- | --- | --- |\n| `GET` | `/health` | `X-API-Key` |\n| `POST` | `/contacts/` | `X-API-Key` |\n| `POST` | `/contacts/count` | `X-API-Key` |\n| `POST` | `/contacts/batch-upsert` | `X-API-Key` |\n| `POST` | `/companies/` | `X-API-Key` |\n| `POST` | `/companies/count` | `X-API-Key` |\n| `POST` | `/companies/batch-upsert` | `X-API-Key` |\n| `POST` | `/common/batch-upsert` | `X-API-Key` |\n| `GET` | `/common/upload-url` | `X-API-Key` |\n| `GET` | `/common/download-url` | `X-API-Key` |\n| `POST` | `/common/jobs` | `X-API-Key` |\n| `POST` | `/common/jobs/create` | `X-API-Key` |\n| `GET` | `/common/jobs/:job_uuid` | `X-API-Key` |\n| `POST` | `/common/jobs/:job_uuid/pause` | `X-API-Key` |\n| `POST` | `/common/jobs/:job_uuid/resume` | `X-API-Key` |\n| `POST` | `/common/jobs/:job_uuid/terminate` | `X-API-Key` |\n| `GET` | `/common/:service/filters` | `X-API-Key` |\n| `POST` | `/common/:service/filters/data` | `X-API-Key` |\n\n`:service` must be exactly **`contact`** or **`company`** (`constants.ContactsService` / `CompaniesService`). Paths look like `/common/contact/filters`, not `contacts`.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Method",
+            "Path",
+            "Auth"
+          ],
+          "rows": [
+            [
+              "`GET`",
+              "`/health`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/contacts/`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/contacts/count`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/contacts/batch-upsert`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/companies/`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/companies/count`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/companies/batch-upsert`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/common/batch-upsert`",
+              "`X-API-Key`"
+            ],
+            [
+              "`GET`",
+              "`/common/upload-url`",
+              "`X-API-Key`"
+            ],
+            [
+              "`GET`",
+              "`/common/download-url`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/common/jobs`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/common/jobs/create`",
+              "`X-API-Key`"
+            ],
+            [
+              "`GET`",
+              "`/common/jobs/:job_uuid`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/common/jobs/:job_uuid/pause`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/common/jobs/:job_uuid/resume`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/common/jobs/:job_uuid/terminate`",
+              "`X-API-Key`"
+            ],
+            [
+              "`GET`",
+              "`/common/:service/filters`",
+              "`X-API-Key`"
+            ],
+            [
+              "`POST`",
+              "`/common/:service/filters/data`",
+              "`X-API-Key`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Configuration (environment)",
+      "level": 2,
+      "slug": "configuration-environment",
+      "prose": "Viper loads `.env` from the process working directory and merges **`AutomaticEnv()`** (uppercase env vars match `mapstructure` tags).\n\n| Group | Variables (examples) | Purpose |\n| --- | --- | --- |\n| App | `API_KEY`, `PORT`, `APP_VERSION`, `APP_ENV`, `MAX_REQUESTS_PER_MINUTE`, `CORS_ALLOWED_ORIGINS` | API key (**required** for middleware), port, version string on `/health`, rate-limit bucket size, CORS (`*` or comma-separated origins) |\n| PostgreSQL | `PG_DB_CONNECTION` or `PG_DB_HOST`, `PG_DB_PORT`, `PG_DB_DATABASE`, `PG_DB_USERNAME`, `PG_DB_PASSWORD`, `PG_DB_SSL`, `PG_DB_DEBUG` | Bun/PG client |\n| OpenSearch | `OPEN_SEARCH_CONNECTION` or host/port/user/password, `OPEN_SEARCH_SSL`, `OPEN_SEARCH_AUTH`, `OPEN_SEARCH_DEBUG` | Search client |\n| S3 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`, `S3_BUCKET`, `S3_ENDPOINT`, `S3_SSL`, `S3_DEBUG`, `S3_UPLOAD_URL_TTL_HOURS`, `S3_UPLOAD_FILE_PATH_PRIFIX` | Presigned URLs and CSV job I/O |\n| Job worker | `JOB_IN_QUEUE_SIZE`, `PARALLEL_JOBS`, `TICKER_INTERVAL_MINUTES`, `BATCH_SIZE_FOR_INSERTION`, `JOB_TYPE` | Background job processor (`cmd/jobs.go`), not every HTTP handler |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Group",
+            "Variables (examples)",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "App",
+              "`API_KEY`, `PORT`, `APP_VERSION`, `APP_ENV`, `MAX_REQUESTS_PER_MINUTE`, `CORS_ALLOWED_ORIGINS`",
+              "API key (**required** for middleware), port, version string on `/health`, rate-limit bucket size, CORS (`*` or comma-separated origins)"
+            ],
+            [
+              "PostgreSQL",
+              "`PG_DB_CONNECTION` or `PG_DB_HOST`, `PG_DB_PORT`, `PG_DB_DATABASE`, `PG_DB_USERNAME`, `PG_DB_PASSWORD`, `PG_DB_SSL`, `PG_DB_DEBUG`",
+              "Bun/PG client"
+            ],
+            [
+              "OpenSearch",
+              "`OPEN_SEARCH_CONNECTION` or host/port/user/password, `OPEN_SEARCH_SSL`, `OPEN_SEARCH_AUTH`, `OPEN_SEARCH_DEBUG`",
+              "Search client"
+            ],
+            [
+              "S3",
+              "`S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`, `S3_BUCKET`, `S3_ENDPOINT`, `S3_SSL`, `S3_DEBUG`, `S3_UPLOAD_URL_TTL_HOURS`, `S3_UPLOAD_FILE_PATH_PRIFIX`",
+              "Presigned URLs and CSV job I/O"
+            ],
+            [
+              "Job worker",
+              "`JOB_IN_QUEUE_SIZE`, `PARALLEL_JOBS`, `TICKER_INTERVAL_MINUTES`, `BATCH_SIZE_FOR_INSERTION`, `JOB_TYPE`",
+              "Background job processor (`cmd/jobs.go`), not every HTTP handler"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Global middleware",
+      "level": 2,
+      "slug": "global-middleware",
+      "prose": "| Order | Middleware | Behavior |\n| --- | --- | --- |\n| 1 | `gin.Logger`, `gin.Recovery` | Request logging, panic recovery |\n| 2 | CORS | `CORS_ALLOWED_ORIGINS` empty or `*` → allow all origins; else explicit list |\n| 3 | Gzip | Default compression |\n| 4 | **Rate limiter** | Token bucket: capacity = `MAX_REQUESTS_PER_MINUTE`, refill ~1/60 per second |\n| 5 | **`APIKeyAuth`** | Header **`X-API-Key`** must equal `API_KEY` |\n\n**Missing/wrong API key — `401`:**\n\n```json\n{\n  \"error\": \"ERR_UNAUTHORIZED: invalid or missing API key; provide a valid 'X-API-Key' header\",\n  \"success\": false\n}\n```\n\n**Rate limit — `429`:**\n\n```json\n{\n  \"error\": \"ERR_RATE_LIMIT_EXCEEDED: too many requests; please try again later\",\n  \"success\": false\n}\n```\n\nMost successful JSON responses include **`\"success\": true`**. Errors use **`\"success\": false`** and **`\"error\"`** with a stable `ERR_*` prefix (see `constants/errors_message.go`).\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Order",
+            "Middleware",
+            "Behavior"
+          ],
+          "rows": [
+            [
+              "1",
+              "`gin.Logger`, `gin.Recovery`",
+              "Request logging, panic recovery"
+            ],
+            [
+              "2",
+              "CORS",
+              "`CORS_ALLOWED_ORIGINS` empty or `*` → allow all origins; else explicit list"
+            ],
+            [
+              "3",
+              "Gzip",
+              "Default compression"
+            ],
+            [
+              "4",
+              "**Rate limiter**",
+              "Token bucket: capacity = `MAX_REQUESTS_PER_MINUTE`, refill ~1/60 per second"
+            ],
+            [
+              "5",
+              "**`APIKeyAuth`**",
+              "Header **`X-API-Key`** must equal `API_KEY`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"error\": \"ERR_UNAUTHORIZED: invalid or missing API key; provide a valid 'X-API-Key' header\",\n  \"success\": false\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"error\": \"ERR_RATE_LIMIT_EXCEEDED: too many requests; please try again later\",\n  \"success\": false\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /health",
+      "level": 2,
+      "slug": "get-health",
+      "prose": "Liveness and diagnostics for GraphQL `vqlHealth` (gateway probes `CONNECTRA_BASE_URL` + API key).\n\n**Headers:** `X-API-Key: <API_KEY>` (required).\n\n**Response `200`:**\n\n```json\n{\n  \"status\": \"ok\",\n  \"version\": \"1.0.0\",\n  \"uptime_seconds\": 42,\n  \"service\": \"connectra\",\n  \"diagnostics\": {\n    \"database\": true,\n    \"search_engine\": true\n  }\n}\n```\n\n- `version`: `APP_VERSION`, or **`1.0.0`** if unset.\n- `diagnostics.database` / `search_engine`: non-nil connection handles (`connections.PgDBConnection`, `connections.OpenSearchConnection`).\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`version`: `APP_VERSION`, or **`1.0.0`** if unset.",
+              "checked": null
+            },
+            {
+              "text": "`diagnostics.database` / `search_engine`: non-nil connection handles (`connections.PgDBConnection`, `connections.OpenSearchConnection`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"ok\",\n  \"version\": \"1.0.0\",\n  \"uptime_seconds\": 42,\n  \"service\": \"connectra\",\n  \"diagnostics\": {\n    \"database\": true,\n    \"search_engine\": true\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "VQL request body (utilities.VQLQuery)",
+      "level": 2,
+      "slug": "vql-request-body-utilitiesvqlquery",
+      "prose": "Used by **`POST /contacts/`**, **`POST /contacts/count`**, **`POST /companies/`**, **`POST /companies/count`**.\n\n```json\n{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [],\n      \"must_not\": []\n    },\n    \"keyword_match\": {\n      \"must\": {},\n      \"must_not\": {}\n    },\n    \"range_query\": {\n      \"must\": {},\n      \"must_not\": {}\n    }\n  },\n  \"order_by\": [\n    { \"order_by\": \"uuid\", \"order_direction\": \"desc\" }\n  ],\n  \"cursor\": [],\n  \"select_columns\": [\"uuid\", \"first_name\"],\n  \"company_config\": {\n    \"populate\": false,\n    \"select_columns\": []\n  },\n  \"page\": 1,\n  \"limit\": 25\n}\n```\n\n**`text_matches.must[]` item** (`TextMatchStruct`): `text_value`, `filter_key`, `search_type` (`exact` \\| `shuffle` \\| `substring`), optional `slop`, `operator`, `fuzzy`.\n\n**Pagination validation:** `limit` must be **≤ 100** (`MaxPageSize`); `page` must be **≤ 10** (`MaxOpenSearchPageNumber`). Violations → **`400`** with `ERR_PAGE_SIZE_EXCEEDED` or `ERR_PAGE_OUT_OF_RANGE`.\n\n**Success — list:**\n\n```json\n{\n  \"data\": [],\n  \"success\": true\n}\n```\n\n**Success — count:**\n\n```json\n{\n  \"count\": 0,\n  \"success\": true\n}\n```\n\n(`count` is integer; shape from OpenSearch/count path.)\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"where\": {\n    \"text_matches\": {\n      \"must\": [],\n      \"must_not\": []\n    },\n    \"keyword_match\": {\n      \"must\": {},\n      \"must_not\": {}\n    },\n    \"range_query\": {\n      \"must\": {},\n      \"must_not\": {}\n    }\n  },\n  \"order_by\": [\n    { \"order_by\": \"uuid\", \"order_direction\": \"desc\" }\n  ],\n  \"cursor\": [],\n  \"select_columns\": [\"uuid\", \"first_name\"],\n  \"company_config\": {\n    \"populate\": false,\n    \"select_columns\": []\n  },\n  \"page\": 1,\n  \"limit\": 25\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": [],\n  \"success\": true\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"count\": 0,\n  \"success\": true\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Contacts",
+      "level": 2,
+      "slug": "contacts",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /contacts/",
+      "level": 3,
+      "slug": "post-contacts",
+      "prose": "**Body:** `VQLQuery` (JSON).  \n**Response `200`:** `{ \"data\": <array of contact hits>, \"success\": true }`  \n**Errors:** `400` / `500` with `{ \"error\": \"...\", \"success\": false }`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /contacts/count",
+      "level": 3,
+      "slug": "post-contactscount",
+      "prose": "**Body:** `VQLQuery`.  \n**Response `200`:** `{ \"count\": <int>, \"success\": true }`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /contacts/batch-upsert",
+      "level": 3,
+      "slug": "post-contactsbatch-upsert",
+      "prose": "**Body:** JSON **array** of `PgContact` objects (not wrapped). Max **100** rows (`MaxPageSize`). Each contact must have valid UUIDs for contact and company.\n\n**Response `200`:** `{ \"success\": true }`.\n\n**Errors:** invalid UUIDs, batch too large, company lookup failures → **`400`** with message.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Companies",
+      "level": 2,
+      "slug": "companies",
+      "prose": "Same patterns as contacts:\n\n| Path | Body | Success |\n| --- | --- | --- |\n| `POST /companies/` | `VQLQuery` | `{ \"data\": [...], \"success\": true }` |\n| `POST /companies/count` | `VQLQuery` | `{ \"count\": n, \"success\": true }` |\n| `POST /companies/batch-upsert` | JSON array of company records | `{ \"success\": true }` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Path",
+            "Body",
+            "Success"
+          ],
+          "rows": [
+            [
+              "`POST /companies/`",
+              "`VQLQuery`",
+              "`{ \"data\": [...], \"success\": true }`"
+            ],
+            [
+              "`POST /companies/count`",
+              "`VQLQuery`",
+              "`{ \"count\": n, \"success\": true }`"
+            ],
+            [
+              "`POST /companies/batch-upsert`",
+              "JSON array of company records",
+              "`{ \"success\": true }`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Common",
+      "level": 2,
+      "slug": "common",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /common/batch-upsert",
+      "level": 3,
+      "slug": "post-commonbatch-upsert",
+      "prose": "LinkedIn-style row import: **`BatchInsertRequest`**\n\n```json\n{\n  \"data\": [\n    {\n      \"first_name\": \"jane\",\n      \"last_name\": \"doe\",\n      \"person_linkedin_url\": \"https://linkedin.com/in/jane\",\n      \"email\": \"j@example.com\"\n    }\n  ]\n}\n```\n\n`data` is **`[]map[string]string`**: required, non-empty, max length **100**.\n\n**Response `200`:** `{ \"message\": \"Batch upsert successful\", \"success\": true }`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": [\n    {\n      \"first_name\": \"jane\",\n      \"last_name\": \"doe\",\n      \"person_linkedin_url\": \"https://linkedin.com/in/jane\",\n      \"email\": \"j@example.com\"\n    }\n  ]\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /common/upload-url",
+      "level": 3,
+      "slug": "get-commonupload-url",
+      "prose": "| Query | Required | Description |\n| --- | --- | --- |\n| `filename` | Yes | Original filename |\n| `bucket` | No | Defaults to `S3_BUCKET` |\n\n**Response `200`:**\n\n```json\n{\n  \"success\": true,\n  \"upload_url\": \"https://...\",\n  \"s3_key\": \"<prefix>/<uuid>_<filename>\",\n  \"expires_in\": \"24h0m0s\"\n}\n```\n\n(`expires_in` is `S3_UPLOAD_URL_TTL_HOURS` as `time.Duration.String()`.)",
+      "tables": [
+        {
+          "headers": [
+            "Query",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`filename`",
+              "Yes",
+              "Original filename"
+            ],
+            [
+              "`bucket`",
+              "No",
+              "Defaults to `S3_BUCKET`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"success\": true,\n  \"upload_url\": \"https://...\",\n  \"s3_key\": \"<prefix>/<uuid>_<filename>\",\n  \"expires_in\": \"24h0m0s\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /common/download-url",
+      "level": 3,
+      "slug": "get-commondownload-url",
+      "prose": "| Query | Required |\n| --- | --- |\n| `s3_key` | Yes |\n| `bucket` | No (defaults to `S3_BUCKET`) |\n\n**Response `200`:** `{ \"success\": true, \"download_url\": \"...\", \"s3_key\": \"...\", \"expires_in\": \"...\" }`.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Query",
+            "Required"
+          ],
+          "rows": [
+            [
+              "`s3_key`",
+              "Yes"
+            ],
+            [
+              "`bucket`",
+              "No (defaults to `S3_BUCKET`)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Jobs (Postgres jobs table)",
+      "level": 2,
+      "slug": "jobs-postgres-jobs-table",
+      "prose": "Worker-supported **`job_type`** values: **`insert_csv_file`**, **`export_csv_file`** (`constants/jobs.go`). Other types are rejected at processing time with `ERR_INVALID_JOB_TYPE`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /common/jobs — list",
+      "level": 3,
+      "slug": "post-commonjobs-list",
+      "prose": "**Body (`ListJobsRequest`):**\n\n```json\n{\n  \"job_type\": \"\",\n  \"status\": [\"open\", \"completed\"],\n  \"limit\": 50\n}\n```\n\n- `limit`: optional; **0** means repository default **25** (`DefaultPageSize`); max **100** (`MaxPageSize`).\n\n**Response `200`:** `{ \"data\": [ { ...job row... } ], \"success\": true }`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`limit`: optional; **0** means repository default **25** (`DefaultPageSize`); max **100** (`MaxPageSize`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"job_type\": \"\",\n  \"status\": [\"open\", \"completed\"],\n  \"limit\": 50\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /common/jobs/create",
+      "level": 3,
+      "slug": "post-commonjobscreate",
+      "prose": "**Body (`CreateJobRequest`):**\n\n```json\n{\n  \"job_type\": \"insert_csv_file\",\n  \"job_data\": {\n    \"s3_key\": \"path/to/file.csv\",\n    \"s3_bucket\": \"optional-override\"\n  },\n  \"retry_count\": 0\n}\n```\n\n**`insert_csv_file`** — `job_data` unmarshals to **`InsertFileJobData`**: `s3_key`, `s3_bucket` (optional; defaults to configured bucket).\n\n**`export_csv_file`** — `job_data` unmarshals to **`ExportFileJobData`:**\n\n```json\n{\n  \"s3_bucket\": \"optional\",\n  \"service\": \"contact\",\n  \"vql\": {\n    \"where\": { \"text_matches\": { \"must\": [], \"must_not\": [] }, \"keyword_match\": { \"must\": {}, \"must_not\": {} }, \"range_query\": { \"must\": {}, \"must_not\": {} } } },\n    \"select_columns\": [\"uuid\", \"email\"],\n    \"page\": 1,\n    \"limit\": 100\n  }\n}\n```\n\n**`service`** must be **`contact`** or **`company`** (matches filter service constants). Export requires non-empty **`vql.select_columns`**.\n\n**Response `201`:** `{ \"message\": \"Job created successfully\", \"success\": true }`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"job_type\": \"insert_csv_file\",\n  \"job_data\": {\n    \"s3_key\": \"path/to/file.csv\",\n    \"s3_bucket\": \"optional-override\"\n  },\n  \"retry_count\": 0\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"s3_bucket\": \"optional\",\n  \"service\": \"contact\",\n  \"vql\": {\n    \"where\": { \"text_matches\": { \"must\": [], \"must_not\": [] }, \"keyword_match\": { \"must\": {}, \"must_not\": {} }, \"range_query\": { \"must\": {}, \"must_not\": {} } } },\n    \"select_columns\": [\"uuid\", \"email\"],\n    \"page\": 1,\n    \"limit\": 100\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /common/jobs/:jobuuid`",
+      "level": 3,
+      "slug": "get-commonjobsjobuuid",
+      "prose": "**Response `200`:** `{ \"data\": { ... }, \"success\": true }` where `data` is a **`ModelJobs`** row:\n\n| Field | Type | Notes |\n| --- | --- | --- |\n| `id` | uint64 | |\n| `uuid` | string | |\n| `job_type` | string | |\n| `data` | object (JSON) | Original `job_data` |\n| `status` | string | e.g. `open`, `paused`, `processing`, `completed`, `failed`, `terminated` |\n| `job_response` | object | Runtime errors, messages, `s3_key` for exports |\n| `retry_count`, `retry_interval` | int | |\n| `run_after` | ISO time or null | |\n| `created_at`, `updated_at` | ISO time | |\n\n**Not found:** **`500`** with `ERR_JOB_NOT_FOUND` (handler maps repository empty list to this error) — treat as missing job.",
+      "tables": [
+        {
+          "headers": [
+            "Field",
+            "Type",
+            "Notes"
+          ],
+          "rows": [
+            [
+              "`id`",
+              "uint64",
+              ""
+            ],
+            [
+              "`uuid`",
+              "string",
+              ""
+            ],
+            [
+              "`job_type`",
+              "string",
+              ""
+            ],
+            [
+              "`data`",
+              "object (JSON)",
+              "Original `job_data`"
+            ],
+            [
+              "`status`",
+              "string",
+              "e.g. `open`, `paused`, `processing`, `completed`, `failed`, `terminated`"
+            ],
+            [
+              "`job_response`",
+              "object",
+              "Runtime errors, messages, `s3_key` for exports"
+            ],
+            [
+              "`retry_count`, `retry_interval`",
+              "int",
+              ""
+            ],
+            [
+              "`run_after`",
+              "ISO time or null",
+              ""
+            ],
+            [
+              "`created_at`, `updated_at`",
+              "ISO time",
+              ""
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /common/jobs/:jobuuid/pause | resume | terminate`",
+      "level": 3,
+      "slug": "post-commonjobsjobuuidpause-resume-terminate",
+      "prose": "**Response `200`:**\n\n```json\n{ \"job_uuid\": \"<uuid>\", \"status\": \"paused\", \"success\": true }\n```\n\n(`resume` → `\"status\": \"open\"`; `terminate` → `\"terminated\"`.)\n\n**Not found:** **`404`** with `{ \"error\": \"...\", \"success\": false }` when job UUID does not exist.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{ \"job_uuid\": \"<uuid>\", \"status\": \"paused\", \"success\": true }\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Filters",
+      "level": 2,
+      "slug": "filters",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /common/:service/filters",
+      "level": 3,
+      "slug": "get-commonservicefilters",
+      "prose": "Returns filter definitions for **`contact`** or **`company`**. Invalid service → **`500`** with `ERR_UNSUPPORTED_SERVICE`.\n\n**Response `200`:** `{ \"data\": [...], \"success\": true }`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /common/:service/filters/data",
+      "level": 3,
+      "slug": "post-commonservicefiltersdata",
+      "prose": "**Body (`FiltersDataQuery`):**\n\n```json\n{\n  \"filter_key\": \"title\",\n  \"search_text\": \"\",\n  \"page\": 1,\n  \"limit\": 20\n}\n```\n\nServer sets **`service`** from the path (`:service`). `limit` validated with **`ValidatePageSize`** (≤ **100**).\n\n**Response `200`:**\n\n```json\n{\n  \"data\": [\n    { \"value\": \"...\", \"display_value\": \"...\" }\n  ],\n  \"success\": true\n}\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"filter_key\": \"title\",\n  \"search_text\": \"\",\n  \"page\": 1,\n  \"limit\": 20\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"data\": [\n    { \"value\": \"...\", \"display_value\": \"...\" }\n  ],\n  \"success\": true\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GraphQL gateway mapping (summary)",
+      "level": 2,
+      "slug": "graphql-gateway-mapping-summary",
+      "prose": "| Connectra HTTP | Gateway docs |\n| --- | --- |\n| VQL list/count, batch-upsert, filters | [03_CONTACTS_MODULE.md](../graphql.modules/03_CONTACTS_MODULE.md), [04_COMPANIES_MODULE.md](../graphql.modules/04_COMPANIES_MODULE.md) |\n| `/common/jobs*`, CSV worker jobs | [16_JOBS_MODULE.md](../graphql.modules/16_JOBS_MODULE.md) |\n| `GET /health` | [08_HEALTH_MODULE.md](../graphql.modules/08_HEALTH_MODULE.md) |\n\nThe gateway **`scheduler_jobs`** table and GraphQL **`jobs.*`** mutations are a **separate** orchestration layer; they may call Connectra (`POST /common/jobs/create`, etc.) depending on mutation — see Jobs module.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Connectra HTTP",
+            "Gateway docs"
+          ],
+          "rows": [
+            [
+              "VQL list/count, batch-upsert, filters",
+              "[03_CONTACTS_MODULE.md](../graphql.modules/03_CONTACTS_MODULE.md), [04_COMPANIES_MODULE.md](../graphql.modules/04_COMPANIES_MODULE.md)"
+            ],
+            [
+              "`/common/jobs*`, CSV worker jobs",
+              "[16_JOBS_MODULE.md](../graphql.modules/16_JOBS_MODULE.md)"
+            ],
+            [
+              "`GET /health`",
+              "[08_HEALTH_MODULE.md](../graphql.modules/08_HEALTH_MODULE.md)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "03_CONTACTS_MODULE.md",
+          "href": "../graphql.modules/03_CONTACTS_MODULE.md"
+        },
+        {
+          "text": "04_COMPANIES_MODULE.md",
+          "href": "../graphql.modules/04_COMPANIES_MODULE.md"
+        },
+        {
+          "text": "16_JOBS_MODULE.md",
+          "href": "../graphql.modules/16_JOBS_MODULE.md"
+        },
+        {
+          "text": "08_HEALTH_MODULE.md",
+          "href": "../graphql.modules/08_HEALTH_MODULE.md"
+        }
+      ]
+    },
+    {
+      "heading": "Related docs",
+      "level": 2,
+      "slug": "related-docs",
+      "prose": "| Doc | Purpose |\n| --- | --- |\n| [03_CONTACTS_MODULE.md](../graphql.modules/03_CONTACTS_MODULE.md) | GraphQL Contacts → Connectra |\n| [04_COMPANIES_MODULE.md](../graphql.modules/04_COMPANIES_MODULE.md) | GraphQL Companies → Connectra |\n| [08_HEALTH_MODULE.md](../graphql.modules/08_HEALTH_MODULE.md) | `vqlHealth` probe |\n| [16_JOBS_MODULE.md](../graphql.modules/16_JOBS_MODULE.md) | Scheduler vs Connectra jobs |\n| [09_USAGE_MODULE.md](../graphql.modules/09_USAGE_MODULE.md) | Usage / feature overview (jobs list is gateway DB) |\n| [11_ACTIVITIES_MODULE.md](../graphql.modules/11_ACTIVITIES_MODULE.md) | Activity logging |\n| [../postman/EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json) | Postman collection |",
+      "tables": [
+        {
+          "headers": [
+            "Doc",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "[03_CONTACTS_MODULE.md](../graphql.modules/03_CONTACTS_MODULE.md)",
+              "GraphQL Contacts → Connectra"
+            ],
+            [
+              "[04_COMPANIES_MODULE.md](../graphql.modules/04_COMPANIES_MODULE.md)",
+              "GraphQL Companies → Connectra"
+            ],
+            [
+              "[08_HEALTH_MODULE.md](../graphql.modules/08_HEALTH_MODULE.md)",
+              "`vqlHealth` probe"
+            ],
+            [
+              "[16_JOBS_MODULE.md](../graphql.modules/16_JOBS_MODULE.md)",
+              "Scheduler vs Connectra jobs"
+            ],
+            [
+              "[09_USAGE_MODULE.md](../graphql.modules/09_USAGE_MODULE.md)",
+              "Usage / feature overview (jobs list is gateway DB)"
+            ],
+            [
+              "[11_ACTIVITIES_MODULE.md](../graphql.modules/11_ACTIVITIES_MODULE.md)",
+              "Activity logging"
+            ],
+            [
+              "[../postman/EC2_sync.server.postman_collection.json](../postman/EC2_sync.server.postman_collection.json)",
+              "Postman collection"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "03_CONTACTS_MODULE.md",
+          "href": "../graphql.modules/03_CONTACTS_MODULE.md"
+        },
+        {
+          "text": "04_COMPANIES_MODULE.md",
+          "href": "../graphql.modules/04_COMPANIES_MODULE.md"
+        },
+        {
+          "text": "08_HEALTH_MODULE.md",
+          "href": "../graphql.modules/08_HEALTH_MODULE.md"
+        },
+        {
+          "text": "16_JOBS_MODULE.md",
+          "href": "../graphql.modules/16_JOBS_MODULE.md"
+        },
+        {
+          "text": "09_USAGE_MODULE.md",
+          "href": "../graphql.modules/09_USAGE_MODULE.md"
+        },
+        {
+          "text": "11_ACTIVITIES_MODULE.md",
+          "href": "../graphql.modules/11_ACTIVITIES_MODULE.md"
+        },
+        {
+          "text": "../postman/EC2_sync.server.postman_collection.json",
+          "href": "../postman/EC2_sync.server.postman_collection.json"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

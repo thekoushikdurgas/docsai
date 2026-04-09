@@ -1,0 +1,992 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/email-codebase-analysis.md",
+  "sha256_source": "2e7fcc197f08a4297af48160e452c9aaaa18919d133349c06d8aabe6aa105c5c",
+  "generated_at": "2026-04-08T23:26:47.033742+00:00",
+  "title": "Email App Codebase Analysis (contact360.io/email)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Email App Codebase Analysis (contact360.io/email)",
+      "level": 1,
+      "slug": "email-app-codebase-analysis-contact360ioemail",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`contact360.io/email` is the dedicated mailbox-style frontend surface in Contact360. It provides auth, mailbox folder views, email detail rendering, and account/IMAP management. It is currently a direct REST-consuming UI layer (via `NEXT_PUBLIC_BACKEND_URL`) and does not use the same GraphQL-first service architecture as `contact360.io/app`.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture snapshot",
+      "level": 2,
+      "slug": "runtime-architecture-snapshot",
+      "prose": "- Framework/runtime: Next.js 16 app-router, React 19, TypeScript.\n- UI stack: Tailwind + component wrappers (`button`, `table`, `tabs`, `sidebar`, alerts).\n- Data transport: direct `fetch` calls from components/pages.\n- Session/account state: mailbox **identity** in `localStorage` (`id`, `provider`, `email` only); **mailbox session token** in `sessionStorage` (not persisted across browser restarts); passwords only sent to backend over HTTPS during connect.\n- Mail rendering: HTML body sanitized via `isomorphic-dompurify` before display.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Framework/runtime: Next.js 16 app-router, React 19, TypeScript.",
+              "checked": null
+            },
+            {
+              "text": "UI stack: Tailwind + component wrappers (`button`, `table`, `tabs`, `sidebar`, alerts).",
+              "checked": null
+            },
+            {
+              "text": "Data transport: direct `fetch` calls from components/pages.",
+              "checked": null
+            },
+            {
+              "text": "Session/account state: mailbox **identity** in `localStorage` (`id`, `provider`, `email` only); **mailbox session token** in `sessionStorage` (not persisted across browser restarts); passwords only sent to backend over HTTPS during connect.",
+              "checked": null
+            },
+            {
+              "text": "Mail rendering: HTML body sanitized via `isomorphic-dompurify` before display.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ Mailbox route shell is implemented (`/inbox`, `/sent`, `/spam`, `/draft`).\n- [x] ✅ Email detail route exists and renders sanitized HTML (`/email/[mailId]`).\n- [x] ✅ Auth pages exist (`/auth/login`, `/auth/signup`) and call backend auth endpoints.\n- [x] ✅ Account page supports profile updates and connecting/switching IMAP accounts.\n- [x] ✅ Table-level list capabilities exist (selection, pagination, unread tab counts).\n- [x] ✅ Basic loading/error empty states exist in mailbox views.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Mailbox route shell is implemented (`/inbox`, `/sent`, `/spam`, `/draft`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Email detail route exists and renders sanitized HTML (`/email/[mailId]`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Auth pages exist (`/auth/login`, `/auth/signup`) and call backend auth endpoints.",
+              "checked": true
+            },
+            {
+              "text": "✅ Account page supports profile updates and connecting/switching IMAP accounts.",
+              "checked": true
+            },
+            {
+              "text": "✅ Table-level list capabilities exist (selection, pagination, unread tab counts).",
+              "checked": true
+            },
+            {
+              "text": "✅ Basic loading/error empty states exist in mailbox views.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and credential handling",
+      "level": 3,
+      "slug": "security-and-credential-handling",
+      "prose": "- [x] ✅ Completed: password is not persisted; `mailhub_active_account` stores only public identity fields; session token uses `sessionStorage`.\n- [x] ✅ Completed: mailbox fetches no longer send raw `X-Email`/`X-Password` credentials from client runtime.\n- [ ] 🟡 In Progress: auth token strategy is partially commented/implicit in multiple files and not fully standardized.\n- [ ] 🟡 In Progress: mailbox session token contract is introduced (`X-Mailbox-Session`) and now needs backend enforcement hardening.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: password is not persisted; `mailhub_active_account` stores only public identity fields; session token uses `sessionStorage`.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: mailbox fetches no longer send raw `X-Email`/`X-Password` credentials from client runtime.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: auth token strategy is partially commented/implicit in multiple files and not fully standardized.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: mailbox session token contract is introduced (`X-Mailbox-Session`) and now needs backend enforcement hardening.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Product and feature completeness",
+      "level": 3,
+      "slug": "product-and-feature-completeness",
+      "prose": "- [ ] ⬜ Incomplete: compose/send workflow is visually present but not implemented as real send pipeline.\n- [ ] ⬜ Incomplete: sidebar secondary links (`Settings`, `Ask AI`, `Get Help`) are placeholders (`url: \"#\"`) and not productized.\n- [ ] 🟡 In Progress: unread filtering is present, but table search input is not wired to active filtering behavior.\n- [ ] ⬜ Incomplete: flagged tab behavior is not connected to persisted flag state.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: compose/send workflow is visually present but not implemented as real send pipeline.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: sidebar secondary links (`Settings`, `Ask AI`, `Get Help`) are placeholders (`url: \"#\"`) and not productized.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: unread filtering is present, but table search input is not wired to active filtering behavior.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: flagged tab behavior is not connected to persisted flag state.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Reliability and architecture drift",
+      "level": 3,
+      "slug": "reliability-and-architecture-drift",
+      "prose": "- [ ] 🟡 In Progress: baseline loading/error UI exists, but retry/backoff and request normalization are inconsistent.\n- [ ] ⬜ Incomplete: no centralized service client layer (auth/mail/account requests are duplicated across components).\n- [ ] ⬜ Incomplete: observability and event telemetry alignment with `logs.api` is not explicit.\n- [ ] 📌 Planned: align mail app contract model with Appointment360 governance conventions where applicable.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: baseline loading/error UI exists, but retry/backoff and request normalization are inconsistent.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no centralized service client layer (auth/mail/account requests are duplicated across components).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: observability and event telemetry alignment with `logs.api` is not explicit.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: align mail app contract model with Appointment360 governance conventions where applicable.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-service dependency map (release gating)",
+      "level": 2,
+      "slug": "cross-service-dependency-map-release-gating",
+      "prose": "- [x] ✅ `contact360.io/email` -> backend REST auth/user/mail endpoints (private runtime contract).\n- [ ] 🟡 In Progress: define explicit dependency map into central Contact360 service docs and release gates.\n- [ ] ⬜ Incomplete: formal dependency bridge to `contact360.io/api` (Appointment360) is missing.\n- [ ] 📌 Planned: integrate with campaign and activity services for unified operator workflows.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ `contact360.io/email` -> backend REST auth/user/mail endpoints (private runtime contract).",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: define explicit dependency map into central Contact360 service docs and release gates.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: formal dependency bridge to `contact360.io/api` (Appointment360) is missing.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: integrate with campaign and activity services for unified operator workflows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Storage-control-plane migration map (direct S3 -> s3storage)",
+      "level": 2,
+      "slug": "storage-control-plane-migration-map-direct-s3---s3storage",
+      "prose": "- [x] ✅ No direct browser AWS SDK or raw S3 client usage found in this app.\n- [ ] 📌 Planned: when attachments/media upload is added, enforce `s3storage`-only flow via gateway contract.\n- [ ] 📌 Planned: add doc gate forbidding new direct storage access patterns in email app.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ No direct browser AWS SDK or raw S3 client usage found in this app.",
+              "checked": true
+            },
+            {
+              "text": "📌 Planned: when attachments/media upload is added, enforce `s3storage`-only flow via gateway contract.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add doc gate forbidding new direct storage access patterns in email app.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Log-unification migration map (local logs/console -> logs.api)",
+      "level": 2,
+      "slug": "log-unification-migration-map-local-logsconsole---logsapi",
+      "prose": "- [ ] 🟡 In Progress: local `console.error`/`console.warn` remains in auth/sidebar/mail/account flows.\n- [ ] ⬜ Incomplete: production-grade frontend action/error telemetry is not routed through canonical `logs.api`.\n- [ ] 📌 Planned: introduce unified telemetry adapter (client breadcrumb -> backend/logs.api ingestion).\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: local `console.error`/`console.warn` remains in auth/sidebar/mail/account flows.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: production-grade frontend action/error telemetry is not routed through canonical `logs.api`.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: introduce unified telemetry adapter (client breadcrumb -> backend/logs.api ingestion).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Core REST routes are consumed for auth, user profile, mailbox list/detail, and IMAP account operations.\n- [ ] 🟡 In Progress: document and type all request/response DTOs to reduce drift.\n- [ ] ⬜ Incomplete: define mailbox session token contract to replace raw credential headers.\n- [ ] ⬜ Incomplete: specify campaign-ready email send/sequence contracts for `10.x.x`.\n- [ ] 📌 Planned: publish private/public endpoint policy for this app surface.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core REST routes are consumed for auth, user profile, mailbox list/detail, and IMAP account operations.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: document and type all request/response DTOs to reduce drift.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define mailbox session token contract to replace raw credential headers.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: specify campaign-ready email send/sequence contracts for `10.x.x`.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: publish private/public endpoint policy for this app surface.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Functional fetch flows exist for login/signup/list/detail/account updates.\n- [ ] 🟡 In Progress: create centralized service modules (`authService`, `mailService`, `accountService`) for reuse.\n- [ ] ⬜ Incomplete: implement compose/send orchestration and delivery status updates.\n- [ ] ⬜ Incomplete: replace localStorage credential model with secure session abstraction.\n- [ ] 📌 Planned: add feature flags for phased rollout of campaign/AI capabilities.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Functional fetch flows exist for login/signup/list/detail/account updates.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: create centralized service modules (`authService`, `mailService`, `accountService`) for reuse.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: implement compose/send orchestration and delivery status updates.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: replace localStorage credential model with secure session abstraction.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add feature flags for phased rollout of campaign/AI capabilities.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Sidebar, mailbox pages, detail view, and account settings UI are established.\n- [ ] 🟡 In Progress: wire table search input and flagged state to real filters/state.\n- [ ] ⬜ Incomplete: activate placeholder secondary navigation destinations.\n- [ ] ⬜ Incomplete: improve cross-page UX consistency (state persistence, toasts, recovery actions).\n- [ ] 📌 Planned: campaign operator workspace (compose, schedule, sequence, analytics).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Sidebar, mailbox pages, detail view, and account settings UI are established.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: wire table search input and flagged state to real filters/state.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: activate placeholder secondary navigation destinations.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: improve cross-page UX consistency (state persistence, toasts, recovery actions).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign operator workspace (compose, schedule, sequence, analytics).",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Email HTML rendering includes sanitization guardrails.\n- [ ] 🟡 In Progress: enforce strict typing and validation for backend payloads.\n- [ ] ⬜ Incomplete: eliminate sensitive credential persistence in browser storage.\n- [ ] ⬜ Incomplete: define reliable message metadata lineage (read/flag/sent status auditability).\n- [ ] 📌 Planned: campaign evidence and compliance retention model.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Email HTML rendering includes sanitization guardrails.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: enforce strict typing and validation for backend payloads.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: eliminate sensitive credential persistence in browser storage.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define reliable message metadata lineage (read/flag/sent status auditability).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign evidence and compliance retention model.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Basic loading/error handling patterns are present in mailbox and account views.\n- [ ] 🟡 In Progress: add request retry/backoff and timeout handling consistently.\n- [ ] ⬜ Incomplete: no formal SLO/error-budget instrumentation in frontend runtime.\n- [ ] ⬜ Incomplete: release gating checklist for endpoint/auth/config hardening not complete.\n- [ ] 📌 Planned: operational dashboards and alert routing for mailbox runtime.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Basic loading/error handling patterns are present in mailbox and account views.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: add request retry/backoff and timeout handling consistently.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no formal SLO/error-budget instrumentation in frontend runtime.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: release gating checklist for endpoint/auth/config hardening not complete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: operational dashboards and alert routing for mailbox runtime.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Next.js mail app scaffold, route shell, and component baseline are implemented.\n- [x] ✅ Theme/layout and sidebar patterns are established.\n- [ ] 🟡 In Progress: enforce shared code standards and remove stale commented legacy code paths.\n- [ ] ⬜ Incomplete: central API service abstraction layer is missing.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Next.js mail app scaffold, route shell, and component baseline are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Theme/layout and sidebar patterns are established.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: enforce shared code standards and remove stale commented legacy code paths.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: central API service abstraction layer is missing.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ Login/signup and user profile editing flows exist.\n- [ ] 🟡 In Progress: standardize auth token/session handling in all calls.\n- [ ] ⬜ Incomplete: billing and credit visibility/action surfaces are not integrated here.\n- [ ] 📌 Planned: add subscription/credit-aware mail feature gating.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Login/signup and user profile editing flows exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: standardize auth token/session handling in all calls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: billing and credit visibility/action surfaces are not integrated here.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add subscription/credit-aware mail feature gating.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ Folder browsing and email detail views are operational.\n- [x] ✅ IMAP account connect/switch UI and backend calls are implemented.\n- [ ] 🟡 In Progress: stabilize mailbox fetch behavior and user-state recovery flows.\n- [ ] ⬜ Incomplete: compose/send and message action pipelines (flag/move/label) are incomplete.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Folder browsing and email detail views are operational.",
+              "checked": true
+            },
+            {
+              "text": "✅ IMAP account connect/switch UI and backend calls are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: stabilize mailbox fetch behavior and user-state recovery flows.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: compose/send and message action pipelines (flag/move/label) are incomplete.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [ ] ⬜ Incomplete: no active contact/company enrichment links from mailbox UI.\n- [ ] 📌 Planned: add sender-to-contact/company lookup and CRM linkage from messages.\n- [ ] 📌 Planned: add save-to-contact/company actions from inbox detail.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: no active contact/company enrichment links from mailbox UI.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add sender-to-contact/company lookup and CRM linkage from messages.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add save-to-contact/company actions from inbox detail.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] ⬜ Incomplete: no direct extension/Sales Navigator inbox bridge in current runtime.\n- [ ] 📌 Planned: map extension-discovered leads into mailbox workflows.\n- [ ] 📌 Planned: provide Sales Navigator context panes in relevant email views.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: no direct extension/Sales Navigator inbox bridge in current runtime.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: map extension-discovered leads into mailbox workflows.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: provide Sales Navigator context panes in relevant email views.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [ ] ⬜ Incomplete: AI navigation exists only as placeholder link (`Ask AI`).\n- [ ] 📌 Planned: AI email drafting, summarization, and reply suggestion pipeline.\n- [ ] 📌 Planned: AI-assisted triage for spam/risk/prioritization.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: AI navigation exists only as placeholder link (`Ask AI`).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI email drafting, summarization, and reply suggestion pipeline.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: AI-assisted triage for spam/risk/prioritization.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ Basic load/error states are implemented.\n- [ ] 🟡 In Progress: normalize error handling and retries for network failures.\n- [ ] ⬜ Incomplete: no robust telemetry/SLO instrumentation and limited resilience controls.\n- [ ] 📌 Planned: adopt resilient query/cache layer and offline-safe handling.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Basic load/error states are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: normalize error handling and retries for network failures.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no robust telemetry/SLO instrumentation and limited resilience controls.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: adopt resilient query/cache layer and offline-safe handling.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ Standard Next.js build/deploy baseline is present.\n- [ ] 🟡 In Progress: tighten production env validation and secret hygiene.\n- [ ] ⬜ Incomplete: deployment runbook and release safety checks are incomplete.\n- [ ] 📌 Planned: progressive rollout controls and feature flags per environment.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Standard Next.js build/deploy baseline is present.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: tighten production env validation and secret hygiene.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: deployment runbook and release safety checks are incomplete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: progressive rollout controls and feature flags per environment.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [x] ✅ Private REST endpoint consumption pattern exists.\n- [ ] 🟡 In Progress: formalize endpoint ownership/versioning docs for this app.\n- [ ] ⬜ Incomplete: no explicit public/private boundary enforcement in app contract docs.\n- [ ] 📌 Planned: endpoint compatibility checks integrated into CI gates.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Private REST endpoint consumption pattern exists.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: formalize endpoint ownership/versioning docs for this app.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: no explicit public/private boundary enforcement in app contract docs.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: endpoint compatibility checks integrated into CI gates.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] ⬜ Incomplete: ecosystem integrations are minimal in current UI.\n- [ ] 📌 Planned: integrate docs/help/automation connectors and external mailbox ecosystems.\n- [ ] 📌 Planned: platform-grade integration settings and health surfaces.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: ecosystem integrations are minimal in current UI.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: integrate docs/help/automation connectors and external mailbox ecosystems.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: platform-grade integration settings and health surfaces.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] ⬜ Incomplete: campaign compose/sequence/scheduling UI is not implemented.\n- [ ] ⬜ Incomplete: send pipeline, campaign analytics, and compliance tracking are not implemented.\n- [ ] 📌 Planned: campaign control center integrated with contacts, credits, and AI.\n- [ ] 📌 Planned: campaign observability and deliverability governance surfaces.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: campaign compose/sequence/scheduling UI is not implemented.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: send pipeline, campaign analytics, and compliance tracking are not implemented.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign control center integrated with contacts, credits, and AI.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign observability and deliverability governance surfaces.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [x] ✅ Completed: remove IMAP password persistence and raw credential headers from client runtime (replace with tokenized mailbox session headers).\n- [ ] 🟡 In Progress: centralize API calls into typed service modules and shared error handling.\n- [ ] ⬜ Incomplete: wire compose/send flow and replace placeholder tool routes.\n- [ ] ⬜ Incomplete: connect table search + flagged behavior to real backend/state model.\n- [ ] 📌 Planned: add telemetry adapter for standardized `logs.api` event/error ingestion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: remove IMAP password persistence and raw credential headers from client runtime (replace with tokenized mailbox session headers).",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: centralize API calls into typed service modules and shared error handling.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: wire compose/send flow and replace placeholder tool routes.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: connect table search + flagged behavior to real backend/state model.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add telemetry adapter for standardized `logs.api` event/error ingestion.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0 - must close for release safety",
+      "level": 3,
+      "slug": "p0---must-close-for-release-safety",
+      "prose": "- [x] ✅ Completed: eliminate client-side credential persistence and raw credential transport.\n- [ ] ⬜ Incomplete: enforce secure auth/session handling consistently across all requests.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: eliminate client-side credential persistence and raw credential transport.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: enforce secure auth/session handling consistently across all requests.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2 - required for maturity",
+      "level": 3,
+      "slug": "p1p2---required-for-maturity",
+      "prose": "- [ ] 🟡 In Progress: central service abstraction + typed contracts for all endpoints.\n- [ ] 🟡 In Progress: complete mailbox UX gaps (search wiring, flagged state, send actions).\n- [ ] 📌 Planned: complete observability/logging unification into canonical logging path.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: central service abstraction + typed contracts for all endpoints.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: complete mailbox UX gaps (search wiring, flagged state, send actions).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: complete observability/logging unification into canonical logging path.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+ - platform productization",
+      "level": 3,
+      "slug": "p3---platform-productization",
+      "prose": "- [ ] 📌 Planned: AI-assisted mail workflows and ecosystem integrations.\n- [ ] 📌 Planned: full campaign runtime (`10.x.x`) with compliance/analytics controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: AI-assisted mail workflows and ecosystem integrations.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: full campaign runtime (`10.x.x`) with compliance/analytics controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

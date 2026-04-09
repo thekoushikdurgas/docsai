@@ -1,0 +1,1080 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/admin-codebase-analysis.md",
+  "sha256_source": "0c408d3ba1be7f2d08817c9a7259ee24071fc1c3afb61e5c8e1a6b3a4aeeb857",
+  "generated_at": "2026-04-08T23:26:46.906890+00:00",
+  "title": "contact360.io/admin codebase deep analysis (Contact360 eras 0.x-10.x)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "contact360.io/admin codebase deep analysis (Contact360 eras 0.x-10.x)",
+      "level": 1,
+      "slug": "contact360ioadmin-codebase-deep-analysis-contact360-eras-0x-10x",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service summary",
+      "level": 2,
+      "slug": "service-summary",
+      "prose": "`contact360.io/admin` is the Django-based DocsAI and admin governance surface for Contact360. It provides roadmap and architecture mirrors, operational admin functions, and internal graph/documentation tooling.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Runtime architecture",
+      "level": 2,
+      "slug": "runtime-architecture",
+      "prose": "- Framework: Django (templates + static assets)\n- Base route map: `contact360.io/admin/docsai/urls.py`\n- Core auth/dashboard views: `contact360.io/admin/apps/core/views.py`\n- Documentation dashboard: `contact360.io/admin/apps/documentation/views/dashboard.py`\n- Admin operations views: `contact360.io/admin/apps/admin/views.py`\n- Navigation registry: `contact360.io/admin/apps/core/navigation.py` (`SIDEBAR_MENU`)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Framework: Django (templates + static assets)",
+              "checked": null
+            },
+            {
+              "text": "Base route map: `contact360.io/admin/docsai/urls.py`",
+              "checked": null
+            },
+            {
+              "text": "Core auth/dashboard views: `contact360.io/admin/apps/core/views.py`",
+              "checked": null
+            },
+            {
+              "text": "Documentation dashboard: `contact360.io/admin/apps/documentation/views/dashboard.py`",
+              "checked": null
+            },
+            {
+              "text": "Admin operations views: `contact360.io/admin/apps/admin/views.py`",
+              "checked": null
+            },
+            {
+              "text": "Navigation registry: `contact360.io/admin/apps/core/navigation.py` (`SIDEBAR_MENU`)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "UI/UX inventory",
+      "level": 2,
+      "slug": "uiux-inventory",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Templates and navigation",
+      "level": 3,
+      "slug": "templates-and-navigation",
+      "prose": "- Shared shell: `templates/base.html` with conditional authenticated sidebar/header layout.\n- Roadmap view: `templates/roadmap/dashboard.html` with preview/edit tabs, progress bar, radio status filters.\n- Architecture view: `templates/architecture/blueprint.html` with preview/edit tabs, readiness progress, radio filters.\n- Sidebar groups in `SIDEBAR_MENU`: Documentation, Analysis, AI, Automation, Management, Admin, Tools and Info.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Shared shell: `templates/base.html` with conditional authenticated sidebar/header layout.",
+              "checked": null
+            },
+            {
+              "text": "Roadmap view: `templates/roadmap/dashboard.html` with preview/edit tabs, progress bar, radio status filters.",
+              "checked": null
+            },
+            {
+              "text": "Architecture view: `templates/architecture/blueprint.html` with preview/edit tabs, readiness progress, radio filters.",
+              "checked": null
+            },
+            {
+              "text": "Sidebar groups in `SIDEBAR_MENU`: Documentation, Analysis, AI, Automation, Management, Admin, Tools and Info.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "UI elements and static components",
+      "level": 3,
+      "slug": "ui-elements-and-static-components",
+      "prose": "- Buttons: `static/css/components/button.css`\n- Input/select/textarea/radio groups: `static/css/components/form-inputs.css`\n- Tabs: `static/css/components/tabs.css`\n- Progress bars: `static/css/components/progress.css` and `templates/components/progress.html`\n- Graph rendering styles: `static/css/components/graph.css`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Buttons: `static/css/components/button.css`",
+              "checked": null
+            },
+            {
+              "text": "Input/select/textarea/radio groups: `static/css/components/form-inputs.css`",
+              "checked": null
+            },
+            {
+              "text": "Tabs: `static/css/components/tabs.css`",
+              "checked": null
+            },
+            {
+              "text": "Progress bars: `static/css/components/progress.css` and `templates/components/progress.html`",
+              "checked": null
+            },
+            {
+              "text": "Graph rendering styles: `static/css/components/graph.css`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Graph and flow components",
+      "level": 3,
+      "slug": "graph-and-flow-components",
+      "prose": "- Force-directed documentation relationship graph: `static/js/components/relationship-graph-viewer.js` (D3.js)\n- Generic graph rendering path: `static/js/components/graph.js` (Cytoscape.js)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Force-directed documentation relationship graph: `static/js/components/relationship-graph-viewer.js` (D3.js)",
+              "checked": null
+            },
+            {
+              "text": "Generic graph rendering path: `static/js/components/graph.js` (Cytoscape.js)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Backend/API/data inventory",
+      "level": 2,
+      "slug": "backendapidata-inventory",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GraphQL clients and service bridge",
+      "level": 3,
+      "slug": "graphql-clients-and-service-bridge",
+      "prose": "- Shared Python GraphQL client: `apps/core/services/graphql_client.py` (httpx, retry, exponential backoff, cache)\n- Appointment auth/profile bridge: `apps/core/clients/appointment360_client.py`\n- Admin operations bridge: `apps/admin/services/admin_client.py`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Shared Python GraphQL client: `apps/core/services/graphql_client.py` (httpx, retry, exponential backoff, cache)",
+              "checked": null
+            },
+            {
+              "text": "Appointment auth/profile bridge: `apps/core/clients/appointment360_client.py`",
+              "checked": null
+            },
+            {
+              "text": "Admin operations bridge: `apps/admin/services/admin_client.py`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Access control",
+      "level": 3,
+      "slug": "access-control",
+      "prose": "- Decorator-based protection including:\n  - `require_super_admin`\n  - `require_admin_or_super_admin`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Decorator-based protection including:",
+              "checked": null
+            },
+            {
+              "text": "`require_super_admin`",
+              "checked": null
+            },
+            {
+              "text": "`require_admin_or_super_admin`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data sources",
+      "level": 3,
+      "slug": "data-sources",
+      "prose": "- Local Django persistence (SQLite in local/dev workflows)\n- Appointment360 GraphQL APIs for operational data\n- S3 indices/artifacts used by documentation dashboards\n- Redis cache for selected dashboard aggregation paths",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Local Django persistence (SQLite in local/dev workflows)",
+              "checked": null
+            },
+            {
+              "text": "Appointment360 GraphQL APIs for operational data",
+              "checked": null
+            },
+            {
+              "text": "S3 indices/artifacts used by documentation dashboards",
+              "checked": null
+            },
+            {
+              "text": "Redis cache for selected dashboard aggregation paths",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ Django admin/governance surface is fully wired with route inventory and template-based UI shells.\n- [x] ✅ Privileged route access decorators are in place (`require_super_admin`, `require_admin_or_super_admin`).\n- [x] ✅ Admin operations integrate with `logs.api`, `s3storage`, and Appointment360 GraphQL clients (job state via gateway `jobs` + satellites).\n- [x] ✅ Idempotency guard tests exist for destructive/retry admin actions (logs delete, storage delete, billing approve/decline, job retry).\n- [x] ✅ Permission-map tests validate route inventory coverage against URL patterns.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Django admin/governance surface is fully wired with route inventory and template-based UI shells.",
+              "checked": true
+            },
+            {
+              "text": "✅ Privileged route access decorators are in place (`require_super_admin`, `require_admin_or_super_admin`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Admin operations integrate with `logs.api`, `s3storage`, and Appointment360 GraphQL clients (job state via gateway `jobs` + satellites).",
+              "checked": true
+            },
+            {
+              "text": "✅ Idempotency guard tests exist for destructive/retry admin actions (logs delete, storage delete, billing approve/decline, job retry).",
+              "checked": true
+            },
+            {
+              "text": "✅ Permission-map tests validate route inventory coverage against URL patterns.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and configuration drift",
+      "level": 3,
+      "slug": "security-and-configuration-drift",
+      "prose": "- [x] ✅ Completed: insecure `LOGS_API_KEY` default fallback removed; key now requires explicit environment injection.\n- [x] ✅ Completed: baked-in external defaults for `LOGS_API_URL` and `LAMBDA_AI_API_URL` removed; endpoints are now env-explicit.\n- [x] ✅ Completed: `S3StorageClient` auth is aligned to API-key policy (`X-API-Key`, `S3STORAGE_API_KEY` required with URL).\n- [x] ✅ Completed: env example templates now avoid secret-like placeholder defaults and explicitly include paired URL/API-key entries for logs, scheduler, and storage integrations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: insecure `LOGS_API_KEY` default fallback removed; key now requires explicit environment injection.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: baked-in external defaults for `LOGS_API_URL` and `LAMBDA_AI_API_URL` removed; endpoints are now env-explicit.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: `S3StorageClient` auth is aligned to API-key policy (`X-API-Key`, `S3STORAGE_API_KEY` required with URL).",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: env example templates now avoid secret-like placeholder defaults and explicitly include paired URL/API-key entries for logs, scheduler, and storage integrations.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract and governance drift",
+      "level": 3,
+      "slug": "contract-and-governance-drift",
+      "prose": "- [x] ✅ Completed: route inventory/decorator evidence now includes both `apps/admin/route_inventory.py` parity tests and cross-surface critical route scope checks in `apps/admin/tests/test_privileged_route_scopes.py`.\n- [x] ✅ Completed: settings surface now routes writable config changes through validated billing workflow with audit events (`billing_settings_view`) and runtime snapshot-only general settings page.\n- [x] ✅ Completed: navigation drift guard test now validates sidebar `app_name:url_name` entries resolve at runtime (`apps/core/tests/test_navigation_integrity.py`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: route inventory/decorator evidence now includes both `apps/admin/route_inventory.py` parity tests and cross-surface critical route scope checks in `apps/admin/tests/test_privileged_route_scopes.py`.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: settings surface now routes writable config changes through validated billing workflow with audit events (`billing_settings_view`) and runtime snapshot-only general settings page.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: navigation drift guard test now validates sidebar `app_name:url_name` entries resolve at runtime (`apps/core/tests/test_navigation_integrity.py`).",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Reliability and operations gaps",
+      "level": 3,
+      "slug": "reliability-and-operations-gaps",
+      "prose": "- [x] ✅ Completed: documentation operations background jobs now persist runtime state in `OperationLog.metadata` (DB-backed), with in-memory fallback only.\n- [x] ✅ Completed: logs/storage/jobs/GraphQL paths now share `X-Request-ID` propagation for cross-client trace continuity.\n- [x] ✅ Completed: operations dashboard now exposes a dependency release gate (weighted uptime policy + block/pass state) for basic SLO/error-budget enforcement.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: documentation operations background jobs now persist runtime state in `OperationLog.metadata` (DB-backed), with in-memory fallback only.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: logs/storage/jobs/GraphQL paths now share `X-Request-ID` propagation for cross-client trace continuity.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: operations dashboard now exposes a dependency release gate (weighted uptime policy + block/pass state) for basic SLO/error-budget enforcement.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ Core admin route inventory and permission scopes are formalized.\n- [x] ✅ Completed: RBAC/governance docs aligned with decorator-enforced runtime behavior and test evidence (`test_admin_guards.py`, `test_privileged_route_scopes.py`).\n- [x] ✅ Completed: idempotency contract extended across destructive/retry mutations (`test_admin_guards.py`) including billing approve/decline and job retry noop handling.\n- [ ] 📌 Planned: publish explicit public/private admin API boundary rules for `8.x`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core admin route inventory and permission scopes are formalized.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: RBAC/governance docs aligned with decorator-enforced runtime behavior and test evidence (`test_admin_guards.py`, `test_privileged_route_scopes.py`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: idempotency contract extended across destructive/retry mutations (`test_admin_guards.py`) including billing approve/decline and job retry noop handling.",
+              "checked": true
+            },
+            {
+              "text": "📌 Planned: publish explicit public/private admin API boundary rules for `8.x`.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Client bridges for GraphQL/logs/storage/jobs are active in admin views.\n- [ ] 🟡 In Progress: unify service client auth/error envelopes for consistent operator behavior.\n- [x] ✅ Completed: replaced placeholder settings workflow with validated billing settings pipeline (+ audit logging + tests) and non-writable runtime snapshot at `/admin/settings/`.\n- [x] ✅ Completed: migrated docs operation background job state from volatile in-memory maps to DB-backed runtime persistence in `apps/documentation/views/operations.py`.\n- [ ] 📌 Planned: add policy-aware controls for ecosystem and campaign operations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Client bridges for GraphQL/logs/storage/jobs are active in admin views.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: unify service client auth/error envelopes for consistent operator behavior.",
+              "checked": false
+            },
+            {
+              "text": "✅ Completed: replaced placeholder settings workflow with validated billing settings pipeline (+ audit logging + tests) and non-writable runtime snapshot at `/admin/settings/`.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: migrated docs operation background job state from volatile in-memory maps to DB-backed runtime persistence in `apps/documentation/views/operations.py`.",
+              "checked": true
+            },
+            {
+              "text": "📌 Planned: add policy-aware controls for ecosystem and campaign operations.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Billing/users/logs/storage/jobs screens are present and routed.\n- [x] ✅ Operational health panel now consumes real probe-derived statuses and probe-weighted uptime (not static placeholder uptime).\n- [ ] ⬜ Incomplete: add richer provider/retry/failure visibility for email and ingestion operations.\n- [ ] 📌 Planned: campaign and integration control consoles for later eras.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Billing/users/logs/storage/jobs screens are present and routed.",
+              "checked": true
+            },
+            {
+              "text": "✅ Operational health panel now consumes real probe-derived statuses and probe-weighted uptime (not static placeholder uptime).",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: add richer provider/retry/failure visibility for email and ingestion operations.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign and integration control consoles for later eras.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Graph/documentation repositories and admin data reads are wired.\n- [x] ✅ Completed: billing approve/decline paths now emit structured actor/reason/status transition lineage evidence.\n- [x] ✅ Completed: trace ID continuity enforced across GraphQL/logs/storage/job client hops (`X-Request-ID` propagation plus tests in `apps/admin/tests/test_trace_propagation.py`).\n- [ ] 📌 Planned: compliance evidence overlays for campaign and ecosystem operations.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Graph/documentation repositories and admin data reads are wired.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: billing approve/decline paths now emit structured actor/reason/status transition lineage evidence.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: trace ID continuity enforced across GraphQL/logs/storage/job client hops (`X-Request-ID` propagation plus tests in `apps/admin/tests/test_trace_propagation.py`).",
+              "checked": true
+            },
+            {
+              "text": "📌 Planned: compliance evidence overlays for campaign and ecosystem operations.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Route guard tests and idempotency tests exist for key admin delete paths.\n- [ ] 🟡 In Progress: remove insecure secret defaults and tighten environment validation gates (service URL/API-key startup validation now enforced for logs, scheduler, storage, and Lambda AI).\n- [x] ✅ Completed: resilience tests now cover dependency outages and restart-safe docs job polling (`apps/operations/tests/test_operations_resilience.py`, `apps/documentation/tests/test_operations_runtime_job_persistence.py`).\n- [ ] 🟡 In Progress: standardize observability hooks to `logs.api` and dependency health panels (scheduler health probe now runtime-checked, not config-only).\n- [ ] 📌 Planned: enforce release gates requiring admin governance evidence in each minor.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Route guard tests and idempotency tests exist for key admin delete paths.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: remove insecure secret defaults and tighten environment validation gates (service URL/API-key startup validation now enforced for logs, scheduler, storage, and Lambda AI).",
+              "checked": false
+            },
+            {
+              "text": "✅ Completed: resilience tests now cover dependency outages and restart-safe docs job polling (`apps/operations/tests/test_operations_resilience.py`, `apps/documentation/tests/test_operations_runtime_job_persistence.py`).",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: standardize observability hooks to `logs.api` and dependency health panels (scheduler health probe now runtime-checked, not config-only).",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: enforce release gates requiring admin governance evidence in each minor.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Completed: Django shell, auth decorators, base views, and navigation system are established.\n- [x] ✅ Completed: lock foundational docs/runtime parity for route inventory and governance maps with route-inventory tests plus sidebar navigation resolve guard.\n- [x] ✅ Completed: remove insecure fallback defaults from baseline environment templates (`.env.example`, `.env.prod.example`, `env.example`) and align key-pair contracts.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: Django shell, auth decorators, base views, and navigation system are established.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: lock foundational docs/runtime parity for route inventory and governance maps with route-inventory tests plus sidebar navigation resolve guard.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: remove insecure fallback defaults from baseline environment templates (`.env.example`, `.env.prod.example`, `env.example`) and align key-pair contracts.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ Completed: billing review and payment action views are implemented with privileged guards.\n- [x] ✅ Completed: credit-change/payment review timeline now emits actor + reason + status transition + timestamp evidence.\n- [ ] ⬜ Incomplete: strengthen durable workflow backing for billing settings and QR flows.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: billing review and payment action views are implemented with privileged guards.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: credit-change/payment review timeline now emits actor + reason + status transition + timestamp evidence.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: strengthen durable workflow backing for billing settings and QR flows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [ ] 🟡 In Progress: admin logs and service visibility for email operations are partially available.\n- [ ] ⬜ Incomplete: expand provider/failure/retry panels for email finder/verifier monitoring.\n- [ ] 📌 Planned: add explicit email-ops governance dashboards with actionable remediation controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: admin logs and service visibility for email operations are partially available.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: expand provider/failure/retry panels for email finder/verifier monitoring.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add explicit email-ops governance dashboards with actionable remediation controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [x] ✅ Completed: relationship/docs dashboards and graph surfaces support contact/company governance.\n- [ ] 🟡 In Progress: improve lineage visibility from ingestion to contact/company outcomes.\n- [ ] ⬜ Incomplete: add stronger drift detection between documented and runtime enrichment behavior.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: relationship/docs dashboards and graph surfaces support contact/company governance.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve lineage visibility from ingestion to contact/company outcomes.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add stronger drift detection between documented and runtime enrichment behavior.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [ ] 🟡 In Progress: extension/Sales Navigator surfaces are represented in architecture/docs views.\n- [ ] ⬜ Incomplete: add dedicated admin diagnostics for extension ingestion and failure replay.\n- [ ] 📌 Planned: add governance controls for extension channel policy and support workflows.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: extension/Sales Navigator surfaces are represented in architecture/docs views.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add dedicated admin diagnostics for extension ingestion and failure replay.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add governance controls for extension channel policy and support workflows.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [ ] 🟡 In Progress: AI sections/views exist in app structure.\n- [ ] ⬜ Incomplete: complete AI workflow governance panels and policy enforcement UX.\n- [ ] 📌 Planned: add AI risk/compliance evidence surfaces tied to runtime telemetry.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: AI sections/views exist in app structure.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete AI workflow governance panels and policy enforcement UX.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add AI risk/compliance evidence surfaces tied to runtime telemetry.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [ ] 🟡 In Progress: health/system status and logs surfaces provide baseline reliability signals.\n- [ ] ⬜ Incomplete: define and enforce admin dependency SLO/error-budget dashboards.\n- [ ] ⬜ Incomplete: persist async operation tracking state beyond process memory.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: health/system status and logs surfaces provide baseline reliability signals.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define and enforce admin dependency SLO/error-budget dashboards.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: persist async operation tracking state beyond process memory.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ Completed: deployment and environment validation commands/views are present.\n- [ ] ⬜ Incomplete: tighten secret management defaults and deployment hard gates.\n- [ ] 🟡 In Progress: align production runbooks and governance docs with actual deploy paths.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: deployment and environment validation commands/views are present.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: tighten secret management defaults and deployment hard gates.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: align production runbooks and governance docs with actual deploy paths.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [ ] 🟡 In Progress: API metadata and health views are available for admin operators.\n- [ ] ⬜ Incomplete: define explicit public/private boundary and versioning governance in admin UX.\n- [ ] 📌 Planned: add partner-safe access governance and incident playbooks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: API metadata and health views are available for admin operators.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: define explicit public/private boundary and versioning governance in admin UX.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add partner-safe access governance and incident playbooks.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 📌 Planned: add workspace/integration governance controls and tenant-safe operation panels.\n- [ ] ⬜ Incomplete: add cross-service trace correlation for partner investigations.\n- [ ] 📌 Planned: produce SLA evidence views for ecosystem support and audits.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: add workspace/integration governance controls and tenant-safe operation panels.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add cross-service trace correlation for partner investigations.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: produce SLA evidence views for ecosystem support and audits.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] 📌 Planned: campaign ops governance console and controls.\n- [ ] ⬜ Incomplete: campaign compliance/incident tooling and evidence mapping.\n- [ ] 📌 Planned: release gating views for deliverability/compliance readiness.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: campaign ops governance console and controls.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: campaign compliance/incident tooling and evidence mapping.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: release gating views for deliverability/compliance readiness.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [x] ✅ Completed: insecure `LOGS_API_KEY` fallback default removed; secret-required startup checks now validate URL/API-key pairs for logs, scheduler, storage, and Lambda AI dependencies.\n- [x] ✅ Completed: align admin `S3StorageClient` auth model with canonical `s3storage` API-key policy.\n- [x] ✅ Completed: close route/RBAC docs parity and map evidence from route inventory + critical cross-surface guard tests.\n- [x] ✅ Completed: replace in-memory docs operation job tracking with durable DB-backed runtime state (`OperationLog`) while preserving existing API contract.\n- [x] ✅ Completed: finalize non-placeholder settings workflows with validation and audit logging.\n- [x] ✅ Completed: normalize cross-client trace fields for logs/storage/jobs/GraphQL operations using per-request `X-Request-ID` propagation.\n- [x] ✅ Completed: add SLO/error-budget release gate for admin dependency health in operations dashboard context/UI.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: insecure `LOGS_API_KEY` fallback default removed; secret-required startup checks now validate URL/API-key pairs for logs, scheduler, storage, and Lambda AI dependencies.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: align admin `S3StorageClient` auth model with canonical `s3storage` API-key policy.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: close route/RBAC docs parity and map evidence from route inventory + critical cross-surface guard tests.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: replace in-memory docs operation job tracking with durable DB-backed runtime state (`OperationLog`) while preserving existing API contract.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: finalize non-placeholder settings workflows with validation and audit logging.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: normalize cross-client trace fields for logs/storage/jobs/GraphQL operations using per-request `X-Request-ID` propagation.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: add SLO/error-budget release gate for admin dependency health in operations dashboard context/UI.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0",
+      "level": 3,
+      "slug": "p0",
+      "prose": "- [x] ✅ Completed: `ADM-0.1` `LOGS_API_KEY` fallback removed and startup now enforces URL/API-key pairing across core dependency services.\n- [x] ✅ Completed: `ADM-0.3` Permission-map test coverage now includes admin route inventory parity plus critical non-admin super-admin route scope assertions.\n- [x] ✅ Completed: `ADM-0.4` Idempotency contract expanded beyond delete flows to billing approval/decline and job retry conflict/noop scenarios.\n- [x] ✅ Completed: `ADM-0.5` Durable persistence added for docs background analyze/generate/upload job state via `OperationLog` metadata.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: `ADM-0.1` `LOGS_API_KEY` fallback removed and startup now enforces URL/API-key pairing across core dependency services.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: `ADM-0.3` Permission-map test coverage now includes admin route inventory parity plus critical non-admin super-admin route scope assertions.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: `ADM-0.4` Idempotency contract expanded beyond delete flows to billing approval/decline and job retry conflict/noop scenarios.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: `ADM-0.5` Durable persistence added for docs background analyze/generate/upload job state via `OperationLog` metadata.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2",
+      "level": 3,
+      "slug": "p1p2",
+      "prose": "- [x] ✅ Completed: `ADM-1.1` Credit-change audit timeline now emits actor_user_id/reason/status transition/timestamp/request-id evidence from billing review actions.\n- [ ] ⬜ Incomplete: `ADM-2.1` Email operations panel expansion (provider/failure/retry visibility).\n- [ ] 🟡 In Progress: `ADM-5.1` AI workflow governance panel completion.\n- [x] ✅ Completed: `ADM-6.2` Cross-client trace ID propagation across admin GraphQL/logs/storage/job client calls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: `ADM-1.1` Credit-change audit timeline now emits actor_user_id/reason/status transition/timestamp/request-id evidence from billing review actions.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: `ADM-2.1` Email operations panel expansion (provider/failure/retry visibility).",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: `ADM-5.1` AI workflow governance panel completion.",
+              "checked": false
+            },
+            {
+              "text": "✅ Completed: `ADM-6.2` Cross-client trace ID propagation across admin GraphQL/logs/storage/job client calls.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3/P4",
+      "level": 3,
+      "slug": "p3p4",
+      "prose": "- [ ] 📌 Planned: `ADM-8.1` Explicit public/private API boundary and versioning governance.\n- [ ] 📌 Planned: `ADM-9.1` Ecosystem partner operations and SLA evidence console.\n- [ ] 📌 Planned: `ADM-10.1` Campaign ops console and incident tooling.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: `ADM-8.1` Explicit public/private API boundary and versioning governance.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `ADM-9.1` Ecosystem partner operations and SLA evidence console.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `ADM-10.1` Campaign ops console and incident tooling.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

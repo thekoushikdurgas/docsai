@@ -1,4 +1,4 @@
-"""Ingest markdown docs into Pinecone (docs RAG)."""
+"""Ingest typed docs JSON into Pinecone (docs RAG)."""
 
 from __future__ import annotations
 
@@ -17,18 +17,18 @@ from .client import get_docs_index
 
 
 TOP_LEVEL_TARGETS = [
-    "architecture.md",
-    "audit-compliance.md",
-    "backend.md",
-    "codebase.md",
-    "docsai-sync.md",
-    "flowchart.md",
-    "frontend.md",
-    "governance.md",
-    "README.md",
-    "roadmap.md",
-    "version-policy.md",
-    "versions.md",
+    "architecture.json",
+    "audit-compliance.json",
+    "backend.json",
+    "codebase.json",
+    "docsai-sync.json",
+    "flowchart.json",
+    "frontend.json",
+    "governance.json",
+    "index.json",
+    "roadmap.json",
+    "version-policy.json",
+    "versions.json",
 ]
 
 
@@ -47,7 +47,7 @@ def _iter_files_era(era_filter: Optional[str]) -> Iterable[Tuple[int, List[Path]
         era_dir = DOCS_ROOT / folder
         if not era_dir.exists():
             continue
-        files = sorted(era_dir.glob("*.md"))
+        files = sorted(era_dir.glob("*.json"))
         if files:
             yield idx, files
 
@@ -55,7 +55,7 @@ def _iter_files_era(era_filter: Optional[str]) -> Iterable[Tuple[int, List[Path]
 def _iter_files_hub() -> List[Path]:
     files: List[Path] = []
     if DOCS_HUB_DIR.exists():
-        files.extend(sorted(DOCS_HUB_DIR.glob("*.md")))
+        files.extend(sorted(DOCS_HUB_DIR.glob("*.json")))
     for name in TOP_LEVEL_TARGETS:
         p = DOCS_ROOT / name
         if p.exists():
@@ -66,16 +66,16 @@ def _iter_files_hub() -> List[Path]:
 def _iter_files_codebases() -> List[Path]:
     if not CODEBASES_DIR.exists():
         return []
-    return sorted(CODEBASES_DIR.glob("*.md"))
+    return sorted(CODEBASES_DIR.glob("*.json"))
 
 
 def _iter_files_backend() -> List[Path]:
     endpoints_dir = DOCS_ROOT / "backend" / "endpoints"
     files: List[Path] = []
     if APIS_DIR.exists():
-        files.extend(sorted(APIS_DIR.glob("*.md")))
+        files.extend(sorted(APIS_DIR.glob("*.json")))
     if endpoints_dir.exists():
-        files.extend(sorted(endpoints_dir.glob("*.md")))
+        files.extend(sorted(endpoints_dir.glob("*.json")))
     return files
 
 
@@ -147,7 +147,7 @@ def ingest_docs(*, era: Optional[str] = None, dry_run: bool = False) -> Dict[str
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Ingest markdown docs into Pinecone.")
+    parser = argparse.ArgumentParser(description="Ingest typed docs JSON into Pinecone.")
     parser.add_argument("--era", default=None, help="Only ingest one era (0-10).")
     parser.add_argument("--dry-run", action="store_true", help="Do not upsert; just chunk.")
     args = parser.parse_args()

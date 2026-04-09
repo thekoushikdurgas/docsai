@@ -1,0 +1,422 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "commands/deployment-commands.md",
+  "sha256_source": "f5f699f4cfeed73acbe3d18be46e6f7f639bd709e100aec8b80c92cea475fad9",
+  "generated_at": "2026-04-08T23:26:47.416657+00:00",
+  "title": "Deployment Commands",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Deployment Commands",
+      "level": 1,
+      "slug": "deployment-commands",
+      "prose": "Deployment command reference grouped by service family.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Appointment360 (contact360.io/api)",
+      "level": 2,
+      "slug": "appointment360-contact360ioapi",
+      "prose": "```bash\ncd contact360.io/api\nsam validate --lint\nsam build --use-container --no-cached\nsam deploy \\\n  --parameter-overrides \\\n    DeploymentStrategy=Canary10Percent5Minutes \\\n    SecretKey=<SECRET_KEY> \\\n    DatabaseUrl=<DATABASE_URL> \\\n    LambdaLogsApiKey=<LOGS_API_KEY>\nsam logs -n <FunctionName> --stack-name <StackName> --tail\n```\n\nBlue/green note:\n\n- Use `DeploymentStrategy=Canary10Percent5Minutes` for production rollouts.\n- Use `DeploymentStrategy=AllAtOnce` only for emergency fixes with explicit approval.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use `DeploymentStrategy=Canary10Percent5Minutes` for production rollouts.",
+              "checked": null
+            },
+            {
+              "text": "Use `DeploymentStrategy=AllAtOnce` only for emergency fixes with explicit approval.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd contact360.io/api\nsam validate --lint\nsam build --use-container --no-cached\nsam deploy \\\n  --parameter-overrides \\\n    DeploymentStrategy=Canary10Percent5Minutes \\\n    SecretKey=<SECRET_KEY> \\\n    DatabaseUrl=<DATABASE_URL> \\\n    LambdaLogsApiKey=<LOGS_API_KEY>\nsam logs -n <FunctionName> --stack-name <StackName> --tail\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Connectra (contact360.io/sync)",
+      "level": 2,
+      "slug": "connectra-contact360iosync",
+      "prose": "```bash\ncd contact360.io/sync\ngo mod tidy\ngo test ./... -v\nsam validate --lint\nsam build --use-container --no-cached\nsam deploy\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd contact360.io/sync\ngo mod tidy\ngo test ./... -v\nsam validate --lint\nsam build --use-container --no-cached\nsam deploy\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "TKD Job (contact360.io/jobs)",
+      "level": 2,
+      "slug": "tkd-job-contact360iojobs",
+      "prose": "```bash\ncd contact360.io/jobs\npip install -e .\npytest\njob-scheduler-py api\njob-scheduler-py scheduler first_time\njob-scheduler-py consumer\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd contact360.io/jobs\npip install -e .\npytest\njob-scheduler-py api\njob-scheduler-py scheduler first_time\njob-scheduler-py consumer\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Django Admin / DocsAI (contact360.io/admin)",
+      "level": 2,
+      "slug": "django-admin-docsai-contact360ioadmin",
+      "prose": "```bash\ncd contact360.io/admin\npython manage.py check --deploy\npython manage.py migrate\npython manage.py collectstatic --noinput\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd contact360.io/admin\npython manage.py check --deploy\npython manage.py migrate\npython manage.py collectstatic --noinput\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Next.js Apps (contact360.io/app, contact360.io/root, contact360.io/email)",
+      "level": 2,
+      "slug": "nextjs-apps-contact360ioapp-contact360ioroot-contact360ioemail",
+      "prose": "```bash\nnpm ci\nnpm run build\nnpm run start\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "npm ci\nnpm run build\nnpm run start\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Extension (extension/contact360)",
+      "level": 2,
+      "slug": "extension-extensioncontact360",
+      "prose": "```bash\ncd extension/contact360",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Load unpacked in chrome://extensions",
+      "level": 1,
+      "slug": "load-unpacked-in-chromeextensions",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Package with zip for distribution",
+      "level": 1,
+      "slug": "package-with-zip-for-distribution",
+      "prose": "```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Lambda Services (lambda/<service>)",
+      "level": 2,
+      "slug": "lambda-services-lambdaservice",
+      "prose": "```bash\ncd lambda/<service>\nsam validate --lint\nsam build --use-container --no-cached\nsam deploy\nsam list stack-outputs --stack-name <StackName>\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd lambda/<service>\nsam validate --lint\nsam build --use-container --no-cached\nsam deploy\nsam list stack-outputs --stack-name <StackName>\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Core Lambda Services",
+      "level": 2,
+      "slug": "core-lambda-services",
+      "prose": "```bash\ncd lambda/emailapis && sam deploy\ncd lambda/emailapigo && sam deploy\ncd lambda/logs.api && sam deploy\ncd lambda/s3storage && sam deploy\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd lambda/emailapis && sam deploy\ncd lambda/emailapigo && sam deploy\ncd lambda/logs.api && sam deploy\ncd lambda/s3storage && sam deploy\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Backend(dev) Services",
+      "level": 2,
+      "slug": "backenddev-services",
+      "prose": "```bash\ncd \"backend(dev)/contact.ai\" && sam deploy\ncd \"backend(dev)/salesnavigator\" && sam deploy\ncd \"backend(dev)/mailvetter\" && <service_deploy_command>\ncd \"backend(dev)/email campaign\" && <service_deploy_command>\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd \"backend(dev)/contact.ai\" && sam deploy\ncd \"backend(dev)/salesnavigator\" && sam deploy\ncd \"backend(dev)/mailvetter\" && <service_deploy_command>\ncd \"backend(dev)/email campaign\" && <service_deploy_command>\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Go Services",
+      "level": 2,
+      "slug": "go-services",
+      "prose": "```bash\ngo mod tidy\ngo test ./... -v\ngo build ./...\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "go mod tidy\ngo test ./... -v\ngo build ./...\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Deployment Validation",
+      "level": 2,
+      "slug": "deployment-validation",
+      "prose": "```bash\ncurl https://<HOST_OR_DOMAIN>/health\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "curl https://<HOST_OR_DOMAIN>/health\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Notes",
+      "level": 2,
+      "slug": "notes",
+      "prose": "- Use placeholders for secrets and credentials.\n- Keep deployment docs aligned with `docs/governance.md` and `docs/roadmap.md`.\n- For service-specific deploy scripts, use each service README as the final authority.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use placeholders for secrets and credentials.",
+              "checked": null
+            },
+            {
+              "text": "Keep deployment docs aligned with `docs/governance.md` and `docs/roadmap.md`.",
+              "checked": null
+            },
+            {
+              "text": "For service-specific deploy scripts, use each service README as the final authority.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Small Task Breakdown",
+      "level": 2,
+      "slug": "small-task-breakdown",
+      "prose": "1. Run pre-deployment tests for target service.\n2. Validate build artifacts (`sam validate`, build, or package).\n3. Deploy to target environment.\n4. Verify health and stack outputs.\n5. Capture deployment evidence for release checklist.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Run pre-deployment tests for target service.",
+              "checked": null
+            },
+            {
+              "text": "Validate build artifacts (`sam validate`, build, or package).",
+              "checked": null
+            },
+            {
+              "text": "Deploy to target environment.",
+              "checked": null
+            },
+            {
+              "text": "Verify health and stack outputs.",
+              "checked": null
+            },
+            {
+              "text": "Capture deployment evidence for release checklist.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deep Task Breakdown (All Codebases)",
+      "level": 2,
+      "slug": "deep-task-breakdown-all-codebases",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "A) Preflight",
+      "level": 3,
+      "slug": "a-preflight",
+      "prose": "- Confirm branch/tag and release scope.\n- Validate environment variables and credentials (placeholder-safe in docs).\n- Validate infra dependencies (Docker, SAM, AWS profile, PM2/systemd where required).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Confirm branch/tag and release scope.",
+              "checked": null
+            },
+            {
+              "text": "Validate environment variables and credentials (placeholder-safe in docs).",
+              "checked": null
+            },
+            {
+              "text": "Validate infra dependencies (Docker, SAM, AWS profile, PM2/systemd where required).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "B) Build and Package",
+      "level": 3,
+      "slug": "b-build-and-package",
+      "prose": "- Python: dependency install + tests + packaging/build.\n- Node: `npm ci`, lint/type/test, build artifact generation.\n- Go: module tidy, tests, binary build.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Python: dependency install + tests + packaging/build.",
+              "checked": null
+            },
+            {
+              "text": "Node: `npm ci`, lint/type/test, build artifact generation.",
+              "checked": null
+            },
+            {
+              "text": "Go: module tidy, tests, binary build.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "C) Deploy",
+      "level": 3,
+      "slug": "c-deploy",
+      "prose": "- Lambda services: `sam deploy` path.\n- EC2/process services: deploy scripts + process restart.\n- Frontend services: build + process manager restart.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Lambda services: `sam deploy` path.",
+              "checked": null
+            },
+            {
+              "text": "EC2/process services: deploy scripts + process restart.",
+              "checked": null
+            },
+            {
+              "text": "Frontend services: build + process manager restart.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "D) Verify",
+      "level": 3,
+      "slug": "d-verify",
+      "prose": "- Health endpoint checks.\n- Service logs inspection.\n- Key functional smoke checks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Health endpoint checks.",
+              "checked": null
+            },
+            {
+              "text": "Service logs inspection.",
+              "checked": null
+            },
+            {
+              "text": "Key functional smoke checks.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "E) Evidence",
+      "level": 3,
+      "slug": "e-evidence",
+      "prose": "- Capture deploy timestamp, commit SHA/tag, health output, and rollback reference.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Capture deploy timestamp, commit SHA/tag, health output, and rollback reference.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

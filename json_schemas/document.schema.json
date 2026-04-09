@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/document",
+  "title": "General Document",
+  "description": "Catch-all kind for tech, codebases, commands, prompts, scripts, etc. (folder_kind_map catch_all_document). Always includes raw_markdown; sections[] mirrors heading structure with extracted tables/lists/code/links.",
+  "allOf": [{ "$ref": "common_envelope.schema.json" }],
+  "properties": {
+    "kind": { "const": "document" },
+    "front_matter": {
+      "type": ["object", "null"],
+      "description": "YAML front matter if present",
+      "additionalProperties": true
+    },
+    "sections": {
+      "type": "array",
+      "items": { "$ref": "shared_defs.schema.json#/$defs/enriched_section" }
+    }
+  }
+}

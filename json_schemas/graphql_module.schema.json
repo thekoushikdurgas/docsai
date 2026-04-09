@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contact360.io/docs/schemas/graphql_module",
+  "title": "GraphQL Module Documentation",
+  "description": "Generated from docs/backend/graphql.modules/*.md",
+  "allOf": [{ "$ref": "common_envelope.schema.json" }],
+  "properties": {
+    "kind": { "const": "graphql_module" },
+    "module_number": {
+      "type": ["integer", "null"],
+      "description": "Numeric prefix e.g. 01 from 01_AUTH_MODULE.md"
+    },
+    "module_name": {
+      "type": "string",
+      "description": "Module name e.g. AUTH, BILLING, CONTACTS"
+    },
+    "location": {
+      "type": ["string", "null"],
+      "description": "Source code path from Location: line"
+    },
+    "overview": {
+      "type": ["string", "null"],
+      "description": "## Overview prose"
+    },
+    "operations": {
+      "type": "array",
+      "description": "Queries and mutations listed in the module",
+      "items": {
+        "type": "object",
+        "required": ["name", "operation_type"],
+        "properties": {
+          "name": { "type": "string" },
+          "operation_type": { "type": "string", "enum": ["query", "mutation", "subscription"] },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "graphql_type"],
+              "properties": {
+                "name": { "type": "string" },
+                "graphql_type": { "type": "string" }
+              }
+            }
+          },
+          "return_type": { "type": ["string", "null"] },
+          "description": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "sdl_excerpt": {
+      "type": ["string", "null"],
+      "description": "GraphQL SDL code block content"
+    },
+    "error_codes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Error codes or error response notes"
+    },
+    "code_pointers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "File path references from code_pointers or Code pointers sections"
+    },
+    "sections": {
+      "type": "array",
+      "description": "Remaining sections in document order",
+      "items": {
+        "type": "object",
+        "required": ["heading", "level", "prose"],
+        "properties": {
+          "heading": { "type": "string" },
+          "level": { "type": "integer" },
+          "prose": { "type": "string" },
+          "code_blocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["lang", "value"],
+              "properties": {
+                "lang": { "type": "string" },
+                "value": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

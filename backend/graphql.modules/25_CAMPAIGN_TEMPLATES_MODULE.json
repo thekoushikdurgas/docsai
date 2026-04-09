@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/25_CAMPAIGN_TEMPLATES_MODULE.md",
+  "sha256_source": "e52a3c058f98472f66adb84a53d41ac6fa91122988456677f3aa06c0162761e1",
+  "generated_at": "2026-04-08T23:26:46.609503+00:00",
+  "title": "Campaign Templates Module",
+  "raw_markdown": "# Campaign Templates Module\n\n## Contact360 gateway (actual)\n\n| GraphQL | Path | Auth | Return |\n| --- | --- | --- | --- |\n| `campaignSatellite.campaignTemplates` | `query { campaignSatellite { campaignTemplates } }` | required | `JSON` (from satellite `GET /campaign-templates`, or `[]` if `CAMPAIGN_API_URL` unset) |\n\nField name in GraphQL is **`campaignTemplates`** (camelCase). There are **no** template CRUD mutations on the gateway’s `campaignSatellite` type today.\n\n## Canonical SDL (gateway — read-only)\n\n```graphql\ntype CampaignModuleQuery {\n  campaigns: JSON!\n  sequences: JSON!\n  campaignTemplates: JSON!\n}\n```\n\nRegenerate: `python -c \"from app.graphql.schema import schema; print(schema.as_str())\"` from `contact360.io/api`.\n\n### POST `/graphql`\n\n```json\n{\n  \"query\": \"query { campaignSatellite { campaignTemplates } }\"\n}\n```\n\n---\n\n## Planned / service-native GraphQL (not on gateway yet)\n\n**Service:** `backend(dev)/email campaign` (Go, Gin, S3). **Direct REST** may include template upload/list/preview/generate (see service `API.md`).\n\n| Operation | Type | Description | Era |\n| --- | --- | --- | --- |\n| `createCampaignTemplate` | Mutation | Upload HTML template to S3 + create DB record | planned |\n| `getCampaignTemplate` | Query | Get template metadata and HTML body | planned |\n| `listCampaignTemplates` | Query | List templates | overlaps read-only `campaignSatellite.campaignTemplates` |\n| `updateCampaignTemplate` | Mutation | Update template HTML/metadata | planned |\n| `deleteCampaignTemplate` | Mutation | Delete template from S3 and DB | planned |\n| `previewCampaignTemplate` | Query | Render template with sample data | planned |\n| `generateCampaignTemplate` | Mutation | AI-generate HTML template from prompt | planned |\n\n---\n\n## REST endpoints (direct)\n\n### `POST /templates`\n\n**Auth:** JWT\n**Request:**\n\n```json\n{\n  \"name\": \"Welcome Email\",\n  \"subject\": \"Welcome {{.FirstName}}!\",\n  \"html_body\": \"<html><body>Hello {{.FirstName}}!</body></html>\"\n}\n```\n\n**Response `201`:**\n\n```json\n{\n  \"id\": \"uuid\",\n  \"name\": \"Welcome Email\",\n  \"subject\": \"Welcome {{.FirstName}}!\",\n  \"s3_key\": \"templates/uuid.html\",\n  \"created_at\": \"2026-03-24T00:00:00Z\"\n}\n```\n\n---\n\n### `POST /templates/:id/preview`\n\n**Auth:** JWT\n**Request:** `{}` (uses sample TemplateData)\n**Response `200`:** Rendered HTML string with sample `FirstName`, `LastName`, `Email`, `UnsubscribeURL`.\n\n---\n\n### `POST /templates/generate` (era `5.x`+)\n\n**Auth:** JWT\n**Request:**\n\n```json\n{\n  \"prompt\": \"Write a welcome email for a B2B SaaS product called Contact360\",\n  \"subject_hint\": \"Welcome to Contact360\"\n}\n```\n\n**Response `201`:** Same as `POST /templates` — creates template in S3 and DB with `is_ai_generated=true`.\n\n---\n\n## Template variable reference\n\n| Variable | Resolved from | Notes |\n| --- | --- | --- |\n| `{{.FirstName}}` | `recipients.name` (first word split) | Always available |\n| `{{.LastName}}` | `recipients.name` (remainder split) | Always available |\n| `{{.Email}}` | `recipients.email` | Always available |\n| `{{.UnsubscribeURL}}` | JWT token URL generated per recipient | Always injected automatically |\n| `{{.Company}}` | Connectra contact `company_name` | Available in `3.x`+ when Connectra integrated |\n| `{{.Title}}` | Connectra contact `title` | Available in `5.x`+ |\n| `{{.Industry}}` | Connectra contact `industry` | Available in `5.x`+ |\n\n---\n\n## S3 storage contract\n\n| Operation | S3 key | Notes |\n| --- | --- | --- |\n| Upload | `templates/{id}.html` | PutObject on `POST /templates` |\n| Fetch | `templates/{id}.html` | GetObject with in-memory cache (evicted on delete) |\n| Delete | `templates/{id}.html` | DeleteObject + cache eviction + DB delete |\n\nCache: `template.Service.cache` — `map[string]string` with `sync.RWMutex`. Cache miss reads from S3.\n\n---\n\n## Database tables\n\n| Table | Read | Write |\n| --- | --- | --- |\n| `templates` | `listCampaignTemplates`, `getCampaignTemplate` | `createCampaignTemplate`, `updateCampaignTemplate`, `deleteCampaignTemplate` |\n\n---\n\n## Frontend page bindings\n\n| Page | Route | Operations used |\n| --- | --- | --- |\n| Templates list | `/campaigns/templates` | `listCampaignTemplates` |\n| Template editor | `/campaigns/templates/:id/edit` | `getCampaignTemplate`, `updateCampaignTemplate`, `previewCampaignTemplate` |\n| Template creation | `/campaigns/templates/new` | `createCampaignTemplate` |\n| AI generation | Template builder AI panel | `generateCampaignTemplate` |\n| Campaign wizard step 2 | `/campaigns/new` | `listCampaignTemplates`, `previewCampaignTemplate` |\n\n---\n\n## UI element reference\n\n| Element | Component | Page |\n| --- | --- | --- |\n| Template grid | `TemplateGrid` | Templates list |\n| AI badge | `AITemplateBadge` | Templates list (AI-generated indicator) |\n| HTML editor | `TemplateEditor` (split view) | Template builder |\n| Variable insertion | `VariableInsertionButtons` | Template builder |\n| Subject line input | `Input` | Template builder |\n| Preview panel | `TemplatePreviewPane` | Template builder |\n| AI prompt textarea | `AIPromptDrawer` | Template builder |\n\n---\n\n## Era context\n\nTemplate CRUD is available from `0.x` as the foundation. AI generation (`generateCampaignTemplate`) is a `5.x` feature. Full template analytics (open/click from template) requires `10.x` tracking infrastructure.\n",
+  "module_number": 25,
+  "module_name": "CAMPAIGN_TEMPLATES",
+  "location": null,
+  "overview": null,
+  "operations": [],
+  "sdl_excerpt": "type CampaignModuleQuery {\n  campaigns: JSON!\n  sequences: JSON!\n  campaignTemplates: JSON!\n}\n",
+  "error_codes": [],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "Campaign Templates Module",
+      "level": 1,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "Contact360 gateway (actual)",
+      "level": 2,
+      "prose": "| GraphQL | Path | Auth | Return |\n| --- | --- | --- | --- |\n| `campaignSatellite.campaignTemplates` | `query { campaignSatellite { campaignTemplates } }` | required | `JSON` (from satellite `GET /campaign-templates`, or `[]` if `CAMPAIGN_API_URL` unset) |\n\nField name in GraphQL is **`campaignTemplates`** (camelCase). There are **no** template CRUD mutations on the gateway’s `campaignSatellite` type today.",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /graphql",
+      "level": 3,
+      "prose": "```json\n{\n  \"query\": \"query { campaignSatellite { campaignTemplates } }\"\n}\n```\n\n---",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"query\": \"query { campaignSatellite { campaignTemplates } }\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Planned / service-native GraphQL (not on gateway yet)",
+      "level": 2,
+      "prose": "**Service:** `backend(dev)/email campaign` (Go, Gin, S3). **Direct REST** may include template upload/list/preview/generate (see service `API.md`).\n\n| Operation | Type | Description | Era |\n| --- | --- | --- | --- |\n| `createCampaignTemplate` | Mutation | Upload HTML template to S3 + create DB record | planned |\n| `getCampaignTemplate` | Query | Get template metadata and HTML body | planned |\n| `listCampaignTemplates` | Query | List templates | overlaps read-only `campaignSatellite.campaignTemplates` |\n| `updateCampaignTemplate` | Mutation | Update template HTML/metadata | planned |\n| `deleteCampaignTemplate` | Mutation | Delete template from S3 and DB | planned |\n| `previewCampaignTemplate` | Query | Render template with sample data | planned |\n| `generateCampaignTemplate` | Mutation | AI-generate HTML template from prompt | planned |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "REST endpoints (direct)",
+      "level": 2,
+      "prose": "",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /templates",
+      "level": 3,
+      "prose": "**Auth:** JWT\n**Request:**\n\n```json\n{\n  \"name\": \"Welcome Email\",\n  \"subject\": \"Welcome {{.FirstName}}!\",\n  \"html_body\": \"<html><body>Hello {{.FirstName}}!</body></html>\"\n}\n```\n\n**Response `201`:**\n\n```json\n{\n  \"id\": \"uuid\",\n  \"name\": \"Welcome Email\",\n  \"subject\": \"Welcome {{.FirstName}}!\",\n  \"s3_key\": \"templates/uuid.html\",\n  \"created_at\": \"2026-03-24T00:00:00Z\"\n}\n```\n\n---",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"name\": \"Welcome Email\",\n  \"subject\": \"Welcome {{.FirstName}}!\",\n  \"html_body\": \"<html><body>Hello {{.FirstName}}!</body></html>\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"id\": \"uuid\",\n  \"name\": \"Welcome Email\",\n  \"subject\": \"Welcome {{.FirstName}}!\",\n  \"s3_key\": \"templates/uuid.html\",\n  \"created_at\": \"2026-03-24T00:00:00Z\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "POST /templates/:id/preview",
+      "level": 3,
+      "prose": "**Auth:** JWT\n**Request:** `{}` (uses sample TemplateData)\n**Response `200`:** Rendered HTML string with sample `FirstName`, `LastName`, `Email`, `UnsubscribeURL`.\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "POST /templates/generate (era 5.x+)",
+      "level": 3,
+      "prose": "**Auth:** JWT\n**Request:**\n\n```json\n{\n  \"prompt\": \"Write a welcome email for a B2B SaaS product called Contact360\",\n  \"subject_hint\": \"Welcome to Contact360\"\n}\n```\n\n**Response `201`:** Same as `POST /templates` — creates template in S3 and DB with `is_ai_generated=true`.\n\n---",
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"prompt\": \"Write a welcome email for a B2B SaaS product called Contact360\",\n  \"subject_hint\": \"Welcome to Contact360\"\n}\n"
+        }
+      ]
+    },
+    {
+      "heading": "Template variable reference",
+      "level": 2,
+      "prose": "| Variable | Resolved from | Notes |\n| --- | --- | --- |\n| `{{.FirstName}}` | `recipients.name` (first word split) | Always available |\n| `{{.LastName}}` | `recipients.name` (remainder split) | Always available |\n| `{{.Email}}` | `recipients.email` | Always available |\n| `{{.UnsubscribeURL}}` | JWT token URL generated per recipient | Always injected automatically |\n| `{{.Company}}` | Connectra contact `company_name` | Available in `3.x`+ when Connectra integrated |\n| `{{.Title}}` | Connectra contact `title` | Available in `5.x`+ |\n| `{{.Industry}}` | Connectra contact `industry` | Available in `5.x`+ |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "S3 storage contract",
+      "level": 2,
+      "prose": "| Operation | S3 key | Notes |\n| --- | --- | --- |\n| Upload | `templates/{id}.html` | PutObject on `POST /templates` |\n| Fetch | `templates/{id}.html` | GetObject with in-memory cache (evicted on delete) |\n| Delete | `templates/{id}.html` | DeleteObject + cache eviction + DB delete |\n\nCache: `template.Service.cache` — `map[string]string` with `sync.RWMutex`. Cache miss reads from S3.\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Database tables",
+      "level": 2,
+      "prose": "| Table | Read | Write |\n| --- | --- | --- |\n| `templates` | `listCampaignTemplates`, `getCampaignTemplate` | `createCampaignTemplate`, `updateCampaignTemplate`, `deleteCampaignTemplate` |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Frontend page bindings",
+      "level": 2,
+      "prose": "| Page | Route | Operations used |\n| --- | --- | --- |\n| Templates list | `/campaigns/templates` | `listCampaignTemplates` |\n| Template editor | `/campaigns/templates/:id/edit` | `getCampaignTemplate`, `updateCampaignTemplate`, `previewCampaignTemplate` |\n| Template creation | `/campaigns/templates/new` | `createCampaignTemplate` |\n| AI generation | Template builder AI panel | `generateCampaignTemplate` |\n| Campaign wizard step 2 | `/campaigns/new` | `listCampaignTemplates`, `previewCampaignTemplate` |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "UI element reference",
+      "level": 2,
+      "prose": "| Element | Component | Page |\n| --- | --- | --- |\n| Template grid | `TemplateGrid` | Templates list |\n| AI badge | `AITemplateBadge` | Templates list (AI-generated indicator) |\n| HTML editor | `TemplateEditor` (split view) | Template builder |\n| Variable insertion | `VariableInsertionButtons` | Template builder |\n| Subject line input | `Input` | Template builder |\n| Preview panel | `TemplatePreviewPane` | Template builder |\n| AI prompt textarea | `AIPromptDrawer` | Template builder |\n\n---",
+      "code_blocks": []
+    },
+    {
+      "heading": "Era context",
+      "level": 2,
+      "prose": "Template CRUD is available from `0.x` as the foundation. AI generation (`generateCampaignTemplate`) is a `5.x` feature. Full template analytics (open/click from template) requires `10.x` tracking infrastructure.",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": "## Canonical SDL (gateway — read-only)\n\nRegenerate: `python -c \"from app.graphql.schema import schema; print(schema.as_str())\"` from `contact360.io/api`."
+}

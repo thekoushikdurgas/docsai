@@ -1,0 +1,1618 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/appointment360-codebase-analysis.md",
+  "sha256_source": "06ec41dc8166086ed025f233fa7271cecf3a7e9cd7bcdd6274a848b8f972f5b2",
+  "generated_at": "2026-04-08T23:26:46.978666+00:00",
+  "title": "Appointment360 Codebase Analysis (contact360.io/api)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Appointment360 Codebase Analysis (contact360.io/api)",
+      "level": 1,
+      "slug": "appointment360-codebase-analysis-contact360ioapi",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "`contact360.io/api` (Appointment360) is Contact360's **primary GraphQL gateway and orchestrator**. It is the only entry point through which the dashboard (`contact360.io/app`) and extension reach all backend capability. It translates GraphQL operations into downstream REST calls to Connectra, **email.server** (async email jobs + finder/verifier), **sync.server** (CSV import/export jobs), lambda email (direct API), S3 storage, DocsAI, contact.ai, and logs.api. All user authentication, credit deduction, activity logging, usage tracking, and entitlement enforcement pass through this service.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Technology stack",
+      "level": 2,
+      "slug": "technology-stack",
+      "prose": "| Concern | Technology |\n| --- | --- |\n| HTTP server | FastAPI (Python 3.11+) with Mangum for AWS Lambda adaptation |\n| GraphQL runtime | Strawberry (code-first, type-safe, async) |\n| Database ORM | Async SQLAlchemy (`create_async_engine`, `AsyncSession`) |\n| DB driver | asyncpg (PostgreSQL) |\n| Auth | HS256 JWT — access + refresh tokens, token blacklist in DB |\n| Background tasks | FastAPI `BackgroundTasks` |\n| Caching | Optional Redis (`REDIS_URL`), TTLCache for user objects |\n| Config | Pydantic `BaseSettings` with `.env` + env vars |\n| Middleware | Custom Starlette middleware stack (8 layers) |\n| Deploy targets | EC2 (uvicorn), AWS Lambda (Mangum), Docker |\n| Query routing | `app/clients/` — ConnectraClient, EmailServerJobsClient, LambdaEmailClient, LambdaAIClient, etc. |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Concern",
+            "Technology"
+          ],
+          "rows": [
+            [
+              "HTTP server",
+              "FastAPI (Python 3.11+) with Mangum for AWS Lambda adaptation"
+            ],
+            [
+              "GraphQL runtime",
+              "Strawberry (code-first, type-safe, async)"
+            ],
+            [
+              "Database ORM",
+              "Async SQLAlchemy (`create_async_engine`, `AsyncSession`)"
+            ],
+            [
+              "DB driver",
+              "asyncpg (PostgreSQL)"
+            ],
+            [
+              "Auth",
+              "HS256 JWT — access + refresh tokens, token blacklist in DB"
+            ],
+            [
+              "Background tasks",
+              "FastAPI `BackgroundTasks`"
+            ],
+            [
+              "Caching",
+              "Optional Redis (`REDIS_URL`), TTLCache for user objects"
+            ],
+            [
+              "Config",
+              "Pydantic `BaseSettings` with `.env` + env vars"
+            ],
+            [
+              "Middleware",
+              "Custom Starlette middleware stack (8 layers)"
+            ],
+            [
+              "Deploy targets",
+              "EC2 (uvicorn), AWS Lambda (Mangum), Docker"
+            ],
+            [
+              "Query routing",
+              "`app/clients/` — ConnectraClient, EmailServerJobsClient, LambdaEmailClient, LambdaAIClient, etc."
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Architecture patterns",
+      "level": 2,
+      "slug": "architecture-patterns",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GraphQL-only design",
+      "level": 3,
+      "slug": "graphql-only-design",
+      "prose": "Single endpoint `/graphql` (plus health probes). No REST feature routes. The schema (`schema.py`) is composed as a flat `Query` + `Mutation` root with nested module namespaces (23 query roots including top-level `featureOverview`; mutations omit that field). Campaign modules under `app/graphql/modules/campaigns/` are scaffold-only and not mounted on the root schema yet.\n\n```text\nquery { auth | users | contacts | companies | email | jobs | usage | billing | analytics | activities | health | pages | s3 | upload | aiChats | notifications | salesNavigator | admin | savedSearches | twoFactor | profile | resume | featureOverview }\nmutation { auth | users | contacts | companies | billing | linkedin | jobs | email | usage | upload | s3 | analytics | aiChats | notifications | salesNavigator | admin | savedSearches | twoFactor | profile | resume }\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "text",
+          "value": "query { auth | users | contacts | companies | email | jobs | usage | billing | analytics | activities | health | pages | s3 | upload | aiChats | notifications | salesNavigator | admin | savedSearches | twoFactor | profile | resume | featureOverview }\nmutation { auth | users | contacts | companies | billing | linkedin | jobs | email | usage | upload | s3 | analytics | aiChats | notifications | salesNavigator | admin | savedSearches | twoFactor | profile | resume }\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Request lifecycle",
+      "level": 3,
+      "slug": "request-lifecycle",
+      "prose": "```text\nRequest → CORS → TrustedHost → ExceptionGroupMiddleware → DatabaseCommitMiddleware →\n  GraphQLIdempotencyMiddleware → GraphQLMutationAbuseGuardMiddleware →\n  GraphQLRateLimitMiddleware → RequestIdMiddleware → TraceIdMiddleware →\n  TimingMiddleware → REDMetricsMiddleware → GZip → GraphQLBodySizeMiddleware →\n  GraphQLRouter → get_context(JWT decode → User fetch) → Resolver execution\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "text",
+          "value": "Request → CORS → TrustedHost → ExceptionGroupMiddleware → DatabaseCommitMiddleware →\n  GraphQLIdempotencyMiddleware → GraphQLMutationAbuseGuardMiddleware →\n  GraphQLRateLimitMiddleware → RequestIdMiddleware → TraceIdMiddleware →\n  TimingMiddleware → REDMetricsMiddleware → GZip → GraphQLBodySizeMiddleware →\n  GraphQLRouter → get_context(JWT decode → User fetch) → Resolver execution\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Context (app/graphql/context.py)",
+      "level": 3,
+      "slug": "context-appgraphqlcontextpy",
+      "prose": "Per-request `Context` carries:\n\n- `db`: `AsyncSession` (from async generator, committed by `DatabaseCommitMiddleware`)\n- `user`: `User | None` extracted from Bearer JWT\n- `user_uuid`: `str | None`\n- `dataloaders`: `DataLoaders` (per-request N+1 prevention)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`db`: `AsyncSession` (from async generator, committed by `DatabaseCommitMiddleware`)",
+              "checked": null
+            },
+            {
+              "text": "`user`: `User | None` extracted from Bearer JWT",
+              "checked": null
+            },
+            {
+              "text": "`user_uuid`: `str | None`",
+              "checked": null
+            },
+            {
+              "text": "`dataloaders`: `DataLoaders` (per-request N+1 prevention)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "External service clients (app/clients/)",
+      "level": 3,
+      "slug": "external-service-clients-appclients",
+      "prose": "| Client | Calls | Auth |\n| --- | --- | --- |\n| `ConnectraClient` | Connectra REST (VQL queries, batch upsert, `/common/jobs/*`, filters) | `X-API-Key` header |\n| `EmailServerJobsClient` | Email satellite job APIs (S3 finder/verify, pause/resume/terminate, status) | API key (`LAMBDA_EMAIL_*`) |\n| `LambdaEmailClient` | Lambda Email API (finder, verifier, bulk, patterns) | API key |\n| `LambdaAIClient` | Contact AI REST (chats, Gemini) | API key |\n| `LambdaS3StorageClient` | S3 Storage API (list, preview, download) | API key |\n| `LambdaLogsClient` | Logs API (write, query, stats) | API key |\n| `DocsAIClient` | DocsAI Django (page management, docs content) | API key |\n| `ResumeAIClient` | Resume AI microservice | API key |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Client",
+            "Calls",
+            "Auth"
+          ],
+          "rows": [
+            [
+              "`ConnectraClient`",
+              "Connectra REST (VQL queries, batch upsert, `/common/jobs/*`, filters)",
+              "`X-API-Key` header"
+            ],
+            [
+              "`EmailServerJobsClient`",
+              "Email satellite job APIs (S3 finder/verify, pause/resume/terminate, status)",
+              "API key (`LAMBDA_EMAIL_*`)"
+            ],
+            [
+              "`LambdaEmailClient`",
+              "Lambda Email API (finder, verifier, bulk, patterns)",
+              "API key"
+            ],
+            [
+              "`LambdaAIClient`",
+              "Contact AI REST (chats, Gemini)",
+              "API key"
+            ],
+            [
+              "`LambdaS3StorageClient`",
+              "S3 Storage API (list, preview, download)",
+              "API key"
+            ],
+            [
+              "`LambdaLogsClient`",
+              "Logs API (write, query, stats)",
+              "API key"
+            ],
+            [
+              "`DocsAIClient`",
+              "DocsAI Django (page management, docs content)",
+              "API key"
+            ],
+            [
+              "`ResumeAIClient`",
+              "Resume AI microservice",
+              "API key"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Module catalog",
+      "level": 2,
+      "slug": "module-catalog",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Query modules",
+      "level": 3,
+      "slug": "query-modules",
+      "prose": "| Module | Class | Key operations |\n| --- | --- | --- |\n| auth | `AuthQuery` | `me` |\n| users | `UserQuery` | `user(uuid)`, `users()`, `userStats()` |\n| contacts | `ContactQuery` | `contact(uuid)`, `contacts(query)`, `contactCount(query)`, `contactQuery(query)`, `filters()`, `filterData(input)` |\n| companies | `CompanyQuery` | `company(uuid)`, `companies(query)`, `companyCount(query)`, `companyQuery(query)`, `companyContacts(company_uuid)`, `filters()`, `filterData(input)` |\n| email | `EmailQuery` | `findEmails`, `createEmailFinderExportJob`, `createEmailVerifyExportJob`, `findEmailsBulk`, `verifySingleEmail`, `verifyEmailsBulk`, `exportEmails`, `verifyexportEmail` |\n| jobs | `JobQuery` | `job(jobId)`, `jobs(limit,offset,status,jobType,jobFamily)` |\n| usage | `UsageQuery` | `usage(feature)` |\n| featureOverview | `FeatureOverviewQuery` | `featureOverview()` |\n| billing | `BillingQuery` | `billing`, `plans`, `addons`, `invoices`, `paymentInstructions`, `paymentSubmissions` |\n| activities | `ActivityQuery` | `activities(...)`, `activityStats(...)` |\n| analytics | `AnalyticsQuery` | `performanceMetrics`, `aggregateMetrics` |\n| health | `HealthQuery` | `apiMetadata`, `apiHealth`, `vqlHealth`, `vqlStats`, `performanceStats` |\n| pages | `PagesQuery` | `page`, `pages`, `pageContent`, `pagesByType`, `pageTypes`, `pageStatistics`, `pagesByState`, `pagesByStateCount`, `pagesByUserType`, `pagesByDocsaiUserType`, `myPages`, `pageAccessControl`, `pageSections`, `pageComponents`, `pageEndpoints`, `pageVersions`, `dashboardPages`, `marketingPages` |\n| s3 | `S3Query` | `s3Files`, `s3FileData`, `s3FileInfo`, `s3FileDownloadUrl`, `s3FileSchema`, `s3FileStats`, `s3BucketMetadata` |\n| upload | `UploadQuery` | `uploadStatus`, `presignedUrl` |\n| aiChats | `AIChatQuery` | `aiChat(uuid)`, `aiChats()` |\n| notifications | `NotificationQuery` | `notifications`, `notification`, `unreadCount`, `notificationPreferences` |\n| salesNavigator | `SalesNavigatorQuery` | `salesNavigatorRecords(...)` |\n| admin | `AdminQuery` | `users`, `usersWithBuckets`, `userStats`, `userHistory`, `logStatistics`, `logs`, `searchLogs` |\n| savedSearches | `SavedSearchQuery` | `listSavedSearches(...)`, `getSavedSearch(...)` |\n| twoFactor | `TwoFactorQuery` | `get2FAStatus()` |\n| profile | `ProfileQuery` | `listAPIKeys()`, `listSessions()`, `listTeamMembers()` |\n| resume | `ResumeQuery` | `resumes()`, `resume(id)` |",
+      "tables": [
+        {
+          "headers": [
+            "Module",
+            "Class",
+            "Key operations"
+          ],
+          "rows": [
+            [
+              "auth",
+              "`AuthQuery`",
+              "`me`"
+            ],
+            [
+              "users",
+              "`UserQuery`",
+              "`user(uuid)`, `users()`, `userStats()`"
+            ],
+            [
+              "contacts",
+              "`ContactQuery`",
+              "`contact(uuid)`, `contacts(query)`, `contactCount(query)`, `contactQuery(query)`, `filters()`, `filterData(input)`"
+            ],
+            [
+              "companies",
+              "`CompanyQuery`",
+              "`company(uuid)`, `companies(query)`, `companyCount(query)`, `companyQuery(query)`, `companyContacts(company_uuid)`, `filters()`, `filterData(input)`"
+            ],
+            [
+              "email",
+              "`EmailQuery`",
+              "`findEmails`, `createEmailFinderExportJob`, `createEmailVerifyExportJob`, `findEmailsBulk`, `verifySingleEmail`, `verifyEmailsBulk`, `exportEmails`, `verifyexportEmail`"
+            ],
+            [
+              "jobs",
+              "`JobQuery`",
+              "`job(jobId)`, `jobs(limit,offset,status,jobType,jobFamily)`"
+            ],
+            [
+              "usage",
+              "`UsageQuery`",
+              "`usage(feature)`"
+            ],
+            [
+              "featureOverview",
+              "`FeatureOverviewQuery`",
+              "`featureOverview()`"
+            ],
+            [
+              "billing",
+              "`BillingQuery`",
+              "`billing`, `plans`, `addons`, `invoices`, `paymentInstructions`, `paymentSubmissions`"
+            ],
+            [
+              "activities",
+              "`ActivityQuery`",
+              "`activities(...)`, `activityStats(...)`"
+            ],
+            [
+              "analytics",
+              "`AnalyticsQuery`",
+              "`performanceMetrics`, `aggregateMetrics`"
+            ],
+            [
+              "health",
+              "`HealthQuery`",
+              "`apiMetadata`, `apiHealth`, `vqlHealth`, `vqlStats`, `performanceStats`"
+            ],
+            [
+              "pages",
+              "`PagesQuery`",
+              "`page`, `pages`, `pageContent`, `pagesByType`, `pageTypes`, `pageStatistics`, `pagesByState`, `pagesByStateCount`, `pagesByUserType`, `pagesByDocsaiUserType`, `myPages`, `pageAccessControl`, `pageSections`, `pageComponents`, `pageEndpoints`, `pageVersions`, `dashboardPages`, `marketingPages`"
+            ],
+            [
+              "s3",
+              "`S3Query`",
+              "`s3Files`, `s3FileData`, `s3FileInfo`, `s3FileDownloadUrl`, `s3FileSchema`, `s3FileStats`, `s3BucketMetadata`"
+            ],
+            [
+              "upload",
+              "`UploadQuery`",
+              "`uploadStatus`, `presignedUrl`"
+            ],
+            [
+              "aiChats",
+              "`AIChatQuery`",
+              "`aiChat(uuid)`, `aiChats()`"
+            ],
+            [
+              "notifications",
+              "`NotificationQuery`",
+              "`notifications`, `notification`, `unreadCount`, `notificationPreferences`"
+            ],
+            [
+              "salesNavigator",
+              "`SalesNavigatorQuery`",
+              "`salesNavigatorRecords(...)`"
+            ],
+            [
+              "admin",
+              "`AdminQuery`",
+              "`users`, `usersWithBuckets`, `userStats`, `userHistory`, `logStatistics`, `logs`, `searchLogs`"
+            ],
+            [
+              "savedSearches",
+              "`SavedSearchQuery`",
+              "`listSavedSearches(...)`, `getSavedSearch(...)`"
+            ],
+            [
+              "twoFactor",
+              "`TwoFactorQuery`",
+              "`get2FAStatus()`"
+            ],
+            [
+              "profile",
+              "`ProfileQuery`",
+              "`listAPIKeys()`, `listSessions()`, `listTeamMembers()`"
+            ],
+            [
+              "resume",
+              "`ResumeQuery`",
+              "`resumes()`, `resume(id)`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Mutation modules",
+      "level": 3,
+      "slug": "mutation-modules",
+      "prose": "| Module | Class | Key operations |\n| --- | --- | --- |\n| auth | `AuthMutation` | `login`, `register`, `logout`, `refresh_token` |\n| users | `UserMutation` | `update_profile`, `upload_avatar`, `update_user`, `promote_to_admin`, `promote_to_super_admin` |\n| contacts | `ContactMutation` | `createContact`, `batchCreateContacts`, `importContacts`, `updateContact`, `deleteContact`, `exportContacts` |\n| companies | `CompanyMutation` | `createCompany`, `exportCompanies`, `importCompanies`, `updateCompany`, `deleteCompany` |\n| billing | `BillingMutation` | `subscribe`, `purchaseAddon`, `submitPaymentProof`, `approvePayment`, `declinePayment` |\n| linkedin | `LinkedInMutation` | `search`, `upsertByLinkedInUrl` |\n| jobs | `JobMutation` | `createEmailFinderExport`, `createEmailVerifyExport`, `createEmailPatternImport`, `createContact360Export`, `createContact360Import`, `createAppointmentImport`, `retryJob` |\n| email | `EmailMutation` | `addEmailPattern`, `addEmailPatternBulk` |\n| usage | `UsageMutation` | `trackUsage`, `resetUsage` |\n| upload | `UploadMutation` | `initiateUpload`, `registerPart`, `completeUpload`, `abortUpload` |\n| s3 | `S3Mutation` | `initiateCsvUpload`, `completeCsvUpload`, `deleteFile` |\n| analytics | `AnalyticsMutation` | `submitPerformanceMetric` |\n| aiChats | `AIChatMutation` | `createAIChat`, `updateAIChat`, `deleteAIChat`, `sendMessage`, `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters` |\n| notifications | `NotificationMutation` | `markNotificationAsRead`, `markNotificationsAsRead`, `deleteNotifications`, `updateNotificationPreferences` |\n| salesNavigator | `SalesNavigatorMutation` | `saveSalesNavigatorProfiles` |\n| admin | `AdminMutation` | `updateUserRole`, `updateUserCredits`, `deleteUser`, `promoteToAdmin`, `promoteToSuperAdmin`, `createLog`, `createLogsBatch`, `updateLog`, `deleteLog`, `deleteLogsBulk` |\n| savedSearches | `SavedSearchMutation` | `createSavedSearch`, `updateSavedSearch`, `deleteSavedSearch`, `updateSavedSearchUsage` |\n| twoFactor | `TwoFactorMutation` | `setup2FA`, `verify2FA`, `disable2FA`, `regenerateBackupCodes` |\n| profile | `ProfileMutation` | `createAPIKey`, `deleteAPIKey`, `revokeSession`, `revokeAllOtherSessions`, `inviteTeamMember`, `updateTeamMemberRole`, `removeTeamMember` |\n| resume | `ResumeMutation` | `saveResume`, `deleteResume` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Module",
+            "Class",
+            "Key operations"
+          ],
+          "rows": [
+            [
+              "auth",
+              "`AuthMutation`",
+              "`login`, `register`, `logout`, `refresh_token`"
+            ],
+            [
+              "users",
+              "`UserMutation`",
+              "`update_profile`, `upload_avatar`, `update_user`, `promote_to_admin`, `promote_to_super_admin`"
+            ],
+            [
+              "contacts",
+              "`ContactMutation`",
+              "`createContact`, `batchCreateContacts`, `importContacts`, `updateContact`, `deleteContact`, `exportContacts`"
+            ],
+            [
+              "companies",
+              "`CompanyMutation`",
+              "`createCompany`, `exportCompanies`, `importCompanies`, `updateCompany`, `deleteCompany`"
+            ],
+            [
+              "billing",
+              "`BillingMutation`",
+              "`subscribe`, `purchaseAddon`, `submitPaymentProof`, `approvePayment`, `declinePayment`"
+            ],
+            [
+              "linkedin",
+              "`LinkedInMutation`",
+              "`search`, `upsertByLinkedInUrl`"
+            ],
+            [
+              "jobs",
+              "`JobMutation`",
+              "`createEmailFinderExport`, `createEmailVerifyExport`, `createEmailPatternImport`, `createContact360Export`, `createContact360Import`, `createAppointmentImport`, `retryJob`"
+            ],
+            [
+              "email",
+              "`EmailMutation`",
+              "`addEmailPattern`, `addEmailPatternBulk`"
+            ],
+            [
+              "usage",
+              "`UsageMutation`",
+              "`trackUsage`, `resetUsage`"
+            ],
+            [
+              "upload",
+              "`UploadMutation`",
+              "`initiateUpload`, `registerPart`, `completeUpload`, `abortUpload`"
+            ],
+            [
+              "s3",
+              "`S3Mutation`",
+              "`initiateCsvUpload`, `completeCsvUpload`, `deleteFile`"
+            ],
+            [
+              "analytics",
+              "`AnalyticsMutation`",
+              "`submitPerformanceMetric`"
+            ],
+            [
+              "aiChats",
+              "`AIChatMutation`",
+              "`createAIChat`, `updateAIChat`, `deleteAIChat`, `sendMessage`, `analyzeEmailRisk`, `generateCompanySummary`, `parseContactFilters`"
+            ],
+            [
+              "notifications",
+              "`NotificationMutation`",
+              "`markNotificationAsRead`, `markNotificationsAsRead`, `deleteNotifications`, `updateNotificationPreferences`"
+            ],
+            [
+              "salesNavigator",
+              "`SalesNavigatorMutation`",
+              "`saveSalesNavigatorProfiles`"
+            ],
+            [
+              "admin",
+              "`AdminMutation`",
+              "`updateUserRole`, `updateUserCredits`, `deleteUser`, `promoteToAdmin`, `promoteToSuperAdmin`, `createLog`, `createLogsBatch`, `updateLog`, `deleteLog`, `deleteLogsBulk`"
+            ],
+            [
+              "savedSearches",
+              "`SavedSearchMutation`",
+              "`createSavedSearch`, `updateSavedSearch`, `deleteSavedSearch`, `updateSavedSearchUsage`"
+            ],
+            [
+              "twoFactor",
+              "`TwoFactorMutation`",
+              "`setup2FA`, `verify2FA`, `disable2FA`, `regenerateBackupCodes`"
+            ],
+            [
+              "profile",
+              "`ProfileMutation`",
+              "`createAPIKey`, `deleteAPIKey`, `revokeSession`, `revokeAllOtherSessions`, `inviteTeamMember`, `updateTeamMemberRole`, `removeTeamMember`"
+            ],
+            [
+              "resume",
+              "`ResumeMutation`",
+              "`saveResume`, `deleteResume`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Middleware stack (all 8 layers)",
+      "level": 2,
+      "slug": "middleware-stack-all-8-layers",
+      "prose": "| Layer | Class | Purpose |\n| --- | --- | --- |\n| 1 | `GZipMiddleware` | Response compression (optional, `ENABLE_RESPONSE_COMPRESSION`) |\n| 2 | `REDMetricsMiddleware` | Rate/error/duration aggregate metrics → `/health/slo` |\n| 3 | `TimingMiddleware` | `X-Process-Time` and `X-Response-Time` response headers |\n| 4 | `RequestIdMiddleware` | Echo `X-Request-Id` header from request to response |\n| 5 | `TraceIdMiddleware` | Attach/propagate `X-Trace-Id` for cross-service correlation |\n| 6 | `GraphQLBodySizeMiddleware` | Reject POST bodies > `GRAPHQL_MAX_BODY_BYTES` (default 2MB) |\n| 7 | `GraphQLIdempotencyMiddleware` | Cache and replay `X-Idempotency-Key` mutations (billing/payment guards) |\n| 8 | `GraphQLMutationAbuseGuardMiddleware` | Sliding-window per-actor rate guard on high-risk mutations |\n| 9 | `GraphQLRateLimitMiddleware` | Per-IP rate limit on `/graphql` (disabled by default in dev) |\n| 10 | `DatabaseCommitMiddleware` | Ensure DB generator completes and commits after each GraphQL request |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Layer",
+            "Class",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "1",
+              "`GZipMiddleware`",
+              "Response compression (optional, `ENABLE_RESPONSE_COMPRESSION`)"
+            ],
+            [
+              "2",
+              "`REDMetricsMiddleware`",
+              "Rate/error/duration aggregate metrics → `/health/slo`"
+            ],
+            [
+              "3",
+              "`TimingMiddleware`",
+              "`X-Process-Time` and `X-Response-Time` response headers"
+            ],
+            [
+              "4",
+              "`RequestIdMiddleware`",
+              "Echo `X-Request-Id` header from request to response"
+            ],
+            [
+              "5",
+              "`TraceIdMiddleware`",
+              "Attach/propagate `X-Trace-Id` for cross-service correlation"
+            ],
+            [
+              "6",
+              "`GraphQLBodySizeMiddleware`",
+              "Reject POST bodies > `GRAPHQL_MAX_BODY_BYTES` (default 2MB)"
+            ],
+            [
+              "7",
+              "`GraphQLIdempotencyMiddleware`",
+              "Cache and replay `X-Idempotency-Key` mutations (billing/payment guards)"
+            ],
+            [
+              "8",
+              "`GraphQLMutationAbuseGuardMiddleware`",
+              "Sliding-window per-actor rate guard on high-risk mutations"
+            ],
+            [
+              "9",
+              "`GraphQLRateLimitMiddleware`",
+              "Per-IP rate limit on `/graphql` (disabled by default in dev)"
+            ],
+            [
+              "10",
+              "`DatabaseCommitMiddleware`",
+              "Ensure DB generator completes and commits after each GraphQL request"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GraphQL extensions",
+      "level": 2,
+      "slug": "graphql-extensions",
+      "prose": "| Extension | Class | Purpose |\n| --- | --- | --- |\n| Complexity | `QueryComplexityExtension` | Reject queries exceeding `GRAPHQL_COMPLEXITY_LIMIT` (default 100) |\n| Timeout | `QueryTimeoutExtension` | Kill queries exceeding `GRAPHQL_QUERY_TIMEOUT` (default 30s) |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Extension",
+            "Class",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "Complexity",
+              "`QueryComplexityExtension`",
+              "Reject queries exceeding `GRAPHQL_COMPLEXITY_LIMIT` (default 100)"
+            ],
+            [
+              "Timeout",
+              "`QueryTimeoutExtension`",
+              "Kill queries exceeding `GRAPHQL_QUERY_TIMEOUT` (default 30s)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Configuration (app/core/config.py)",
+      "level": 2,
+      "slug": "configuration-appcoreconfigpy",
+      "prose": "Critical environment variables by category:\n\n| Category | Key variables |\n| --- | --- |\n| Gateway identity | `PROJECT_NAME`, `VERSION`, `ENVIRONMENT`, `DEBUG` |\n| GraphQL | `GRAPHQL_COMPLEXITY_LIMIT`, `GRAPHQL_QUERY_TIMEOUT`, `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE`, `GRAPHQL_MAX_BODY_BYTES` |\n| DB | `POSTGRES_USER/PASS/HOST/PORT/DB`, `DATABASE_POOL_SIZE` (25), `DATABASE_MAX_OVERFLOW` (50) |\n| Connectra | `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY`, `CONNECTRA_TIMEOUT` |\n| Lambda email | `LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY`, `LAMBDA_EMAIL_API_TIMEOUT` (jobs + finder/verifier) |\n| Lambda AI | `LAMBDA_AI_API_URL`, `LAMBDA_AI_API_KEY` |\n| S3 storage | `LAMBDA_S3STORAGE_API_URL`, `LAMBDA_S3STORAGE_API_KEY` |\n| Logs | `LAMBDA_LOGS_API_URL`, `LAMBDA_LOGS_API_KEY` |\n| DocsAI | `DOCSAI_API_URL`, `DOCSAI_API_KEY`, `DOCSAI_ENABLED` |\n| Resume AI | `RESUME_AI_BASE_URL`, `RESUME_AI_API_KEY` |\n| Security | `SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES` (30), `REFRESH_TOKEN_EXPIRE_DAYS` (7) |\n| Idempotency | `IDEMPOTENCY_REQUIRED_MUTATIONS`, `IDEMPOTENCY_TTL_SECONDS` (86400) |\n| Abuse guard | `ABUSE_GUARDED_MUTATIONS`, `MUTATION_ABUSE_GUARD_RPM` (30) |\n| SLO | `SLO_ERROR_BUDGET_PERCENT` (1.0%) |\n| Caching | `REDIS_URL`, `ENABLE_REDIS_CACHE`, `ENABLE_USER_CACHE`, `USER_CACHE_TTL` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Category",
+            "Key variables"
+          ],
+          "rows": [
+            [
+              "Gateway identity",
+              "`PROJECT_NAME`, `VERSION`, `ENVIRONMENT`, `DEBUG`"
+            ],
+            [
+              "GraphQL",
+              "`GRAPHQL_COMPLEXITY_LIMIT`, `GRAPHQL_QUERY_TIMEOUT`, `GRAPHQL_RATE_LIMIT_REQUESTS_PER_MINUTE`, `GRAPHQL_MAX_BODY_BYTES`"
+            ],
+            [
+              "DB",
+              "`POSTGRES_USER/PASS/HOST/PORT/DB`, `DATABASE_POOL_SIZE` (25), `DATABASE_MAX_OVERFLOW` (50)"
+            ],
+            [
+              "Connectra",
+              "`CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY`, `CONNECTRA_TIMEOUT`"
+            ],
+            [
+              "Lambda email",
+              "`LAMBDA_EMAIL_API_URL`, `LAMBDA_EMAIL_API_KEY`, `LAMBDA_EMAIL_API_TIMEOUT` (jobs + finder/verifier)"
+            ],
+            [
+              "Lambda AI",
+              "`LAMBDA_AI_API_URL`, `LAMBDA_AI_API_KEY`"
+            ],
+            [
+              "S3 storage",
+              "`LAMBDA_S3STORAGE_API_URL`, `LAMBDA_S3STORAGE_API_KEY`"
+            ],
+            [
+              "Logs",
+              "`LAMBDA_LOGS_API_URL`, `LAMBDA_LOGS_API_KEY`"
+            ],
+            [
+              "DocsAI",
+              "`DOCSAI_API_URL`, `DOCSAI_API_KEY`, `DOCSAI_ENABLED`"
+            ],
+            [
+              "Resume AI",
+              "`RESUME_AI_BASE_URL`, `RESUME_AI_API_KEY`"
+            ],
+            [
+              "Security",
+              "`SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES` (30), `REFRESH_TOKEN_EXPIRE_DAYS` (7)"
+            ],
+            [
+              "Idempotency",
+              "`IDEMPOTENCY_REQUIRED_MUTATIONS`, `IDEMPOTENCY_TTL_SECONDS` (86400)"
+            ],
+            [
+              "Abuse guard",
+              "`ABUSE_GUARDED_MUTATIONS`, `MUTATION_ABUSE_GUARD_RPM` (30)"
+            ],
+            [
+              "SLO",
+              "`SLO_ERROR_BUDGET_PERCENT` (1.0%)"
+            ],
+            [
+              "Caching",
+              "`REDIS_URL`, `ENABLE_REDIS_CACHE`, `ENABLE_USER_CACHE`, `USER_CACHE_TTL`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Strengths",
+      "level": 2,
+      "slug": "strengths",
+      "prose": "- Production-grade middleware stack (idempotency, abuse guard, RED metrics, trace propagation).\n- Fully async end-to-end (FastAPI + asyncpg + httpx clients).\n- Per-request DB session lifecycle with commit/rollback discipline.\n- DataLoaders for N+1 prevention across related entity queries.\n- JWT context with TTL user cache option for high-traffic deployments.\n- Query complexity + timeout extensions as gatekeeping for GraphQL abuse.\n- Lambda-compatible via Mangum with graceful lifecycle handling.\n- Multi-environment (EC2, Lambda, Docker) with single codebase.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Production-grade middleware stack (idempotency, abuse guard, RED metrics, trace propagation).",
+              "checked": null
+            },
+            {
+              "text": "Fully async end-to-end (FastAPI + asyncpg + httpx clients).",
+              "checked": null
+            },
+            {
+              "text": "Per-request DB session lifecycle with commit/rollback discipline.",
+              "checked": null
+            },
+            {
+              "text": "DataLoaders for N+1 prevention across related entity queries.",
+              "checked": null
+            },
+            {
+              "text": "JWT context with TTL user cache option for high-traffic deployments.",
+              "checked": null
+            },
+            {
+              "text": "Query complexity + timeout extensions as gatekeeping for GraphQL abuse.",
+              "checked": null
+            },
+            {
+              "text": "Lambda-compatible via Mangum with graceful lifecycle handling.",
+              "checked": null
+            },
+            {
+              "text": "Multi-environment (EC2, Lambda, Docker) with single codebase.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Verified completion status from runtime",
+      "level": 2,
+      "slug": "verified-completion-status-from-runtime",
+      "prose": "- [x] ✅ GraphQL gateway architecture is fully established with modular query/mutation namespaces.\n- [x] ✅ Security middleware exists for idempotency, mutation abuse guard, tracing, and body-size limits.\n- [x] ✅ Multi-service client integration exists (`email`, `s3storage`, `logs.api`, email/sync job satellites, `connectra`, `docsai`, `ai`).\n- [x] ✅ Health endpoints include DB/logging/SLO visibility.\n- [x] ✅ Upload/session Redis options and operational config toggles are already present.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ GraphQL gateway architecture is fully established with modular query/mutation namespaces.",
+              "checked": true
+            },
+            {
+              "text": "✅ Security middleware exists for idempotency, mutation abuse guard, tracing, and body-size limits.",
+              "checked": true
+            },
+            {
+              "text": "✅ Multi-service client integration exists (`email`, `s3storage`, `logs.api`, email/sync job satellites, `connectra`, `docsai`, `ai`).",
+              "checked": true
+            },
+            {
+              "text": "✅ Health endpoints include DB/logging/SLO visibility.",
+              "checked": true
+            },
+            {
+              "text": "✅ Upload/session Redis options and operational config toggles are already present.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Active risks and gap map",
+      "level": 2,
+      "slug": "active-risks-and-gap-map",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and configuration drift",
+      "level": 3,
+      "slug": "security-and-configuration-drift",
+      "prose": "- [x] ✅ Completed: runtime service URL defaults are now removed from settings, and production enforces URL/API-key pairing for downstream dependencies.\n- [x] ✅ Completed: deployment env templates now sanitize real-looking API URLs/keys and replace token-like commented examples with redacted placeholders.\n- [ ] ⬜ Incomplete: production security depends on environment discipline; default values remain risky for misconfigured deploys.\n- [ ] 🟡 In Progress: idempotency guard exists, but strict enforcement (`IDEMPOTENCY_ENFORCE_GRAPHQL_MUTATIONS`) is optional and not always enabled.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: runtime service URL defaults are now removed from settings, and production enforces URL/API-key pairing for downstream dependencies.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: deployment env templates now sanitize real-looking API URLs/keys and replace token-like commented examples with redacted placeholders.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: production security depends on environment discipline; default values remain risky for misconfigured deploys.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: idempotency guard exists, but strict enforcement (`IDEMPOTENCY_ENFORCE_GRAPHQL_MUTATIONS`) is optional and not always enabled.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract and module completeness",
+      "level": 3,
+      "slug": "contract-and-module-completeness",
+      "prose": "- [ ] ⬜ Incomplete: campaign GraphQL modules (`campaigns/sequences/templates`) are still missing for full `10.x` scope.\n- [ ] 🟡 In Progress: docs/runtime parity across all module contracts is partial.\n- [ ] ⬜ Incomplete: status/behavior contract consistency for downstream email/storage/log clients requires stronger automated coverage.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: campaign GraphQL modules (`campaigns/sequences/templates`) are still missing for full `10.x` scope.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: docs/runtime parity across all module contracts is partial.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: status/behavior contract consistency for downstream email/storage/log clients requires stronger automated coverage.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Reliability and scale gaps",
+      "level": 3,
+      "slug": "reliability-and-scale-gaps",
+      "prose": "- [ ] 🟡 In Progress: production now enforces PostgreSQL backends for idempotency and upload sessions; abuse-guard/token shared-store state remains incomplete across replicas.\n- [ ] 🟡 In Progress: token blacklist checks are expiry-aware with eager stale-entry cleanup plus startup/shutdown and periodic lifecycle cleanup hooks (configurable cadence, production-enforced interval > 0), and health evidence is exposed via both REST (`/health/token-blacklist`) and GraphQL (`health.performanceStats.token_blacklist_cleanup`) with contract test coverage (`tests/graphql/test_health_performance_stats.py`); broader token-control scale hardening remains pending.\n- [x] ✅ Completed: resolver/client debug artifact patterns are removed and protected with regression guard tests (`tests/test_no_debug_artifacts.py`).\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: production now enforces PostgreSQL backends for idempotency and upload sessions; abuse-guard/token shared-store state remains incomplete across replicas.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: token blacklist checks are expiry-aware with eager stale-entry cleanup plus startup/shutdown and periodic lifecycle cleanup hooks (configurable cadence, production-enforced interval > 0), and health evidence is exposed via both REST (`/health/token-blacklist`) and GraphQL (`health.performanceStats.token_blacklist_cleanup`) with contract test coverage (`tests/graphql/test_health_performance_stats.py`); broader token-control scale hardening remains pending.",
+              "checked": false
+            },
+            {
+              "text": "✅ Completed: resolver/client debug artifact patterns are removed and protected with regression guard tests (`tests/test_no_debug_artifacts.py`).",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current execution packs (small tasks by status)",
+      "level": 2,
+      "slug": "current-execution-packs-small-tasks-by-status",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contract pack",
+      "level": 3,
+      "slug": "contract-pack",
+      "prose": "- [x] ✅ GraphQL-first contract and module namespace structure are in place.\n- [ ] 🟡 In Progress: keep resolver payload contracts aligned with downstream service APIs.\n- [ ] ⬜ Incomplete: enforce stricter idempotency contract for all high-risk mutations in production.\n- [ ] ⬜ Incomplete: finalize campaign API contract surface for `10.x`.\n- [ ] 📌 Planned: publish explicit public/private GraphQL boundary and deprecation policy.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ GraphQL-first contract and module namespace structure are in place.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: keep resolver payload contracts aligned with downstream service APIs.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: enforce stricter idempotency contract for all high-risk mutations in production.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: finalize campaign API contract surface for `10.x`.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: publish explicit public/private GraphQL boundary and deprecation policy.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Service pack",
+      "level": 3,
+      "slug": "service-pack",
+      "prose": "- [x] ✅ Core orchestration clients and service bridges are implemented.\n- [ ] 🟡 In Progress: harden distributed anti-abuse/idempotency behavior for multi-instance deployments.\n- [x] ✅ Completed: add regression guard to block debug artifact patterns in historically risky resolver/client files.\n- [ ] ⬜ Incomplete: complete campaign service orchestration modules.\n- [ ] 📌 Planned: add policy-driven connector governance controls for ecosystem scale.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Core orchestration clients and service bridges are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: harden distributed anti-abuse/idempotency behavior for multi-instance deployments.",
+              "checked": false
+            },
+            {
+              "text": "✅ Completed: add regression guard to block debug artifact patterns in historically risky resolver/client files.",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: complete campaign service orchestration modules.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: add policy-driven connector governance controls for ecosystem scale.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Surface pack",
+      "level": 3,
+      "slug": "surface-pack",
+      "prose": "- [x] ✅ Dashboard and extension can access all major capability modules through gateway.\n- [ ] 🟡 In Progress: improve deterministic error envelopes and retry hints for clients.\n- [ ] ⬜ Incomplete: close UX/API contract gaps for campaign and advanced admin flows.\n- [ ] 📌 Planned: partner-facing integration guides and compatibility guarantees.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Dashboard and extension can access all major capability modules through gateway.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve deterministic error envelopes and retry hints for clients.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: close UX/API contract gaps for campaign and advanced admin flows.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: partner-facing integration guides and compatibility guarantees.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data pack",
+      "level": 3,
+      "slug": "data-pack",
+      "prose": "- [x] ✅ Async DB/session lifecycle and repository patterns are implemented.\n- [ ] 🟡 In Progress: strengthen trace/request lineage consistency across all module calls.\n- [ ] 🟡 In Progress: shared-store strategy is implemented for abuse/idempotency; token-blacklist reliability improved via expiry-aware checks and stale-entry cleanup.\n- [ ] 📌 Planned: campaign evidence and compliance lineage model.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Async DB/session lifecycle and repository patterns are implemented.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: strengthen trace/request lineage consistency across all module calls.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: shared-store strategy is implemented for abuse/idempotency; token-blacklist reliability improved via expiry-aware checks and stale-entry cleanup.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign evidence and compliance lineage model.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Ops pack",
+      "level": 3,
+      "slug": "ops-pack",
+      "prose": "- [x] ✅ Health checks, RED metrics, and SLO endpoints exist in runtime.\n- [ ] 🟡 In Progress: startup now hard-fails in production for permissive wildcard CORS/trusted-host config (`ALLOWED_ORIGINS='*'` or `TRUSTED_HOSTS='*'`); remaining secret-default cleanup is pending.\n- [ ] ⬜ Incomplete: add stronger contract parity tests tied to docs and release gates.\n- [ ] 🟡 In Progress: rate-limit and abuse guard tuning per environment.\n- [ ] 📌 Planned: reliability promotion gates based on error budgets and multi-service dependency health.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Health checks, RED metrics, and SLO endpoints exist in runtime.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: startup now hard-fails in production for permissive wildcard CORS/trusted-host config (`ALLOWED_ORIGINS='*'` or `TRUSTED_HOSTS='*'`); remaining secret-default cleanup is pending.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add stronger contract parity tests tied to docs and release gates.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: rate-limit and abuse guard tuning per environment.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: reliability promotion gates based on error budgets and multi-service dependency health.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era-by-era completion map (0.x.x to 10.x.x)",
+      "level": 2,
+      "slug": "era-by-era-completion-map-0xx-to-10xx",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x.x - Foundation and pre-product stabilization and codebase setup",
+      "level": 3,
+      "slug": "0xx---foundation-and-pre-product-stabilization-and-codebase-setup",
+      "prose": "- [x] ✅ Completed: gateway bootstrap, middleware baseline, context/session lifecycle, and schema composition are implemented.\n- [x] ✅ Completed: foundational docs/runtime drift for Appointment360 — `appointment360_endpoint_era_matrix.md` aligned with resolvers, parity tests (`test_endpoint_docs_*.py`, `tests/doc_paths.py`), and CI (`docs/.github/workflows/ci.yml`).\n- [ ] ⬜ Incomplete: remove insecure default config values from baseline templates/settings.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: gateway bootstrap, middleware baseline, context/session lifecycle, and schema composition are implemented.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: foundational docs/runtime drift for Appointment360 — `appointment360_endpoint_era_matrix.md` aligned with resolvers, parity tests (`test_endpoint_docs_*.py`, `tests/doc_paths.py`), and CI (`docs/.github/workflows/ci.yml`).",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: remove insecure default config values from baseline templates/settings.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x.x - Contact360 user and billing and credit system",
+      "level": 3,
+      "slug": "1xx---contact360-user-and-billing-and-credit-system",
+      "prose": "- [x] ✅ Completed: auth, billing, usage, and credit mutation/query pathways are present.\n- [ ] 🟡 In Progress: strengthen immutable audit evidence for billing/admin high-risk actions.\n- [ ] ⬜ Incomplete: strict idempotency enforcement for all billing mutations in production.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: auth, billing, usage, and credit mutation/query pathways are present.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: strengthen immutable audit evidence for billing/admin high-risk actions.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: strict idempotency enforcement for all billing mutations in production.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x.x - Contact360 email system",
+      "level": 3,
+      "slug": "2xx---contact360-email-system",
+      "prose": "- [x] ✅ Completed: email finder/verifier and job orchestration modules are integrated.\n- [ ] 🟡 In Progress: normalize downstream email provider semantics and retry behavior contracts.\n- [ ] ⬜ Incomplete: add full replay/failure-path tests for email-job orchestration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: email finder/verifier and job orchestration modules are integrated.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: normalize downstream email provider semantics and retry behavior contracts.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add full replay/failure-path tests for email-job orchestration.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x.x - Contact360 contact and company data system",
+      "level": 3,
+      "slug": "3xx---contact360-contact-and-company-data-system",
+      "prose": "- [x] ✅ Completed: contact/company modules, VQL conversion, and Connectra integration are operational.\n- [ ] 🟡 In Progress: improve enrichment lineage and trace consistency.\n- [ ] ⬜ Incomplete: tighten contract parity between GraphQL filters and Connectra query semantics.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: contact/company modules, VQL conversion, and Connectra integration are operational.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve enrichment lineage and trace consistency.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: tighten contract parity between GraphQL filters and Connectra query semantics.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x.x - Contact360 Extension and Sales Navigator maturity",
+      "level": 3,
+      "slug": "4xx---contact360-extension-and-sales-navigator-maturity",
+      "prose": "- [x] ✅ Completed: LinkedIn/SalesNavigator mutation surfaces exist and are wired.\n- [ ] 🟡 In Progress: improve extension-session and sync mutation reliability guarantees.\n- [ ] ⬜ Incomplete: full support diagnostics and retry contracts for extension-origin ingest.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: LinkedIn/SalesNavigator mutation surfaces exist and are wired.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: improve extension-session and sync mutation reliability guarantees.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: full support diagnostics and retry contracts for extension-origin ingest.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x.x - Contact360 AI workflows",
+      "level": 3,
+      "slug": "5xx---contact360-ai-workflows",
+      "prose": "- [x] ✅ Completed: AI chats and resume module integration exist.\n- [ ] 🟡 In Progress: tighten AI safety, error handling, and observability conventions.\n- [ ] ⬜ Incomplete: complete cross-service AI lineage and policy guard evidence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: AI chats and resume module integration exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: tighten AI safety, error handling, and observability conventions.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete cross-service AI lineage and policy guard evidence.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x.x - Contact360 Reliability and Scaling",
+      "level": 3,
+      "slug": "6xx---contact360-reliability-and-scaling",
+      "prose": "- [x] ✅ Completed: complexity/timeout, idempotency, abuse-guard, and RED/SLO middleware foundations.\n- [ ] 🟡 In Progress: tune per-environment limits and error budget policies.\n- [ ] ⬜ Incomplete: distributed shared-state enforcement for anti-abuse/idempotency/token controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: complexity/timeout, idempotency, abuse-guard, and RED/SLO middleware foundations.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: tune per-environment limits and error budget policies.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: distributed shared-state enforcement for anti-abuse/idempotency/token controls.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x.x - Contact360 deployment",
+      "level": 3,
+      "slug": "7xx---contact360-deployment",
+      "prose": "- [x] ✅ Completed: multi-target deployment support (EC2/Lambda/Docker) and production guard warnings exist.\n- [ ] 🟡 In Progress: deployment governance checklists and runbook alignment.\n- [ ] ⬜ Incomplete: strict secret and secure-default enforcement before release promotion.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: multi-target deployment support (EC2/Lambda/Docker) and production guard warnings exist.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: deployment governance checklists and runbook alignment.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: strict secret and secure-default enforcement before release promotion.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x.x - Contact360 public and private apis and endpotints",
+      "level": 3,
+      "slug": "8xx---contact360-public-and-private-apis-and-endpotints",
+      "prose": "- [ ] 🟡 In Progress: broad GraphQL capability exposure exists for internal/private use.\n- [ ] ⬜ Incomplete: explicit versioning and public/private API governance model.\n- [ ] 📌 Planned: partner-safe API contracts and compatibility suite.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: broad GraphQL capability exposure exists for internal/private use.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: explicit versioning and public/private API governance model.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: partner-safe API contracts and compatibility suite.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x.x - Contact360 Ecosystem integrations and Platform productization",
+      "level": 3,
+      "slug": "9xx---contact360-ecosystem-integrations-and-platform-productization",
+      "prose": "- [ ] 🟡 In Progress: notifications, saved searches, and connector module foundations exist.\n- [ ] ⬜ Incomplete: tenant-safe entitlement controls and ecosystem governance completeness.\n- [ ] 📌 Planned: SLA evidence and support tooling for partner channels.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "🟡 In Progress: notifications, saved searches, and connector module foundations exist.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: tenant-safe entitlement controls and ecosystem governance completeness.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: SLA evidence and support tooling for partner channels.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x.x - Contact360 email campaign",
+      "level": 3,
+      "slug": "10xx---contact360-email-campaign",
+      "prose": "- [ ] ⬜ Incomplete: campaign/sequences/templates GraphQL modules are not complete.\n- [ ] 📌 Planned: campaign wizard orchestration and compliance evidence contracts.\n- [ ] 📌 Planned: campaign release gates tied to deliverability/compliance SLO signals.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: campaign/sequences/templates GraphQL modules are not complete.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign wizard orchestration and compliance evidence contracts.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: campaign release gates tied to deliverability/compliance SLO signals.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue (high impact)",
+      "level": 2,
+      "slug": "immediate-execution-queue-high-impact",
+      "prose": "- [ ] ⬜ Incomplete: remove insecure service key defaults and enforce secret-only startup policy.\n- [ ] ⬜ Incomplete: complete campaign GraphQL modules (`campaigns`, `sequences`, `campaignTemplates`).\n- [ ] 🟡 In Progress: tune and enforce GraphQL rate limit and abuse guard settings per environment.\n- [ ] 🟡 In Progress: PostgreSQL-backed distributed state is enforced for idempotency and abuse guard in production; token controls still need final scale hardening.\n- [ ] ⬜ Incomplete: add docs/runtime contract parity tests against backend API docs.\n- [ ] 🟡 In Progress: wire dependency-specific health visibility (including DocsAI readiness).\n- [ ] ⬜ Incomplete: remove residual debug file-write paths from resolver/client code.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "⬜ Incomplete: remove insecure service key defaults and enforce secret-only startup policy.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: complete campaign GraphQL modules (`campaigns`, `sequences`, `campaignTemplates`).",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: tune and enforce GraphQL rate limit and abuse guard settings per environment.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: PostgreSQL-backed distributed state is enforced for idempotency and abuse guard in production; token controls still need final scale hardening.",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: add docs/runtime contract parity tests against backend API docs.",
+              "checked": false
+            },
+            {
+              "text": "🟡 In Progress: wire dependency-specific health visibility (including DocsAI readiness).",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete: remove residual debug file-write paths from resolver/client code.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "File map",
+      "level": 2,
+      "slug": "file-map",
+      "prose": "| Path | Role |\n| --- | --- |\n| `app/main.py` | FastAPI app, middleware registration, health endpoints, Mangum Lambda handler |\n| `app/core/config.py` | `Settings` Pydantic model, all env var definitions |\n| `app/core/middleware.py` | All 10 custom middleware classes |\n| `app/core/security.py` | JWT encode/decode, `require_auth()` |\n| `app/graphql/schema.py` | Root `Query` + `Mutation` composition |\n| `app/graphql/context.py` | Per-request `Context` with JWT extraction |\n| `app/graphql/dataloaders.py` | `DataLoaders` for N+1 batching |\n| `app/graphql/extensions.py` | `QueryComplexityExtension`, `QueryTimeoutExtension` |\n| `app/graphql/errors.py` | Error classes and `handle_graphql_error` |\n| `app/graphql/modules/*/queries.py` | Per-module query resolvers |\n| `app/graphql/modules/*/mutations.py` | Per-module mutation resolvers |\n| `app/clients/connectra_client.py` | Connectra REST client |\n| `app/clients/email_server_client.py` | Email satellite job client (S3 jobs, status, pause/resume/terminate) |\n| `app/db/session.py` | Engine, session factory, pool monitoring |\n| `app/services/` | Business logic: billing, usage, credit, activity, pages, notification |\n| `app/repositories/` | Data access: user, profile, scheduler_job, token_blacklist, saved_search |\n| `app/utils/vql_converter.py` | GraphQL VQLQueryInput → Connectra VQL format |\n| `app/utils/connectra_mappers.py` | Response mapping: Connectra → GraphQL types |",
+      "tables": [
+        {
+          "headers": [
+            "Path",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`app/main.py`",
+              "FastAPI app, middleware registration, health endpoints, Mangum Lambda handler"
+            ],
+            [
+              "`app/core/config.py`",
+              "`Settings` Pydantic model, all env var definitions"
+            ],
+            [
+              "`app/core/middleware.py`",
+              "All 10 custom middleware classes"
+            ],
+            [
+              "`app/core/security.py`",
+              "JWT encode/decode, `require_auth()`"
+            ],
+            [
+              "`app/graphql/schema.py`",
+              "Root `Query` + `Mutation` composition"
+            ],
+            [
+              "`app/graphql/context.py`",
+              "Per-request `Context` with JWT extraction"
+            ],
+            [
+              "`app/graphql/dataloaders.py`",
+              "`DataLoaders` for N+1 batching"
+            ],
+            [
+              "`app/graphql/extensions.py`",
+              "`QueryComplexityExtension`, `QueryTimeoutExtension`"
+            ],
+            [
+              "`app/graphql/errors.py`",
+              "Error classes and `handle_graphql_error`"
+            ],
+            [
+              "`app/graphql/modules/*/queries.py`",
+              "Per-module query resolvers"
+            ],
+            [
+              "`app/graphql/modules/*/mutations.py`",
+              "Per-module mutation resolvers"
+            ],
+            [
+              "`app/clients/connectra_client.py`",
+              "Connectra REST client"
+            ],
+            [
+              "`app/clients/email_server_client.py`",
+              "Email satellite job client (S3 jobs, status, pause/resume/terminate)"
+            ],
+            [
+              "`app/db/session.py`",
+              "Engine, session factory, pool monitoring"
+            ],
+            [
+              "`app/services/`",
+              "Business logic: billing, usage, credit, activity, pages, notification"
+            ],
+            [
+              "`app/repositories/`",
+              "Data access: user, profile, scheduler_job, token_blacklist, saved_search"
+            ],
+            [
+              "`app/utils/vql_converter.py`",
+              "GraphQL VQLQueryInput → Connectra VQL format"
+            ],
+            [
+              "`app/utils/connectra_mappers.py`",
+              "Response mapping: Connectra → GraphQL types"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P0",
+      "level": 3,
+      "slug": "p0",
+      "prose": "- [x] ✅ Completed: `AP-0.1` Resolver/client debug artifact regression guard added (`tests/test_no_debug_artifacts.py`) and risky paths are clean.\n- [x] ✅ Completed: `AP-0.2` Production now fails closed on wildcard CORS/trusted-host settings and enforces downstream URL/API-key contracts (including DocsAI and Sales Navigator enablement checks).\n- [ ] ⬜ Incomplete: `AP-0.3` Campaign/sequences/templates GraphQL module completion for `10.x`.\n- [x] ✅ Completed: `AP-0.4` Production now enforces strict GraphQL idempotency guard policy (`IDEMPOTENCY_ENFORCE_GRAPHQL_MUTATIONS=true`) plus postgres-backed idempotency/abuse/session backends.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: `AP-0.1` Resolver/client debug artifact regression guard added (`tests/test_no_debug_artifacts.py`) and risky paths are clean.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: `AP-0.2` Production now fails closed on wildcard CORS/trusted-host settings and enforces downstream URL/API-key contracts (including DocsAI and Sales Navigator enablement checks).",
+              "checked": true
+            },
+            {
+              "text": "⬜ Incomplete: `AP-0.3` Campaign/sequences/templates GraphQL module completion for `10.x`.",
+              "checked": false
+            },
+            {
+              "text": "✅ Completed: `AP-0.4` Production now enforces strict GraphQL idempotency guard policy (`IDEMPOTENCY_ENFORCE_GRAPHQL_MUTATIONS=true`) plus postgres-backed idempotency/abuse/session backends.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P1/P2",
+      "level": 3,
+      "slug": "p1p2",
+      "prose": "- [x] ✅ Completed: `AP-1.2` Abuse guard now supports PostgreSQL-backed shared window state (`graphql_abuse_guard_events`) and production enforces `IDEMPOTENCY_BACKEND=postgres`, `UPLOAD_SESSION_BACKEND=postgres`, and `ABUSE_GUARD_BACKEND=postgres`.\n- [x] ✅ Completed: `AP-1.3` Guarded mutation SLI exports are now emitted via `/health/slo` (`guarded_mutation_sli`) with per-mutation request/success/error/rate-limited and latency metrics.\n- [ ] 🟡 In Progress: `AP-2.1` Immutable audit events — append-only `graphql_audit_events` (`app/models/graphql_audit_event.py`, `append_graphql_audit_event` in `app/services/graphql_audit_service.py`, migration `20260402_0004_graphql_audit_events.py`); wired for `updateUserCredits`, `approvePayment`, `declinePayment`. **Extend** to other admin/billing mutations and add read/query path or export as needed.\n- [x] ✅ Completed: `AP-2.2` Docs/runtime parity — health REST list vs `appointment360_endpoint_era_matrix.md`; `module_index` rows vs resolver sources (`test_endpoint_docs_parity.py`, `tests/doc_paths.py`, meta-test for full matrix coverage); high-risk and privileged mutation doc presence + metadata (`test_endpoint_docs_operation_parity.py`, `test_endpoint_docs_metadata_parity.py`, including users promote mutations); CI gate in `docs/.github/workflows/ci.yml` (**Run Appointment360 docs/runtime parity tests**). Follow-up: broader per-operation Markdown outside the matrix is optional.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed: `AP-1.2` Abuse guard now supports PostgreSQL-backed shared window state (`graphql_abuse_guard_events`) and production enforces `IDEMPOTENCY_BACKEND=postgres`, `UPLOAD_SESSION_BACKEND=postgres`, and `ABUSE_GUARD_BACKEND=postgres`.",
+              "checked": true
+            },
+            {
+              "text": "✅ Completed: `AP-1.3` Guarded mutation SLI exports are now emitted via `/health/slo` (`guarded_mutation_sli`) with per-mutation request/success/error/rate-limited and latency metrics.",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress: `AP-2.1` Immutable audit events — append-only `graphql_audit_events` (`app/models/graphql_audit_event.py`, `append_graphql_audit_event` in `app/services/graphql_audit_service.py`, migration `20260402_0004_graphql_audit_events.py`); wired for `updateUserCredits`, `approvePayment`, `declinePayment`. **Extend** to other admin/billing mutations and add read/query path or export as needed.",
+              "checked": false
+            },
+            {
+              "text": "✅ Completed: `AP-2.2` Docs/runtime parity — health REST list vs `appointment360_endpoint_era_matrix.md`; `module_index` rows vs resolver sources (`test_endpoint_docs_parity.py`, `tests/doc_paths.py`, meta-test for full matrix coverage); high-risk and privileged mutation doc presence + metadata (`test_endpoint_docs_operation_parity.py`, `test_endpoint_docs_metadata_parity.py`, including users promote mutations); CI gate in `docs/.github/workflows/ci.yml` (**Run Appointment360 docs/runtime parity tests**). Follow-up: broader per-operation Markdown outside the matrix is optional.",
+              "checked": true
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "P3+",
+      "level": 3,
+      "slug": "p3",
+      "prose": "- [ ] 📌 Planned: `AP-3.1` Public/private API governance package and compatibility suite.\n- [ ] 📌 Planned: `AP-3.2` Ecosystem SLA evidence and partner incident tooling.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: `AP-3.1` Public/private API governance package and compatibility suite.",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned: `AP-3.2` Ecosystem SLA evidence and partner incident tooling.",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

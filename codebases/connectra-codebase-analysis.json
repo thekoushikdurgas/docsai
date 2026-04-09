@@ -1,0 +1,561 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "codebases/connectra-codebase-analysis.md",
+  "sha256_source": "ee9e3e45f589c74cb4c2f1e7acc7929d9675c103fdd175099d790fac42208696",
+  "generated_at": "2026-04-08T23:26:46.997826+00:00",
+  "title": "Connectra Codebase Analysis (contact360.io/sync)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "Connectra Codebase Analysis (contact360.io/sync)",
+      "level": 1,
+      "slug": "connectra-codebase-analysis-contact360iosync",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Task status legend",
+      "level": 2,
+      "slug": "task-status-legend",
+      "prose": "- [x] ✅ Completed\n- [ ] 🟡 In Progress\n- [ ] 📌 Planned\n- [ ] ⬜ Incomplete",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Completed",
+              "checked": true
+            },
+            {
+              "text": "🟡 In Progress",
+              "checked": false
+            },
+            {
+              "text": "📌 Planned",
+              "checked": false
+            },
+            {
+              "text": "⬜ Incomplete",
+              "checked": false
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Purpose and role",
+      "level": 2,
+      "slug": "purpose-and-role",
+      "prose": "Connectra is Contact360's search and data-intelligence core for `3.x` contact/company workflows and downstream eras (`4.x`-`10.x`). It provides VQL-powered read APIs, deterministic idempotent upserts, filter metadata hydration, and batch job processing for CSV-based import/export.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current architecture snapshot",
+      "level": 2,
+      "slug": "current-architecture-snapshot",
+      "prose": "- **Runtime:** Go 1.24+, Gin HTTP server, Cobra CLI entrypoint.\n- **Data plane:** PostgreSQL (`contacts`, `companies`, `jobs`, `filters`, `filters_data`) + Elasticsearch (`contacts_index`, `companies_index`).\n- **Read model:** Two-phase query (`VQL -> ES IDs -> PG hydrate -> in-memory join`).\n- **Write model:** Parallel fan-out writes (PG+ES for contacts and companies + `filters_data`).\n- **Middleware:** CORS -> gzip -> token-bucket rate limiter -> API key auth.\n- **API groups:** `/contacts`, `/companies`, `/common`, plus `/health`.\n- **Job engine:** Buffered queue with worker pools (`first_time` and `retry`) and state transitions.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Runtime:** Go 1.24+, Gin HTTP server, Cobra CLI entrypoint.",
+              "checked": null
+            },
+            {
+              "text": "**Data plane:** PostgreSQL (`contacts`, `companies`, `jobs`, `filters`, `filters_data`) + Elasticsearch (`contacts_index`, `companies_index`).",
+              "checked": null
+            },
+            {
+              "text": "**Read model:** Two-phase query (`VQL -> ES IDs -> PG hydrate -> in-memory join`).",
+              "checked": null
+            },
+            {
+              "text": "**Write model:** Parallel fan-out writes (PG+ES for contacts and companies + `filters_data`).",
+              "checked": null
+            },
+            {
+              "text": "**Middleware:** CORS -> gzip -> token-bucket rate limiter -> API key auth.",
+              "checked": null
+            },
+            {
+              "text": "**API groups:** `/contacts`, `/companies`, `/common`, plus `/health`.",
+              "checked": null
+            },
+            {
+              "text": "**Job engine:** Buffered queue with worker pools (`first_time` and `retry`) and state transitions.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Route surface",
+      "level": 2,
+      "slug": "route-surface",
+      "prose": "- `POST /contacts/`, `POST /contacts/count`, `POST /contacts/batch-upsert`\n- `POST /companies/`, `POST /companies/count`, `POST /companies/batch-upsert`\n- `POST /common/batch-upsert`, `GET /common/upload-url`\n- `POST /common/jobs`, `POST /common/jobs/create`\n- `GET|POST /common/:service/filters`, `GET|POST /common/:service/filters/data`\n- `GET /health`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`POST /contacts/`, `POST /contacts/count`, `POST /contacts/batch-upsert`",
+              "checked": null
+            },
+            {
+              "text": "`POST /companies/`, `POST /companies/count`, `POST /companies/batch-upsert`",
+              "checked": null
+            },
+            {
+              "text": "`POST /common/batch-upsert`, `GET /common/upload-url`",
+              "checked": null
+            },
+            {
+              "text": "`POST /common/jobs`, `POST /common/jobs/create`",
+              "checked": null
+            },
+            {
+              "text": "`GET|POST /common/:service/filters`, `GET|POST /common/:service/filters/data`",
+              "checked": null
+            },
+            {
+              "text": "`GET /health`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Core mechanics",
+      "level": 2,
+      "slug": "core-mechanics",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VQL and query execution",
+      "level": 3,
+      "slug": "vql-and-query-execution",
+      "prose": "- `exact` -> `match_phrase` (+ optional `slop`)\n- `shuffle` -> `match` (+ fuzzy/operator tuning)\n- `substring` -> ngram-backed matching field path\n- `keyword_match` and `range_query` support exact and numeric/date boundaries",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`exact` -> `match_phrase` (+ optional `slop`)",
+              "checked": null
+            },
+            {
+              "text": "`shuffle` -> `match` (+ fuzzy/operator tuning)",
+              "checked": null
+            },
+            {
+              "text": "`substring` -> ngram-backed matching field path",
+              "checked": null
+            },
+            {
+              "text": "`keyword_match` and `range_query` support exact and numeric/date boundaries",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Parallel write flow",
+      "level": 3,
+      "slug": "parallel-write-flow",
+      "prose": "`BulkUpsertToDb` executes five concurrent stores and joins on `WaitGroup` completion:\n\n1. PG contacts\n2. ES contacts\n3. PG companies\n4. ES companies\n5. `filters_data` facet rows",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "PG contacts",
+              "checked": null
+            },
+            {
+              "text": "ES contacts",
+              "checked": null
+            },
+            {
+              "text": "PG companies",
+              "checked": null
+            },
+            {
+              "text": "ES companies",
+              "checked": null
+            },
+            {
+              "text": "`filters_data` facet rows",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Job engine",
+      "level": 3,
+      "slug": "job-engine",
+      "prose": "State progression: `OPEN -> IN_QUEUE -> PROCESSING -> COMPLETED|FAILED -> RETRY_IN_QUEUED`.\n\n- Primary runner: `first_time` worker pool\n- Retry runner: single worker\n- Queue capacity: 1000 buffered channel",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Primary runner: `first_time` worker pool",
+              "checked": null
+            },
+            {
+              "text": "Retry runner: single worker",
+              "checked": null
+            },
+            {
+              "text": "Queue capacity: 1000 buffered channel",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Idempotency and dedup",
+      "level": 3,
+      "slug": "idempotency-and-dedup",
+      "prose": "- Contacts UUID5 key: `firstName + lastName + linkedinURL`\n- Companies UUID5 key: `name + linkedinURL`\n- Filter facet UUID5 key: `filterKey + service + value`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contacts UUID5 key: `firstName + lastName + linkedinURL`",
+              "checked": null
+            },
+            {
+              "text": "Companies UUID5 key: `name + linkedinURL`",
+              "checked": null
+            },
+            {
+              "text": "Filter facet UUID5 key: `filterKey + service + value`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Strengths",
+      "level": 2,
+      "slug": "strengths",
+      "prose": "- Strong throughput profile via goroutines/channel-based concurrency.\n- Deterministic IDs enable repeatable batch upserts and conflict-safe retries.\n- Two-phase read keeps search relevance in ES and authoritative records in PG.\n- `io.Pipe()` streaming model supports large CSV workloads with bounded memory.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Strong throughput profile via goroutines/channel-based concurrency.",
+              "checked": null
+            },
+            {
+              "text": "Deterministic IDs enable repeatable batch upserts and conflict-safe retries.",
+              "checked": null
+            },
+            {
+              "text": "Two-phase read keeps search relevance in ES and authoritative records in PG.",
+              "checked": null
+            },
+            {
+              "text": "`io.Pipe()` streaming model supports large CSV workloads with bounded memory.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Gaps and risks",
+      "level": 2,
+      "slug": "gaps-and-risks",
+      "prose": "- Single in-memory queue can lose pending work on abrupt process crash.\n- API key and rate-limit policy need stricter rotation and tenant partitioning.\n- `AllowAllOrigins` CORS posture is too broad for hardened environments.\n- ES/PG drift detection and reconciliation automation are not first-class.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Single in-memory queue can lose pending work on abrupt process crash.",
+              "checked": null
+            },
+            {
+              "text": "API key and rate-limit policy need stricter rotation and tenant partitioning.",
+              "checked": null
+            },
+            {
+              "text": "`AllowAllOrigins` CORS posture is too broad for hardened environments.",
+              "checked": null
+            },
+            {
+              "text": "ES/PG drift detection and reconciliation automation are not first-class.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era mapping (0.x-10.x)",
+      "level": 2,
+      "slug": "era-mapping-0x-10x",
+      "prose": "| Era | Connectra concern | Small-task decomposition |\n| --- | --- | --- |\n| `0.x` | Service bootstrap | API key baseline, index bootstrap scripts, health checks |\n| `1.x` | Credit-aware usage | Search/export volume guards and billing event alignment |\n| `2.x` | Bulk email pipeline | CSV contract stability, column mapping, stream import/export |\n| `3.x` | Core data system | VQL freeze, filter taxonomy, dual-write and dedup integrity |\n| `4.x` | Extension/SN ingest | Provenance fields and idempotent sync from SN sources |\n| `5.x` | AI workflows | AI-readable attributes and enrichment artifact lookup paths |\n| `6.x` | Reliability/scaling | Query P95 SLO, job success SLI, retry/DLQ hardening |\n| `7.x` | Deployment governance | RBAC on write/export, audit evidence, tenant isolation |\n| `8.x` | Public/private APIs | Versioned REST contracts, partner keys, webhook-ready job events |\n| `9.x` | Productization | Quota-aware throttling and connector-safe filter contracts |\n| `10.x` | Campaign runtime | Audience query stability, suppression filter compliance, export controls |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Connectra concern",
+            "Small-task decomposition"
+          ],
+          "rows": [
+            [
+              "`0.x`",
+              "Service bootstrap",
+              "API key baseline, index bootstrap scripts, health checks"
+            ],
+            [
+              "`1.x`",
+              "Credit-aware usage",
+              "Search/export volume guards and billing event alignment"
+            ],
+            [
+              "`2.x`",
+              "Bulk email pipeline",
+              "CSV contract stability, column mapping, stream import/export"
+            ],
+            [
+              "`3.x`",
+              "Core data system",
+              "VQL freeze, filter taxonomy, dual-write and dedup integrity"
+            ],
+            [
+              "`4.x`",
+              "Extension/SN ingest",
+              "Provenance fields and idempotent sync from SN sources"
+            ],
+            [
+              "`5.x`",
+              "AI workflows",
+              "AI-readable attributes and enrichment artifact lookup paths"
+            ],
+            [
+              "`6.x`",
+              "Reliability/scaling",
+              "Query P95 SLO, job success SLI, retry/DLQ hardening"
+            ],
+            [
+              "`7.x`",
+              "Deployment governance",
+              "RBAC on write/export, audit evidence, tenant isolation"
+            ],
+            [
+              "`8.x`",
+              "Public/private APIs",
+              "Versioned REST contracts, partner keys, webhook-ready job events"
+            ],
+            [
+              "`9.x`",
+              "Productization",
+              "Quota-aware throttling and connector-safe filter contracts"
+            ],
+            [
+              "`10.x`",
+              "Campaign runtime",
+              "Audience query stability, suppression filter compliance, export controls"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Immediate execution queue",
+      "level": 2,
+      "slug": "immediate-execution-queue",
+      "prose": "1. Add persistent queue backing for job durability.\n2. Add ES-PG reconciliation job and drift diagnostics.\n3. Add per-tenant rate limiting and API key scope model.\n4. Add contract-parity tests for VQL operators and filter metadata.\n5. Add release gates for batch-upsert idempotency evidence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Add persistent queue backing for job durability.",
+              "checked": null
+            },
+            {
+              "text": "Add ES-PG reconciliation job and drift diagnostics.",
+              "checked": null
+            },
+            {
+              "text": "Add per-tenant rate limiting and API key scope model.",
+              "checked": null
+            },
+            {
+              "text": "Add contract-parity tests for VQL operators and filter metadata.",
+              "checked": null
+            },
+            {
+              "text": "Add release gates for batch-upsert idempotency evidence.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Suggested owner map",
+      "level": 2,
+      "slug": "suggested-owner-map",
+      "prose": "- **Connectra service owner:** Search/Data Engineering\n- **Gateway contract owner:** Appointment360/API team\n- **UI contract owner:** Dashboard data-experience team\n- **Ops owner:** Platform reliability team",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Connectra service owner:** Search/Data Engineering",
+              "checked": null
+            },
+            {
+              "text": "**Gateway contract owner:** Appointment360/API team",
+              "checked": null
+            },
+            {
+              "text": "**UI contract owner:** Dashboard data-experience team",
+              "checked": null
+            },
+            {
+              "text": "**Ops owner:** Platform reliability team",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Release gate checklist",
+      "level": 2,
+      "slug": "release-gate-checklist",
+      "prose": "- 📌 Planned: VQL taxonomy changes mirrored in `docs/3. Contact360 contact and company data system/vql-filter-taxonomy.md`.\n- 📌 Planned: Endpoint/table bindings updated in `docs/backend/apis/` and `docs/backend/endpoints/*.json`.\n- 📌 Planned: ES mapping changes include integration tests for list/count/filter paths.\n- 📌 Planned: Batch-upsert contract changes include rollback and replay/idempotency evidence.\n- 📌 Planned: `docs/versions.md` and era task-pack docs updated for impacted eras.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "📌 Planned: VQL taxonomy changes mirrored in `docs/3. Contact360 contact and company data system/vql-filter-taxonomy.md`.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Endpoint/table bindings updated in `docs/backend/apis/` and `docs/backend/endpoints/*.json`.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: ES mapping changes include integration tests for list/count/filter paths.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: Batch-upsert contract changes include rollback and replay/idempotency evidence.",
+              "checked": null
+            },
+            {
+              "text": "📌 Planned: `docs/versions.md` and era task-pack docs updated for impacted eras.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2026 Gap Register (actionable)",
+      "level": 2,
+      "slug": "2026-gap-register-actionable",
+      "prose": "- `SYNC-0.1`: Add request correlation IDs and propagation.\n- `SYNC-0.2`: Replace wildcard CORS with env allowlist policy.\n- `SYNC-1.x`: Scoped keys + per-tenant rate limiting + usage metering.\n- `SYNC-2.4`: Add idempotency support on job-creation paths.\n- `SYNC-3.x`: Partner webhook/replay contract and campaign evidence integration.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`SYNC-0.1`: Add request correlation IDs and propagation.",
+              "checked": null
+            },
+            {
+              "text": "`SYNC-0.2`: Replace wildcard CORS with env allowlist policy.",
+              "checked": null
+            },
+            {
+              "text": "`SYNC-1.x`: Scoped keys + per-tenant rate limiting + usage metering.",
+              "checked": null
+            },
+            {
+              "text": "`SYNC-2.4`: Add idempotency support on job-creation paths.",
+              "checked": null
+            },
+            {
+              "text": "`SYNC-3.x`: Partner webhook/replay contract and campaign evidence integration.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

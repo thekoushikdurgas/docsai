@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "kind": "era_task",
+  "source_path": "10. Contact360 email campaign/10.0 — Campaign Bedrock.md",
+  "sha256_source": "fafb2840a3b7c3472ca432ba1d41620979f1b074c26d8dbcb5be134c51c8aa1f",
+  "generated_at": "2026-04-08T23:11:49.839237+00:00",
+  "title": "Version 10.0 — Campaign Bedrock",
+  "version": "10.0",
+  "codename": "Campaign Bedrock",
+  "era": 10,
+  "minor": 0,
+  "patch": null,
+  "status": "completed",
+  "summary": "Frontend components and hooks (10.0 baseline):",
+  "scope": "Frontend components and hooks (10.0 baseline):",
+  "flowcharts": [
+    "flowchart TD\n    stage[\"10.0.x Campaign Bedrock\"] --> contract[\"Contract\"]\n    stage --> service[\"Service\"]\n    stage --> surface[\"Surface\"]\n    stage --> data[\"Data\"]\n    stage --> ops[\"Ops\"]\n    contract --> gate[\"Release gate\"]\n    service --> gate\n    surface --> gate\n    data --> gate\n    ops --> gate",
+    "flowchart LR\n    app[\"CampaignWizard UI\"] --> gql[\"appointment360 GraphQL\"]\n    gql --> svc[\"emailcampaign REST API\"]\n    svc --> queue[\"Asynq campaign:send\"]\n    queue --> worker[\"worker + SMTP\"]\n    worker --> logs[\"logsapi S3 CSV\"]\n    worker --> suppress[\"Connectra suppression sync\"]"
+  ],
+  "micro_gate": "**Patch intent bands:** `.0` charter · `.1`–`.2` scaffold · `.3`–`.5` hardening · `.6`–`.8` integration · `.9` minor freeze / handoff.\nTheme: **Forge** — codenames in per-patch `10.0.P — *.md` files.",
+  "evidence_gate": null,
+  "task_tracks": {
+    "contract": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Freeze **campaign** GraphQL module types: `CampaignMutation { createCampaign, updateCampaign, deleteCampaign, pauseCampaign, resumeCampaign }` and `CampaignQuery { campaigns, campaign(id) }` per [`docs/backend/apis/`](../backend/apis/).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Freeze **sequence** module types: `SequenceMutation { createSequence, addStep, removeStep }` and `SequenceQuery { sequences, sequence(id) }`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Freeze **template** module types: `TemplateMutation { createTemplate, updateTemplate }` and `TemplateQuery { templates }`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Lock `emailcampaign` REST routes: `POST /campaigns`, `GET /campaigns/:id`, `POST /campaigns/:id/send`, `GET /campaigns/:id/status`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Document **status vocabulary**: `draft`, `scheduled`, `sending`, `completed`, `completed_with_errors`, `paused`, `cancelled`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **s3storage:** Define campaign artifact contracts (audiences, suppressions, templates, evidence bundles); enforce compliance-grade immutability (S3 Object Lock or equivalent) for campaign execution artifacts.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[emailcampaign]** — refine duplicate task (was: 📌 planned: **[architecture]** — product **graphql** remains …) | patch `10.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/emailcampaign-codebase-analysis.md",
+        "codebase": "emailcampaign",
+        "area": null,
+        "files": []
+      }
+    ],
+    "service": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Fix JWT middleware auth in `emailcampaign` service (per codebase analysis).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Fix SMTP auth token query bug.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Implement **idempotency key tracking** for campaign creation and enqueue paths to prevent duplicate outreach.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Construct the definitive **`completed_with_errors`** terminal state for campaigns to handle partial delivery failures.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Wire Asynq `campaign:send` worker with SMTP concurrency limits and queue lag monitoring.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **s3storage:** Store consent/opt-out/suppression lineage evidence references in `metadata.json` for campaign-related objects.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[emailcampaign]** — refine duplicate task (was: 📌 planned: **[architecture]** — **go/gin satellites** in sco…) | patch `10.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/emailcampaign-codebase-analysis.md",
+        "codebase": "emailcampaign",
+        "area": null,
+        "files": []
+      }
+    ],
+    "surface": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **app:** `CampaignWizard` UI bound to campaign creation GraphQL — step-based form (audience → template → schedule → review).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **app:** `CampaignList` page with status badges, progress bars, and action buttons (pause/resume/cancel).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **app:** `SequenceBuilder` drag-and-drop step editor (if applicable in `10.0`, otherwise stub).",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **app:** Template preview and variable insertion UI.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Campaign management pages: wizard, list, detail, analytics.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Sequence builder: step editor, timing configuration.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Template management: preview, variable insertion, asset upload.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "Frontend components and hooks (10.0 baseline):",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Components:** `CampaignWizard`, `CampaignList`, `CampaignStatusBadge`, `SequenceBuilder`, `TemplatePreview`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Hooks:** `useCampaignCreate`, `useCampaignList`, `useCampaignStatus`, `useSequenceBuilder`, `useTemplateManager`",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Pages:** [`docs/frontend/pages/campaigns_page.json`](../frontend/pages/campaigns_page.json)",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "data": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Validate schema: `campaigns`, `sequences`, `templates`, `recipients`, `campaign_events` tables aligned.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Add `templates` table migration and `unsub_token` column per codebase analysis.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Bridge Unsubscribe tokens to Connectra's global suppression lists.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Campaign event lineage: `emailcampaign` → `logsapi` S3 CSV archiving.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[emailcampaign]** — refine duplicate task (was: 📌 planned: **[architecture]** — **postgresql-first** per `do…) | patch `10.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/emailcampaign-codebase-analysis.md",
+        "codebase": "emailcampaign",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[emailcampaign]** — refine duplicate task (was: 📌 planned: **[architecture]** — **redis exit**: campaign (as…) | patch `10.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/emailcampaign-codebase-analysis.md",
+        "codebase": "emailcampaign",
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**PostgreSQL (emailcampaign):** `campaigns`, `sequences`, `templates`, `recipients`, `campaign_events`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**S3:** Template assets via `s3storage`; campaign event CSVs via `logsapi`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "unknown",
+        "text": "**Data lineage reference:** `docs/backend/database/emailcampaign_data_lineage.md`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      }
+    ],
+    "ops": [
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Smoke: create campaign → schedule → send → verify delivery event in `logsapi`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Document rollback: pause + cancel campaign if SMTP delivery regresses.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: SMTP concurrency and queue lag baseline metrics.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: Deliverability preflight gate: suppression merge before send.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: ⬜ Incomplete: **contact360.io/jobs** — no campaign-specific job processors exist in `processors/registry.py`; the current registry handles `email_finder_export_stream`, `email_verify_export_stream`, `email_pattern_import_stream`, `contact360_import_prepare`, `contact360_export_stream` but has no `campaign_send_batch` or `campaign_bounce_check` job types; add these two processors to the registry to make the jobs scheduler the backbone of email campaign delivery.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/jobs** — implement `campaign_send_batch` processor: read recipient batch from S3 (input key in job `data`), dispatch emails via the campaign email send API, write per-recipient delivery events to `job_response`; integrate with `emailcampaign` service via HTTP client similar to `email_api.py`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/jobs** — implement `campaign_bounce_check` processor: fetch bounce and complaint events from the email provider (SES SNS, Mailgun webhook, etc.), update recipient status in the `emailcampaign` PostgreSQL database, and emit a `campaign_bounce_processed` event to `job_events`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/jobs** — implement `campaign_suppression_sync` processor: on each campaign send job, fetch the global suppression list from Connectra's `/contacts/suppressed` endpoint and filter recipients before sending; record suppressed recipient count in `job_response`.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: ✅ Completed: 📌 Planned: **contact360.io/jobs** — wire campaign send jobs to the DAG engine: create a campaign DAG with `campaign_send_batch` child jobs (one per recipient batch) fanned out from a parent `campaign_prepare` node; use the existing `edges` table and DAG degree-decrement logic to finalize the campaign when all batches complete.",
+        "codebase": null,
+        "area": null,
+        "files": []
+      },
+      {
+        "status": "completed",
+        "text": "Completed: 📌 Planned: **[emailcampaign]** — refine duplicate task (was: 📌 planned: **[architecture]** — **observability**: correlate…) | patch `10.0.0` band `0` | reason: specialize this file vs sibling patches; see docs/codebases/emailcampaign-codebase-analysis.md",
+        "codebase": "emailcampaign",
+        "area": null,
+        "files": []
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Version 10.0 — Campaign Bedrock",
+      "level": 1,
+      "prose": ""
+    },
+    {
+      "heading": "Runtime focus (unique to this minor)",
+      "level": 3,
+      "prose": ""
+    },
+    {
+      "heading": "Task Breakdown",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Immediate next execution queue",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "References",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "UI Elements Checklist",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Flow / Graph Delta for This Minor",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Audit and Compliance Notes",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Patch ladder (10.0.0 – 10.0.9)",
+      "level": 2,
+      "prose": ""
+    },
+    {
+      "heading": "Release Gate and Evidence",
+      "level": 2,
+      "prose": "#"
+    },
+    {
+      "heading": "Patches",
+      "level": 2,
+      "prose": ""
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

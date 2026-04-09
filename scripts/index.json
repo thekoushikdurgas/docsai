@@ -1,0 +1,1354 @@
+{
+  "schema_version": 1,
+  "kind": "index",
+  "source_path": "scripts/README.md",
+  "sha256_source": "27406f3ab8af08322c27773dd72896232bf5550b512896d43e71b91de6d2cf23",
+  "generated_at": "2026-04-08T23:26:49.547630+00:00",
+  "title": "docs/scripts — Contact360 documentation tooling",
+  "folder": "scripts",
+  "era_index": null,
+  "summary": null,
+  "status": "planned",
+  "children": [
+    {
+      "title": "Performance Benchmark Scripts",
+      "path": "BENCHMARK_README.json",
+      "kind": "document",
+      "version": null,
+      "status": null
+    }
+  ],
+  "navigation_tables": [
+    {
+      "headers": [
+        "Run from `docs/`",
+        "Purpose"
+      ],
+      "rows": [
+        [
+          "`python cli.py …`",
+          "Headless CLI (`scripts/cli.py`); see [`README.md`](../README.md) **Extended docs CLI**."
+        ],
+        [
+          "`python main.py`",
+          "Interactive **Contact360 Docs Agent** menu (A–E)."
+        ]
+      ]
+    },
+    {
+      "headers": [
+        "Option",
+        "Description",
+        "Default"
+      ],
+      "rows": [
+        [
+          "`--api-url`",
+          "API base URL",
+          "`https://api.contact360.io:8000`"
+        ],
+        [
+          "`--email`",
+          "Email for authentication",
+          "Prompt if not provided"
+        ],
+        [
+          "`--password`",
+          "Password for authentication",
+          "Prompt if not provided"
+        ],
+        [
+          "`--company-uuid`",
+          "Company UUID for all domains",
+          "None (patterns skipped)"
+        ],
+        [
+          "`--input-dir`",
+          "Input directory with CSV files",
+          "`scripts/api_test/output`"
+        ],
+        [
+          "`--output-dir`",
+          "Output directory for reports",
+          "`scripts/api_test/output`"
+        ],
+        [
+          "`--min-pattern-count`",
+          "Min contacts to establish pattern",
+          "3"
+        ],
+        [
+          "`--min-confidence`",
+          "Min confidence score",
+          "0.6"
+        ],
+        [
+          "`--validate-emails`",
+          "Re-validate emails via API",
+          "False (use CSV status)"
+        ],
+        [
+          "`--no-create-patterns`",
+          "Skip API pattern creation",
+          "False"
+        ],
+        [
+          "`--max-workers`",
+          "Number of worker threads",
+          "5"
+        ],
+        [
+          "`--max-requests-per-minute`",
+          "API rate limit",
+          "20"
+        ],
+        [
+          "`--upsert`",
+          "Use upsert mode for patterns",
+          "False"
+        ]
+      ]
+    }
+  ],
+  "links": [
+    {
+      "text": "`README.md`",
+      "href": "../README.md"
+    },
+    {
+      "text": "`_archive/README.md`",
+      "href": "_archive/README.md"
+    }
+  ],
+  "sections": [
+    {
+      "heading": "docs/scripts — Contact360 documentation tooling",
+      "level": 1,
+      "slug": "docsscripts-contact360-documentation-tooling",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Primary entrypoints",
+      "level": 2,
+      "slug": "primary-entrypoints",
+      "prose": "| Run from `docs/` | Purpose |\n| --- | --- |\n| `python cli.py …` | Headless CLI (`scripts/cli.py`); see [`README.md`](../README.md) **Extended docs CLI**. |\n| `python main.py` | Interactive **Contact360 Docs Agent** menu (A–E). |\n\nShared roots: **`paths.py`** — `DOCS_ROOT` (the `docs/` folder), `SCRIPTS_ROOT`, `REPO_ROOT`.",
+      "tables": [
+        {
+          "headers": [
+            "Run from `docs/`",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "`python cli.py …`",
+              "Headless CLI (`scripts/cli.py`); see [`README.md`](../README.md) **Extended docs CLI**."
+            ],
+            [
+              "`python main.py`",
+              "Interactive **Contact360 Docs Agent** menu (A–E)."
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`README.md`",
+          "href": "../README.md"
+        }
+      ]
+    },
+    {
+      "heading": "Core library (imported by CLI)",
+      "level": 2,
+      "slug": "core-library-imported-by-cli",
+      "prose": "- `scanner.py`, `doc_scan_models.py`, `models/` (ORM), `stats.py`, `task_auditor.py`, `task_filler.py`, `task_templates.py`, `updater.py`, `unused.py`, `era_naming.py`, `contact360_era_guide.py`, `codebase_registry.py`\n- `doc_structure.py` — `DocKind`, `validate-structure` helpers\n- `duplicate_files.py` — content-hash duplicate reporting\n- `maintenance_registry.py` — `maintain-era` dispatch",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`scanner.py`, `doc_scan_models.py`, `models/` (ORM), `stats.py`, `task_auditor.py`, `task_filler.py`, `task_templates.py`, `updater.py`, `unused.py`, `era_naming.py`, `contact360_era_guide.py`, `codebase_registry.py`",
+              "checked": null
+            },
+            {
+              "text": "`doc_structure.py` — `DocKind`, `validate-structure` helpers",
+              "checked": null
+            },
+            {
+              "text": "`duplicate_files.py` — content-hash duplicate reporting",
+              "checked": null
+            },
+            {
+              "text": "`maintenance_registry.py` — `maintain-era` dispatch",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era batch scripts (maintain-era)",
+      "level": 2,
+      "slug": "era-batch-scripts-maintain-era",
+      "prose": "`enrich_*_patches.py`, `update_*_minors.py`, `fix_*_patch_readme_links.py` — invoked via:\n\n`python cli.py maintain-era --era N --action enrich|fix-readme-links|update-minors [--apply]`\n\nEra directories use **`Path(__file__).resolve().parent.parent`** (the `docs/` folder), not `docs/docs/`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Not part of the docs CLI",
+      "level": 2,
+      "slug": "not-part-of-the-docs-cli",
+      "prose": "The following trees are **data**, **scraping**, **Postman**, or **legacy** tooling — run their own `main.py` / README where present; do not expect `cli.py` to wrap them:\n\n- `backend/postman/` — Postman CLI and tests\n- `data/`, `cleaning/`, `lead360data/`, `linkdin profile/`, `sales_navigator/`, `sql/`, `P2PMigration/`, `email/`, `api_test/`, nested `scripts/`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`backend/postman/` — Postman CLI and tests",
+              "checked": null
+            },
+            {
+              "text": "`data/`, `cleaning/`, `lead360data/`, `linkdin profile/`, `sales_navigator/`, `sql/`, `P2PMigration/`, `email/`, `api_test/`, nested `scripts/`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security",
+      "level": 2,
+      "slug": "security",
+      "prose": "- Do **not** commit secrets. `cookie.txt` (if present) should be **gitignored** and removed.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Do **not** commit secrets. `cookie.txt` (if present) should be **gitignored** and removed.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Archived one-offs",
+      "level": 2,
+      "slug": "archived-one-offs",
+      "prose": "See [`_archive/README.md`](_archive/README.md).",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "`_archive/README.md`",
+          "href": "_archive/README.md"
+        }
+      ]
+    },
+    {
+      "heading": "API Test Scripts",
+      "level": 1,
+      "slug": "api-test-scripts",
+      "prose": "This directory contains scripts for testing and analyzing email-related APIs.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Scripts",
+      "level": 2,
+      "slug": "scripts",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1. Email Single API Test (emailsingle.py`)",
+      "level": 3,
+      "slug": "1-email-single-api-test-emailsinglepy",
+      "prose": "Tests the `/api/v2/email/single/` endpoint using real data from a CSV file and compares the API responses with known email addresses.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2. Email Pattern Generator (emailpatterngenerator.py)",
+      "level": 3,
+      "slug": "2-email-pattern-generator-emailpatterngeneratorpy",
+      "prose": "Processes CSV files to validate emails, extract email patterns by domain, create/update patterns via API, and generate comprehensive reports.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email Single API Test Script",
+      "level": 2,
+      "slug": "email-single-api-test-script",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Features",
+      "level": 2,
+      "slug": "features",
+      "prose": "- ✅ Reads test data from CSV file\n- ✅ Extracts domains from website URLs\n- ✅ Makes API calls with proper authentication\n- ✅ Compares API responses with expected emails\n- ✅ Tracks success rate, mismatches, and errors\n- ✅ Measures response times\n- ✅ Generates detailed JSON report\n- ✅ Shows source breakdown (icypeas, verifier, cache, etc.)\n- ✅ Shows certainty levels for IcyPeas results",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Reads test data from CSV file",
+              "checked": null
+            },
+            {
+              "text": "✅ Extracts domains from website URLs",
+              "checked": null
+            },
+            {
+              "text": "✅ Makes API calls with proper authentication",
+              "checked": null
+            },
+            {
+              "text": "✅ Compares API responses with expected emails",
+              "checked": null
+            },
+            {
+              "text": "✅ Tracks success rate, mismatches, and errors",
+              "checked": null
+            },
+            {
+              "text": "✅ Measures response times",
+              "checked": null
+            },
+            {
+              "text": "✅ Generates detailed JSON report",
+              "checked": null
+            },
+            {
+              "text": "✅ Shows source breakdown (icypeas, verifier, cache, etc.)",
+              "checked": null
+            },
+            {
+              "text": "✅ Shows certainty levels for IcyPeas results",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Setup",
+      "level": 2,
+      "slug": "setup",
+      "prose": "1. **Install dependencies:**\n   ```bash\n   pip install requests\n   ```\n\n2. **Ensure your backend is running:**\n   ```bash\n   # The API should be accessible at https://api.contact360.io:8000\n   ```\n\n3. **Verify CSV data file exists:**\n   ```\n   scripts/api_test/data/1-1k - 1-1k.csv.csv\n   ```",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Install dependencies:**",
+              "checked": null
+            },
+            {
+              "text": "**Ensure your backend is running:**",
+              "checked": null
+            },
+            {
+              "text": "**Verify CSV data file exists:**",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "   pip install requests\n   "
+        },
+        {
+          "lang": "bash",
+          "value": "   # The API should be accessible at https://api.contact360.io:8000\n   "
+        },
+        {
+          "lang": "",
+          "value": "   scripts/api_test/data/1-1k - 1-1k.csv.csv\n   "
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Usage",
+      "level": 2,
+      "slug": "usage",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Basic Usage (Test First 10 Rows)",
+      "level": 3,
+      "slug": "basic-usage-test-first-10-rows",
+      "prose": "```bash\ncd scripts/api_test\npython email_single.py\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd scripts/api_test\npython email_single.py\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Test All Rows",
+      "level": 3,
+      "slug": "test-all-rows",
+      "prose": "Edit `email_single.py` and change:\n```python\nMAX_ROWS = None  # Test all rows\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "python",
+          "value": "MAX_ROWS = None  # Test all rows\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Test Specific Range",
+      "level": 3,
+      "slug": "test-specific-range",
+      "prose": "```python\nMAX_ROWS = 50      # Test 50 rows\nSTART_ROW = 100    # Start from row 100\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "python",
+          "value": "MAX_ROWS = 50      # Test 50 rows\nSTART_ROW = 100    # Start from row 100\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Update Configuration",
+      "level": 3,
+      "slug": "update-configuration",
+      "prose": "In `email_single.py`, modify these constants:\n```python\nAPI_URL = 'https://api.contact360.io:8000/api/v2/email/single/'\nBEARER_TOKEN = 'your_token_here'\nCSV_PATH = 'data/1-1k - 1-1k.csv.csv'\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "python",
+          "value": "API_URL = 'https://api.contact360.io:8000/api/v2/email/single/'\nBEARER_TOKEN = 'your_token_here'\nCSV_PATH = 'data/1-1k - 1-1k.csv.csv'\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Output",
+      "level": 2,
+      "slug": "output",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Console Output Example",
+      "level": 3,
+      "slug": "console-output-example",
+      "prose": "```\n================================================================================\nEmail Single API Test - Started at 2025-12-15 16:30:45\n================================================================================\n\n📁 Reading CSV: data/1-1k - 1-1k.csv.csv\n🔗 API Endpoint: https://api.contact360.io:8000/api/v2/email/single/\n🎯 Provider: truelist (with IcyPeas integration)\n📊 Total rows in CSV: 1000\n🧪 Testing rows: 1 to 10\n\n================================================================================\n\nTesting 1/10: Suraj Narayanan... ✅ MATCH (3245ms, icypeas, certainty: ultra_sure)\nTesting 2/10: Anoop Purohit... ✅ MATCH (2876ms, icypeas, certainty: sure)\nTesting 3/10: Sushil Kumar... ⚠️  MISMATCH - Expected: sushil.kumar@..., Got: s.kumar@...\nTesting 4/10: Sushil Chaturvedi... ✅ MATCH (3102ms, icypeas, certainty: ultra_sure)\n...\n\n================================================================================\n\n📈 TEST STATISTICS\n================================================================================\nTotal Tests:        10\n✅ Matches:         8 (80.0%)\n⚠️  Mismatches:      1 (10.0%)\n❓ No Email Found:  1 (10.0%)\n❌ Errors:          0 (0.0%)\n\n⏱️  Avg Response Time: 3125ms\n\n📍 Sources:\n   icypeas: 8 (80.0%)\n   verifier: 1 (10.0%)\n\n🎯 Certainty Levels:\n   ultra_sure: 6 (60.0%)\n   sure: 2 (20.0%)\n================================================================================\n\n💾 Detailed report saved to: email_api_test_results_20251215_163055.json\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "================================================================================\nEmail Single API Test - Started at 2025-12-15 16:30:45\n================================================================================\n\n📁 Reading CSV: data/1-1k - 1-1k.csv.csv\n🔗 API Endpoint: https://api.contact360.io:8000/api/v2/email/single/\n🎯 Provider: truelist (with IcyPeas integration)\n📊 Total rows in CSV: 1000\n🧪 Testing rows: 1 to 10\n\n================================================================================\n\nTesting 1/10: Suraj Narayanan... ✅ MATCH (3245ms, icypeas, certainty: ultra_sure)\nTesting 2/10: Anoop Purohit... ✅ MATCH (2876ms, icypeas, certainty: sure)\nTesting 3/10: Sushil Kumar... ⚠️  MISMATCH - Expected: sushil.kumar@..., Got: s.kumar@...\nTesting 4/10: Sushil Chaturvedi... ✅ MATCH (3102ms, icypeas, certainty: ultra_sure)\n...\n\n================================================================================\n\n📈 TEST STATISTICS\n================================================================================\nTotal Tests:        10\n✅ Matches:         8 (80.0%)\n⚠️  Mismatches:      1 (10.0%)\n❓ No Email Found:  1 (10.0%)\n❌ Errors:          0 (0.0%)\n\n⏱️  Avg Response Time: 3125ms\n\n📍 Sources:\n   icypeas: 8 (80.0%)\n   verifier: 1 (10.0%)\n\n🎯 Certainty Levels:\n   ultra_sure: 6 (60.0%)\n   sure: 2 (20.0%)\n================================================================================\n\n💾 Detailed report saved to: email_api_test_results_20251215_163055.json\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "JSON Report",
+      "level": 3,
+      "slug": "json-report",
+      "prose": "A detailed JSON report is saved with:\n- Test metadata (timestamp, API URL, CSV path)\n- Overall statistics\n- Individual results for each test with:\n  - Input data (first name, last name, domain)\n  - Expected email vs API email\n  - Match status\n  - API response details (source, status, certainty)\n  - Response time\n  - Any errors",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Test metadata (timestamp, API URL, CSV path)",
+              "checked": null
+            },
+            {
+              "text": "Overall statistics",
+              "checked": null
+            },
+            {
+              "text": "Individual results for each test with:",
+              "checked": null
+            },
+            {
+              "text": "Input data (first name, last name, domain)",
+              "checked": null
+            },
+            {
+              "text": "Expected email vs API email",
+              "checked": null
+            },
+            {
+              "text": "Match status",
+              "checked": null
+            },
+            {
+              "text": "API response details (source, status, certainty)",
+              "checked": null
+            },
+            {
+              "text": "Response time",
+              "checked": null
+            },
+            {
+              "text": "Any errors",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "CSV Format",
+      "level": 2,
+      "slug": "csv-format",
+      "prose": "The script expects a CSV with these columns:\n```csv\nFirst Name,Last Name,Email,Website\nJohn,Doe,john.doe@example.com,https://example.com\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "csv",
+          "value": "First Name,Last Name,Email,Website\nJohn,Doe,john.doe@example.com,https://example.com\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Provider: Truelist with IcyPeas Integration",
+      "level": 2,
+      "slug": "provider-truelist-with-icypeas-integration",
+      "prose": "The script uses `provider: \"truelist\"` which now includes IcyPeas integration:\n\n1. **IcyPeas (Primary):** Finds emails using the IcyPeas `/api/email-search` API\n2. **Truelist (Fallback):** Verifies email patterns if IcyPeas fails\n\nThis ensures high accuracy and certainty levels (ultra_sure, sure, probable).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**IcyPeas (Primary):** Finds emails using the IcyPeas `/api/email-search` API",
+              "checked": null
+            },
+            {
+              "text": "**Truelist (Fallback):** Verifies email patterns if IcyPeas fails",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Troubleshooting",
+      "level": 2,
+      "slug": "troubleshooting",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Authentication Error (401)",
+      "level": 3,
+      "slug": "authentication-error-401",
+      "prose": "- Check if the bearer token is valid and not expired\n- Generate a new token if needed",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Check if the bearer token is valid and not expired",
+              "checked": null
+            },
+            {
+              "text": "Generate a new token if needed",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Connection Error",
+      "level": 3,
+      "slug": "connection-error",
+      "prose": "- Ensure backend server is running on `https://api.contact360.io:8000`\n- Check firewall settings",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Ensure backend server is running on `https://api.contact360.io:8000`",
+              "checked": null
+            },
+            {
+              "text": "Check firewall settings",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rate Limiting",
+      "level": 3,
+      "slug": "rate-limiting",
+      "prose": "- The script includes a 0.1s delay between requests\n- Increase the delay if you hit rate limits",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "The script includes a 0.1s delay between requests",
+              "checked": null
+            },
+            {
+              "text": "Increase the delay if you hit rate limits",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "File Not Found",
+      "level": 3,
+      "slug": "file-not-found",
+      "prose": "- Verify the CSV path is correct relative to the script location\n- Use absolute path if needed",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Verify the CSV path is correct relative to the script location",
+              "checked": null
+            },
+            {
+              "text": "Use absolute path if needed",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Configuration Options",
+      "level": 2,
+      "slug": "configuration-options",
+      "prose": "You can modify these in the `main()` function:\n\n```python",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "API Configuration",
+      "level": 1,
+      "slug": "api-configuration",
+      "prose": "API_URL = 'https://api.contact360.io:8000/api/v2/email/single/'\nBEARER_TOKEN = 'your_bearer_token_here'",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data Configuration",
+      "level": 1,
+      "slug": "data-configuration",
+      "prose": "CSV_PATH = 'data/1-1k - 1-1k.csv.csv'",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Test Configuration",
+      "level": 1,
+      "slug": "test-configuration",
+      "prose": "MAX_ROWS = 10      # Number of rows to test (None = all)\nSTART_ROW = 0      # Starting row index (0-based)\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email Pattern Generator Script",
+      "level": 2,
+      "slug": "email-pattern-generator-script",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Overview",
+      "level": 3,
+      "slug": "overview",
+      "prose": "The `email_pattern_generator.py` script processes CSV files containing contact data to:\n1. **Validate emails** using the verification API\n2. **Extract email patterns** by domain (company)\n3. **Create/update patterns** via the email-patterns API\n4. **Generate comprehensive reports** (CSV and JSON)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Validate emails** using the verification API",
+              "checked": null
+            },
+            {
+              "text": "**Extract email patterns** by domain (company)",
+              "checked": null
+            },
+            {
+              "text": "**Create/update patterns** via the email-patterns API",
+              "checked": null
+            },
+            {
+              "text": "**Generate comprehensive reports** (CSV and JSON)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Features",
+      "level": 3,
+      "slug": "features",
+      "prose": "- ✅ Reads CSV files from input directory\n- ✅ Validates emails using verification API (optional)\n- ✅ Extracts email patterns (first.last, firstlast, f.last, etc.)\n- ✅ Groups contacts by domain\n- ✅ Calculates confidence scores for patterns\n- ✅ Creates patterns via email-patterns API\n- ✅ Generates validation and pattern reports\n- ✅ Multi-threaded processing with rate limiting\n- ✅ Command-line interface with flexible options",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "✅ Reads CSV files from input directory",
+              "checked": null
+            },
+            {
+              "text": "✅ Validates emails using verification API (optional)",
+              "checked": null
+            },
+            {
+              "text": "✅ Extracts email patterns (first.last, firstlast, f.last, etc.)",
+              "checked": null
+            },
+            {
+              "text": "✅ Groups contacts by domain",
+              "checked": null
+            },
+            {
+              "text": "✅ Calculates confidence scores for patterns",
+              "checked": null
+            },
+            {
+              "text": "✅ Creates patterns via email-patterns API",
+              "checked": null
+            },
+            {
+              "text": "✅ Generates validation and pattern reports",
+              "checked": null
+            },
+            {
+              "text": "✅ Multi-threaded processing with rate limiting",
+              "checked": null
+            },
+            {
+              "text": "✅ Command-line interface with flexible options",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Setup",
+      "level": 3,
+      "slug": "setup",
+      "prose": "1. **Install dependencies:**\n   ```bash\n   pip install requests\n   ```\n\n2. **Ensure your backend is running:**\n   ```bash\n   # The API should be accessible at https://api.contact360.io:8000\n   ```\n\n3. **Prepare CSV files:**\n   - CSV files should be in the `output/` directory (or specify with `--input-dir`)\n   - Required columns: `first_name`, `last_name`, `domain`, `expected_email` (or `api_email`)\n   - Optional columns: `verification_status`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Install dependencies:**",
+              "checked": null
+            },
+            {
+              "text": "**Ensure your backend is running:**",
+              "checked": null
+            },
+            {
+              "text": "**Prepare CSV files:**",
+              "checked": null
+            },
+            {
+              "text": "CSV files should be in the `output/` directory (or specify with `--input-dir`)",
+              "checked": null
+            },
+            {
+              "text": "Required columns: `first_name`, `last_name`, `domain`, `expected_email` (or `api_email`)",
+              "checked": null
+            },
+            {
+              "text": "Optional columns: `verification_status`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "   pip install requests\n   "
+        },
+        {
+          "lang": "bash",
+          "value": "   # The API should be accessible at https://api.contact360.io:8000\n   "
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Usage",
+      "level": 3,
+      "slug": "usage",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Basic Usage (Analysis Only)",
+      "level": 4,
+      "slug": "basic-usage-analysis-only",
+      "prose": "```bash\ncd scripts/api_test\npython email_pattern_generator.py --no-create-patterns\n```\n\nThis will:\n- Read CSV files from `output/` directory\n- Extract and analyze email patterns\n- Generate reports without creating patterns via API",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Read CSV files from `output/` directory",
+              "checked": null
+            },
+            {
+              "text": "Extract and analyze email patterns",
+              "checked": null
+            },
+            {
+              "text": "Generate reports without creating patterns via API",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "cd scripts/api_test\npython email_pattern_generator.py --no-create-patterns\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Full Pipeline with Pattern Creation",
+      "level": 4,
+      "slug": "full-pipeline-with-pattern-creation",
+      "prose": "```bash\npython email_pattern_generator.py --company-uuid \"398cce44-233d-5f7c-aea1-e4a6a79df10c\"\n```\n\nThis will:\n- Read CSV files\n- Extract patterns\n- Create patterns via API using the provided company UUID",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Read CSV files",
+              "checked": null
+            },
+            {
+              "text": "Extract patterns",
+              "checked": null
+            },
+            {
+              "text": "Create patterns via API using the provided company UUID",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python email_pattern_generator.py --company-uuid \"398cce44-233d-5f7c-aea1-e4a6a79df10c\"\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Re-validate All Emails",
+      "level": 4,
+      "slug": "re-validate-all-emails",
+      "prose": "```bash\npython email_pattern_generator.py --validate-emails --no-create-patterns\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python email_pattern_generator.py --validate-emails --no-create-patterns\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Custom Configuration",
+      "level": 4,
+      "slug": "custom-configuration",
+      "prose": "```bash\npython email_pattern_generator.py \\\n  --input-dir output \\\n  --output-dir results \\\n  --min-pattern-count 5 \\\n  --min-confidence 0.7 \\\n  --max-workers 10 \\\n  --company-uuid \"398cce44-233d-5f7c-aea1-e4a6a79df10c\"\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "bash",
+          "value": "python email_pattern_generator.py \\\n  --input-dir output \\\n  --output-dir results \\\n  --min-pattern-count 5 \\\n  --min-confidence 0.7 \\\n  --max-workers 10 \\\n  --company-uuid \"398cce44-233d-5f7c-aea1-e4a6a79df10c\"\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Command-Line Options",
+      "level": 3,
+      "slug": "command-line-options",
+      "prose": "| Option | Description | Default |\n|--------|-------------|---------|\n| `--api-url` | API base URL | `https://api.contact360.io:8000` |\n| `--email` | Email for authentication | Prompt if not provided |\n| `--password` | Password for authentication | Prompt if not provided |\n| `--company-uuid` | Company UUID for all domains | None (patterns skipped) |\n| `--input-dir` | Input directory with CSV files | `scripts/api_test/output` |\n| `--output-dir` | Output directory for reports | `scripts/api_test/output` |\n| `--min-pattern-count` | Min contacts to establish pattern | 3 |\n| `--min-confidence` | Min confidence score | 0.6 |\n| `--validate-emails` | Re-validate emails via API | False (use CSV status) |\n| `--no-create-patterns` | Skip API pattern creation | False |\n| `--max-workers` | Number of worker threads | 5 |\n| `--max-requests-per-minute` | API rate limit | 20 |\n| `--upsert` | Use upsert mode for patterns | False |",
+      "tables": [
+        {
+          "headers": [
+            "Option",
+            "Description",
+            "Default"
+          ],
+          "rows": [
+            [
+              "`--api-url`",
+              "API base URL",
+              "`https://api.contact360.io:8000`"
+            ],
+            [
+              "`--email`",
+              "Email for authentication",
+              "Prompt if not provided"
+            ],
+            [
+              "`--password`",
+              "Password for authentication",
+              "Prompt if not provided"
+            ],
+            [
+              "`--company-uuid`",
+              "Company UUID for all domains",
+              "None (patterns skipped)"
+            ],
+            [
+              "`--input-dir`",
+              "Input directory with CSV files",
+              "`scripts/api_test/output`"
+            ],
+            [
+              "`--output-dir`",
+              "Output directory for reports",
+              "`scripts/api_test/output`"
+            ],
+            [
+              "`--min-pattern-count`",
+              "Min contacts to establish pattern",
+              "3"
+            ],
+            [
+              "`--min-confidence`",
+              "Min confidence score",
+              "0.6"
+            ],
+            [
+              "`--validate-emails`",
+              "Re-validate emails via API",
+              "False (use CSV status)"
+            ],
+            [
+              "`--no-create-patterns`",
+              "Skip API pattern creation",
+              "False"
+            ],
+            [
+              "`--max-workers`",
+              "Number of worker threads",
+              "5"
+            ],
+            [
+              "`--max-requests-per-minute`",
+              "API rate limit",
+              "20"
+            ],
+            [
+              "`--upsert`",
+              "Use upsert mode for patterns",
+              "False"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Output Files",
+      "level": 3,
+      "slug": "output-files",
+      "prose": "The script generates three output files in the output directory:\n\n1. **`email_validation_report_TIMESTAMP.csv`**\n   - Email validation results\n   - Columns: `email`, `is_valid`, `verification_status`, `verification_provider`, `verification_error`, `verification_time_ms`, `pattern_detected`, `domain`\n\n2. **`email_patterns_by_domain_TIMESTAMP.csv`**\n   - Detected patterns by domain\n   - Columns: `domain`, `pattern_format`, `pattern_string`, `contact_count`, `confidence_score`, `is_auto_extracted`, `company_uuid`, `pattern_uuid`, `api_status`, `api_error`\n\n3. **`email_pattern_analysis_TIMESTAMP.json`**\n   - Comprehensive JSON report with statistics, configuration, and pattern details",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**`email_validation_report_TIMESTAMP.csv`**",
+              "checked": null
+            },
+            {
+              "text": "Email validation results",
+              "checked": null
+            },
+            {
+              "text": "Columns: `email`, `is_valid`, `verification_status`, `verification_provider`, `verification_error`, `verification_time_ms`, `pattern_detected`, `domain`",
+              "checked": null
+            },
+            {
+              "text": "**`email_patterns_by_domain_TIMESTAMP.csv`**",
+              "checked": null
+            },
+            {
+              "text": "Detected patterns by domain",
+              "checked": null
+            },
+            {
+              "text": "Columns: `domain`, `pattern_format`, `pattern_string`, `contact_count`, `confidence_score`, `is_auto_extracted`, `company_uuid`, `pattern_uuid`, `api_status`, `api_error`",
+              "checked": null
+            },
+            {
+              "text": "**`email_pattern_analysis_TIMESTAMP.json`**",
+              "checked": null
+            },
+            {
+              "text": "Comprehensive JSON report with statistics, configuration, and pattern details",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Pattern Detection",
+      "level": 3,
+      "slug": "pattern-detection",
+      "prose": "The script detects the following email patterns:\n\n- `first.last` → john.doe@domain.com\n- `firstlast` → johndoe@domain.com\n- `first` → john@domain.com\n- `f.last` → j.doe@domain.com\n- `first_last` → john_doe@domain.com\n- `flast` → jdoe@domain.com\n- `firstl` → johnD@domain.com (first + last initial)\n- `f_last` → j_doe@domain.com\n- `last.first` → doe.john@domain.com\n- `lastfirst` → doejohn@domain.com\n- `l.first` → d.john@domain.com",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`first.last` → john.doe@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`firstlast` → johndoe@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`first` → john@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`f.last` → j.doe@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`first_last` → john_doe@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`flast` → jdoe@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`firstl` → johnD@domain.com (first + last initial)",
+              "checked": null
+            },
+            {
+              "text": "`f_last` → j_doe@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`last.first` → doe.john@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`lastfirst` → doejohn@domain.com",
+              "checked": null
+            },
+            {
+              "text": "`l.first` → d.john@domain.com",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Confidence Calculation",
+      "level": 3,
+      "slug": "confidence-calculation",
+      "prose": "Pattern confidence is calculated based on:\n- **Frequency score** (30%): Higher count = higher confidence (max at 10+ occurrences)\n- **Consistency score** (70%): Percentage of emails matching the pattern",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Frequency score** (30%): Higher count = higher confidence (max at 10+ occurrences)",
+              "checked": null
+            },
+            {
+              "text": "**Consistency score** (70%): Percentage of emails matching the pattern",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Example Output",
+      "level": 3,
+      "slug": "example-output",
+      "prose": "```\n================================================================================\nEmail Pattern Generator - Started at 2025-12-17 10:30:45\n================================================================================\n\n📁 Found 2 CSV file(s):\n   - 1-1k - 1-1k.csv.csv\n   - 1-2k .csv\n\n📖 Reading contacts from CSV files...\n   ✅ 1-1k - 1-1k.csv.csv: 1000 contacts\n   ✅ 1-2k .csv: 952 contacts\n\n📊 Total contacts: 1952\n\n📦 Grouping contacts by domain...\n   📊 450 unique domains\n\n🔎 Extracting email patterns...\n   ✅ Detected 125 patterns\n\n📤 Creating patterns via API...\n   ⚠️  Warning: No company_uuid provided. Patterns will be skipped.\n   💡 Tip: Provide company_uuid parameter or implement company lookup.\n   ✅ Created: 0\n   ❌ Failed: 125\n\n📊 Generating reports...\n   ✅ Validation report: email_validation_report_20251217_103045.csv\n   ✅ Pattern report: email_patterns_by_domain_20251217_103045.csv\n   ✅ JSON report: email_pattern_analysis_20251217_103045.json\n\n================================================================================\n📊 FINAL STATISTICS\n================================================================================\nTotal Contacts:        1952\nValid Emails:          1850\nInvalid Emails:        102\nDomains Analyzed:      450\nPatterns Detected:     125\nPatterns Created:      0\nPatterns Failed:       125\n================================================================================\n```",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "1-1k - 1-1k.csv.csv",
+              "checked": null
+            },
+            {
+              "text": "1-2k .csv",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "================================================================================\nEmail Pattern Generator - Started at 2025-12-17 10:30:45\n================================================================================\n\n📁 Found 2 CSV file(s):\n   - 1-1k - 1-1k.csv.csv\n   - 1-2k .csv\n\n📖 Reading contacts from CSV files...\n   ✅ 1-1k - 1-1k.csv.csv: 1000 contacts\n   ✅ 1-2k .csv: 952 contacts\n\n📊 Total contacts: 1952\n\n📦 Grouping contacts by domain...\n   📊 450 unique domains\n\n🔎 Extracting email patterns...\n   ✅ Detected 125 patterns\n\n📤 Creating patterns via API...\n   ⚠️  Warning: No company_uuid provided. Patterns will be skipped.\n   💡 Tip: Provide company_uuid parameter or implement company lookup.\n   ✅ Created: 0\n   ❌ Failed: 125\n\n📊 Generating reports...\n   ✅ Validation report: email_validation_report_20251217_103045.csv\n   ✅ Pattern report: email_patterns_by_domain_20251217_103045.csv\n   ✅ JSON report: email_pattern_analysis_20251217_103045.json\n\n================================================================================\n📊 FINAL STATISTICS\n================================================================================\nTotal Contacts:        1952\nValid Emails:          1850\nInvalid Emails:        102\nDomains Analyzed:      450\nPatterns Detected:     125\nPatterns Created:      0\nPatterns Failed:       125\n================================================================================\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Troubleshooting",
+      "level": 3,
+      "slug": "troubleshooting",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "No Company UUID",
+      "level": 4,
+      "slug": "no-company-uuid",
+      "prose": "If you don't provide a `--company-uuid`, patterns will be detected but not created via API. To create patterns:\n1. Provide `--company-uuid` parameter\n2. Or implement company lookup by domain in the script",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Provide `--company-uuid` parameter",
+              "checked": null
+            },
+            {
+              "text": "Or implement company lookup by domain in the script",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Authentication Errors",
+      "level": 4,
+      "slug": "authentication-errors",
+      "prose": "- Ensure credentials are correct\n- Check if tokens are expired\n- Use environment variables: `API_EMAIL` and `API_PASSWORD`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Ensure credentials are correct",
+              "checked": null
+            },
+            {
+              "text": "Check if tokens are expired",
+              "checked": null
+            },
+            {
+              "text": "Use environment variables: `API_EMAIL` and `API_PASSWORD`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Rate Limiting",
+      "level": 4,
+      "slug": "rate-limiting",
+      "prose": "- The script includes rate limiting (20 requests/minute by default)\n- Adjust with `--max-requests-per-minute` if needed",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "The script includes rate limiting (20 requests/minute by default)",
+              "checked": null
+            },
+            {
+              "text": "Adjust with `--max-requests-per-minute` if needed",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Pattern Not Detected",
+      "level": 4,
+      "slug": "pattern-not-detected",
+      "prose": "- Increase `--min-pattern-count` if you have many domains with few contacts\n- Lower `--min-confidence` if patterns are too strict\n- Check that emails match expected name formats",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Increase `--min-pattern-count` if you have many domains with few contacts",
+              "checked": null
+            },
+            {
+              "text": "Lower `--min-confidence` if patterns are too strict",
+              "checked": null
+            },
+            {
+              "text": "Check that emails match expected name formats",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "updated_at": "2026-04-08T23:29:05.864905+00:00",
+  "non_parsed_raw_markdown": ""
+}

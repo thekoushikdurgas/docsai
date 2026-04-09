@@ -1,17 +1,21 @@
-"""Markdown chunker for Pinecone ingestion.
+"""Chunker for Pinecone ingestion.
 
-Splits markdown at `##` / `###` headings and returns records compatible with
+Supports raw markdown files and typed Contact360 doc JSON (`raw_markdown` or flattened structured fields).
+Splits at `##` / `###` headings; returns records compatible with
 `field_map text=content` (integrated embeddings), with flat metadata only.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 from paths import DOCS_HUB_DIR, DOCS_ROOT
+
+from scripts.typed_doc_embedding_text import text_for_typed_doc_embedding
 
 
 HEADING_RE = re.compile(r"^(##|###)\s+(.+?)\s*$")
@@ -31,31 +35,21 @@ def _infer_version_from_filename(path: Path) -> str:
 
 def _infer_service_from_path(path: Path) -> str:
     parts = list(path.parts)
-    # Best-effort: service folder is usually the segment just before `apis` / `endpoints`.
     for marker in ("apis", "endpoints"):
         if marker in parts:
             idx = parts.index(marker)
             if idx > 0:
                 return str(parts[idx - 1])
 
-    # Fallback: infer from filename prefix.
     stem = path.stem
     if not stem:
         return ""
 
-    # Remove leading version-like prefix.
     stem = VERSION_RE.sub("", stem, count=1)
     return stem.split()[0].strip("-_ ") if stem else ""
 
 
 def _infer_era_and_kind(doc_path_rel: str, abs_path: Path) -> Tuple[str, str]:
-    """
-    Map file location to:
-    - era: "0"-"10", "global", "codebases", "backend"
-    - doc_kind: era_task, codebase_analysis, backend_api, hub, endpoint_md
-    """
-
-    # backend*
     if doc_path_rel.startswith("backend/"):
         if doc_path_rel.startswith("backend/apis/"):
             return "backend", "backend_api"
@@ -63,24 +57,19 @@ def _infer_era_and_kind(doc_path_rel: str, abs_path: Path) -> Tuple[str, str]:
             return "backend", "endpoint_md"
         return "backend", "backend_api"
 
-    # codebases analysis
     if doc_path_rel.startswith("codebases/"):
         return "codebases", "codebase_analysis"
 
-    # hub/top-level docs
     try:
         if abs_path.is_relative_to(DOCS_HUB_DIR):
             return "global", "hub"
     except Exception:
-        # Python < 3.9 doesn't have is_relative_to; keep compatibility.
         if str(DOCS_HUB_DIR) in str(abs_path):
             return "global", "hub"
 
-    # If the file sits directly in docs/ (top-level hub docs like roadmap.md), treat as global.
     if abs_path.parent == DOCS_ROOT:
         return "global", "hub"
 
-    # era folder: "0. Foundation ...", "10. ..." -> leading number.
     parent_name = abs_path.parent.name
     m = re.match(r"^(\d+)\.", parent_name)
     if m:
@@ -92,17 +81,12 @@ def _infer_era_and_kind(doc_path_rel: str, abs_path: Path) -> Tuple[str, str]:
 def _iter_heading_chunks(
     content: str,
 ) -> Iterable[Tuple[str, List[str]]]:
-    """
-    Yield (heading_text, lines_in_chunk) where each chunk begins with `##` or `###`.
-    """
-
     current_heading: str | None = None
     current_lines: List[str] = []
 
     for line in content.splitlines():
         m = HEADING_RE.match(line.strip())
         if m:
-            # Flush previous chunk.
             if current_heading is not None and current_lines:
                 yield current_heading, current_lines
             current_heading = m.group(2).strip()
@@ -136,30 +120,40 @@ def _split_text_by_max_chars(text: str, max_chars: int) -> List[str]:
     if buf:
         segments.append("".join(buf).strip())
 
-    # Avoid empty segments.
     return [s for s in segments if s]
 
 
-def chunk_file(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
-    """
-    Chunk a markdown file into Pinecone records.
-
-    Record schema:
-    - `_id`: deterministic sha256
-    - `content`: chunk text (integrated embeddings uses field_map text=content)
-    - flat metadata: doc_path, era, doc_kind, heading, service, version
-    """
-
-    raw = path.read_text(encoding="utf-8")
+def chunk_typed_doc_json(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    raw = (data.get("raw_markdown") or "").strip()
+    if not raw:
+        raw = text_for_typed_doc_embedding(data).strip()
+    if not raw:
+        return []
     doc_path_rel = str(path.relative_to(DOCS_ROOT)).replace("\\", "/")
+    era, inferred_kind = _infer_era_and_kind(doc_path_rel, path)
+    doc_kind = data.get("kind") if isinstance(data.get("kind"), str) else inferred_kind
+    return _records_from_markdown_body(
+        raw, doc_path_rel, path, era=era, doc_kind=doc_kind, max_chunk_chars=max_chunk_chars
+    )
 
-    era, doc_kind = _infer_era_and_kind(doc_path_rel, path)
-    service = _infer_service_from_path(path)
-    version = _infer_version_from_filename(path)
 
+def _records_from_markdown_body(
+    raw: str,
+    doc_path_rel: str,
+    abs_path: Path,
+    *,
+    era: str,
+    doc_kind: str,
+    max_chunk_chars: int,
+) -> List[Dict]:
+    service = _infer_service_from_path(abs_path)
+    version = _infer_version_from_filename(abs_path)
     records: List[Dict] = []
 
-    # If the doc has no headings at level 2/3, index it as a single chunk.
     heading_chunks = list(_iter_heading_chunks(raw))
     if not heading_chunks:
         content = raw.strip()
@@ -205,7 +199,12 @@ def chunk_file(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
     return records
 
 
+def chunk_file(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
+    if path.suffix.lower() != ".json":
+        return []
+    return chunk_typed_doc_json(path, max_chunk_chars=max_chunk_chars)
+
+
 def iter_records(paths: Iterable[Path]) -> Iterable[Dict]:
     for p in paths:
         yield from chunk_file(p)
-

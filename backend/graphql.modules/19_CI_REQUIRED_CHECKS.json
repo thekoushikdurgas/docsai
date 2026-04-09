@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "kind": "graphql_module",
+  "source_path": "backend/graphql.modules/19_CI_REQUIRED_CHECKS.md",
+  "sha256_source": "55e393ba50a7f292fe3b2f8d80a71ea523cba0ed7e4314373f3f06a177effce1",
+  "generated_at": "2026-04-08T23:26:46.544746+00:00",
+  "title": "CI Required Checks (0.10)",
+  "module_number": null,
+  "module_name": "19_CI_REQUIRED_CHECKS",
+  "location": null,
+  "overview": null,
+  "operations": [],
+  "sdl_excerpt": null,
+  "error_codes": [],
+  "code_pointers": [],
+  "sections": [
+    {
+      "heading": "CI Required Checks (0.10)",
+      "level": 1,
+      "prose": "This document freezes the required CI checks for foundation release gating.\n\n**GraphQL docs:** Module reference docs under this folder are validated against `contact360.io/api` (`app/graphql/schema.py`). When CI or schema changes, update the relevant `NN_*_MODULE.md` and confirm with `python -c \"from app.graphql.schema import schema; print(schema.as_str())\"` run from the gateway directory.\n\nJob IDs below match the `jobs:` keys in [`docs/.github/workflows/ci.yml`](../../.github/workflows/ci.yml) (monorepo CI). If workflows move or rename jobs, update this list in the same change.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Required checks",
+      "level": 2,
+      "prose": "1. `docs-and-structure-check`\n2. `migration-smoke`\n3. `health-smoke`\n4. `lint-smoke`\n5. `secret-scan`\n6. `sam-validate`",
+      "code_blocks": []
+    },
+    {
+      "heading": "What each check enforces",
+      "level": 2,
+      "prose": "- `docs-and-structure-check`: required top-level repo layout and canonical docs files.\n- `migration-smoke`: Alembic migrations for `contact360.io/jobs`, `contact360.io/api`, and `backend(dev)/contact.ai` on an empty PostgreSQL database.\n- `health-smoke`: targeted health endpoint tests for gateway/storage/integration services.\n- `lint-smoke`: syntax lint baseline (`compileall`) across Python service packages.\n- `secret-scan`: repository secret leakage scanning with Gitleaks.\n- `sam-validate`: `sam validate --lint` across SAM templates for lambda/service packages.",
+      "code_blocks": []
+    },
+    {
+      "heading": "Lambda SAM templates covered",
+      "level": 2,
+      "prose": "- `contact360.io/api/template.yaml`\n- `lambda/emailapis/template.yaml`\n- `lambda/emailapigo/template.yaml`\n- `lambda/logs.api/template.yaml`\n- `lambda/s3storage/template.yaml`\n- `backend(dev)/salesnavigator/template.yaml`\n- `backend(dev)/contact.ai/template.yaml`\n- `backend(dev)/resumeai/template.yaml`\n- `extension/contact360/template.yaml`",
+      "code_blocks": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

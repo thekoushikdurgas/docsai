@@ -1,0 +1,4462 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "frontend/docs/hooks-services-contexts.md",
+  "sha256_source": "d862d828c1021e45e8b517bac84a03e448a5856287121d5d2dbe840b31291303",
+  "generated_at": "2026-04-08T23:26:48.510768+00:00",
+  "title": "",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "",
+      "level": 0,
+      "slug": "",
+      "prose": "﻿# Contact360 Hooks, Services, Contexts, and Utilities\n\nComplete catalog of all custom React hooks, GraphQL service modules, React context providers, and `lib/` utilities in `contact360.io/app/src/`.\n\n**Related:** `docs/frontend.md` (overview), `docs/frontend/components.md` (component catalog), `docs/frontend/design-system.md` (design system)\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "React Contexts",
+      "level": 2,
+      "slug": "react-contexts",
+      "prose": "Contexts are defined in `context/` and provided at the root of the authenticated app.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "AuthContext",
+      "level": 3,
+      "slug": "authcontext",
+      "prose": "- **File:** `context/AuthContext.tsx`\n- **Era:** `0.x` / `1.x`\n- **Provides:**\n  - `user` — current user object (`id`, `email`, `name`, `role`, `plan`)\n  - `token` — current JWT access token\n  - `isAuthenticated` — boolean\n  - `login(credentials)` — async login, stores token\n  - `logout()` — clears token, redirects to `/login`\n  - `refreshToken()` — silently refreshes JWT before expiry\n- **Consumed by:** All authenticated components, `useSessionGuard`, `graphqlClient`\n- **Storage:** Token stored in memory + `localStorage` via `tokenManager`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `context/AuthContext.tsx`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `0.x` / `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Provides:**",
+              "checked": null
+            },
+            {
+              "text": "`user` — current user object (`id`, `email`, `name`, `role`, `plan`)",
+              "checked": null
+            },
+            {
+              "text": "`token` — current JWT access token",
+              "checked": null
+            },
+            {
+              "text": "`isAuthenticated` — boolean",
+              "checked": null
+            },
+            {
+              "text": "`login(credentials)` — async login, stores token",
+              "checked": null
+            },
+            {
+              "text": "`logout()` — clears token, redirects to `/login`",
+              "checked": null
+            },
+            {
+              "text": "`refreshToken()` — silently refreshes JWT before expiry",
+              "checked": null
+            },
+            {
+              "text": "**Consumed by:** All authenticated components, `useSessionGuard`, `graphqlClient`",
+              "checked": null
+            },
+            {
+              "text": "**Storage:** Token stored in memory + `localStorage` via `tokenManager`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "RoleContext",
+      "level": 3,
+      "slug": "rolecontext",
+      "prose": "- **File:** `context/RoleContext.tsx`\n- **Era:** `1.x` / `7.x`\n- **Provides:**\n  - `role` — current user role (`FreeUser` | `ProUser` | `Admin` | `SuperAdmin`)\n  - `plan` — current plan name\n  - `credits` — current credit balance\n  - `isAdmin` — boolean (`Admin` or `SuperAdmin`)\n  - `isSuperAdmin` — boolean\n  - `hasFeature(featureKey)` — checks plan-based feature access via `featureAccess.ts`\n  - `creditBalance` — formatted credit display string\n- **Consumed by:** `Sidebar`, `DashboardAccessGate`, `CreditBudgetAlerts`, all gated components\n- **Updates:** Refreshed on login, on billing mutations, on credit deduction events",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `context/RoleContext.tsx`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x` / `7.x`",
+              "checked": null
+            },
+            {
+              "text": "**Provides:**",
+              "checked": null
+            },
+            {
+              "text": "`role` — current user role (`FreeUser` | `ProUser` | `Admin` | `SuperAdmin`)",
+              "checked": null
+            },
+            {
+              "text": "`plan` — current plan name",
+              "checked": null
+            },
+            {
+              "text": "`credits` — current credit balance",
+              "checked": null
+            },
+            {
+              "text": "`isAdmin` — boolean (`Admin` or `SuperAdmin`)",
+              "checked": null
+            },
+            {
+              "text": "`isSuperAdmin` — boolean",
+              "checked": null
+            },
+            {
+              "text": "`hasFeature(featureKey)` — checks plan-based feature access via `featureAccess.ts`",
+              "checked": null
+            },
+            {
+              "text": "`creditBalance` — formatted credit display string",
+              "checked": null
+            },
+            {
+              "text": "**Consumed by:** `Sidebar`, `DashboardAccessGate`, `CreditBudgetAlerts`, all gated components",
+              "checked": null
+            },
+            {
+              "text": "**Updates:** Refreshed on login, on billing mutations, on credit deduction events",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "ThemeContext",
+      "level": 3,
+      "slug": "themecontext",
+      "prose": "- **File:** `context/ThemeContext.tsx`\n- **Era:** `0.x`\n- **Provides:**\n  - `theme` — `'light'` | `'dark'`\n  - `toggleTheme()` — toggles and persists to `localStorage`\n- **Consumed by:** `MainLayout` (applies CSS class to root), profile settings toggle\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `context/ThemeContext.tsx`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `0.x`",
+              "checked": null
+            },
+            {
+              "text": "**Provides:**",
+              "checked": null
+            },
+            {
+              "text": "`theme` — `'light'` | `'dark'`",
+              "checked": null
+            },
+            {
+              "text": "`toggleTheme()` — toggles and persists to `localStorage`",
+              "checked": null
+            },
+            {
+              "text": "**Consumed by:** `MainLayout` (applies CSS class to root), profile settings toggle",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Custom Hooks",
+      "level": 2,
+      "slug": "custom-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Auth and session hooks",
+      "level": 3,
+      "slug": "auth-and-session-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useLoginForm",
+      "level": 4,
+      "slug": "useloginform",
+      "prose": "- **File:** `hooks/useLoginForm.ts`\n- **Era:** `1.x`\n- **Purpose:** Complete login form management: controlled inputs, validation, submit handler.\n- **Returns:** `{ email, password, errors, isLoading, handleSubmit, setEmail, setPassword }`\n- **Validates:** Email format, password non-empty via `authValidation`\n- **On success:** Calls `AuthContext.login()` → redirects via `useAuthRedirect`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useLoginForm.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Complete login form management: controlled inputs, validation, submit handler.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ email, password, errors, isLoading, handleSubmit, setEmail, setPassword }`",
+              "checked": null
+            },
+            {
+              "text": "**Validates:** Email format, password non-empty via `authValidation`",
+              "checked": null
+            },
+            {
+              "text": "**On success:** Calls `AuthContext.login()` → redirects via `useAuthRedirect`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useRegisterForm",
+      "level": 4,
+      "slug": "useregisterform",
+      "prose": "- **File:** `hooks/useRegisterForm.ts`\n- **Era:** `1.x`\n- **Purpose:** Registration form: name, email, password, confirm password. Validates and submits.\n- **Returns:** `{ formState, errors, isLoading, handleSubmit, setField }`\n- **Validates:** Email format, password strength, password match, terms acceptance",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useRegisterForm.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Registration form: name, email, password, confirm password. Validates and submits.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ formState, errors, isLoading, handleSubmit, setField }`",
+              "checked": null
+            },
+            {
+              "text": "**Validates:** Email format, password strength, password match, terms acceptance",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useAuthRedirect",
+      "level": 4,
+      "slug": "useauthredirect",
+      "prose": "- **File:** `hooks/useAuthRedirect.ts`\n- **Era:** `1.x`\n- **Purpose:** Handles post-auth redirect logic (back to original URL or default `/dashboard`).\n- **Returns:** `{ redirectAfterLogin() }`\n- **Storage:** Uses `sessionStorage` to preserve intended URL across auth flow.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useAuthRedirect.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Handles post-auth redirect logic (back to original URL or default `/dashboard`).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ redirectAfterLogin() }`",
+              "checked": null
+            },
+            {
+              "text": "**Storage:** Uses `sessionStorage` to preserve intended URL across auth flow.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useSessionGuard",
+      "level": 4,
+      "slug": "usesessionguard",
+      "prose": "- **File:** `hooks/useSessionGuard.ts`\n- **Era:** `1.x`\n- **Purpose:** Enforces authenticated session on protected pages. Redirects to `/login` on expiry.\n- **Behavior:** Checks token validity on mount and on visibility change; triggers `refreshToken()` before expiry.\n- **Returns:** `{ isReady }` — false while checking, true when session confirmed.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useSessionGuard.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Enforces authenticated session on protected pages. Redirects to `/login` on expiry.",
+              "checked": null
+            },
+            {
+              "text": "**Behavior:** Checks token validity on mount and on visibility change; triggers `refreshToken()` before expiry.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ isReady }` — false while checking, true when session confirmed.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useSessions",
+      "level": 4,
+      "slug": "usesessions",
+      "prose": "- **File:** `hooks/useSessions.ts`\n- **Era:** `1.x` / `7.x`\n- **Purpose:** Lists all active sessions for the user (device, IP, last active) and provides revoke action.\n- **Returns:** `{ sessions, isLoading, revokeSession(sessionId), revokeAllOther() }`\n- **Service:** (profile session management endpoint)\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useSessions.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x` / `7.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Lists all active sessions for the user (device, IP, last active) and provides revoke action.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ sessions, isLoading, revokeSession(sessionId), revokeAllOther() }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** (profile session management endpoint)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Dashboard hooks",
+      "level": 3,
+      "slug": "dashboard-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useDashboardPage",
+      "level": 4,
+      "slug": "usedashboardpage",
+      "prose": "- **File:** `hooks/useDashboardPage.ts`\n- **Era:** `1.x`\n- **Purpose:** Batched data fetch for the dashboard page: user stats (admin only) + recent activities + pending exports.\n- **Returns:** `{ stats, activities, pendingExports, isLoading, refetch }`\n- **Uses:** `dashboardPageApi` (parallel batch fetch), auto-refetches exports every 60s.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useDashboardPage.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Batched data fetch for the dashboard page: user stats (admin only) + recent activities + pending exports.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ stats, activities, pendingExports, isLoading, refetch }`",
+              "checked": null
+            },
+            {
+              "text": "**Uses:** `dashboardPageApi` (parallel batch fetch), auto-refetches exports every 60s.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useDashboardPageAccess",
+      "level": 4,
+      "slug": "usedashboardpageaccess",
+      "prose": "- **File:** `hooks/dashboard/useDashboardPageAccess.ts`\n- **Era:** `1.x` / `7.x`\n- **Purpose:** Determines what dashboard sections are visible based on user role.\n- **Returns:** `{ showStats, showChart, showAdminActions }` booleans\n- **Context:** `RoleContext`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/dashboard/useDashboardPageAccess.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x` / `7.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Determines what dashboard sections are visible based on user role.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ showStats, showChart, showAdminActions }` booleans",
+              "checked": null
+            },
+            {
+              "text": "**Context:** `RoleContext`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useDashboardData",
+      "level": 4,
+      "slug": "usedashboarddata",
+      "prose": "- **File:** `hooks/useDashboardData.ts`\n- **Era:** `1.x`\n- **Purpose:** Low-level hook for dashboard chart/stats data. Wraps `adminService` queries.\n- **Returns:** `{ statsData, chartData, isLoading, error }`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useDashboardData.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Low-level hook for dashboard chart/stats data. Wraps `adminService` queries.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ statsData, chartData, isLoading, error }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email hooks",
+      "level": 3,
+      "slug": "email-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useEmailFinderSingle",
+      "level": 4,
+      "slug": "useemailfindersingle",
+      "prose": "- **File:** `hooks/useEmailFinderSingle.ts`\n- **Era:** `2.x`\n- **Purpose:** Complete email finder form: first name, last name, domain inputs + submit handler.\n- **Returns:** `{ firstName, lastName, domain, result, isLoading, error, handleSubmit, reset, setField }`\n- **Credit check:** Validates credits available before submitting.\n- **Service:** `emailService.findEmail()`\n- **Validates:** All three fields required; domain format check via `emailUtils`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useEmailFinderSingle.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Complete email finder form: first name, last name, domain inputs + submit handler.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ firstName, lastName, domain, result, isLoading, error, handleSubmit, reset, setField }`",
+              "checked": null
+            },
+            {
+              "text": "**Credit check:** Validates credits available before submitting.",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `emailService.findEmail()`",
+              "checked": null
+            },
+            {
+              "text": "**Validates:** All three fields required; domain format check via `emailUtils`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useEmailVerifierSingle",
+      "level": 4,
+      "slug": "useemailverifiersingle",
+      "prose": "- **File:** `hooks/useEmailVerifierSingle.ts`\n- **Era:** `2.x`\n- **Purpose:** Single email verification form: email input + submit.\n- **Returns:** `{ email, result, isLoading, error, handleSubmit, setEmail, reset }`\n- **Service:** `emailService.verifyEmail()`\n- **Validates:** Email format via `emailValidation`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useEmailVerifierSingle.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Single email verification form: email input + submit.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ email, result, isLoading, error, handleSubmit, setEmail, reset }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `emailService.verifyEmail()`",
+              "checked": null
+            },
+            {
+              "text": "**Validates:** Email format via `emailValidation`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useEmailVerifierBulk",
+      "level": 4,
+      "slug": "useemailverifierbulk",
+      "prose": "- **File:** `hooks/useEmailVerifierBulk.ts`\n- **Era:** `2.x`\n- **Purpose:** Bulk verifier job state: job tracking, polling, result download.\n- **Returns:** `{ jobId, status, progress, results, isPolling, startJob, downloadResults }`\n- **Polling:** 10s interval while job is `processing`, stops on `completed`/`failed`.\n- **Service:** `jobsService`, `emailService`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useEmailVerifierBulk.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Bulk verifier job state: job tracking, polling, result download.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ jobId, status, progress, results, isPolling, startJob, downloadResults }`",
+              "checked": null
+            },
+            {
+              "text": "**Polling:** 10s interval while job is `processing`, stops on `completed`/`failed`.",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `jobsService`, `emailService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Contacts hooks",
+      "level": 3,
+      "slug": "contacts-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useContactsPage",
+      "level": 4,
+      "slug": "usecontactspage",
+      "prose": "- **File:** `hooks/contacts/useContactsPage.ts`\n- **Era:** `3.x`\n- **Purpose:** Full contacts page data: list with pagination, filters, and selection state.\n- **Returns:** `{ contacts, total, page, pageSize, isLoading, error, selectedIds, setPage, setPageSize, setSelected, refetch }`\n- **Uses:** `contactsPageApi` (batched contact list + filter metadata)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/contacts/useContactsPage.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Full contacts page data: list with pagination, filters, and selection state.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ contacts, total, page, pageSize, isLoading, error, selectedIds, setPage, setPageSize, setSelected, refetch }`",
+              "checked": null
+            },
+            {
+              "text": "**Uses:** `contactsPageApi` (batched contact list + filter metadata)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useContactsFilters",
+      "level": 4,
+      "slug": "usecontactsfilters",
+      "prose": "- **File:** `hooks/contacts/useContactsFilters.ts`\n- **Era:** `3.x`\n- **Purpose:** Manages VQL filter state for contacts. Builds VQL query from UI filter values.\n- **Returns:** `{ filters, setFilter, clearFilters, vqlQuery, activeFilterCount }`\n- **Integration:** `VQLQueryBuilder` component reads and writes this state.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/contacts/useContactsFilters.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Manages VQL filter state for contacts. Builds VQL query from UI filter values.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ filters, setFilter, clearFilters, vqlQuery, activeFilterCount }`",
+              "checked": null
+            },
+            {
+              "text": "**Integration:** `VQLQueryBuilder` component reads and writes this state.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useSavedSearches",
+      "level": 4,
+      "slug": "usesavedsearches",
+      "prose": "- **File:** `hooks/contacts/useSavedSearches.ts`\n- **Era:** `3.x`\n- **Purpose:** Load, save, delete saved VQL search filter sets.\n- **Returns:** `{ savedSearches, isLoading, save(name, filters), load(id), delete(id) }`\n- **Service:** `savedSearchesService`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/contacts/useSavedSearches.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Load, save, delete saved VQL search filter sets.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ savedSearches, isLoading, save(name, filters), load(id), delete(id) }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `savedSearchesService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useContactExport",
+      "level": 4,
+      "slug": "usecontactexport",
+      "prose": "- **File:** `hooks/contacts/useContactExport.ts`\n- **Era:** `3.x`\n- **Purpose:** Initiates and tracks a contacts export job.\n- **Returns:** `{ exportJob, startExport(columns, filters), downloadUrl, isExporting }`\n- **Service:** `contactsService.exportContacts()`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/contacts/useContactExport.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Initiates and tracks a contacts export job.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ exportJob, startExport(columns, filters), downloadUrl, isExporting }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `contactsService.exportContacts()`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useContactColumns",
+      "level": 4,
+      "slug": "usecontactcolumns",
+      "prose": "- **File:** `hooks/contacts/useContactColumns.ts`\n- **Era:** `3.x`\n- **Purpose:** Manages column visibility and order in the contacts table.\n- **Returns:** `{ visibleColumns, toggleColumn, reorderColumns, resetColumns }`\n- **Persistence:** Column preferences saved to `localStorage`.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/contacts/useContactColumns.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Manages column visibility and order in the contacts table.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ visibleColumns, toggleColumn, reorderColumns, resetColumns }`",
+              "checked": null
+            },
+            {
+              "text": "**Persistence:** Column preferences saved to `localStorage`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Companies hooks",
+      "level": 3,
+      "slug": "companies-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useCompaniesPage",
+      "level": 4,
+      "slug": "usecompaniespage",
+      "prose": "- **File:** `hooks/companies/useCompaniesPage.ts`\n- **Era:** `3.x`\n- **Purpose:** Companies page data with pagination, filters, and selection.\n- **Returns:** `{ companies, total, page, pageSize, isLoading, selectedIds, setPage, refetch }`\n- **Uses:** `companiesPageApi`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/companies/useCompaniesPage.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Companies page data with pagination, filters, and selection.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ companies, total, page, pageSize, isLoading, selectedIds, setPage, refetch }`",
+              "checked": null
+            },
+            {
+              "text": "**Uses:** `companiesPageApi`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useCompaniesFilters",
+      "level": 4,
+      "slug": "usecompaniesfilters",
+      "prose": "- **File:** `hooks/companies/useCompaniesFilters.ts`\n- **Era:** `3.x`\n- **Purpose:** Filter state for companies (industry, size, location, founded year).\n- **Returns:** `{ filters, setFilter, clearFilters, activeFilterCount }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/companies/useCompaniesFilters.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Filter state for companies (industry, size, location, founded year).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ filters, setFilter, clearFilters, activeFilterCount }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useCompaniesView",
+      "level": 4,
+      "slug": "usecompaniesview",
+      "prose": "- **File:** `hooks/companies/useCompaniesView.ts`\n- **Era:** `3.x`\n- **Purpose:** Toggles between list and grid view mode for companies.\n- **Returns:** `{ viewMode, setViewMode }` — `'list'` | `'grid'`\n- **Persistence:** Stored in `localStorage`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/companies/useCompaniesView.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Toggles between list and grid view mode for companies.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ viewMode, setViewMode }` — `'list'` | `'grid'`",
+              "checked": null
+            },
+            {
+              "text": "**Persistence:** Stored in `localStorage`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useCompanyExport",
+      "level": 4,
+      "slug": "usecompanyexport",
+      "prose": "- **File:** `hooks/companies/useCompanyExport.ts`\n- **Era:** `3.x`\n- **Purpose:** Company export job creation and status tracking.\n- **Returns:** `{ startExport(columns, filters), downloadUrl, isExporting }`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/companies/useCompanyExport.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Company export job creation and status tracking.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ startExport(columns, filters), downloadUrl, isExporting }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Files and upload hooks",
+      "level": 3,
+      "slug": "files-and-upload-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useNewExport",
+      "level": 4,
+      "slug": "usenewexport",
+      "prose": "- **File:** `hooks/useNewExport.ts`\n- **Era:** `2.x`\n- **Purpose:** Full multipart upload flow: file → S3 → job creation. The main orchestration hook for bulk CSV operations.\n- **Returns:** `{ file, uploadProgress, uploadFile, createJob, jobId, step }` — step = `idle | uploading | creating | done`\n- **Uses:** `useCsvUpload` (upload step) + `jobsService` (job creation step)\n- **Services:** `s3Service` (presigned upload), `jobsService` (create job)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useNewExport.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Full multipart upload flow: file → S3 → job creation. The main orchestration hook for bulk CSV operations.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ file, uploadProgress, uploadFile, createJob, jobId, step }` — step = `idle | uploading | creating | done`",
+              "checked": null
+            },
+            {
+              "text": "**Uses:** `useCsvUpload` (upload step) + `jobsService` (job creation step)",
+              "checked": null
+            },
+            {
+              "text": "**Services:** `s3Service` (presigned upload), `jobsService` (create job)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useCsvUpload",
+      "level": 4,
+      "slug": "usecsvupload",
+      "prose": "- **File:** `hooks/useCsvUpload.ts`\n- **Era:** `2.x`\n- **Purpose:** File selection, validation, and multipart S3 upload.\n- **Returns:** `{ file, setFile, upload, progress, error, isUploading, uploadedKey }`\n- **Validates:** File type (CSV), file size limit, header presence.\n- **Service:** `s3Service`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useCsvUpload.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** File selection, validation, and multipart S3 upload.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ file, setFile, upload, progress, error, isUploading, uploadedKey }`",
+              "checked": null
+            },
+            {
+              "text": "**Validates:** File type (CSV), file size limit, header presence.",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `s3Service`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useFilePreview",
+      "level": 4,
+      "slug": "usefilepreview",
+      "prose": "- **File:** `hooks/useFilePreview.ts`\n- **Era:** `2.x`\n- **Purpose:** Fetch and display first N rows of an uploaded file.\n- **Returns:** `{ rows, headers, isLoading, error, pageSize, setPageSize }`\n- **Service:** `s3Service` (fetch preview via presigned URL or API)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useFilePreview.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Fetch and display first N rows of an uploaded file.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ rows, headers, isLoading, error, pageSize, setPageSize }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `s3Service` (fetch preview via presigned URL or API)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useFiles",
+      "level": 4,
+      "slug": "usefiles",
+      "prose": "- **File:** `hooks/useFiles.ts`\n- **Era:** `2.x`\n- **Purpose:** File list management: list, select, delete files from S3 bucket.\n- **Returns:** `{ files, selectedFile, setSelectedFile, deleteFile, isLoading, refetch }`\n- **Service:** `s3Service`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useFiles.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** File list management: list, select, delete files from S3 bucket.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ files, selectedFile, setSelectedFile, deleteFile, isLoading, refetch }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `s3Service`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useBucketMetadata",
+      "level": 4,
+      "slug": "usebucketmetadata",
+      "prose": "- **File:** `hooks/useBucketMetadata.ts`\n- **Era:** `2.x`\n- **Purpose:** Fetch S3 bucket metadata (total objects, size, prefix tree structure).\n- **Returns:** `{ metadata, tree, isLoading }` — `tree` built via `s3TreeUtils`\n- **Service:** `s3Service`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useBucketMetadata.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Fetch S3 bucket metadata (total objects, size, prefix tree structure).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ metadata, tree, isLoading }` — `tree` built via `s3TreeUtils`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `s3Service`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useFileStats",
+      "level": 4,
+      "slug": "usefilestats",
+      "prose": "- **File:** `hooks/useFileStats.ts`\n- **Era:** `2.x`\n- **Purpose:** Fetch per-column statistics for an uploaded CSV file (null %, unique values).\n- **Returns:** `{ stats, isLoading }` keyed by column name\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useFileStats.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Fetch per-column statistics for an uploaded CSV file (null %, unique values).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ stats, isLoading }` keyed by column name",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Jobs hooks",
+      "level": 3,
+      "slug": "jobs-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useJobs",
+      "level": 4,
+      "slug": "usejobs",
+      "prose": "- **File:** `hooks/useJobs.ts`\n- **Era:** `2.x`\n- **Purpose:** Job list with status polling. Central hook for the jobs page.\n- **Returns:** `{ jobs, isLoading, error, retryJob, cancelJob, refetch, pollingStatus }`\n- **Polling:** Active jobs polled every 15s; completed/failed jobs not polled.\n- **Service:** `jobsService`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useJobs.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Job list with status polling. Central hook for the jobs page.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ jobs, isLoading, error, retryJob, cancelJob, refetch, pollingStatus }`",
+              "checked": null
+            },
+            {
+              "text": "**Polling:** Active jobs polled every 15s; completed/failed jobs not polled.",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `jobsService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useExpandedJobDetails",
+      "level": 4,
+      "slug": "useexpandedjobdetails",
+      "prose": "- **File:** `hooks/useExpandedJobDetails.ts`\n- **Era:** `2.x`\n- **Purpose:** Fetches detailed data for a single expanded job (logs, data sample, stats).\n- **Returns:** `{ details, logs, isLoading }` for a given `jobId`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useExpandedJobDetails.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Fetches detailed data for a single expanded job (logs, data sample, stats).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ details, logs, isLoading }` for a given `jobId`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Billing and usage hooks",
+      "level": 3,
+      "slug": "billing-and-usage-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useBilling",
+      "level": 4,
+      "slug": "usebilling",
+      "prose": "- **File:** `hooks/useBilling.ts`\n- **Era:** `1.x`\n- **Purpose:** Complete billing state: available plans, payment submission, payment history.\n- **Returns:** `{ plans, currentPlan, history, submitPayment, isSubmitting, paymentStatus }`\n- **Service:** `billingService`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useBilling.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Complete billing state: available plans, payment submission, payment history.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ plans, currentPlan, history, submitPayment, isSubmitting, paymentStatus }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `billingService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useUsage",
+      "level": 4,
+      "slug": "useusage",
+      "prose": "- **File:** `hooks/useUsage.ts`\n- **Era:** `1.x`\n- **Purpose:** Credit balance, usage history, and feature usage data.\n- **Returns:** `{ credits, used, limit, history, featureUsage, isLoading }`\n- **Service:** `usageService`\n- **Formats:** Uses `usageFormatters` for display strings.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useUsage.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Credit balance, usage history, and feature usage data.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ credits, used, limit, history, featureUsage, isLoading }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `usageService`",
+              "checked": null
+            },
+            {
+              "text": "**Formats:** Uses `usageFormatters` for display strings.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useFeatureOverview",
+      "level": 4,
+      "slug": "usefeatureoverview",
+      "prose": "- **File:** `hooks/useFeatureOverview.ts`\n- **Era:** `1.x`\n- **Purpose:** Feature-level usage summary (how many credits used per feature type).\n- **Returns:** `{ features[], totalCreditsUsed, isLoading }`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useFeatureOverview.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Feature-level usage summary (how many credits used per feature type).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ features[], totalCreditsUsed, isLoading }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "UI state hooks",
+      "level": 3,
+      "slug": "ui-state-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useModal",
+      "level": 4,
+      "slug": "usemodal",
+      "prose": "- **File:** `hooks/useModal.ts`\n- **Era:** `0.x`\n- **Purpose:** Generic modal lifecycle: open/close state with optional data payload.\n- **Returns:** `{ isOpen, open(data?), close, data }`\n- **Usage:** `const deleteModal = useModal<Contact>()` — then `deleteModal.open(contactToDelete)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useModal.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `0.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Generic modal lifecycle: open/close state with optional data payload.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ isOpen, open(data?), close, data }`",
+              "checked": null
+            },
+            {
+              "text": "**Usage:** `const deleteModal = useModal<Contact>()` — then `deleteModal.open(contactToDelete)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useViewMode",
+      "level": 4,
+      "slug": "useviewmode",
+      "prose": "- **File:** `hooks/useViewMode.ts`\n- **Era:** `3.x`\n- **Purpose:** Generic view mode toggle (e.g. list/grid/table).\n- **Returns:** `{ viewMode, setViewMode }` with `localStorage` persistence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useViewMode.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Generic view mode toggle (e.g. list/grid/table).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ viewMode, setViewMode }` with `localStorage` persistence.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useResizablePanels",
+      "level": 4,
+      "slug": "useresizablepanels",
+      "prose": "- **File:** `hooks/useResizablePanels.ts`\n- **Era:** `0.x`\n- **Purpose:** Two-panel resize logic via mouse drag on `ResizeHandle`.\n- **Returns:** `{ leftWidth, onDragStart }` — bind to `ResizeHandle`'s drag events.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useResizablePanels.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `0.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Two-panel resize logic via mouse drag on `ResizeHandle`.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ leftWidth, onDragStart }` — bind to `ResizeHandle`'s drag events.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useSidebar",
+      "level": 4,
+      "slug": "usesidebar",
+      "prose": "- **File:** `hooks/useSidebar.ts`\n- **Era:** `0.x`\n- **Purpose:** Sidebar collapsed/expanded state with `localStorage` persistence.\n- **Returns:** `{ isCollapsed, toggle, setCollapsed }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useSidebar.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `0.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Sidebar collapsed/expanded state with `localStorage` persistence.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ isCollapsed, toggle, setCollapsed }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useDebouncedValue",
+      "level": 4,
+      "slug": "usedebouncedvalue",
+      "prose": "- **File:** `hooks/useDebouncedValue.ts`\n- **Era:** `0.x`\n- **Purpose:** Returns a debounced copy of a value, updated after `delay` ms of no changes.\n- **Returns:** `debouncedValue`\n- **Usage:** `const debouncedSearch = useDebouncedValue(searchInput, 300)`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useDebouncedValue.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `0.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Returns a debounced copy of a value, updated after `delay` ms of no changes.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `debouncedValue`",
+              "checked": null
+            },
+            {
+              "text": "**Usage:** `const debouncedSearch = useDebouncedValue(searchInput, 300)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Platform and admin hooks",
+      "level": 3,
+      "slug": "platform-and-admin-hooks",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useAnalytics",
+      "level": 4,
+      "slug": "useanalytics",
+      "prose": "- **File:** `hooks/useAnalytics.ts`\n- **Era:** `8.x`\n- **Purpose:** Fetch analytics data for dashboards and reports.\n- **Returns:** `{ analyticsData, chartData, isLoading, dateRange, setDateRange }`\n- **Service:** `analyticsService`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useAnalytics.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `8.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Fetch analytics data for dashboards and reports.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ analyticsData, chartData, isLoading, dateRange, setDateRange }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `analyticsService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useAdmin",
+      "level": 4,
+      "slug": "useadmin",
+      "prose": "- **File:** `hooks/useAdmin.ts`\n- **Era:** `1.x` / `7.x`\n- **Purpose:** Admin actions: view users, adjust credits, review payments.\n- **Returns:** `{ users, adjustCredits, paymentSubmissions, approvePayment, declinePayment, isLoading }`\n- **Service:** `adminService`\n- **Role gate:** Only usable by Admin/SuperAdmin (`RoleContext.isAdmin`)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useAdmin.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x` / `7.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Admin actions: view users, adjust credits, review payments.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ users, adjustCredits, paymentSubmissions, approvePayment, declinePayment, isLoading }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `adminService`",
+              "checked": null
+            },
+            {
+              "text": "**Role gate:** Only usable by Admin/SuperAdmin (`RoleContext.isAdmin`)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useTeam",
+      "level": 4,
+      "slug": "useteam",
+      "prose": "- **File:** `hooks/useTeam.ts`\n- **Era:** `1.x`\n- **Purpose:** Team member management: list, invite, update role, remove.\n- **Returns:** `{ members, inviteMember, updateRole, removeMember, isLoading }`\n- **Service:** `usersService`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useTeam.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Team member management: list, invite, update role, remove.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ members, inviteMember, updateRole, removeMember, isLoading }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `usersService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useLinkedIn",
+      "level": 4,
+      "slug": "uselinkedin",
+      "prose": "- **File:** `hooks/useLinkedIn.ts`\n- **Era:** `4.x`\n- **Purpose:** LinkedIn/Sales Navigator integration state: profile sync, ingestion status.\n- **Returns:** `{ linkedInProfile, syncStatus, triggerSync, isConnected }`\n- **Service:** `linkedinService`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useLinkedIn.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `4.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** LinkedIn/Sales Navigator integration state: profile sync, ingestion status.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ linkedInProfile, syncStatus, triggerSync, isConnected }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `linkedinService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useAPIKeys",
+      "level": 4,
+      "slug": "useapikeys",
+      "prose": "- **File:** `hooks/useAPIKeys.ts`\n- **Era:** `8.x`\n- **Purpose:** API key management: list, create, revoke.\n- **Returns:** `{ apiKeys, createKey, revokeKey, isLoading }`\n- **Service:** (profile / API key management endpoint)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useAPIKeys.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `8.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** API key management: list, create, revoke.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ apiKeys, createKey, revokeKey, isLoading }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** (profile / API key management endpoint)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useActivities",
+      "level": 4,
+      "slug": "useactivities",
+      "prose": "- **File:** `hooks/useActivities.ts`\n- **Era:** `1.x`\n- **Purpose:** Activity log with filtering and pagination.\n- **Returns:** `{ activities, stats, filter, setFilter, page, setPage, isLoading }`\n- **Service:** `activitiesService`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useActivities.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Activity log with filtering and pagination.",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ activities, stats, filter, setFilter, page, setPage, isLoading }`",
+              "checked": null
+            },
+            {
+              "text": "**Service:** `activitiesService`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "useCompanies",
+      "level": 4,
+      "slug": "usecompanies",
+      "prose": "- **File:** `hooks/useCompanies.ts`\n- **Era:** `3.x`\n- **Purpose:** Top-level company data hook (lighter alternative to `useCompaniesPage`).\n- **Returns:** `{ companies, isLoading, searchCompanies }`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `hooks/useCompanies.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Top-level company data hook (lighter alternative to `useCompaniesPage`).",
+              "checked": null
+            },
+            {
+              "text": "**Returns:** `{ companies, isLoading, searchCompanies }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GraphQL Services",
+      "level": 2,
+      "slug": "graphql-services",
+      "prose": "All services are in `services/graphql/` and use `graphqlClient` to execute typed GraphQL operations.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "authService",
+      "level": 3,
+      "slug": "authservice",
+      "prose": "- **File:** `services/graphql/authService.ts`\n- **Era:** `1.x`\n- **Operations:**\n  - `Login(email, password)` → `{ token, user }`\n  - `Register(name, email, password)` → `{ token, user }`\n  - `Logout()` → `{ success }`\n  - `RefreshToken(refreshToken)` → `{ token }`\n  - `ValidateToken()` → `{ user }` (used on app boot)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/authService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`Login(email, password)` → `{ token, user }`",
+              "checked": null
+            },
+            {
+              "text": "`Register(name, email, password)` → `{ token, user }`",
+              "checked": null
+            },
+            {
+              "text": "`Logout()` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`RefreshToken(refreshToken)` → `{ token }`",
+              "checked": null
+            },
+            {
+              "text": "`ValidateToken()` → `{ user }` (used on app boot)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "billingService",
+      "level": 3,
+      "slug": "billingservice",
+      "prose": "- **File:** `services/graphql/billingService.ts`\n- **Era:** `1.x`\n- **Operations:**\n  - `GetPlans()` → `Plan[]`\n  - `GetCreditPacks()` → `CreditPack[]`\n  - `CreatePayment(planId, proof)` → `{ paymentId, status }`\n  - `GetPaymentHistory(page, pageSize)` → `Payment[]`\n  - `ApprovePayment(paymentId)` → `{ success }` (admin)\n  - `DeclinePayment(paymentId, reason)` → `{ success }` (admin)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/billingService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`GetPlans()` → `Plan[]`",
+              "checked": null
+            },
+            {
+              "text": "`GetCreditPacks()` → `CreditPack[]`",
+              "checked": null
+            },
+            {
+              "text": "`CreatePayment(planId, proof)` → `{ paymentId, status }`",
+              "checked": null
+            },
+            {
+              "text": "`GetPaymentHistory(page, pageSize)` → `Payment[]`",
+              "checked": null
+            },
+            {
+              "text": "`ApprovePayment(paymentId)` → `{ success }` (admin)",
+              "checked": null
+            },
+            {
+              "text": "`DeclinePayment(paymentId, reason)` → `{ success }` (admin)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contactsService",
+      "level": 3,
+      "slug": "contactsservice",
+      "prose": "- **File:** `services/graphql/contactsService.ts`\n- **Era:** `3.x`\n- **Operations:**\n  - `ListContacts(filters, page, pageSize, sort)` → `{ contacts, total }`\n  - `GetContact(id)` → `Contact`\n  - `CreateContact(input)` → `Contact`\n  - `UpdateContact(id, input)` → `Contact`\n  - `DeleteContact(id)` → `{ success }`\n  - `BulkDeleteContacts(ids[])` → `{ deletedCount }`\n  - `ExportContacts(filters, columns)` → `{ jobId }`\n  - `ImportContacts(fileKey, mapping)` → `{ jobId }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/contactsService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`ListContacts(filters, page, pageSize, sort)` → `{ contacts, total }`",
+              "checked": null
+            },
+            {
+              "text": "`GetContact(id)` → `Contact`",
+              "checked": null
+            },
+            {
+              "text": "`CreateContact(input)` → `Contact`",
+              "checked": null
+            },
+            {
+              "text": "`UpdateContact(id, input)` → `Contact`",
+              "checked": null
+            },
+            {
+              "text": "`DeleteContact(id)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`BulkDeleteContacts(ids[])` → `{ deletedCount }`",
+              "checked": null
+            },
+            {
+              "text": "`ExportContacts(filters, columns)` → `{ jobId }`",
+              "checked": null
+            },
+            {
+              "text": "`ImportContacts(fileKey, mapping)` → `{ jobId }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "companiesService",
+      "level": 3,
+      "slug": "companiesservice",
+      "prose": "- **File:** `services/graphql/companiesService.ts`\n- **Era:** `3.x`\n- **Operations:**\n  - `ListCompanies(filters, page, pageSize, sort)` → `{ companies, total }`\n  - `GetCompany(id)` → `Company`\n  - `CreateCompany(input)` → `Company`\n  - `UpdateCompany(id, input)` → `Company`\n  - `DeleteCompany(id)` → `{ success }`\n  - `ExportCompanies(filters, columns)` → `{ jobId }`\n  - `ImportCompanies(fileKey, mapping)` → `{ jobId }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/companiesService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`ListCompanies(filters, page, pageSize, sort)` → `{ companies, total }`",
+              "checked": null
+            },
+            {
+              "text": "`GetCompany(id)` → `Company`",
+              "checked": null
+            },
+            {
+              "text": "`CreateCompany(input)` → `Company`",
+              "checked": null
+            },
+            {
+              "text": "`UpdateCompany(id, input)` → `Company`",
+              "checked": null
+            },
+            {
+              "text": "`DeleteCompany(id)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`ExportCompanies(filters, columns)` → `{ jobId }`",
+              "checked": null
+            },
+            {
+              "text": "`ImportCompanies(fileKey, mapping)` → `{ jobId }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailService",
+      "level": 3,
+      "slug": "emailservice",
+      "prose": "- **File:** `services/graphql/emailService.ts`\n- **Era:** `2.x`\n- **Operations:**\n  - `FindEmail(firstName, lastName, domain)` → `{ emails[], bestEmail, confidence }`\n  - `VerifyEmail(email)` → `{ status, confidence, checks{dns, smtp, spf, dmarc} }`\n  - `BulkVerifyEmail(jobId)` → `{ jobId }` (triggers bulk job)\n  - `GetEmailHistory(page, pageSize)` → `EmailHistoryItem[]`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/emailService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`FindEmail(firstName, lastName, domain)` → `{ emails[], bestEmail, confidence }`",
+              "checked": null
+            },
+            {
+              "text": "`VerifyEmail(email)` → `{ status, confidence, checks{dns, smtp, spf, dmarc} }`",
+              "checked": null
+            },
+            {
+              "text": "`BulkVerifyEmail(jobId)` → `{ jobId }` (triggers bulk job)",
+              "checked": null
+            },
+            {
+              "text": "`GetEmailHistory(page, pageSize)` → `EmailHistoryItem[]`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobsService",
+      "level": 3,
+      "slug": "jobsservice",
+      "prose": "- **File:** `services/graphql/jobsService.ts`\n- **Era:** `2.x`\n- **Operations:**\n  - `CreateJob(type, fileKey, mapping, options)` → `{ jobId }`\n  - `GetJob(jobId)` → `Job` (with status, progress, stats)\n  - `ListJobs(status?, page, pageSize)` → `{ jobs, total }`\n  - `RetryJob(jobId, scope)` → `{ success }`\n  - `CancelJob(jobId)` → `{ success }`\n  - `ScheduleJob(jobId, schedule)` → `{ success }`\n  - `GetJobLogs(jobId, page)` → `LogEntry[]`\n  - `GetJobData(jobId, page)` → `DataRow[]`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/jobsService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`CreateJob(type, fileKey, mapping, options)` → `{ jobId }`",
+              "checked": null
+            },
+            {
+              "text": "`GetJob(jobId)` → `Job` (with status, progress, stats)",
+              "checked": null
+            },
+            {
+              "text": "`ListJobs(status?, page, pageSize)` → `{ jobs, total }`",
+              "checked": null
+            },
+            {
+              "text": "`RetryJob(jobId, scope)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`CancelJob(jobId)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`ScheduleJob(jobId, schedule)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`GetJobLogs(jobId, page)` → `LogEntry[]`",
+              "checked": null
+            },
+            {
+              "text": "`GetJobData(jobId, page)` → `DataRow[]`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "usageService",
+      "level": 3,
+      "slug": "usageservice",
+      "prose": "- **File:** `services/graphql/usageService.ts`\n- **Era:** `1.x`\n- **Operations:**\n  - `Usage()` → `{ credits, used, limit, plan }`\n  - `GetUsageHistory(dateRange)` → `UsageHistoryItem[]`\n  - `GetFeatureUsage()` → `FeatureUsageItem[]`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/usageService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`Usage()` → `{ credits, used, limit, plan }`",
+              "checked": null
+            },
+            {
+              "text": "`GetUsageHistory(dateRange)` → `UsageHistoryItem[]`",
+              "checked": null
+            },
+            {
+              "text": "`GetFeatureUsage()` → `FeatureUsageItem[]`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "profileService",
+      "level": 3,
+      "slug": "profileservice",
+      "prose": "- **File:** `services/graphql/profileService.ts`\n- **Era:** `1.x`\n- **Operations:**\n  - `GetProfile()` → `Profile`\n  - `UpdateProfile(input)` → `Profile`\n  - `ChangePassword(current, new)` → `{ success }`\n  - `UpdateAvatar(imageData)` → `{ avatarUrl }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/profileService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`GetProfile()` → `Profile`",
+              "checked": null
+            },
+            {
+              "text": "`UpdateProfile(input)` → `Profile`",
+              "checked": null
+            },
+            {
+              "text": "`ChangePassword(current, new)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`UpdateAvatar(imageData)` → `{ avatarUrl }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "adminService",
+      "level": 3,
+      "slug": "adminservice",
+      "prose": "- **File:** `services/graphql/adminService.ts`\n- **Era:** `1.x` / `7.x`\n- **Operations:**\n  - `UserStats()` → `{ total, active, byRole, byPlan }`\n  - `ListUsers(page, pageSize, filters)` → `{ users, total }`\n  - `AdjustCredits(userId, amount, reason)` → `{ success }`\n  - `ListPaymentSubmissions(status)` → `PaymentSubmission[]`\n  - `ApprovePaymentSubmission(id)` → `{ success }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/adminService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x` / `7.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`UserStats()` → `{ total, active, byRole, byPlan }`",
+              "checked": null
+            },
+            {
+              "text": "`ListUsers(page, pageSize, filters)` → `{ users, total }`",
+              "checked": null
+            },
+            {
+              "text": "`AdjustCredits(userId, amount, reason)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`ListPaymentSubmissions(status)` → `PaymentSubmission[]`",
+              "checked": null
+            },
+            {
+              "text": "`ApprovePaymentSubmission(id)` → `{ success }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "activitiesService",
+      "level": 3,
+      "slug": "activitiesservice",
+      "prose": "- **File:** `services/graphql/activitiesService.ts`\n- **Era:** `1.x`\n- **Operations:**\n  - `GetActivities(filters, page, pageSize)` → `{ activities, total }`\n  - `GetActivityStats()` → `ActivityStats`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/activitiesService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`GetActivities(filters, page, pageSize)` → `{ activities, total }`",
+              "checked": null
+            },
+            {
+              "text": "`GetActivityStats()` → `ActivityStats`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "analyticsService",
+      "level": 3,
+      "slug": "analyticsservice",
+      "prose": "- **File:** `services/graphql/analyticsService.ts`\n- **Era:** `8.x`\n- **Operations:**\n  - `GetAnalytics(dateRange)` → `AnalyticsData`\n  - `GetUserAnalytics(userId, dateRange)` → `UserAnalytics`\n  - `GetAdminAnalytics(dateRange)` → `AdminAnalytics`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/analyticsService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `8.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`GetAnalytics(dateRange)` → `AnalyticsData`",
+              "checked": null
+            },
+            {
+              "text": "`GetUserAnalytics(userId, dateRange)` → `UserAnalytics`",
+              "checked": null
+            },
+            {
+              "text": "`GetAdminAnalytics(dateRange)` → `AdminAnalytics`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "savedSearchesService",
+      "level": 3,
+      "slug": "savedsearchesservice",
+      "prose": "- **File:** `services/graphql/savedSearchesService.ts`\n- **Era:** `3.x`\n- **Operations:**\n  - `ListSavedSearches()` → `SavedSearch[]`\n  - `CreateSavedSearch(name, filters)` → `SavedSearch`\n  - `DeleteSavedSearch(id)` → `{ success }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/savedSearchesService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `3.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`ListSavedSearches()` → `SavedSearch[]`",
+              "checked": null
+            },
+            {
+              "text": "`CreateSavedSearch(name, filters)` → `SavedSearch`",
+              "checked": null
+            },
+            {
+              "text": "`DeleteSavedSearch(id)` → `{ success }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "linkedinService",
+      "level": 3,
+      "slug": "linkedinservice",
+      "prose": "- **File:** `services/graphql/linkedinService.ts`\n- **Era:** `4.x`\n- **Operations:**\n  - `GetLinkedInProfile(url)` → `LinkedInProfile`\n  - `SyncSalesNavigator(profileData)` → `{ contact }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/linkedinService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `4.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`GetLinkedInProfile(url)` → `LinkedInProfile`",
+              "checked": null
+            },
+            {
+              "text": "`SyncSalesNavigator(profileData)` → `{ contact }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3Service",
+      "level": 3,
+      "slug": "s3service",
+      "prose": "- **File:** `services/graphql/s3Service.ts`\n- **Era:** `2.x`\n- **Operations:**\n  - `GetPresignedUploadUrl(filename, contentType)` → `{ uploadUrl, key }`\n  - `ListBucketObjects(prefix?, maxKeys?)` → `S3Object[]`\n  - `GetPresignedDownloadUrl(key)` → `{ downloadUrl }`\n  - `DeleteObject(key)` → `{ success }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/s3Service.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `2.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`GetPresignedUploadUrl(filename, contentType)` → `{ uploadUrl, key }`",
+              "checked": null
+            },
+            {
+              "text": "`ListBucketObjects(prefix?, maxKeys?)` → `S3Object[]`",
+              "checked": null
+            },
+            {
+              "text": "`GetPresignedDownloadUrl(key)` → `{ downloadUrl }`",
+              "checked": null
+            },
+            {
+              "text": "`DeleteObject(key)` → `{ success }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "twoFactorService",
+      "level": 3,
+      "slug": "twofactorservice",
+      "prose": "- **File:** `services/graphql/twoFactorService.ts`\n- **Era:** `1.x` / `7.x`\n- **Operations:**\n  - `EnableTwoFactor()` → `{ qrCode, secret }`\n  - `VerifyAndEnableTwoFactor(otp)` → `{ success, backupCodes[] }`\n  - `DisableTwoFactor(otp)` → `{ success }`\n  - `ValidateOTP(otp)` → `{ success }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/twoFactorService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x` / `7.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`EnableTwoFactor()` → `{ qrCode, secret }`",
+              "checked": null
+            },
+            {
+              "text": "`VerifyAndEnableTwoFactor(otp)` → `{ success, backupCodes[] }`",
+              "checked": null
+            },
+            {
+              "text": "`DisableTwoFactor(otp)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`ValidateOTP(otp)` → `{ success }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "usersService",
+      "level": 3,
+      "slug": "usersservice",
+      "prose": "- **File:** `services/graphql/usersService.ts`\n- **Era:** `1.x` / `7.x`\n- **Operations:**\n  - `ListUsers(page, pageSize)` → `User[]`\n  - `GetUser(id)` → `User`\n  - `InviteUser(email, role)` → `{ success }`\n  - `UpdateUserRole(userId, role)` → `User`\n  - `RemoveUser(userId)` → `{ success }`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/usersService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `1.x` / `7.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`ListUsers(page, pageSize)` → `User[]`",
+              "checked": null
+            },
+            {
+              "text": "`GetUser(id)` → `User`",
+              "checked": null
+            },
+            {
+              "text": "`InviteUser(email, role)` → `{ success }`",
+              "checked": null
+            },
+            {
+              "text": "`UpdateUserRole(userId, role)` → `User`",
+              "checked": null
+            },
+            {
+              "text": "`RemoveUser(userId)` → `{ success }`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "healthService",
+      "level": 3,
+      "slug": "healthservice",
+      "prose": "- **File:** `services/graphql/healthService.ts`\n- **Era:** `6.x`\n- **Operations:**\n  - `Health()` → `{ status, version }` (API connectivity check)\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `services/graphql/healthService.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Era:** `6.x`",
+              "checked": null
+            },
+            {
+              "text": "**Operations:**",
+              "checked": null
+            },
+            {
+              "text": "`Health()` → `{ status, version }` (API connectivity check)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Library Utilities (lib/)",
+      "level": 2,
+      "slug": "library-utilities-lib",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Core runtime",
+      "level": 3,
+      "slug": "core-runtime",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "graphqlClient",
+      "level": 4,
+      "slug": "graphqlclient",
+      "prose": "- **File:** `lib/graphqlClient.ts`\n- **Purpose:** HTTP GraphQL client wrapper. Injects auth token, handles network errors, and parses GraphQL errors.\n- **Key exports:**\n  - `gqlQuery<T>(query, variables?)` → `T`\n  - `gqlMutation<T>(mutation, variables?)` → `T`\n- **Error handling:** Throws typed `ApiError` (from `apiErrorTypes.ts`) on HTTP or GraphQL errors.\n- **Token injection:** Reads token from `tokenManager` per request.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/graphqlClient.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** HTTP GraphQL client wrapper. Injects auth token, handles network errors, and parses GraphQL errors.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:**",
+              "checked": null
+            },
+            {
+              "text": "`gqlQuery<T>(query, variables?)` → `T`",
+              "checked": null
+            },
+            {
+              "text": "`gqlMutation<T>(mutation, variables?)` → `T`",
+              "checked": null
+            },
+            {
+              "text": "**Error handling:** Throws typed `ApiError` (from `apiErrorTypes.ts`) on HTTP or GraphQL errors.",
+              "checked": null
+            },
+            {
+              "text": "**Token injection:** Reads token from `tokenManager` per request.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "config",
+      "level": 4,
+      "slug": "config",
+      "prose": "- **File:** `lib/config.ts`\n- **Purpose:** App environment configuration object.\n- **Key exports:** `API_URL`, `GRAPHQL_URL`, `APP_ENV`, `FEATURE_FLAGS`\n- **Source:** `NEXT_PUBLIC_*` env vars, validated at build time.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/config.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** App environment configuration object.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `API_URL`, `GRAPHQL_URL`, `APP_ENV`, `FEATURE_FLAGS`",
+              "checked": null
+            },
+            {
+              "text": "**Source:** `NEXT_PUBLIC_*` env vars, validated at build time.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "constants",
+      "level": 4,
+      "slug": "constants",
+      "prose": "- **File:** `lib/constants.ts`\n- **Purpose:** App-wide constant values used across multiple modules.\n- **Includes:** Credit deduction values, pagination defaults, API limits, status values, role names.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/constants.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** App-wide constant values used across multiple modules.",
+              "checked": null
+            },
+            {
+              "text": "**Includes:** Credit deduction values, pagination defaults, API limits, status values, role names.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "featureAccess",
+      "level": 4,
+      "slug": "featureaccess",
+      "prose": "- **File:** `lib/featureAccess.ts`\n- **Purpose:** Plan-based feature access check function.\n- **Key exports:**\n  - `hasFeature(plan, featureKey)` → `boolean`\n  - `FEATURE_KEYS` — enum of all gated feature keys\n- **Used by:** `RoleContext`, all gated UI components",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/featureAccess.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Plan-based feature access check function.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:**",
+              "checked": null
+            },
+            {
+              "text": "`hasFeature(plan, featureKey)` → `boolean`",
+              "checked": null
+            },
+            {
+              "text": "`FEATURE_KEYS` — enum of all gated feature keys",
+              "checked": null
+            },
+            {
+              "text": "**Used by:** `RoleContext`, all gated UI components",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "utils",
+      "level": 4,
+      "slug": "utils",
+      "prose": "- **File:** `lib/utils.ts`\n- **Purpose:** General utility functions shared across the codebase.\n- **Key exports:** `cn(...)` (classnames merge), `formatDate(date, format)`, `truncate(str, len)`, `debounce(fn, delay)`, `sleep(ms)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/utils.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** General utility functions shared across the codebase.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `cn(...)` (classnames merge), `formatDate(date, format)`, `truncate(str, len)`, `debounce(fn, delay)`, `sleep(ms)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "toast",
+      "level": 4,
+      "slug": "toast",
+      "prose": "- **File:** `lib/toast.ts`\n- **Purpose:** Imperative toast notification helper.\n- **Key exports:**\n  - `toast.success(message)`, `toast.error(message)`, `toast.info(message)`, `toast.warning(message)`\n  - `toast.dismiss(id)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/toast.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Imperative toast notification helper.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:**",
+              "checked": null
+            },
+            {
+              "text": "`toast.success(message)`, `toast.error(message)`, `toast.info(message)`, `toast.warning(message)`",
+              "checked": null
+            },
+            {
+              "text": "`toast.dismiss(id)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "clipboard",
+      "level": 4,
+      "slug": "clipboard",
+      "prose": "- **File:** `lib/clipboard.ts`\n- **Purpose:** Copy text to clipboard with success callback.\n- **Key exports:** `copyToClipboard(text, onSuccess?)` — uses `navigator.clipboard.writeText` with fallback.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/clipboard.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Copy text to clipboard with success callback.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `copyToClipboard(text, onSuccess?)` — uses `navigator.clipboard.writeText` with fallback.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "animationsConfig",
+      "level": 4,
+      "slug": "animationsconfig",
+      "prose": "- **File:** `lib/animationsConfig.ts`\n- **Purpose:** Shared animation presets (Framer Motion or CSS config).\n- **Exports:** `fadeIn`, `slideUp`, `scaleIn`, `staggerChildren` — used by layout and modal components.\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/animationsConfig.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Shared animation presets (Framer Motion or CSS config).",
+              "checked": null
+            },
+            {
+              "text": "**Exports:** `fadeIn`, `slideUp`, `scaleIn`, `staggerChildren` — used by layout and modal components.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Auth and session utilities",
+      "level": 3,
+      "slug": "auth-and-session-utilities",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "tokenManager",
+      "level": 4,
+      "slug": "tokenmanager",
+      "prose": "- **File:** `lib/tokenManager.ts`\n- **Purpose:** JWT token storage, retrieval, and expiry checking.\n- **Key exports:**\n  - `setToken(token)`, `getToken()`, `clearToken()`\n  - `isTokenExpired(token)` — reads JWT `exp` claim\n  - `getTokenPayload(token)` → decoded payload",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/tokenManager.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** JWT token storage, retrieval, and expiry checking.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:**",
+              "checked": null
+            },
+            {
+              "text": "`setToken(token)`, `getToken()`, `clearToken()`",
+              "checked": null
+            },
+            {
+              "text": "`isTokenExpired(token)` — reads JWT `exp` claim",
+              "checked": null
+            },
+            {
+              "text": "`getTokenPayload(token)` → decoded payload",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "sessionManager",
+      "level": 4,
+      "slug": "sessionmanager",
+      "prose": "- **File:** `lib/sessionManager.ts`\n- **Purpose:** Session lifecycle management (start, end, heartbeat).\n- **Key exports:** `startSession()`, `endSession()`, `extendSession()`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/sessionManager.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Session lifecycle management (start, end, heartbeat).",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `startSession()`, `endSession()`, `extendSession()`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "sessionUtils",
+      "level": 4,
+      "slug": "sessionutils",
+      "prose": "- **File:** `lib/profile/sessionUtils.ts`\n- **Purpose:** Session data formatting helpers.\n- **Key exports:** `formatDevice(session)`, `formatLastActive(session)`, `isCurrentSession(session)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/profile/sessionUtils.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Session data formatting helpers.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `formatDevice(session)`, `formatLastActive(session)`, `isCurrentSession(session)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "authValidation",
+      "level": 4,
+      "slug": "authvalidation",
+      "prose": "- **File:** `lib/authValidation.ts`\n- **Purpose:** Auth form field validation rules.\n- **Key exports:**\n  - `validateEmail(email)` → `string | null` (error message or null)\n  - `validatePassword(password)` → `string | null`\n  - `validatePasswordMatch(p1, p2)` → `string | null`\n  - `validateName(name)` → `string | null`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/authValidation.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Auth form field validation rules.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:**",
+              "checked": null
+            },
+            {
+              "text": "`validateEmail(email)` → `string | null` (error message or null)",
+              "checked": null
+            },
+            {
+              "text": "`validatePassword(password)` → `string | null`",
+              "checked": null
+            },
+            {
+              "text": "`validatePasswordMatch(p1, p2)` → `string | null`",
+              "checked": null
+            },
+            {
+              "text": "`validateName(name)` → `string | null`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "authErrorHandler",
+      "level": 4,
+      "slug": "autherrorhandler",
+      "prose": "- **File:** `lib/authErrorHandler.ts`\n- **Purpose:** Maps authentication error codes to user-facing messages.\n- **Key exports:** `getAuthErrorMessage(error)` → localized string",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/authErrorHandler.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Maps authentication error codes to user-facing messages.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `getAuthErrorMessage(error)` → localized string",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "apiErrorHandler",
+      "level": 4,
+      "slug": "apierrorhandler",
+      "prose": "- **File:** `lib/apiErrorHandler.ts`\n- **Purpose:** Maps GraphQL/HTTP errors to toast messages and decides retry behavior.\n- **Key exports:** `handleApiError(error)` — calls `toast.error(message)` with appropriate message.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/apiErrorHandler.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Maps GraphQL/HTTP errors to toast messages and decides retry behavior.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `handleApiError(error)` — calls `toast.error(message)` with appropriate message.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "apiErrorTypes",
+      "level": 4,
+      "slug": "apierrortypes",
+      "prose": "- **File:** `lib/apiErrorTypes.ts`\n- **Purpose:** TypeScript type definitions for API errors.\n- **Exports:** `ApiError`, `GraphQLError`, `NetworkError`, `AuthError`, `ValidationError`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/apiErrorTypes.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** TypeScript type definitions for API errors.",
+              "checked": null
+            },
+            {
+              "text": "**Exports:** `ApiError`, `GraphQLError`, `NetworkError`, `AuthError`, `ValidationError`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Domain utilities",
+      "level": 3,
+      "slug": "domain-utilities",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailUtils",
+      "level": 4,
+      "slug": "emailutils",
+      "prose": "- **File:** `lib/email/emailUtils.ts`\n- **Purpose:** Email display and manipulation helpers.\n- **Key exports:**\n  - `formatEmail(email)` — lowercase, trim\n  - `extractDomain(email)` → domain string\n  - `isDisposable(email)` — basic disposable check\n  - `generatePatterns(firstName, lastName, domain)` → candidate emails",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/email/emailUtils.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Email display and manipulation helpers.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:**",
+              "checked": null
+            },
+            {
+              "text": "`formatEmail(email)` — lowercase, trim",
+              "checked": null
+            },
+            {
+              "text": "`extractDomain(email)` → domain string",
+              "checked": null
+            },
+            {
+              "text": "`isDisposable(email)` — basic disposable check",
+              "checked": null
+            },
+            {
+              "text": "`generatePatterns(firstName, lastName, domain)` → candidate emails",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "emailValidation",
+      "level": 4,
+      "slug": "emailvalidation",
+      "prose": "- **File:** `lib/email/emailValidation.ts`\n- **Purpose:** Email field validation for forms.\n- **Key exports:**\n  - `validateEmailInput(email)` → `string | null`\n  - `validateDomain(domain)` → `string | null`\n  - `validateEmailFinderInputs(firstName, lastName, domain)` → `Record<string, string | null>`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/email/emailValidation.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Email field validation for forms.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:**",
+              "checked": null
+            },
+            {
+              "text": "`validateEmailInput(email)` → `string | null`",
+              "checked": null
+            },
+            {
+              "text": "`validateDomain(domain)` → `string | null`",
+              "checked": null
+            },
+            {
+              "text": "`validateEmailFinderInputs(firstName, lastName, domain)` → `Record<string, string | null>`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobsMapper",
+      "level": 4,
+      "slug": "jobsmapper",
+      "prose": "- **File:** `lib/jobs/jobsMapper.ts`\n- **Purpose:** Maps raw API job objects to typed UI models.\n- **Key exports:** `mapJob(apiJob)` → `UIJob`, `mapJobList(apiJobs)` → `UIJob[]`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/jobs/jobsMapper.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Maps raw API job objects to typed UI models.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `mapJob(apiJob)` → `UIJob`, `mapJobList(apiJobs)` → `UIJob[]`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobsUtils",
+      "level": 4,
+      "slug": "jobsutils",
+      "prose": "- **File:** `lib/jobs/jobsUtils.ts`\n- **Purpose:** Job display helpers (status label, status color, action availability).\n- **Key exports:** `getStatusLabel(status)`, `getStatusColor(status)`, `canRetry(job)`, `canCancel(job)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/jobs/jobsUtils.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Job display helpers (status label, status color, action availability).",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `getStatusLabel(status)`, `getStatusColor(status)`, `canRetry(job)`, `canCancel(job)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobsValidation",
+      "level": 4,
+      "slug": "jobsvalidation",
+      "prose": "- **File:** `lib/jobs/jobsValidation.ts`\n- **Purpose:** Job creation form validation.\n- **Key exports:** `validateJobInput(input)` → `ValidationErrors`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/jobs/jobsValidation.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Job creation form validation.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `validateJobInput(input)` → `ValidationErrors`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobsConstants",
+      "level": 4,
+      "slug": "jobsconstants",
+      "prose": "- **File:** `lib/jobs/jobsConstants.ts`\n- **Purpose:** Job status values, types, and limit constants.\n- **Exports:** `JOB_STATUS` enum, `JOB_TYPE` enum, `MAX_CONCURRENT_FINDER_STREAMS = 3`, `MAX_CONCURRENT_VERIFIER_STREAMS = 5`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/jobs/jobsConstants.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Job status values, types, and limit constants.",
+              "checked": null
+            },
+            {
+              "text": "**Exports:** `JOB_STATUS` enum, `JOB_TYPE` enum, `MAX_CONCURRENT_FINDER_STREAMS = 3`, `MAX_CONCURRENT_VERIFIER_STREAMS = 5`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contactsUtils",
+      "level": 4,
+      "slug": "contactsutils",
+      "prose": "- **File:** `lib/contacts/contactsUtils.ts`\n- **Purpose:** Contact display and manipulation helpers.\n- **Key exports:** `formatContactName(contact)`, `getContactInitials(contact)`, `contactToCSVRow(contact)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/contacts/contactsUtils.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Contact display and manipulation helpers.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `formatContactName(contact)`, `getContactInitials(contact)`, `contactToCSVRow(contact)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contactsConstants",
+      "level": 4,
+      "slug": "contactsconstants",
+      "prose": "- **File:** `lib/contacts/contactsConstants.ts`\n- **Purpose:** Contact field names, filter option values.\n- **Exports:** `CONTACT_FIELDS`, `SENIORITY_OPTIONS`, `INDUSTRY_OPTIONS`, `COMPANY_SIZE_OPTIONS`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/contacts/contactsConstants.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Contact field names, filter option values.",
+              "checked": null
+            },
+            {
+              "text": "**Exports:** `CONTACT_FIELDS`, `SENIORITY_OPTIONS`, `INDUSTRY_OPTIONS`, `COMPANY_SIZE_OPTIONS`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "usageFormatters",
+      "level": 4,
+      "slug": "usageformatters",
+      "prose": "- **File:** `lib/usageFormatters.ts`\n- **Purpose:** Credit and usage display formatting.\n- **Key exports:** `formatCredits(n)` → e.g. \"1,234 credits\", `formatPercent(used, total)` → \"73%\", `creditBalanceColor(pct)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/usageFormatters.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Credit and usage display formatting.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `formatCredits(n)` → e.g. \"1,234 credits\", `formatPercent(used, total)` → \"73%\", `creditBalanceColor(pct)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "dashboardMapper",
+      "level": 4,
+      "slug": "dashboardmapper",
+      "prose": "- **File:** `lib/dashboardMapper.ts`\n- **Purpose:** Maps dashboard API responses to chart/display models.\n- **Key exports:** `mapStatsToCards(stats)`, `mapToChartData(activities)`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/dashboardMapper.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Maps dashboard API responses to chart/display models.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `mapStatsToCards(stats)`, `mapToChartData(activities)`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "dashboardConstants",
+      "level": 4,
+      "slug": "dashboardconstants",
+      "prose": "- **File:** `lib/dashboardConstants.ts`\n- **Purpose:** Dashboard stat labels, chart configuration defaults.\n- **Exports:** `STATS_CONFIG`, `CHART_DEFAULTS`, `REFRESH_INTERVAL_MS = 60000`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/dashboardConstants.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Dashboard stat labels, chart configuration defaults.",
+              "checked": null
+            },
+            {
+              "text": "**Exports:** `STATS_CONFIG`, `CHART_DEFAULTS`, `REFRESH_INTERVAL_MS = 60000`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "activitiesConstants",
+      "level": 4,
+      "slug": "activitiesconstants",
+      "prose": "- **File:** `lib/activitiesConstants.ts`\n- **Purpose:** Activity type labels and icon mapping.\n- **Exports:** `ACTIVITY_LABELS`, `ACTIVITY_ICONS`, `ACTIVITY_COLORS` keyed by `ActivityType`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/activitiesConstants.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Activity type labels and icon mapping.",
+              "checked": null
+            },
+            {
+              "text": "**Exports:** `ACTIVITY_LABELS`, `ACTIVITY_ICONS`, `ACTIVITY_COLORS` keyed by `ActivityType`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3TreeUtils",
+      "level": 4,
+      "slug": "s3treeutils",
+      "prose": "- **File:** `lib/s3/s3TreeUtils.ts`\n- **Purpose:** Builds a tree structure from S3 object key prefixes for file browser display.\n- **Key exports:** `buildTree(keys[])` → nested tree node object\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/s3/s3TreeUtils.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Builds a tree structure from S3 object key prefixes for file browser display.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `buildTree(keys[])` → nested tree node object",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Page API layer",
+      "level": 3,
+      "slug": "page-api-layer",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "pageApi",
+      "level": 4,
+      "slug": "pageapi",
+      "prose": "- **File:** `lib/api/pageApi.ts`\n- **Purpose:** Base helper for parallel-batched GraphQL fetches. Runs multiple queries concurrently and returns a combined result.\n- **Key exports:** `batchFetch<T>(queries[])` → `T` (combined result object)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/api/pageApi.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Base helper for parallel-batched GraphQL fetches. Runs multiple queries concurrently and returns a combined result.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `batchFetch<T>(queries[])` → `T` (combined result object)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "queryBuilder",
+      "level": 4,
+      "slug": "querybuilder",
+      "prose": "- **File:** `lib/api/queryBuilder.ts`\n- **Purpose:** Dynamically composes GraphQL query strings from field configurations.\n- **Key exports:** `buildQuery(fields, operation)` → GraphQL query string",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/api/queryBuilder.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Dynamically composes GraphQL query strings from field configurations.",
+              "checked": null
+            },
+            {
+              "text": "**Key exports:** `buildQuery(fields, operation)` → GraphQL query string",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "dashboardPageApi",
+      "level": 4,
+      "slug": "dashboardpageapi",
+      "prose": "- **File:** `lib/api/pages/dashboardPageApi.ts`\n- **Purpose:** Batched dashboard page fetch (stats + activities + exports in parallel).\n- **Used by:** `useDashboardPage`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/api/pages/dashboardPageApi.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Batched dashboard page fetch (stats + activities + exports in parallel).",
+              "checked": null
+            },
+            {
+              "text": "**Used by:** `useDashboardPage`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contactsPageApi",
+      "level": 4,
+      "slug": "contactspageapi",
+      "prose": "- **File:** `lib/api/pages/contactsPageApi.ts`\n- **Purpose:** Batched contacts page fetch (contact list + filter metadata in parallel).\n- **Used by:** `useContactsPage`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/api/pages/contactsPageApi.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Batched contacts page fetch (contact list + filter metadata in parallel).",
+              "checked": null
+            },
+            {
+              "text": "**Used by:** `useContactsPage`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "companiesPageApi",
+      "level": 4,
+      "slug": "companiespageapi",
+      "prose": "- **File:** `lib/api/pages/companiesPageApi.ts`\n- **Purpose:** Batched companies page fetch (company list + filter metadata in parallel).\n- **Used by:** `useCompaniesPage`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `lib/api/pages/companiesPageApi.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Batched companies page fetch (company list + filter metadata in parallel).",
+              "checked": null
+            },
+            {
+              "text": "**Used by:** `useCompaniesPage`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "UI copy",
+      "level": 2,
+      "slug": "ui-copy",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "copy",
+      "level": 4,
+      "slug": "copy",
+      "prose": "- **File:** `text/copy.ts`\n- **Purpose:** Centralized UI text strings (labels, messages, placeholder text, empty states).\n- **Usage:** Import named strings for consistent, maintainable copy.\n- **Examples:** `COPY.EMPTY_CONTACTS`, `COPY.LOW_CREDIT_MESSAGE`, `COPY.JOB_PROCESSING_LABEL`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**File:** `text/copy.ts`",
+              "checked": null
+            },
+            {
+              "text": "**Purpose:** Centralized UI text strings (labels, messages, placeholder text, empty states).",
+              "checked": null
+            },
+            {
+              "text": "**Usage:** Import named strings for consistent, maintainable copy.",
+              "checked": null
+            },
+            {
+              "text": "**Examples:** `COPY.EMPTY_CONTACTS`, `COPY.LOW_CREDIT_MESSAGE`, `COPY.JOB_PROCESSING_LABEL`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Quick reference — hook × service × context",
+      "level": 2,
+      "slug": "quick-reference-hook-service-context",
+      "prose": "| Hook | Uses service | Uses context |\n| --- | --- | --- |\n| `useLoginForm` | `authService` | — |\n| `useRegisterForm` | `authService` | — |\n| `useSessionGuard` | — | `AuthContext` |\n| `useDashboardPage` | `adminService`, `activitiesService`, `jobsService` | `RoleContext` |\n| `useEmailFinderSingle` | `emailService` | `RoleContext` (credits) |\n| `useEmailVerifierSingle` | `emailService` | — |\n| `useContactsPage` | `contactsService` | — |\n| `useContactsFilters` | — | — (state only) |\n| `useSavedSearches` | `savedSearchesService` | — |\n| `useContactExport` | `contactsService` | — |\n| `useCompaniesPage` | `companiesService` | — |\n| `useNewExport` | `s3Service`, `jobsService` | — |\n| `useCsvUpload` | `s3Service` | — |\n| `useJobs` | `jobsService` | — |\n| `useBilling` | `billingService` | — |\n| `useUsage` | `usageService` | `RoleContext` |\n| `useAdmin` | `adminService` | `RoleContext` |\n| `useAnalytics` | `analyticsService` | — |\n| `useAPIKeys` | (profile API) | `AuthContext` |\n| `useLinkedIn` | `linkedinService` | — |\n| `useTeam` | `usersService` | `RoleContext` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Hook",
+            "Uses service",
+            "Uses context"
+          ],
+          "rows": [
+            [
+              "`useLoginForm`",
+              "`authService`",
+              "—"
+            ],
+            [
+              "`useRegisterForm`",
+              "`authService`",
+              "—"
+            ],
+            [
+              "`useSessionGuard`",
+              "—",
+              "`AuthContext`"
+            ],
+            [
+              "`useDashboardPage`",
+              "`adminService`, `activitiesService`, `jobsService`",
+              "`RoleContext`"
+            ],
+            [
+              "`useEmailFinderSingle`",
+              "`emailService`",
+              "`RoleContext` (credits)"
+            ],
+            [
+              "`useEmailVerifierSingle`",
+              "`emailService`",
+              "—"
+            ],
+            [
+              "`useContactsPage`",
+              "`contactsService`",
+              "—"
+            ],
+            [
+              "`useContactsFilters`",
+              "—",
+              "— (state only)"
+            ],
+            [
+              "`useSavedSearches`",
+              "`savedSearchesService`",
+              "—"
+            ],
+            [
+              "`useContactExport`",
+              "`contactsService`",
+              "—"
+            ],
+            [
+              "`useCompaniesPage`",
+              "`companiesService`",
+              "—"
+            ],
+            [
+              "`useNewExport`",
+              "`s3Service`, `jobsService`",
+              "—"
+            ],
+            [
+              "`useCsvUpload`",
+              "`s3Service`",
+              "—"
+            ],
+            [
+              "`useJobs`",
+              "`jobsService`",
+              "—"
+            ],
+            [
+              "`useBilling`",
+              "`billingService`",
+              "—"
+            ],
+            [
+              "`useUsage`",
+              "`usageService`",
+              "`RoleContext`"
+            ],
+            [
+              "`useAdmin`",
+              "`adminService`",
+              "`RoleContext`"
+            ],
+            [
+              "`useAnalytics`",
+              "`analyticsService`",
+              "—"
+            ],
+            [
+              "`useAPIKeys`",
+              "(profile API)",
+              "`AuthContext`"
+            ],
+            [
+              "`useLinkedIn`",
+              "`linkedinService`",
+              "—"
+            ],
+            [
+              "`useTeam`",
+              "`usersService`",
+              "`RoleContext`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Related docs",
+      "level": 2,
+      "slug": "related-docs",
+      "prose": "- `docs/frontend.md` — frontend map and overview\n- `docs/frontend/components.md` — per-era component catalog\n- `docs/frontend/design-system.md` — design tokens and UI patterns\n- `docs/flowchart.md` — user journey and data flow diagrams",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/frontend.md` — frontend map and overview",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/components.md` — per-era component catalog",
+              "checked": null
+            },
+            {
+              "text": "`docs/frontend/design-system.md` — design tokens and UI patterns",
+              "checked": null
+            },
+            {
+              "text": "`docs/flowchart.md` — user journey and data flow diagrams",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Hook/service/context metadata normalization",
+      "level": 2,
+      "slug": "hookservicecontext-metadata-normalization",
+      "prose": "Each hook, service, and context entry should include:\n\n- `era`\n- `introduced_in`\n- `graphql_bindings`\n- `surface_bindings`",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`era`",
+              "checked": null
+            },
+            {
+              "text": "`introduced_in`",
+              "checked": null
+            },
+            {
+              "text": "`graphql_bindings`",
+              "checked": null
+            },
+            {
+              "text": "`surface_bindings`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Marketing hooks (contact360.io/root/src/hooks)",
+      "level": 2,
+      "slug": "marketing-hooks-contact360iorootsrchooks",
+      "prose": "| Hook | Path | Purpose | Era |\n| --- | --- | --- | --- |\n| `useMarketingPage` | `contact360.io/root/src/hooks/marketing/useMarketingPage.ts` | fetch and bind marketing page content | `0.x` |\n| `useMarketingPages` | `contact360.io/root/src/hooks/marketing/useMarketingPages.ts` | page collection retrieval and filtering | `0.x` |\n| `useDocumentation` | `contact360.io/root/src/hooks/useDocumentation.ts` | docs content retrieval for marketing/docs views | `8.x` |\n| `useLandingContent` | `contact360.io/root/src/hooks/useLandingContent.ts` | landing section data wiring | `0.x` |\n| `usePricing` | `contact360.io/root/src/hooks/usePricing.ts` | pricing plan and package data binding | `1.x` |\n| `useUsageTracking` | `contact360.io/root/src/hooks/useUsageTracking.ts` | usage analytics events and counters | `1.x` |\n| `useSessionGuard` | `contact360.io/root/src/hooks/useSessionGuard.ts` | auth session checks for guarded paths | `1.x` |\n| `useForceLightTheme` | `contact360.io/root/src/hooks/common/useForceLightTheme.ts` | force light theme in marketing routes | `0.x` |\n| `useAuthForm` | `contact360.io/root/src/hooks/auth/useAuthForm.ts` | shared auth form state/validation | `1.x` |\n| `useDebounce` | `contact360.io/root/src/hooks/useDebounce.ts` | debounced search/input interactions | `0.x` |\n| `useReveal` | `contact360.io/root/src/hooks/useReveal.ts` | reveal-on-scroll/visibility transitions | `0.x` |\n| `useToast` | `contact360.io/root/src/hooks/useToast.ts` | toast state and notification behavior | `1.x` |",
+      "tables": [
+        {
+          "headers": [
+            "Hook",
+            "Path",
+            "Purpose",
+            "Era"
+          ],
+          "rows": [
+            [
+              "`useMarketingPage`",
+              "`contact360.io/root/src/hooks/marketing/useMarketingPage.ts`",
+              "fetch and bind marketing page content",
+              "`0.x`"
+            ],
+            [
+              "`useMarketingPages`",
+              "`contact360.io/root/src/hooks/marketing/useMarketingPages.ts`",
+              "page collection retrieval and filtering",
+              "`0.x`"
+            ],
+            [
+              "`useDocumentation`",
+              "`contact360.io/root/src/hooks/useDocumentation.ts`",
+              "docs content retrieval for marketing/docs views",
+              "`8.x`"
+            ],
+            [
+              "`useLandingContent`",
+              "`contact360.io/root/src/hooks/useLandingContent.ts`",
+              "landing section data wiring",
+              "`0.x`"
+            ],
+            [
+              "`usePricing`",
+              "`contact360.io/root/src/hooks/usePricing.ts`",
+              "pricing plan and package data binding",
+              "`1.x`"
+            ],
+            [
+              "`useUsageTracking`",
+              "`contact360.io/root/src/hooks/useUsageTracking.ts`",
+              "usage analytics events and counters",
+              "`1.x`"
+            ],
+            [
+              "`useSessionGuard`",
+              "`contact360.io/root/src/hooks/useSessionGuard.ts`",
+              "auth session checks for guarded paths",
+              "`1.x`"
+            ],
+            [
+              "`useForceLightTheme`",
+              "`contact360.io/root/src/hooks/common/useForceLightTheme.ts`",
+              "force light theme in marketing routes",
+              "`0.x`"
+            ],
+            [
+              "`useAuthForm`",
+              "`contact360.io/root/src/hooks/auth/useAuthForm.ts`",
+              "shared auth form state/validation",
+              "`1.x`"
+            ],
+            [
+              "`useDebounce`",
+              "`contact360.io/root/src/hooks/useDebounce.ts`",
+              "debounced search/input interactions",
+              "`0.x`"
+            ],
+            [
+              "`useReveal`",
+              "`contact360.io/root/src/hooks/useReveal.ts`",
+              "reveal-on-scroll/visibility transitions",
+              "`0.x`"
+            ],
+            [
+              "`useToast`",
+              "`contact360.io/root/src/hooks/useToast.ts`",
+              "toast state and notification behavior",
+              "`1.x`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Marketing GraphQL services (contact360.io/root/src/services/graphql)",
+      "level": 2,
+      "slug": "marketing-graphql-services-contact360iorootsrcservicesgraphql",
+      "prose": "| Service | Operations focus | Era |\n| --- | --- | --- |\n| `marketingService` | page/section marketing content | `0.x` |\n| `pagesService` | page metadata and content blocks | `0.x` |\n| `documentationService` | documentation fetch and categorization | `8.x` |\n| `authService` | login/register/session operations | `1.x` |\n| `billingService` | pricing/plan and billing state reads | `1.x` |\n| `usageService` | usage and quota reads | `1.x` |\n| `notificationsService` | notification retrieval/preferences | `1.x` |\n| `exportsService` | export job metadata reads | `2.x` |\n| `healthService` | service health/status checks | `6.x` |\n| (testing) `usageService.test` | usage contract behavior tests | `1.x` |",
+      "tables": [
+        {
+          "headers": [
+            "Service",
+            "Operations focus",
+            "Era"
+          ],
+          "rows": [
+            [
+              "`marketingService`",
+              "page/section marketing content",
+              "`0.x`"
+            ],
+            [
+              "`pagesService`",
+              "page metadata and content blocks",
+              "`0.x`"
+            ],
+            [
+              "`documentationService`",
+              "documentation fetch and categorization",
+              "`8.x`"
+            ],
+            [
+              "`authService`",
+              "login/register/session operations",
+              "`1.x`"
+            ],
+            [
+              "`billingService`",
+              "pricing/plan and billing state reads",
+              "`1.x`"
+            ],
+            [
+              "`usageService`",
+              "usage and quota reads",
+              "`1.x`"
+            ],
+            [
+              "`notificationsService`",
+              "notification retrieval/preferences",
+              "`1.x`"
+            ],
+            [
+              "`exportsService`",
+              "export job metadata reads",
+              "`2.x`"
+            ],
+            [
+              "`healthService`",
+              "service health/status checks",
+              "`6.x`"
+            ],
+            [
+              "(testing) `usageService.test`",
+              "usage contract behavior tests",
+              "`1.x`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Admin surface equivalents (contact360.io/admin)",
+      "level": 2,
+      "slug": "admin-surface-equivalents-contact360ioadmin",
+      "prose": "The admin surface is Django-template driven, so React hooks are replaced by view/controller and client patterns:\n\n| Concern | Admin implementation equivalent |\n| --- | --- |\n| state and access gating | Django auth/session + decorators (`require_super_admin`, `require_admin_or_super_admin`) |\n| service access | Python GraphQL clients (`graphql_client.py`, `appointment360_client.py`, `admin_client.py`) |\n| UI interaction controllers | static JS component controllers under `static/js/components/` |\n| context-like global behavior | template base shell + navigation constants (`SIDEBAR_MENU`) + server-rendered view context |",
+      "tables": [
+        {
+          "headers": [
+            "Concern",
+            "Admin implementation equivalent"
+          ],
+          "rows": [
+            [
+              "state and access gating",
+              "Django auth/session + decorators (`require_super_admin`, `require_admin_or_super_admin`)"
+            ],
+            [
+              "service access",
+              "Python GraphQL clients (`graphql_client.py`, `appointment360_client.py`, `admin_client.py`)"
+            ],
+            [
+              "UI interaction controllers",
+              "static JS component controllers under `static/js/components/`"
+            ],
+            [
+              "context-like global behavior",
+              "template base shell + navigation constants (`SIDEBAR_MENU`) + server-rendered view context"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-surface flow mapping pattern",
+      "level": 2,
+      "slug": "cross-surface-flow-mapping-pattern",
+      "prose": "- `root`: hook -> GraphQL service -> gateway read/auth CTA flow\n- `app`: hook -> GraphQL service -> page API aggregation -> dashboard UI states\n- `admin`: Django view -> Python GraphQL client/service -> template/static JS components\n\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`root`: hook -> GraphQL service -> gateway read/auth CTA flow",
+              "checked": null
+            },
+            {
+              "text": "`app`: hook -> GraphQL service -> page API aggregation -> dashboard UI states",
+              "checked": null
+            },
+            {
+              "text": "`admin`: Django view -> Python GraphQL client/service -> template/static JS components",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Extension surface — extension/contact360",
+      "level": 2,
+      "slug": "extension-surface-extensioncontact360",
+      "prose": "> **Surface type:** Logic/transport utilities (JavaScript, not React). Imported by extension popup/content scripts.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Auth utilities (auth/graphqlSession.js)",
+      "level": 3,
+      "slug": "auth-utilities-authgraphqlsessionjs",
+      "prose": "| Export | Type | Purpose | Era |\n| --- | --- | --- | --- |\n| `getValidAccessToken()` | async fn | Proactive token refresh if within 5-min expiry buffer | 1.x–4.x |\n| `refreshAccessToken(refreshToken)` | async fn | Calls Appointment360 `auth.refreshToken` mutation; stores result | 1.x |\n| `storeTokens({ accessToken, refreshToken })` | async fn | Writes to `chrome.storage.local` | 1.x |\n| `getStoredTokens()` | async fn | Reads both tokens from `chrome.storage.local` | 1.x |\n| `isTokenExpired(token, bufferSeconds?)` | fn | JWT `exp` check with configurable buffer (default 300 s) | 1.x |\n| `decodeJWT(token)` | fn | Pure base64url JWT payload decode; no library | 0.x |\n\n**Context equivalent:** None — functions are standalone utilities called imperatively by content scripts. Mirrors the role of `AuthContext` in the dashboard but without React.",
+      "tables": [
+        {
+          "headers": [
+            "Export",
+            "Type",
+            "Purpose",
+            "Era"
+          ],
+          "rows": [
+            [
+              "`getValidAccessToken()`",
+              "async fn",
+              "Proactive token refresh if within 5-min expiry buffer",
+              "1.x–4.x"
+            ],
+            [
+              "`refreshAccessToken(refreshToken)`",
+              "async fn",
+              "Calls Appointment360 `auth.refreshToken` mutation; stores result",
+              "1.x"
+            ],
+            [
+              "`storeTokens({ accessToken, refreshToken })`",
+              "async fn",
+              "Writes to `chrome.storage.local`",
+              "1.x"
+            ],
+            [
+              "`getStoredTokens()`",
+              "async fn",
+              "Reads both tokens from `chrome.storage.local`",
+              "1.x"
+            ],
+            [
+              "`isTokenExpired(token, bufferSeconds?)`",
+              "fn",
+              "JWT `exp` check with configurable buffer (default 300 s)",
+              "1.x"
+            ],
+            [
+              "`decodeJWT(token)`",
+              "fn",
+              "Pure base64url JWT payload decode; no library",
+              "0.x"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "REST client (utils/lambdaClient.js)",
+      "level": 3,
+      "slug": "rest-client-utilslambdaclientjs",
+      "prose": "| Export | Type | Purpose | Era |\n| --- | --- | --- | --- |\n| `saveProfiles(profiles[])` | async fn | Batch-save to `POST /v1/save-profiles`; returns `{ saved, errors }` | 3.x |\n| `BATCH_SIZE` | const (10) | Max profiles per HTTP request | 3.x |\n| `MAX_RETRIES` | const (3) | Retry limit with exponential back-off + jitter | 6.x |\n| `buildRequestOptions(token)` | fn | Builds fetch options: auth header, content-type, adaptive timeout | 4.x |\n| `pruneProfile(profile)` | fn | Removes `null`/`undefined` keys before serialization | 3.x |\n\n**Hook equivalent:** None — imperative utility. Mirrors the batching/retry pattern found in `useEmailFinderBulk` on the dashboard.",
+      "tables": [
+        {
+          "headers": [
+            "Export",
+            "Type",
+            "Purpose",
+            "Era"
+          ],
+          "rows": [
+            [
+              "`saveProfiles(profiles[])`",
+              "async fn",
+              "Batch-save to `POST /v1/save-profiles`; returns `{ saved, errors }`",
+              "3.x"
+            ],
+            [
+              "`BATCH_SIZE`",
+              "const (10)",
+              "Max profiles per HTTP request",
+              "3.x"
+            ],
+            [
+              "`MAX_RETRIES`",
+              "const (3)",
+              "Retry limit with exponential back-off + jitter",
+              "6.x"
+            ],
+            [
+              "`buildRequestOptions(token)`",
+              "fn",
+              "Builds fetch options: auth header, content-type, adaptive timeout",
+              "4.x"
+            ],
+            [
+              "`pruneProfile(profile)`",
+              "fn",
+              "Removes `null`/`undefined` keys before serialization",
+              "3.x"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data utilities (utils/profileMerger.js)",
+      "level": 3,
+      "slug": "data-utilities-utilsprofilemergerjs",
+      "prose": "| Export | Type | Purpose | Era |\n| --- | --- | --- | --- |\n| `deduplicateProfiles(profiles[])` | fn | Groups by `profile_url`; merges each group | 3.x |\n| `mergeProfiles(a, b)` | fn | Field-level merge preferring completeness | 3.x |\n| `scoreProfile(profile)` | fn | Returns 0–1 completeness float | 3.x |",
+      "tables": [
+        {
+          "headers": [
+            "Export",
+            "Type",
+            "Purpose",
+            "Era"
+          ],
+          "rows": [
+            [
+              "`deduplicateProfiles(profiles[])`",
+              "fn",
+              "Groups by `profile_url`; merges each group",
+              "3.x"
+            ],
+            [
+              "`mergeProfiles(a, b)`",
+              "fn",
+              "Field-level merge preferring completeness",
+              "3.x"
+            ],
+            [
+              "`scoreProfile(profile)`",
+              "fn",
+              "Returns 0–1 completeness float",
+              "3.x"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Cross-surface mapping",
+      "level": 3,
+      "slug": "cross-surface-mapping",
+      "prose": "| Pattern | `contact360.io/app` equivalent | `extension/contact360` implementation |\n| --- | --- | --- |\n| Auth/session | `AuthContext` + `useAuth` hook | `getValidAccessToken()` imperative call |\n| API calls | `graphqlService.ts` via `useGraphQLClient` | `lambdaClient.saveProfiles()` REST |\n| Data dedup | Server-side Connectra dedup | `deduplicateProfiles()` client-side |\n| Token storage | Browser cookie / memory | `chrome.storage.local` |\n---",
+      "tables": [
+        {
+          "headers": [
+            "Pattern",
+            "`contact360.io/app` equivalent",
+            "`extension/contact360` implementation"
+          ],
+          "rows": [
+            [
+              "Auth/session",
+              "`AuthContext` + `useAuth` hook",
+              "`getValidAccessToken()` imperative call"
+            ],
+            [
+              "API calls",
+              "`graphqlService.ts` via `useGraphQLClient`",
+              "`lambdaClient.saveProfiles()` REST"
+            ],
+            [
+              "Data dedup",
+              "Server-side Connectra dedup",
+              "`deduplicateProfiles()` client-side"
+            ],
+            [
+              "Token storage",
+              "Browser cookie / memory",
+              "`chrome.storage.local`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email app docs pack — contact360.io/email",
+      "level": 2,
+      "slug": "email-app-docs-pack-contact360ioemail",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Component highlights",
+      "level": 3,
+      "slug": "component-highlights",
+      "prose": "- `components/email-list.tsx` — mailbox fetch orchestration, loading/error/empty state.\n- `components/data-table.tsx` — tabs, checkbox selection, pagination, row action dropdown.\n- `components/app-sidebar.tsx` — folder navigation and user bootstrap.\n- `components/nav-user.tsx` — account menu + logout.\n- `app/account/[userId]/page.tsx` — profile and IMAP account management.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`components/email-list.tsx` — mailbox fetch orchestration, loading/error/empty state.",
+              "checked": null
+            },
+            {
+              "text": "`components/data-table.tsx` — tabs, checkbox selection, pagination, row action dropdown.",
+              "checked": null
+            },
+            {
+              "text": "`components/app-sidebar.tsx` — folder navigation and user bootstrap.",
+              "checked": null
+            },
+            {
+              "text": "`components/nav-user.tsx` — account menu + logout.",
+              "checked": null
+            },
+            {
+              "text": "`app/account/[userId]/page.tsx` — profile and IMAP account management.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Hooks/services/contexts",
+      "level": 3,
+      "slug": "hooksservicescontexts",
+      "prose": "- `context/imap-context.tsx` — active account context + persistence.\n- `hooks/use-mobile.ts` — responsive helper.\n- Service access is direct `fetch` using `BACKEND_URL` in `lib/utils.ts`.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`context/imap-context.tsx` — active account context + persistence.",
+              "checked": null
+            },
+            {
+              "text": "`hooks/use-mobile.ts` — responsive helper.",
+              "checked": null
+            },
+            {
+              "text": "Service access is direct `fetch` using `BACKEND_URL` in `lib/utils.ts`.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Design system and UX profile",
+      "level": 3,
+      "slug": "design-system-and-ux-profile",
+      "prose": "- Dark-theme-first mailbox shell.\n- Emphasis on compact table workflows for high-volume email triage.\n- Uses shadcn/Radix primitives for consistent tabs/buttons/inputs/checkbox/dropdowns.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Dark-theme-first mailbox shell.",
+              "checked": null
+            },
+            {
+              "text": "Emphasis on compact table workflows for high-volume email triage.",
+              "checked": null
+            },
+            {
+              "text": "Uses shadcn/Radix primitives for consistent tabs/buttons/inputs/checkbox/dropdowns.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

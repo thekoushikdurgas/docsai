@@ -1,17 +1,21 @@
-"""Markdown chunker for Pinecone ingestion.
+"""Chunker for Pinecone ingestion.
 
-Splits markdown at `##` / `###` headings and returns records compatible with
+Supports raw markdown files and typed Contact360 doc JSON (`raw_markdown` or flattened structured fields).
+Splits at `##` / `###` headings; returns records compatible with
 `field_map text=content` (integrated embeddings), with flat metadata only.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 from paths import DOCS_HUB_DIR, DOCS_ROOT
+
+from scripts.typed_doc_embedding_text import text_for_typed_doc_embedding
 
 
 HEADING_RE = re.compile(r"^(##|###)\s+(.+?)\s*$")
@@ -140,26 +144,38 @@ def _split_text_by_max_chars(text: str, max_chars: int) -> List[str]:
     return [s for s in segments if s]
 
 
-def chunk_file(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
-    """
-    Chunk a markdown file into Pinecone records.
-
-    Record schema:
-    - `_id`: deterministic sha256
-    - `content`: chunk text (integrated embeddings uses field_map text=content)
-    - flat metadata: doc_path, era, doc_kind, heading, service, version
-    """
-
-    raw = path.read_text(encoding="utf-8")
+def chunk_typed_doc_json(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
+    """Chunk `raw_markdown` from a typed docs envelope JSON file."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    raw = (data.get("raw_markdown") or "").strip()
+    if not raw:
+        raw = text_for_typed_doc_embedding(data).strip()
+    if not raw:
+        return []
     doc_path_rel = str(path.relative_to(DOCS_ROOT)).replace("\\", "/")
+    era, inferred_kind = _infer_era_and_kind(doc_path_rel, path)
+    doc_kind = data.get("kind") if isinstance(data.get("kind"), str) else inferred_kind
+    return _records_from_markdown_body(
+        raw, doc_path_rel, path, era=era, doc_kind=doc_kind, max_chunk_chars=max_chunk_chars
+    )
 
-    era, doc_kind = _infer_era_and_kind(doc_path_rel, path)
-    service = _infer_service_from_path(path)
-    version = _infer_version_from_filename(path)
 
+def _records_from_markdown_body(
+    raw: str,
+    doc_path_rel: str,
+    abs_path: Path,
+    *,
+    era: str,
+    doc_kind: str,
+    max_chunk_chars: int,
+) -> List[Dict]:
+    service = _infer_service_from_path(abs_path)
+    version = _infer_version_from_filename(abs_path)
     records: List[Dict] = []
 
-    # If the doc has no headings at level 2/3, index it as a single chunk.
     heading_chunks = list(_iter_heading_chunks(raw))
     if not heading_chunks:
         content = raw.strip()
@@ -203,6 +219,21 @@ def chunk_file(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
             )
 
     return records
+
+
+def chunk_file(path: Path, *, max_chunk_chars: int = 2000) -> List[Dict]:
+    """
+    Chunk typed doc JSON into Pinecone records (non-.json paths return no records).
+
+    Record schema:
+    - `_id`: deterministic sha256
+    - `content`: chunk text (integrated embeddings uses field_map text=content)
+    - flat metadata: doc_path, era, doc_kind, heading, service, version
+    """
+
+    if path.suffix.lower() != ".json":
+        return []
+    return chunk_typed_doc_json(path, max_chunk_chars=max_chunk_chars)
 
 
 def iter_records(paths: Iterable[Path]) -> Iterable[Dict]:

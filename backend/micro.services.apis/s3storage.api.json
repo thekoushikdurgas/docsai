@@ -1,0 +1,761 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "backend/micro.services.apis/s3storage.api.md",
+  "sha256_source": "c91ae5abe1150de5ba8a57c41d67d2a57b5b6a49c593f3ec33316d9bb8413600",
+  "generated_at": "2026-04-08T23:26:46.809447+00:00",
+  "title": "S3 storage API (EC2/s3storage.server)",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "S3 storage API (EC2/s3storage.server)",
+      "level": 1,
+      "slug": "s3-storage-api-ec2s3storageserver",
+      "prose": "HTTP API for the **Go/Gin** service at `EC2/s3storage.server` (`contact360.io/s3storage`). The Contact360 gateway uses **`S3StorageEC2Client`** (`contact360.io/api/app/clients/s3storage_ec2_client.py`) against `LAMBDA_S3STORAGE_API_URL` / `LAMBDA_S3STORAGE_API_KEY`.\n\n**Base path:** `/api/v1`  \n**Code:** `EC2/s3storage.server/internal/api/router.go` (`Register`).  \n**Process entry:** `EC2/s3storage.server/cmd/api/main.go` — loads config, opens Postgres (required), registers routes; **`S3STORAGE_API_KEY` / `API_KEY` must be non-empty** or the server exits.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Operation inventory",
+      "level": 2,
+      "slug": "operation-inventory",
+      "prose": "| Method | Path | Auth |\n| --- | --- | --- |\n| `GET` | `/api/v1/health` | Public |\n| `GET` | `/api/v1/health/ready` | Public |\n| `GET` | `/api/v1/jobs` | API key |\n| `GET` | `/api/v1/jobs/:id` | API key |\n| `GET` | `/api/v1/buckets/:name/ping` | API key |\n| `GET` | `/api/v1/files` | API key |\n| `POST` | `/api/v1/uploads/initiate-csv` | API key |\n| `GET` | `/api/v1/uploads/:id/parts/:n` | API key |\n| `POST` | `/api/v1/uploads/:id/complete` | API key |\n| `DELETE` | `/api/v1/uploads/:id/abort` | API key |\n| `GET` | `/api/v1/analysis/schema` | API key |\n| `GET` | `/api/v1/analysis/stats` | API key |\n| `GET` | `/api/v1/avatars/:user` | API key |",
+      "tables": [
+        {
+          "headers": [
+            "Method",
+            "Path",
+            "Auth"
+          ],
+          "rows": [
+            [
+              "`GET`",
+              "`/api/v1/health`",
+              "Public"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/health/ready`",
+              "Public"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/jobs`",
+              "API key"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/jobs/:id`",
+              "API key"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/buckets/:name/ping`",
+              "API key"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/files`",
+              "API key"
+            ],
+            [
+              "`POST`",
+              "`/api/v1/uploads/initiate-csv`",
+              "API key"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/uploads/:id/parts/:n`",
+              "API key"
+            ],
+            [
+              "`POST`",
+              "`/api/v1/uploads/:id/complete`",
+              "API key"
+            ],
+            [
+              "`DELETE`",
+              "`/api/v1/uploads/:id/abort`",
+              "API key"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/analysis/schema`",
+              "API key"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/analysis/stats`",
+              "API key"
+            ],
+            [
+              "`GET`",
+              "`/api/v1/avatars/:user`",
+              "API key"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Configuration (environment)",
+      "level": 2,
+      "slug": "configuration-environment",
+      "prose": "Loaded in `internal/config/config.go` unless noted.\n\n| Variable | Fallback / default | Role |\n| --- | --- | --- |\n| `S3STORAGE_PORT` | `PORT`, then `8087` | HTTP listen port |\n| `S3STORAGE_API_KEY` | `API_KEY` | **Required** — process exits on empty (`cmd/api/main.go`) |\n| `AWS_REGION` | `us-east-1` | S3 client region |\n| `S3STORAGE_BUCKET` | `BUCKET`, `S3_BUCKET_NAME`, then `\"\"` | Default bucket for list/upload/analysis/avatars |\n| `REDIS_ADDR` | `localhost:6379` | Used by broader app/workers (not every HTTP handler) |\n| `ASYNQ_PREFIX` | `s3storage` | Asynq queue prefix |\n\n**AWS credentials:** Standard SDK chain (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_SESSION_TOKEN` when set — see `internal/s3store/s3store.go` `New`).\n\n**Postgres:** Required at startup for `multipart_sessions` and metadata job visibility (`s3storage_metadata_jobs`). DSN comes from app wiring in `cmd/api` (not in `config.Config` struct).",
+      "tables": [
+        {
+          "headers": [
+            "Variable",
+            "Fallback / default",
+            "Role"
+          ],
+          "rows": [
+            [
+              "`S3STORAGE_PORT`",
+              "`PORT`, then `8087`",
+              "HTTP listen port"
+            ],
+            [
+              "`S3STORAGE_API_KEY`",
+              "`API_KEY`",
+              "**Required** — process exits on empty (`cmd/api/main.go`)"
+            ],
+            [
+              "`AWS_REGION`",
+              "`us-east-1`",
+              "S3 client region"
+            ],
+            [
+              "`S3STORAGE_BUCKET`",
+              "`BUCKET`, `S3_BUCKET_NAME`, then `\"\"`",
+              "Default bucket for list/upload/analysis/avatars"
+            ],
+            [
+              "`REDIS_ADDR`",
+              "`localhost:6379`",
+              "Used by broader app/workers (not every HTTP handler)"
+            ],
+            [
+              "`ASYNQ_PREFIX`",
+              "`s3storage`",
+              "Asynq queue prefix"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Middleware and background behavior",
+      "level": 2,
+      "slug": "middleware-and-background-behavior",
+      "prose": "- **`X-Request-ID`:** Every response sets this header; if the client omits it, a new UUID is generated (`router.go`).\n- **Multipart session TTL:** In-memory/DB rows older than **2 hours** are not automatically validated per request; a background goroutine runs every **15 minutes** and deletes `multipart_sessions` rows with `created_at` older than 2h.\n- **Table:** `multipart_sessions` is created at startup if missing (`ensureMultipartSessionTable`).",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**`X-Request-ID`:** Every response sets this header; if the client omits it, a new UUID is generated (`router.go`).",
+              "checked": null
+            },
+            {
+              "text": "**Multipart session TTL:** In-memory/DB rows older than **2 hours** are not automatically validated per request; a background goroutine runs every **15 minutes** and deletes `multipart_sessions` rows with `created_at` older than 2h.",
+              "checked": null
+            },
+            {
+              "text": "**Table:** `multipart_sessions` is created at startup if missing (`ensureMultipartSessionTable`).",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Authentication",
+      "level": 2,
+      "slug": "authentication",
+      "prose": "| Location | When |\n| --- | --- |\n| `X-API-Key: <key>` | Preferred for protected routes |\n| `?api_key=<key>` | Alternative (middleware accepts either) |\n\n**Public (no key):** `GET /api/v1/health`, `GET /api/v1/health/ready`.\n\nInvalid or missing key on protected routes: **`401`** with `{\"error\":\"unauthorized\"}`.",
+      "tables": [
+        {
+          "headers": [
+            "Location",
+            "When"
+          ],
+          "rows": [
+            [
+              "`X-API-Key: <key>`",
+              "Preferred for protected routes"
+            ],
+            [
+              "`?api_key=<key>`",
+              "Alternative (middleware accepts either)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Error responses (common shapes)",
+      "level": 2,
+      "slug": "error-responses-common-shapes",
+      "prose": "| Situation | HTTP | Body |\n| --- | --- | --- |\n| Missing/invalid API key | `401` | `{\"error\":\"unauthorized\"}` |\n| S3/AWS errors (many handlers use `writeS3Err`) | varies | `{\"error\":\"<message>\"}` and optionally `{\"aws_error_code\":\"<code>\"}` |\n| JSON bind failure (e.g. complete upload) | `400` | `{\"error\":\"<bind error>\"}` |\n| Missing required query (`analysis/*` without `key`) | `400` | `{\"error\":\"key required\"}` |\n| Unknown multipart session / part | `404` | `{\"error\":\"unknown upload\"}`, `unknown upload or part`, etc. |\n| Job not found | `404` | `{\"error\":\"job not found\"}` |\n| Invalid job id | `400` | `{\"error\":\"invalid job id\"}` |\n| DB or unexpected handler error | `500` | `{\"error\":\"<message>\"}` |\n| `HeadBucket` failure on ping | `502` | S3 error shape above |",
+      "tables": [
+        {
+          "headers": [
+            "Situation",
+            "HTTP",
+            "Body"
+          ],
+          "rows": [
+            [
+              "Missing/invalid API key",
+              "`401`",
+              "`{\"error\":\"unauthorized\"}`"
+            ],
+            [
+              "S3/AWS errors (many handlers use `writeS3Err`)",
+              "varies",
+              "`{\"error\":\"<message>\"}` and optionally `{\"aws_error_code\":\"<code>\"}`"
+            ],
+            [
+              "JSON bind failure (e.g. complete upload)",
+              "`400`",
+              "`{\"error\":\"<bind error>\"}`"
+            ],
+            [
+              "Missing required query (`analysis/*` without `key`)",
+              "`400`",
+              "`{\"error\":\"key required\"}`"
+            ],
+            [
+              "Unknown multipart session / part",
+              "`404`",
+              "`{\"error\":\"unknown upload\"}`, `unknown upload or part`, etc."
+            ],
+            [
+              "Job not found",
+              "`404`",
+              "`{\"error\":\"job not found\"}`"
+            ],
+            [
+              "Invalid job id",
+              "`400`",
+              "`{\"error\":\"invalid job id\"}`"
+            ],
+            [
+              "DB or unexpected handler error",
+              "`500`",
+              "`{\"error\":\"<message>\"}`"
+            ],
+            [
+              "`HeadBucket` failure on ping",
+              "`502`",
+              "S3 error shape above"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Request ID",
+      "level": 2,
+      "slug": "request-id",
+      "prose": "Responses may include header **`X-Request-ID`** (generated if the client did not send one).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Health",
+      "level": 2,
+      "slug": "health",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/health",
+      "level": 3,
+      "slug": "get-apiv1health",
+      "prose": "Liveness. **No auth.**\n\n**Response `200`:**\n\n```json\n{\n  \"status\": \"ok\"\n}\n```",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"status\": \"ok\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/health/ready",
+      "level": 3,
+      "slug": "get-apiv1healthready",
+      "prose": "Readiness (S3 bucket configured and `HeadBucket` succeeds). **No auth.**\n\n**Response `200`:**\n\n```json\n{\n  \"ready\": true\n}\n```\n\n**Response `503` (examples):**\n\n```json\n{\n  \"ready\": false,\n  \"error\": \"S3STORAGE_BUCKET not set\"\n}\n```\n\n```json\n{\n  \"ready\": false,\n  \"error\": \"...\",\n  \"aws_error_code\": \"NoSuchBucket\"\n}\n```\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"ready\": true\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"ready\": false,\n  \"error\": \"S3STORAGE_BUCKET not set\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"ready\": false,\n  \"error\": \"...\",\n  \"aws_error_code\": \"NoSuchBucket\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Metadata jobs (Postgres queue)",
+      "level": 2,
+      "slug": "metadata-jobs-postgres-queue",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/jobs",
+      "level": 3,
+      "slug": "get-apiv1jobs",
+      "prose": "**Auth:** required.\n\n| Query param | Type | Default | Description |\n| --- | --- | --- | --- |\n| `state` | string | (empty) | Filter by job state |\n| `limit` | int | `50` | Clamped to `1..500` |\n\n**Response `200`:**\n\n```json\n{\n  \"jobs\": [\n    {\n      \"id\": 1,\n      \"bucket\": \"my-bucket\",\n      \"bucket_id\": \"user-uuid\",\n      \"key\": \"user-uuid/upload/file.csv\",\n      \"state\": \"pending\",\n      \"last_error\": null,\n      \"attempts\": 0,\n      \"available_at\": \"2026-04-05T12:00:00Z\",\n      \"created_at\": \"2026-04-05T11:59:00Z\",\n      \"updated_at\": \"2026-04-05T11:59:00Z\"\n    }\n  ],\n  \"total\": 1\n}\n```",
+      "tables": [
+        {
+          "headers": [
+            "Query param",
+            "Type",
+            "Default",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`state`",
+              "string",
+              "(empty)",
+              "Filter by job state"
+            ],
+            [
+              "`limit`",
+              "int",
+              "`50`",
+              "Clamped to `1..500`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"jobs\": [\n    {\n      \"id\": 1,\n      \"bucket\": \"my-bucket\",\n      \"bucket_id\": \"user-uuid\",\n      \"key\": \"user-uuid/upload/file.csv\",\n      \"state\": \"pending\",\n      \"last_error\": null,\n      \"attempts\": 0,\n      \"available_at\": \"2026-04-05T12:00:00Z\",\n      \"created_at\": \"2026-04-05T11:59:00Z\",\n      \"updated_at\": \"2026-04-05T11:59:00Z\"\n    }\n  ],\n  \"total\": 1\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/jobs/:id",
+      "level": 3,
+      "slug": "get-apiv1jobsid",
+      "prose": "**Auth:** required. `:id` is numeric.\n\n**Response `200`:**\n\n```json\n{\n  \"job\": {\n    \"id\": 1,\n    \"bucket\": \"my-bucket\",\n    \"bucket_id\": \"user-uuid\",\n    \"key\": \"user-uuid/upload/file.csv\",\n    \"state\": \"pending\",\n    \"last_error\": null,\n    \"attempts\": 0,\n    \"available_at\": \"2026-04-05T12:00:00Z\",\n    \"created_at\": \"2026-04-05T11:59:00Z\",\n    \"updated_at\": \"2026-04-05T11:59:00Z\"\n  }\n}\n```\n\n**Response `404`:** `{\"error\":\"job not found\"}`  \n**Response `400`:** `{\"error\":\"invalid job id\"}`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"job\": {\n    \"id\": 1,\n    \"bucket\": \"my-bucket\",\n    \"bucket_id\": \"user-uuid\",\n    \"key\": \"user-uuid/upload/file.csv\",\n    \"state\": \"pending\",\n    \"last_error\": null,\n    \"attempts\": 0,\n    \"available_at\": \"2026-04-05T12:00:00Z\",\n    \"created_at\": \"2026-04-05T11:59:00Z\",\n    \"updated_at\": \"2026-04-05T11:59:00Z\"\n  }\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Buckets",
+      "level": 2,
+      "slug": "buckets",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/buckets/:name/ping",
+      "level": 3,
+      "slug": "get-apiv1bucketsnameping",
+      "prose": "**Auth:** required. Calls S3 `HeadBucket` on `:name`.\n\n**Response `200`:** `{\"bucket\":\"<name>\",\"ok\":true}`  \n**Response `502`:** S3 error; may include `aws_error_code`.\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Files",
+      "level": 2,
+      "slug": "files",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/files",
+      "level": 3,
+      "slug": "get-apiv1files",
+      "prose": "**Auth:** required.\n\n| Query | Description |\n| --- | --- |\n| `prefix` | Passed to S3 list (optional) |\n\nUses configured default bucket from env (`DefaultBucket`).\n\n**Response `200`:**\n\n```json\n{\n  \"objects\": []\n}\n```\n\nEach element is an AWS SDK **`types.Object`** value from `ListObjectsV2` (`MaxKeys` **500** in code). JSON uses the SDK’s field names (pointers become `null` or are omitted). Typical fields:\n\n| Field | Meaning |\n| --- | --- |\n| `Key` | Object key |\n| `LastModified` | RFC3339 timestamp |\n| `ETag` | Entity tag (often quoted) |\n| `Size` | Size in bytes |\n| `StorageClass` | e.g. `STANDARD` |\n| `ChecksumCRC32`, `ChecksumCRC32C`, … | Optional checksums when present |\n\nEmpty prefix with no objects yields `\"objects\": []` or `null` from AWS — clients should treat missing/null as empty list.\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Query",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`prefix`",
+              "Passed to S3 list (optional)"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Field",
+            "Meaning"
+          ],
+          "rows": [
+            [
+              "`Key`",
+              "Object key"
+            ],
+            [
+              "`LastModified`",
+              "RFC3339 timestamp"
+            ],
+            [
+              "`ETag`",
+              "Entity tag (often quoted)"
+            ],
+            [
+              "`Size`",
+              "Size in bytes"
+            ],
+            [
+              "`StorageClass`",
+              "e.g. `STANDARD`"
+            ],
+            [
+              "`ChecksumCRC32`, `ChecksumCRC32C`, …",
+              "Optional checksums when present"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"objects\": []\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Multipart uploads (CSV)",
+      "level": 2,
+      "slug": "multipart-uploads-csv",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/uploads/initiate-csv",
+      "level": 3,
+      "slug": "post-apiv1uploadsinitiate-csv",
+      "prose": "**Auth:** required. **Content-Type:** `application/x-www-form-urlencoded` (or multipart form compatible with `PostForm`).\n\n| Form field | Required | Description |\n| --- | --- | --- |\n| `key` | No | S3 object key; default `uploads/{uuid}.csv` |\n\n| Header | Description |\n| --- | --- |\n| `X-Idempotency-Key` | Optional; if duplicate, returns existing `upload_id` with `\"dedup\": true` |\n\n**Response `201`:**\n\n```json\n{\n  \"upload_id\": \"session-uuid\",\n  \"bucket\": \"default-bucket\",\n  \"key\": \"uploads/abc.csv\"\n}\n```\n\n**Response `200` (dedup):**\n\n```json\n{\n  \"upload_id\": \"session-uuid\",\n  \"dedup\": true\n}\n```",
+      "tables": [
+        {
+          "headers": [
+            "Form field",
+            "Required",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`key`",
+              "No",
+              "S3 object key; default `uploads/{uuid}.csv`"
+            ]
+          ]
+        },
+        {
+          "headers": [
+            "Header",
+            "Description"
+          ],
+          "rows": [
+            [
+              "`X-Idempotency-Key`",
+              "Optional; if duplicate, returns existing `upload_id` with `\"dedup\": true`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"upload_id\": \"session-uuid\",\n  \"bucket\": \"default-bucket\",\n  \"key\": \"uploads/abc.csv\"\n}\n"
+        },
+        {
+          "lang": "json",
+          "value": "{\n  \"upload_id\": \"session-uuid\",\n  \"dedup\": true\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/uploads/:id/parts/:n",
+      "level": 3,
+      "slug": "get-apiv1uploadsidpartsn",
+      "prose": "**Auth:** required. Presigned **PUT** URL for part number `n` (≥ 1). TTL **15 minutes**.\n\n**Response `200`:**\n\n```json\n{\n  \"url\": \"https://...\",\n  \"expires_in\": \"15m\"\n}\n```\n\n**Response `404`:** `{\"error\":\"unknown upload or part\"}`",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"url\": \"https://...\",\n  \"expires_in\": \"15m\"\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "POST /api/v1/uploads/:id/complete",
+      "level": 3,
+      "slug": "post-apiv1uploadsidcomplete",
+      "prose": "**Auth:** required.\n\n**Body (JSON):**\n\n```json\n{\n  \"parts\": [\n    { \"part_number\": 1, \"etag\": \"\\\"abc123\\\"\" }\n  ]\n}\n```\n\nCompletes multipart upload, enqueues metadata job (table `s3storage_metadata_jobs`), deletes session row.\n\n**Response `200`:** `{\"bucket\":\"...\",\"key\":\"...\"}`  \n**Response `202` (queue error, upload still completed): `{\"bucket\":\"...\",\"key\":\"...\",\"metadata_queued\":false,\"queue_error\":\"...\"}` — S3 multipart completed; inserting into `s3storage_metadata_jobs` failed; session row is still deleted on this path.  \n**Response `404`:** `{\"error\":\"unknown upload\"}`  \n**Response `500`:** S3 complete failure uses `writeS3Err`; bind errors `400`.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"parts\": [\n    { \"part_number\": 1, \"etag\": \"\\\"abc123\\\"\" }\n  ]\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "DELETE /api/v1/uploads/:id/abort",
+      "level": 3,
+      "slug": "delete-apiv1uploadsidabort",
+      "prose": "**Auth:** required. Aborts multipart upload and removes session.\n\n**Response `200`:** `{\"aborted\":true}`  \n**Response `404`:** `{\"error\":\"unknown upload\"}`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "CSV analysis",
+      "level": 2,
+      "slug": "csv-analysis",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/analysis/schema",
+      "level": 3,
+      "slug": "get-apiv1analysisschema",
+      "prose": "**Auth:** required.\n\n| Query | Required |\n| --- | --- |\n| `key` | Yes — full S3 key in default bucket |\n\n**Response `200`:**\n\n```json\n{\n  \"delimiter\": \",\",\n  \"sample_bytes\": 1024\n}\n```",
+      "tables": [
+        {
+          "headers": [
+            "Query",
+            "Required"
+          ],
+          "rows": [
+            [
+              "`key`",
+              "Yes — full S3 key in default bucket"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"delimiter\": \",\",\n  \"sample_bytes\": 1024\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/analysis/stats",
+      "level": 3,
+      "slug": "get-apiv1analysisstats",
+      "prose": "**Auth:** required.\n\n| Query | Required |\n| --- | --- |\n| `key` | Yes — full S3 key |\n\n**Response `200`:**\n\n```json\n{\n  \"rows_in_sample\": 100\n}\n```\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Query",
+            "Required"
+          ],
+          "rows": [
+            [
+              "`key`",
+              "Yes — full S3 key"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [
+        {
+          "lang": "json",
+          "value": "{\n  \"rows_in_sample\": 100\n}\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Avatars",
+      "level": 2,
+      "slug": "avatars",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "GET /api/v1/avatars/:user",
+      "level": 3,
+      "slug": "get-apiv1avatarsuser",
+      "prose": "**Auth:** required.\n\n| Query | Default |\n| --- | --- |\n| `ext` | `png` (sanitized, max 8 chars) |\n\nBuilds key `avatars/{user}.{ext}` and returns a presigned **GET** URL (1 hour).\n\n**Response `200`:** `{\"url\":\"https://...\"}`\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Query",
+            "Default"
+          ],
+          "rows": [
+            [
+              "`ext`",
+              "`png` (sanitized, max 8 chars)"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Key convention (bucket id / file key)",
+      "level": 2,
+      "slug": "key-convention-bucket-id-file-key",
+      "prose": "Server-side helpers treat keys as `{bucket_id}/{file_key}` for metadata queueing: first path segment is the logical tenant id, remainder is the relative file key (see `splitKeyPrefix` in `router.go`).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Related docs",
+      "level": 2,
+      "slug": "related-docs",
+      "prose": "| Doc | Purpose |\n| --- | --- |\n| [SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md) | Service map |\n| [s3storage_endpoint_era_matrix.md](../endpoints/s3storage_endpoint_era_matrix.md) | Era / endpoints |\n| [s3storage_data_lineage.md](../database/s3storage_data_lineage.md) | Data lineage |\n| [07_S3_MODULE.md](../graphql.modules/07_S3_MODULE.md) | GraphQL S3 module (gateway → this API) |\n| [10_UPLOAD_MODULE.md](../graphql.modules/10_UPLOAD_MODULE.md) | GraphQL Upload module |\n| [../postman/EC2_s3storage.server.postman_collection.json](../postman/EC2_s3storage.server.postman_collection.json) | Postman collection |",
+      "tables": [
+        {
+          "headers": [
+            "Doc",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "[SERVICE_TOPOLOGY.md](../endpoints/SERVICE_TOPOLOGY.md)",
+              "Service map"
+            ],
+            [
+              "[s3storage_endpoint_era_matrix.md](../endpoints/s3storage_endpoint_era_matrix.md)",
+              "Era / endpoints"
+            ],
+            [
+              "[s3storage_data_lineage.md](../database/s3storage_data_lineage.md)",
+              "Data lineage"
+            ],
+            [
+              "[07_S3_MODULE.md](../graphql.modules/07_S3_MODULE.md)",
+              "GraphQL S3 module (gateway → this API)"
+            ],
+            [
+              "[10_UPLOAD_MODULE.md](../graphql.modules/10_UPLOAD_MODULE.md)",
+              "GraphQL Upload module"
+            ],
+            [
+              "[../postman/EC2_s3storage.server.postman_collection.json](../postman/EC2_s3storage.server.postman_collection.json)",
+              "Postman collection"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "SERVICE_TOPOLOGY.md",
+          "href": "../endpoints/SERVICE_TOPOLOGY.md"
+        },
+        {
+          "text": "s3storage_endpoint_era_matrix.md",
+          "href": "../endpoints/s3storage_endpoint_era_matrix.md"
+        },
+        {
+          "text": "s3storage_data_lineage.md",
+          "href": "../database/s3storage_data_lineage.md"
+        },
+        {
+          "text": "07_S3_MODULE.md",
+          "href": "../graphql.modules/07_S3_MODULE.md"
+        },
+        {
+          "text": "10_UPLOAD_MODULE.md",
+          "href": "../graphql.modules/10_UPLOAD_MODULE.md"
+        },
+        {
+          "text": "../postman/EC2_s3storage.server.postman_collection.json",
+          "href": "../postman/EC2_s3storage.server.postman_collection.json"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

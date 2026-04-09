@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "kind": "endpoint_matrix",
+  "source_path": "backend/endpoints/get_activities_graphql.md",
+  "sha256_source": "0ee83948bdce589ee8e76e625014125e3a3e2e6542538c0cee9b158a3cdbf236",
+  "generated_at": "2026-04-08T23:11:51.400929+00:00",
+  "title": "graphql/GetActivities",
+  "raw_markdown": "---\ntitle: \"graphql/GetActivities\"\nsource_json: get_activities_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---\n\n# graphql/GetActivities\n\n## Overview\n\nGet user activities with filtering, pagination, and sorting. Accepts optional ActivityFilterInput with serviceType (enum: export, import, auth, email, contact, company, search, ai), actionType (enum: create, update, delete, export, import, login, logout, search, find), status (enum: success, failure, pending), startDate/endDate (DateTime range), limit (Int, default 100), offset (Int, default 0). Returns ActivityConnection with items (array of Activity with id, serviceType, actionType, status, metadata, createdAt), total, limit, offset, hasNext, hasPrevious. User isolation enforced.\n\n## Identity\n\n| Field | Value |\n| --- | --- |\n| endpoint_id | get_activities_graphql |\n| _id | get_activities_graphql-001 |\n| endpoint_path | graphql/GetActivities |\n| method | QUERY |\n| api_version | graphql |\n| endpoint_state | development |\n\n\n## Lifecycle\n\n| Field | Value |\n| --- | --- |\n| created_at | 2026-01-19T12:00:00.000000+00:00 |\n| updated_at | 2026-01-21T00:00:00.000000+00:00 |\n| era | 0.x |\n| introduced_in | 0.1.0 |\n\n\n## Security & limits\n\n| Field | Value |\n| --- | --- |\n| auth_required | True |\n| rbac_roles | user |\n| rate_limit | 100 requests/minute |\n| rate_limited | True |\n\n\n## Implementation\n\n| Field | Value |\n| --- | --- |\n| service_file | appointment360/app/graphql/modules/activities/queries.py |\n| router_file | contact360/dashboard/src/services/graphql/activitiesService.ts |\n\n\n## GraphQL operation\n\n```graphql\nquery GetActivities($input: ActivityFilterInput) { activities { activities(input: $input) { items { id serviceType actionType status metadata createdAt } total hasNext } } }\n```\n\n## Service / repository methods\n\n### service_methods\n\n- activities\n\n### repository_methods\n\n- get_activities_by_user\n\n### used_by_pages\n\n| page_path | page_title | via_service | via_hook | usage_type | usage_context | updated_at |\n| --- | --- | --- | --- | --- | --- | --- |\n| /activities | Activities Page | activitiesService | useActivitiesPage | primary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n| /dashboard | Dashboard Page | activitiesService | useDashboardPage | primary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n| /verifier | Verifier Page | activitiesService | useVerifier | secondary | data_fetching | 2026-01-20T00:00:00.000000+00:00 |\n\n\n## Inventory\n\n- **page_count:** 3\n- **Source:** `get_activities_graphql.json`\n\n<!-- AUTO:db-graph:start -->\n\n## Era alignment (Contact360 0.x–10.x)\n\n- **Lifecycle `era` (metadata):** `0.x` — see [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md#era-tags-on-endpoints) for theme mapping.\n\n## Database tables → SQL snapshots\n\n- *No `db_tables_read` / `db_tables_write` in this spec — gateway-only or metadata TBD; see lineage.*\n\n## Lineage & infrastructure docs\n\n- [Appointment360 (gateway DB)](../database/appointment360_data_lineage.md)\n\n## Downstream services (cross-endpoint)\n\n- *No `lambda_services` list — typically Appointment360-only DB access or inline HTTP client; see [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md).*\n\n## Related endpoint graph\n\n- **Topology overview:** [SERVICE_TOPOLOGY.md](SERVICE_TOPOLOGY.md)\n- **Conventions:** [ENDPOINT_DATABASE_LINKS.md](ENDPOINT_DATABASE_LINKS.md)\n\n<!-- AUTO:db-graph:end -->\n---\n\n*Generated from `get_activities_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*\n",
+  "overview": null,
+  "tables": [
+    {
+      "section_heading": "Identity",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "endpoint_id",
+          "get_activities_graphql"
+        ],
+        [
+          "_id",
+          "get_activities_graphql-001"
+        ],
+        [
+          "endpoint_path",
+          "graphql/GetActivities"
+        ],
+        [
+          "method",
+          "QUERY"
+        ],
+        [
+          "api_version",
+          "graphql"
+        ],
+        [
+          "endpoint_state",
+          "development"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Lifecycle",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "created_at",
+          "2026-01-19T12:00:00.000000+00:00"
+        ],
+        [
+          "updated_at",
+          "2026-01-21T00:00:00.000000+00:00"
+        ],
+        [
+          "era",
+          "0.x"
+        ],
+        [
+          "introduced_in",
+          "0.1.0"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Security & limits",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "auth_required",
+          "True"
+        ],
+        [
+          "rbac_roles",
+          "user"
+        ],
+        [
+          "rate_limit",
+          "100 requests/minute"
+        ],
+        [
+          "rate_limited",
+          "True"
+        ]
+      ]
+    },
+    {
+      "section_heading": "Implementation",
+      "headers": [
+        "Field",
+        "Value"
+      ],
+      "rows": [
+        [
+          "service_file",
+          "appointment360/app/graphql/modules/activities/queries.py"
+        ],
+        [
+          "router_file",
+          "contact360/dashboard/src/services/graphql/activitiesService.ts"
+        ]
+      ]
+    },
+    {
+      "section_heading": "usedbypages",
+      "headers": [
+        "page_path",
+        "page_title",
+        "via_service",
+        "via_hook",
+        "usage_type",
+        "usage_context",
+        "updated_at"
+      ],
+      "rows": [
+        [
+          "/activities",
+          "Activities Page",
+          "activitiesService",
+          "useActivitiesPage",
+          "primary",
+          "data_fetching",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "/dashboard",
+          "Dashboard Page",
+          "activitiesService",
+          "useDashboardPage",
+          "primary",
+          "data_fetching",
+          "2026-01-20T00:00:00.000000+00:00"
+        ],
+        [
+          "/verifier",
+          "Verifier Page",
+          "activitiesService",
+          "useVerifier",
+          "secondary",
+          "data_fetching",
+          "2026-01-20T00:00:00.000000+00:00"
+        ]
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "heading": "Overview",
+      "level": 2,
+      "prose": "Get user activities with filtering, pagination, and sorting. Accepts optional ActivityFilterInput with serviceType (enum: export, import, auth, email, contact, company, search, ai), actionType (enum: create, update, delete, export, import, login, logout, search, find), status (enum: success, failure, pending), startDate/endDate (DateTime range), limit (Int, default 100), offset (Int, default 0). Returns ActivityConnection with items (array of Activity with id, serviceType, actionType, status, metadata, createdAt), total, limit, offset, hasNext, hasPrevious. User isolation enforced."
+    },
+    {
+      "heading": "Inventory",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:start -->"
+    },
+    {
+      "heading": "Related endpoint graph",
+      "level": 2,
+      "prose": "<!-- AUTO:db-graph:end --> *Generated from `get_activities_graphql.json`. Re-run `python json_to_markdown_endpoints.py`.*"
+    }
+  ],
+  "non_parsed_raw_markdown": "---\ntitle: \"graphql/GetActivities\"\nsource_json: get_activities_graphql.json\ngenerator: json_to_markdown_endpoints.py\n---"
+}

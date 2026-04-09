@@ -1,0 +1,2842 @@
+{
+  "schema_version": 1,
+  "kind": "hub",
+  "source_path": "docs/roadmap.md",
+  "sha256_source": "97fab73516366295af0ec5eeea03bdc8e5757b28afaa9488726a88aec6268d8d",
+  "generated_at": "2026-04-08T23:26:48.203521+00:00",
+  "title": "Contact360 Roadmap",
+  "sections": [
+    {
+      "heading": "Contact360 Roadmap",
+      "level": 1,
+      "slug": "contact360-roadmap",
+      "prose": "This roadmap defines staged delivery across major versions.\nStage metadata standard for every stage:\n\n- **Status**\n- **Depends on**\n- **Risk**\n- **Definition of done**\n- **KPI**\n- **Ships in**\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**Status**",
+              "checked": null
+            },
+            {
+              "text": "**Depends on**",
+              "checked": null
+            },
+            {
+              "text": "**Risk**",
+              "checked": null
+            },
+            {
+              "text": "**Definition of done**",
+              "checked": null
+            },
+            {
+              "text": "**KPI**",
+              "checked": null
+            },
+            {
+              "text": "**Ships in**",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Current focus",
+      "level": 2,
+      "slug": "current-focus",
+      "prose": "Delivery is currently centered on **billing and payments (Stage 1.3)** and **bulk validation hardening (Stage 2.4)**. Core **finder → verifier → results** flows remain the product backbone.\n\n**Planning horizon:** near-term execution is **`1.x`–`6.x`** (this file + `docs/versions.md`). Strategic runway **`7.x`–`10.x`** is detailed in roadmap era sections below and in **`docs/architecture.md`** (*Planning horizon*). Optional per-minor notes: `docs/versions/version_*.md`. Strategic stages do not block current releases.\n\n**Product surfaces:** Dashboard, marketing, DocsAI, and extension entry points are summarized in **`docs/frontend.md`**. Backend service index: **`docs/backend.md`**.\n\n**Backend language runway:** The **main GraphQL backend** stays **Python** (`contact360.io/api`). **Go + Gin** is the default for new satellite services and Python-service rewrites; see **`docs/docs/backend-language-strategy.md`**.\n\n**EC2 Go satellites (in-repo):** `EC2/job.server`, `EC2/s3storage.server`, `EC2/ai.server`, `EC2/log.server`, `EC2/extension.server` — see **`docs/docs/architecture.md`** (*Request paths*) and **`docs/docs/backend-language-strategy.md`** (*Satellite migration inventory*).\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 1.x — User, Billing and Credit System",
+      "level": 2,
+      "slug": "version-1x-user-billing-and-credit-system",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.1 - User and Authentication System",
+      "level": 3,
+      "slug": "stage-11---user-and-authentication-system",
+      "prose": "**Status:** Completed\n**Depends on:** Foundation platform setup\n**Risk:** Session handling regressions across dashboard and extension\n**Definition of done:** User can register, sign in, and begin usage with starter credits\n**KPI:** Successful signup-to-first-action conversion, auth failure rate\n**Ships in:** `1.0.0`\n\n- Email signup and login\n- Basic user profile\n- Auto credit assignment (50 credits)\n- Session management\n- **Code pointers:** `contact360.io/app/src/context/RoleContext.tsx`, `contact360.io/api/app/main.py`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Email signup and login",
+              "checked": null
+            },
+            {
+              "text": "Basic user profile",
+              "checked": null
+            },
+            {
+              "text": "Auto credit assignment (50 credits)",
+              "checked": null
+            },
+            {
+              "text": "Session management",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/app/src/context/RoleContext.tsx`, `contact360.io/api/app/main.py`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.2 - Credit Management System (CORE)",
+      "level": 3,
+      "slug": "stage-12---credit-management-system-core",
+      "prose": "**Status:** Completed\n**Depends on:** Stage 1.1\n**Risk:** Incorrect deduction and lapse behavior can block valid user actions\n**Definition of done:** Finder deductions and entitlement checks behave correctly under standard flows\n**KPI:** Credit ledger consistency, blocked-request correctness at zero balance\n**Ships in:** `1.0.0`\n\n- Credit balance tracking\n- Credit deduction per action: **Finder only** (Verifier is 0 credits per current GraphQL API policy)\n- Free credits (50 on signup)\n- Credit usage logs (basic)\n- Block actions when credits = 0\n- Credits lapse when premium pack validity ends\n- **Code pointers:** `contact360.io/api/sql/apis/09_USAGE_MODULE.md`, `contact360.io/api/sql/apis/15_EMAIL_MODULE.md`, `contact360.io/app/src/lib/featureAccess.ts`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Credit balance tracking",
+              "checked": null
+            },
+            {
+              "text": "Credit deduction per action: **Finder only** (Verifier is 0 credits per current GraphQL API policy)",
+              "checked": null
+            },
+            {
+              "text": "Free credits (50 on signup)",
+              "checked": null
+            },
+            {
+              "text": "Credit usage logs (basic)",
+              "checked": null
+            },
+            {
+              "text": "Block actions when credits = 0",
+              "checked": null
+            },
+            {
+              "text": "Credits lapse when premium pack validity ends",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/api/sql/apis/09_USAGE_MODULE.md`, `contact360.io/api/sql/apis/15_EMAIL_MODULE.md`, `contact360.io/app/src/lib/featureAccess.ts`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.3 - Billing and Payments",
+      "level": 3,
+      "slug": "stage-13---billing-and-payments",
+      "prose": "**Status:** In progress\n**Depends on:** Stages 1.1, 1.2\n**Risk:** Payment confirmation mismatch and delayed credit application\n**Definition of done:** Users can purchase packs and receive credits through approved flow\n**KPI:** Payment success-to-crediting time, failed payment flow rate\n**Ships in:** `1.1.0`\n\n- Credit purchase system\n- 2-3 pricing plans for MVP\n- Manual payment integration (MVP-appropriate)\n- Credit packs without subscription complexity\n- **Code pointers:** `contact360.io/app/src/services/graphql/billingService.ts`, `contact360.io/app/src/components/billing/UpiPaymentModal.tsx`, `contact360.io/api/sql/apis/14_BILLING_MODULE.md`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Credit purchase system",
+              "checked": null
+            },
+            {
+              "text": "2-3 pricing plans for MVP",
+              "checked": null
+            },
+            {
+              "text": "Manual payment integration (MVP-appropriate)",
+              "checked": null
+            },
+            {
+              "text": "Credit packs without subscription complexity",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/app/src/services/graphql/billingService.ts`, `contact360.io/app/src/components/billing/UpiPaymentModal.tsx`, `contact360.io/api/sql/apis/14_BILLING_MODULE.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.4 - Analytics for the User (Minimal)",
+      "level": 3,
+      "slug": "stage-14---analytics-for-the-user-minimal",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 1.2, 1.3\n**Risk:** Usage metrics mismatch with billing/credit records\n**Definition of done:** Users can view basic usage and entitlement summary\n**KPI:** Dashboard analytics view adoption, usage ledger consistency\n**Ships in:** `1.2.0`\n\n- User logs\n- Credits used\n- Package/expiry display\n- **Code pointers:** `contact360.io/api/sql/apis/09_USAGE_MODULE.md`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "User logs",
+              "checked": null
+            },
+            {
+              "text": "Credits used",
+              "checked": null
+            },
+            {
+              "text": "Package/expiry display",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/api/sql/apis/09_USAGE_MODULE.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.5 - Notifications (Minimal)",
+      "level": 3,
+      "slug": "stage-15---notifications-minimal",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 1.3, 1.4\n**Risk:** False/late notifications reduce trust\n**Definition of done:** In-app low-credit and payment-success cues are present and reliable\n**KPI:** Notification delivery correctness, low-credit action conversion\n**Ships in:** `1.2.0`\n\n- Low credit warning (UI only)\n- Payment success message\n- No email automation in v1\n- **Code pointers:** `contact360.io/app/`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Low credit warning (UI only)",
+              "checked": null
+            },
+            {
+              "text": "Payment success message",
+              "checked": null
+            },
+            {
+              "text": "No email automation in v1",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/app/`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.6 - Analytics Admin Panel (Basic Control)",
+      "level": 3,
+      "slug": "stage-16---analytics-admin-panel-basic-control",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 1.2, 1.4\n**Risk:** Admin actions without audit clarity\n**Definition of done:** Admin can audit and adjust core user credit/package state\n**KPI:** Admin correction turnaround time, audit completeness\n**Ships in:** `1.2.0`\n\n- View users (package and expiry)\n- View credits\n- Manually adjust credits\n- View usage logs\n- **Code pointers:** `contact360.io/admin/`, `lambda/logs.api/`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "View users (package and expiry)",
+              "checked": null
+            },
+            {
+              "text": "View credits",
+              "checked": null
+            },
+            {
+              "text": "Manually adjust credits",
+              "checked": null
+            },
+            {
+              "text": "View usage logs",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/admin/`, `lambda/logs.api/`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 1.7 - Security (Basic Layer)",
+      "level": 3,
+      "slug": "stage-17---security-basic-layer",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 1.1 and service middleware rollout\n**Risk:** Abuse or high-volume spam traffic\n**Definition of done:** Baseline throttling and abuse controls active on core APIs\n**KPI:** Rate-limited abuse attempts, API error profile stability\n**Ships in:** `1.2.0`\n\n- Basic rate limiting\n- Prevent spam usage\n- **Code pointers:** `contact360.io/api/app/main.py`, service-level middleware/configuration\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Basic rate limiting",
+              "checked": null
+            },
+            {
+              "text": "Prevent spam usage",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/api/app/main.py`, service-level middleware/configuration",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 2.x — Email System",
+      "level": 2,
+      "slug": "version-2x-email-system",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 2.1 - Email Finder Engine",
+      "level": 3,
+      "slug": "stage-21---email-finder-engine",
+      "prose": "**Status:** Completed\n**Depends on:** Stages 1.1, 1.2\n**Risk:** Provider inconsistency can reduce candidate quality\n**Definition of done:** Finder returns candidates with normalized metadata and logging\n**KPI:** Finder success rate, median response latency\n**Ships in:** `2.0.0`\n\n- Predefined pattern generation (10 formats)\n- Generate possible valid email\n- Historical logs on the same page\n- High-throughput Go worker path (emailapigo) for heavy workloads\n- Provider fallback and normalization\n- **Code pointers:** `contact360.io/app/src/services/graphql/emailService.ts`, `contact360.io/app/src/hooks/useEmailFinderSingle.ts`, `lambda/emailapis/`, `lambda/emailapigo/`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Predefined pattern generation (10 formats)",
+              "checked": null
+            },
+            {
+              "text": "Generate possible valid email",
+              "checked": null
+            },
+            {
+              "text": "Historical logs on the same page",
+              "checked": null
+            },
+            {
+              "text": "High-throughput Go worker path (emailapigo) for heavy workloads",
+              "checked": null
+            },
+            {
+              "text": "Provider fallback and normalization",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/app/src/services/graphql/emailService.ts`, `contact360.io/app/src/hooks/useEmailFinderSingle.ts`, `lambda/emailapis/`, `lambda/emailapigo/`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 2.2 - Email Verification Engine",
+      "level": 3,
+      "slug": "stage-22---email-verification-engine",
+      "prose": "**Status:** Completed\n**Depends on:** Stage 2.1\n**Risk:** External signal variability (DNS/SMTP/provider behavior)\n**Definition of done:** Verification returns normalized statuses across single and bulk flows\n**KPI:** Verification completion rate, invalid classification precision\n**Ships in:** `2.0.0`\n\n- Integrate external verifier provider (Mailvetter and/or configured provider)\n- Basic checks: Valid / Delivered-Catchall / Undelivered-Catchall / Invalid / Not Found; confidence when available\n- DNS/SMTP/SPF/DMARC-based scoring\n- **Code pointers:** `contact360.io/app/src/hooks/useEmailVerifierSingle.ts`, `backend(dev)/mailvetter/`, `contact360.io/api/sql/apis/15_EMAIL_MODULE.md`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Integrate external verifier provider (Mailvetter and/or configured provider)",
+              "checked": null
+            },
+            {
+              "text": "Basic checks: Valid / Delivered-Catchall / Undelivered-Catchall / Invalid / Not Found; confidence when available",
+              "checked": null
+            },
+            {
+              "text": "DNS/SMTP/SPF/DMARC-based scoring",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/app/src/hooks/useEmailVerifierSingle.ts`, `backend(dev)/mailvetter/`, `contact360.io/api/sql/apis/15_EMAIL_MODULE.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 2.3 - Results Engine",
+      "level": 3,
+      "slug": "stage-23---results-engine",
+      "prose": "**Status:** Completed\n**Depends on:** Stages 2.1, 2.2\n**Risk:** UI inconsistency in status/confidence representation\n**Definition of done:** User sees best result plus auditable activity history\n**KPI:** Result view completion rate, user action-to-result latency\n**Ships in:** `2.0.0`\n\n- Show best email and status with confidence when available\n- Show logs of email validation\n- **Code pointers:** `contact360.io/app/src/components/email/EmailFinderSingle.tsx`, `contact360.io/app/src/components/email/EmailVerifierBulkResults.tsx`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Show best email and status with confidence when available",
+              "checked": null
+            },
+            {
+              "text": "Show logs of email validation",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/app/src/components/email/EmailFinderSingle.tsx`, `contact360.io/app/src/components/email/EmailVerifierBulkResults.tsx`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 2.4 - Bulk Processing — Validation",
+      "level": 3,
+      "slug": "stage-24---bulk-processing-validation",
+      "prose": "**Status:** In progress\n**Depends on:** Stages 2.1, 2.2, 2.3\n**Risk:** Partial failures in stream processors and resume flows\n**Definition of done:** Upload, async processing, checkpoint resume, and output retrieval are reliable\n**KPI:** Bulk job success rate, resume success rate, processing throughput\n**Ships in:** `2.1.0`\n\n- CSV upload (basic)\n- Streaming batch processing with checkpointing and multipart upload\n- Current concurrency in processors: finder stream = 3, verifier stream = 5\n- **Code pointers:** `contact360.io/app/src/hooks/useNewExport.ts`, `contact360.io/jobs/app/processors/email_finder_export_stream.py`, `contact360.io/jobs/app/processors/email_verify_export_stream.py`, `lambda/s3storage/docs/multipart_upload_guide.md`\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "CSV upload (basic)",
+              "checked": null
+            },
+            {
+              "text": "Streaming batch processing with checkpointing and multipart upload",
+              "checked": null
+            },
+            {
+              "text": "Current concurrency in processors: finder stream = 3, verifier stream = 5",
+              "checked": null
+            },
+            {
+              "text": "**Code pointers:** `contact360.io/app/src/hooks/useNewExport.ts`, `contact360.io/jobs/app/processors/email_finder_export_stream.py`, `contact360.io/jobs/app/processors/email_verify_export_stream.py`, `lambda/s3storage/docs/multipart_upload_guide.md`",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 3.x — Contact and Company Data System",
+      "level": 2,
+      "slug": "version-3x-contact-and-company-data-system",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 3.1 - Advanced search filters (VQL)",
+      "level": 3,
+      "slug": "stage-31---advanced-search-filters-vql",
+      "prose": "**Status:** Planned\n**Depends on:** Connectra index quality and VQL parser support\n**Risk:** Filter complexity causing query performance regressions\n**Definition of done:** Advanced contacts/companies filters are available and stable\n**KPI:** Filter query success and latency percentiles\n**Ships in:** `3.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 3.2 - Enrichment and deduplication",
+      "level": 3,
+      "slug": "stage-32---enrichment-and-deduplication",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 3.1\n**Risk:** Duplicate profiles and confidence mismatch in enrichment\n**Definition of done:** Enrichment quality improves with dedupe controls\n**KPI:** Duplicate reduction rate, enrichment completeness\n**Ships in:** `3.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 3.3 - Search quality and performance",
+      "level": 3,
+      "slug": "stage-33---search-quality-and-performance",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 3.1, 3.2\n**Risk:** Index refresh and relevance tuning instability\n**Definition of done:** Relevance and latency SLO targets are met\n**KPI:** Search precision proxy score and P95 response time\n**Ships in:** `3.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 3.4 - Dashboard search UX expansion",
+      "level": 3,
+      "slug": "stage-34---dashboard-search-ux-expansion",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 3.1, 3.3\n**Risk:** UI complexity reducing discoverability\n**Definition of done:** Advanced filtering flows are available in dashboard UX\n**KPI:** Filter usage rate and successful search-to-export conversions\n**Ships in:** `3.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 4.x — Extension and Sales Navigator Maturity",
+      "level": 2,
+      "slug": "version-4x-extension-and-sales-navigator-maturity",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 4.1 - Extension auth/session hardening",
+      "level": 3,
+      "slug": "stage-41---extension-authsession-hardening",
+      "prose": "**Status:** Planned\n**Depends on:** Appointment360 auth contracts\n**Risk:** Session expiry and token refresh failures in browser context\n**Definition of done:** Stable authenticated extension session lifecycle\n**KPI:** Extension auth failure rate\n**Ships in:** `4.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 4.2 - Sales Navigator ingestion optimization",
+      "level": 3,
+      "slug": "stage-42---sales-navigator-ingestion-optimization",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 4.1 and `salesnavigator` backend updates\n**Risk:** Source-side data variability\n**Definition of done:** Ingestion accuracy and throughput targets are met\n**KPI:** Records ingested per run, ingestion error rate\n**Ships in:** `4.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 4.3 - Sync integrity and conflict handling",
+      "level": 3,
+      "slug": "stage-43---sync-integrity-and-conflict-handling",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 4.1, 4.2\n**Risk:** Duplicate writes and state divergence\n**Definition of done:** Deterministic sync conflict handling is in place\n**KPI:** Sync conflict auto-resolution success rate\n**Ships in:** `4.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 4.4 - Extension telemetry and reliability",
+      "level": 3,
+      "slug": "stage-44---extension-telemetry-and-reliability",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 4.3 and `logs.api` integration\n**Risk:** Limited visibility into extension production failures\n**Definition of done:** Extension telemetry and error observability are production-ready\n**KPI:** Error triage time and telemetry coverage\n**Ships in:** `4.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 5.x — AI Workflows",
+      "level": 2,
+      "slug": "version-5x-ai-workflows",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 5.1 - Contact AI integration in dashboard journeys",
+      "level": 3,
+      "slug": "stage-51---contact-ai-integration-in-dashboard-journeys",
+      "prose": "**Status:** Planned\n**Depends on:** `contact.ai` API contracts and dashboard UX slots\n**Risk:** UX friction from uncertain AI output quality\n**Definition of done:** AI outputs are integrated into core user workflows\n**KPI:** AI-assisted action adoption rate\n**Ships in:** `5.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 5.2 - Confidence and explainability controls",
+      "level": 3,
+      "slug": "stage-52---confidence-and-explainability-controls",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 5.1\n**Risk:** Low trust if confidence/explanations are unclear\n**Definition of done:** Confidence and explanation metadata are exposed and usable\n**KPI:** AI-output acceptance rate\n**Ships in:** `5.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 5.3 - AI usage limits and cost controls",
+      "level": 3,
+      "slug": "stage-53---ai-usage-limits-and-cost-controls",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 1.2, 5.1\n**Risk:** Unbounded model usage cost\n**Definition of done:** Quotas and spending guardrails enforce expected limits\n**KPI:** AI cost per active user and quota breach rate\n**Ships in:** `5.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 5.4 - Prompt/version governance",
+      "level": 3,
+      "slug": "stage-54---promptversion-governance",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 5.1, 5.2\n**Risk:** Prompt drift and regressions in production behavior\n**Definition of done:** Prompt versioning and rollback governance are documented and operational\n**KPI:** Prompt rollback time and AI regression incident count\n**Ships in:** `5.0.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 6.x — Reliability and Scaling",
+      "level": 2,
+      "slug": "version-6x-reliability-and-scaling",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.1 - Reliability baseline and SLO definition",
+      "level": 3,
+      "slug": "stage-61---reliability-baseline-and-slo-definition",
+      "prose": "**Status:** Planned\n**Depends on:** Stable 5.x AI/core APIs\n**Risk:** Undefined reliability targets across services\n**Definition of done:** SLOs and reliability error budgets are documented and monitored\n**KPI:** SLO attainment rate\n**Ships in:** `6.1.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.2 - Idempotency and consistency hardening",
+      "level": 3,
+      "slug": "stage-62---idempotency-and-consistency-hardening",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.1\n**Risk:** Duplicate writes in billing, jobs, and sync paths\n**Definition of done:** All critical write paths enforce idempotency keys and reconciliation checks\n**KPI:** Duplicate side-effect incident count\n**Ships in:** `6.2.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.3 - Queue and worker resilience",
+      "level": 3,
+      "slug": "stage-63---queue-and-worker-resilience",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.2\n**Risk:** Queue lag and worker poison-message failures\n**Definition of done:** DLQ, replay, and retry controls are active for async workloads\n**KPI:** Queue lag P95, successful replay rate\n**Ships in:** `6.3.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.4 - Observability and diagnostics maturity",
+      "level": 3,
+      "slug": "stage-64---observability-and-diagnostics-maturity",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.3\n**Risk:** Slow incident triage without end-to-end telemetry\n**Definition of done:** Correlated logs/traces/alerts are available across critical paths\n**KPI:** Mean time to detect and resolve incidents\n**Ships in:** `6.4.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.5 - Performance optimization wave",
+      "level": 3,
+      "slug": "stage-65---performance-optimization-wave",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.4\n**Risk:** Throughput bottlenecks in gateway/search/bulk paths\n**Definition of done:** Top latency hotspots are tuned with measurable gains\n**KPI:** API P95 latency, throughput at steady load\n**Ships in:** `6.5.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.6 - Storage and artifact lifecycle hardening",
+      "level": 3,
+      "slug": "stage-66---storage-and-artifact-lifecycle-hardening",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.5\n**Risk:** Artifact corruption/orphans and retention drift\n**Definition of done:** Upload integrity, retention, and cleanup lifecycle are enforced\n**KPI:** Artifact integrity success rate\n**Ships in:** `6.6.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.7 - Cost reliability and budget guardrails",
+      "level": 3,
+      "slug": "stage-67---cost-reliability-and-budget-guardrails",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.6\n**Risk:** Uncontrolled cost growth under traffic spikes\n**Definition of done:** Cost guardrails and usage-based throttles are enforced\n**KPI:** Cost per active tenant/user\n**Ships in:** `6.7.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.8 - Security and abuse resilience at scale",
+      "level": 3,
+      "slug": "stage-68---security-and-abuse-resilience-at-scale",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.7\n**Risk:** Abuse and attack amplification as traffic grows\n**Definition of done:** Rate-limit and abuse protections are active and monitored\n**KPI:** Blocked abuse attempts without false-positive surge\n**Ships in:** `6.8.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 6.9 - Release candidate hardening for 7.0.0",
+      "level": 3,
+      "slug": "stage-69---release-candidate-hardening-for-700",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 6.1–6.8\n**Risk:** Regression risk before deployment era rollout\n**Definition of done:** Reliability RC tests and runbooks are signed off\n**KPI:** RC defect escape rate\n**Ships in:** `6.9.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 7.x — Deployment",
+      "level": 2,
+      "slug": "version-7x-deployment",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.1 - RBAC model and access control foundation",
+      "level": 3,
+      "slug": "stage-71---rbac-model-and-access-control-foundation",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 6.9\n**Risk:** Inconsistent authorization across surfaces\n**Definition of done:** Role hierarchy and permission matrix are enforced in gateway and UI\n**KPI:** Unauthorized access incident count\n**Ships in:** `7.1.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.2 - Service-level authorization enforcement",
+      "level": 3,
+      "slug": "stage-72---service-level-authorization-enforcement",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.1\n**Risk:** Internal service routes bypass policy checks\n**Definition of done:** Service-to-service policy checks are standardized\n**KPI:** Policy coverage across protected endpoints\n**Ships in:** `7.2.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.3 - Admin governance controls",
+      "level": 3,
+      "slug": "stage-73---admin-governance-controls",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.2\n**Risk:** High-impact admin actions without safeguards\n**Definition of done:** Admin approvals/reason codes/audit trails are enforced\n**KPI:** Audited admin action coverage\n**Ships in:** `7.3.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.4 - Audit and compliance event model",
+      "level": 3,
+      "slug": "stage-74---audit-and-compliance-event-model",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.3\n**Risk:** Missing forensic/compliance evidence\n**Definition of done:** Immutable audit event model and query/report flows exist\n**KPI:** Compliance evidence completeness\n**Ships in:** `7.4.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.5 - Data governance and lifecycle controls",
+      "level": 3,
+      "slug": "stage-75---data-governance-and-lifecycle-controls",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.4\n**Risk:** Retention/deletion policy drift across stores\n**Definition of done:** Data classification and lifecycle controls are operational\n**KPI:** Policy conformance rate\n**Ships in:** `7.5.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.6 - Tenant and policy isolation",
+      "level": 3,
+      "slug": "stage-76---tenant-and-policy-isolation",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.5\n**Risk:** Cross-tenant leakage or policy overlap\n**Definition of done:** Tenant isolation and policy scoping are validated end-to-end\n**KPI:** Tenant isolation test pass rate\n**Ships in:** `7.6.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.7 - Security posture and secrets hardening",
+      "level": 3,
+      "slug": "stage-77---security-posture-and-secrets-hardening",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.6\n**Risk:** Privileged access and secret management weakness\n**Definition of done:** Secret rotation and privileged controls are hardened\n**KPI:** Security control coverage\n**Ships in:** `7.7.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.8 - Deployment observability and enterprise reporting",
+      "level": 3,
+      "slug": "stage-78---deployment-observability-and-enterprise-reporting",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.7\n**Risk:** Limited visibility for enterprise admins and support\n**Definition of done:** Tenant-aware operational and governance reports are available\n**KPI:** Enterprise report completeness\n**Ships in:** `7.8.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 7.9 - Release candidate hardening for 8.0.0",
+      "level": 3,
+      "slug": "stage-79---release-candidate-hardening-for-800",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 7.1–7.8\n**Risk:** Governance regressions before API expansion\n**Definition of done:** Deployment era RC validation is complete\n**KPI:** RC audit/control failures\n**Ships in:** `7.9.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 8.x — Public and Private APIs and Endpoints",
+      "level": 2,
+      "slug": "version-8x-public-and-private-apis-and-endpoints",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.1 - Analytics taxonomy and event instrumentation",
+      "level": 3,
+      "slug": "stage-81---analytics-taxonomy-and-event-instrumentation",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 7.9\n**Risk:** Inconsistent metrics semantics across teams\n**Definition of done:** Canonical event/metric dictionary is adopted; core journeys emit correlated analytics events\n**KPI:** Schema conformance rate, instrumentation coverage on priority flows\n**Ships in:** `8.1.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.2 - Analytics ingestion hardening and data quality",
+      "level": 3,
+      "slug": "stage-82---analytics-ingestion-hardening-and-data-quality",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.1\n**Risk:** Event loss, duplication, and schema drift\n**Definition of done:** Reliable analytics ingestion with dedupe, DLQ, freshness, and quality controls\n**KPI:** Event ingestion success rate, data quality score\n**Ships in:** `8.2.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.3 - Private API contracts and service-to-service surface",
+      "level": 3,
+      "slug": "stage-83---private-api-contracts-and-service-to-service-surface",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.2\n**Risk:** Internal API drift and undocumented service contracts\n**Definition of done:** Private API baseline is documented, versioned, and tested\n**KPI:** Contract coverage and drift incidents\n**Ships in:** `8.3.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.4 - Public API minimum surface",
+      "level": 3,
+      "slug": "stage-84---public-api-minimum-surface",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.3\n**Risk:** Unstable external API behavior\n**Definition of done:** Stable read/write public API baseline is published and tested\n**KPI:** Public API success rate\n**Ships in:** `8.4.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.5 - API versioning and compatibility policy",
+      "level": 3,
+      "slug": "stage-85---api-versioning-and-compatibility-policy",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.4\n**Risk:** Breaking changes reaching partner consumers\n**Definition of done:** Versioning policy and deprecation gate are enforced; compatibility test suite is active\n**KPI:** Contract regression count per release\n**Ships in:** `8.5.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.6 - Webhook and event delivery platform v1",
+      "level": 3,
+      "slug": "stage-86---webhook-and-event-delivery-platform-v1",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.5\n**Risk:** Delivery failures and replay ambiguity\n**Definition of done:** Signed webhooks with retry, DLQ, and delivery tracking are operational\n**KPI:** Webhook delivery success rate\n**Ships in:** `8.6.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.7 - Partner identity and tenant-safe access",
+      "level": 3,
+      "slug": "stage-87---partner-identity-and-tenant-safe-access",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.6\n**Risk:** Over-permissioned or leaked partner credentials\n**Definition of done:** Scoped partner auth and tenant isolation controls are live\n**KPI:** Unauthorized partner access incidents\n**Ships in:** `8.7.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.8 - Analytics and reporting APIs",
+      "level": 3,
+      "slug": "stage-88---analytics-and-reporting-apis",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.7\n**Risk:** Low adoption of analytics features and slow export cycles\n**Definition of done:** User analytics views, admin analytics center, and scheduled reporting are operational\n**KPI:** Analytics dashboard usage rate and report success rate\n**Ships in:** `8.8.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 8.9 - Release candidate hardening for 9.0.0",
+      "level": 3,
+      "slug": "stage-89---release-candidate-hardening-for-900",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 8.1–8.8\n**Risk:** Breaking changes before ecosystem expansion\n**Definition of done:** API and analytics RC validation is complete\n**KPI:** RC partner regression count\n**Ships in:** `8.9.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 9.x — Ecosystem Integrations and Platform Productization",
+      "level": 2,
+      "slug": "version-9x-ecosystem-integrations-and-platform-productization",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.1 - Integration contract governance",
+      "level": 3,
+      "slug": "stage-91---integration-contract-governance",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 8.9\n**Risk:** API contract drift across partners\n**Definition of done:** Versioned integration contract governance is adopted\n**KPI:** Contract compatibility pass rate\n**Ships in:** `9.1.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.2 - Connector framework baseline",
+      "level": 3,
+      "slug": "stage-92---connector-framework-baseline",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.1\n**Risk:** Connector implementations diverge and become brittle\n**Definition of done:** Shared connector lifecycle and SDK baseline is defined\n**KPI:** Connector onboarding time\n**Ships in:** `9.2.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.3 - Integration observability and commercial controls",
+      "level": 3,
+      "slug": "stage-93---integration-observability-and-commercial-controls",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.2\n**Risk:** Slow partner issue triage and integration overuse without enforcement\n**Definition of done:** Integration health views, support actions, and plan quotas are active\n**KPI:** Partner issue MTTR, entitlement violation rate\n**Ships in:** `9.3.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.4 - Tenant platform model standardization",
+      "level": 3,
+      "slug": "stage-94---tenant-platform-model-standardization",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.3\n**Risk:** Tenant model inconsistencies across services\n**Definition of done:** Canonical tenant model and propagation are standardized\n**KPI:** Tenant context coverage\n**Ships in:** `9.4.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.5 - Self-serve workspace administration",
+      "level": 3,
+      "slug": "stage-95---self-serve-workspace-administration",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.4\n**Risk:** Support-heavy admin operations\n**Definition of done:** Tenant self-serve admin controls are operational\n**KPI:** Self-serve admin action completion rate\n**Ships in:** `9.5.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.6 - Plan entitlements and packaging engine",
+      "level": 3,
+      "slug": "stage-96---plan-entitlements-and-packaging-engine",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.5\n**Risk:** Inconsistent runtime enforcement of product plans\n**Definition of done:** Entitlement engine consistently gates capabilities\n**KPI:** Entitlement enforcement accuracy\n**Ships in:** `9.6.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.7 - SLA/SLO operations foundation",
+      "level": 3,
+      "slug": "stage-97---slaslo-operations-foundation",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.6\n**Risk:** Inability to prove service commitments\n**Definition of done:** SLA/SLO operational reporting and alerting are active\n**KPI:** SLA attainment rate\n**Ships in:** `9.7.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.8 - Cost governance and capacity forecasting",
+      "level": 3,
+      "slug": "stage-98---cost-governance-and-capacity-forecasting",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.7\n**Risk:** Capacity shortfalls and margin degradation\n**Definition of done:** Cost attribution and capacity forecasting controls are operational\n**KPI:** Forecast accuracy and cost variance\n**Ships in:** `9.8.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 9.9 - Release candidate hardening for 10.0.0",
+      "level": 3,
+      "slug": "stage-99---release-candidate-hardening-for-1000",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 9.1–9.8\n**Risk:** Ecosystem regressions before campaign era\n**Definition of done:** Ecosystem and productization RC checks are complete\n**KPI:** RC production-blocking issues\n**Ships in:** `9.9.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "VERSION 10.x — Email Campaign",
+      "level": 2,
+      "slug": "version-10x-email-campaign",
+      "prose": "",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 10.1 - Campaign foundation: entity model, policy gates, suppression, templates",
+      "level": 3,
+      "slug": "stage-101---campaign-foundation-entity-model-policy-gates-suppression-templates",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 9.9\n**Risk:** Policy and consent violations from unvalidated campaign sends\n**Definition of done:** Campaign and audience entities, consent/region/content/rate-limit policy gates, suppression lists, and template system are operational\n**KPI:** Policy gate coverage, suppression list accuracy\n**Ships in:** `10.1.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 10.2 - Campaign execution engine",
+      "level": 3,
+      "slug": "stage-102---campaign-execution-engine",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 10.1\n**Risk:** Duplicate sends from state machine failures or incomplete idempotency\n**Definition of done:** Campaign state machine is stable; idempotent send, retry semantics, and pause/resume are reliable\n**KPI:** Duplicate send rate, campaign completion rate\n**Ships in:** `10.2.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 10.3 - Campaign deliverability and safety",
+      "level": 3,
+      "slug": "stage-103---campaign-deliverability-and-safety",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 10.2\n**Risk:** High bounce rates and domain reputation degradation\n**Definition of done:** Pre-send verification (Mailvetter), bounce handling, domain warmup, and safety checks are active\n**KPI:** Bounce rate, inbox placement rate\n**Ships in:** `10.3.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 10.4 - Campaign observability, support bundles, and release automation",
+      "level": 3,
+      "slug": "stage-104---campaign-observability-support-bundles-and-release-automation",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 10.3\n**Risk:** Low visibility into campaign pipeline health and slow issue triage\n**Definition of done:** Campaign metrics, structured logging, feature flags, and canary rollout controls are available\n**KPI:** Mean time to detect campaign failures, feature flag coverage\n**Ships in:** `10.4.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 10.5 - Campaign commercial controls and compliance",
+      "level": 3,
+      "slug": "stage-105---campaign-commercial-controls-and-compliance",
+      "prose": "**Status:** Planned\n**Depends on:** Stage 10.4\n**Risk:** Unmetered send costs and PII/consent regulatory exposure\n**Definition of done:** Send metering, PII retention policies, opt-out auditing, and contract freeze are enforced\n**KPI:** Metering accuracy, opt-out audit completeness\n**Ships in:** `10.5.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 10.9 - Contract freeze and final campaign release governance",
+      "level": 3,
+      "slug": "stage-109---contract-freeze-and-final-campaign-release-governance",
+      "prose": "**Status:** Planned\n**Depends on:** Stages 10.1–10.5\n**Risk:** Late-breaking compliance and contract issues\n**Definition of done:** Campaign era governance baseline and long-term release process are signed off\n**KPI:** Final release readiness score\n**Ships in:** `10.9.0`\n\n---",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Feature-to-service traceability matrix",
+      "level": 2,
+      "slug": "feature-to-service-traceability-matrix",
+      "prose": "| Stage | Feature area | Services | UI surface | Data store | Ships in |\n| --- | --- | --- | --- | --- | --- |\n| 1.1 | Auth and onboarding | `appointment360` | `dashboard`, `extension/contact360` | PostgreSQL | `1.0.0` |\n| 1.2 | Credit management | `appointment360` | `dashboard` | PostgreSQL | `1.0.0` |\n| 1.3 | Billing and payments | `appointment360` | `dashboard` | PostgreSQL | `1.1.0` |\n| 1.4 | User analytics (minimal) | `appointment360`, `logs.api` | `dashboard` | PostgreSQL, S3 (CSV) | `1.2.0` |\n| 1.5 | Notifications | `appointment360` | `dashboard` | PostgreSQL | `1.2.0` |\n| 1.6 | Admin analytics/control | `docsai`, `logs.api`, `appointment360` | `docsai` | S3 (CSV), PostgreSQL | `1.2.0` |\n| 1.7 | Security baseline | `appointment360` and service middleware | `dashboard`, `extension/contact360` | N/A | `1.2.0` |\n| 2.1 | Email finder | `emailapis`, `emailapigo`, `appointment360` | `dashboard` | PostgreSQL, S3 | `2.0.0` |\n| 2.2 | Email verifier | `mailvetter`, `emailapis`, `appointment360` | `dashboard` | PostgreSQL | `2.0.0` |\n| 2.3 | Results engine | `appointment360` | `dashboard` | PostgreSQL | `2.0.0` |\n| 2.4 | Bulk processing | `email.server`, `sync.server`, `s3storage`, `emailapis`, `mailvetter` | `dashboard` | S3, PostgreSQL | `2.1.0` |\n| 3.1–3.4 | Contact/company data | `connectra`, `appointment360` | `dashboard` | Elasticsearch, PostgreSQL | `3.0.0` |\n| 4.1–4.4 | Extension and Sales Navigator | `salesnavigator`, `appointment360`, `logs.api` | `extension/contact360` | PostgreSQL, Elasticsearch, S3 (CSV) | `4.0.0` |\n| 5.1–5.4 | AI workflows | `contact.ai`, `appointment360` | `dashboard` | PostgreSQL | `5.0.0` |\n| 6.1–6.9 | Reliability and scaling | job satellites, `logs.api`, `s3storage`, `appointment360`, all core services | `dashboard`, `docsai`, `extension/contact360` | PostgreSQL, S3, Elasticsearch | `6.1.0`–`6.9.0` |\n| 7.1–7.9 | Deployment | `appointment360`, `docsai`, `logs.api`, all services | `dashboard`, `docsai`, `extension/contact360` | PostgreSQL, S3 (CSV) | `7.1.0`–`7.9.0` |\n| 8.1–8.9 | Public and private APIs | `appointment360`, `logs.api`, reporting pipelines | `dashboard`, `docsai`, external API consumers | PostgreSQL, S3, Elasticsearch | `8.1.0`–`8.9.0` |\n| 9.1–9.9 | Ecosystem integrations + productization | `appointment360`, `docsai`, entitlement/policy modules, integration adapters, all services | `dashboard`, `docsai`, `extension/contact360`, external consumers | PostgreSQL, S3, Elasticsearch | `9.1.0`–`9.9.0` |\n| 10.1–10.9 | Email campaign | `appointment360`, `emailapis`, `logs.api` | `dashboard`, `docsai` | PostgreSQL, S3, Elasticsearch | `10.1.0`–`10.9.0` |\n\n---",
+      "tables": [
+        {
+          "headers": [
+            "Stage",
+            "Feature area",
+            "Services",
+            "UI surface",
+            "Data store",
+            "Ships in"
+          ],
+          "rows": [
+            [
+              "1.1",
+              "Auth and onboarding",
+              "`appointment360`",
+              "`dashboard`, `extension/contact360`",
+              "PostgreSQL",
+              "`1.0.0`"
+            ],
+            [
+              "1.2",
+              "Credit management",
+              "`appointment360`",
+              "`dashboard`",
+              "PostgreSQL",
+              "`1.0.0`"
+            ],
+            [
+              "1.3",
+              "Billing and payments",
+              "`appointment360`",
+              "`dashboard`",
+              "PostgreSQL",
+              "`1.1.0`"
+            ],
+            [
+              "1.4",
+              "User analytics (minimal)",
+              "`appointment360`, `logs.api`",
+              "`dashboard`",
+              "PostgreSQL, S3 (CSV)",
+              "`1.2.0`"
+            ],
+            [
+              "1.5",
+              "Notifications",
+              "`appointment360`",
+              "`dashboard`",
+              "PostgreSQL",
+              "`1.2.0`"
+            ],
+            [
+              "1.6",
+              "Admin analytics/control",
+              "`docsai`, `logs.api`, `appointment360`",
+              "`docsai`",
+              "S3 (CSV), PostgreSQL",
+              "`1.2.0`"
+            ],
+            [
+              "1.7",
+              "Security baseline",
+              "`appointment360` and service middleware",
+              "`dashboard`, `extension/contact360`",
+              "N/A",
+              "`1.2.0`"
+            ],
+            [
+              "2.1",
+              "Email finder",
+              "`emailapis`, `emailapigo`, `appointment360`",
+              "`dashboard`",
+              "PostgreSQL, S3",
+              "`2.0.0`"
+            ],
+            [
+              "2.2",
+              "Email verifier",
+              "`mailvetter`, `emailapis`, `appointment360`",
+              "`dashboard`",
+              "PostgreSQL",
+              "`2.0.0`"
+            ],
+            [
+              "2.3",
+              "Results engine",
+              "`appointment360`",
+              "`dashboard`",
+              "PostgreSQL",
+              "`2.0.0`"
+            ],
+            [
+              "2.4",
+              "Bulk processing",
+              "`email.server`, `sync.server`, `s3storage`, `emailapis`, `mailvetter`",
+              "`dashboard`",
+              "S3, PostgreSQL",
+              "`2.1.0`"
+            ],
+            [
+              "3.1–3.4",
+              "Contact/company data",
+              "`connectra`, `appointment360`",
+              "`dashboard`",
+              "Elasticsearch, PostgreSQL",
+              "`3.0.0`"
+            ],
+            [
+              "4.1–4.4",
+              "Extension and Sales Navigator",
+              "`salesnavigator`, `appointment360`, `logs.api`",
+              "`extension/contact360`",
+              "PostgreSQL, Elasticsearch, S3 (CSV)",
+              "`4.0.0`"
+            ],
+            [
+              "5.1–5.4",
+              "AI workflows",
+              "`contact.ai`, `appointment360`",
+              "`dashboard`",
+              "PostgreSQL",
+              "`5.0.0`"
+            ],
+            [
+              "6.1–6.9",
+              "Reliability and scaling",
+              "job satellites, `logs.api`, `s3storage`, `appointment360`, all core services",
+              "`dashboard`, `docsai`, `extension/contact360`",
+              "PostgreSQL, S3, Elasticsearch",
+              "`6.1.0`–`6.9.0`"
+            ],
+            [
+              "7.1–7.9",
+              "Deployment",
+              "`appointment360`, `docsai`, `logs.api`, all services",
+              "`dashboard`, `docsai`, `extension/contact360`",
+              "PostgreSQL, S3 (CSV)",
+              "`7.1.0`–`7.9.0`"
+            ],
+            [
+              "8.1–8.9",
+              "Public and private APIs",
+              "`appointment360`, `logs.api`, reporting pipelines",
+              "`dashboard`, `docsai`, external API consumers",
+              "PostgreSQL, S3, Elasticsearch",
+              "`8.1.0`–`8.9.0`"
+            ],
+            [
+              "9.1–9.9",
+              "Ecosystem integrations + productization",
+              "`appointment360`, `docsai`, entitlement/policy modules, integration adapters, all services",
+              "`dashboard`, `docsai`, `extension/contact360`, external consumers",
+              "PostgreSQL, S3, Elasticsearch",
+              "`9.1.0`–`9.9.0`"
+            ],
+            [
+              "10.1–10.9",
+              "Email campaign",
+              "`appointment360`, `emailapis`, `logs.api`",
+              "`dashboard`, `docsai`",
+              "PostgreSQL, S3, Elasticsearch",
+              "`10.1.0`–`10.9.0`"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deep execution breakdown (small-task packs)",
+      "level": 2,
+      "slug": "deep-execution-breakdown-small-task-packs",
+      "prose": "Execution tracks used across all stages:\n\n- Contract track (API/schema/policy)\n- Service track (backend implementation)\n- Surface track (dashboard/extension/docsai)\n- Data/Ops track (storage, lineage, observability, release safety)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract track (API/schema/policy)",
+              "checked": null
+            },
+            {
+              "text": "Service track (backend implementation)",
+              "checked": null
+            },
+            {
+              "text": "Surface track (dashboard/extension/docsai)",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops track (storage, lineage, observability, release safety)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x → 2.x (User, billing, credit → Email system)",
+      "level": 3,
+      "slug": "1x-2x-user-billing-credit-email-system",
+      "prose": "- **1.3 Billing**\n  - Implement credit pack purchase mutations and payment state machine.\n  - Wire payment-proof submission and admin approval flows.\n- **1.4–1.7 Analytics/notifications/admin/security**\n  - Add user usage view and credit ledger display.\n  - Add low-credit warning component and payment success notification.\n  - Add admin credit/package management views in DocsAI.\n  - Add GraphQL rate-limit middleware for baseline abuse prevention.\n- **2.1 Finder**\n  - Ensure 10-pattern generation runs correctly and Go path routes heavy workloads.\n  - Validate credit deduction per finder call.\n- **2.2 Verifier**\n  - Ensure Mailvetter integration is reliable; add SPF/DMARC check coverage.\n  - Validate status normalization and confidence propagation.\n- **2.3 Results**\n  - Surface best result prominently with confidence metadata.\n  - Verify audit log entries for all verification events.\n- **2.4 Bulk**\n  - Harden streaming checkpoint and resume logic.\n  - Validate multipart S3 upload and output retrieval end-to-end.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**1.3 Billing**",
+              "checked": null
+            },
+            {
+              "text": "Implement credit pack purchase mutations and payment state machine.",
+              "checked": null
+            },
+            {
+              "text": "Wire payment-proof submission and admin approval flows.",
+              "checked": null
+            },
+            {
+              "text": "**1.4–1.7 Analytics/notifications/admin/security**",
+              "checked": null
+            },
+            {
+              "text": "Add user usage view and credit ledger display.",
+              "checked": null
+            },
+            {
+              "text": "Add low-credit warning component and payment success notification.",
+              "checked": null
+            },
+            {
+              "text": "Add admin credit/package management views in DocsAI.",
+              "checked": null
+            },
+            {
+              "text": "Add GraphQL rate-limit middleware for baseline abuse prevention.",
+              "checked": null
+            },
+            {
+              "text": "**2.1 Finder**",
+              "checked": null
+            },
+            {
+              "text": "Ensure 10-pattern generation runs correctly and Go path routes heavy workloads.",
+              "checked": null
+            },
+            {
+              "text": "Validate credit deduction per finder call.",
+              "checked": null
+            },
+            {
+              "text": "**2.2 Verifier**",
+              "checked": null
+            },
+            {
+              "text": "Ensure Mailvetter integration is reliable; add SPF/DMARC check coverage.",
+              "checked": null
+            },
+            {
+              "text": "Validate status normalization and confidence propagation.",
+              "checked": null
+            },
+            {
+              "text": "**2.3 Results**",
+              "checked": null
+            },
+            {
+              "text": "Surface best result prominently with confidence metadata.",
+              "checked": null
+            },
+            {
+              "text": "Verify audit log entries for all verification events.",
+              "checked": null
+            },
+            {
+              "text": "**2.4 Bulk**",
+              "checked": null
+            },
+            {
+              "text": "Harden streaming checkpoint and resume logic.",
+              "checked": null
+            },
+            {
+              "text": "Validate multipart S3 upload and output retrieval end-to-end.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x → 4.x (Contact/company data → Extension)",
+      "level": 3,
+      "slug": "3x-4x-contactcompany-data-extension",
+      "prose": "- **3.1 VQL/filters**\n  - Freeze filter taxonomy and validate VQL-to-ES query translation.\n  - Add performance regression tests for complex filter queries.\n- **3.2 Enrichment/dedupe**\n  - Tune merge-on-conflict rules and deterministic UUID assignment.\n  - Add deduplication quality metrics to observability.\n- **3.3 Search quality**\n  - Tune index refresh cycle and relevance scoring.\n  - Validate P95 latency targets against SLO.\n- **3.4 Search UX**\n  - Build advanced filter UI with saved-search capability.\n  - Add company drill-down and search-to-export conversion tracking.\n- **4.1–4.4 Extension**\n  - Harden token refresh and session expiry handling in extension context.\n  - Validate SN ingestion pipeline with dedup and conflict resolution.\n  - Add telemetry error shipping to logs.api and ingestion status UX.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**3.1 VQL/filters**",
+              "checked": null
+            },
+            {
+              "text": "Freeze filter taxonomy and validate VQL-to-ES query translation.",
+              "checked": null
+            },
+            {
+              "text": "Add performance regression tests for complex filter queries.",
+              "checked": null
+            },
+            {
+              "text": "**3.2 Enrichment/dedupe**",
+              "checked": null
+            },
+            {
+              "text": "Tune merge-on-conflict rules and deterministic UUID assignment.",
+              "checked": null
+            },
+            {
+              "text": "Add deduplication quality metrics to observability.",
+              "checked": null
+            },
+            {
+              "text": "**3.3 Search quality**",
+              "checked": null
+            },
+            {
+              "text": "Tune index refresh cycle and relevance scoring.",
+              "checked": null
+            },
+            {
+              "text": "Validate P95 latency targets against SLO.",
+              "checked": null
+            },
+            {
+              "text": "**3.4 Search UX**",
+              "checked": null
+            },
+            {
+              "text": "Build advanced filter UI with saved-search capability.",
+              "checked": null
+            },
+            {
+              "text": "Add company drill-down and search-to-export conversion tracking.",
+              "checked": null
+            },
+            {
+              "text": "**4.1–4.4 Extension**",
+              "checked": null
+            },
+            {
+              "text": "Harden token refresh and session expiry handling in extension context.",
+              "checked": null
+            },
+            {
+              "text": "Validate SN ingestion pipeline with dedup and conflict resolution.",
+              "checked": null
+            },
+            {
+              "text": "Add telemetry error shipping to logs.api and ingestion status UX.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x → 6.x (AI workflows → Reliability)",
+      "level": 3,
+      "slug": "5x-6x-ai-workflows-reliability",
+      "prose": "- **5.1–5.4 AI workflows**\n  - Integrate HF streaming client and Gemini utility paths.\n  - Add confidence/explanation fields to message contract.\n  - Enforce AI quota guardrails and prompt version controls.\n- **6.1–6.4 Reliability baseline**\n  - Define per-service SLOs and wire RED metrics middleware.\n  - Add idempotency keys to billing/bulk/sync write paths.\n  - Configure DLQ/replay for async job queues.\n  - Add correlated trace IDs and structured log shipping.\n- **6.5–6.9 Scaling and RC**\n  - Tune P95 latency hotspots; add S3 lifecycle rules.\n  - Set cost guardrails and mutation abuse guards.\n  - Run reliability RC smoke test suite before 7.0.0.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**5.1–5.4 AI workflows**",
+              "checked": null
+            },
+            {
+              "text": "Integrate HF streaming client and Gemini utility paths.",
+              "checked": null
+            },
+            {
+              "text": "Add confidence/explanation fields to message contract.",
+              "checked": null
+            },
+            {
+              "text": "Enforce AI quota guardrails and prompt version controls.",
+              "checked": null
+            },
+            {
+              "text": "**6.1–6.4 Reliability baseline**",
+              "checked": null
+            },
+            {
+              "text": "Define per-service SLOs and wire RED metrics middleware.",
+              "checked": null
+            },
+            {
+              "text": "Add idempotency keys to billing/bulk/sync write paths.",
+              "checked": null
+            },
+            {
+              "text": "Configure DLQ/replay for async job queues.",
+              "checked": null
+            },
+            {
+              "text": "Add correlated trace IDs and structured log shipping.",
+              "checked": null
+            },
+            {
+              "text": "**6.5–6.9 Scaling and RC**",
+              "checked": null
+            },
+            {
+              "text": "Tune P95 latency hotspots; add S3 lifecycle rules.",
+              "checked": null
+            },
+            {
+              "text": "Set cost guardrails and mutation abuse guards.",
+              "checked": null
+            },
+            {
+              "text": "Run reliability RC smoke test suite before 7.0.0.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x (Deployment)",
+      "level": 3,
+      "slug": "7x-deployment",
+      "prose": "- **7.1–7.4 RBAC and governance**\n  - Enforce role hierarchy in gateway and UI permission checks.\n  - Standardize service-to-service auth controls.\n  - Add admin approval flows and audit event emission.\n- **7.5–7.9 Security and RC**\n  - Enforce data lifecycle and retention policies.\n  - Validate tenant isolation end-to-end.\n  - Harden secret rotation and privileged access controls.\n  - Run deployment RC gate before 8.0.0.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**7.1–7.4 RBAC and governance**",
+              "checked": null
+            },
+            {
+              "text": "Enforce role hierarchy in gateway and UI permission checks.",
+              "checked": null
+            },
+            {
+              "text": "Standardize service-to-service auth controls.",
+              "checked": null
+            },
+            {
+              "text": "Add admin approval flows and audit event emission.",
+              "checked": null
+            },
+            {
+              "text": "**7.5–7.9 Security and RC**",
+              "checked": null
+            },
+            {
+              "text": "Enforce data lifecycle and retention policies.",
+              "checked": null
+            },
+            {
+              "text": "Validate tenant isolation end-to-end.",
+              "checked": null
+            },
+            {
+              "text": "Harden secret rotation and privileged access controls.",
+              "checked": null
+            },
+            {
+              "text": "Run deployment RC gate before 8.0.0.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x (Public and private APIs)",
+      "level": 3,
+      "slug": "8x-public-and-private-apis",
+      "prose": "- **8.1–8.3 Analytics and private API**\n  - Freeze event taxonomy and instrument core user journeys.\n  - Add analytics ingestion DLQ and quality checks.\n  - Document and version internal service API contracts.\n- **8.4–8.7 Public APIs and webhooks**\n  - Ship public GraphQL/REST endpoints with rate controls.\n  - Enforce versioning policy and breaking-change gates.\n  - Implement signed webhook delivery and retry.\n  - Add partner auth scopes and tenant-safe credentials.\n- **8.8–8.9 Analytics APIs and RC**\n  - Build analytics views and scheduled reporting endpoints.\n  - Run API compatibility and reliability RC tests before 9.0.0.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**8.1–8.3 Analytics and private API**",
+              "checked": null
+            },
+            {
+              "text": "Freeze event taxonomy and instrument core user journeys.",
+              "checked": null
+            },
+            {
+              "text": "Add analytics ingestion DLQ and quality checks.",
+              "checked": null
+            },
+            {
+              "text": "Document and version internal service API contracts.",
+              "checked": null
+            },
+            {
+              "text": "**8.4–8.7 Public APIs and webhooks**",
+              "checked": null
+            },
+            {
+              "text": "Ship public GraphQL/REST endpoints with rate controls.",
+              "checked": null
+            },
+            {
+              "text": "Enforce versioning policy and breaking-change gates.",
+              "checked": null
+            },
+            {
+              "text": "Implement signed webhook delivery and retry.",
+              "checked": null
+            },
+            {
+              "text": "Add partner auth scopes and tenant-safe credentials.",
+              "checked": null
+            },
+            {
+              "text": "**8.8–8.9 Analytics APIs and RC**",
+              "checked": null
+            },
+            {
+              "text": "Build analytics views and scheduled reporting endpoints.",
+              "checked": null
+            },
+            {
+              "text": "Run API compatibility and reliability RC tests before 9.0.0.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x (Ecosystem integrations + productization)",
+      "level": 3,
+      "slug": "9x-ecosystem-integrations-productization",
+      "prose": "- **9.1–9.3 Connectors and governance**\n  - Define versioned integration contract policy.\n  - Build connector SDK and lifecycle validation harness.\n  - Add integration health dashboards and quota enforcement.\n- **9.4–9.9 Productization**\n  - Standardize tenant identity propagation.\n  - Build self-serve admin workspace controls.\n  - Centralize entitlement engine and plan packaging.\n  - Define SLA indicators and operational reporting.\n  - Add cost/capacity forecasting controls.\n  - Run productization RC gate before 10.0.0.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**9.1–9.3 Connectors and governance**",
+              "checked": null
+            },
+            {
+              "text": "Define versioned integration contract policy.",
+              "checked": null
+            },
+            {
+              "text": "Build connector SDK and lifecycle validation harness.",
+              "checked": null
+            },
+            {
+              "text": "Add integration health dashboards and quota enforcement.",
+              "checked": null
+            },
+            {
+              "text": "**9.4–9.9 Productization**",
+              "checked": null
+            },
+            {
+              "text": "Standardize tenant identity propagation.",
+              "checked": null
+            },
+            {
+              "text": "Build self-serve admin workspace controls.",
+              "checked": null
+            },
+            {
+              "text": "Centralize entitlement engine and plan packaging.",
+              "checked": null
+            },
+            {
+              "text": "Define SLA indicators and operational reporting.",
+              "checked": null
+            },
+            {
+              "text": "Add cost/capacity forecasting controls.",
+              "checked": null
+            },
+            {
+              "text": "Run productization RC gate before 10.0.0.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x (Email campaign)",
+      "level": 3,
+      "slug": "10x-email-campaign",
+      "prose": "- **10.1–10.2 Campaign foundation and execution**\n  - Define campaign/audience entity schemas and policy gate rules.\n  - Build suppression list management and template system.\n  - Implement campaign state machine with idempotent send and retry.\n- **10.3–10.5 Deliverability, observability, and compliance**\n  - Integrate Mailvetter pre-send verification and bounce handling.\n  - Add campaign metrics, structured logging, and feature flags.\n  - Enforce send metering, PII retention, and opt-out auditing.\n- **10.9 RC**\n  - Freeze campaign contract schemas and compliance controls.\n  - Run final governance readiness review and sign-off.\n\n---\n\n*This document is product documentation. The DocsAI roadmap UI uses a hardcoded mirror that must remain synchronized with this file.*",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "**10.1–10.2 Campaign foundation and execution**",
+              "checked": null
+            },
+            {
+              "text": "Define campaign/audience entity schemas and policy gate rules.",
+              "checked": null
+            },
+            {
+              "text": "Build suppression list management and template system.",
+              "checked": null
+            },
+            {
+              "text": "Implement campaign state machine with idempotent send and retry.",
+              "checked": null
+            },
+            {
+              "text": "**10.3–10.5 Deliverability, observability, and compliance**",
+              "checked": null
+            },
+            {
+              "text": "Integrate Mailvetter pre-send verification and bounce handling.",
+              "checked": null
+            },
+            {
+              "text": "Add campaign metrics, structured logging, and feature flags.",
+              "checked": null
+            },
+            {
+              "text": "Enforce send metering, PII retention, and opt-out auditing.",
+              "checked": null
+            },
+            {
+              "text": "**10.9 RC**",
+              "checked": null
+            },
+            {
+              "text": "Freeze campaign contract schemas and compliance controls.",
+              "checked": null
+            },
+            {
+              "text": "Run final governance readiness review and sign-off.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Stage 10 service-level code pointers",
+      "level": 3,
+      "slug": "stage-10-service-level-code-pointers",
+      "prose": "- campaigns\n- sequences\n- templates\n- workers\n- analytics",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "campaigns",
+              "checked": null
+            },
+            {
+              "text": "sequences",
+              "checked": null
+            },
+            {
+              "text": "templates",
+              "checked": null
+            },
+            {
+              "text": "workers",
+              "checked": null
+            },
+            {
+              "text": "analytics",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Documentation completeness gates",
+      "level": 2,
+      "slug": "documentation-completeness-gates",
+      "prose": "For each stage transition to `in_progress` or `completed`, verify all of the following:\n\n- Matching release entry exists in `docs/versions.md` with identical roadmap IDs.\n- Matching per-minor file exists in `docs/versions/version_*.md` with the six mandatory scope sections.\n- API modules and frontend surfaces in stage text map to `docs/backend/apis/` and `docs/frontend/pages/` inventories.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Matching release entry exists in `docs/versions.md` with identical roadmap IDs.",
+              "checked": null
+            },
+            {
+              "text": "Matching per-minor file exists in `docs/versions/version_*.md` with the six mandatory scope sections.",
+              "checked": null
+            },
+            {
+              "text": "API modules and frontend surfaces in stage text map to `docs/backend/apis/` and `docs/frontend/pages/` inventories.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "s3storage cross-era execution stream",
+      "level": 2,
+      "slug": "s3storage-cross-era-execution-stream",
+      "prose": "Use this stream to keep storage delivery synchronized with major-era goals.",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "0.x foundation",
+      "level": 3,
+      "slug": "0x-foundation",
+      "prose": "- Contract: finalize base upload/list/download + analysis endpoint semantics.\n- Service: stabilize backend abstraction (`s3` and `filesystem` parity).\n- Ops: baseline smoke checks and deployment diagnostics.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: finalize base upload/list/download + analysis endpoint semantics.",
+              "checked": null
+            },
+            {
+              "text": "Service: stabilize backend abstraction (`s3` and `filesystem` parity).",
+              "checked": null
+            },
+            {
+              "text": "Ops: baseline smoke checks and deployment diagnostics.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "1.x user/billing/credit",
+      "level": 3,
+      "slug": "1x-userbillingcredit",
+      "prose": "- Contract: define object-class policies for avatar/photo/proof/resume files.\n- Service: enforce per-path content validation and secure defaults.\n- Data/Ops: add actor/source fields and upload abuse monitoring.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: define object-class policies for avatar/photo/proof/resume files.",
+              "checked": null
+            },
+            {
+              "text": "Service: enforce per-path content validation and secure defaults.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: add actor/source fields and upload abuse monitoring.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "2.x email system",
+      "level": 3,
+      "slug": "2x-email-system",
+      "prose": "- Contract: freeze multipart protocol and retry semantics.\n- Service: durable multipart session state; retry-safe complete/abort.\n- Data/Ops: metadata freshness SLA and bulk-path failure recovery checks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: freeze multipart protocol and retry semantics.",
+              "checked": null
+            },
+            {
+              "text": "Service: durable multipart session state; retry-safe complete/abort.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: metadata freshness SLA and bulk-path failure recovery checks.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "3.x contact/company data",
+      "level": 3,
+      "slug": "3x-contactcompany-data",
+      "prose": "- Contract: ingestion artifact naming/versioning.\n- Service: robust schema/stats/preview behavior for large CSVs.\n- Data/Ops: upload-to-ingestion lineage evidence.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: ingestion artifact naming/versioning.",
+              "checked": null
+            },
+            {
+              "text": "Service: robust schema/stats/preview behavior for large CSVs.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: upload-to-ingestion lineage evidence.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "4.x extension maturity",
+      "level": 3,
+      "slug": "4x-extension-maturity",
+      "prose": "- Contract: extension-safe storage policies and URL lifetimes.\n- Service: channel-aware access and provenance markers.\n- Data/Ops: extension upload reliability telemetry.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: extension-safe storage policies and URL lifetimes.",
+              "checked": null
+            },
+            {
+              "text": "Service: channel-aware access and provenance markers.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: extension upload reliability telemetry.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "5.x AI workflows",
+      "level": 3,
+      "slug": "5x-ai-workflows",
+      "prose": "- Contract: AI artifact type/retention policy.\n- Service: AI artifact guardrails and retrieval constraints.\n- Data/Ops: model-run to source-file lineage traceability.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: AI artifact type/retention policy.",
+              "checked": null
+            },
+            {
+              "text": "Service: AI artifact guardrails and retrieval constraints.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: model-run to source-file lineage traceability.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "6.x reliability and scaling",
+      "level": 3,
+      "slug": "6x-reliability-and-scaling",
+      "prose": "- Contract: idempotency and SLO definitions for storage lifecycle.\n- Service: metadata write concurrency safety and reconciliation utilities.\n- Data/Ops: storage SLO dashboards and incident runbooks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: idempotency and SLO definitions for storage lifecycle.",
+              "checked": null
+            },
+            {
+              "text": "Service: metadata write concurrency safety and reconciliation utilities.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: storage SLO dashboards and incident runbooks.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "7.x deployment",
+      "level": 3,
+      "slug": "7x-deployment",
+      "prose": "- Contract: service authz and retention/deletion policy contract.\n- Service: endpoint auth hardening and environment-driven worker routing.\n- Data/Ops: compliance evidence and governance controls.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: service authz and retention/deletion policy contract.",
+              "checked": null
+            },
+            {
+              "text": "Service: endpoint auth hardening and environment-driven worker routing.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: compliance evidence and governance controls.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "8.x public/private APIs",
+      "level": 3,
+      "slug": "8x-publicprivate-apis",
+      "prose": "- Contract: versioned storage endpoint policy and lifecycle event envelope.\n- Service: partner-safe event delivery/replay behavior.\n- Data/Ops: API compatibility and reliability regression gates.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: versioned storage endpoint policy and lifecycle event envelope.",
+              "checked": null
+            },
+            {
+              "text": "Service: partner-safe event delivery/replay behavior.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: API compatibility and reliability regression gates.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "9.x ecosystem/productization",
+      "level": 3,
+      "slug": "9x-ecosystemproductization",
+      "prose": "- Contract: plan entitlements and quota policy for storage operations.\n- Service: tenant throttling and quota enforcement.\n- Data/Ops: cost attribution and residency overlays.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: plan entitlements and quota policy for storage operations.",
+              "checked": null
+            },
+            {
+              "text": "Service: tenant throttling and quota enforcement.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: cost attribution and residency overlays.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "10.x email campaign",
+      "level": 3,
+      "slug": "10x-email-campaign",
+      "prose": "- Contract: campaign artifact reproducibility/compliance contract.\n- Service: immutable evidence paths for compliance-critical artifacts.\n- Data/Ops: campaign audit bundles and long-term retention checks.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Contract: campaign artifact reproducibility/compliance contract.",
+              "checked": null
+            },
+            {
+              "text": "Service: immutable evidence paths for compliance-critical artifacts.",
+              "checked": null
+            },
+            {
+              "text": "Data/Ops: campaign audit bundles and long-term retention checks.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era task-pack links",
+      "level": 3,
+      "slug": "era-task-pack-links",
+      "prose": "- `docs/0. Foundation and pre-product stabilization and codebase setup/0.5 — Object storage plane.md` (patches `0.5.0`–`0.5.9`)\n- `docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `s3storage-user-billing-task-pack.md` merged)\n- `docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `s3storage-email-system-task-pack.md` merged)\n- `docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `s3storage-contact-company-task-pack.md` merged)\n- `docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `s3storage-extension-sn-task-pack.md` merged)\n- `docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `s3storage-ai-task-pack.md` merged)\n- `docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-reliability-scaling-task-pack.md` merged)\n- `docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-deployment-task-pack.md` merged)\n- `docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-api-endpoint-task-pack.md` merged)\n- `docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-ecosystem-productization-task-pack.md` merged)\n- `docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-email-campaign-task-pack.md` merged)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/0. Foundation and pre-product stabilization and codebase setup/0.5 — Object storage plane.md` (patches `0.5.0`–`0.5.9`)",
+              "checked": null
+            },
+            {
+              "text": "`docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `s3storage-user-billing-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `s3storage-email-system-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `s3storage-contact-company-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `s3storage-extension-sn-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `s3storage-ai-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-reliability-scaling-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-deployment-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-api-endpoint-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-ecosystem-productization-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `s3storage-email-campaign-task-pack.md` merged)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "logs.api cross-era execution stream",
+      "level": 2,
+      "slug": "logsapi-cross-era-execution-stream",
+      "prose": "- `0.x`: bootstrap logging baseline and health contract.\n- `1.x`: user, auth, billing, and credit operational event lineage.\n- `2.x`: email workflow and bulk processing telemetry at scale.\n- `3.x`: data-enrichment/search support diagnostics.\n- `4.x`: extension and SN ingestion telemetry provenance.\n- `5.x`: AI workflow observability and cost/quality telemetry.\n- `6.x`: reliability SLO/error-budget evidence from logging.\n- `7.x`: deployment and governance audit trail maturity.\n- `8.x`: public/private API observability and compatibility signals.\n- `9.x`: ecosystem integration tenant-level governance evidence.\n- `10.x`: campaign execution/compliance audit immutability.\n\nEra task-pack links: **8.x** — `docs/8. Contact360 public and private apis and endpoints/` patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `logsapi-public-private-apis-task-pack.md` merged). **9.x** — `docs/9. Contact360 Ecosystem integrations and Platform productization/` patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `logsapi-ecosystem-productization-task-pack.md` merged). **10.x** — `docs/10. Contact360 email campaign/` patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `logsapi-email-campaign-task-pack.md` merged). Other eras: see `docs/0...10/*logsapi*-task-pack.md` where published.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`0.x`: bootstrap logging baseline and health contract.",
+              "checked": null
+            },
+            {
+              "text": "`1.x`: user, auth, billing, and credit operational event lineage.",
+              "checked": null
+            },
+            {
+              "text": "`2.x`: email workflow and bulk processing telemetry at scale.",
+              "checked": null
+            },
+            {
+              "text": "`3.x`: data-enrichment/search support diagnostics.",
+              "checked": null
+            },
+            {
+              "text": "`4.x`: extension and SN ingestion telemetry provenance.",
+              "checked": null
+            },
+            {
+              "text": "`5.x`: AI workflow observability and cost/quality telemetry.",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: reliability SLO/error-budget evidence from logging.",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: deployment and governance audit trail maturity.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: public/private API observability and compatibility signals.",
+              "checked": null
+            },
+            {
+              "text": "`9.x`: ecosystem integration tenant-level governance evidence.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: campaign execution/compliance audit immutability.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "jobs cross-era execution stream",
+      "level": 2,
+      "slug": "jobs-cross-era-execution-stream",
+      "prose": "- `0.x`: scheduler foundation (API + scheduler + worker baseline).\n- `1.x`: billing/credit-aware job governance and ownership checks.\n- `2.x`: email finder/verify/pattern stream processors.\n- `3.x`: Contact360 import/export stream processors + VQL validation.\n- `4.x`: extension/SN provenance and sync jobs.\n- `5.x`: AI batch processor and cost-confidence metadata.\n- `6.x`: reliability hardening (idempotency, retry/DLQ, stale recovery).\n- `7.x`: role-aware authz, retention, and audit controls.\n- `8.x`: versioned API and webhook callback maturity.\n- `9.x`: tenant quota, isolation, and entitlement scheduling.\n- `10.x`: campaign compliance bundles and strict idempotency.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`0.x`: scheduler foundation (API + scheduler + worker baseline).",
+              "checked": null
+            },
+            {
+              "text": "`1.x`: billing/credit-aware job governance and ownership checks.",
+              "checked": null
+            },
+            {
+              "text": "`2.x`: email finder/verify/pattern stream processors.",
+              "checked": null
+            },
+            {
+              "text": "`3.x`: Contact360 import/export stream processors + VQL validation.",
+              "checked": null
+            },
+            {
+              "text": "`4.x`: extension/SN provenance and sync jobs.",
+              "checked": null
+            },
+            {
+              "text": "`5.x`: AI batch processor and cost-confidence metadata.",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: reliability hardening (idempotency, retry/DLQ, stale recovery).",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: role-aware authz, retention, and audit controls.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: versioned API and webhook callback maturity.",
+              "checked": null
+            },
+            {
+              "text": "`9.x`: tenant quota, isolation, and entitlement scheduling.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: campaign compliance bundles and strict idempotency.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era task-pack links",
+      "level": 3,
+      "slug": "era-task-pack-links",
+      "prose": "- `docs/0. Foundation and pre-product stabilization and codebase setup/0.6 — Async job spine.md` (patches `0.6.0`–`0.6.9`)\n- `docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `jobs-user-billing-task-pack.md` merged)\n- `docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `jobs-email-system-task-pack.md` merged)\n- `docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `jobs-contact-company-task-pack.md` merged)\n- `docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `jobs-extension-sn-task-pack.md` merged)\n- `docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `jobs-ai-workflows-task-pack.md` merged)\n- `docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-reliability-scaling-task-pack.md` merged)\n- `docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-deployment-task-pack.md` merged)\n- `docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-public-private-apis-task-pack.md` merged)\n- `docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-ecosystem-productization-task-pack.md` merged)\n- `docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-email-campaign-task-pack.md` merged)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/0. Foundation and pre-product stabilization and codebase setup/0.6 — Async job spine.md` (patches `0.6.0`–`0.6.9`)",
+              "checked": null
+            },
+            {
+              "text": "`docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `jobs-user-billing-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `jobs-email-system-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `jobs-contact-company-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `jobs-extension-sn-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `jobs-ai-workflows-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-reliability-scaling-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-deployment-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-public-private-apis-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-ecosystem-productization-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `jobs-email-campaign-task-pack.md` merged)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "contact.ai cross-era execution stream",
+      "level": 2,
+      "slug": "contactai-cross-era-execution-stream",
+      "prose": "- `0.x`: FastAPI Lambda skeleton + `ai_chats` DDL baseline; health endpoints; CI probe.\n- `1.x`: `user_id` FK integrity; user-deletion cascade strategy; IAM hardening.\n- `2.x`: `analyzeEmailRisk` contract lock; HF JSON task for email scoring; PII review.\n- `3.x`: `parseContactFilters` + `generateCompanySummary` aligned with Connectra VQL taxonomy.\n- `4.x`: SN contact object compatibility in `messages.contacts[]` JSONB; extension CSP.\n- `5.x`: ALL contact.ai features live — full chat CRUD, sync + SSE message send, all utility endpoints, `ModelSelection` shim.\n- `6.x`: SLO tuning, SSE reliability, chat TTL, optimistic lock, distributed tracing.\n- `7.x`: RBAC, per-tenant API keys, GDPR erasure cascade, audit log to `logs.api`.\n- `8.x`: Rate limit headers, scoped API keys, usage tracking, API quota in settings UI.\n- `9.x`: Webhook AI delivery, ecosystem connector adapter, integration panel.\n- `10.x`: Campaign AI generation endpoint (`/api/v1/ai/email/generate`), `campaign_ai_log` compliance table.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`0.x`: FastAPI Lambda skeleton + `ai_chats` DDL baseline; health endpoints; CI probe.",
+              "checked": null
+            },
+            {
+              "text": "`1.x`: `user_id` FK integrity; user-deletion cascade strategy; IAM hardening.",
+              "checked": null
+            },
+            {
+              "text": "`2.x`: `analyzeEmailRisk` contract lock; HF JSON task for email scoring; PII review.",
+              "checked": null
+            },
+            {
+              "text": "`3.x`: `parseContactFilters` + `generateCompanySummary` aligned with Connectra VQL taxonomy.",
+              "checked": null
+            },
+            {
+              "text": "`4.x`: SN contact object compatibility in `messages.contacts[]` JSONB; extension CSP.",
+              "checked": null
+            },
+            {
+              "text": "`5.x`: ALL contact.ai features live — full chat CRUD, sync + SSE message send, all utility endpoints, `ModelSelection` shim.",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: SLO tuning, SSE reliability, chat TTL, optimistic lock, distributed tracing.",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: RBAC, per-tenant API keys, GDPR erasure cascade, audit log to `logs.api`.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: Rate limit headers, scoped API keys, usage tracking, API quota in settings UI.",
+              "checked": null
+            },
+            {
+              "text": "`9.x`: Webhook AI delivery, ecosystem connector adapter, integration panel.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: Campaign AI generation endpoint (`/api/v1/ai/email/generate`), `campaign_ai_log` compliance table.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era task-pack links (contact.ai)",
+      "level": 3,
+      "slug": "era-task-pack-links-contactai",
+      "prose": "- `docs/0. Foundation and pre-product stabilization and codebase setup/0.2 — Schema & migration bedrock.md` / `0.3 — Service mesh contracts.md` / `0.10 — Ship & ops hardening.md` (contact.ai slices per patch)\n- `docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `contact-ai-user-billing-task-pack.md` merged)\n- `docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `contact-ai-email-system-task-pack.md` merged)\n- `docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `contact-ai-contact-company-task-pack.md` merged)\n- `docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `contact-ai-extension-sn-task-pack.md` merged)\n- `docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `contact-ai-ai-workflows-task-pack.md` merged)\n- `docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-reliability-scaling-task-pack.md` merged)\n- `docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-deployment-task-pack.md` merged)\n- `docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-public-private-apis-task-pack.md` merged)\n- `docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-ecosystem-productization-task-pack.md` merged)\n- `docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-email-campaign-task-pack.md` merged)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/0. Foundation and pre-product stabilization and codebase setup/0.2 — Schema & migration bedrock.md` / `0.3 — Service mesh contracts.md` / `0.10 — Ship & ops hardening.md` (contact.ai slices per patch)",
+              "checked": null
+            },
+            {
+              "text": "`docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `contact-ai-user-billing-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `contact-ai-email-system-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `contact-ai-contact-company-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `contact-ai-extension-sn-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `contact-ai-ai-workflows-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-reliability-scaling-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-deployment-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-public-private-apis-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-ecosystem-productization-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `contact-ai-email-campaign-task-pack.md` merged)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "salesnavigator cross-era execution stream",
+      "level": 2,
+      "slug": "salesnavigator-cross-era-execution-stream",
+      "prose": "- `0.x`: FastAPI+Mangum scaffold; `GET /v1/health`; SAM baseline; UUID5 deterministic contract defined.\n- `1.x`: Actor context headers (`X-User-ID`/`X-Org-ID`) pass-through; billing event stub; secret rotation.\n- `2.x`: Email/phone field validation; enrichment queue handoff stub; `email_status` preservation.\n- `3.x`: Full `mappers.py` locked; provenance fields (`source=sales_navigator`, `lead_id`, `search_id`, `connection_degree`) written to Connectra.\n- `4.x`: PRIMARY DELIVERY — HTML extraction hardened; full extension popup UX; docs drift fixed; `data_quality_score`, `recently_hired`, `is_premium` surfaced.\n- `5.x`: AI-ready field quality gates (`seniority`, `departments`, `about`); `data_quality_score` indexed for AI VQL filters.\n- `6.x`: Rate limiter; chunk idempotency tokens; CORS hardened; `X-Request-ID`; p95 SLO targets; load tests.\n- `7.x`: Per-tenant API keys; immutable audit event per save session; GDPR cascade via Connectra; RBAC gates.\n- `8.x`: `X-RateLimit-*` headers; `Retry-After`; usage counters in `api_usage`; versioned path alignment.\n- `9.x`: Connector adapter layer; webhook delivery of ingest results; tenant-isolated lineage.\n- `10.x`: Campaign audience provenance — `lead_id`/`search_id` carried to campaign records; suppression non-overwrite guard.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`0.x`: FastAPI+Mangum scaffold; `GET /v1/health`; SAM baseline; UUID5 deterministic contract defined.",
+              "checked": null
+            },
+            {
+              "text": "`1.x`: Actor context headers (`X-User-ID`/`X-Org-ID`) pass-through; billing event stub; secret rotation.",
+              "checked": null
+            },
+            {
+              "text": "`2.x`: Email/phone field validation; enrichment queue handoff stub; `email_status` preservation.",
+              "checked": null
+            },
+            {
+              "text": "`3.x`: Full `mappers.py` locked; provenance fields (`source=sales_navigator`, `lead_id`, `search_id`, `connection_degree`) written to Connectra.",
+              "checked": null
+            },
+            {
+              "text": "`4.x`: PRIMARY DELIVERY — HTML extraction hardened; full extension popup UX; docs drift fixed; `data_quality_score`, `recently_hired`, `is_premium` surfaced.",
+              "checked": null
+            },
+            {
+              "text": "`5.x`: AI-ready field quality gates (`seniority`, `departments`, `about`); `data_quality_score` indexed for AI VQL filters.",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: Rate limiter; chunk idempotency tokens; CORS hardened; `X-Request-ID`; p95 SLO targets; load tests.",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: Per-tenant API keys; immutable audit event per save session; GDPR cascade via Connectra; RBAC gates.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: `X-RateLimit-*` headers; `Retry-After`; usage counters in `api_usage`; versioned path alignment.",
+              "checked": null
+            },
+            {
+              "text": "`9.x`: Connector adapter layer; webhook delivery of ingest results; tenant-isolated lineage.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: Campaign audience provenance — `lead_id`/`search_id` carried to campaign records; suppression non-overwrite guard.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era task-pack links (salesnavigator)",
+      "level": 3,
+      "slug": "era-task-pack-links-salesnavigator",
+      "prose": "- `docs/0. Foundation and pre-product stabilization and codebase setup/0.9 — Extension channel scaffold.md` (patches `0.9.0`–`0.9.9`)\n- `docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `salesnavigator-user-billing-task-pack.md` merged)\n- `docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `salesnavigator-email-system-task-pack.md` merged)\n- `docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `salesnavigator-contact-company-task-pack.md` merged)\n- `docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `salesnavigator-extension-sn-task-pack.md` merged)\n- `docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `salesnavigator-ai-workflows-task-pack.md` merged)\n- `docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-reliability-scaling-task-pack.md` merged)\n- `docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-deployment-task-pack.md` merged)\n- `docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-public-private-apis-task-pack.md` merged)\n- `docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-ecosystem-productization-task-pack.md` merged)\n- `docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-email-campaign-task-pack.md` merged)\n\n\n---",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/0. Foundation and pre-product stabilization and codebase setup/0.9 — Extension channel scaffold.md` (patches `0.9.0`–`0.9.9`)",
+              "checked": null
+            },
+            {
+              "text": "`docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `salesnavigator-user-billing-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `salesnavigator-email-system-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `salesnavigator-contact-company-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `salesnavigator-extension-sn-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `salesnavigator-ai-workflows-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-reliability-scaling-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-deployment-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-public-private-apis-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-ecosystem-productization-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `salesnavigator-email-campaign-task-pack.md` merged)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Email app era track — contact360.io/email",
+      "level": 2,
+      "slug": "email-app-era-track-contact360ioemail",
+      "prose": "| Era | Email app status |\n| --- | --- |\n| 0.x | foundation shell and route structure |\n| 1.x | auth + profile/account surface live |\n| 2.x | core mailbox operations live (folder/detail/imap connect) |\n| 3.x | preparatory integration points for contact enrichment |\n| 4.x | extension parity hooks pending |\n| 5.x | AI assistant UI placeholder present |\n| 6.x | reliability hardening backlog (retry/backoff/telemetry) |\n| 7.x | deployment and environment hardening required |\n| 8.x | endpoint contract formalization in progress |\n| 9.x | ecosystem export/integration hooks pending |\n| 10.x | campaign handoff pathways pending |",
+      "tables": [
+        {
+          "headers": [
+            "Era",
+            "Email app status"
+          ],
+          "rows": [
+            [
+              "0.x",
+              "foundation shell and route structure"
+            ],
+            [
+              "1.x",
+              "auth + profile/account surface live"
+            ],
+            [
+              "2.x",
+              "core mailbox operations live (folder/detail/imap connect)"
+            ],
+            [
+              "3.x",
+              "preparatory integration points for contact enrichment"
+            ],
+            [
+              "4.x",
+              "extension parity hooks pending"
+            ],
+            [
+              "5.x",
+              "AI assistant UI placeholder present"
+            ],
+            [
+              "6.x",
+              "reliability hardening backlog (retry/backoff/telemetry)"
+            ],
+            [
+              "7.x",
+              "deployment and environment hardening required"
+            ],
+            [
+              "8.x",
+              "endpoint contract formalization in progress"
+            ],
+            [
+              "9.x",
+              "ecosystem export/integration hooks pending"
+            ],
+            [
+              "10.x",
+              "campaign handoff pathways pending"
+            ]
+          ]
+        }
+      ],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "mailvetter cross-era execution stream",
+      "level": 2,
+      "slug": "mailvetter-cross-era-execution-stream",
+      "prose": "- `0.x`: API/worker foundation, Redis+Postgres bootstrap, `/v1` health and auth envelope.\n- `1.x`: API key ownership model and plan-based limit governance aligned with billing/credits.\n- `2.x`: PRIMARY delivery era — single/bulk verification contracts, async jobs/results lifecycle, scoring model freeze.\n- `3.x`: Contact/company linkage for verification lineage and freshness in CRM surfaces.\n- `4.x`: Extension and Sales Navigator provenance tagging and burst-safe verification controls.\n- `5.x`: AI-ready explainability outputs (`score_details` reason mapping) for assistant surfaces.\n- `6.x`: Reliability hardening — distributed limiter, idempotency, retry/DLQ, SLO observability.\n- `7.x`: Deployment hardening — migration discipline, deprecation governance, release gates.\n- `8.x`: Public/private API formalization — OpenAPI, scoped keys, endpoint governance.\n- `9.x`: Ecosystem productization — webhook replay, partner connector reliability, SLA evidence.\n- `10.x`: Campaign preflight verification at scale with recipient-level compliance traceability.",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`0.x`: API/worker foundation, Redis+Postgres bootstrap, `/v1` health and auth envelope.",
+              "checked": null
+            },
+            {
+              "text": "`1.x`: API key ownership model and plan-based limit governance aligned with billing/credits.",
+              "checked": null
+            },
+            {
+              "text": "`2.x`: PRIMARY delivery era — single/bulk verification contracts, async jobs/results lifecycle, scoring model freeze.",
+              "checked": null
+            },
+            {
+              "text": "`3.x`: Contact/company linkage for verification lineage and freshness in CRM surfaces.",
+              "checked": null
+            },
+            {
+              "text": "`4.x`: Extension and Sales Navigator provenance tagging and burst-safe verification controls.",
+              "checked": null
+            },
+            {
+              "text": "`5.x`: AI-ready explainability outputs (`score_details` reason mapping) for assistant surfaces.",
+              "checked": null
+            },
+            {
+              "text": "`6.x`: Reliability hardening — distributed limiter, idempotency, retry/DLQ, SLO observability.",
+              "checked": null
+            },
+            {
+              "text": "`7.x`: Deployment hardening — migration discipline, deprecation governance, release gates.",
+              "checked": null
+            },
+            {
+              "text": "`8.x`: Public/private API formalization — OpenAPI, scoped keys, endpoint governance.",
+              "checked": null
+            },
+            {
+              "text": "`9.x`: Ecosystem productization — webhook replay, partner connector reliability, SLA evidence.",
+              "checked": null
+            },
+            {
+              "text": "`10.x`: Campaign preflight verification at scale with recipient-level compliance traceability.",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Era task-pack links (mailvetter)",
+      "level": 3,
+      "slug": "era-task-pack-links-mailvetter",
+      "prose": "- `docs/0. Foundation and pre-product stabilization and codebase setup/0.2 — Schema & migration bedrock.md` (Mailvetter in patch slices)\n- `docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `mailvetter-user-billing-task-pack.md` merged)\n- `docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `mailvetter-email-system-task-pack.md` merged)\n- `docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `mailvetter-contact-company-task-pack.md` merged)\n- `docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `mailvetter-extension-sn-task-pack.md` merged)\n- `docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `mailvetter-ai-task-pack.md` merged)\n- `docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-reliability-scaling-task-pack.md` merged)\n- `docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-deployment-task-pack.md` merged)\n- `docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-public-private-apis-task-pack.md` merged)\n- `docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-ecosystem-productization-task-pack.md` merged)\n- `docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-email-campaign-task-pack.md` merged)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "`docs/0. Foundation and pre-product stabilization and codebase setup/0.2 — Schema & migration bedrock.md` (Mailvetter in patch slices)",
+              "checked": null
+            },
+            {
+              "text": "`docs/1. Contact360 user and billing and credit system/` — patches `1.N.P — *.md` (**Service task slices**; former `mailvetter-user-billing-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/2. Contact360 email system/` — patches `2.N.P — *.md` (**Service task slices**; former `mailvetter-email-system-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/3. Contact360 contact and company data system/` — patches `3.N.P — *.md` (**Service task slices**; former `mailvetter-contact-company-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/4. Contact360 Extension and Sales Navigator maturity/` — patches `4.N.P — *.md` (**Service task slices**; former `mailvetter-extension-sn-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/5. Contact360 AI workflows/` — patches `5.N.P — *.md` (**Service task slices**; former `mailvetter-ai-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/6. Contact360 Reliability and Scaling/` — patches `6.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-reliability-scaling-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/7. Contact360 deployment/` — patches `7.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-deployment-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/8. Contact360 public and private apis and endpoints/` — patches `8.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-public-private-apis-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/9. Contact360 Ecosystem integrations and Platform productization/` — patches `9.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-ecosystem-productization-task-pack.md` merged)",
+              "checked": null
+            },
+            {
+              "text": "`docs/10. Contact360 email campaign/` — patches `10.N.P — *.md` (**Micro-gate** + **Service task slices**; former `mailvetter-email-campaign-task-pack.md` merged)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Historical Refactor Plans",
+      "level": 2,
+      "slug": "historical-refactor-plans",
+      "prose": "- [Contact360 Docs Overhaul Plan 1](plans/contact360_docs_overhaul_1a3fa187.plan.md)\n- [Contact360 Docs Overhaul Plan 2](plans/contact360_docs_overhaul_9f8e9039.plan.md)",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "[Contact360 Docs Overhaul Plan 1](plans/contact360_docs_overhaul_1a3fa187.plan.md)",
+              "checked": null
+            },
+            {
+              "text": "[Contact360 Docs Overhaul Plan 2](plans/contact360_docs_overhaul_9f8e9039.plan.md)",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": [
+        {
+          "text": "Contact360 Docs Overhaul Plan 1",
+          "href": "plans/contact360_docs_overhaul_1a3fa187.plan.md"
+        },
+        {
+          "text": "Contact360 Docs Overhaul Plan 2",
+          "href": "plans/contact360_docs_overhaul_9f8e9039.plan.md"
+        }
+      ]
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}
