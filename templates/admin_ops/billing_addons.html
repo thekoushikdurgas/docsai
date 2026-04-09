@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+
+{% block title %}Billing — Add-ons — Contact360 Admin{% endblock %}
+
+{% block content %}
+{% include "admin_ops/includes/billing_nav.html" %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Add-on packages</h1>
+    <p class="page-subtitle">
+      Catalog from <code>billing.addons</code>. Mutations require <strong>Super Admin</strong> (<code>billing.createAddon</code>, <code>updateAddon</code>, <code>deleteAddon</code>).
+    </p>
+  </div>
+  {% if operator.role == "super_admin" %}
+  <a href="{% url 'admin_ops:billing_addon_create' %}" class="btn btn-primary"><i class="lni lni-plus" aria-hidden="true"></i> New package</a>
+  {% endif %}
+</div>
+
+{% if operator.role != "super_admin" %}
+{% include "components/alert.html" with type="info" message="You can view packages. Super Admins can create, edit, or delete add-ons." %}
+{% endif %}
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table" aria-label="Add-on credit packages">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Credits</th>
+          <th>Rate / credit</th>
+          <th>Price</th>
+          {% if operator.role == "super_admin" %}<th style="width:160px">Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for pkg in addons %}
+        <tr>
+          <td><code style="font-size:var(--text-xs)">{{ pkg.id }}</code></td>
+          <td>{{ pkg.name }}</td>
+          <td>{{ pkg.credits }}</td>
+          <td>${{ pkg.rate_per_credit }}</td>
+          <td style="font-weight:600">${{ pkg.price }}</td>
+          {% if operator.role == "super_admin" %}
+          <td>
+            <a href="{% url 'admin_ops:billing_addon_edit' pkg.id %}" class="btn btn-outline btn-sm">Edit</a>
+            <form method="post" action="{% url 'admin_ops:billing_addon_delete' pkg.id %}" style="display:inline;margin-left:4px"
+                  onsubmit="return confirm('Delete add-on {{ pkg.id|escapejs }}?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="{% if operator.role == "super_admin" %}6{% else %}5{% endif %}" class="table-empty">No add-on packages returned from the gateway.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

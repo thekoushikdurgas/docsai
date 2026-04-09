@@ -1,0 +1,19 @@
+{% comment %}Section switcher for all billing admin pages. Expects billing_nav_active: payments|plans|addons|setup{% endcomment %}
+<nav class="billing-subnav" aria-label="Billing sections" style="display:flex;flex-wrap:wrap;gap:var(--space-2);margin-bottom:var(--space-5)">
+  <a href="{% url 'admin_ops:billing' %}"
+     class="btn btn-sm {% if billing_nav_active == 'payments' %}btn-primary{% else %}btn-outline{% endif %}">
+    <i class="lni lni-wallet" aria-hidden="true"></i> Payments
+  </a>
+  <a href="{% url 'admin_ops:billing_plans' %}"
+     class="btn btn-sm {% if billing_nav_active == 'plans' %}btn-primary{% else %}btn-outline{% endif %}">
+    <i class="lni lni-layers" aria-hidden="true"></i> Plans
+  </a>
+  <a href="{% url 'admin_ops:billing_addons' %}"
+     class="btn btn-sm {% if billing_nav_active == 'addons' %}btn-primary{% else %}btn-outline{% endif %}">
+    <i class="lni lni-package" aria-hidden="true"></i> Add-ons
+  </a>
+  <a href="{% url 'admin_ops:billing_settings' %}"
+     class="btn btn-sm {% if billing_nav_active == 'setup' %}btn-primary{% else %}btn-outline{% endif %}">
+    <i class="lni lni-cog" aria-hidden="true"></i> Payment setup
+  </a>
+</nav>

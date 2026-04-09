@@ -75,9 +75,9 @@ def _s3_api_root() -> str:
 # ===== GraphQL fragments =====
 
 _USERS_WITH_BUCKETS = """
-query AdminUsersWithBuckets($limit: Int, $offset: Int) {
+query AdminUsersWithBuckets($filters: UserFilterInput) {
   admin {
-    usersWithBuckets(limit: $limit, offset: $offset) {
+    usersWithBuckets(filters: $filters) {
       items { uuid email bucket }
       pageInfo { total limit offset hasNext hasPrevious }
     }
@@ -90,7 +90,7 @@ query AdminUsers($filters: UserFilterInput) {
   admin {
     users(filters: $filters) {
       items {
-        uuid email name isActive lastSignInAt createdAt
+        uuid email name isActive lastSignInAt createdAt bucket
         profile { role credits subscriptionPlan }
       }
       pageInfo { total limit offset hasNext hasPrevious }
@@ -572,6 +572,37 @@ query UserHistoryForUser($filters: UserHistoryFilterInput!) {
 }
 """
 
+_BILLING_PLANS_Q = """
+query BillingPlansCatalog {
+  billing {
+    plans {
+      tier
+      name
+      category
+      periods {
+        monthly { period credits ratePerCredit price savings { amount percentage } }
+        quarterly { period credits ratePerCredit price savings { amount percentage } }
+        yearly { period credits ratePerCredit price savings { amount percentage } }
+      }
+    }
+  }
+}
+"""
+
+_BILLING_ADDONS_Q = """
+query BillingAddonsCatalog {
+  billing {
+    addons {
+      id
+      name
+      credits
+      ratePerCredit
+      price
+    }
+  }
+}
+"""
+
 _PAYMENT_INSTRUCTIONS_Q = """
 query GetPaymentInstructions {
   billing {
@@ -637,6 +668,354 @@ def get_user_activity_for_user(
         )
     total = (conn.get("pageInfo") or {}).get("total", 0)
     return {"items": items, "total": total}
+
+
+def _norm_savings(obj: Any) -> Optional[Dict[str, Any]]:
+    if not isinstance(obj, dict):
+        return None
+    return {
+        "amount": obj.get("amount"),
+        "percentage": obj.get("percentage"),
+    }
+
+
+def _norm_period(obj: Any) -> Optional[Dict[str, Any]]:
+    if not isinstance(obj, dict):
+        return None
+    sav = obj.get("savings")
+    return {
+        "period": obj.get("period", ""),
+        "credits": obj.get("credits", 0),
+        "rate_per_credit": obj.get("ratePerCredit") or obj.get("rate_per_credit") or 0.0,
+        "price": obj.get("price", 0.0),
+        "savings": _norm_savings(sav) if sav else None,
+    }
+
+
+def _norm_plan_periods(periods: Any) -> Dict[str, Any]:
+    if not isinstance(periods, dict):
+        return {"monthly": None, "quarterly": None, "yearly": None}
+    return {
+        "monthly": _norm_period(periods.get("monthly")),
+        "quarterly": _norm_period(periods.get("quarterly")),
+        "yearly": _norm_period(periods.get("yearly")),
+    }
+
+
+def get_billing_plans(token: str) -> List[Dict[str, Any]]:
+    """Return subscription plans from ``billing.plans`` (normalized snake_case)."""
+    resp = graphql_query(_BILLING_PLANS_Q, token=token)
+    _raise_if_graphql_errors(resp)
+    raw = _billing_root(resp).get("plans")
+    if not isinstance(raw, list):
+        return []
+    out: List[Dict[str, Any]] = []
+    for p in raw:
+        if not isinstance(p, dict):
+            continue
+        out.append(
+            {
+                "tier": p.get("tier", ""),
+                "name": p.get("name", ""),
+                "category": p.get("category", ""),
+                "periods": _norm_plan_periods(p.get("periods")),
+            }
+        )
+    return out
+
+
+def get_billing_addons(token: str) -> List[Dict[str, Any]]:
+    """Return addon packages from ``billing.addons`` (normalized snake_case)."""
+    resp = graphql_query(_BILLING_ADDONS_Q, token=token)
+    _raise_if_graphql_errors(resp)
+    raw = _billing_root(resp).get("addons")
+    if not isinstance(raw, list):
+        return []
+    out: List[Dict[str, Any]] = []
+    for a in raw:
+        if not isinstance(a, dict):
+            continue
+        out.append(
+            {
+                "id": a.get("id", ""),
+                "name": a.get("name", ""),
+                "credits": a.get("credits", 0),
+                "rate_per_credit": a.get("ratePerCredit") or a.get("rate_per_credit") or 0.0,
+                "price": a.get("price", 0.0),
+            }
+        )
+    return out
+
+
+def _period_row_gql(p: Dict[str, Any]) -> Dict[str, Any]:
+    """Map admin form-style period dict to GraphQL ``PlanPeriodInput`` / ``CreatePlanPeriodInput``."""
+    row: Dict[str, Any] = {
+        "period": p["period"],
+        "credits": int(p["credits"]),
+        "ratePerCredit": float(p["rate_per_credit"]),
+        "price": float(p["price"]),
+    }
+    if p.get("savings_amount") is not None:
+        row["savingsAmount"] = float(p["savings_amount"])
+    if p.get("savings_percentage") is not None:
+        row["savingsPercentage"] = int(p["savings_percentage"])
+    return row
+
+
+_BILLING_CREATE_PLAN = """
+mutation BillingCreatePlan($input: CreatePlanInput!) {
+  billing {
+    createPlan(input: $input) {
+      message
+      tier
+    }
+  }
+}
+"""
+
+_BILLING_UPDATE_PLAN = """
+mutation BillingUpdatePlan($tier: String!, $input: UpdatePlanInput!) {
+  billing {
+    updatePlan(tier: $tier, input: $input) {
+      message
+      tier
+    }
+  }
+}
+"""
+
+_BILLING_DELETE_PLAN = """
+mutation BillingDeletePlan($tier: String!) {
+  billing {
+    deletePlan(tier: $tier) {
+      message
+      tier
+    }
+  }
+}
+"""
+
+_BILLING_CREATE_PLAN_PERIOD = """
+mutation BillingCreatePlanPeriod($tier: String!, $input: CreatePlanPeriodInput!) {
+  billing {
+    createPlanPeriod(tier: $tier, input: $input) {
+      message
+      tier
+      period
+    }
+  }
+}
+"""
+
+_BILLING_UPDATE_PLAN_PERIOD = """
+mutation BillingUpdatePlanPeriod($tier: String!, $period: String!, $input: UpdatePlanPeriodInput!) {
+  billing {
+    updatePlanPeriod(tier: $tier, period: $period, input: $input) {
+      message
+      tier
+      period
+    }
+  }
+}
+"""
+
+_BILLING_DELETE_PLAN_PERIOD = """
+mutation BillingDeletePlanPeriod($tier: String!, $period: String!) {
+  billing {
+    deletePlanPeriod(tier: $tier, period: $period) {
+      message
+      tier
+      period
+    }
+  }
+}
+"""
+
+_BILLING_CREATE_ADDON = """
+mutation BillingCreateAddon($input: CreateAddonInput!) {
+  billing {
+    createAddon(input: $input) {
+      message
+      id
+    }
+  }
+}
+"""
+
+_BILLING_UPDATE_ADDON = """
+mutation BillingUpdateAddon($packageId: String!, $input: UpdateAddonInput!) {
+  billing {
+    updateAddon(packageId: $packageId, input: $input) {
+      message
+      id
+    }
+  }
+}
+"""
+
+_BILLING_DELETE_ADDON = """
+mutation BillingDeleteAddon($packageId: String!) {
+  billing {
+    deleteAddon(packageId: $packageId) {
+      message
+      id
+    }
+  }
+}
+"""
+
+
+def billing_create_plan(
+    token: str,
+    *,
+    tier: str,
+    name: str,
+    category: str,
+    periods: List[Dict[str, Any]],
+    is_active: bool = True,
+) -> Dict[str, Any]:
+    input_obj: Dict[str, Any] = {
+        "tier": tier.strip(),
+        "name": name.strip(),
+        "category": category.strip(),
+        "periods": [_period_row_gql(p) for p in periods],
+        "isActive": is_active,
+    }
+    resp = graphql_mutation(_BILLING_CREATE_PLAN, {"input": input_obj}, token=token)
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("createPlan") or {}
+
+
+def billing_update_plan(
+    token: str,
+    tier: str,
+    *,
+    name: Optional[str] = None,
+    category: Optional[str] = None,
+    is_active: Optional[bool] = None,
+) -> Dict[str, Any]:
+    input_obj: Dict[str, Any] = {}
+    if name is not None:
+        input_obj["name"] = name.strip()
+    if category is not None:
+        input_obj["category"] = category.strip()
+    if is_active is not None:
+        input_obj["isActive"] = is_active
+    resp = graphql_mutation(_BILLING_UPDATE_PLAN, {"tier": tier, "input": input_obj}, token=token)
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("updatePlan") or {}
+
+
+def billing_delete_plan(token: str, tier: str) -> Dict[str, Any]:
+    resp = graphql_mutation(_BILLING_DELETE_PLAN, {"tier": tier}, token=token)
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("deletePlan") or {}
+
+
+def billing_create_plan_period(token: str, tier: str, period_row: Dict[str, Any]) -> Dict[str, Any]:
+    resp = graphql_mutation(
+        _BILLING_CREATE_PLAN_PERIOD,
+        {"tier": tier, "input": _period_row_gql(period_row)},
+        token=token,
+    )
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("createPlanPeriod") or {}
+
+
+def billing_update_plan_period(
+    token: str,
+    tier: str,
+    period: str,
+    updates: Dict[str, Any],
+) -> Dict[str, Any]:
+    """``updates`` keys: credits, rate_per_credit, price, savings_amount, savings_percentage (optional)."""
+    inp: Dict[str, Any] = {}
+    if "credits" in updates and updates["credits"] is not None:
+        inp["credits"] = int(updates["credits"])
+    if "rate_per_credit" in updates and updates["rate_per_credit"] is not None:
+        inp["ratePerCredit"] = float(updates["rate_per_credit"])
+    if "price" in updates and updates["price"] is not None:
+        inp["price"] = float(updates["price"])
+    if "savings_amount" in updates and updates["savings_amount"] is not None:
+        inp["savingsAmount"] = float(updates["savings_amount"])
+    if "savings_percentage" in updates and updates["savings_percentage"] is not None:
+        inp["savingsPercentage"] = int(updates["savings_percentage"])
+    resp = graphql_mutation(
+        _BILLING_UPDATE_PLAN_PERIOD,
+        {"tier": tier, "period": period, "input": inp},
+        token=token,
+    )
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("updatePlanPeriod") or {}
+
+
+def billing_delete_plan_period(token: str, tier: str, period: str) -> Dict[str, Any]:
+    resp = graphql_mutation(
+        _BILLING_DELETE_PLAN_PERIOD,
+        {"tier": tier, "period": period},
+        token=token,
+    )
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("deletePlanPeriod") or {}
+
+
+def billing_create_addon(
+    token: str,
+    *,
+    package_id: str,
+    name: str,
+    credits: int,
+    rate_per_credit: float,
+    price: float,
+    is_active: bool = True,
+) -> Dict[str, Any]:
+    input_obj = {
+        "id": package_id.strip(),
+        "name": name.strip(),
+        "credits": credits,
+        "ratePerCredit": float(rate_per_credit),
+        "price": float(price),
+        "isActive": is_active,
+    }
+    resp = graphql_mutation(_BILLING_CREATE_ADDON, {"input": input_obj}, token=token)
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("createAddon") or {}
+
+
+def billing_update_addon(
+    token: str,
+    package_id: str,
+    *,
+    name: Optional[str] = None,
+    credits: Optional[int] = None,
+    rate_per_credit: Optional[float] = None,
+    price: Optional[float] = None,
+    is_active: Optional[bool] = None,
+) -> Dict[str, Any]:
+    inp: Dict[str, Any] = {}
+    if name is not None:
+        inp["name"] = name.strip()
+    if credits is not None:
+        inp["credits"] = credits
+    if rate_per_credit is not None:
+        inp["ratePerCredit"] = float(rate_per_credit)
+    if price is not None:
+        inp["price"] = float(price)
+    if is_active is not None:
+        inp["isActive"] = is_active
+    resp = graphql_mutation(
+        _BILLING_UPDATE_ADDON,
+        {"packageId": package_id, "input": inp},
+        token=token,
+    )
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("updateAddon") or {}
+
+
+def billing_delete_addon(token: str, package_id: str) -> Dict[str, Any]:
+    resp = graphql_mutation(_BILLING_DELETE_ADDON, {"packageId": package_id}, token=token)
+    _raise_if_graphql_errors(resp)
+    return _billing_root(resp).get("deleteAddon") or {}
 
 
 def get_payment_instructions(token: str) -> Optional[Dict]:
@@ -818,7 +1197,7 @@ def get_users_with_buckets(token: str, limit: int = 200, offset: int = 0) -> Lis
     try:
         resp = graphql_query(
             _USERS_WITH_BUCKETS,
-            {"limit": limit, "offset": offset},
+            {"filters": {"limit": limit, "offset": offset}},
             token=token,
         )
         _raise_if_graphql_errors(resp)

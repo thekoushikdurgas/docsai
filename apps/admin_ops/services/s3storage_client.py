@@ -117,12 +117,12 @@ class S3StorageClient:
                 detail = "Unknown error"
                 try:
                     err_body = e.response.json()
-                    if isinstance(err_body, dict) and "detail" in err_body:
-                        detail = (
-                            err_body["detail"]
-                            if isinstance(err_body["detail"], str)
-                            else str(err_body["detail"])
-                        )
+                    if isinstance(err_body, dict):
+                        raw = err_body.get("detail")
+                        if raw is None:
+                            raw = err_body.get("error")
+                        if raw is not None:
+                            detail = raw if isinstance(raw, str) else str(raw)
                 except Exception:
                     detail = e.response.text or str(e)
                 raise LambdaAPIError(

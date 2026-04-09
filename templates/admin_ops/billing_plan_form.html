@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}New plan — Contact360 Admin{% endblock %}
+
+{% block content %}
+{% include "admin_ops/includes/billing_nav.html" %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">New subscription plan</h1>
+    <p class="page-subtitle">Creates a plan via <code>billing.createPlan</code> (Super Admin on gateway). At least one period with credits, rate, and price is required.</p>
+  </div>
+  <a href="{% url 'admin_ops:billing_plans' %}" class="btn btn-outline">Back to plans</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="form-stack" style="max-width:640px">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="id_tier">Tier ID</label>
+        <input type="text" name="tier" id="id_tier" class="form-control" required placeholder="e.g. 5k, custom_tier">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_name">Display name</label>
+        <input type="text" name="name" id="id_name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_category">Category</label>
+        <select name="category" id="id_category" class="form-control" required>
+          {% for c in plan_categories %}
+          <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-check" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" name="is_active" id="id_is_active" checked>
+          <span>Active</span>
+        </label>
+      </div>
+      <h3 class="card-title" style="margin-top:var(--space-5);font-size:var(--text-md)">Billing periods</h3>
+      <p class="text-muted" style="font-size:var(--text-sm)">Fill any combination of monthly / quarterly / yearly. Leave a row empty to skip.</p>
+      {% for key in billing_period_keys %}
+      <fieldset style="border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3)">
+        <legend style="font-size:var(--text-sm);font-weight:600;text-transform:capitalize">{{ key }}</legend>
+        <div class="form-group">
+          <label class="form-label" for="id_credits_{{ key }}">Credits</label>
+          <input type="number" name="credits_{{ key }}" id="id_credits_{{ key }}" class="form-control" min="1" step="1" placeholder="optional">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_rate_{{ key }}">Rate / credit</label>
+          <input type="text" name="rate_{{ key }}" id="id_rate_{{ key }}" class="form-control" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_price_{{ key }}">Price</label>
+          <input type="text" name="price_{{ key }}" id="id_price_{{ key }}" class="form-control" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_savings_pct_{{ key }}">Savings % (optional)</label>
+          <input type="number" name="savings_pct_{{ key }}" id="id_savings_pct_{{ key }}" class="form-control" min="0" max="100" step="1" placeholder="">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_savings_amt_{{ key }}">Savings amount (optional)</label>
+          <input type="text" name="savings_amt_{{ key }}" id="id_savings_amt_{{ key }}" class="form-control" placeholder="">
+        </div>
+      </fieldset>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Create plan</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

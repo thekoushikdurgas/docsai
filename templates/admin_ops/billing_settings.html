@@ -4,14 +4,14 @@
 {% block title %}Billing settings — Contact360 Admin{% endblock %}
 
 {% block content %}
+{% include "admin_ops/includes/billing_nav.html" %}
+
 <div class="page-header">
   <div>
-    <h1 class="page-title">Billing — payment instructions</h1>
-    <p class="page-subtitle">UPI, contact, and QR key (GraphQL <code>billing.updatePaymentInstructions</code>)</p>
-  </div>
-  <div class="page-actions">
-    <a href="{% url 'admin_ops:billing' %}" class="btn btn-outline">Pending payments</a>
-    <a href="{% url 'admin_ops:billing_qr_upload' %}" class="btn btn-outline">Upload QR</a>
+    <h1 class="page-title">Billing — payment setup</h1>
+    <p class="page-subtitle">
+      UPI, contact, QR image upload to S3, and gateway save via <code>billing.updatePaymentInstructions</code>. Super Admin only. Upload fills the stored object key; click <strong>Save instructions</strong> to persist.
+    </p>
   </div>
 </div>
 
@@ -23,9 +23,9 @@
 {% endif %}
 
 <div class="card">
-  <div class="card-header"><h2 class="card-title">Instructions</h2></div>
+  <div class="card-header"><h2 class="card-title">Payment instructions</h2></div>
   <div class="card-body">
-    <form method="post" class="form-stack" style="max-width:520px">
+    <form method="post" class="form-stack" style="max-width:520px" id="billing-instructions-form">
       {% csrf_token %}
       <div class="form-group">
         <label class="form-label" for="id_upi">UPI ID</label>
@@ -39,17 +39,88 @@
         <label class="form-label" for="id_email">Email (optional)</label>
         <input type="email" name="email" id="id_email" class="form-control" value="{{ settings.email|default:'' }}">
       </div>
+
       <div class="form-group">
-        <label class="form-label" for="id_qr">QR S3 key (optional, under <code>photo/</code>)</label>
-        <input type="text" name="qr_code_s3_key" id="id_qr" class="form-control" value="{{ settings.qrCodeS3Key|default:'' }}" placeholder="photo/qr.png">
+        <label class="form-label" for="id_qr_file">Upload QR image</label>
+        <p class="text-muted" style="font-size:var(--text-sm);margin:0 0 8px">
+          PNG, JPEG, or WebP. The admin uploads to S3 and writes the returned key into the field below. Keys normally live under <code>photo/</code>.
+        </p>
+        <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center;margin-bottom:8px">
+          <input type="file" id="id_qr_file" class="form-control" style="flex:1;min-width:200px" accept="image/png,image/jpeg,image/webp" {% if not s3_enabled %}disabled{% endif %}>
+          <button type="button" class="btn btn-outline" id="btn-billing-qr-upload" {% if not s3_enabled %}disabled{% endif %}>
+            <i class="lni lni-cloud-upload" aria-hidden="true"></i> Upload to S3
+          </button>
+        </div>
+        <label class="form-label" for="id_qr" style="margin-top:var(--space-3)">Stored S3 key</label>
+        <input type="text" name="qr_code_s3_key" id="id_qr" class="form-control" value="{{ settings.qrCodeS3Key|default:'' }}" placeholder="Filled after upload, or paste e.g. photo/qr.png">
       </div>
+
       <div class="form-group">
         <label class="form-label" for="id_qrb">QR bucket ID (optional)</label>
         <input type="text" name="qr_code_bucket_id" id="id_qrb" class="form-control" value="{{ settings.qrCodeBucketId|default:'' }}" placeholder="{{ payment_qr_bucket|default:'auto from first user' }}">
       </div>
       <p class="text-muted" style="font-size:var(--text-sm)">S3 storage configured: <strong>{% if s3_enabled %}yes{% else %}no{% endif %}</strong>. Default bucket hint: <code>{{ payment_qr_bucket|default:"—" }}</code></p>
-      <button type="submit" class="btn btn-primary">Save</button>
+      <button type="submit" class="btn btn-primary">Save instructions</button>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const instructionsForm = document.getElementById('billing-instructions-form');
+  const fileInput = document.getElementById('id_qr_file');
+  const btn = document.getElementById('btn-billing-qr-upload');
+  const qrKeyInput = document.getElementById('id_qr');
+  if (!instructionsForm || !fileInput || !btn || !qrKeyInput) return;
+
+  btn.addEventListener('click', async function() {
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) {
+      if (typeof showToast === 'function') showToast('Choose an image first.', 'error');
+      return;
+    }
+    const token = instructionsForm.querySelector('[name=csrfmiddlewaretoken]');
+    const fd = new FormData();
+    fd.append('file', f);
+    const bucketInput = document.getElementById('id_qrb');
+    if (bucketInput && bucketInput.value.trim()) {
+      fd.append('qr_code_bucket_id', bucketInput.value.trim());
+    }
+    if (token) fd.append('csrfmiddlewaretoken', token.value);
+    btn.disabled = true;
+    try {
+      const resp = await fetch('{% url "admin_ops:billing_settings" %}', {
+        method: 'POST',
+        headers: token ? { 'X-CSRFToken': token.value } : {},
+        body: fd,
+      });
+      const ct = (resp.headers.get('content-type') || '').toLowerCase();
+      if (!ct.includes('application/json')) {
+        if (typeof showToast === 'function') {
+          showToast('Upload failed: server did not return JSON (check login / CSRF).', 'error');
+        }
+        return;
+      }
+      const data = await resp.json();
+      if (data.success && data.fileKey) {
+        qrKeyInput.value = data.fileKey;
+        if (data.bucketId && bucketInput && !bucketInput.value.trim()) {
+          bucketInput.value = data.bucketId;
+        }
+        if (typeof showToast === 'function') {
+          showToast('QR uploaded. S3 key filled — click Save instructions to apply on the gateway.', 'success');
+        }
+        fileInput.value = '';
+      } else if (data.error) {
+        if (typeof showToast === 'function') showToast(data.error, 'error');
+      }
+    } catch (e) {
+      if (typeof showToast === 'function') showToast(String(e), 'error');
+    }
+    btn.disabled = false;
+  });
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} — Contact360 Admin{% endblock %}
+
+{% block content %}
+{% include "admin_ops/includes/billing_nav.html" %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ page_title }}</h1>
+    <p class="page-subtitle">Plan <code>{{ plan.tier }}</code> — {% if form_mode == "add" %}<code>billing.createPlanPeriod</code>{% else %}<code>billing.updatePlanPeriod</code>{% endif %}</p>
+  </div>
+  <a href="{% url 'admin_ops:billing_plans' %}" class="btn btn-outline">Back to plans</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="form-stack" style="max-width:480px">
+      {% csrf_token %}
+      {% if form_mode == "add" %}
+      <div class="form-group">
+        <label class="form-label" for="id_period">Period</label>
+        <select name="period" id="id_period" class="form-control" required>
+          {% for p in available_periods %}
+          <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% else %}
+      <div class="form-group">
+        <label class="form-label">Period</label>
+        <input type="text" class="form-control" value="{{ period_key }}" disabled>
+      </div>
+      {% endif %}
+      <div class="form-group">
+        <label class="form-label" for="id_credits">Credits</label>
+        <input type="number" name="credits" id="id_credits" class="form-control" required min="1" step="1" value="{% if period_row %}{{ period_row.credits }}{% endif %}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_rate">Rate / credit</label>
+        <input type="text" name="rate_per_credit" id="id_rate" class="form-control" required value="{% if period_row %}{{ period_row.rate_per_credit }}{% endif %}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_price">Price</label>
+        <input type="text" name="price" id="id_price" class="form-control" required value="{% if period_row %}{{ period_row.price }}{% endif %}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_savings_pct">Savings % (optional)</label>
+        <input type="number" name="savings_pct" id="id_savings_pct" class="form-control" min="0" max="100" step="1" value="{% if period_row and period_row.savings and period_row.savings.percentage is not None %}{{ period_row.savings.percentage }}{% endif %}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_savings_amt">Savings amount (optional)</label>
+        <input type="text" name="savings_amt" id="id_savings_amt" class="form-control" value="{% if period_row and period_row.savings and period_row.savings.amount is not None %}{{ period_row.savings.amount }}{% endif %}">
+      </div>
+      <button type="submit" class="btn btn-primary">{% if form_mode == "add" %}Add period{% else %}Save{% endif %}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -25,6 +25,15 @@ from .services.admin_client import (
     AdminGraphQLError,
     adjust_credits,
     approve_payment,
+    billing_create_addon,
+    billing_create_plan,
+    billing_create_plan_period,
+    billing_delete_addon,
+    billing_delete_plan,
+    billing_delete_plan_period,
+    billing_update_addon,
+    billing_update_plan,
+    billing_update_plan_period,
     decline_payment,
     delete_log,
     delete_storage_artifact,
@@ -35,6 +44,8 @@ from .services.admin_client import (
     get_jobs,
     get_logs,
     get_payment_instructions,
+    get_billing_addons,
+    get_billing_plans,
     get_pending_payments,
     get_storage_artifacts,
     get_system_health,
@@ -117,12 +128,54 @@ def _get_payment_qr_bucket(request) -> str | None:
     try:
         data = get_users(_token(request), limit=10, offset=0)
         for u in data.get("items", []):
-            b = u.get("uuid") or ""
+            # S3 logical prefix: prefer explicit user.bucket, else user uuid (matches API presign path).
+            b = (u.get("bucket") or u.get("uuid") or "").strip()
             if b:
                 return b
     except Exception:
         pass
     return None
+
+
+def _billing_qr_upload_json(request) -> JsonResponse:
+    """
+    S3 upload for payment QR image. Used from Payment setup via XHR (multipart ``file`` field).
+    """
+    if not S3STORAGE_ENABLED:
+        return JsonResponse({"success": False, "error": "Storage is not configured"}, status=400)
+    bucket_id = (request.POST.get("qr_code_bucket_id") or "").strip() or _get_payment_qr_bucket(request)
+    if not bucket_id:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "No bucket available. Set PAYMENT_QR_BUCKET_ID or ensure users have buckets.",
+            },
+            status=400,
+        )
+    file = request.FILES.get("file")
+    if not file:
+        return JsonResponse({"success": False, "error": "No file provided"}, status=400)
+    allowed = ("image/png", "image/jpeg", "image/jpg", "image/webp")
+    ct = (getattr(file, "content_type", "") or "").lower()
+    if ct not in allowed:
+        return JsonResponse(
+            {"success": False, "error": f"Invalid type. Allowed: {', '.join(allowed)}"},
+            status=400,
+        )
+    try:
+        s3_client = S3StorageClient(request_id=_request_trace_id(request))
+        result = s3_client.upload_photo(bucket_id=bucket_id, file=file)
+        file_key = (
+            (result.get("fileKey") or result.get("file_key") or result.get("key") or "")
+            if isinstance(result, dict)
+            else ""
+        )
+        return JsonResponse({"success": True, "fileKey": file_key, "bucketId": bucket_id})
+    except LambdaAPIError as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=getattr(e, "status_code", 500))
+    except Exception as e:
+        logger.exception("billing_settings qr upload")
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 # ===== Users =====
@@ -134,6 +187,40 @@ def _users_page_querystring(request, page_num: int) -> str:
     else:
         q["page"] = str(page_num)
     return q.urlencode()
+
+
+def _logs_load_error_message(exc: Exception) -> str:
+    """Turn gateway / client errors into actionable copy for the logs page."""
+    msg = str(exc)
+    if isinstance(exc, AdminGraphQLError):
+        if any(
+            hint in msg
+            for hint in (
+                "Name or service not known",
+                "Network error",
+                "Errno -2",
+                "Connection refused",
+                "timed out",
+                "Timeout",
+            )
+        ):
+            return (
+                "The GraphQL gateway accepted your request, but it could not reach the log aggregation service "
+                "(HTTP client error while calling LOGS_SERVER_API_URL from the API server). "
+                "Fix: on the API host that serves this GraphQL endpoint, set LOGS_SERVER_API_URL to a URL that "
+                "machine can resolve and reach (public hostname or VPC-internal DNS). "
+                "Docker-only names like http://logs-api:8080 will fail unless the API runs in the same Docker network. "
+                f"Detail: {msg}"
+            )
+        return (
+            "Could not load logs from the gateway. "
+            "You need a Super Admin JWT; if you already have one, the gateway reported: "
+            f"{msg}"
+        )
+    return (
+        f"Unexpected error loading logs: {msg}. "
+        "Check Django logs and GraphQL connectivity."
+    )
 
 
 def _users_list_auth_message(exc: AdminGraphQLError) -> str:
@@ -445,14 +532,14 @@ def logs_view(request):
             limit=limit,
             offset=offset,
         )
+    except AdminGraphQLError as exc:
+        logs_load_failed = True
+        logger.error("logs_view error: %s", exc)
+        messages.error(request, _logs_load_error_message(exc))
     except Exception as exc:
         logs_load_failed = True
         logger.error("logs_view error: %s", exc)
-        messages.error(
-            request,
-            "Failed to load logs from the gateway. "
-            "Use a Super Admin session, or check GraphQL and log.server configuration.",
-        )
+        messages.error(request, _logs_load_error_message(exc))
 
     page_info = log_payload.get("pageInfo") or {}
     pagination_query_prev = ""
@@ -532,6 +619,7 @@ def billing_view(request):
         "has_previous": payment_data["hasPrevious"],
         "page": page,
         "status_filter": status_filter,
+        "billing_nav_active": "payments",
         "status_tabs": [
             ("pending", "Pending"),
             ("approved", "Approved"),
@@ -540,6 +628,398 @@ def billing_view(request):
         ],
         "page_title": "Billing — Payment Submissions",
     })
+
+
+_PLAN_CATEGORIES = ("STARTER", "PROFESSIONAL", "BUSINESS", "ENTERPRISE")
+_BILLING_PERIOD_KEYS = ("monthly", "quarterly", "yearly")
+
+
+def _optional_post_float(raw: str | None) -> float | None:
+    s = (raw or "").strip()
+    if not s:
+        return None
+    return float(s)
+
+
+def _optional_post_int(raw: str | None) -> int | None:
+    s = (raw or "").strip()
+    if not s:
+        return None
+    return int(s)
+
+
+def _collect_plan_periods_from_post(request) -> list:
+    periods: list = []
+    for key in _BILLING_PERIOD_KEYS:
+        cr = (request.POST.get(f"credits_{key}") or "").strip()
+        if not cr:
+            continue
+        periods.append(
+            {
+                "period": key,
+                "credits": int(cr),
+                "rate_per_credit": float(request.POST.get(f"rate_{key}", "0") or 0),
+                "price": float(request.POST.get(f"price_{key}", "0") or 0),
+                "savings_amount": _optional_post_float(request.POST.get(f"savings_amt_{key}")),
+                "savings_percentage": _optional_post_int(request.POST.get(f"savings_pct_{key}")),
+            }
+        )
+    return periods
+
+
+def _billing_plan_by_tier(plans: list, tier: str) -> dict | None:
+    for p in plans:
+        if isinstance(p, dict) and p.get("tier") == tier:
+            return p
+    return None
+
+
+@require_admin_or_super_admin
+def billing_plans_view(request):
+    plans: list = []
+    try:
+        plans = get_billing_plans(_token(request))
+    except Exception as exc:
+        messages.error(request, f"Failed to load subscription plans: {exc}")
+    return render(request, "admin_ops/billing_plans.html", {
+        "plans": plans,
+        "billing_nav_active": "plans",
+        "page_title": "Billing — Subscription plans",
+        "plan_categories": _PLAN_CATEGORIES,
+        "billing_period_keys": _BILLING_PERIOD_KEYS,
+    })
+
+
+@require_super_admin
+@require_http_methods(["GET", "POST"])
+def billing_plan_create_view(request):
+    if request.method == "POST":
+        tier = (request.POST.get("tier") or "").strip()
+        name = (request.POST.get("name") or "").strip()
+        category = (request.POST.get("category") or "").strip()
+        is_active = request.POST.get("is_active") == "on"
+        try:
+            periods = _collect_plan_periods_from_post(request)
+            if not periods:
+                messages.error(request, "Add at least one billing period (credits + rate + price).")
+            else:
+                result = billing_create_plan(
+                    _token(request),
+                    tier=tier,
+                    name=name,
+                    category=category,
+                    periods=periods,
+                    is_active=is_active,
+                )
+                if result.get("tier"):
+                    messages.success(request, result.get("message", "Plan created."))
+                    return redirect("admin_ops:billing_plans")
+                messages.error(request, "Create failed — no tier in gateway response.")
+        except ValueError as ve:
+            messages.error(request, str(ve))
+        except AdminGraphQLError as ge:
+            messages.error(request, str(ge))
+        except Exception as exc:
+            messages.error(request, str(exc))
+    return render(request, "admin_ops/billing_plan_form.html", {
+        "billing_nav_active": "plans",
+        "page_title": "New subscription plan",
+        "form_mode": "create",
+        "plan_categories": _PLAN_CATEGORIES,
+        "billing_period_keys": _BILLING_PERIOD_KEYS,
+    })
+
+
+@require_super_admin
+@require_http_methods(["GET", "POST"])
+def billing_plan_edit_view(request, tier: str):
+    plans: list = []
+    try:
+        plans = get_billing_plans(_token(request))
+    except Exception as exc:
+        messages.error(request, f"Failed to load plans: {exc}")
+        return redirect("admin_ops:billing_plans")
+    plan = _billing_plan_by_tier(plans, tier)
+    if not plan:
+        messages.error(request, "Plan not found.")
+        return redirect("admin_ops:billing_plans")
+    if request.method == "POST":
+        name = (request.POST.get("name") or "").strip()
+        category = (request.POST.get("category") or "").strip()
+        try:
+            result = billing_update_plan(
+                _token(request),
+                tier,
+                name=name or None,
+                category=category or None,
+            )
+            if result.get("tier"):
+                messages.success(request, result.get("message", "Plan updated."))
+                return redirect("admin_ops:billing_plans")
+            messages.error(request, "Update failed.")
+        except AdminGraphQLError as ge:
+            messages.error(request, str(ge))
+        except Exception as exc:
+            messages.error(request, str(exc))
+    return render(request, "admin_ops/billing_plan_edit.html", {
+        "plan": plan,
+        "billing_nav_active": "plans",
+        "page_title": f"Edit plan — {tier}",
+        "plan_categories": _PLAN_CATEGORIES,
+    })
+
+
+@require_super_admin
+@require_http_methods(["POST"])
+def billing_plan_delete_view(request, tier: str):
+    try:
+        result = billing_delete_plan(_token(request), tier)
+        if result.get("tier"):
+            messages.success(request, result.get("message", "Plan deleted."))
+        else:
+            messages.error(request, "Delete failed.")
+    except AdminGraphQLError as ge:
+        messages.error(request, str(ge))
+    except Exception as exc:
+        messages.error(request, str(exc))
+    return redirect("admin_ops:billing_plans")
+
+
+@require_super_admin
+@require_http_methods(["GET", "POST"])
+def billing_plan_period_add_view(request, tier: str):
+    plans: list = []
+    try:
+        plans = get_billing_plans(_token(request))
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return redirect("admin_ops:billing_plans")
+    plan = _billing_plan_by_tier(plans, tier)
+    if not plan:
+        messages.error(request, "Plan not found.")
+        return redirect("admin_ops:billing_plans")
+    existing = {k for k in _BILLING_PERIOD_KEYS if plan.get("periods", {}).get(k)}
+    available = [k for k in _BILLING_PERIOD_KEYS if k not in existing]
+    if not available:
+        messages.error(request, "This plan already has monthly, quarterly, and yearly periods.")
+        return redirect("admin_ops:billing_plans")
+    if request.method == "POST":
+        period = (request.POST.get("period") or "").strip().lower()
+        if period not in available:
+            messages.error(request, "Invalid or duplicate period.")
+        else:
+            try:
+                row = {
+                    "period": period,
+                    "credits": int(request.POST.get("credits", "0")),
+                    "rate_per_credit": float(request.POST.get("rate_per_credit", "0") or 0),
+                    "price": float(request.POST.get("price", "0") or 0),
+                    "savings_amount": _optional_post_float(request.POST.get("savings_amt")),
+                    "savings_percentage": _optional_post_int(request.POST.get("savings_pct")),
+                }
+                result = billing_create_plan_period(_token(request), tier, row)
+                if result.get("period"):
+                    messages.success(request, result.get("message", "Period saved."))
+                    return redirect("admin_ops:billing_plans")
+                messages.error(request, "Save failed.")
+            except (ValueError, TypeError):
+                messages.error(request, "Invalid numbers.")
+            except AdminGraphQLError as ge:
+                messages.error(request, str(ge))
+            except Exception as exc:
+                messages.error(request, str(exc))
+    return render(request, "admin_ops/billing_plan_period_form.html", {
+        "plan": plan,
+        "billing_nav_active": "plans",
+        "page_title": f"Add period — {tier}",
+        "form_mode": "add",
+        "available_periods": available,
+    })
+
+
+@require_super_admin
+@require_http_methods(["GET", "POST"])
+def billing_plan_period_edit_view(request, tier: str, period: str):
+    period = period.strip().lower()
+    if period not in _BILLING_PERIOD_KEYS:
+        messages.error(request, "Invalid period.")
+        return redirect("admin_ops:billing_plans")
+    plans: list = []
+    try:
+        plans = get_billing_plans(_token(request))
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return redirect("admin_ops:billing_plans")
+    plan = _billing_plan_by_tier(plans, tier)
+    if not plan:
+        messages.error(request, "Plan not found.")
+        return redirect("admin_ops:billing_plans")
+    pdata = (plan.get("periods") or {}).get(period)
+    if not pdata:
+        messages.error(request, "Period not found on this plan.")
+        return redirect("admin_ops:billing_plans")
+    if request.method == "POST":
+        try:
+            updates = {
+                "credits": int(request.POST.get("credits", "0")),
+                "rate_per_credit": float(request.POST.get("rate_per_credit", "0") or 0),
+                "price": float(request.POST.get("price", "0") or 0),
+                "savings_amount": _optional_post_float(request.POST.get("savings_amt")),
+                "savings_percentage": _optional_post_int(request.POST.get("savings_pct")),
+            }
+            result = billing_update_plan_period(_token(request), tier, period, updates)
+            if result.get("period"):
+                messages.success(request, result.get("message", "Period updated."))
+                return redirect("admin_ops:billing_plans")
+            messages.error(request, "Update failed.")
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid numbers.")
+        except AdminGraphQLError as ge:
+            messages.error(request, str(ge))
+        except Exception as exc:
+            messages.error(request, str(exc))
+    return render(request, "admin_ops/billing_plan_period_form.html", {
+        "plan": plan,
+        "period_row": pdata,
+        "period_key": period,
+        "billing_nav_active": "plans",
+        "page_title": f"Edit {period} — {tier}",
+        "form_mode": "edit",
+    })
+
+
+@require_super_admin
+@require_http_methods(["POST"])
+def billing_plan_period_delete_view(request, tier: str, period: str):
+    period = period.strip().lower()
+    if period not in _BILLING_PERIOD_KEYS:
+        messages.error(request, "Invalid period.")
+        return redirect("admin_ops:billing_plans")
+    try:
+        result = billing_delete_plan_period(_token(request), tier, period)
+        if result.get("period"):
+            messages.success(request, result.get("message", "Period deleted."))
+        else:
+            messages.error(request, "Delete failed.")
+    except AdminGraphQLError as ge:
+        messages.error(request, str(ge))
+    except Exception as exc:
+        messages.error(request, str(exc))
+    return redirect("admin_ops:billing_plans")
+
+
+@require_admin_or_super_admin
+def billing_addons_view(request):
+    addons: list = []
+    try:
+        addons = get_billing_addons(_token(request))
+    except Exception as exc:
+        messages.error(request, f"Failed to load add-on packages: {exc}")
+    return render(request, "admin_ops/billing_addons.html", {
+        "addons": addons,
+        "billing_nav_active": "addons",
+        "page_title": "Billing — Add-on packages",
+    })
+
+
+@require_super_admin
+@require_http_methods(["GET", "POST"])
+def billing_addon_create_view(request):
+    if request.method == "POST":
+        pkg_id = (request.POST.get("package_id") or "").strip()
+        name = (request.POST.get("name") or "").strip()
+        is_active = request.POST.get("is_active") == "on"
+        try:
+            credits = int(request.POST.get("credits", "0"))
+            rate = float(request.POST.get("rate_per_credit", "0") or 0)
+            price = float(request.POST.get("price", "0") or 0)
+            result = billing_create_addon(
+                _token(request),
+                package_id=pkg_id,
+                name=name,
+                credits=credits,
+                rate_per_credit=rate,
+                price=price,
+                is_active=is_active,
+            )
+            if result.get("id"):
+                messages.success(request, result.get("message", "Add-on created."))
+                return redirect("admin_ops:billing_addons")
+            messages.error(request, "Create failed.")
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid numeric fields.")
+        except AdminGraphQLError as ge:
+            messages.error(request, str(ge))
+        except Exception as exc:
+            messages.error(request, str(exc))
+    return render(request, "admin_ops/billing_addon_form.html", {
+        "billing_nav_active": "addons",
+        "page_title": "New add-on package",
+        "form_mode": "create",
+    })
+
+
+@require_super_admin
+@require_http_methods(["GET", "POST"])
+def billing_addon_edit_view(request, package_id: str):
+    addons: list = []
+    try:
+        addons = get_billing_addons(_token(request))
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return redirect("admin_ops:billing_addons")
+    pkg = next((a for a in addons if isinstance(a, dict) and a.get("id") == package_id), None)
+    if not pkg:
+        messages.error(request, "Package not found.")
+        return redirect("admin_ops:billing_addons")
+    if request.method == "POST":
+        name = (request.POST.get("name") or "").strip()
+        is_active = request.POST.get("is_active") == "on"
+        try:
+            credits = int(request.POST.get("credits", "0"))
+            rate = float(request.POST.get("rate_per_credit", "0") or 0)
+            price = float(request.POST.get("price", "0") or 0)
+            result = billing_update_addon(
+                _token(request),
+                package_id,
+                name=name or None,
+                credits=credits,
+                rate_per_credit=rate,
+                price=price,
+                is_active=is_active,
+            )
+            if result.get("id"):
+                messages.success(request, result.get("message", "Add-on updated."))
+                return redirect("admin_ops:billing_addons")
+            messages.error(request, "Update failed.")
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid numeric fields.")
+        except AdminGraphQLError as ge:
+            messages.error(request, str(ge))
+        except Exception as exc:
+            messages.error(request, str(exc))
+    return render(request, "admin_ops/billing_addon_form.html", {
+        "addon": pkg,
+        "billing_nav_active": "addons",
+        "page_title": f"Edit add-on — {package_id}",
+        "form_mode": "edit",
+    })
+
+
+@require_super_admin
+@require_http_methods(["POST"])
+def billing_addon_delete_view(request, package_id: str):
+    try:
+        result = billing_delete_addon(_token(request), package_id)
+        if result.get("id"):
+            messages.success(request, result.get("message", "Add-on deleted."))
+        else:
+            messages.error(request, "Delete failed.")
+    except AdminGraphQLError as ge:
+        messages.error(request, str(ge))
+    except Exception as exc:
+        messages.error(request, str(exc))
+    return redirect("admin_ops:billing_addons")
 
 
 @require_admin_or_super_admin
@@ -882,49 +1362,6 @@ def job_retry_view(request, job_id: str):
 
 
 @require_super_admin
-def billing_qr_upload_view(request):
-    if request.method == "GET":
-        return render(
-            request,
-            "admin_ops/billing_qr_upload.html",
-            {"page_title": "Upload payment QR", "payment_qr_bucket": _get_payment_qr_bucket(request)},
-        )
-    if request.method != "POST":
-        return JsonResponse({"success": False, "error": "Method not allowed"}, status=405)
-    if not S3STORAGE_ENABLED:
-        return JsonResponse({"success": False, "error": "Storage is not configured"}, status=400)
-    bucket_id = _get_payment_qr_bucket(request)
-    if not bucket_id:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": "No bucket available. Set PAYMENT_QR_BUCKET_ID or ensure users have buckets.",
-            },
-            status=400,
-        )
-    file = request.FILES.get("file")
-    if not file:
-        return JsonResponse({"success": False, "error": "No file provided"}, status=400)
-    allowed = ("image/png", "image/jpeg", "image/jpg", "image/webp")
-    ct = (getattr(file, "content_type", "") or "").lower()
-    if ct not in allowed:
-        return JsonResponse(
-            {"success": False, "error": f"Invalid type. Allowed: {', '.join(allowed)}"},
-            status=400,
-        )
-    try:
-        s3_client = S3StorageClient(request_id=_request_trace_id(request))
-        result = s3_client.upload_photo(bucket_id=bucket_id, file=file)
-        file_key = result.get("fileKey", "")
-        return JsonResponse({"success": True, "fileKey": file_key, "bucketId": bucket_id})
-    except LambdaAPIError as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=getattr(e, "status_code", 500))
-    except Exception as e:
-        logger.exception("billing_qr_upload_view")
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
-
-
-@require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_settings_view(request):
     context = {
@@ -933,7 +1370,11 @@ def billing_settings_view(request):
         "settings": None,
         "s3_enabled": S3STORAGE_ENABLED,
         "payment_qr_bucket": _get_payment_qr_bucket(request),
+        "billing_nav_active": "setup",
     }
+    if request.method == "POST" and request.FILES.get("file"):
+        return _billing_qr_upload_json(request)
+
     if request.method == "POST":
         upi_id = (request.POST.get("upi_id") or "").strip()
         phone_number = (request.POST.get("phone_number") or "").strip()

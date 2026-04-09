@@ -114,12 +114,44 @@ SIDEBAR_MENU = [
             {
                 "label": "Billing",
                 "icon": "lni lni-wallet",
-                "url_name": "admin_ops:billing",
-                "also_active": [
-                    "admin_ops:approve_payment",
-                    "admin_ops:decline_payment",
-                    "admin_ops:billing_qr_upload",
-                    "admin_ops:billing_settings",
+                "children": [
+                    {
+                        "label": "Payments",
+                        "icon": "lni lni-wallet",
+                        "url_name": "admin_ops:billing",
+                        "also_active": [
+                            "admin_ops:approve_payment",
+                            "admin_ops:decline_payment",
+                        ],
+                    },
+                    {
+                        "label": "Plans",
+                        "icon": "lni lni-layers",
+                        "url_name": "admin_ops:billing_plans",
+                        "also_active": [
+                            "admin_ops:billing_plan_create",
+                            "admin_ops:billing_plan_edit",
+                            "admin_ops:billing_plan_delete",
+                            "admin_ops:billing_plan_period_add",
+                            "admin_ops:billing_plan_period_edit",
+                            "admin_ops:billing_plan_period_delete",
+                        ],
+                    },
+                    {
+                        "label": "Add-ons",
+                        "icon": "lni lni-package",
+                        "url_name": "admin_ops:billing_addons",
+                        "also_active": [
+                            "admin_ops:billing_addon_create",
+                            "admin_ops:billing_addon_edit",
+                            "admin_ops:billing_addon_delete",
+                        ],
+                    },
+                    {
+                        "label": "Payment setup",
+                        "icon": "lni lni-cog",
+                        "url_name": "admin_ops:billing_settings",
+                    },
                 ],
             },
             {
