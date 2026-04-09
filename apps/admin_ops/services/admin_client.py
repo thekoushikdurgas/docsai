@@ -667,7 +667,7 @@ def update_payment_instructions(token: str, input_data: Dict[str, Any]) -> Dict:
 def get_logs(
     token: str,
     *,
-    logger: Optional[str] = None,
+    logger_name: Optional[str] = None,
     level: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
@@ -677,8 +677,8 @@ def get_logs(
     log.server HTTP API as ``contact360.io/api/app/clients/logs_client.py`` (GET /logs).
     """
     filters: Dict[str, Any] = {"limit": limit, "offset": offset}
-    if logger:
-        filters["logger"] = logger
+    if logger_name:
+        filters["logger"] = logger_name
     if level:
         filters["level"] = level
     try:

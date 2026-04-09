@@ -7,6 +7,7 @@ import logging
 import re
 import uuid
 from typing import Any, Dict
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
@@ -14,6 +15,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from apps.core.decorators import require_admin_or_super_admin, require_login, require_super_admin
@@ -438,7 +440,7 @@ def logs_view(request):
     try:
         log_payload = get_logs(
             _token(request),
-            logger=service or None,
+            logger_name=service or None,
             level=level or None,
             limit=limit,
             offset=offset,
@@ -658,9 +660,8 @@ def delete_artifact_view(request):
         messages.success(request, f"Deleted: {key}")
     else:
         messages.error(request, "Delete failed.")
-    redirect_url = f"{redirect('admin_ops:storage').url}?bucket={selected_bucket}&prefix={prefix}"
-    from django.http import HttpResponseRedirect
-    return HttpResponseRedirect(redirect_url)
+    qs = urlencode({"bucket": selected_bucket, "prefix": prefix})
+    return redirect(f"{reverse('admin_ops:storage')}?{qs}")
 
 
 # ===== System status =====
