@@ -1,22 +1,20 @@
 # Contact360 Docs Hub
 
-Machine-readable documentation for Contact360 lives as **typed JSON** under `docs/`, alongside **SQL** (`docs/backend/database/`), **Postman** exports (`docs/backend/postman/`), and other assets. Human-readable prose is preserved in each document’s `raw_markdown` field.
-
-Each typed file also includes **`non_parsed_raw_markdown`**: YAML front matter (if any) plus body paragraphs whose text is **not** found inside a concatenation of structured string fields (title, section prose, table cells, task lines, etc.). It is **heuristic**—use it to spot gaps between source markdown and JSON, not as a second canonical copy. Recompute with `python scripts/backfill_non_parsed_raw_markdown.py` after large edits (or rely on `convert_md_to_json.py`, which sets it on new conversions).
+Machine-readable documentation for Contact360 is **typed JSON** under `docs/` (`schema_version` + `kind`), with **SQL** under `docs/backend/database/`, **Postman** exports under `docs/backend/postman/`, and JSON Schemas under `docs/json_schemas/`.
 
 ## Layout
 
 | Area | Role |
 | --- | --- |
-| `docs/docs/*.json` | Policy hubs (architecture, roadmap, versions, audit, governance, …) |
+| `docs/docs/*.json` | Policy hubs (architecture, roadmap, versions, governance, …) |
 | `docs/0. …` – `docs/10. …` | Era execution docs (`index.json` + task JSON per minor/patch) |
 | `docs/backend/` | GraphQL modules, endpoint matrices, database SQL/CSV, Postman |
-| `docs/frontend/` | Page specs, design references, inventories |
-| `docs/codebases/`, `docs/commands/`, `docs/promsts/`, `docs/tech/` | Deep dives, command matrix, prompts, stack checklists |
-| `docs/json_schemas/` | JSON Schema for envelope + per-`kind` shapes |
-| `docs/manifest.json` | Aggregate index of all typed JSON (run `build_manifest.py`) |
+| `docs/frontend/` | Page specs (`*_page.json`), design references |
+| `docs/codebases/`, `docs/commands/`, `docs/promsts/`, `docs/tech/` | Analyses, command matrix, prompts, stack checklists |
+| `docs/json_schemas/` | Envelope + per-`kind` JSON Schema |
+| `docs/manifest.json` | Aggregate index (`python scripts/build_manifest.py`) |
 
-Optional **legacy** markdown (e.g. vendor READMEs) may still appear; the CLI and validators target **typed JSON** only (`schema_version` + `kind`).
+Each typed file may include `raw_markdown` / `non_parsed_raw_markdown` only when needed for gap tracking or RAG; many docs omit `raw_markdown` when `non_parsed_raw_markdown` is empty. Envelope `source_path` is the path to that **`.json`** file under `docs/`; `sha256_source` fingerprints the document (see `scripts/normalize_json_sources.py`).
 
 ## CLI (from `docs/`)
 
@@ -33,20 +31,18 @@ Interactive menu: `python main.py`.
 
 ## Maintenance pipeline
 
-1. **`python scripts/generate_indexes.py`** — refresh `children[]` on each `index.json`.
-2. **`python scripts/build_manifest.py`** — rebuild `docs/manifest.json`.
-3. **`python scripts/validate_migration.py`** — envelope checks, era `index.json`, manifest parity, era_task tracks.
+1. `python scripts/generate_indexes.py` — refresh `children[]` on each `index.json`.
+2. `python scripts/build_manifest.py` — rebuild `docs/manifest.json`.
+3. `python scripts/validate_migration.py` — envelopes, era indexes, manifest parity, era_task tracks.
 
-Legacy: `migrate archive` / `migrate convert` if you still import `.md` via `convert_md_to_json.py`.
+After bulk edits to envelope metadata: `python scripts/normalize_json_sources.py`.
 
 ## Pinecone / RAG
 
-`python cli.py pinecone ingest-docs` runs `scripts/pinecone_integration/ingest_docs.py`, which chunks **`raw_markdown`** from typed JSON (and still accepts `.md` if present). Configure indexes in `.env` (see `.env.example`).
-
-## CI
-
-`.github/workflows/ci.yml` asserts core hub JSON files and `docs/manifest.json` exist.
+`python cli.py pinecone ingest-docs` runs `scripts/pinecone_integration/ingest_docs.py`, which chunks **typed JSON** only (`raw_markdown` when present, else structured text flattening). Configure indexes in `.env` (see `.env.example`).
 
 ## Related repos
 
-Product code under `contact360.io/`; DocsAI mirrors may still read constants in `contact360.io/admin/apps/*/constants.py` — update those when hub **content** changes, even if the source file is now JSON in `docs/docs/`.
+Product code under `contact360.io/`; DocsAI mirrors may read constants in `contact360.io/admin/apps/*/constants.py` — update those when hub **content** changes.
+
+Legacy markdown conversion scripts live under `docs/scripts/_archive/` for reference only.

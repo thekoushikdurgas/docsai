@@ -18,7 +18,7 @@ console = Console()
 
 @app.command()
 def scan(
-    base_url: str = typer.Option("https://api.contact360.io/", "--base-url", help="API base URL"),
+    base_url: str = typer.Option("http://api.contact360.io/", "--base-url", help="API base URL"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Output CSV file path")
 ):
     """Scan API for available endpoints (placeholder - would need OpenAPI spec or similar)."""
@@ -35,7 +35,7 @@ def scan(
 @app.command()
 def sync_csv(
     csv_file: str = typer.Argument(..., help="CSV file path to sync"),
-    base_url: str = typer.Option("https://api.contact360.io", "--base-url", help="API base URL")
+    base_url: str = typer.Option("http://api.contact360.io", "--base-url", help="API base URL")
 ):
     """Sync CSV file with current API state."""
     csv_path = Path(csv_file)
@@ -70,7 +70,7 @@ def sync_csv(
 def generate_docs(
     csv_file: Optional[str] = typer.Option(None, "--csv", help="CSV file path"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Output directory"),
-    format: str = typer.Option("markdown", "--format", help="Documentation format: markdown, html, or json")
+    format: str = typer.Option("json", "--format", help="Documentation format: json (default), html, or markdown")
 ):
     """Generate API documentation from CSV."""
     csv_directory = Path(__file__).parent.parent.parent / "csv"

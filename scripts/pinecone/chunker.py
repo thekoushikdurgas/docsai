@@ -80,7 +80,7 @@ def _infer_era_and_kind(doc_path_rel: str, abs_path: Path) -> Tuple[str, str]:
         if str(DOCS_HUB_DIR) in str(abs_path):
             return "global", "hub"
 
-    # If the file sits directly in docs/ (top-level hub docs like roadmap.md), treat as global.
+    # If the file sits directly in docs/ (top-level hub JSON), treat as global.
     if abs_path.parent == DOCS_ROOT:
         return "global", "hub"
 

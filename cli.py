@@ -109,7 +109,7 @@ KIND_CHOICES = [
 
 
 def cmd_scan(args: argparse.Namespace) -> int:
-    """Scan docs/json/ and print overview dashboard."""
+    """Scan typed JSON under docs/ and print overview dashboard."""
     docs = scan_all()
     by_kind = group_by_kind(docs)
     by_era = group_by_era(docs) if getattr(args, "by_era", False) else None

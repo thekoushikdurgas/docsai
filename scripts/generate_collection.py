@@ -1373,7 +1373,7 @@ if __name__ == "__main__" and endpoints:
     },
     "item": [],
     "variable": [
-        {"key": "base_url", "value": "https://api.contact360.io", "type": "string"},
+        {"key": "base_url", "value": "http://api.contact360.io", "type": "string"},
         {"key": "api_v1_prefix", "value": "/api/v1", "type": "string"},
         {"key": "api_v2_prefix", "value": "/api/v2", "type": "string"},
         {"key": "api_v3_prefix", "value": "/api/v3", "type": "string"},

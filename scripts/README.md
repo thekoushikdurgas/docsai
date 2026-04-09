@@ -1,28 +1,28 @@
 # `docs/scripts` — Contact360 documentation tooling
 
+Typed docs are **JSON** under `docs/` (`iter_doc_json_paths()` in `paths.py`). Legacy **markdown → JSON** helpers live in `_archive/` only.
+
 ## Primary entrypoints
 
 | Run from `docs/` | Purpose |
 | --- | --- |
-| `python cli.py …` | Headless CLI (`scripts/cli.py`); see [`README.md`](../README.md) **Extended docs CLI**. |
-| `python main.py` | Interactive **Contact360 Docs Agent** menu (A–E). |
+| `python cli.py …` | Headless CLI (`scripts/cli.py`); see parent [`README.md`](../README.md). |
+| `python main.py` | Interactive **Contact360 Docs Agent** menu. |
 
-Shared roots: **`paths.py`** — `DOCS_ROOT` (the `docs/` folder), `SCRIPTS_ROOT`, `REPO_ROOT`.
+Shared roots: **`paths.py`** — `DOCS_ROOT` (`docs/`), `SCRIPTS_ROOT`, `REPO_ROOT`.
 
 ## Core library (imported by CLI)
 
-- `scanner.py`, `doc_scan_models.py`, `models/` (ORM), `stats.py`, `task_auditor.py`, `task_filler.py`, `task_templates.py`, `updater.py`, `unused.py`, `era_naming.py`, `contact360_era_guide.py`, `codebase_registry.py`
-- `doc_structure.py` — `DocKind`, `validate-structure` helpers
-- `duplicate_files.py` — content-hash duplicate reporting
-- `maintenance_registry.py` — `maintain-era` dispatch
+- `json_scanner.py`, `json_validator.py`, `stats.py`, `task_auditor.py`, `task_filler.py`, `updater.py`, `normalize_json_sources.py`, `build_manifest.py`, `validate_migration.py`, …
+- `maintenance_registry.py` — `maintain-era` dispatch (`fix-readme-links` is a no-op for JSON-native era trees)
 
 ## Era batch scripts (`maintain-era`)
 
-`enrich_*_patches.py`, `update_*_minors.py`, `fix_*_patch_readme_links.py` — invoked via:
+`enrich_*_patches.py`, `update_*_minors.py`, … — invoked via:
 
-`python cli.py maintain-era --era N --action enrich|fix-readme-links|update-minors [--apply]`
+`python cli.py maintain-era --era N --action enrich|update-minors|… [--apply]`
 
-Era directories use **`Path(__file__).resolve().parent.parent`** (the `docs/` folder), not `docs/docs/`.
+Era directories resolve to the `docs/` folder (see `paths.DOCS_ROOT`).
 
 ## Not part of the docs CLI
 
@@ -77,7 +77,7 @@ Processes CSV files to validate emails, extract email patterns by domain, create
 
 2. **Ensure your backend is running:**
    ```bash
-   # The API should be accessible at https://api.contact360.io:8000
+   # The API should be accessible at http://api.contact360.io:8000
    ```
 
 3. **Verify CSV data file exists:**
@@ -112,7 +112,7 @@ START_ROW = 100    # Start from row 100
 
 In `email_single.py`, modify these constants:
 ```python
-API_URL = 'https://api.contact360.io:8000/api/v2/email/single/'
+API_URL = 'http://api.contact360.io:8000/api/v2/email/single/'
 BEARER_TOKEN = 'your_token_here'
 CSV_PATH = 'data/1-1k - 1-1k.csv.csv'
 ```
@@ -127,7 +127,7 @@ Email Single API Test - Started at 2025-12-15 16:30:45
 ================================================================================
 
 📁 Reading CSV: data/1-1k - 1-1k.csv.csv
-🔗 API Endpoint: https://api.contact360.io:8000/api/v2/email/single/
+🔗 API Endpoint: http://api.contact360.io:8000/api/v2/email/single/
 🎯 Provider: truelist (with IcyPeas integration)
 📊 Total rows in CSV: 1000
 🧪 Testing rows: 1 to 10
@@ -201,7 +201,7 @@ This ensures high accuracy and certainty levels (ultra_sure, sure, probable).
 - Generate a new token if needed
 
 ### Connection Error
-- Ensure backend server is running on `https://api.contact360.io:8000`
+- Ensure backend server is running on `http://api.contact360.io:8000`
 - Check firewall settings
 
 ### Rate Limiting
@@ -218,7 +218,7 @@ You can modify these in the `main()` function:
 
 ```python
 # API Configuration
-API_URL = 'https://api.contact360.io:8000/api/v2/email/single/'
+API_URL = 'http://api.contact360.io:8000/api/v2/email/single/'
 BEARER_TOKEN = 'your_bearer_token_here'
 
 # Data Configuration
@@ -262,7 +262,7 @@ The `email_pattern_generator.py` script processes CSV files containing contact d
 
 2. **Ensure your backend is running:**
    ```bash
-   # The API should be accessible at https://api.contact360.io:8000
+   # The API should be accessible at http://api.contact360.io:8000
    ```
 
 3. **Prepare CSV files:**
@@ -317,7 +317,7 @@ python email_pattern_generator.py \
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--api-url` | API base URL | `https://api.contact360.io:8000` |
+| `--api-url` | API base URL | `http://api.contact360.io:8000` |
 | `--email` | Email for authentication | Prompt if not provided |
 | `--password` | Password for authentication | Prompt if not provided |
 | `--company-uuid` | Company UUID for all domains | None (patterns skipped) |

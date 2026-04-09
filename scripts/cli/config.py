@@ -98,7 +98,7 @@ class ConfigManager:
             # Create default profile from environment
             default_profile = CLIProfile(
                 name="default",
-                base_url=os.getenv("API_BASE_URL", "https://api.contact360.io/"),
+                base_url=os.getenv("API_BASE_URL", "http://api.contact360.io/"),
                 email=os.getenv("TEST_EMAIL") or os.getenv("API_TEST_EMAIL"),
                 password=os.getenv("TEST_PASSWORD") or os.getenv("API_TEST_PASSWORD"),
                 access_token=os.getenv("ACCESS_TOKEN"),

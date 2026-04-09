@@ -4,7 +4,7 @@ import os
 from typing import Optional
 
 # Base API URL
-BASE_URL: str = os.getenv("API_BASE_URL", "https://api.contact360.io:8000")
+BASE_URL: str = os.getenv("API_BASE_URL", "http://api.contact360.io:8000")
 
 # Test user credentials
 TEST_USER_EMAIL: str = os.getenv("TEST_USER_EMAIL", "user@example.com")

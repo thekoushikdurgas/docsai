@@ -87,7 +87,7 @@ class ConnectraTestConfig:
         """Initialize Connectra test configuration.
         
         Args:
-            base_url: Connectra API base URL (default: from env or https://api.contact360.io)
+            base_url: Connectra API base URL (default: from env or http://api.contact360.io)
             api_key: Connectra API key for X-API-Key header
             timeout: Request timeout in seconds
             retry_max: Maximum retry attempts
@@ -103,7 +103,7 @@ class ConnectraTestConfig:
         if env_path.exists():
             load_dotenv(env_path)
         
-        self.base_url = base_url or os.getenv("CONNECTRA_BASE_URL", "https://api.contact360.io")
+        self.base_url = base_url or os.getenv("CONNECTRA_BASE_URL", "http://api.contact360.io")
         self.api_key = api_key or os.getenv("CONNECTRA_API_KEY", "3e6b8811-40c2-46e7-8d7c-e7e038e86071")
         
         self.timeout = timeout
@@ -601,7 +601,7 @@ Examples:
         "--base-url",
         type=str,
         default=None,
-        help="Connectra API base URL (default: from env or https://api.contact360.io)"
+        help="Connectra API base URL (default: from env or http://api.contact360.io)"
     )
     parser.add_argument(
         "--api-key",
@@ -653,7 +653,7 @@ Examples:
     # Display header
     console.print(Panel.fit(
         "[bold cyan]Connectra API Test Suite[/bold cyan]\n"
-        f"Base URL: [yellow]{args.base_url or 'https://api.contact360.io'}[/yellow]\n"
+        f"Base URL: [yellow]{args.base_url or 'http://api.contact360.io'}[/yellow]\n"
         f"Mode: [yellow]{args.mode}[/yellow]",
         border_style="cyan"
     ))

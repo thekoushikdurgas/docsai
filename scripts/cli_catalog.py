@@ -66,10 +66,10 @@ MENU_ENTRIES: list[CatalogEntry] = [
     CatalogEntry(
         "B8",
         "B. MEASURE HEALTH (read-only)",
-        "Validate structure — backend/endpoints *.md",
+        "Validate structure — backend/endpoints *.json",
         "read",
         "docs",
-        "python cli.py validate-structure --kind endpoint_md",
+        "python cli.py validate-structure --kind endpoint_matrix",
     ),
     CatalogEntry(
         "B9",
@@ -77,7 +77,7 @@ MENU_ENTRIES: list[CatalogEntry] = [
         "Validate structure — codebases/",
         "read",
         "docs",
-        "python cli.py validate-structure --kind codebase_analysis",
+        "python cli.py validate-structure --kind document",
     ),
     CatalogEntry(
         "B10",
@@ -244,29 +244,28 @@ MENU_ENTRIES: list[CatalogEntry] = [
 
 # Additional CLI verbs not tied to a menu id (shown with `list --include-scripts`).
 EXTRA_CLI_COMMANDS: list[tuple[str, str, str]] = [
-    ("(top-level)", "find-unused", "Find unreferenced markdown (heuristic)"),
+    ("(top-level)", "find-unused", "Find unreferenced docs (heuristic)"),
     ("(top-level)", "normalize", "Normalize status markers across era docs"),
     ("(top-level)", "era-guide --json", "Era guide as JSON"),
     ("api-test", "pattern-generator (see -- )", "Forward args to email_pattern_generator.py"),
     ("sql", "run", "Execute SQL file (see --file, --dry-run)"),
     ("docs-gen", "create-patches", "Scaffold patch docs"),
     ("docs-gen", "flowcharts", "Rewrite ## Flowchart blocks"),
-    ("frontend", "link-endpoint-specs", "Refresh AUTO:endpoint-links in *_page.md"),
-    ("frontend", "augment-page-specs", "Refresh AUTO:design-nav in *_page.md"),
+    ("frontend", "link-endpoint-specs", "Refresh AUTO:endpoint-links in *_page.json"),
+    ("frontend", "augment-page-specs", "Refresh AUTO:design-nav in *_page.json"),
     ("data", "analyze-company-names", "DB company name categorization report"),
     ("data", "comprehensive-analysis", "DB quality report"),
     ("validate-all", "validate-all --write-latest", "Full validation JSON to result/ + errors/"),
-    ("validate-structure", "--kind backend_api|endpoint_md|codebase_analysis", "Light prose checks under backend/apis, backend/endpoints, codebases"),
+    ("validate-structure", "--kind graphql_module|endpoint_matrix|document", "Typed JSON under backend/apis, backend/endpoints, codebases"),
     ("format-structure", "--prefix|--era|--kind (same as validate-structure)", "LF + trim trailing space + EOF newline; --apply to write"),
     ("format-all", "--apply --include-prose --write-latest", "Format validate-all scope; optional prose dirs + JSON report"),
 ]
 
 STANDALONE_MAINTENANCE_SCRIPTS: list[tuple[str, str]] = [
-    ("docs_patch_creator.py", "Create or plan era patch markdown files"),
+    ("docs_patch_creator.py", "Create or plan era patch JSON docs"),
     ("apply_unique_flowcharts.py", "Apply unique flowcharts to version stubs"),
     ("enrich_1x_patches.py", "Enrich 1.x era patch content (and enrich_2x…10x, enrich_foundation_0x)"),
     ("link_endpoint_specs.py", "Link endpoint specs into frontend pages"),
     ("augment_page_specs.py", "Augment frontend page specs"),
-    ("update_patch_readmes.py", "Update patch README links"),
-    ("fix_3x_patch_readme_links.py", "Fix era README links (fix_4x…10x variants)"),
+    ("fix_3x_patch_readme_links.py", "Legacy no-op / JSON-native era docs (fix_4x…10x variants)"),
 ]
