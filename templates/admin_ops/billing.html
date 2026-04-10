@@ -18,6 +18,8 @@
   {% endif %}
 </div>
 
+{% include "components/alert.html" with type="info" title="Customer invoices" message="When you approve a submission, the customer sees a paid invoice on their Billing → Invoice tab. Each approved card shows the customer invoice ID (PS- plus submission id) for support." %}
+
 <!-- Status filter tabs -->
 <div
   style="
@@ -102,7 +104,15 @@
           by {{ payment.reviewed_by|slice:":8" }}</span
         >{% endif %}
       </p>
-      {% endif %} {% if payment.decline_reason %}
+      {% endif %}
+      {% if payment.status == "approved" %}
+      <p style="margin: 0 0 8px; font-size: var(--text-sm)">
+        <strong>Customer invoice ID:</strong>
+        <code style="font-size: var(--text-xs)">PS-{{ payment.id }}</code>
+        <span style="color: var(--color-text-muted)"> (Billing → Invoice)</span>
+      </p>
+      {% endif %}
+      {% if payment.decline_reason %}
       <p
         style="
           margin: 0 0 8px;
