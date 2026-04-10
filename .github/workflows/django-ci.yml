@@ -1,5 +1,7 @@
-# Monorepo: expects checkout root to contain contact360.io/admin (see working-directory).
-# Standalone admin repo at project root: remove `defaults.run.working-directory` below.
+# Works in both layouts:
+# - Monorepo: `manage.py` under `contact360.io/admin/`
+# - Standalone (e.g. docsai): `manage.py` at repo root — do NOT use a fixed `contact360.io/admin` cwd.
+
 name: Django CI
 
 on:
@@ -8,29 +10,46 @@ on:
   pull_request:
     branches: [main, master]
 
-defaults:
-  run:
-    working-directory: contact360.io/admin
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - name: Resolve Django project directory
+        run: |
+          if [ -f manage.py ]; then
+            echo "ADMIN_DIR=." >> "$GITHUB_ENV"
+            echo "Resolved ADMIN_DIR=."
+          elif [ -f contact360.io/admin/manage.py ]; then
+            echo "ADMIN_DIR=contact360.io/admin" >> "$GITHUB_ENV"
+            echo "Resolved ADMIN_DIR=contact360.io/admin"
+          else
+            echo "::error::Could not find manage.py in . or contact360.io/admin"
+            ls -la
+            exit 1
+          fi
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+
       - name: Install dependencies
+        working-directory: ${{ env.ADMIN_DIR }}
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Django system check (deploy)
+        working-directory: ${{ env.ADMIN_DIR }}
         env:
           DJANGO_ENV: production
           SECRET_KEY: ci-placeholder-secret-key-at-least-32-chars-long
           ALLOWED_HOSTS: localhost,127.0.0.1
         run: python manage.py check --deploy
+
       - name: Pytest
+        working-directory: ${{ env.ADMIN_DIR }}
         env:
           DJANGO_ENV: testing
         run: python -m pytest apps/core/tests/ -q
