@@ -1,6 +1,8 @@
 # Deploy DocsAI (Django admin) to EC2
 # Secrets: EC2_SSH_PRIVATE_KEY, EC2_HOST, EC2_USER
-# Monorepo: changes under contact360.io/admin/**. Standalone (e.g. docsai): Django at repo root — paths below include apps/, config/, etc.
+# Optional repo variable: EC2_PROJECT_DIR — absolute path on the server where the repo is cloned (default /home/ubuntu/docsai).
+# EC2 must be a git clone: ssh ubuntu@host "cd $PATH && git status". If you see "not a git repository", clone: git clone <url> $PATH
+# Monorepo: changes under contact360.io/admin/**. Standalone (e.g. docsai): paths below include apps/**, manage.py, etc.
 
 name: Deploy Admin to EC2
 
@@ -25,7 +27,8 @@ on:
         default: "main"
 
 env:
-  PROJECT_DIR: /home/ubuntu/docsai
+  # Repository → Settings → Variables → EC2_PROJECT_DIR (optional absolute path on EC2)
+  PROJECT_DIR: ${{ vars.EC2_PROJECT_DIR || '/home/ubuntu/docsai' }}
 
 jobs:
   deploy:
@@ -52,7 +55,7 @@ jobs:
           BRANCH: ${{ github.event.inputs.branch || (github.event_name == 'push' && github.ref_name) || 'main' }}
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes "$EC2_USER@$EC2_HOST" \
-            "set -e && cd ${{ env.PROJECT_DIR }} && git fetch origin && git reset --hard origin/$BRANCH && bash deploy/remote-deploy.sh"
+            "set -e && cd '${{ env.PROJECT_DIR }}' && if [ ! -d .git ]; then echo '::error::Not a git repository at ${{ env.PROJECT_DIR }}. On EC2: git clone https://github.com/${{ github.repository }}.git . (or set repo variable EC2_PROJECT_DIR to your clone path).'; exit 128; fi && git fetch origin && git reset --hard origin/$BRANCH && bash deploy/remote-deploy.sh"
 
       - name: Verify deployment
         env:

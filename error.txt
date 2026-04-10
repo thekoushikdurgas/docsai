@@ -1,11 +1,27 @@
-# Django CI log — analysis (contact360.io/admin)
+# Deploy Admin to EC2 — log analysis (docsai)
 
 ## Error (fatal)
-- **Message:** `working directory '.../contact360.io/admin'. No such file or directory`
-- **Cause:** Workflow used **`defaults.run.working-directory: contact360.io/admin`**. Repo **`thekoushikdurgas/docsai`** is a **standalone** admin project: **`manage.py`** lives at the **repository root**, not under **`contact360.io/admin/`** (that path only exists in the **contact360** monorepo).
+- **Message:** `fatal: not a git repository (or any of the parent directories): .git` (exit 128)
+- **Where:** Remote step after `cd ${{ env.PROJECT_DIR }}` (default `/home/ubuntu/docsai`).
+- **Meaning:** That directory on EC2 is **not** a **`git clone`** (empty folder, rsync copy, or wrong path). `git fetch` requires a `.git` directory.
 
-## Fix (in repo)
-- **`django-ci.yml`:** First step detects layout (`manage.py` in `.` vs `contact360.io/admin/`), sets **`ADMIN_DIR`** in **`GITHUB_ENV`**, then each **`run`** uses **`working-directory: ${{ env.ADMIN_DIR }}`**.
+## Resolve (server — do once)
+SSH to the instance and either:
 
-## Warnings / noise
-- None material; job name **test** is the workflow job id.
+**A)** Clone into the path the workflow uses (default `/home/ubuntu/docsai`):
+
+```bash
+sudo mkdir -p /home/ubuntu/docsai
+sudo chown ubuntu:ubuntu /home/ubuntu/docsai
+cd /home/ubuntu/docsai
+git clone https://github.com/thekoushikdurgas/docsai.git .
+```
+
+**B)** Or if the app already lives elsewhere, set GitHub **repository variable** **`EC2_PROJECT_DIR`** to that **absolute** path (Settings → Actions → Variables). The workflow uses `${{ vars.EC2_PROJECT_DIR || '/home/ubuntu/docsai' }}`.
+
+## Warnings / noise in log
+- **`##[debug]`** lines are normal Actions diagnostics.
+- **Verify deployment** skipped because the deploy step failed (`success()` was false).
+
+## Code changes (repo)
+- **`deploy.yml`:** Optional **`vars.EC2_PROJECT_DIR`**, `.git` check with a clearer **`::error::`** message before `git fetch`.
