@@ -23,5 +23,10 @@ git clone https://github.com/thekoushikdurgas/docsai.git .
 - **`##[debug]`** lines are normal Actions diagnostics.
 - **Verify deployment** skipped because the deploy step failed (`success()` was false).
 
+## Error: `manage.py, venv missing` / `not the app root` (after git works)
+- **Cause:** **`deploy/remote-deploy.sh`** required **`venv/`** to exist; fresh clones often have no venv. A hardcoded **`PROJECT_DIR`** could also disagree with the directory Actions **`cd`** into.
+- **Fix (repo):** **`remote-deploy.sh`** now resolves the app root from **`deploy/..`**, creates **`venv`** with **`python3 -m venv`** if missing, then **`pip install`** / migrate / collectstatic / **`systemctl restart gunicorn`**. Ensure **`python3-venv`** is installed on EC2 if venv creation fails.
+
 ## Code changes (repo)
-- **`deploy.yml`:** Optional **`vars.EC2_PROJECT_DIR`**, `.git` check with a clearer **`::error::`** message before `git fetch`.
+- **`deploy.yml`:** Optional **`vars.EC2_PROJECT_DIR`**, `.git` check before `git fetch`.
+- **`deploy/remote-deploy.sh`:** Dynamic **`PROJECT_DIR`**, auto-**venv**, clearer errors.
