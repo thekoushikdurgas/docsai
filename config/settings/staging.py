@@ -5,12 +5,13 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
+from ._env import resolve_secret_key
 
 DEBUG = False
 
-_secret = (os.environ.get("SECRET_KEY") or "").strip()
+_secret = resolve_secret_key()
 if not _secret:
-    raise ImproperlyConfigured("SECRET_KEY must be set for staging.")
+    raise ImproperlyConfigured("SECRET_KEY must be set for staging (.env.prod, .env, or environment).")
 SECRET_KEY = _secret
 
 USE_HTTPS = os.getenv("SECURE_SSL_REDIRECT", "true").lower() == "true"

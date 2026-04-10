@@ -254,15 +254,17 @@ configure_environment() {
         cp "$ENV_FILE" "${ENV_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
     fi
     
-    # Generate secret key if not set
-    if ! grep -q "^SECRET_KEY=" "$ENV_FILE" || grep -q "^SECRET_KEY=$" "$ENV_FILE"; then
+    # SECRET_KEY: .env.prod.example may only have "# SECRET_KEY=" — sed cannot create the line; append if missing.
+    if ! grep -qE '^SECRET_KEY=.+$' "$ENV_FILE" 2>/dev/null; then
         secret_key=$(generate_secret_key)
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS
-            sed -i '' "s|^SECRET_KEY=.*|SECRET_KEY=$secret_key|" "$ENV_FILE"
+        if grep -q '^SECRET_KEY=' "$ENV_FILE" 2>/dev/null; then
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' "s|^SECRET_KEY=.*|SECRET_KEY=$secret_key|" "$ENV_FILE"
+            else
+                sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$secret_key|" "$ENV_FILE"
+            fi
         else
-            # Linux
-            sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$secret_key|" "$ENV_FILE"
+            echo "SECRET_KEY=$secret_key" >> "$ENV_FILE"
         fi
         log "Generated and set SECRET_KEY"
     fi
@@ -326,7 +328,14 @@ setup_django() {
     cd "$PROJECT_DIR"
     source venv/bin/activate
     export DJANGO_ENV=production
-    
+    # Export vars from .env.prod so any code paths that only read os.environ see SECRET_KEY, etc.
+    if [ -f "$ENV_FILE" ]; then
+        set -a
+        # shellcheck disable=SC1091
+        source "$ENV_FILE"
+        set +a
+    fi
+
     # Run migrations
     log "Running database migrations..."
     python manage.py migrate --noinput
