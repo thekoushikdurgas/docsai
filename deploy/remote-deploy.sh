@@ -38,7 +38,29 @@ python manage.py migrate --noinput
 echo ">>> Collecting static files..."
 python manage.py collectstatic --noinput
 
-echo ">>> Restarting Gunicorn..."
-sudo systemctl restart gunicorn
+echo ">>> Restarting application server (systemd)..."
+# Many installs use different unit names; missing unit must not fail the deploy after migrate/static.
+restart_ok=0
+if [ -n "${RESTART_SERVICE:-}" ]; then
+  if sudo systemctl restart "$RESTART_SERVICE"; then
+    echo ">>> Restarted $RESTART_SERVICE"
+    restart_ok=1
+  else
+    echo "::warning::systemctl restart $RESTART_SERVICE failed."
+  fi
+else
+  for unit in gunicorn docsai gunicorn-docsai docsai-gunicorn; do
+    if sudo systemctl restart "${unit}.service" 2>/dev/null; then
+      echo ">>> Restarted ${unit}.service"
+      restart_ok=1
+      break
+    fi
+  done
+fi
+if [ "$restart_ok" -ne 1 ]; then
+  echo "::warning::No matching systemd service (tried gunicorn, docsai, …). Migrations and static files are already applied."
+  echo "Install a unit from deploy/systemd/gunicorn.service or deploy/gunicorn.service, then: sudo systemctl daemon-reload && sudo systemctl enable --now gunicorn"
+  echo "Override: RESTART_SERVICE=myapp.service bash deploy/remote-deploy.sh"
+fi
 
 echo ">>> Done. Verify: curl -s http://127.0.0.1/api/v1/health/ (or your public EC2 URL)"
