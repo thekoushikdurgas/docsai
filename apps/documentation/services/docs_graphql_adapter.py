@@ -2,6 +2,7 @@
 GraphQL adapter for documentation API v1 — mirrors contact360.io/2 service shapes
 using appointment360 GraphQL (documentation.* and docs.*).
 """
+
 from __future__ import annotations
 
 import logging
@@ -173,7 +174,9 @@ class DocsGraphQLAdapter:
             logger.warning("list_pages failed: %s", exc)
             return {"pages": [], "total": 0}
 
-    def get_page(self, page_id: str, page_type: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_page(
+        self, page_id: str, page_type: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         variables: Dict[str, Any] = {"pageId": page_id}
         if page_type:
             variables["pageType"] = page_type
@@ -256,9 +259,17 @@ class DocsGraphQLAdapter:
         if endpoint_id:
             items = [x for x in items if x.get("endpoint_id") == endpoint_id]
         if usage_type:
-            items = [x for x in items if (x.get("usage_type") or "").lower() == usage_type.lower()]
+            items = [
+                x
+                for x in items
+                if (x.get("usage_type") or "").lower() == usage_type.lower()
+            ]
         if usage_context:
-            items = [x for x in items if (x.get("usage_context") or "").lower() == usage_context.lower()]
+            items = [
+                x
+                for x in items
+                if (x.get("usage_context") or "").lower() == usage_context.lower()
+            ]
         total = len(items)
         if limit is not None:
             items = items[offset : offset + limit]
@@ -268,7 +279,10 @@ class DocsGraphQLAdapter:
 
     def get_relationship(self, relationship_id: str) -> Optional[Dict[str, Any]]:
         for r in self.relationships_items():
-            if r.get("relationship_id") == relationship_id or r.get("id") == relationship_id:
+            if (
+                r.get("relationship_id") == relationship_id
+                or r.get("id") == relationship_id
+            ):
                 return r
         return None
 
@@ -306,11 +320,21 @@ class DocsGraphQLAdapter:
         except Exception:
             pass
         if api_version:
-            endpoints = [e for e in endpoints if (e.get("api_version") or "") == api_version]
+            endpoints = [
+                e for e in endpoints if (e.get("api_version") or "") == api_version
+            ]
         if method:
-            endpoints = [e for e in endpoints if (e.get("method") or "").upper() == method.upper()]
+            endpoints = [
+                e
+                for e in endpoints
+                if (e.get("method") or "").upper() == method.upper()
+            ]
         if endpoint_state:
-            endpoints = [e for e in endpoints if (e.get("endpoint_state") or e.get("state") or "") == endpoint_state]
+            endpoints = [
+                e
+                for e in endpoints
+                if (e.get("endpoint_state") or e.get("state") or "") == endpoint_state
+            ]
         total = len(endpoints)
         if limit is not None:
             endpoints = endpoints[offset : offset + limit]
@@ -410,9 +434,13 @@ class DocsGraphQLAdapter:
         return {"methods": methods, "total": len(methods)}
 
     def get_endpoints_by_api_version(self, api_version: str) -> List[Dict[str, Any]]:
-        return self.list_endpoints(api_version=api_version, limit=None, offset=0).get("endpoints", [])
+        return self.list_endpoints(api_version=api_version, limit=None, offset=0).get(
+            "endpoints", []
+        )
 
-    def get_endpoints_by_version_and_method(self, api_version: str, method: str) -> List[Dict[str, Any]]:
+    def get_endpoints_by_version_and_method(
+        self, api_version: str, method: str
+    ) -> List[Dict[str, Any]]:
         eps = self.get_endpoints_by_api_version(api_version)
         return [e for e in eps if (e.get("method") or "").upper() == method.upper()]
 
@@ -424,7 +452,9 @@ class DocsGraphQLAdapter:
         return r.get("total", 0)
 
     def get_endpoints_by_method(self, method: str) -> List[Dict[str, Any]]:
-        return self.list_endpoints(method=method, limit=None, offset=0).get("endpoints", [])
+        return self.list_endpoints(method=method, limit=None, offset=0).get(
+            "endpoints", []
+        )
 
     def count_endpoints_by_lambda(self, service_name: str) -> int:
         return 0

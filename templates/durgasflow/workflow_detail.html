@@ -1,14 +1,252 @@
-{% extends "base.html" %}
-{% block title %}Workflow {{ workflow_id }}{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}{{
+workflow.name }} — Durgasflow{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
 <div class="page-header">
-  <div><h1 class="page-title">Workflow</h1><p class="page-subtitle"><code>{{ workflow_id }}</code></p></div>
+  <div>
+    <h1 class="page-title">{{ workflow.name }}</h1>
+    <p class="page-subtitle">
+      <span class="df-trigger-badge df-trigger-{{ workflow.trigger_type }}"
+        >{{ workflow.trigger_type }}</span
+      >
+      <span
+        class="df-status-badge df-exec-status-{% if workflow.is_active %}completed{% else %}{{ workflow.status }}{% endif %}"
+        style="margin-left: 0.5rem"
+      >
+        {% if workflow.is_active %}active{% else %}{{ workflow.status }}{% endif
+        %}
+      </span>
+    </p>
+  </div>
   <div class="page-actions">
-    <a href="{% url 'durgasflow:editor' workflow_id=workflow_id %}" class="btn btn-primary">Open editor</a>
-    <form method="post" action="{% url 'durgasflow:workflow_execute' workflow_id=workflow_id %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-outline">Execute</button></form>
-    <form method="post" action="{% url 'durgasflow:workflow_activate' workflow_id=workflow_id %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-outline">Activate</button></form>
-    <form method="post" action="{% url 'durgasflow:workflow_deactivate' workflow_id=workflow_id %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-outline">Deactivate</button></form>
+    <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline"
+      ><i class="lni lni-arrow-left"></i> Workflows</a
+    >
+    <a href="{% url 'durgasflow:editor' workflow.id %}" class="btn btn-outline"
+      ><i class="lni lni-pencil"></i> Edit</a
+    >
+    {% if workflow.is_active %}
+    <button
+      class="btn btn-outline"
+      id="df-deactivate-btn"
+      data-workflow-id="{{ workflow.id }}"
+    >
+      <i class="lni lni-close"></i> Deactivate
+    </button>
+    {% else %}
+    <button
+      class="btn btn-outline"
+      id="df-activate-btn"
+      data-workflow-id="{{ workflow.id }}"
+    >
+      <i class="lni lni-checkmark"></i> Activate
+    </button>
+    {% endif %}
+    <button
+      class="btn btn-primary"
+      id="df-run-btn"
+      data-workflow-id="{{ workflow.id }}"
+    >
+      <i class="lni lni-play"></i> Run
+    </button>
   </div>
 </div>
-{% include "components/alert.html" with type="info" message="Workflow detail loads from engine when configured." %}
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4)">
+  <!-- Stats -->
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Statistics</h3></div>
+    <div class="card-body">
+      <div class="df-meta-row">
+        <span class="df-meta-label">Nodes</span
+        ><span>{{ workflow.node_count }}</span>
+      </div>
+      <div class="df-meta-row">
+        <span class="df-meta-label">Total Runs</span
+        ><span>{{ workflow.execution_count }}</span>
+      </div>
+      <div class="df-meta-row">
+        <span class="df-meta-label">Successful</span
+        ><span>{{ workflow.success_count }}</span>
+      </div>
+      <div class="df-meta-row">
+        <span class="df-meta-label">Failed</span
+        ><span>{{ workflow.failure_count }}</span>
+      </div>
+      <div class="df-meta-row">
+        <span class="df-meta-label">Last Run</span>
+        <span
+          >{% if workflow.last_executed_at %}{{
+          workflow.last_executed_at|timesince }} ago{% else %}Never{% endif
+          %}</span
+        >
+      </div>
+      <div class="df-meta-row">
+        <span class="df-meta-label">Created</span
+        ><span>{{ workflow.created_at|date:"M d, Y" }}</span>
+      </div>
+      {% if workflow.n8n_id %}
+      <div class="df-meta-row">
+        <span class="df-meta-label">n8n ID</span
+        ><span class="df-mono">{{ workflow.n8n_id|truncatechars:32 }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tags & Description -->
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Details</h3></div>
+    <div class="card-body">
+      {% if workflow.description %}
+      <p>{{ workflow.description }}</p>
+      {% endif %} {% if workflow.tags %}
+      <div class="df-tags" style="margin-top: 0.5rem">
+        {% for tag in workflow.tags %}
+        <span class="df-tag">{{ tag }}</span>
+        {% endfor %}
+      </div>
+      {% endif %} {% if s3_enabled and workflow.s3_file_key %}
+      <div class="df-meta-row" style="margin-top: 1rem">
+        <span class="df-meta-label">S3 Key</span>
+        <a
+          href="{% url 'durgasflow:workflow_json' workflow.id %}"
+          target="_blank"
+          class="df-mono"
+          style="font-size: 0.75rem"
+          >{{ workflow.s3_file_key }}</a
+        >
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Recent Executions -->
+<div class="card" style="margin-top: var(--space-4)">
+  <div
+    class="card-header"
+    style="display: flex; justify-content: space-between"
+  >
+    <h3 class="card-title">Recent Executions</h3>
+    <a
+      href="{% url 'durgasflow:execution_list' %}?workflow_id={{ workflow.id }}"
+      class="btn btn-sm btn-outline"
+      >All</a
+    >
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Trigger</th>
+          <th>Started</th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ex in recent_execs %}
+        <tr>
+          <td class="df-mono" style="font-size: 0.75rem">
+            {{ ex.id|stringformat:"s"|slice:":8" }}…
+          </td>
+          <td>
+            <span class="df-exec-status-badge df-exec-status-{{ ex.status }}"
+              >{{ ex.status }}</span
+            >
+          </td>
+          <td>{{ ex.trigger_type }}</td>
+          <td>
+            {% if ex.started_at %}{{ ex.started_at|timesince }} ago{% else %}—{%
+            endif %}
+          </td>
+          <td>
+            {% if ex.started_at and ex.finished_at %} {{
+            ex.started_at|timesince:ex.finished_at }} {% else %}—{% endif %}
+          </td>
+          <td>
+            <a
+              href="{% url 'durgasflow:execution_detail' ex.id %}"
+              class="btn btn-xs btn-outline"
+              >View</a
+            >
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="table-empty">No executions yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="df-exec-result" style="margin-top: var(--space-2)"></div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'admin/js/durgasflow.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var runBtn = document.getElementById("df-run-btn");
+    if (runBtn && window.ExecutionRunner) {
+      runBtn.addEventListener("click", function () {
+        window.ExecutionRunner.run(
+          runBtn.dataset.workflowId,
+          {},
+          function (result) {
+            var el = document.getElementById("df-exec-result");
+            if (result.ok) {
+              el.innerHTML =
+                '<div class="alert alert-success">Execution started: <a href="/durgasflow/execution/' +
+                result.execution_id +
+                '/">' +
+                result.execution_id +
+                "</a></div>";
+              setTimeout(function () {
+                location.reload();
+              }, 2000);
+            } else {
+              el.innerHTML =
+                '<div class="alert alert-danger">Error: ' +
+                (result.error || "Unknown") +
+                "</div>";
+            }
+          },
+        );
+      });
+    }
+    var actBtn = document.getElementById("df-activate-btn");
+    if (actBtn) {
+      actBtn.addEventListener("click", function () {
+        fetch('{% url "durgasflow:workflow_activate" workflow.id %}', {
+          method: "POST",
+          headers: { "X-CSRFToken": "{{ csrf_token }}" },
+        })
+          .then((r) => r.json())
+          .then(function (d) {
+            if (d.ok) location.reload();
+          });
+      });
+    }
+    var deactBtn = document.getElementById("df-deactivate-btn");
+    if (deactBtn) {
+      deactBtn.addEventListener("click", function () {
+        fetch('{% url "durgasflow:workflow_deactivate" workflow.id %}', {
+          method: "POST",
+          headers: { "X-CSRFToken": "{{ csrf_token }}" },
+        })
+          .then((r) => r.json())
+          .then(function (d) {
+            if (d.ok) location.reload();
+          });
+      });
+    }
+  });
+</script>
 {% endblock %}

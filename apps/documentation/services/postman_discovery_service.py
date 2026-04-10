@@ -8,7 +8,13 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-SKIP_FILES = {"auth.json", "vars.json", "index.json", "contact360.json", "requestly.json"}
+SKIP_FILES = {
+    "auth.json",
+    "vars.json",
+    "index.json",
+    "contact360.json",
+    "requestly.json",
+}
 
 
 class PostmanDiscoveryService:
@@ -17,10 +23,13 @@ class PostmanDiscoveryService:
     def __init__(self, s3_storage: Optional[Any] = None) -> None:
         if s3_storage is None:
             from apps.documentation.services import get_shared_s3_storage
+
             self.s3_storage = get_shared_s3_storage()
         else:
             self.s3_storage = s3_storage
-        self.data_prefix = (getattr(settings, "S3_DATA_PREFIX", "data/") or "data/").rstrip("/") + "/"
+        self.data_prefix = (
+            getattr(settings, "S3_DATA_PREFIX", "data/") or "data/"
+        ).rstrip("/") + "/"
         self.postman_prefix = f"{self.data_prefix}postman/"
         self.collections_prefix = f"{self.data_prefix}postman/collections/"
         self.environments_prefix = f"{self.data_prefix}postman/environments/"
@@ -53,7 +62,9 @@ class PostmanDiscoveryService:
         """Discover collection JSON files in S3 under postman/collections/."""
         result: List[Dict[str, Any]] = []
         try:
-            file_keys = self.s3_storage.list_json_files(self.collections_prefix, max_keys=10000)
+            file_keys = self.s3_storage.list_json_files(
+                self.collections_prefix, max_keys=10000
+            )
             for s3_key in file_keys:
                 if s3_key.endswith("/index.json"):
                     continue
@@ -63,15 +74,26 @@ class PostmanDiscoveryService:
                 try:
                     data = self.s3_storage.read_json(s3_key)
                     info = (data or {}).get("info", {})
-                    name = info.get("name", file_name.replace(".postman_collection.json", "").replace(".json", "").replace("_", " "))
-                    relative_path = s3_key[len(self.data_prefix):] if s3_key.startswith(self.data_prefix) else s3_key
-                    result.append({
-                        "collection_id": name,
-                        "file_name": file_name,
-                        "relative_path": relative_path.replace("\\", "/"),
-                        "type": "collection",
-                        "format": "postman",
-                    })
+                    name = info.get(
+                        "name",
+                        file_name.replace(".postman_collection.json", "")
+                        .replace(".json", "")
+                        .replace("_", " "),
+                    )
+                    relative_path = (
+                        s3_key[len(self.data_prefix) :]
+                        if s3_key.startswith(self.data_prefix)
+                        else s3_key
+                    )
+                    result.append(
+                        {
+                            "collection_id": name,
+                            "file_name": file_name,
+                            "relative_path": relative_path.replace("\\", "/"),
+                            "type": "collection",
+                            "format": "postman",
+                        }
+                    )
                 except (OSError, ValueError) as e:
                     logger.warning("Discovery skip %s: %s", s3_key, e)
                     continue
@@ -88,7 +110,9 @@ class PostmanDiscoveryService:
         """Discover environment JSON files in S3 under postman/environments/."""
         result: List[Dict[str, Any]] = []
         try:
-            file_keys = self.s3_storage.list_json_files(self.environments_prefix, max_keys=10000)
+            file_keys = self.s3_storage.list_json_files(
+                self.environments_prefix, max_keys=10000
+            )
             for s3_key in file_keys:
                 if s3_key.endswith("/index.json"):
                     continue
@@ -97,15 +121,26 @@ class PostmanDiscoveryService:
                     continue
                 try:
                     data = self.s3_storage.read_json(s3_key)
-                    name = (data or {}).get("name", file_name.replace(".postman_environment.json", "").replace(".json", ""))
-                    relative_path = s3_key[len(self.data_prefix):] if s3_key.startswith(self.data_prefix) else s3_key
-                    result.append({
-                        "environment_id": name,
-                        "file_name": file_name,
-                        "relative_path": relative_path.replace("\\", "/"),
-                        "type": "environment",
-                        "format": "postman",
-                    })
+                    name = (data or {}).get(
+                        "name",
+                        file_name.replace(".postman_environment.json", "").replace(
+                            ".json", ""
+                        ),
+                    )
+                    relative_path = (
+                        s3_key[len(self.data_prefix) :]
+                        if s3_key.startswith(self.data_prefix)
+                        else s3_key
+                    )
+                    result.append(
+                        {
+                            "environment_id": name,
+                            "file_name": file_name,
+                            "relative_path": relative_path.replace("\\", "/"),
+                            "type": "environment",
+                            "format": "postman",
+                        }
+                    )
                 except (OSError, ValueError) as e:
                     logger.warning("Discovery skip env %s: %s", s3_key, e)
         except Exception as e:
@@ -117,7 +152,9 @@ class PostmanDiscoveryService:
         """Discover configuration JSON files in S3 under postman/configurations/."""
         result: List[Dict[str, Any]] = []
         try:
-            file_keys = self.s3_storage.list_json_files(self.configurations_prefix, max_keys=10000)
+            file_keys = self.s3_storage.list_json_files(
+                self.configurations_prefix, max_keys=10000
+            )
             for s3_key in file_keys:
                 if s3_key.endswith("/index.json"):
                     continue
@@ -129,13 +166,15 @@ class PostmanDiscoveryService:
                     if not data:
                         continue
                     config_id = file_name.replace(".json", "")
-                    result.append({
-                        "config_id": config_id,
-                        "name": data.get("name", config_id),
-                        "state": data.get("state", "development"),
-                        "file_name": file_name,
-                        "type": "configuration",
-                    })
+                    result.append(
+                        {
+                            "config_id": config_id,
+                            "name": data.get("name", config_id),
+                            "state": data.get("state", "development"),
+                            "file_name": file_name,
+                            "type": "configuration",
+                        }
+                    )
                 except Exception:
                     pass
         except Exception as e:

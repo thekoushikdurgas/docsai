@@ -1,4 +1,5 @@
 """Logs API Client — Lambda logs.api REST (same contract as contact360.io/2)."""
+
 import logging
 import uuid
 from typing import Any, Dict, Optional
@@ -19,7 +20,9 @@ class LogsApiClient:
         timeout: Optional[int] = None,
         request_id: Optional[str] = None,
     ):
-        self.base_url = (base_url or getattr(settings, "LOGS_API_URL", "") or "").rstrip("/")
+        self.base_url = (
+            base_url or getattr(settings, "LOGS_API_URL", "") or ""
+        ).rstrip("/")
         self.api_key = api_key or getattr(settings, "LOGS_API_KEY", "") or ""
         self.timeout = timeout or getattr(settings, "LOGS_API_TIMEOUT", 30)
         self.request_id = request_id or str(uuid.uuid4())

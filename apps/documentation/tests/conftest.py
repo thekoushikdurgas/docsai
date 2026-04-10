@@ -19,9 +19,7 @@ def client():
 def user(db):
     """Create a test user."""
     return User.objects.create_user(
-        username='testuser',
-        email='test@example.com',
-        password='testpass123'
+        username="testuser", email="test@example.com", password="testpass123"
     )
 
 

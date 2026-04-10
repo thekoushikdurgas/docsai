@@ -17,9 +17,15 @@ from django.test import TestCase
 
 from apps.documentation.repositories.pages_repository import PagesRepository
 from apps.documentation.repositories.endpoints_repository import EndpointsRepository
-from apps.documentation.repositories.relationships_repository import RelationshipsRepository
+from apps.documentation.repositories.relationships_repository import (
+    RelationshipsRepository,
+)
 from apps.documentation.repositories.postman_repository import PostmanRepository
-from apps.documentation.tests.fixtures import PageFactory, EndpointFactory, RelationshipFactory
+from apps.documentation.tests.fixtures import (
+    PageFactory,
+    EndpointFactory,
+    RelationshipFactory,
+)
 from apps.core.exceptions import RepositoryError
 
 
@@ -29,7 +35,9 @@ class PagesRepositoryTestCase(TestCase):
     def setUp(self):
         self.mock_storage = Mock()
         self.mock_index = Mock()
-        self.repo = PagesRepository(storage=self.mock_storage, index_manager=self.mock_index)
+        self.repo = PagesRepository(
+            storage=self.mock_storage, index_manager=self.mock_index
+        )
 
     def test_get_by_page_id_success(self):
         page = PageFactory.create(page_id="test-page")
@@ -78,7 +86,9 @@ class PagesRepositoryTestCase(TestCase):
 
         with self.assertRaises(RepositoryError) as ctx:
             self.repo.get_by_page_id("x")
-        self.assertIn("Failed to get page", getattr(ctx.exception, "message", str(ctx.exception)))
+        self.assertIn(
+            "Failed to get page", getattr(ctx.exception, "message", str(ctx.exception))
+        )
 
     def test_get_by_route_success(self):
         page = PageFactory.create(page_id="about")
@@ -175,7 +185,9 @@ class EndpointsRepositoryTestCase(TestCase):
     def setUp(self):
         self.mock_storage = Mock()
         self.mock_index = Mock()
-        self.repo = EndpointsRepository(storage=self.mock_storage, index_manager=self.mock_index)
+        self.repo = EndpointsRepository(
+            storage=self.mock_storage, index_manager=self.mock_index
+        )
 
     def test_get_by_endpoint_id_success(self):
         ep = EndpointFactory.create(endpoint_id="ep1")
@@ -209,7 +221,9 @@ class RelationshipsRepositoryTestCase(TestCase):
     def setUp(self):
         self.mock_storage = Mock()
         self.mock_index = Mock()
-        self.repo = RelationshipsRepository(storage=self.mock_storage, index_manager=self.mock_index)
+        self.repo = RelationshipsRepository(
+            storage=self.mock_storage, index_manager=self.mock_index
+        )
 
     def test_get_by_relationship_id_success(self):
         rel = RelationshipFactory.create(relationship_id="rel-1")
@@ -245,7 +259,9 @@ class PostmanRepositoryTestCase(TestCase):
     def setUp(self):
         self.mock_storage = Mock()
         self.mock_index = Mock()
-        self.repo = PostmanRepository(storage=self.mock_storage, index_manager=self.mock_index)
+        self.repo = PostmanRepository(
+            storage=self.mock_storage, index_manager=self.mock_index
+        )
 
     def test_init(self):
         self.assertIs(self.repo.storage, self.mock_storage)

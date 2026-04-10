@@ -1,6 +1,7 @@
 """
 Global context processors for DocsAI admin.
 """
+
 import copy
 
 from django.conf import settings
@@ -16,28 +17,68 @@ SIDEBAR_MENU = [
         "label": "Main",
         "icon": "lni lni-home",
         "children": [
-            {"label": "Dashboard", "icon": "lni lni-home", "url_name": "core:dashboard"},
+            {
+                "label": "Dashboard",
+                "icon": "lni lni-home",
+                "url_name": "core:dashboard",
+            },
         ],
     },
     {
         "label": "Documentation",
         "icon": "lni lni-book",
         "children": [
-            {"label": "Docs Hub", "icon": "lni lni-book", "url_name": "documentation:dashboard"},
-            {"label": "Pages", "icon": "lni lni-layers", "url_name": "documentation:dashboard_pages"},
-            {"label": "Endpoints", "icon": "lni lni-link", "url_name": "documentation:dashboard_endpoints"},
-            {"label": "Relationships", "icon": "lni lni-bar-chart", "url_name": "documentation:dashboard_relationships"},
-            {"label": "Postman", "icon": "lni lni-cloud-upload", "url_name": "documentation:dashboard_postman_enhanced"},
+            {
+                "label": "Docs Hub",
+                "icon": "lni lni-book",
+                "url_name": "documentation:dashboard",
+            },
+            {
+                "label": "Pages",
+                "icon": "lni lni-layers",
+                "url_name": "documentation:dashboard_pages",
+            },
+            {
+                "label": "Endpoints",
+                "icon": "lni lni-link",
+                "url_name": "documentation:dashboard_endpoints",
+            },
+            {
+                "label": "Relationships",
+                "icon": "lni lni-bar-chart",
+                "url_name": "documentation:dashboard_relationships",
+            },
+            {
+                "label": "Postman",
+                "icon": "lni lni-cloud-upload",
+                "url_name": "documentation:dashboard_postman_enhanced",
+            },
         ],
     },
     {
         "label": "Operations",
         "icon": "lni lni-cog",
         "children": [
-            {"label": "Operations", "icon": "lni lni-cog", "url_name": "operations:index"},
-            {"label": "Graph", "icon": "lni lni-network", "url_name": "graph:visualization"},
-            {"label": "Codebase", "icon": "lni lni-code", "url_name": "codebase:dashboard"},
-            {"label": "Analytics", "icon": "lni lni-bar-chart", "url_name": "analytics:dashboard"},
+            {
+                "label": "Operations",
+                "icon": "lni lni-cog",
+                "url_name": "operations:index",
+            },
+            {
+                "label": "Graph",
+                "icon": "lni lni-network",
+                "url_name": "graph:visualization",
+            },
+            {
+                "label": "Codebase",
+                "icon": "lni lni-code",
+                "url_name": "codebase:dashboard",
+            },
+            {
+                "label": "Analytics",
+                "icon": "lni lni-bar-chart",
+                "url_name": "analytics:dashboard",
+            },
         ],
     },
     {
@@ -57,8 +98,76 @@ SIDEBAR_MENU = [
         "label": "Automation",
         "icon": "lni lni-arrow-right-circle",
         "children": [
-            {"label": "Durgasflow", "icon": "lni lni-arrow-right-circle", "url_name": "durgasflow:dashboard"},
-            {"label": "Durgasman", "icon": "lni lni-database", "url_name": "durgasman:dashboard"},
+            {
+                "label": "Durgasflow",
+                "icon": "lni lni-arrow-right-circle",
+                "children": [
+                    {
+                        "label": "Dashboard",
+                        "icon": "lni lni-display",
+                        "url_name": "durgasflow:dashboard",
+                        "also_active": [
+                            "durgasflow:workflow_detail",
+                            "durgasflow:editor",
+                            "durgasflow:editor_new",
+                            "durgasflow:workflow_json",
+                            "durgasflow:save_workflow",
+                            "durgasflow:workflow_execute",
+                            "durgasflow:api_list",
+                            "durgasflow:upload_api",
+                        ],
+                    },
+                    {
+                        "label": "Upload",
+                        "icon": "lni lni-cloud-upload",
+                        "url_name": "durgasflow:upload",
+                    },
+                    {
+                        "label": "Workflows",
+                        "icon": "lni lni-layers",
+                        "url_name": "durgasflow:workflow_list",
+                    },
+                    {
+                        "label": "Executions",
+                        "icon": "lni lni-timer",
+                        "url_name": "durgasflow:execution_list",
+                        "also_active": [
+                            "durgasflow:execution_detail",
+                            "durgasflow:execution_json",
+                        ],
+                    },
+                    {
+                        "label": "Hub",
+                        "icon": "lni lni-grid-alt",
+                        "url_name": "durgasflow:workflow_hub",
+                    },
+                ],
+            },
+            {
+                "label": "Durgasman",
+                "icon": "lni lni-database",
+                "children": [
+                    {
+                        "label": "Dashboard",
+                        "icon": "lni lni-display",
+                        "url_name": "durgasman:dashboard",
+                        "also_active": [
+                            "durgasman:collections_list",
+                            "durgasman:collection_json",
+                            "durgasman:environments_list",
+                        ],
+                    },
+                    {
+                        "label": "Upload",
+                        "icon": "lni lni-cloud-upload",
+                        "url_name": "durgasman:upload",
+                        "also_active": [
+                            "durgasman:upload_collection",
+                            "durgasman:upload_environment",
+                        ],
+                    },
+                ],
+            },
             {
                 "label": "Page Builder",
                 "icon": "lni lni-pencil",
@@ -89,8 +198,16 @@ SIDEBAR_MENU = [
         "label": "Management",
         "icon": "lni lni-map",
         "children": [
-            {"label": "Roadmap", "icon": "lni lni-map", "url_name": "roadmap:dashboard"},
-            {"label": "Architecture", "icon": "lni lni-construction", "url_name": "architecture:blueprint"},
+            {
+                "label": "Roadmap",
+                "icon": "lni lni-map",
+                "url_name": "roadmap:dashboard",
+            },
+            {
+                "label": "Architecture",
+                "icon": "lni lni-construction",
+                "url_name": "architecture:blueprint",
+            },
             {
                 "label": "Knowledge",
                 "icon": "lni lni-graduation",
@@ -103,26 +220,10 @@ SIDEBAR_MENU = [
                     "knowledge:delete",
                 ],
             },
-            {"label": "Templates", "icon": "lni lni-licencse", "url_name": "templates_app:index"},
             {
-                "label": "Postman",
-                "icon": "lni lni-cloud",
-                "children": [
-                    {
-                        "label": "Dashboard",
-                        "icon": "lni lni-display",
-                        "url_name": "postman_app:dashboard",
-                    },
-                    {
-                        "label": "Upload",
-                        "icon": "lni lni-cloud-upload",
-                        "url_name": "postman_app:upload",
-                        "also_active": [
-                            "postman_app:upload_collection",
-                            "postman_app:upload_environment",
-                        ],
-                    },
-                ],
+                "label": "Templates",
+                "icon": "lni lni-licencse",
+                "url_name": "templates_app:index",
             },
             {
                 "label": "JSON Store",
@@ -210,20 +311,47 @@ SIDEBAR_MENU = [
                 "label": "Storage",
                 "icon": "lni lni-cloud-upload",
                 "url_name": "admin_ops:storage",
-                "also_active": ["admin_ops:storage_download_url", "admin_ops:delete_artifact"],
+                "also_active": [
+                    "admin_ops:storage_download_url",
+                    "admin_ops:delete_artifact",
+                ],
             },
-            {"label": "System Status", "icon": "lni lni-pulse", "url_name": "admin_ops:system_status"},
-            {"label": "Settings", "icon": "lni lni-cog", "url_name": "admin_ops:settings"},
-            {"label": "Statistics", "icon": "lni lni-bar-chart", "url_name": "admin_ops:statistics"},
+            {
+                "label": "System Status",
+                "icon": "lni lni-pulse",
+                "url_name": "admin_ops:system_status",
+            },
+            {
+                "label": "Settings",
+                "icon": "lni lni-cog",
+                "url_name": "admin_ops:settings",
+            },
+            {
+                "label": "Statistics",
+                "icon": "lni lni-bar-chart",
+                "url_name": "admin_ops:statistics",
+            },
         ],
     },
     {
         "label": "Legal",
         "icon": "lni lni-book",
         "children": [
-            {"label": "Terms of Service", "icon": "lni lni-empty-file", "url_name": "legal:terms"},
-            {"label": "Privacy Policy", "icon": "lni lni-lock", "url_name": "legal:privacy"},
-            {"label": "Refund Policy", "icon": "lni lni-wallet", "url_name": "legal:refund"},
+            {
+                "label": "Terms of Service",
+                "icon": "lni lni-empty-file",
+                "url_name": "legal:terms",
+            },
+            {
+                "label": "Privacy Policy",
+                "icon": "lni lni-lock",
+                "url_name": "legal:privacy",
+            },
+            {
+                "label": "Refund Policy",
+                "icon": "lni lni-wallet",
+                "url_name": "legal:refund",
+            },
         ],
     },
     {

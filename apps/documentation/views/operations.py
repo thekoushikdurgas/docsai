@@ -76,7 +76,16 @@ def _persist_runtime_job(job_id: str, payload: Dict[str, Any]) -> None:
         if op:
             for key, value in defaults.items():
                 setattr(op, key, value)
-            op.save(update_fields=["operation_type", "name", "status", "progress", "metadata", "error_message"])
+            op.save(
+                update_fields=[
+                    "operation_type",
+                    "name",
+                    "status",
+                    "progress",
+                    "metadata",
+                    "error_message",
+                ]
+            )
             return
         OperationLog.objects.create(operation_id=job_id, **defaults)
     except Exception:
@@ -84,7 +93,9 @@ def _persist_runtime_job(job_id: str, payload: Dict[str, Any]) -> None:
         logger.debug("Runtime job persistence failed for %s", job_id, exc_info=True)
 
 
-def _load_runtime_job(job_id: str, memory_store: Dict[str, Dict[str, Any]], lock: threading.Lock) -> Dict[str, Any] | None:
+def _load_runtime_job(
+    job_id: str, memory_store: Dict[str, Dict[str, Any]], lock: threading.Lock
+) -> Dict[str, Any] | None:
     try:
         op = OperationLog.objects.filter(operation_id=job_id).first()
         meta = (op.metadata if op else None) or {}
@@ -124,7 +135,9 @@ def _save_runtime_job(
     with lock:
         existing = memory_store.get(job_id, {})
         merged = {
-            "progress_path": payload.get("progress_path", existing.get("progress_path")),
+            "progress_path": payload.get(
+                "progress_path", existing.get("progress_path")
+            ),
             "report_path": payload.get("report_path", existing.get("report_path")),
             "report": payload.get("report", existing.get("report")),
             "error": payload.get("error", existing.get("error")),
@@ -144,7 +157,11 @@ def _save_runtime_job(
 def operations_dashboard(request: HttpRequest) -> HttpResponse:
     """Operations dashboard view. GET /docs/operations/"""
     try:
-        return render(request, "documentation/operations/dashboard.html", {"page_title": "Operations"})
+        return render(
+            request,
+            "documentation/operations/dashboard.html",
+            {"page_title": "Operations"},
+        )
     except Exception as e:
         logger.error("Error rendering operations dashboard: %s", e, exc_info=True)
         raise
@@ -159,28 +176,35 @@ def operations_history_api(request: HttpRequest) -> JsonResponse:
     operation_type = (request.GET.get("operation_type") or "").strip() or None
     try:
         from apps.operations.services.operations_service import OperationsService
+
         svc = OperationsService()
         # When filtering to docs-only in memory, fetch extra to allow for non-docs items
         if operation_type:
-            items = svc.list_operations(operation_type=operation_type, limit=limit, offset=offset)
+            items = svc.list_operations(
+                operation_type=operation_type, limit=limit, offset=offset
+            )
         else:
             fetch_limit = min(200, max(100, (offset + limit) * 3))
-            items = svc.list_operations(operation_type=None, limit=fetch_limit, offset=0)
+            items = svc.list_operations(
+                operation_type=None, limit=fetch_limit, offset=0
+            )
             docs_types = set(ops_logger.DOCS_OPERATION_TYPES)
             items = [op for op in items if op.get("operation_type") in docs_types]
             items = items[offset : offset + limit]
         payload = []
         for op in items:
             meta = op.get("metadata") or {}
-            payload.append({
-                "operation_id": op.get("operation_id"),
-                "operation_type": op.get("operation_type"),
-                "name": op.get("name"),
-                "status": op.get("status"),
-                "created_at": op.get("created_at"),
-                "report_summary": meta.get("report_summary"),
-                "parent_operation_id": meta.get("parent_operation_id"),
-            })
+            payload.append(
+                {
+                    "operation_id": op.get("operation_id"),
+                    "operation_type": op.get("operation_type"),
+                    "name": op.get("name"),
+                    "status": op.get("status"),
+                    "created_at": op.get("created_at"),
+                    "report_summary": meta.get("report_summary"),
+                    "parent_operation_id": meta.get("parent_operation_id"),
+                }
+            )
         return JsonResponse({"operations": payload, "total": len(payload)})
     except Exception as e:
         logger.exception("operations_history_api: %s", e)
@@ -191,13 +215,17 @@ def operations_history_api(request: HttpRequest) -> JsonResponse:
 def operations_history(request: HttpRequest) -> HttpResponse:
     """Operations history page. GET /docs/operations/history/"""
     try:
-        return render(request, "documentation/operations/history.html", {"page_title": "History"})
+        return render(
+            request, "documentation/operations/history.html", {"page_title": "History"}
+        )
     except Exception as e:
         logger.error("Error rendering operations history: %s", e, exc_info=True)
         raise
 
 
-def _run_analyze_script(analysis_type: str, progress_path: str = None, report_path: str = None) -> Dict[str, Any]:
+def _run_analyze_script(
+    analysis_type: str, progress_path: str = None, report_path: str = None
+) -> Dict[str, Any]:
     """Run scripts/analyze_docs_files.py and return report dict. Returns empty dict on error.
     If progress_path is set, script writes progress JSON there for UI polling.
     If report_path is set, script writes report there (otherwise uses a temp file)."""
@@ -225,7 +253,12 @@ def _run_analyze_script(analysis_type: str, progress_path: str = None, report_pa
         args.append("--postman-only")
     elif analysis_type == "result":
         args.append("--result-only")
-    env = {**os.environ, "DJANGO_SETTINGS_MODULE": os.environ.get("DJANGO_SETTINGS_MODULE", "config.settings")}
+    env = {
+        **os.environ,
+        "DJANGO_SETTINGS_MODULE": os.environ.get(
+            "DJANGO_SETTINGS_MODULE", "config.settings"
+        ),
+    }
     try:
         result = subprocess.run(
             args,
@@ -244,7 +277,10 @@ def _run_analyze_script(analysis_type: str, progress_path: str = None, report_pa
                 return data
             except (json.JSONDecodeError, OSError) as e:
                 logger.warning("Failed to read analyze report: %s", e)
-        return {"analysis_error": result.stderr or str(result.returncode), "analysis_stdout": result.stdout or ""}
+        return {
+            "analysis_error": result.stderr or str(result.returncode),
+            "analysis_stdout": result.stdout or "",
+        }
     except subprocess.TimeoutExpired:
         Path(report_path).unlink(missing_ok=True)
         return {"analysis_error": "Analysis timed out after 120 seconds."}
@@ -254,10 +290,14 @@ def _run_analyze_script(analysis_type: str, progress_path: str = None, report_pa
         return {"analysis_error": str(e)}
 
 
-def _run_analyze_job(job_id: str, analysis_type: str, progress_path: str, report_path: str) -> None:
+def _run_analyze_job(
+    job_id: str, analysis_type: str, progress_path: str, report_path: str
+) -> None:
     """Background thread: run analyze script with progress, then store report in _analyze_jobs."""
     try:
-        report = _run_analyze_script(analysis_type, progress_path=progress_path, report_path=report_path)
+        report = _run_analyze_script(
+            analysis_type, progress_path=progress_path, report_path=report_path
+        )
         _save_runtime_job(
             job_id,
             kind="analyze",
@@ -295,7 +335,10 @@ def _analyze_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
     for key in ("pages", "endpoints", "relationships"):
         data = report.get(key, {})
         if isinstance(data, dict):
-            out[key] = {"valid": data.get("valid", 0), "invalid": data.get("invalid", 0)}
+            out[key] = {
+                "valid": data.get("valid", 0),
+                "invalid": data.get("invalid", 0),
+            }
     return out if out else {"raw_keys": list(report.keys())[:10]}
 
 
@@ -312,7 +355,15 @@ def analyze_docs_view(request: HttpRequest) -> HttpResponse:
             context["analysis_type"] = "all"
     if request.method == "POST":
         analysis_type = (request.POST.get("analysis_type") or "all").strip()
-        if analysis_type not in ("all", "pages", "endpoints", "relationships", "n8n", "postman", "result"):
+        if analysis_type not in (
+            "all",
+            "pages",
+            "endpoints",
+            "relationships",
+            "n8n",
+            "postman",
+            "result",
+        ):
             analysis_type = "all"
         parent_id = (request.POST.get("parent_operation_id") or "").strip() or None
         op_id = ops_logger.start_docs_operation(
@@ -352,7 +403,15 @@ def analyze_start_api(request: HttpRequest) -> JsonResponse:
             analysis_type = (body.get("analysis_type") or "all").strip()
         except (json.JSONDecodeError, TypeError):
             analysis_type = "all"
-    if analysis_type not in ("all", "pages", "endpoints", "relationships", "n8n", "postman", "result"):
+    if analysis_type not in (
+        "all",
+        "pages",
+        "endpoints",
+        "relationships",
+        "n8n",
+        "postman",
+        "result",
+    ):
         analysis_type = "all"
     job_id = str(uuid.uuid4())
     fd_progress, progress_path = tempfile.mkstemp(suffix=".progress.json")
@@ -398,13 +457,19 @@ def analyze_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
     if job.get("done"):
         report = job.get("report")
         error = job.get("error")
-        return JsonResponse({
-            "done": True,
-            "report": report,
-            "error": error,
-            "total_files": report.get("summary", {}).get("total_files", 0) if report else 0,
-            "current_index": report.get("summary", {}).get("total_files", 0) if report else 0,
-        })
+        return JsonResponse(
+            {
+                "done": True,
+                "report": report,
+                "error": error,
+                "total_files": report.get("summary", {}).get("total_files", 0)
+                if report
+                else 0,
+                "current_index": report.get("summary", {}).get("total_files", 0)
+                if report
+                else 0,
+            }
+        )
     progress_path = job.get("progress_path")
     if progress_path and Path(progress_path).exists():
         try:
@@ -412,15 +477,17 @@ def analyze_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
             return JsonResponse(data)
         except (json.JSONDecodeError, OSError):
             pass
-    return JsonResponse({
-        "total_files": 0,
-        "current_index": 0,
-        "section": "Starting",
-        "section_current": 0,
-        "section_total": 0,
-        "current_file": "",
-        "done": False,
-    })
+    return JsonResponse(
+        {
+            "total_files": 0,
+            "current_index": 0,
+            "section": "Starting",
+            "section_current": 0,
+            "section_total": 0,
+            "current_file": "",
+            "done": False,
+        }
+    )
 
 
 @require_super_admin
@@ -428,7 +495,11 @@ def validate_docs_view(request: HttpRequest) -> HttpResponse:
     """Validate documentation view. GET /docs/operations/validate/ or POST to run validation.
     GET with ?job_id=XXX shows report from a completed background validate job (analyze start API with analysis_type=all)."""
     context: Dict[str, Any] = {"page_title": "Validate"}
-    parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
+    parent_id = (
+        request.GET.get("parent_operation_id")
+        or request.POST.get("parent_operation_id")
+        or ""
+    ).strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
     job_id = (request.GET.get("job_id") or "").strip()
@@ -464,7 +535,10 @@ def validate_docs_view(request: HttpRequest) -> HttpResponse:
 
 def _run_generate_indexes(selected: list[str]) -> Dict[str, Any]:
     """Run index generation for selected types (pages, endpoints, relationships, postman). Returns {results: {name: {success, ...}}, success}."""
-    from apps.documentation.services.index_generator_service import IndexGeneratorService
+    from apps.documentation.services.index_generator_service import (
+        IndexGeneratorService,
+    )
+
     gen = IndexGeneratorService()
     results: Dict[str, Any] = {}
     all_ok = True
@@ -495,7 +569,9 @@ def _generate_json_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _run_generate_json_job(job_id: str, selected: list[str], progress_path: str) -> None:
+def _run_generate_json_job(
+    job_id: str, selected: list[str], progress_path: str
+) -> None:
     """Background thread: run index generation step-by-step, write progress, then store report in _generate_json_jobs."""
     total = len(selected)
     results: Dict[str, Any] = {}
@@ -505,21 +581,26 @@ def _run_generate_json_job(job_id: str, selected: list[str], progress_path: str)
             try:
                 if progress_path and Path(progress_path).parent.exists():
                     Path(progress_path).write_text(
-                        json.dumps({
-                            "total_files": total,
-                            "current_index": i,
-                            "section": name,
-                            "section_current": i + 1,
-                            "section_total": total,
-                            "current_file": f"Generating {name}/index.json",
-                            "done": False,
-                        }, indent=0),
+                        json.dumps(
+                            {
+                                "total_files": total,
+                                "current_index": i,
+                                "section": name,
+                                "section_current": i + 1,
+                                "section_total": total,
+                                "current_file": f"Generating {name}/index.json",
+                                "done": False,
+                            },
+                            indent=0,
+                        ),
                         encoding="utf-8",
                     )
             except (OSError, TypeError):
                 pass
             report = _run_generate_indexes([name])
-            part = report.get("results", {}).get(name, {"success": False, "error": "No result"})
+            part = report.get("results", {}).get(
+                name, {"success": False, "error": "No result"}
+            )
             results[name] = part
             if not part.get("success"):
                 all_ok = False
@@ -547,7 +628,10 @@ def _run_generate_json_job(job_id: str, selected: list[str], progress_path: str)
         try:
             if progress_path:
                 Path(progress_path).write_text(
-                    json.dumps({"done": True, "total_files": total, "current_index": total}, indent=0),
+                    json.dumps(
+                        {"done": True, "total_files": total, "current_index": total},
+                        indent=0,
+                    ),
                     encoding="utf-8",
                 )
         except (OSError, TypeError):
@@ -589,7 +673,10 @@ def generate_json_start_api(request: HttpRequest) -> JsonResponse:
         except (json.JSONDecodeError, TypeError):
             pass
     if not selected:
-        return JsonResponse({"error": "Select at least one index to generate.", "job_id": None}, status=400)
+        return JsonResponse(
+            {"error": "Select at least one index to generate.", "job_id": None},
+            status=400,
+        )
     job_id = str(uuid.uuid4())
     fd_progress, progress_path = tempfile.mkstemp(suffix=".generate_json.progress.json")
     os.close(fd_progress)
@@ -631,13 +718,15 @@ def generate_json_progress_api(request: HttpRequest, job_id: str) -> JsonRespons
         report = job.get("report")
         error = job.get("error")
         total = len(report.get("results", {})) if report else 0
-        return JsonResponse({
-            "done": True,
-            "report": report,
-            "error": error,
-            "total_files": total,
-            "current_index": total,
-        })
+        return JsonResponse(
+            {
+                "done": True,
+                "report": report,
+                "error": error,
+                "total_files": total,
+                "current_index": total,
+            }
+        )
     progress_path = job.get("progress_path")
     if progress_path and Path(progress_path).exists():
         try:
@@ -645,15 +734,17 @@ def generate_json_progress_api(request: HttpRequest, job_id: str) -> JsonRespons
             return JsonResponse(data)
         except (json.JSONDecodeError, OSError):
             pass
-    return JsonResponse({
-        "total_files": 0,
-        "current_index": 0,
-        "section": "Starting",
-        "section_current": 0,
-        "section_total": 0,
-        "current_file": "",
-        "done": False,
-    })
+    return JsonResponse(
+        {
+            "total_files": 0,
+            "current_index": 0,
+            "section": "Starting",
+            "section_current": 0,
+            "section_total": 0,
+            "current_file": "",
+            "done": False,
+        }
+    )
 
 
 @require_super_admin
@@ -661,7 +752,11 @@ def generate_json_view(request: HttpRequest) -> HttpResponse:
     """Generate JSON view. GET /docs/operations/generate-json/ or POST to run index generation.
     GET with ?job_id=XXX shows report from a completed background generate-json job."""
     context: Dict[str, Any] = {"page_title": "Generate JSON"}
-    parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
+    parent_id = (
+        request.GET.get("parent_operation_id")
+        or request.POST.get("parent_operation_id")
+        or ""
+    ).strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
     job_id = (request.GET.get("job_id") or "").strip()
@@ -682,9 +777,17 @@ def generate_json_view(request: HttpRequest) -> HttpResponse:
         if request.POST.get("generate_postman_index"):
             selected.append("postman")
         if not selected:
-            context["report"] = {"success": False, "results": {}, "message": "Select at least one index to generate."}
+            context["report"] = {
+                "success": False,
+                "results": {},
+                "message": "Select at least one index to generate.",
+            }
         else:
-            parent_id = (request.POST.get("parent_operation_id") or "").strip() or parent_id or None
+            parent_id = (
+                (request.POST.get("parent_operation_id") or "").strip()
+                or parent_id
+                or None
+            )
             op_id = ops_logger.start_docs_operation(
                 request,
                 "docs_generate_json",
@@ -716,6 +819,7 @@ def _run_generate_postman_collection(collection_name: str) -> Dict[str, Any]:
         if str(base_dir) not in sys.path:
             sys.path.insert(0, str(base_dir))
         from scripts.generate_postman_collection import generate_collection
+
         collection = generate_collection()
         collection["info"]["name"] = collection_name
         safe_name = re.sub(r"[^\w\-]", "_", collection_name)
@@ -727,10 +831,19 @@ def _run_generate_postman_collection(collection_name: str) -> Dict[str, Any]:
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(collection, f, indent=2, ensure_ascii=False)
         logger.debug("Generated Postman collection: %s", out_path)
-        return {"success": True, "path": str(out_path), "collection_name": collection_name, "filename": filename}
+        return {
+            "success": True,
+            "path": str(out_path),
+            "collection_name": collection_name,
+            "filename": filename,
+        }
     except ImportError as e:
         logger.warning("Could not import generate_postman_collection: %s", e)
-        return {"success": False, "error": f"Collection generator not available: {e}", "collection_name": collection_name}
+        return {
+            "success": False,
+            "error": f"Collection generator not available: {e}",
+            "collection_name": collection_name,
+        }
     except Exception as e:
         logger.exception("generate_postman_collection")
         return {"success": False, "error": str(e), "collection_name": collection_name}
@@ -739,7 +852,11 @@ def _run_generate_postman_collection(collection_name: str) -> Dict[str, Any]:
 def _postman_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
     """Build short report_summary for history from generate-postman report."""
     if report.get("success"):
-        return {"success": True, "path": report.get("path"), "filename": report.get("filename")}
+        return {
+            "success": True,
+            "path": report.get("path"),
+            "filename": report.get("filename"),
+        }
     return {"success": False, "error": (report.get("error") or "")[:500]}
 
 
@@ -747,12 +864,18 @@ def _postman_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
 def generate_postman_view(request: HttpRequest) -> HttpResponse:
     """Generate Postman view. GET /docs/operations/generate-postman/ or POST to generate collection."""
     context: Dict[str, Any] = {"page_title": "Generate Postman"}
-    parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
+    parent_id = (
+        request.GET.get("parent_operation_id")
+        or request.POST.get("parent_operation_id")
+        or ""
+    ).strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
     if request.method == "POST":
         collection_name = request.POST.get("collection_name", "Contact360 API")
-        parent_id = (request.POST.get("parent_operation_id") or "").strip() or parent_id or None
+        parent_id = (
+            (request.POST.get("parent_operation_id") or "").strip() or parent_id or None
+        )
         op_id = ops_logger.start_docs_operation(
             request,
             "docs_generate_postman",
@@ -771,7 +894,9 @@ def generate_postman_view(request: HttpRequest) -> HttpResponse:
         if op_id:
             context["operation_id"] = op_id
     try:
-        return render(request, "documentation/operations/generate_postman.html", context)
+        return render(
+            request, "documentation/operations/generate_postman.html", context
+        )
     except Exception as e:
         logger.error("Error rendering generate Postman view: %s", e, exc_info=True)
         raise
@@ -780,14 +905,23 @@ def generate_postman_view(request: HttpRequest) -> HttpResponse:
 def _sync_one_resource_to_s3(resource_type: str) -> Dict[str, Any]:
     """Upload one resource type (pages, endpoints, relationships, postman) to S3. Returns result dict for API."""
     from apps.documentation.services.media_sync_service import MediaSyncService
+
     allowed = ("pages", "endpoints", "relationships", "postman")
     if resource_type not in allowed:
-        return {"success": False, "error": f"Unknown resource type: {resource_type}", "resource_type": resource_type}
+        return {
+            "success": False,
+            "error": f"Unknown resource type: {resource_type}",
+            "resource_type": resource_type,
+        }
     try:
         svc = MediaSyncService()
         fn = getattr(svc, f"sync_{resource_type}_to_s3", None)
         if not fn:
-            return {"success": False, "error": f"No sync for {resource_type}", "resource_type": resource_type}
+            return {
+                "success": False,
+                "error": f"No sync for {resource_type}",
+                "resource_type": resource_type,
+            }
         out = fn(dry_run=False)
         errors = out.get("errors", 0)
         return {
@@ -806,13 +940,25 @@ def _sync_one_resource_to_s3(resource_type: str) -> Dict[str, Any]:
 def _upload_file_list_for_resource(resource_type: str) -> Dict[str, Any]:
     """Return list of file relative_paths for a resource type (for per-file upload UI)."""
     from apps.documentation.services.media_file_manager import MediaFileManagerService
+
     allowed = ("pages", "endpoints", "relationships", "postman")
     if resource_type not in allowed:
-        return {"resource_type": resource_type, "files": [], "error": f"Unknown resource type: {resource_type}"}
+        return {
+            "resource_type": resource_type,
+            "files": [],
+            "error": f"Unknown resource type: {resource_type}",
+        }
     try:
         mgr = MediaFileManagerService()
         items = mgr.scan_media_directory(resource_type)
-        files = [{"relative_path": (item.get("relative_path") or "").replace("\\", "/"), "name": item.get("name", "")} for item in items if item.get("relative_path")]
+        files = [
+            {
+                "relative_path": (item.get("relative_path") or "").replace("\\", "/"),
+                "name": item.get("name", ""),
+            }
+            for item in items
+            if item.get("relative_path")
+        ]
         return {"resource_type": resource_type, "files": files}
     except Exception as e:
         logger.exception("upload_file_list %s", resource_type)
@@ -838,13 +984,17 @@ def upload_to_s3_api(request: HttpRequest, resource_type: str) -> JsonResponse:
 def _run_upload_to_s3(selected: list[str]) -> Dict[str, Any]:
     """Upload selected resource types (pages, endpoints, relationships, postman, n8n, result, project, media) to S3. Returns {success, results}."""
     from apps.documentation.services.media_sync_service import MediaSyncService
+
     svc = MediaSyncService()
     results: Dict[str, Any] = {}
     all_ok = True
     for name in selected:
         fn = getattr(svc, f"sync_{name}_to_s3", None)
         if not fn:
-            results[name] = {"success": False, "error": f"Unknown resource type: {name}"}
+            results[name] = {
+                "success": False,
+                "error": f"Unknown resource type: {name}",
+            }
             all_ok = False
             continue
         try:
@@ -864,7 +1014,12 @@ def _run_upload_to_s3(selected: list[str]) -> Dict[str, Any]:
                 all_ok = False
         except Exception as e:
             logger.exception("sync_%s_to_s3", name)
-            results[name] = {"success": False, "error": str(e), "success_files": [], "error_details": []}
+            results[name] = {
+                "success": False,
+                "error": str(e),
+                "success_files": [],
+                "error_details": [],
+            }
             all_ok = False
     return {"success": all_ok, "results": results}
 
@@ -874,7 +1029,10 @@ def _upload_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
     results = report.get("results", {})
     return {
         "success": report.get("success", False),
-        "by_type": {k: {"synced": r.get("synced", 0), "errors": r.get("errors", 0)} for k, r in results.items()},
+        "by_type": {
+            k: {"synced": r.get("synced", 0), "errors": r.get("errors", 0)}
+            for k, r in results.items()
+        },
     }
 
 
@@ -882,6 +1040,7 @@ def _run_upload_job(job_id: str, selected: list[str], progress_path: str) -> Non
     """Background thread: run upload to S3 with file-level progress, then store report in _upload_jobs."""
     from apps.documentation.services.media_file_manager import MediaFileManagerService
     from apps.documentation.services.media_sync_service import MediaSyncService
+
     mgr = MediaFileManagerService()
     svc = MediaSyncService()
     results: Dict[str, Any] = {}
@@ -899,20 +1058,30 @@ def _run_upload_job(job_id: str, selected: list[str], progress_path: str) -> Non
         total_files = max(1, total_files)
         global_index = 0
 
-        def write_progress(g_idx: int, g_total: int, section: str, s_cur: int, s_tot: int, current_file: str) -> None:
+        def write_progress(
+            g_idx: int,
+            g_total: int,
+            section: str,
+            s_cur: int,
+            s_tot: int,
+            current_file: str,
+        ) -> None:
             if not progress_path or not Path(progress_path).parent.exists():
                 return
             try:
                 Path(progress_path).write_text(
-                    json.dumps({
-                        "total_files": g_total,
-                        "current_index": g_idx,
-                        "section": section,
-                        "section_current": s_cur,
-                        "section_total": s_tot,
-                        "current_file": current_file,
-                        "done": False,
-                    }, indent=0),
+                    json.dumps(
+                        {
+                            "total_files": g_total,
+                            "current_index": g_idx,
+                            "section": section,
+                            "section_current": s_cur,
+                            "section_total": s_tot,
+                            "current_file": current_file,
+                            "done": False,
+                        },
+                        indent=0,
+                    ),
                     encoding="utf-8",
                 )
             except (OSError, TypeError):
@@ -921,7 +1090,12 @@ def _run_upload_job(job_id: str, selected: list[str], progress_path: str) -> Non
         for name in selected:
             fn = getattr(svc, f"sync_{name}_to_s3", None)
             if not fn:
-                results[name] = {"success": False, "error": f"Unknown resource type: {name}", "success_files": [], "error_details": []}
+                results[name] = {
+                    "success": False,
+                    "error": f"Unknown resource type: {name}",
+                    "success_files": [],
+                    "error_details": [],
+                }
                 all_ok = False
                 continue
             try:
@@ -947,7 +1121,12 @@ def _run_upload_job(job_id: str, selected: list[str], progress_path: str) -> Non
                     all_ok = False
             except Exception as e:
                 logger.exception("sync_%s_to_s3", name)
-                results[name] = {"success": False, "error": str(e), "success_files": [], "error_details": []}
+                results[name] = {
+                    "success": False,
+                    "error": str(e),
+                    "success_files": [],
+                    "error_details": [],
+                }
                 all_ok = False
         report = {"success": all_ok, "results": results}
         _save_runtime_job(
@@ -973,7 +1152,14 @@ def _run_upload_job(job_id: str, selected: list[str], progress_path: str) -> Non
         try:
             if progress_path:
                 Path(progress_path).write_text(
-                    json.dumps({"done": True, "total_files": total_files, "current_index": global_index}, indent=0),
+                    json.dumps(
+                        {
+                            "done": True,
+                            "total_files": total_files,
+                            "current_index": global_index,
+                        },
+                        indent=0,
+                    ),
                     encoding="utf-8",
                 )
         except (OSError, TypeError):
@@ -1007,7 +1193,16 @@ def _collect_upload_selected(request: HttpRequest) -> list[str]:
         try:
             body = json.loads(request.body)
             if body.get("upload_all"):
-                return ["pages", "endpoints", "relationships", "postman", "n8n", "result", "project", "media"]
+                return [
+                    "pages",
+                    "endpoints",
+                    "relationships",
+                    "postman",
+                    "n8n",
+                    "result",
+                    "project",
+                    "media",
+                ]
             if body.get("upload_pages") and "pages" not in selected:
                 selected.append("pages")
             if body.get("upload_endpoints") and "endpoints" not in selected:
@@ -1027,7 +1222,16 @@ def _collect_upload_selected(request: HttpRequest) -> list[str]:
         except (json.JSONDecodeError, TypeError):
             pass
     if request.POST.get("upload_all"):
-        return ["pages", "endpoints", "relationships", "postman", "n8n", "result", "project", "media"]
+        return [
+            "pages",
+            "endpoints",
+            "relationships",
+            "postman",
+            "n8n",
+            "result",
+            "project",
+            "media",
+        ]
     return selected
 
 
@@ -1037,7 +1241,10 @@ def upload_start_api(request: HttpRequest) -> JsonResponse:
     """POST /docs/api/operations/upload/start/ – start upload to S3 in background, return job_id for progress polling."""
     selected = _collect_upload_selected(request)
     if not selected:
-        return JsonResponse({"error": "Select at least one resource type to upload.", "job_id": None}, status=400)
+        return JsonResponse(
+            {"error": "Select at least one resource type to upload.", "job_id": None},
+            status=400,
+        )
     job_id = str(uuid.uuid4())
     fd_progress, progress_path = tempfile.mkstemp(suffix=".upload.progress.json")
     os.close(fd_progress)
@@ -1079,13 +1286,15 @@ def upload_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
         report = job.get("report")
         error = job.get("error")
         total = len(report.get("results", {})) if report else 0
-        return JsonResponse({
-            "done": True,
-            "report": report,
-            "error": error,
-            "total_files": total,
-            "current_index": total,
-        })
+        return JsonResponse(
+            {
+                "done": True,
+                "report": report,
+                "error": error,
+                "total_files": total,
+                "current_index": total,
+            }
+        )
     progress_path = job.get("progress_path")
     if progress_path and Path(progress_path).exists():
         try:
@@ -1093,15 +1302,17 @@ def upload_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
             return JsonResponse(data)
         except (json.JSONDecodeError, OSError):
             pass
-    return JsonResponse({
-        "total_files": 0,
-        "current_index": 0,
-        "section": "Starting",
-        "section_current": 0,
-        "section_total": 0,
-        "current_file": "",
-        "done": False,
-    })
+    return JsonResponse(
+        {
+            "total_files": 0,
+            "current_index": 0,
+            "section": "Starting",
+            "section_current": 0,
+            "section_total": 0,
+            "current_file": "",
+            "done": False,
+        }
+    )
 
 
 @require_super_admin
@@ -1109,7 +1320,11 @@ def upload_docs_view(request: HttpRequest) -> HttpResponse:
     """Upload docs view. GET /docs/operations/upload/ or POST to upload selected types to S3.
     GET with ?job_id=XXX shows report from a completed background upload job."""
     context: Dict[str, Any] = {}
-    parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
+    parent_id = (
+        request.GET.get("parent_operation_id")
+        or request.POST.get("parent_operation_id")
+        or ""
+    ).strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
     job_id = (request.GET.get("job_id") or "").strip()
@@ -1122,9 +1337,17 @@ def upload_docs_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         selected = _collect_upload_selected(request)
         if not selected:
-            context["report"] = {"success": False, "results": {}, "message": "Select at least one resource type to upload."}
+            context["report"] = {
+                "success": False,
+                "results": {},
+                "message": "Select at least one resource type to upload.",
+            }
         else:
-            parent_id = (request.POST.get("parent_operation_id") or "").strip() or parent_id or None
+            parent_id = (
+                (request.POST.get("parent_operation_id") or "").strip()
+                or parent_id
+                or None
+            )
             op_id = ops_logger.start_docs_operation(
                 request,
                 "docs_upload_s3",
@@ -1155,9 +1378,19 @@ def _run_seed_script(source: str) -> Dict[str, Any]:
     script = base_dir / "scripts" / "seed_documentation_pages.py"
     if not script.exists():
         logger.warning("Seed script not found: %s", script)
-        return {"success": False, "stdout": "", "stderr": "", "message": "Seed script not found."}
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": "",
+            "message": "Seed script not found.",
+        }
     args = [sys.executable, str(script)]
-    env = {**os.environ, "DJANGO_SETTINGS_MODULE": os.environ.get("DJANGO_SETTINGS_MODULE", "config.settings")}
+    env = {
+        **os.environ,
+        "DJANGO_SETTINGS_MODULE": os.environ.get(
+            "DJANGO_SETTINGS_MODULE", "config.settings"
+        ),
+    }
     try:
         result = subprocess.run(
             args,
@@ -1178,13 +1411,25 @@ def _run_seed_script(source: str) -> Dict[str, Any]:
         elif result.returncode == 0:
             report["message"] = "Seeding completed. See output below."
         else:
-            report["message"] = "Seeding completed." if result.returncode == 0 else "Seeding failed."
+            report["message"] = (
+                "Seeding completed." if result.returncode == 0 else "Seeding failed."
+            )
         return report
     except subprocess.TimeoutExpired:
-        return {"success": False, "stdout": "", "stderr": "Seed script timed out after 300 seconds.", "message": "Seeding timed out."}
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": "Seed script timed out after 300 seconds.",
+            "message": "Seeding timed out.",
+        }
     except Exception as e:
         logger.exception("Error running seed script: %s", e)
-        return {"success": False, "stdout": "", "stderr": str(e), "message": "Error running seed script."}
+        return {
+            "success": False,
+            "stdout": "",
+            "stderr": str(e),
+            "message": "Error running seed script.",
+        }
 
 
 def _seed_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
@@ -1200,14 +1445,20 @@ def _seed_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
 def seed_documentation_view(request: HttpRequest) -> HttpResponse:
     """Seed documentation view. GET /docs/operations/seed/ or POST to run seeding."""
     context: Dict[str, Any] = {"page_title": "Seed"}
-    parent_id = (request.GET.get("parent_operation_id") or request.POST.get("parent_operation_id") or "").strip() or None
+    parent_id = (
+        request.GET.get("parent_operation_id")
+        or request.POST.get("parent_operation_id")
+        or ""
+    ).strip() or None
     if parent_id:
         context["parent_operation_id"] = parent_id
     if request.method == "POST":
         source = (request.POST.get("source") or "s3").strip()
         if source not in ("graphql", "lambda", "s3"):
             source = "s3"
-        parent_id = (request.POST.get("parent_operation_id") or "").strip() or parent_id or None
+        parent_id = (
+            (request.POST.get("parent_operation_id") or "").strip() or parent_id or None
+        )
         op_id = ops_logger.start_docs_operation(
             request,
             "docs_seed",
@@ -1220,7 +1471,9 @@ def seed_documentation_view(request: HttpRequest) -> HttpResponse:
             op_id,
             success=report.get("success", False),
             report_summary=_seed_report_summary(report),
-            error_message=(report.get("stderr") or "")[:1000] if not report.get("success") else None,
+            error_message=(report.get("stderr") or "")[:1000]
+            if not report.get("success")
+            else None,
         )
         context["report"] = report
         if op_id:
@@ -1254,7 +1507,9 @@ def _run_pipeline_steps(request: HttpRequest) -> Dict[str, Any]:
             report_summary=_analyze_report_summary(report1),
             error_message=report1.get("analysis_error") if not success1 else None,
         )
-    steps.append({"name": "Analyze", "operation_id": op1, "success": success1, "report": report1})
+    steps.append(
+        {"name": "Analyze", "operation_id": op1, "success": success1, "report": report1}
+    )
     parent_id = op1
     if not success1:
         return {"steps": steps, "overall_success": False}
@@ -1276,7 +1531,14 @@ def _run_pipeline_steps(request: HttpRequest) -> Dict[str, Any]:
             report_summary=_analyze_report_summary(report2),
             error_message=report2.get("analysis_error") if not success2 else None,
         )
-    steps.append({"name": "Validate", "operation_id": op2, "success": success2, "report": report2})
+    steps.append(
+        {
+            "name": "Validate",
+            "operation_id": op2,
+            "success": success2,
+            "report": report2,
+        }
+    )
     parent_id = op2
     if not success2:
         return {"steps": steps, "overall_success": False}
@@ -1298,7 +1560,14 @@ def _run_pipeline_steps(request: HttpRequest) -> Dict[str, Any]:
             success=success3,
             report_summary=_generate_json_report_summary(report3),
         )
-    steps.append({"name": "Generate JSON", "operation_id": op3, "success": success3, "report": report3})
+    steps.append(
+        {
+            "name": "Generate JSON",
+            "operation_id": op3,
+            "success": success3,
+            "report": report3,
+        }
+    )
     parent_id = op3
     if not success3:
         return {"steps": steps, "overall_success": False}
@@ -1320,7 +1589,14 @@ def _run_pipeline_steps(request: HttpRequest) -> Dict[str, Any]:
             success=success4,
             report_summary=_upload_report_summary(report4),
         )
-    steps.append({"name": "Upload to S3", "operation_id": op4, "success": success4, "report": report4})
+    steps.append(
+        {
+            "name": "Upload to S3",
+            "operation_id": op4,
+            "success": success4,
+            "report": report4,
+        }
+    )
 
     return {"steps": steps, "overall_success": success4}
 
@@ -1350,7 +1626,11 @@ def run_pipeline_view(request: HttpRequest) -> HttpResponse:
 def workflow_view(request: HttpRequest) -> HttpResponse:
     """Workflow view. GET /docs/operations/workflow/"""
     try:
-        return render(request, "documentation/operations/workflow.html", {"page_title": "Workflow"})
+        return render(
+            request,
+            "documentation/operations/workflow.html",
+            {"page_title": "Workflow"},
+        )
     except Exception as e:
         logger.error("Error rendering workflow view: %s", e, exc_info=True)
         raise
@@ -1360,11 +1640,18 @@ def _get_docs_status_context() -> Dict[str, Any]:
     """Build context for docs status page: health status from health_checks."""
     context: Dict[str, Any] = {"page_title": "Status"}
     try:
-        from apps.documentation.utils.health_checks import get_comprehensive_health_status
+        from apps.documentation.utils.health_checks import (
+            get_comprehensive_health_status,
+        )
+
         context["health_status"] = get_comprehensive_health_status()
     except Exception as e:
         logger.warning("Failed to get health status for docs status view: %s", e)
-        context["health_status"] = {"status": "unknown", "components": {}, "error": str(e)}
+        context["health_status"] = {
+            "status": "unknown",
+            "components": {},
+            "error": str(e),
+        }
     return context
 
 
@@ -1383,7 +1670,11 @@ def docs_status_view(request: HttpRequest) -> HttpResponse:
 def task_list_view(request: HttpRequest) -> HttpResponse:
     """Task list view. GET /docs/operations/tasks/"""
     try:
-        return render(request, "documentation/operations/task_list.html", {"page_title": "Tasks & History"})
+        return render(
+            request,
+            "documentation/operations/task_list.html",
+            {"page_title": "Tasks & History"},
+        )
     except Exception as e:
         logger.error("Error rendering task list view: %s", e, exc_info=True)
         raise
@@ -1395,38 +1686,58 @@ def task_detail_view(request: HttpRequest, task_id: str) -> HttpResponse:
     if not task_id or not task_id.strip():
         logger.warning("Invalid task_id in task_detail_view")
         from django.shortcuts import redirect
+
         return redirect("documentation:operations_tasks")
 
     try:
         from django.urls import reverse
+
         task_id_val = task_id.strip()
         context: Dict[str, Any] = {
             "task_id": task_id_val,
             "page_title": f"Task: {task_id_val}",
             "breadcrumb_items": [
                 {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                {"label": "Operations", "url": reverse("documentation:operations_dashboard")},
+                {
+                    "label": "Operations",
+                    "url": reverse("documentation:operations_dashboard"),
+                },
                 {"label": "Tasks", "url": reverse("documentation:operations_tasks")},
                 {"label": task_id_val, "url": None},
             ],
         }
         return render(request, "documentation/operations/task_detail.html", context)
     except Exception as e:
-        logger.error("Error rendering task detail view for task_id %s: %s", task_id, e, exc_info=True)
+        logger.error(
+            "Error rendering task detail view for task_id %s: %s",
+            task_id,
+            e,
+            exc_info=True,
+        )
         raise
 
 
 @require_super_admin
 def media_manager_dashboard(request: HttpRequest) -> HttpResponse:
     """Media Manager dashboard – GitHub-style file browser for media/ JSON. GET /docs/media/manager/"""
-    from apps.documentation.services.documentation_media_service import MediaManagerService
+    from apps.documentation.services.documentation_media_service import (
+        MediaManagerService,
+    )
 
     try:
         svc = MediaManagerService()
         sync_summary = svc.get_sync_summary()
-        resource_types = ["pages", "endpoints", "relationships", "postman", "n8n", "project"]
+        resource_types = [
+            "pages",
+            "endpoints",
+            "relationships",
+            "postman",
+            "n8n",
+            "project",
+        ]
         file_counts: Dict[str, int] = {
-            rt: sync_summary.get("by_type", {}).get(rt, {}).get("total", 0) for rt in resource_types
+            rt: sync_summary.get("by_type", {}).get(rt, {}).get("total", 0)
+            for rt in resource_types
         }
         context: Dict[str, Any] = {
             "sync_summary": sync_summary,
@@ -1440,6 +1751,13 @@ def media_manager_dashboard(request: HttpRequest) -> HttpResponse:
         context: Dict[str, Any] = {
             "sync_summary": {},
             "file_counts": {},
-            "resource_types": ["pages", "endpoints", "relationships", "postman", "n8n", "project"],
+            "resource_types": [
+                "pages",
+                "endpoints",
+                "relationships",
+                "postman",
+                "n8n",
+                "project",
+            ],
         }
         return render(request, "documentation/documentation_files.html", context)

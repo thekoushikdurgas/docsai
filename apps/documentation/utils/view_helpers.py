@@ -20,30 +20,79 @@ MAX_LIMIT = 500
 DEFAULT_OFFSET = 0
 
 # Valid detail tabs for different resource types
-VALID_DETAIL_TABS_PAGES = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "technical", "sections", "data", "fields", "raw"})
-VALID_DETAIL_TABS_ENDPOINTS = frozenset({"overview", "request", "response", "graphql", "relationships", "implementation", "access", "fields", "raw"})
-VALID_DETAIL_TABS_RELATIONSHIPS = frozenset({"overview", "connection", "usage", "related", "page", "data_flow", "postman_ref", "fields", "raw"})
-VALID_DETAIL_TABS_POSTMAN = frozenset({"overview", "requests", "variables", "environments", "endpoints", "info", "fields", "raw"})
+VALID_DETAIL_TABS_PAGES = frozenset(
+    {
+        "overview",
+        "content",
+        "relationships",
+        "endpoints",
+        "components",
+        "access",
+        "technical",
+        "sections",
+        "data",
+        "fields",
+        "raw",
+    }
+)
+VALID_DETAIL_TABS_ENDPOINTS = frozenset(
+    {
+        "overview",
+        "request",
+        "response",
+        "graphql",
+        "relationships",
+        "implementation",
+        "access",
+        "fields",
+        "raw",
+    }
+)
+VALID_DETAIL_TABS_RELATIONSHIPS = frozenset(
+    {
+        "overview",
+        "connection",
+        "usage",
+        "related",
+        "page",
+        "data_flow",
+        "postman_ref",
+        "fields",
+        "raw",
+    }
+)
+VALID_DETAIL_TABS_POSTMAN = frozenset(
+    {
+        "overview",
+        "requests",
+        "variables",
+        "environments",
+        "endpoints",
+        "info",
+        "fields",
+        "raw",
+    }
+)
 
 
 def parse_limit_offset(
     request: HttpRequest,
     default_limit: int = DEFAULT_LIMIT,
     max_limit: int = MAX_LIMIT,
-    default_offset: int = DEFAULT_OFFSET
+    default_offset: int = DEFAULT_OFFSET,
 ) -> Tuple[int, int]:
     """
     Parse and validate limit/offset from request query parameters.
-    
+
     Args:
         request: HTTP request object
         default_limit: Default limit value (default: 20)
         max_limit: Maximum allowed limit (default: 500)
         default_offset: Default offset value (default: 0)
-        
+
     Returns:
         Tuple of (limit, offset) as integers
-        
+
     Example:
         >>> limit, offset = parse_limit_offset(request)
         >>> limit, offset = parse_limit_offset(request, default_limit=50, max_limit=1000)
@@ -63,18 +112,20 @@ def parse_limit_offset(
     return limit, offset
 
 
-def parse_json_body(request: HttpRequest) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+def parse_json_body(
+    request: HttpRequest,
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
     Parse JSON body from request.
-    
+
     Args:
         request: HTTP request object with JSON body
-        
+
     Returns:
         Tuple of (data_dict, error_message)
         - data_dict: Parsed JSON data as dictionary, or None if error
         - error_message: Error message string, or None if successful
-        
+
     Example:
         >>> data, error = parse_json_body(request)
         >>> if error:
@@ -93,20 +144,17 @@ def parse_json_body(request: HttpRequest) -> Tuple[Optional[Dict[str, Any]], Opt
         return None, f"Invalid JSON: {e}"
 
 
-def validate_detail_tab(
-    tab: Optional[str],
-    resource_type: str = "pages"
-) -> str:
+def validate_detail_tab(tab: Optional[str], resource_type: str = "pages") -> str:
     """
     Validate and normalize tab query parameter for detail views.
-    
+
     Args:
         tab: Tab name from query parameter
         resource_type: Type of resource ('pages', 'endpoints', 'relationships', 'postman')
-        
+
     Returns:
         Valid tab name, or default tab if invalid
-        
+
     Example:
         >>> tab = validate_detail_tab(request.GET.get('tab'), 'pages')
         >>> # Returns 'overview' if tab is None or invalid
@@ -128,7 +176,7 @@ def validate_detail_tab(
         # Default fallback
         valid_tabs = VALID_DETAIL_TABS_PAGES
         default_tab = "overview"
-    
+
     if not tab or tab not in valid_tabs:
         return default_tab
     return tab

@@ -1,4 +1,5 @@
 """Operations models (parity with docsai operations app)."""
+
 import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -27,7 +28,9 @@ class OperationLog(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
-    operation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    operation_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False
+    )
     operation_type = models.CharField(max_length=50, choices=OPERATION_TYPE_CHOICES)
     name = models.CharField(max_length=255)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="queued")
@@ -35,7 +38,11 @@ class OperationLog(models.Model):
     metadata = models.JSONField(default=dict, blank=True)
     error_message = models.TextField(blank=True)
     started_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="started_operations"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="started_operations",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(null=True, blank=True)

@@ -1,21 +1,264 @@
-{% extends "base.html" %}
-{% load static admin_tags %}
-{% block title %}Workflows — Durgasflow{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title
+%}Workflows — Durgasflow{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
 <div class="page-header">
-  <div><h1 class="page-title">Workflows</h1></div>
+  <div>
+    <h1 class="page-title">Workflows</h1>
+    <p class="page-subtitle">All n8n-compatible workflows</p>
+  </div>
   <div class="page-actions">
-    <a href="{% url 'durgasflow:editor_new' %}" class="btn btn-primary"><i class="lni lni-plus-circle"></i> New</a>
+    <a href="{% url 'durgasflow:upload' %}" class="btn btn-outline"
+      ><i class="lni lni-cloud-upload"></i> Upload</a
+    >
+    <a href="{% url 'durgasflow:editor_new' %}" class="btn btn-primary"
+      ><i class="lni lni-plus-circle"></i> New</a
+    >
   </div>
 </div>
-<div class="card">
+
+<!-- Filter Bar -->
+<div class="df-filter-bar card">
+  <form method="get" class="df-filter-form">
+    <input
+      type="text"
+      name="q"
+      class="form-control df-search-input"
+      placeholder="Search workflows…"
+      value="{{ search }}"
+    />
+    <select name="status" class="form-control df-filter-select">
+      <option value="">All Statuses</option>
+      <option
+        value="draft"
+        {%
+        if
+        status_filter=""
+        ="draft"
+        %}selected{%
+        endif
+        %}
+      >
+        Draft
+      </option>
+      <option
+        value="active"
+        {%
+        if
+        status_filter=""
+        ="active"
+        %}selected{%
+        endif
+        %}
+      >
+        Active
+      </option>
+      <option
+        value="inactive"
+        {%
+        if
+        status_filter=""
+        ="inactive"
+        %}selected{%
+        endif
+        %}
+      >
+        Inactive
+      </option>
+      <option
+        value="archived"
+        {%
+        if
+        status_filter=""
+        ="archived"
+        %}selected{%
+        endif
+        %}
+      >
+        Archived
+      </option>
+    </select>
+    <select name="trigger" class="form-control df-filter-select">
+      <option value="">All Triggers</option>
+      <option
+        value="manual"
+        {%
+        if
+        trigger_filter=""
+        ="manual"
+        %}selected{%
+        endif
+        %}
+      >
+        Manual
+      </option>
+      <option
+        value="webhook"
+        {%
+        if
+        trigger_filter=""
+        ="webhook"
+        %}selected{%
+        endif
+        %}
+      >
+        Webhook
+      </option>
+      <option
+        value="schedule"
+        {%
+        if
+        trigger_filter=""
+        ="schedule"
+        %}selected{%
+        endif
+        %}
+      >
+        Schedule
+      </option>
+      <option
+        value="event"
+        {%
+        if
+        trigger_filter=""
+        ="event"
+        %}selected{%
+        endif
+        %}
+      >
+        Event
+      </option>
+    </select>
+    <button type="submit" class="btn btn-outline">
+      <i class="lni lni-search-alt"></i> Filter
+    </button>
+    {% if search or status_filter or trigger_filter %}
+    <a
+      href="{% url 'durgasflow:workflow_list' %}"
+      class="btn btn-outline btn-danger-outline"
+      >Clear</a
+    >
+    {% endif %}
+  </form>
+</div>
+
+<div class="card" style="margin-top: var(--space-4)">
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Name</th><th>Status</th><th>Last Run</th><th>Actions</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Trigger</th>
+          <th>Status</th>
+          <th>Nodes</th>
+          <th>Runs</th>
+          <th>Success</th>
+          <th>Last Run</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td colspan="4" class="table-empty">No workflows found. Create your first workflow.</td></tr>
+        {% for wf in workflows %}
+        <tr id="wf-row-{{ wf.id }}">
+          <td>
+            <a
+              href="{% url 'durgasflow:workflow_detail' wf.id %}"
+              class="df-workflow-name"
+              >{{ wf.name }}</a
+            >
+            {% if wf.is_active %}<span
+              class="df-active-dot"
+              title="Active"
+            ></span
+            >{% endif %}
+          </td>
+          <td>
+            <span class="df-trigger-badge df-trigger-{{ wf.trigger_type }}"
+              >{{ wf.trigger_type }}</span
+            >
+          </td>
+          <td>
+            <span
+              class="df-status-badge df-exec-status-{% if wf.is_active %}completed{% else %}{{ wf.status }}{% endif %}"
+            >
+              {% if wf.is_active %}active{% else %}{{ wf.status }}{% endif %}
+            </span>
+          </td>
+          <td>{{ wf.node_count }}</td>
+          <td>{{ wf.execution_count }}</td>
+          <td>
+            {% if wf.execution_count %} {% widthratio wf.success_count
+            wf.execution_count 100 %}% {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if wf.last_executed_at %}{{ wf.last_executed_at|timesince }}
+            ago{% else %}—{% endif %}
+          </td>
+          <td class="table-actions">
+            <a
+              href="{% url 'durgasflow:editor' wf.id %}"
+              class="btn btn-xs btn-outline"
+              title="Edit"
+              ><i class="lni lni-pencil"></i
+            ></a>
+            <button
+              class="btn btn-xs btn-primary df-run-btn"
+              data-workflow-id="{{ wf.id }}"
+              title="Run"
+            >
+              <i class="lni lni-play"></i>
+            </button>
+            <a
+              href="{% url 'durgasflow:workflow_json' wf.id %}"
+              class="btn btn-xs btn-outline"
+              title="JSON"
+              target="_blank"
+              ><i class="lni lni-code-alt"></i
+            ></a>
+            <form
+              method="post"
+              action="{% url 'durgasflow:workflow_delete' wf.id %}"
+              style="display: inline"
+              onsubmit="return confirm('Delete {{ wf.name }}?')"
+            >
+              {% csrf_token %}
+              <button type="submit" class="btn btn-xs btn-danger">
+                <i class="lni lni-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="table-empty">
+            No workflows found.
+            <a href="{% url 'durgasflow:upload' %}">Upload one</a>.
+          </td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<!-- Execution result toast -->
+<div id="df-exec-toast" class="df-toast" style="display: none"></div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'admin/js/durgasflow.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.WorkflowFilter) window.WorkflowFilter.init();
+    document.querySelectorAll(".df-run-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var wfId = btn.dataset.workflowId;
+        if (window.ExecutionRunner) {
+          window.ExecutionRunner.run(wfId, {});
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

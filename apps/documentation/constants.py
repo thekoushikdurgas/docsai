@@ -13,6 +13,4 @@ PAGE_TYPES_DISPLAY = {
     "title": "Title",
 }
 
-VALID_USER_TYPES = frozenset(
-    ["super_admin", "admin", "pro_user", "free_user", "guest"]
-)
+VALID_USER_TYPES = frozenset(["super_admin", "admin", "pro_user", "free_user", "guest"])

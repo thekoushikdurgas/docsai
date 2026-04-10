@@ -35,6 +35,15 @@ CACHES = {
 AUTH_FALLBACK_LOCAL = False
 
 # Avoid manifest static storage in tests (login template uses {% static %})
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+# Use STORAGES (Django 4.2+). base.py sets STATICFILES_STORAGE; that is mutually exclusive with STORAGES.
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+del STATICFILES_STORAGE  # noqa: F821  # inherited from base; conflicts with STORAGES
 
 # django-ratelimit uses cache backend; dummy cache is fine for unit tests

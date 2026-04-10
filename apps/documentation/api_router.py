@@ -55,7 +55,11 @@ def get_version_from_path(path: str) -> Optional[str]:
         # docs, api, v1, ...
         if len(parts) >= 3 and parts[0] == "docs" and parts[1] == "api":
             cand = parts[2].lower()
-            if cand.startswith("v") and cand[1:].isdigit() and cand in SUPPORTED_VERSIONS:
+            if (
+                cand.startswith("v")
+                and cand[1:].isdigit()
+                and cand in SUPPORTED_VERSIONS
+            ):
                 return cand
     except (IndexError, AttributeError):
         pass
@@ -102,14 +106,16 @@ def version_info_response(request: HttpRequest) -> JsonResponse:
     versions = []
     for v in SUPPORTED_VERSIONS:
         info = VERSION_INFO.get(v, {})
-        versions.append({
-            "version": v,
-            "default": v == DEFAULT_VERSION,
-            "deprecated": info.get("deprecated", False),
-            "sunset_date": info.get("sunset_date"),
-            "successor": info.get("successor"),
-            "description": info.get("description", ""),
-        })
+        versions.append(
+            {
+                "version": v,
+                "default": v == DEFAULT_VERSION,
+                "deprecated": info.get("deprecated", False),
+                "sunset_date": info.get("sunset_date"),
+                "successor": info.get("successor"),
+                "description": info.get("description", ""),
+            }
+        )
 
     data = {
         "versions": versions,
@@ -157,5 +163,9 @@ def strip_version_from_path(path: str) -> str:
         cand = parts[2].lower()
         if cand in SUPPORTED_VERSIONS:
             # Rebuild without version
-            return "/" + "/".join(parts[:2] + parts[3:]) + ("/" if path.endswith("/") else "")
+            return (
+                "/"
+                + "/".join(parts[:2] + parts[3:])
+                + ("/" if path.endswith("/") else "")
+            )
     return path

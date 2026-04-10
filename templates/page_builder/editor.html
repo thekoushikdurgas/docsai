@@ -1,23 +1,30 @@
-{% extends "base.html" %}
-{% load static admin_tags %}
-
-{% block title %}{{ page_title }} — Page Builder{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'admin/css/components/postman.css' %}">
-<link rel="stylesheet" href="{% static 'admin/css/components/page-builder.css' %}">
-<style>main.page-content { padding: var(--c360-spacing-4); }</style>
-{% endblock %}
-
-{% block content %}
-<div class="page-header" style="margin-bottom:var(--c360-spacing-3)">
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}{{
+page_title }} — Page Builder{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/css/components/postman.css' %}" />
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/page-builder.css' %}"
+/>
+<style>
+  main.page-content {
+    padding: var(--c360-spacing-4);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="page-header" style="margin-bottom: var(--c360-spacing-3)">
   <div>
     <h1 class="page-title" id="pb-editor-title">{{ spec.title }}</h1>
-    <p class="page-subtitle" id="pb-editor-sub">{{ spec.page_type }} · {{ spec.codebase }} · {{ spec.page_id }}</p>
+    <p class="page-subtitle" id="pb-editor-sub">
+      {{ spec.page_type }} · {{ spec.codebase }} · {{ spec.page_id }}
+    </p>
   </div>
-  <div style="display:flex;gap:var(--c360-spacing-2);flex-wrap:wrap">
-    <a href="{% url 'page_builder:dashboard' %}" class="btn btn-outline btn-sm"><i class="lni lni-arrow-left"></i> All pages</a>
-    <button type="button" class="btn btn-primary btn-sm" id="pb-save-sections"><i class="lni lni-checkmark"></i> Save sections</button>
+  <div style="display: flex; gap: var(--c360-spacing-2); flex-wrap: wrap">
+    <a href="{% url 'page_builder:dashboard' %}" class="btn btn-outline btn-sm"
+      ><i class="lni lni-arrow-left"></i> All pages</a
+    >
+    <button type="button" class="btn btn-primary btn-sm" id="pb-save-sections">
+      <i class="lni lni-checkmark"></i> Save sections
+    </button>
   </div>
 </div>
 
@@ -33,21 +40,40 @@
   <!-- Center: tabs -->
   <div class="pb-editor-pane">
     <nav class="pb-tab-nav">
-      <button type="button" class="pb-tab-link active" data-target="pb-pane-sections">Sections</button>
-      <button type="button" class="pb-tab-link" data-target="pb-pane-components">Components</button>
-      <button type="button" class="pb-tab-link" data-target="pb-pane-endpoints">Endpoints</button>
-      <button type="button" class="pb-tab-link" data-target="pb-pane-raw">Raw JSON</button>
+      <button
+        type="button"
+        class="pb-tab-link active"
+        data-target="pb-pane-sections"
+      >
+        Sections
+      </button>
+      <button
+        type="button"
+        class="pb-tab-link"
+        data-target="pb-pane-components"
+      >
+        Components
+      </button>
+      <button type="button" class="pb-tab-link" data-target="pb-pane-endpoints">
+        Endpoints
+      </button>
+      <button type="button" class="pb-tab-link" data-target="pb-pane-raw">
+        Raw JSON
+      </button>
     </nav>
     <div class="pb-tab-pane active pb-tab-pane--flex" id="pb-pane-sections">
-      <div style="padding:var(--c360-spacing-3);overflow-y:auto;flex:1" id="pb-sections-list"></div>
+      <div
+        style="padding: var(--c360-spacing-3); overflow-y: auto; flex: 1"
+        id="pb-sections-list"
+      ></div>
     </div>
-    <div class="pb-tab-pane" id="pb-pane-components" style="overflow-y:auto">
+    <div class="pb-tab-pane" id="pb-pane-components" style="overflow-y: auto">
       <div id="pb-components-body"></div>
     </div>
-    <div class="pb-tab-pane" id="pb-pane-endpoints" style="overflow-y:auto">
+    <div class="pb-tab-pane" id="pb-pane-endpoints" style="overflow-y: auto">
       <div id="pb-endpoints-body"></div>
     </div>
-    <div class="pb-tab-pane" id="pb-pane-raw" style="overflow-y:auto">
+    <div class="pb-tab-pane" id="pb-pane-raw" style="overflow-y: auto">
       <pre class="pb-code-viewer" id="pb-raw-json"></pre>
     </div>
   </div>
@@ -70,7 +96,13 @@
       </div>
       <div class="pb-meta-row">
         <label>Source file</label>
-        <div class="value" id="pb-meta-file" style="font-size:var(--c360-text-xs);word-break:break-all">—</div>
+        <div
+          class="value"
+          id="pb-meta-file"
+          style="font-size: var(--c360-text-xs); word-break: break-all"
+        >
+          —
+        </div>
       </div>
       <div class="pb-meta-row">
         <label>Era tags</label>
@@ -78,18 +110,33 @@
       </div>
       <div class="pb-meta-row">
         <label>Purpose</label>
-        <p class="value" id="pb-meta-purpose" style="font-size:var(--c360-text-xs);line-height:1.5;margin:0">—</p>
+        <p
+          class="value"
+          id="pb-meta-purpose"
+          style="font-size: var(--c360-text-xs); line-height: 1.5; margin: 0"
+        >
+          —
+        </p>
       </div>
-      <div class="pb-right-header" style="margin-top:var(--c360-spacing-4);border-top:1px solid var(--c360-border);padding-top:var(--c360-spacing-3)">Components (quick)</div>
-      <div id="pb-sidebar-components" style="margin-top:var(--c360-spacing-2)"></div>
+      <div
+        class="pb-right-header"
+        style="
+          margin-top: var(--c360-spacing-4);
+          border-top: 1px solid var(--c360-border);
+          padding-top: var(--c360-spacing-3);
+        "
+      >
+        Components (quick)
+      </div>
+      <div
+        id="pb-sidebar-components"
+        style="margin-top: var(--c360-spacing-2)"
+      ></div>
     </div>
   </aside>
 </div>
 
-{% csrf_token %}
-{% endblock %}
-
-{% block extra_js %}
+{% csrf_token %} {% endblock %} {% block extra_js %}
 <script src="{% static 'admin/js/page-builder.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {

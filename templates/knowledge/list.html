@@ -1,26 +1,54 @@
-{% extends "base.html" %}
-{% block title %}Knowledge{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Knowledge{% endblock %} {% block
+content %}
 <div class="page-header">
   <div><h1 class="page-title">Knowledge</h1></div>
   <div class="page-actions">
     <a href="{% url 'knowledge:create' %}" class="btn btn-primary">Create</a>
-    <a href="{% url 'knowledge:search' %}?q={{ q|urlencode }}" class="btn btn-outline">Search</a>
+    <a
+      href="{% url 'knowledge:search' %}?q={{ q|urlencode }}"
+      class="btn btn-outline"
+      >Search</a
+    >
   </div>
 </div>
-<form method="get" action="{% url 'knowledge:search' %}" class="card card-body" style="margin-bottom:var(--space-4);display:flex;gap:var(--space-2)">
-  <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Search…">
+<form
+  method="get"
+  action="{% url 'knowledge:search' %}"
+  class="card card-body"
+  style="margin-bottom: var(--space-4); display: flex; gap: var(--space-2)"
+>
+  <input
+    type="search"
+    name="q"
+    value="{{ q }}"
+    class="form-control"
+    placeholder="Search…"
+  />
   <button class="btn btn-outline" type="submit">Go</button>
 </form>
 <div class="card">
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Title</th><th>Updated</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
       <tbody>
         {% for it in items %}
-        <tr><td><a href="{% url 'knowledge:detail' knowledge_id=it.id %}">{{ it.title }}</a></td><td>{{ it.updated }}</td></tr>
+        <tr>
+          <td>
+            <a href="{% url 'knowledge:detail' knowledge_id=it.id %}"
+              >{{ it.title }}</a
+            >
+          </td>
+          <td>{{ it.updated }}</td>
+        </tr>
         {% empty %}
-        <tr><td colspan="2" class="table-empty">No items (GraphQL stub).</td></tr>
+        <tr>
+          <td colspan="2" class="table-empty">No items (GraphQL stub).</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

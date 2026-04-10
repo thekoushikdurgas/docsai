@@ -1,193 +1,235 @@
-{# Reusable delete confirmation partial for docs resources. Context: breadcrumb_items, delete_title, delete_description, info_section_title, resource_type, object (page|endpoint|relationship|postman), cancel_url, submit_text, loading_title, loading_description, impact_analysis (optional), return_url, postman_id (for postman). #}
-{% load static %}
+{# Reusable delete confirmation partial for docs resources. Context:
+breadcrumb_items, delete_title, delete_description, info_section_title,
+resource_type, object (page|endpoint|relationship|postman), cancel_url,
+submit_text, loading_title, loading_description, impact_analysis (optional),
+return_url, postman_id (for postman). #} {% load static %}
 <div class="w-full max-w-2xl mx-auto space-y-6">
-    {% if breadcrumb_items %}
-    {% include 'components/breadcrumb.html' with items=breadcrumb_items %}
-    {% endif %}
+  {% if breadcrumb_items %} {% include 'components/breadcrumb.html' with
+  items=breadcrumb_items %} {% endif %}
 
-    <!-- Warning Card -->
-    <div class="bg-red-50 border-2 border-red-200 rounded-xl p-6">
-        <div class="flex items-start gap-4">
-            <div class="p-3 bg-red-100 rounded-lg flex-shrink-0">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            </div>
-            <div class="flex-1">
-                <h1 class="text-xl font-bold text-red-900 mb-2">{{ delete_title }}</h1>
-                <p class="text-sm text-red-800 mb-4">{{ delete_description }}</p>
-            </div>
-        </div>
+  <!-- Warning Card -->
+  <div class="bg-red-50 border-2 border-red-200 rounded-xl p-6">
+    <div class="flex items-start gap-4">
+      <div class="p-3 bg-red-100 rounded-lg flex-shrink-0">
+        <svg
+          class="w-6 h-6 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h1 class="text-xl font-bold text-red-900 mb-2">{{ delete_title }}</h1>
+        <p class="text-sm text-red-800 mb-4">{{ delete_description }}</p>
+      </div>
     </div>
+  </div>
 
-    <!-- Resource Information -->
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ info_section_title }}</h2>
-        <div class="space-y-3">
-            {% if resource_type == 'page' %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Title</span>
-                <span class="text-sm text-gray-900 font-semibold">{{ object.title|default:object.page_id }}</span>
-            </div>
-            {% if object.url_path %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">URL Path</span>
-                <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900">{{ object.url_path }}</code>
-            </div>
-            {% endif %}
-            {% if object.page_type %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Type</span>
-                {% include 'components/badge.html' with type='resource' resource_type='page' text=object.page_type %}
-            </div>
-            {% endif %}
-            {% if object.status %}
-            <div class="flex justify-between py-2">
-                <span class="text-sm font-medium text-gray-500">Status</span>
-                {% include 'components/badge.html' with type='status' status=object.status text=object.status %}
-            </div>
-            {% endif %}
-
-            {% elif resource_type == 'endpoint' %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Endpoint ID</span>
-                <span class="text-sm text-gray-900 font-semibold">{{ object.endpoint_id }}</span>
-            </div>
-            {% if object.endpoint_path %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Path</span>
-                <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900">{{ object.endpoint_path }}</code>
-            </div>
-            {% endif %}
-            {% if object.method %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Method</span>
-                {% include 'components/badge.html' with type='method' method=object.method text=object.method %}
-            </div>
-            {% endif %}
-            {% if object.api_version %}
-            <div class="flex justify-between py-2">
-                <span class="text-sm font-medium text-gray-500">API Version</span>
-                {% include 'components/badge.html' with type='resource' resource_type='endpoint' text=object.api_version %}
-            </div>
-            {% endif %}
-
-            {% elif resource_type == 'relationship' %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Relationship ID</span>
-                <span class="text-sm text-gray-900 font-semibold">{{ object.relationship_id|default:"—" }}</span>
-            </div>
-            {% if object.page_path or object.page_id %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Page</span>
-                <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900">{{ object.page_path|default:object.page_id|default:"—" }}</code>
-            </div>
-            {% endif %}
-            {% if object.endpoint_path or object.endpoint_id %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Endpoint</span>
-                <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900">{{ object.endpoint_path|default:object.endpoint_id|default:"—" }}</code>
-            </div>
-            {% endif %}
-            {% if object.method %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Method</span>
-                {% include 'components/badge.html' with type='method' method=object.method text=object.method %}
-            </div>
-            {% endif %}
-            {% if object.usage_type %}
-            <div class="flex justify-between py-2{% if not object.usage_context %} border-b border-gray-100{% endif %}">
-                <span class="text-sm font-medium text-gray-500">Usage Type</span>
-                <span class="text-sm text-gray-900">{{ object.usage_type }}</span>
-            </div>
-            {% endif %}
-            {% if object.usage_context %}
-            <div class="flex justify-between py-2">
-                <span class="text-sm font-medium text-gray-500">Usage Context</span>
-                <span class="text-sm text-gray-900">{{ object.usage_context }}</span>
-            </div>
-            {% endif %}
-
-            {% elif resource_type == 'postman' %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Configuration ID</span>
-                <span class="text-sm text-gray-900 font-semibold">{{ object.config_id|default:postman_id|default:"—" }}</span>
-            </div>
-            {% if object.name %}
-            <div class="flex justify-between py-2 border-b border-gray-100">
-                <span class="text-sm font-medium text-gray-500">Name</span>
-                <span class="text-sm text-gray-900">{{ object.name }}</span>
-            </div>
-            {% endif %}
-            {% if object.state %}
-            <div class="flex justify-between py-2">
-                <span class="text-sm font-medium text-gray-500">State</span>
-                <span class="text-sm text-gray-900">{{ object.state }}</span>
-            </div>
-            {% endif %}
-            {% endif %}
-        </div>
+  <!-- Resource Information -->
+  <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">
+      {{ info_section_title }}
+    </h2>
+    <div class="space-y-3">
+      {% if resource_type == 'page' %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Title</span>
+        <span class="text-sm text-gray-900 font-semibold"
+          >{{ object.title|default:object.page_id }}</span
+        >
+      </div>
+      {% if object.url_path %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">URL Path</span>
+        <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900"
+          >{{ object.url_path }}</code
+        >
+      </div>
+      {% endif %} {% if object.page_type %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Type</span>
+        {% include 'components/badge.html' with type='resource'
+        resource_type='page' text=object.page_type %}
+      </div>
+      {% endif %} {% if object.status %}
+      <div class="flex justify-between py-2">
+        <span class="text-sm font-medium text-gray-500">Status</span>
+        {% include 'components/badge.html' with type='status'
+        status=object.status text=object.status %}
+      </div>
+      {% endif %} {% elif resource_type == 'endpoint' %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Endpoint ID</span>
+        <span class="text-sm text-gray-900 font-semibold"
+          >{{ object.endpoint_id }}</span
+        >
+      </div>
+      {% if object.endpoint_path %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Path</span>
+        <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900"
+          >{{ object.endpoint_path }}</code
+        >
+      </div>
+      {% endif %} {% if object.method %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Method</span>
+        {% include 'components/badge.html' with type='method'
+        method=object.method text=object.method %}
+      </div>
+      {% endif %} {% if object.api_version %}
+      <div class="flex justify-between py-2">
+        <span class="text-sm font-medium text-gray-500">API Version</span>
+        {% include 'components/badge.html' with type='resource'
+        resource_type='endpoint' text=object.api_version %}
+      </div>
+      {% endif %} {% elif resource_type == 'relationship' %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Relationship ID</span>
+        <span class="text-sm text-gray-900 font-semibold"
+          >{{ object.relationship_id|default:"—" }}</span
+        >
+      </div>
+      {% if object.page_path or object.page_id %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Page</span>
+        <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900"
+          >{{ object.page_path|default:object.page_id|default:"—" }}</code
+        >
+      </div>
+      {% endif %} {% if object.endpoint_path or object.endpoint_id %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Endpoint</span>
+        <code class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-900"
+          >{{ object.endpoint_path|default:object.endpoint_id|default:"—"
+          }}</code
+        >
+      </div>
+      {% endif %} {% if object.method %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Method</span>
+        {% include 'components/badge.html' with type='method'
+        method=object.method text=object.method %}
+      </div>
+      {% endif %} {% if object.usage_type %}
+      <div
+        class="flex justify-between py-2{% if not object.usage_context %} border-b border-gray-100{% endif %}"
+      >
+        <span class="text-sm font-medium text-gray-500">Usage Type</span>
+        <span class="text-sm text-gray-900">{{ object.usage_type }}</span>
+      </div>
+      {% endif %} {% if object.usage_context %}
+      <div class="flex justify-between py-2">
+        <span class="text-sm font-medium text-gray-500">Usage Context</span>
+        <span class="text-sm text-gray-900">{{ object.usage_context }}</span>
+      </div>
+      {% endif %} {% elif resource_type == 'postman' %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Configuration ID</span>
+        <span class="text-sm text-gray-900 font-semibold"
+          >{{ object.config_id|default:postman_id|default:"—" }}</span
+        >
+      </div>
+      {% if object.name %}
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-sm font-medium text-gray-500">Name</span>
+        <span class="text-sm text-gray-900">{{ object.name }}</span>
+      </div>
+      {% endif %} {% if object.state %}
+      <div class="flex justify-between py-2">
+        <span class="text-sm font-medium text-gray-500">State</span>
+        <span class="text-sm text-gray-900">{{ object.state }}</span>
+      </div>
+      {% endif %} {% endif %}
     </div>
+  </div>
 
-    <!-- Impact Analysis -->
-    {% if impact_analysis %}
-    <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
-        <div class="flex items-start gap-3">
-            <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-                <h3 class="text-sm font-semibold text-amber-900 mb-2">{{ impact_analysis.title|default:"Impact Analysis" }}</h3>
-                <ul class="text-sm text-amber-800 space-y-1">
-                    {% for item in impact_analysis.items %}
-                    <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+  <!-- Impact Analysis -->
+  {% if impact_analysis %}
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
+    <div class="flex items-start gap-3">
+      <svg
+        class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <div>
+        <h3 class="text-sm font-semibold text-amber-900 mb-2">
+          {{ impact_analysis.title|default:"Impact Analysis" }}
+        </h3>
+        <ul class="text-sm text-amber-800 space-y-1">
+          {% for item in impact_analysis.items %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
 
-    <!-- Form -->
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-        <form method="post" id="delete-form" class="space-y-4">
-            {% csrf_token %}
-            {% if return_url %}
-            <input type="hidden" name="return_url" value="{{ return_url }}">
-            {% endif %}
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-                {% if return_url %}
-                {% include 'components/button.html' with href=return_url text='Cancel' variant='secondary' size='sm' %}
-                {% else %}
-                {% include 'components/button.html' with href=cancel_url text='Cancel' variant='secondary' size='sm' %}
-                {% endif %}
-                {% include 'components/button.html' with text=submit_text variant='danger' size='sm' button_type='submit' id='delete-btn' %}
-            </div>
-        </form>
-    </div>
+  <!-- Form -->
+  <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+    <form method="post" id="delete-form" class="space-y-4">
+      {% csrf_token %} {% if return_url %}
+      <input type="hidden" name="return_url" value="{{ return_url }}" />
+      {% endif %}
+      <div
+        class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200"
+      >
+        {% if return_url %} {% include 'components/button.html' with
+        href=return_url text='Cancel' variant='secondary' size='sm' %} {% else
+        %} {% include 'components/button.html' with href=cancel_url
+        text='Cancel' variant='secondary' size='sm' %} {% endif %} {% include
+        'components/button.html' with text=submit_text variant='danger'
+        size='sm' button_type='submit' id='delete-btn' %}
+      </div>
+    </form>
+  </div>
 
-    <!-- Loading State -->
-    <div id="delete-loading" class="hidden bg-white rounded-xl shadow-md border border-gray-200 p-6">
-        <div class="flex items-center gap-4">
-            <div class="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-red-500"></div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900">{{ loading_title }}</h3>
-                <p class="c360-mm-muted">{{ loading_description }}</p>
-            </div>
-        </div>
+  <!-- Loading State -->
+  <div
+    id="delete-loading"
+    class="hidden bg-white rounded-xl shadow-md border border-gray-200 p-6"
+  >
+    <div class="flex items-center gap-4">
+      <div
+        class="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-red-500"
+      ></div>
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900">{{ loading_title }}</h3>
+        <p class="c360-mm-muted">{{ loading_description }}</p>
+      </div>
     </div>
+  </div>
 </div>
 
 <script>
-document.getElementById('delete-form')?.addEventListener('submit', function() {
-    const form = this;
-    const submitBtn = document.getElementById('delete-btn');
-    const loadingDiv = document.getElementById('delete-loading');
-    if (submitBtn && loadingDiv) {
+  document
+    .getElementById("delete-form")
+    ?.addEventListener("submit", function () {
+      const form = this;
+      const submitBtn = document.getElementById("delete-btn");
+      const loadingDiv = document.getElementById("delete-loading");
+      if (submitBtn && loadingDiv) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Deleting...';
-        form.style.display = 'none';
-        loadingDiv.classList.remove('hidden');
-    }
-});
+        submitBtn.textContent = "Deleting...";
+        form.style.display = "none";
+        loadingDiv.classList.remove("hidden");
+      }
+    });
 </script>

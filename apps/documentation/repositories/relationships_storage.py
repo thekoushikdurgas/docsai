@@ -1,4 +1,5 @@
 """Relationships-specific storage logic for UnifiedStorage."""
+
 from __future__ import annotations
 
 import logging
@@ -13,14 +14,17 @@ class RelationshipsStorageMixin:
     """Mixin providing relationships get/list/statistics methods. Requires BaseUnifiedStorage."""
 
     def get_relationship(self, relationship_id: str) -> Optional[Dict[str, Any]]:
-        cache_key = self._get_cache_key('relationships', relationship_id)
+        cache_key = self._get_cache_key("relationships", relationship_id)
         cached = self._safe_cache_get(cache_key)
         if cached:
             self.logger.debug(f"Cache hit for relationship: {relationship_id}")
             return cached
 
         try:
-            from apps.documentation.repositories.relationships_repository import RelationshipsRepository
+            from apps.documentation.repositories.relationships_repository import (
+                RelationshipsRepository,
+            )
+
             repo = RelationshipsRepository(storage=self.s3_storage)
             relationship_data = repo.get_by_relationship_id(relationship_id)
             if relationship_data:
@@ -43,9 +47,14 @@ class RelationshipsStorageMixin:
         offset: int = 0,
     ) -> Dict[str, Any]:
         try:
-            from apps.documentation.repositories.relationships_repository import RelationshipsRepository
+            from apps.documentation.repositories.relationships_repository import (
+                RelationshipsRepository,
+            )
+
             repo = RelationshipsRepository(storage=self.s3_storage)
-            rels = repo.list_all(page_id=page_id, endpoint_id=endpoint_id, limit=limit, offset=offset)
+            rels = repo.list_all(
+                page_id=page_id, endpoint_id=endpoint_id, limit=limit, offset=offset
+            )
             if usage_type or usage_context:
                 filtered = []
                 for r in rels:
@@ -74,7 +83,9 @@ class RelationshipsStorageMixin:
             "total": len(rels),
             "by_usage_type": by_usage_type,
             "by_usage_context": by_usage_context,
-            "statistics": [{"usage_type": k, "count": v} for k, v in by_usage_type.items()],
+            "statistics": [
+                {"usage_type": k, "count": v} for k, v in by_usage_type.items()
+            ],
         }
 
     def get_relationship_graph(self) -> Dict[str, Any]:
@@ -96,44 +107,58 @@ class RelationshipsStorageMixin:
                 nodes.append({"id": ep_key, "type": "endpoint", "label": endpoint_path})
                 seen_endpoints.add(ep_key)
             if page_path and ep_key:
-                edges.append({
-                    "source": page_path,
-                    "target": ep_key,
-                    "usage_type": r.get("usage_type"),
-                    "usage_context": r.get("usage_context"),
-                })
+                edges.append(
+                    {
+                        "source": page_path,
+                        "target": ep_key,
+                        "usage_type": r.get("usage_type"),
+                        "usage_context": r.get("usage_context"),
+                    }
+                )
         return {"nodes": nodes, "edges": edges}
 
     def get_relationships_by_page(self, page_path: str) -> Optional[Dict[str, Any]]:
         try:
-            from apps.documentation.repositories.relationships_repository import RelationshipsRepository
+            from apps.documentation.repositories.relationships_repository import (
+                RelationshipsRepository,
+            )
             from apps.documentation.repositories.pages_repository import PagesRepository
+
             repo = RelationshipsRepository(storage=self.s3_storage)
             pages_repo = PagesRepository(storage=self.s3_storage)
             page_data = pages_repo.get_by_route(page_path)
             if page_data:
-                page_id = page_data.get('page_id')
+                page_id = page_data.get("page_id")
                 if page_id:
                     relationships = repo.get_by_page(page_id)
                     if relationships:
-                        self.logger.debug(f"Loaded relationships from S3 for page: {page_path}")
-                        return {'relationships': relationships, 'page_id': page_id}
+                        self.logger.debug(
+                            f"Loaded relationships from S3 for page: {page_path}"
+                        )
+                        return {"relationships": relationships, "page_id": page_id}
         except Exception as e:
             self.logger.warning(f"Failed to load relationships from S3: {e}")
         return None
 
     def get_relationships_by_endpoint(
-        self,
-        endpoint_path: str,
-        method: str = "QUERY"
+        self, endpoint_path: str, method: str = "QUERY"
     ) -> Optional[Dict[str, Any]]:
         try:
-            from apps.documentation.repositories.relationships_repository import RelationshipsRepository
+            from apps.documentation.repositories.relationships_repository import (
+                RelationshipsRepository,
+            )
+
             repo = RelationshipsRepository(storage=self.s3_storage)
             relationships = repo.get_by_endpoint(endpoint_path, method)
             if relationships:
-                self.logger.debug(f"Loaded relationships from S3 for endpoint: {endpoint_path}")
-                return {'relationships': relationships, 'endpoint_path': endpoint_path, 'method': method}
+                self.logger.debug(
+                    f"Loaded relationships from S3 for endpoint: {endpoint_path}"
+                )
+                return {
+                    "relationships": relationships,
+                    "endpoint_path": endpoint_path,
+                    "method": method,
+                }
         except Exception as e:
             self.logger.warning(f"Failed to load relationships from S3: {e}")
         return None

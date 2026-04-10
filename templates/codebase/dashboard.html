@@ -1,6 +1,5 @@
-{% extends "base.html" %}
-{% block title %}Codebase{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Codebase{% endblock %} {% block
+content %}
 <div class="page-header">
   <div><h1 class="page-title">Codebase analyses</h1></div>
   <a href="{% url 'codebase:scan' %}" class="btn btn-primary">New scan</a>
@@ -8,12 +7,28 @@
 <div class="card">
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>ID</th><th>Status</th><th>Created</th></tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
       <tbody>
         {% for a in analyses %}
-        <tr><td><a href="{% url 'codebase:analysis_detail' analysis_id=a.id %}">{{ a.id }}</a></td><td>{{ a.status }}</td><td>{{ a.created }}</td></tr>
+        <tr>
+          <td>
+            <a href="{% url 'codebase:analysis_detail' analysis_id=a.id %}"
+              >{{ a.id }}</a
+            >
+          </td>
+          <td>{{ a.status }}</td>
+          <td>{{ a.created }}</td>
+        </tr>
         {% empty %}
-        <tr><td colspan="3" class="table-empty">No analyses yet.</td></tr>
+        <tr>
+          <td colspan="3" class="table-empty">No analyses yet.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

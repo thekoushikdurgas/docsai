@@ -14,7 +14,11 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from apps.documentation.services import endpoints_service, relationships_service, pages_service
+from apps.documentation.services import (
+    endpoints_service,
+    relationships_service,
+    pages_service,
+)
 from apps.documentation.utils.api_responses import (
     APIResponse,
     error_response,
@@ -29,7 +33,18 @@ logger = logging.getLogger(__name__)
 DEFAULT_ENDPOINT_LIMIT = 20
 MAX_ENDPOINT_LIMIT = 500
 DEFAULT_OFFSET = 0
-VALID_DETAIL_TABS = frozenset({"overview", "request", "response", "graphql", "relationships", "implementation", "access", "raw"})
+VALID_DETAIL_TABS = frozenset(
+    {
+        "overview",
+        "request",
+        "response",
+        "graphql",
+        "relationships",
+        "implementation",
+        "access",
+        "raw",
+    }
+)
 
 # Safe default for create/error re-render so template never hits missing keys
 SAFE_ENDPOINT_DEFAULT: Dict[str, Any] = {
@@ -59,12 +74,17 @@ def _validate_endpoint_id(endpoint_id: Optional[str]) -> Optional[str]:
     return endpoint_id.strip()
 
 
-def _safe_redirect_url(request: HttpRequest, default_name: str = "documentation:dashboard_endpoints"):
+def _safe_redirect_url(
+    request: HttpRequest, default_name: str = "documentation:dashboard_endpoints"
+):
     """Return redirect target: return_url if present and safe, else default."""
     return_url = request.GET.get("return_url") or request.POST.get("return_url", "")
     if return_url and return_url.startswith("/") and "//" not in return_url:
         from django.utils.http import url_has_allowed_host_and_scheme
-        if url_has_allowed_host_and_scheme(return_url, allowed_hosts={request.get_host(), None}):
+
+        if url_has_allowed_host_and_scheme(
+            return_url, allowed_hosts={request.get_host(), None}
+        ):
             return return_url
     return reverse(default_name)
 
@@ -87,48 +107,56 @@ def endpoint_detail_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
             return redirect("documentation:dashboard_endpoints")
 
         # Format usage_context in relationships for display (replace underscores with spaces)
-        if endpoint.get('used_by_pages'):
-            for page_usage in endpoint['used_by_pages']:
-                if page_usage.get('usage_context'):
-                    page_usage['usage_context_display'] = page_usage['usage_context'].replace('_', ' ').title()
+        if endpoint.get("used_by_pages"):
+            for page_usage in endpoint["used_by_pages"]:
+                if page_usage.get("usage_context"):
+                    page_usage["usage_context_display"] = (
+                        page_usage["usage_context"].replace("_", " ").title()
+                    )
 
         # Fetch relationships for this endpoint
         endpoint_relationships = []
-        endpoint_path = endpoint.get('endpoint_path') or endpoint_id
-        endpoint_method = endpoint.get('method', 'QUERY')
-        
+        endpoint_path = endpoint.get("endpoint_path") or endpoint_id
+        endpoint_method = endpoint.get("method", "QUERY")
+
         try:
             # Try to get relationships by endpoint path
             relationships_result = relationships_service.list_relationships(
-                endpoint_id=endpoint_path,
-                limit=100
+                endpoint_id=endpoint_path, limit=100
             )
-            endpoint_relationships = relationships_result.get('relationships', [])
+            endpoint_relationships = relationships_result.get("relationships", [])
         except Exception as e:
-            logger.warning(f"Failed to load relationships for endpoint {endpoint_id}: {e}")
+            logger.warning(
+                f"Failed to load relationships for endpoint {endpoint_id}: {e}"
+            )
 
         # Get pages using this endpoint (if not already in used_by_pages)
         pages_using_endpoint = []
-        if endpoint.get('used_by_pages'):
-            pages_using_endpoint = endpoint['used_by_pages']
+        if endpoint.get("used_by_pages"):
+            pages_using_endpoint = endpoint["used_by_pages"]
         else:
             # Try to find pages that use this endpoint
             try:
                 all_pages = pages_service.list_pages(limit=1000)
-                for page in all_pages.get('pages', []):
-                    uses_endpoints = page.get('metadata', {}).get('uses_endpoints', [])
+                for page in all_pages.get("pages", []):
+                    uses_endpoints = page.get("metadata", {}).get("uses_endpoints", [])
                     for ep_ref in uses_endpoints:
-                        ep_id = ep_ref.get('endpoint_id') or ep_ref.get('endpoint_path')
+                        ep_id = ep_ref.get("endpoint_id") or ep_ref.get("endpoint_path")
                         if ep_id == endpoint_id or ep_id == endpoint_path:
-                            pages_using_endpoint.append({
-                                'page_id': page.get('page_id'),
-                                'page_path': page.get('metadata', {}).get('route') or page.get('route'),
-                                'page_title': page.get('metadata', {}).get('content_sections', {}).get('title'),
-                                'usage_context': ep_ref.get('usage_context'),
-                                'via_service': ep_ref.get('via_service'),
-                                'via_hook': ep_ref.get('via_hook'),
-                                'usage_type': ep_ref.get('usage_type'),
-                            })
+                            pages_using_endpoint.append(
+                                {
+                                    "page_id": page.get("page_id"),
+                                    "page_path": page.get("metadata", {}).get("route")
+                                    or page.get("route"),
+                                    "page_title": page.get("metadata", {})
+                                    .get("content_sections", {})
+                                    .get("title"),
+                                    "usage_context": ep_ref.get("usage_context"),
+                                    "via_service": ep_ref.get("via_service"),
+                                    "via_hook": ep_ref.get("via_hook"),
+                                    "usage_type": ep_ref.get("usage_type"),
+                                }
+                            )
             except Exception as e:
                 logger.debug(f"Could not load pages using endpoint {endpoint_id}: {e}")
 
@@ -141,39 +169,56 @@ def endpoint_detail_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
         endpoint_methods_detail = endpoint.get("methods")
         breadcrumb_items = [
             {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-            {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+            {
+                "label": "Endpoints",
+                "url": reverse("documentation:dashboard") + "?tab=endpoints",
+            },
             {"label": endpoint.get("endpoint_id") or endpoint_id, "url": None},
         ]
         actions = [
-            {"text": "Edit", "url": reverse("documentation:endpoint_edit", kwargs={"endpoint_id": endpoint_id}), "variant": "primary"},
-            {"text": "Delete", "url": reverse("documentation:endpoint_delete", kwargs={"endpoint_id": endpoint_id}), "variant": "danger"},
+            {
+                "text": "Edit",
+                "url": reverse(
+                    "documentation:endpoint_edit", kwargs={"endpoint_id": endpoint_id}
+                ),
+                "variant": "primary",
+            },
+            {
+                "text": "Delete",
+                "url": reverse(
+                    "documentation:endpoint_delete", kwargs={"endpoint_id": endpoint_id}
+                ),
+                "variant": "danger",
+            },
         ]
         context = {
-            'endpoint': endpoint,
-            'endpoint_json': endpoint_json,
-            'active_tab': active_tab,
-            'endpoint_relationships': endpoint_relationships,
-            'relationships_count': len(endpoint_relationships),
-            'pages_using_endpoint': pages_using_endpoint,
-            'pages_count': len(pages_using_endpoint),
-            'lambda_services': lambda_services,
-            'endpoint_files': endpoint_files,
-            'endpoint_methods_detail': endpoint_methods_detail,
-            'breadcrumb_items': breadcrumb_items,
-            'resource_type': 'endpoints',
-            'page_title': endpoint.get("endpoint_id") or "Unknown Endpoint",
-            'actions': actions,
+            "endpoint": endpoint,
+            "endpoint_json": endpoint_json,
+            "active_tab": active_tab,
+            "endpoint_relationships": endpoint_relationships,
+            "relationships_count": len(endpoint_relationships),
+            "pages_using_endpoint": pages_using_endpoint,
+            "pages_count": len(pages_using_endpoint),
+            "lambda_services": lambda_services,
+            "endpoint_files": endpoint_files,
+            "endpoint_methods_detail": endpoint_methods_detail,
+            "breadcrumb_items": breadcrumb_items,
+            "resource_type": "endpoints",
+            "page_title": endpoint.get("endpoint_id") or "Unknown Endpoint",
+            "actions": actions,
         }
     except Exception as e:
         logger.error(f"Error loading endpoint {endpoint_id}: {e}", exc_info=True)
-        messages.error(request, 'An error occurred while loading the endpoint.')
-        return redirect('documentation:dashboard_endpoints')
+        messages.error(request, "An error occurred while loading the endpoint.")
+        return redirect("documentation:dashboard_endpoints")
 
-    return render(request, 'documentation/endpoints/detail.html', context)
+    return render(request, "documentation/endpoints/detail.html", context)
 
 
 @require_admin_or_super_admin
-def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) -> HttpResponse:
+def endpoint_form_view(
+    request: HttpRequest, endpoint_id: Optional[str] = None
+) -> HttpResponse:
     """Endpoint create/edit form - supports both basic and enhanced forms. GET/POST /docs/endpoints/create/ or /docs/endpoints/<endpoint_id>/edit/. Viewable by Admin or SuperAdmin."""
     endpoint: Optional[Dict[str, Any]] = None
     is_edit = endpoint_id is not None
@@ -189,10 +234,21 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                 except json.JSONDecodeError as e:
                     logger.warning("Invalid JSON in endpoint form: %s", e)
                     messages.error(request, "Invalid form data format.")
-                    _endpoint = endpoint if endpoint is not None else dict(SAFE_ENDPOINT_DEFAULT)
+                    _endpoint = (
+                        endpoint
+                        if endpoint is not None
+                        else dict(SAFE_ENDPOINT_DEFAULT)
+                    )
                     _breadcrumbs = [
-                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+                        {
+                            "label": "Dashboard",
+                            "url": reverse("documentation:dashboard"),
+                        },
+                        {
+                            "label": "Endpoints",
+                            "url": reverse("documentation:dashboard")
+                            + "?tab=endpoints",
+                        },
                         {"label": "Edit" if is_edit else "Create"},
                     ]
                     return render(
@@ -200,7 +256,9 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                         "documentation/endpoints/form_enhanced.html",
                         {
                             "endpoint": _endpoint,
-                            "endpoint_json": json.dumps(_endpoint, indent=2, default=str),
+                            "endpoint_json": json.dumps(
+                                _endpoint, indent=2, default=str
+                            ),
                             "is_edit": is_edit,
                             "active_tab": request.GET.get("tab", "basic"),
                             "return_url": request.GET.get("return_url"),
@@ -222,17 +280,30 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                 if request.POST.get("rate_limit"):
                     endpoint_data["rate_limit"] = request.POST.get("rate_limit")
                 if request.POST.get("graphql_operation"):
-                    endpoint_data["graphql_operation"] = request.POST.get("graphql_operation")
+                    endpoint_data["graphql_operation"] = request.POST.get(
+                        "graphql_operation"
+                    )
                 if request.POST.get("sql_file"):
                     endpoint_data["sql_file"] = request.POST.get("sql_file")
 
                 # Validate required fields
                 if not endpoint_data.get("endpoint_id"):
                     messages.error(request, "Endpoint ID is required.")
-                    _endpoint = endpoint if endpoint is not None else dict(SAFE_ENDPOINT_DEFAULT)
+                    _endpoint = (
+                        endpoint
+                        if endpoint is not None
+                        else dict(SAFE_ENDPOINT_DEFAULT)
+                    )
                     _breadcrumbs = [
-                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+                        {
+                            "label": "Dashboard",
+                            "url": reverse("documentation:dashboard"),
+                        },
+                        {
+                            "label": "Endpoints",
+                            "url": reverse("documentation:dashboard")
+                            + "?tab=endpoints",
+                        },
                         {"label": "Edit" if is_edit else "Create"},
                     ]
                     return render(
@@ -240,7 +311,9 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                         "documentation/endpoints/form_enhanced.html",
                         {
                             "endpoint": _endpoint,
-                            "endpoint_json": json.dumps(_endpoint, indent=2, default=str),
+                            "endpoint_json": json.dumps(
+                                _endpoint, indent=2, default=str
+                            ),
                             "is_edit": is_edit,
                             "active_tab": request.GET.get("tab", "basic"),
                             "return_url": request.GET.get("return_url"),
@@ -250,10 +323,21 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
 
                 if not endpoint_data.get("endpoint_path"):
                     messages.error(request, "Endpoint Path is required.")
-                    _endpoint = endpoint if endpoint is not None else dict(SAFE_ENDPOINT_DEFAULT)
+                    _endpoint = (
+                        endpoint
+                        if endpoint is not None
+                        else dict(SAFE_ENDPOINT_DEFAULT)
+                    )
                     _breadcrumbs = [
-                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+                        {
+                            "label": "Dashboard",
+                            "url": reverse("documentation:dashboard"),
+                        },
+                        {
+                            "label": "Endpoints",
+                            "url": reverse("documentation:dashboard")
+                            + "?tab=endpoints",
+                        },
                         {"label": "Edit" if is_edit else "Create"},
                     ]
                     return render(
@@ -261,7 +345,9 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                         "documentation/endpoints/form_enhanced.html",
                         {
                             "endpoint": _endpoint,
-                            "endpoint_json": json.dumps(_endpoint, indent=2, default=str),
+                            "endpoint_json": json.dumps(
+                                _endpoint, indent=2, default=str
+                            ),
                             "is_edit": is_edit,
                             "active_tab": request.GET.get("tab", "basic"),
                             "return_url": request.GET.get("return_url"),
@@ -279,7 +365,9 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                 if updated:
                     logger.debug("Endpoint updated successfully: %s", validated_id)
                     messages.success(request, "Endpoint updated successfully.")
-                    return redirect("documentation:endpoint_detail", endpoint_id=validated_id)
+                    return redirect(
+                        "documentation:endpoint_detail", endpoint_id=validated_id
+                    )
                 else:
                     messages.error(request, "Failed to update endpoint.")
             else:
@@ -288,7 +376,9 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                     created_id = endpoint_data.get("endpoint_id")
                     logger.debug("Endpoint created successfully: %s", created_id)
                     messages.success(request, "Endpoint created successfully.")
-                    return redirect("documentation:endpoint_detail", endpoint_id=created_id)
+                    return redirect(
+                        "documentation:endpoint_detail", endpoint_id=created_id
+                    )
                 else:
                     messages.error(request, "Failed to create endpoint.")
         except Exception as e:
@@ -308,7 +398,9 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
                 messages.error(request, "Endpoint not found.")
                 return redirect("documentation:dashboard_endpoints")
         except Exception as e:
-            logger.error("Error loading endpoint %s: %s", validated_id, e, exc_info=True)
+            logger.error(
+                "Error loading endpoint %s: %s", validated_id, e, exc_info=True
+            )
             messages.error(request, "An error occurred while loading the endpoint.")
             return redirect("documentation:dashboard_endpoints")
 
@@ -316,9 +408,12 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
 
     # Get active tab from URL query parameter; default to "advanced" when creating from generated
     create_mode_generated = (
-        request.GET.get("generated") == "1" or request.GET.get("template") == "generated"
+        request.GET.get("generated") == "1"
+        or request.GET.get("template") == "generated"
     )
-    active_tab = request.GET.get("tab") or ("advanced" if create_mode_generated else "basic")
+    active_tab = request.GET.get("tab") or (
+        "advanced" if create_mode_generated else "basic"
+    )
 
     # Safe default for create mode so template never accesses None or missing keys
     if endpoint is None:
@@ -329,13 +424,21 @@ def endpoint_form_view(request: HttpRequest, endpoint_id: Optional[str] = None) 
 
     breadcrumb_items: List[Dict[str, Any]] = [
         {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-        {"label": "Endpoints", "url": reverse("documentation:dashboard") + "?tab=endpoints"},
+        {
+            "label": "Endpoints",
+            "url": reverse("documentation:dashboard") + "?tab=endpoints",
+        },
     ]
     if is_edit and endpoint.get("endpoint_id"):
-        breadcrumb_items.append({
-            "label": endpoint["endpoint_id"],
-            "url": reverse("documentation:endpoint_detail", kwargs={"endpoint_id": endpoint["endpoint_id"]}),
-        })
+        breadcrumb_items.append(
+            {
+                "label": endpoint["endpoint_id"],
+                "url": reverse(
+                    "documentation:endpoint_detail",
+                    kwargs={"endpoint_id": endpoint["endpoint_id"]},
+                ),
+            }
+        )
     breadcrumb_items.append({"label": "Edit" if is_edit else "Create"})
 
     context: Dict[str, Any] = {
@@ -365,13 +468,17 @@ def endpoint_create_api(request: HttpRequest) -> JsonResponse:
         created = endpoints_service.create_endpoint(data)
         if created:
             logger.debug("Endpoint created successfully: %s", data.get("endpoint_id"))
-            return success_response(data=created, message="Endpoint created successfully", status_code=201).to_json_response()
+            return success_response(
+                data=created, message="Endpoint created successfully", status_code=201
+            ).to_json_response()
         else:
             logger.error("Failed to create endpoint: %s", data.get("endpoint_id"))
             return server_error_response("Failed to create endpoint").to_json_response()
     except Exception as e:
         logger.error("Error creating endpoint: %s", e, exc_info=True)
-        return server_error_response(f"Error creating endpoint: {str(e)}").to_json_response()
+        return server_error_response(
+            f"Error creating endpoint: {str(e)}"
+        ).to_json_response()
 
 
 @require_super_admin
@@ -387,7 +494,9 @@ def endpoint_draft_api(request: HttpRequest) -> JsonResponse:
 
         if not data:
             logger.warning("Empty data in endpoint_draft_api")
-            return error_response(message="Request body is required", status_code=400).to_json_response()
+            return error_response(
+                message="Request body is required", status_code=400
+            ).to_json_response()
 
         # Mark as draft if not already set
         if "metadata" not in data:
@@ -403,26 +512,49 @@ def endpoint_draft_api(request: HttpRequest) -> JsonResponse:
                 updated = endpoints_service.update_endpoint(endpoint_id, data)
                 if updated:
                     logger.debug("Endpoint draft updated: %s", endpoint_id)
-                    return success_response(data=updated, message="Draft saved successfully").to_json_response()
+                    return success_response(
+                        data=updated, message="Draft saved successfully"
+                    ).to_json_response()
                 else:
-                    logger.warning("Endpoint draft update returned None for: %s", endpoint_id)
-                    return server_error_response("Failed to update draft").to_json_response()
+                    logger.warning(
+                        "Endpoint draft update returned None for: %s", endpoint_id
+                    )
+                    return server_error_response(
+                        "Failed to update draft"
+                    ).to_json_response()
             except Exception as e:
-                logger.error("Error updating endpoint draft %s: %s", endpoint_id, e, exc_info=True)
-                return server_error_response(f"Error updating draft: {str(e)}").to_json_response()
+                logger.error(
+                    "Error updating endpoint draft %s: %s",
+                    endpoint_id,
+                    e,
+                    exc_info=True,
+                )
+                return server_error_response(
+                    f"Error updating draft: {str(e)}"
+                ).to_json_response()
         else:
             # Create new draft
             try:
                 created = endpoints_service.create_endpoint(data)
                 if created:
-                    logger.debug("Endpoint draft created: %s", created.get("endpoint_id"))
-                    return success_response(data=created, message="Draft saved successfully", status_code=201).to_json_response()
+                    logger.debug(
+                        "Endpoint draft created: %s", created.get("endpoint_id")
+                    )
+                    return success_response(
+                        data=created,
+                        message="Draft saved successfully",
+                        status_code=201,
+                    ).to_json_response()
                 else:
                     logger.warning("Endpoint draft creation returned None")
-                    return server_error_response("Failed to create draft").to_json_response()
+                    return server_error_response(
+                        "Failed to create draft"
+                    ).to_json_response()
             except Exception as e:
                 logger.error("Error creating endpoint draft: %s", e, exc_info=True)
-                return server_error_response(f"Error creating draft: {str(e)}").to_json_response()
+                return server_error_response(
+                    f"Error creating draft: {str(e)}"
+                ).to_json_response()
 
     except Exception as e:
         logger.error("Unexpected error in endpoint_draft_api: %s", e, exc_info=True)
@@ -436,7 +568,9 @@ def endpoint_update_api(request: HttpRequest, endpoint_id: str) -> JsonResponse:
     """API endpoint to update an endpoint. PUT/PATCH /docs/api/endpoints/<endpoint_id>/"""
     validated_id = _validate_endpoint_id(endpoint_id)
     if not validated_id:
-        return error_response(message="Invalid endpoint ID", status_code=400).to_json_response()
+        return error_response(
+            message="Invalid endpoint ID", status_code=400
+        ).to_json_response()
 
     data, error_msg = parse_json_body(request)
     if error_msg:
@@ -447,13 +581,17 @@ def endpoint_update_api(request: HttpRequest, endpoint_id: str) -> JsonResponse:
         updated = endpoints_service.update_endpoint(validated_id, data)
         if updated:
             logger.debug("Endpoint updated successfully: %s", validated_id)
-            return success_response(data=updated, message="Endpoint updated successfully").to_json_response()
+            return success_response(
+                data=updated, message="Endpoint updated successfully"
+            ).to_json_response()
         else:
             logger.warning("Endpoint not found for update: %s", validated_id)
             return not_found_response("Endpoint").to_json_response()
     except Exception as e:
         logger.error("Error updating endpoint %s: %s", validated_id, e, exc_info=True)
-        return server_error_response(f"Error updating endpoint: {str(e)}").to_json_response()
+        return server_error_response(
+            f"Error updating endpoint: {str(e)}"
+        ).to_json_response()
 
 
 @require_super_admin
@@ -463,19 +601,25 @@ def endpoint_delete_api(request: HttpRequest, endpoint_id: str) -> JsonResponse:
     """API endpoint to delete an endpoint. DELETE /docs/api/endpoints/<endpoint_id>/"""
     validated_id = _validate_endpoint_id(endpoint_id)
     if not validated_id:
-        return error_response(message="Invalid endpoint ID", status_code=400).to_json_response()
+        return error_response(
+            message="Invalid endpoint ID", status_code=400
+        ).to_json_response()
 
     try:
         deleted = endpoints_service.delete_endpoint(validated_id)
         if deleted:
             logger.debug("Endpoint deleted successfully: %s", validated_id)
-            return success_response(message="Endpoint deleted successfully").to_json_response()
+            return success_response(
+                message="Endpoint deleted successfully"
+            ).to_json_response()
         else:
             logger.warning("Endpoint not found for deletion: %s", validated_id)
             return not_found_response("Endpoint").to_json_response()
     except Exception as e:
         logger.error("Error deleting endpoint %s: %s", validated_id, e, exc_info=True)
-        return server_error_response(f"Error deleting endpoint: {str(e)}").to_json_response()
+        return server_error_response(
+            f"Error deleting endpoint: {str(e)}"
+        ).to_json_response()
 
 
 @require_super_admin
@@ -496,7 +640,9 @@ def endpoint_delete_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
                 logger.warning("Failed to delete endpoint: %s", validated_id)
                 messages.error(request, "Failed to delete endpoint.")
         except Exception as e:
-            logger.error("Error deleting endpoint %s: %s", validated_id, e, exc_info=True)
+            logger.error(
+                "Error deleting endpoint %s: %s", validated_id, e, exc_info=True
+            )
             messages.error(request, "An error occurred while deleting the endpoint.")
         return redirect(_safe_redirect_url(request))
 
@@ -515,10 +661,17 @@ def endpoint_delete_view(request: HttpRequest, endpoint_id: str) -> HttpResponse
     breadcrumb_items = [
         {"label": "Dashboard", "url": reverse("documentation:dashboard")},
         {"label": "Endpoints", "url": reverse("documentation:dashboard_endpoints")},
-        {"label": (endpoint.get("endpoint_id") or "Unknown")[:30], "url": reverse("documentation:endpoint_detail", kwargs={"endpoint_id": validated_id})},
+        {
+            "label": (endpoint.get("endpoint_id") or "Unknown")[:30],
+            "url": reverse(
+                "documentation:endpoint_detail", kwargs={"endpoint_id": validated_id}
+            ),
+        },
         {"label": "Delete"},
     ]
-    cancel_url = reverse("documentation:endpoint_detail", kwargs={"endpoint_id": validated_id})
+    cancel_url = reverse(
+        "documentation:endpoint_detail", kwargs={"endpoint_id": validated_id}
+    )
     impact_analysis = None
     rel_count = endpoint.get("relationships_count")
     if rel_count:

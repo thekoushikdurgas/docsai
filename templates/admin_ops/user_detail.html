@@ -1,36 +1,72 @@
 {% extends "base.html" %}
 {% load static admin_tags %}
-
-{% block title %}User Detail — Contact360 Admin{% endblock %}
-
+{% block title %}User detail — Contact360 Admin{% endblock %}
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">User Detail</h1>
     <p class="page-subtitle">{{ user_id }}</p>
   </div>
-  <div class="page-actions" style="display:flex;gap:var(--space-2);flex-wrap:wrap">
-    <a href="{% url 'admin_ops:user_history' user_id=user_id %}" class="btn btn-outline"><i class="lni lni-history"></i> Activity</a>
-    <a href="{% url 'admin_ops:users' %}" class="btn btn-outline"><i class="lni lni-arrow-left"></i> Back to Users</a>
+  <div
+    class="page-actions"
+    style="display: flex; gap: var(--space-2); flex-wrap: wrap"
+  >
+    <a
+      href="{% url 'admin_ops:user_history' user_id=user_id %}"
+      class="btn btn-outline"
+      ><i class="lni lni-history"></i> Activity</a
+    >
+    <a href="{% url 'admin_ops:users' %}" class="btn btn-outline"
+      ><i class="lni lni-arrow-left"></i> Back to Users</a
+    >
   </div>
 </div>
 
 {% if not user_row %}
 {% include "components/alert.html" with type="warning" message="User not found via admin.users listing (may be beyond scan limit or gateway error). Credit delta still attempts lookup on submit." %}
 {% else %}
-<div class="card" style="margin-top:var(--space-4)">
+<div class="card" style="margin-top: var(--space-4)">
   <div class="card-header"><h2 class="card-title">Profile</h2></div>
   <div class="card-body">
-    <dl style="display:grid;grid-template-columns:140px 1fr;gap:var(--space-2) var(--space-4);margin:0">
-      <dt class="text-muted">Email</dt><dd style="margin:0">{{ user_row.email|default:"—" }}</dd>
-      <dt class="text-muted">Name</dt><dd style="margin:0">{{ user_row.name|default:"—" }}</dd>
-      <dt class="text-muted">Active</dt><dd style="margin:0">{{ user_row.isActive|yesno:"Yes,No,—" }}</dd>
-      <dt class="text-muted">Last sign-in</dt><dd style="margin:0">{{ user_row.lastSignInAt|default:"—" }}</dd>
-      <dt class="text-muted">Created</dt><dd style="margin:0">{{ user_row.createdAt|default:"—" }}</dd>
+    <dl
+      style="
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: var(--space-2) var(--space-4);
+        margin: 0;
+      "
+    >
+      <dt class="text-muted">Email</dt>
+      <dd style="margin: 0">{{ user_row.email|default:"—" }}</dd>
+      <dt class="text-muted">Name</dt>
+      <dd style="margin: 0">{{ user_row.name|default:"—" }}</dd>
+      <dt class="text-muted">Active</dt>
+      <dd style="margin: 0">{{ user_row.isActive|yesno:"Yes,No,—" }}</dd>
+      <dt class="text-muted">Last sign-in</dt>
+      <dd style="margin: 0">{{ user_row.lastSignInAt|default:"—" }}</dd>
+      <dt class="text-muted">Created</dt>
+      <dd style="margin: 0">{{ user_row.createdAt|default:"—" }}</dd>
       {% with p=user_row.profile %}
-      <dt class="text-muted">Role</dt><dd style="margin:0">{% if p %}{{ p.role|default:"—" }}{% else %}—{% endif %}</dd>
-      <dt class="text-muted">Credits</dt><dd style="margin:0">{% if p %}{{ p.credits|default:"0" }}{% else %}—{% endif %}</dd>
-      <dt class="text-muted">Plan</dt><dd style="margin:0">{% if p %}{{ p.subscriptionPlan|default:"—" }}{% else %}—{% endif %}</dd>
+      <dt class="text-muted">Role</dt>
+      <dd style="margin: 0">
+        {% if p %}{{ p.role|default:"—" }}{% else %}—{% endif %}
+      </dd>
+      <dt class="text-muted">Credits</dt>
+      <dd style="margin: 0">
+        {% if p %}{{ p.credits|default:"0" }}{% else %}—{% endif %}
+      </dd>
+      <dt class="text-muted">Plan</dt>
+      <dd style="margin: 0">
+        {% if p %}{{ p.subscriptionPlan|default:"—" }}{% else %}—{% endif %}
+      </dd>
+      <dt class="text-muted">Subscription status</dt>
+      <dd style="margin: 0">
+        {% if p %}{{ p.subscriptionStatus|default:"—" }}{% else %}—{% endif %}
+      </dd>
+      <dt class="text-muted">Subscription ends</dt>
+      <dd style="margin: 0">
+        {% if p %}{{ p.subscriptionEndsAt|default:"—" }}{% else %}—{% endif %}
+      </dd>
       {% endwith %}
     </dl>
   </div>
@@ -38,36 +74,81 @@
 {% endif %}
 
 <!-- Adjust credits -->
-<div class="card" style="margin-top:var(--space-4)">
+<div class="card" style="margin-top: var(--space-4)">
   <div class="card-header"><h2 class="card-title">Adjust credits</h2></div>
   <div class="card-body">
-    <form method="post" style="display:flex;gap:var(--space-3);align-items:flex-end;flex-wrap:wrap">
+    <form
+      method="post"
+      style="
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-end;
+        flex-wrap: wrap;
+      "
+    >
       {% csrf_token %}
-      <input type="hidden" name="action" value="adjust_credits">
-      <div class="form-group" style="margin:0">
+      <input type="hidden" name="action" value="adjust_credits" />
+      <div class="form-group" style="margin: 0">
         <label class="form-label" for="id_amount">Delta (add / deduct)</label>
-        <input type="number" id="id_amount" name="amount" class="form-control" placeholder="e.g. 100 or -50" required style="width:160px">
+        <input
+          type="number"
+          id="id_amount"
+          name="amount"
+          class="form-control"
+          placeholder="e.g. 100 or -50"
+          required
+          style="width: 160px"
+        />
       </div>
-      <div class="form-group" style="margin:0;flex:1">
+      <div class="form-group" style="margin: 0; flex: 1">
         <label class="form-label" for="id_reason">Reason</label>
-        <input type="text" id="id_reason" name="reason" class="form-control" placeholder="Admin adjustment note" required>
+        <input
+          type="text"
+          id="id_reason"
+          name="reason"
+          class="form-control"
+          placeholder="Admin adjustment note"
+          required
+        />
       </div>
-      <button type="submit" class="btn btn-primary"><i class="lni lni-wallet"></i> Apply</button>
+      <button type="submit" class="btn btn-primary">
+        <i class="lni lni-wallet"></i> Apply
+      </button>
     </form>
-    <p class="text-muted" style="margin-top:var(--space-3);font-size:0.875rem">Uses GraphQL <code>admin.updateUserCredits</code> with an absolute balance (current + delta). Requires SuperAdmin on the gateway.</p>
+    <p
+      class="text-muted"
+      style="margin-top: var(--space-3); font-size: 0.875rem"
+    >
+      Uses GraphQL <code>admin.updateUserCredits</code> with an absolute balance
+      (current + delta). Requires SuperAdmin on the gateway.
+    </p>
   </div>
 </div>
 
 <!-- Role -->
-<div class="card" style="margin-top:var(--space-4)">
+<div class="card" style="margin-top: var(--space-4)">
   <div class="card-header"><h2 class="card-title">Role</h2></div>
   <div class="card-body">
-    <form method="post" style="display:flex;gap:var(--space-3);align-items:flex-end;flex-wrap:wrap">
+    <form
+      method="post"
+      style="
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-end;
+        flex-wrap: wrap;
+      "
+    >
       {% csrf_token %}
-      <input type="hidden" name="action" value="update_role">
-      <div class="form-group" style="margin:0">
+      <input type="hidden" name="action" value="update_role" />
+      <div class="form-group" style="margin: 0">
         <label class="form-label" for="id_role">Role</label>
-        <select id="id_role" name="role" class="form-control" required style="min-width:200px">
+        <select
+          id="id_role"
+          name="role"
+          class="form-control"
+          required
+          style="min-width: 200px"
+        >
           {% for r in valid_roles %}
           <option value="{{ r }}">{{ r }}</option>
           {% endfor %}
@@ -79,33 +160,60 @@
 </div>
 
 <!-- Promotions -->
-<div class="card" style="margin-top:var(--space-4)">
+<div class="card" style="margin-top: var(--space-4)">
   <div class="card-header"><h2 class="card-title">Promotions</h2></div>
-  <div class="card-body" style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+  <div
+    class="card-body"
+    style="display: flex; gap: var(--space-2); flex-wrap: wrap"
+  >
     <form method="post">
       {% csrf_token %}
-      <input type="hidden" name="action" value="promote_admin">
+      <input type="hidden" name="action" value="promote_admin" />
       <button type="submit" class="btn btn-outline">Promote to Admin</button>
     </form>
     <form method="post">
       {% csrf_token %}
-      <input type="hidden" name="action" value="promote_super">
-      <button type="submit" class="btn btn-outline">Promote to SuperAdmin</button>
+      <input type="hidden" name="action" value="promote_super" />
+      <button type="submit" class="btn btn-outline">
+        Promote to SuperAdmin
+      </button>
     </form>
   </div>
-  <p class="text-muted" style="padding:0 var(--space-4) var(--space-3);font-size:0.875rem;margin:0">Gateway rules apply (e.g. SuperAdmin required to promote others).</p>
+  <p
+    class="text-muted"
+    style="
+      padding: 0 var(--space-4) var(--space-3);
+      font-size: 0.875rem;
+      margin: 0;
+    "
+  >
+    Gateway rules apply (e.g. SuperAdmin required to promote others).
+  </p>
 </div>
 
 <!-- Delete -->
-<div class="card" style="margin-top:var(--space-4);border-color:var(--danger,#c0392b)">
+<div
+  class="card"
+  style="margin-top: var(--space-4); border-color: var(--danger, #c0392b)"
+>
   <div class="card-header"><h2 class="card-title">Danger zone</h2></div>
   <div class="card-body">
-    <form method="post" onsubmit="return confirm('Permanently delete this user? This cannot be undone.');">
+    <form
+      method="post"
+      onsubmit="
+        return confirm('Permanently delete this user? This cannot be undone.');
+      "
+    >
       {% csrf_token %}
-      <input type="hidden" name="action" value="delete_user">
+      <input type="hidden" name="action" value="delete_user" />
       <button type="submit" class="btn btn-danger">Delete user</button>
     </form>
-    <p class="text-muted" style="margin-top:var(--space-3);font-size:0.875rem">Requires SuperAdmin on the gateway. You cannot delete your own account.</p>
+    <p
+      class="text-muted"
+      style="margin-top: var(--space-3); font-size: 0.875rem"
+    >
+      Requires SuperAdmin on the gateway. You cannot delete your own account.
+    </p>
   </div>
 </div>
 {% endblock %}

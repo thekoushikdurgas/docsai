@@ -1,25 +1,239 @@
-{% extends "base.html" %}
-{% load static admin_tags %}
-{% block title %}Durgasflow — Contact360 Admin{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title
+%}Durgasflow — Contact360 Admin{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">Durgasflow</h1>
-    <p class="page-subtitle">Workflow automation (n8n-compatible)</p>
+    <p class="page-subtitle">n8n-compatible workflow automation</p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'durgasflow:workflow_hub' %}" class="btn btn-outline"><i class="lni lni-layers"></i> Hub</a>
-    <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline"><i class="lni lni-layers"></i> Workflows</a>
-    <a href="{% url 'durgasflow:editor_new' %}" class="btn btn-primary"><i class="lni lni-plus-circle"></i> New Workflow</a>
+    <a href="{% url 'durgasflow:upload' %}" class="btn btn-outline"
+      ><i class="lni lni-cloud-upload"></i> Upload</a
+    >
+    <a href="{% url 'durgasflow:workflow_hub' %}" class="btn btn-outline"
+      ><i class="lni lni-grid-alt"></i> Hub</a
+    >
+    <a href="{% url 'durgasflow:editor_new' %}" class="btn btn-primary"
+      ><i class="lni lni-plus-circle"></i> New Workflow</a
+    >
   </div>
 </div>
-<div class="kpi-grid">
-  {% include "components/card.html" with value="—" label="Total Workflows" icon="lni-layers" color="primary" %}
-  {% include "components/card.html" with value="—" label="Active Executions" icon="lni-arrow-right-circle" color="success" %}
-  {% include "components/card.html" with value="—" label="Failed Runs" icon="lni-cross-circle" color="danger" %}
-  {% include "components/card.html" with value="—" label="Credentials" icon="lni-lock" color="info" %}
+
+<!-- KPI Row -->
+<div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr)">
+  {% include "components/card.html" with value=total label="Total Workflows"
+  icon="lni-layers" color="primary" %} {% include "components/card.html" with
+  value=active_count label="Active" icon="lni-checkmark-circle" color="success"
+  %} {% include "components/card.html" with value=total_execs label="Total
+  Executions" icon="lni-arrow-right-circle" color="info" %} {% include
+  "components/card.html" with value=success_rate|default:"—" label="Success Rate
+  %" icon="lni-bolt-alt" color="warning" %}
 </div>
-<div class="card" style="margin-top:var(--space-6)">
-  {% include "components/alert.html" with type="info" message="Durgasflow connects to the workflow engine. Configure the engine URL to populate real data." %}
+
+<!-- Upload Zone -->
+{% if s3_enabled %}
+<div class="card df-upload-card" style="margin-top: var(--space-6)">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="lni lni-cloud-upload"></i> Quick Upload n8n Workflow
+    </h3>
+  </div>
+  <div class="card-body">
+    <div class="df-upload-zone" id="df-drop-zone">
+      <i
+        class="lni lni-upload"
+        style="font-size: 2rem; color: var(--c360-primary)"
+      ></i>
+      <p>
+        Drag &amp; drop n8n workflow JSON here or
+        <label for="df-file-input" class="df-browse-link">browse</label>
+      </p>
+      <input
+        type="file"
+        id="df-file-input"
+        accept=".json"
+        style="display: none"
+      />
+      <p class="df-upload-hint">Supports exported n8n workflow files</p>
+    </div>
+    <div class="df-upload-meta" style="display: none" id="df-upload-meta">
+      <input
+        type="text"
+        id="df-bucket-id"
+        class="form-control"
+        placeholder="Bucket ID"
+        value="{{ default_bucket }}"
+      />
+      <button class="btn btn-primary" id="df-upload-btn">
+        <i class="lni lni-cloud-upload"></i> Upload
+      </button>
+    </div>
+    <div
+      class="progress"
+      id="df-progress"
+      style="display: none; margin-top: 0.5rem"
+    >
+      <div class="progress-bar" id="df-progress-bar" style="width: 0%"></div>
+    </div>
+    <div id="df-upload-result"></div>
+  </div>
 </div>
+{% endif %}
+
+<!-- Recent Workflows -->
+<div class="card" style="margin-top: var(--space-6)">
+  <div
+    class="card-header"
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
+    <h3 class="card-title">Recent Workflows</h3>
+    <a
+      href="{% url 'durgasflow:workflow_list' %}"
+      class="btn btn-sm btn-outline"
+      >View all</a
+    >
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Trigger</th>
+          <th>Status</th>
+          <th>Nodes</th>
+          <th>Executions</th>
+          <th>Last Run</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for wf in recent_workflows %}
+        <tr>
+          <td>
+            <a href="{% url 'durgasflow:workflow_detail' wf.id %}"
+              >{{ wf.name }}</a
+            >
+          </td>
+          <td>
+            <span class="df-trigger-badge df-trigger-{{ wf.trigger_type }}"
+              >{{ wf.trigger_type }}</span
+            >
+          </td>
+          <td>
+            {% if wf.is_active %}
+            <span class="df-status-badge df-exec-status-completed">Active</span>
+            {% else %}
+            <span class="df-status-badge df-exec-status-pending"
+              >{{ wf.status }}</span
+            >
+            {% endif %}
+          </td>
+          <td>{{ wf.node_count }}</td>
+          <td>{{ wf.execution_count }}</td>
+          <td>
+            {% if wf.last_executed_at %}{{ wf.last_executed_at|timesince }}
+            ago{% else %}—{% endif %}
+          </td>
+          <td class="table-actions">
+            <a
+              href="{% url 'durgasflow:editor' wf.id %}"
+              class="btn btn-xs btn-outline"
+              ><i class="lni lni-pencil"></i
+            ></a>
+            <button
+              class="btn btn-xs btn-primary df-run-btn"
+              data-workflow-id="{{ wf.id }}"
+            >
+              <i class="lni lni-play"></i>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="table-empty">
+            No workflows yet.
+            <a href="{% url 'durgasflow:upload' %}">Upload one</a> or
+            <a href="{% url 'durgasflow:editor_new' %}">create from scratch</a>.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Recent Executions -->
+{% if recent_executions %}
+<div class="card" style="margin-top: var(--space-4)">
+  <div
+    class="card-header"
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
+    <h3 class="card-title">Recent Executions</h3>
+    <a
+      href="{% url 'durgasflow:execution_list' %}"
+      class="btn btn-sm btn-outline"
+      >View all</a
+    >
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Workflow</th>
+          <th>Status</th>
+          <th>Trigger</th>
+          <th>Started</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ex in recent_executions %}
+        <tr>
+          <td>
+            {% if ex.workflow_id %}
+            <a href="{% url 'durgasflow:workflow_detail' ex.workflow_id %}"
+              >{{ ex.workflow__name }}</a
+            >
+            {% else %}{{ ex.workflow__name }}{% endif %}
+          </td>
+          <td>
+            <span class="df-exec-status-badge df-exec-status-{{ ex.status }}"
+              >{{ ex.status }}</span
+            >
+          </td>
+          <td>{{ ex.trigger_type }}</td>
+          <td>
+            {% if ex.started_at %}{{ ex.started_at|timesince }} ago{% else %}—{%
+            endif %}
+          </td>
+          <td>
+            <a
+              href="{% url 'durgasflow:execution_detail' ex.id %}"
+              class="btn btn-xs btn-outline"
+              >View</a
+            >
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %} {% endblock %} {% block extra_js %}
+<script src="{% static 'admin/js/durgasflow.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.DurgasflowDashboard) {
+      window.DurgasflowDashboard.init({
+        uploadApiUrl: '{% url "durgasflow:upload_api" %}',
+        dashboardUrl: '{% url "durgasflow:dashboard" %}',
+      });
+    }
+  });
+</script>
 {% endblock %}

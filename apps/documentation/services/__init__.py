@@ -17,6 +17,7 @@ def get_shared_s3_storage():
     global _shared_s3_storage
     if _shared_s3_storage is None:
         from apps.documentation.repositories.s3_json_storage import S3JSONStorage
+
         _shared_s3_storage = S3JSONStorage()
     return _shared_s3_storage
 
@@ -26,6 +27,7 @@ def get_shared_s3_index_manager():
     global _shared_s3_index_manager
     if _shared_s3_index_manager is None:
         from apps.documentation.utils.s3_index_manager import S3IndexManager
+
         _shared_s3_index_manager = S3IndexManager(storage=get_shared_s3_storage())
     return _shared_s3_index_manager
 
@@ -35,6 +37,7 @@ def get_shared_unified_storage():
     global _shared_unified_storage
     if _shared_unified_storage is None:
         from apps.documentation.repositories.unified_storage import UnifiedStorage
+
         _shared_unified_storage = UnifiedStorage(s3_storage=get_shared_s3_storage())
     return _shared_unified_storage
 
@@ -52,6 +55,7 @@ def get_pages_service():
     global _pages_service
     if _pages_service is None:
         from apps.documentation.services.pages_service import PagesService
+
         _pages_service = PagesService(unified_storage=get_shared_unified_storage())
     return _pages_service
 
@@ -61,7 +65,10 @@ def get_endpoints_service():
     global _endpoints_service
     if _endpoints_service is None:
         from apps.documentation.services.endpoints_service import EndpointsService
-        _endpoints_service = EndpointsService(unified_storage=get_shared_unified_storage())
+
+        _endpoints_service = EndpointsService(
+            unified_storage=get_shared_unified_storage()
+        )
     return _endpoints_service
 
 
@@ -69,8 +76,13 @@ def get_relationships_service():
     """Get or create shared RelationshipsService instance."""
     global _relationships_service
     if _relationships_service is None:
-        from apps.documentation.services.relationships_service import RelationshipsService
-        _relationships_service = RelationshipsService(unified_storage=get_shared_unified_storage())
+        from apps.documentation.services.relationships_service import (
+            RelationshipsService,
+        )
+
+        _relationships_service = RelationshipsService(
+            unified_storage=get_shared_unified_storage()
+        )
     return _relationships_service
 
 
@@ -79,6 +91,7 @@ def get_postman_service():
     global _postman_service
     if _postman_service is None:
         from apps.documentation.services.postman_service import PostmanService
+
         _postman_service = PostmanService(unified_storage=get_shared_unified_storage())
     return _postman_service
 
@@ -87,10 +100,11 @@ def get_postman_service():
 # These use lazy initialization via the getter functions above
 class _LazyService:
     """Lazy service wrapper that initializes on first access."""
+
     def __init__(self, getter):
         self._getter = getter
         self._instance = None
-    
+
     def __getattr__(self, name):
         if self._instance is None:
             self._instance = self._getter()
@@ -112,6 +126,9 @@ def get_media_manager_dashboard_service():
     """Get or create shared dashboard service instance."""
     global _media_manager_dashboard_service
     if _media_manager_dashboard_service is None:
-        from apps.documentation.services.documentation_dashboard_service import MediaManagerDashboardService
+        from apps.documentation.services.documentation_dashboard_service import (
+            MediaManagerDashboardService,
+        )
+
         _media_manager_dashboard_service = MediaManagerDashboardService()
     return _media_manager_dashboard_service

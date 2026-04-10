@@ -1,69 +1,78 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}{{ page.page_id }} - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}{{ page.page_id }}
+- Media Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 section-card section-card--lg">
-        <div>
-            <h1 class="c360-mm-hero__title">{{ page.page_id|default:"Unknown Page" }}</h1>
-            <p class="c360-mm-hero__subtitle">Page Details</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            {% url 'documentation:dashboard_pages' as back_url %}
-            {% include 'components/button.html' with text='Back to Pages' type='secondary' size='md' href=back_url %}
-        </div>
+  <!-- Page Header -->
+  <div
+    class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 section-card section-card--lg"
+  >
+    <div>
+      <h1 class="c360-mm-hero__title">
+        {{ page.page_id|default:"Unknown Page" }}
+      </h1>
+      <p class="c360-mm-hero__subtitle">Page Details</p>
     </div>
-    
-    <!-- Page Information -->
-    <div class="section-card">
-        <h2 class="c360-mm-section-title">Page Information</h2>
-        <dl class="c360-mm-dl-grid">
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Page ID</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ page.page_id|default:"N/A" }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Page Type</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ page.page_type|default:"N/A" }}</dd>
-            </div>
-            {% if page.metadata %}
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Status</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ page.metadata.status|default:"N/A" }}</dd>
-            </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Page State</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ page.metadata.page_state|default:"N/A" }}</dd>
-            </div>
-            {% endif %}
-        </dl>
+    <div class="c360-mm-hero__actions">
+      {% url 'documentation:dashboard_pages' as back_url %} {% include
+      'components/button.html' with text='Back to Pages' type='secondary'
+      size='md' href=back_url %}
     </div>
-    
-    <!-- Sections -->
-    {% if page_sections %}
-    <div class="section-card">
-        <h2 class="c360-mm-section-title">Sections</h2>
-        <pre class="c360-mm-pre">{{ page_sections|safe }}</pre>
-    </div>
-    {% endif %}
-    
-    <!-- Components -->
-    {% if page_components %}
-    <div class="section-card">
-        <h2 class="c360-mm-section-title">UI Components</h2>
-        <pre class="c360-mm-pre">{{ page_components|safe }}</pre>
-    </div>
-    {% endif %}
-    
-    <!-- Endpoints -->
-    {% if page_endpoints %}
-    <div class="section-card">
-        <h2 class="c360-mm-section-title">Endpoints Used</h2>
-        <pre class="c360-mm-pre">{{ page_endpoints|safe }}</pre>
-    </div>
-    {% endif %}
+  </div>
+
+  <!-- Page Information -->
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">Page Information</h2>
+    <dl class="c360-mm-dl-grid">
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Page ID</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {{ page.page_id|default:"N/A" }}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Page Type</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {{ page.page_type|default:"N/A" }}
+        </dd>
+      </div>
+      {% if page.metadata %}
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Status</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {{ page.metadata.status|default:"N/A" }}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Page State</dt>
+        <dd class="mt-1 text-sm text-gray-900">
+          {{ page.metadata.page_state|default:"N/A" }}
+        </dd>
+      </div>
+      {% endif %}
+    </dl>
+  </div>
+
+  <!-- Sections -->
+  {% if page_sections %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">Sections</h2>
+    <pre class="c360-mm-pre">{{ page_sections|safe }}</pre>
+  </div>
+  {% endif %}
+
+  <!-- Components -->
+  {% if page_components %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">UI Components</h2>
+    <pre class="c360-mm-pre">{{ page_components|safe }}</pre>
+  </div>
+  {% endif %}
+
+  <!-- Endpoints -->
+  {% if page_endpoints %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">Endpoints Used</h2>
+    <pre class="c360-mm-pre">{{ page_endpoints|safe }}</pre>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

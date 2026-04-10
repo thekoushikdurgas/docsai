@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% load static admin_tags %}
-
 {% block title %}Billing — Plans — Contact360 Admin{% endblock %}
-
 {% block content %}
 {% include "admin_ops/includes/billing_nav.html" %}
 
@@ -10,56 +8,98 @@
   <div>
     <h1 class="page-title">Subscription plans</h1>
     <p class="page-subtitle">
-      Catalog from <code>billing.plans</code>. Create, edit, and delete require <strong>Super Admin</strong> on the gateway (<code>billing.createPlan</code>, <code>updatePlan</code>, <code>deletePlan</code>, period mutations).
+      Catalog from <code>billing.plans</code>. Create, edit, and delete require
+      <strong>Super Admin</strong> on the gateway
+      (<code>billing.createPlan</code>, <code>updatePlan</code>,
+      <code>deletePlan</code>, period mutations).
     </p>
   </div>
   {% if operator.role == "super_admin" %}
-  <a href="{% url 'admin_ops:billing_plan_create' %}" class="btn btn-primary"><i class="lni lni-plus" aria-hidden="true"></i> New plan</a>
+  <a href="{% url 'admin_ops:billing_plan_create' %}" class="btn btn-primary"
+    ><i class="lni lni-plus" aria-hidden="true"></i> New plan</a
+  >
   {% endif %}
 </div>
 
 {% if operator.role != "super_admin" %}
 {% include "components/alert.html" with type="info" message="You can view plans. Super Admins can add, edit, or delete plans and periods." %}
 {% endif %}
-
 {% if not plans %}
 {% include "components/alert.html" with type="info" message="No plans returned from the gateway." %}
 {% endif %}
-
 {% for plan in plans %}
-<div class="card" style="margin-bottom:var(--space-4)">
-  <div class="card-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-3)">
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div
+    class="card-header"
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    "
+  >
     <div>
-      <h2 class="card-title" style="margin:0">{{ plan.name|default:plan.tier }}</h2>
-      <p style="margin:4px 0 0;font-size:var(--text-sm);color:var(--color-text-muted)">
+      <h2 class="card-title" style="margin: 0">
+        {{ plan.name|default:plan.tier }}
+      </h2>
+      <p
+        style="
+          margin: 4px 0 0;
+          font-size: var(--text-sm);
+          color: var(--color-text-muted);
+        "
+      >
         <code>{{ plan.tier }}</code>
-        {% if plan.category %}<span class="badge badge-outline" style="margin-left:8px">{{ plan.category }}</span>{% endif %}
+        {% if plan.category %}<span
+          class="badge badge-outline"
+          style="margin-left: 8px"
+          >{{ plan.category }}</span
+        >{% endif %}
       </p>
     </div>
     {% if operator.role == "super_admin" %}
-    <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
-      <a href="{% url 'admin_ops:billing_plan_edit' plan.tier %}" class="btn btn-outline btn-sm">Edit plan</a>
-      {% if plan.periods.monthly and plan.periods.quarterly and plan.periods.yearly %}
-      {% else %}
-      <a href="{% url 'admin_ops:billing_plan_period_add' plan.tier %}" class="btn btn-outline btn-sm">Add period</a>
+    <div style="display: flex; gap: var(--space-2); flex-wrap: wrap">
+      <a
+        href="{% url 'admin_ops:billing_plan_edit' plan.tier %}"
+        class="btn btn-outline btn-sm"
+        >Edit plan</a
+      >
+      {% if plan.periods.monthly and plan.periods.quarterly and
+      plan.periods.yearly %} {% else %}
+      <a
+        href="{% url 'admin_ops:billing_plan_period_add' plan.tier %}"
+        class="btn btn-outline btn-sm"
+        >Add period</a
+      >
       {% endif %}
-      <form method="post" action="{% url 'admin_ops:billing_plan_delete' plan.tier %}" style="display:inline"
-            onsubmit="return confirm('Delete plan {{ plan.tier|escapejs }} and all periods? This cannot be undone.');">
+      <form
+        method="post"
+        action="{% url 'admin_ops:billing_plan_delete' plan.tier %}"
+        style="display: inline"
+        onsubmit="return confirm('Delete plan {{ plan.tier|escapejs }} and all periods? This cannot be undone.');"
+      >
         {% csrf_token %}
         <button type="submit" class="btn btn-danger btn-sm">Delete plan</button>
       </form>
     </div>
     {% endif %}
   </div>
-  <div class="card-body" style="padding:0">
-    {% if not plan.periods.monthly and not plan.periods.quarterly and not plan.periods.yearly %}
-    <p class="table-empty" style="padding:var(--space-4);margin:0">No billing periods configured for this plan.</p>
-    {% if operator.role == "super_admin" %}
-    <p style="padding:0 var(--space-4) var(--space-4);margin:0">
-      <a href="{% url 'admin_ops:billing_plan_period_add' plan.tier %}" class="btn btn-primary btn-sm">Add first period</a>
+  <div class="card-body" style="padding: 0">
+    {% if not plan.periods.monthly and not plan.periods.quarterly and not
+    plan.periods.yearly %}
+    <p class="table-empty" style="padding: var(--space-4); margin: 0">
+      No billing periods configured for this plan.
     </p>
-    {% endif %}
-    {% else %}
+    {% if operator.role == "super_admin" %}
+    <p style="padding: 0 var(--space-4) var(--space-4); margin: 0">
+      <a
+        href="{% url 'admin_ops:billing_plan_period_add' plan.tier %}"
+        class="btn btn-primary btn-sm"
+        >Add first period</a
+      >
+    </p>
+    {% endif %} {% else %}
     <div class="table-wrap">
       <table class="table" aria-label="Pricing for {{ plan.tier }}">
         <thead>
@@ -69,93 +109,115 @@
             <th>Rate / credit</th>
             <th>Price</th>
             <th>Savings</th>
-            {% if operator.role == "super_admin" %}<th style="width:140px">Actions</th>{% endif %}
+            {% if operator.role == "super_admin" %}
+            <th style="width: 140px">Actions</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
-          {% if plan.periods.monthly %}
-          {% with p=plan.periods.monthly %}
+          {% if plan.periods.monthly %} {% with p=plan.periods.monthly %}
           <tr>
             <td>Monthly</td>
             <td>{{ p.credits }}</td>
             <td>${{ p.rate_per_credit }}</td>
             <td>${{ p.price }}</td>
-            <td style="font-size:var(--text-sm);color:var(--color-text-muted)">
-              {% if p.savings %}
-                {% if p.savings.percentage is not None %}{{ p.savings.percentage }}%{% endif %}
-                {% if p.savings.amount %} (${{ p.savings.amount }}){% endif %}
-              {% else %}—{% endif %}
+            <td
+              style="font-size: var(--text-sm); color: var(--color-text-muted)"
+            >
+              {% if p.savings %} {% if p.savings.percentage is not None %}{{
+              p.savings.percentage }}%{% endif %} {% if p.savings.amount %} (${{
+              p.savings.amount }}){% endif %} {% else %}—{% endif %}
             </td>
             {% if operator.role == "super_admin" %}
             <td>
-              <a href="{% url 'admin_ops:billing_plan_period_edit' plan.tier 'monthly' %}" class="btn btn-outline btn-sm">Edit</a>
-              <form method="post" action="{% url 'admin_ops:billing_plan_period_delete' plan.tier 'monthly' %}" style="display:inline;margin-left:4px"
-                    onsubmit="return confirm('Delete monthly period for {{ plan.tier|escapejs }}?');">
+              <a
+                href="{% url 'admin_ops:billing_plan_period_edit' plan.tier 'monthly' %}"
+                class="btn btn-outline btn-sm"
+                >Edit</a
+              >
+              <form
+                method="post"
+                action="{% url 'admin_ops:billing_plan_period_delete' plan.tier 'monthly' %}"
+                style="display: inline; margin-left: 4px"
+                onsubmit="return confirm('Delete monthly period for {{ plan.tier|escapejs }}?');"
+              >
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Del</button>
               </form>
             </td>
             {% endif %}
           </tr>
-          {% endwith %}
-          {% endif %}
-          {% if plan.periods.quarterly %}
-          {% with p=plan.periods.quarterly %}
+          {% endwith %} {% endif %} {% if plan.periods.quarterly %} {% with
+          p=plan.periods.quarterly %}
           <tr>
             <td>Quarterly</td>
             <td>{{ p.credits }}</td>
             <td>${{ p.rate_per_credit }}</td>
             <td>${{ p.price }}</td>
-            <td style="font-size:var(--text-sm);color:var(--color-text-muted)">
-              {% if p.savings %}
-                {% if p.savings.percentage is not None %}{{ p.savings.percentage }}%{% endif %}
-                {% if p.savings.amount %} (${{ p.savings.amount }}){% endif %}
-              {% else %}—{% endif %}
+            <td
+              style="font-size: var(--text-sm); color: var(--color-text-muted)"
+            >
+              {% if p.savings %} {% if p.savings.percentage is not None %}{{
+              p.savings.percentage }}%{% endif %} {% if p.savings.amount %} (${{
+              p.savings.amount }}){% endif %} {% else %}—{% endif %}
             </td>
             {% if operator.role == "super_admin" %}
             <td>
-              <a href="{% url 'admin_ops:billing_plan_period_edit' plan.tier 'quarterly' %}" class="btn btn-outline btn-sm">Edit</a>
-              <form method="post" action="{% url 'admin_ops:billing_plan_period_delete' plan.tier 'quarterly' %}" style="display:inline;margin-left:4px"
-                    onsubmit="return confirm('Delete quarterly period for {{ plan.tier|escapejs }}?');">
+              <a
+                href="{% url 'admin_ops:billing_plan_period_edit' plan.tier 'quarterly' %}"
+                class="btn btn-outline btn-sm"
+                >Edit</a
+              >
+              <form
+                method="post"
+                action="{% url 'admin_ops:billing_plan_period_delete' plan.tier 'quarterly' %}"
+                style="display: inline; margin-left: 4px"
+                onsubmit="return confirm('Delete quarterly period for {{ plan.tier|escapejs }}?');"
+              >
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Del</button>
               </form>
             </td>
             {% endif %}
           </tr>
-          {% endwith %}
-          {% endif %}
-          {% if plan.periods.yearly %}
-          {% with p=plan.periods.yearly %}
+          {% endwith %} {% endif %} {% if plan.periods.yearly %} {% with
+          p=plan.periods.yearly %}
           <tr>
             <td>Yearly</td>
             <td>{{ p.credits }}</td>
             <td>${{ p.rate_per_credit }}</td>
             <td>${{ p.price }}</td>
-            <td style="font-size:var(--text-sm);color:var(--color-text-muted)">
-              {% if p.savings %}
-                {% if p.savings.percentage is not None %}{{ p.savings.percentage }}%{% endif %}
-                {% if p.savings.amount %} (${{ p.savings.amount }}){% endif %}
-              {% else %}—{% endif %}
+            <td
+              style="font-size: var(--text-sm); color: var(--color-text-muted)"
+            >
+              {% if p.savings %} {% if p.savings.percentage is not None %}{{
+              p.savings.percentage }}%{% endif %} {% if p.savings.amount %} (${{
+              p.savings.amount }}){% endif %} {% else %}—{% endif %}
             </td>
             {% if operator.role == "super_admin" %}
             <td>
-              <a href="{% url 'admin_ops:billing_plan_period_edit' plan.tier 'yearly' %}" class="btn btn-outline btn-sm">Edit</a>
-              <form method="post" action="{% url 'admin_ops:billing_plan_period_delete' plan.tier 'yearly' %}" style="display:inline;margin-left:4px"
-                    onsubmit="return confirm('Delete yearly period for {{ plan.tier|escapejs }}?');">
+              <a
+                href="{% url 'admin_ops:billing_plan_period_edit' plan.tier 'yearly' %}"
+                class="btn btn-outline btn-sm"
+                >Edit</a
+              >
+              <form
+                method="post"
+                action="{% url 'admin_ops:billing_plan_period_delete' plan.tier 'yearly' %}"
+                style="display: inline; margin-left: 4px"
+                onsubmit="return confirm('Delete yearly period for {{ plan.tier|escapejs }}?');"
+              >
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Del</button>
               </form>
             </td>
             {% endif %}
           </tr>
-          {% endwith %}
-          {% endif %}
+          {% endwith %} {% endif %}
         </tbody>
       </table>
     </div>
     {% endif %}
   </div>
 </div>
-{% endfor %}
-{% endblock %}
+{% endfor %} {% endblock %}

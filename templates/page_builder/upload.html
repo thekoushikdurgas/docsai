@@ -1,54 +1,94 @@
-{% extends "base.html" %}
-{% load static admin_tags %}
-
-{% block title %}Upload page spec — Page Builder{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'admin/css/components/page-builder.css' %}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}Upload
+page spec — Page Builder{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/page-builder.css' %}"
+/>
+{% endblock %} {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">Upload page spec</h1>
-    <p class="page-subtitle">Drop a <code>page_spec</code> JSON file. It will be stored in S3 and listed here and in <a href="{% url 'json_store:index' %}">JSON Store</a>.</p>
+    <p class="page-subtitle">
+      Drop a <code>page_spec</code> JSON file. It will be stored in S3 and
+      listed here and in <a href="{% url 'json_store:index' %}">JSON Store</a>.
+    </p>
   </div>
-  <a href="{% url 'page_builder:dashboard' %}" class="btn btn-outline btn-sm"><i class="lni lni-arrow-left"></i> Dashboard</a>
+  <a href="{% url 'page_builder:dashboard' %}" class="btn btn-outline btn-sm"
+    ><i class="lni lni-arrow-left"></i> Dashboard</a
+  >
 </div>
 
-{% if not s3_enabled %}
-{% include "components/alert.html" with type="warning" message="S3 storage is not configured." %}
-{% endif %}
+{% if not s3_enabled %} {% include "components/alert.html" with type="warning"
+message="S3 storage is not configured." %} {% endif %}
 
-<div class="card" style="max-width:640px">
+<div class="card" style="max-width: 640px">
   <div class="card-body">
     <div class="pb-upload-zone" id="pb-upload-zone">
       <i class="lni lni-cloud-upload"></i>
-      <p style="margin:0;font-weight:var(--c360-font-medium)">Drop JSON here or click</p>
+      <p style="margin: 0; font-weight: var(--c360-font-medium)">
+        Drop JSON here or click
+      </p>
     </div>
-    <input type="file" id="pb-file-input" accept=".json" style="display:none">
-    <p id="pb-file-name" style="margin-top:var(--c360-spacing-2);font-size:var(--c360-text-sm);color:var(--c360-text-muted)">No file selected</p>
+    <input
+      type="file"
+      id="pb-file-input"
+      accept=".json"
+      style="display: none"
+    />
+    <p
+      id="pb-file-name"
+      style="
+        margin-top: var(--c360-spacing-2);
+        font-size: var(--c360-text-sm);
+        color: var(--c360-text-muted);
+      "
+    >
+      No file selected
+    </p>
     <label class="form-label" for="pb-bucket-id">Bucket ID</label>
-    <input type="text" id="pb-bucket-id" class="form-control" value="{{ default_bucket }}" style="max-width:320px">
-    <div class="progress-wrap" id="pb-progress-wrap" style="display:none;margin-top:var(--c360-spacing-3)">
-      <div class="progress"><div class="progress-bar animated" id="pb-progress-bar" style="width:0"></div></div>
+    <input
+      type="text"
+      id="pb-bucket-id"
+      class="form-control"
+      value="{{ default_bucket }}"
+      style="max-width: 320px"
+    />
+    <div
+      class="progress-wrap"
+      id="pb-progress-wrap"
+      style="display: none; margin-top: var(--c360-spacing-3)"
+    >
+      <div class="progress">
+        <div
+          class="progress-bar animated"
+          id="pb-progress-bar"
+          style="width: 0"
+        ></div>
+      </div>
     </div>
-    <button type="button" class="btn btn-primary" id="pb-upload-btn" disabled style="margin-top:var(--c360-spacing-4)">Upload</button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      id="pb-upload-btn"
+      disabled
+      style="margin-top: var(--c360-spacing-4)"
+    >
+      Upload
+    </button>
   </div>
 </div>
 
-{% csrf_token %}
-{% endblock %}
-
-{% block extra_js %}
+{% csrf_token %} {% endblock %} {% block extra_js %}
 <script src="{% static 'admin/js/page-builder.js' %}"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var token = document.querySelector('[name=csrfmiddlewaretoken]');
+  document.addEventListener("DOMContentLoaded", function () {
+    var token = document.querySelector("[name=csrfmiddlewaretoken]");
     PageBuilderDashboard.init({
       uploadUrl: '{% url "page_builder:upload_json" %}',
-      csrfToken: token ? token.value : '',
-      onSuccess: function () { window.location.href = '{% url "page_builder:dashboard" %}'; }
+      csrfToken: token ? token.value : "",
+      onSuccess: function () {
+        window.location.href = '{% url "page_builder:dashboard" %}';
+      },
     });
   });
 </script>

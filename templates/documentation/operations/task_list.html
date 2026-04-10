@@ -1,296 +1,421 @@
-{% extends 'layouts/operations-view.html' %}
-{% load static %}
-
-{% block title %}Tasks & History - Operations{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'admin/css/components/badges.css' %}?v=20260125">
-{% endblock %}
-
-{% block operations_content %}
-    <!-- Header -->
-    <div class="section-card mb-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Documentation operations – Tasks & history</h1>
-                <p class="text-sm text-gray-500 mt-1">Recent runs for all operation flows (Analyze, Validate, Generate JSON, Postman, Upload, Seed) and overview graph.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                {% url 'documentation:operations_history' as history_url %}
-                {% include 'components/button.html' with text='View full history' type='primary' size='md' href=history_url %}
-            </div>
-        </div>
+{% extends 'layouts/operations-view.html' %} {% load static %} {% block title
+%}Tasks & History - Operations{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/badges.css' %}?v=20260125"
+/>
+{% endblock %} {% block operations_content %}
+<!-- Header -->
+<div class="section-card mb-6">
+  <div
+    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+  >
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">
+        Documentation operations – Tasks & history
+      </h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Recent runs for all operation flows (Analyze, Validate, Generate JSON,
+        Postman, Upload, Seed) and overview graph.
+      </p>
     </div>
-
-    <!-- Graph: Operations by type -->
-    <div class="section-card mb-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Operations by type (recent runs)</h2>
-        <div id="tasks-graph-loading" class="c360-mm-muted">Loading…</div>
-        <div id="tasks-graph-content" class="hidden space-y-3">
-            <div id="tasks-graph-bars"></div>
-        </div>
-        <div id="tasks-graph-empty" class="hidden text-sm text-gray-500">No operations yet. Run Analyze, Validate, or other flows from the Operations dashboard.</div>
-        <div id="tasks-graph-error" class="hidden text-sm text-red-600"></div>
+    <div class="flex flex-wrap items-center gap-2">
+      {% url 'documentation:operations_history' as history_url %} {% include
+      'components/button.html' with text='View full history' type='primary'
+      size='md' href=history_url %}
     </div>
+  </div>
+</div>
 
-    <!-- Operations history table -->
-    <div class="section-card mb-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <h2 class="text-lg font-semibold text-gray-900">Recent operations history</h2>
-            <div class="flex items-center gap-2">
-                <label for="tasks-history-filter" class="text-sm font-medium text-gray-700">Filter:</label>
-                <select id="tasks-history-filter" class="rounded-lg border border-gray-300 bg-white text-gray-900 text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                    <option value="">All</option>
-                    <option value="docs_analyze">Analyze</option>
-                    <option value="docs_validate">Validate</option>
-                    <option value="docs_generate_json">Generate JSON</option>
-                    <option value="docs_generate_postman">Generate Postman</option>
-                    <option value="docs_upload_s3">Upload S3</option>
-                    <option value="docs_seed">Seed</option>
-                </select>
-            </div>
-        </div>
-        <div id="tasks-history-loading" class="c360-mm-muted">Loading…</div>
-        <div id="tasks-history-content" class="hidden overflow-x-auto">
-            <table class="min-w-full text-sm text-left text-gray-700">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="py-3 pr-4 font-medium text-gray-900">Type</th>
-                        <th class="py-3 pr-4 font-medium text-gray-900">Name</th>
-                        <th class="py-3 pr-4 font-medium text-gray-900">Status</th>
-                        <th class="py-3 pr-4 font-medium text-gray-900">When</th>
-                        <th class="py-3 font-medium text-gray-900 min-w-[12rem]">Summary</th>
-                    </tr>
-                </thead>
-                <tbody id="tasks-history-tbody"></tbody>
-            </table>
-        </div>
-        <div id="tasks-history-empty" class="hidden text-sm text-gray-500 py-8 text-center">No operations found.</div>
-        <div id="tasks-history-error" class="hidden text-sm text-red-600 py-4"></div>
-        <div id="tasks-history-load-more" class="hidden mt-4 text-center">
-            <button type="button" id="tasks-history-load-more-btn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm">Load more</button>
-        </div>
+<!-- Graph: Operations by type -->
+<div class="section-card mb-6">
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">
+    Operations by type (recent runs)
+  </h2>
+  <div id="tasks-graph-loading" class="c360-mm-muted">Loading…</div>
+  <div id="tasks-graph-content" class="hidden space-y-3">
+    <div id="tasks-graph-bars"></div>
+  </div>
+  <div id="tasks-graph-empty" class="hidden text-sm text-gray-500">
+    No operations yet. Run Analyze, Validate, or other flows from the Operations
+    dashboard.
+  </div>
+  <div id="tasks-graph-error" class="hidden text-sm text-red-600"></div>
+</div>
+
+<!-- Operations history table -->
+<div class="section-card mb-6">
+  <div
+    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
+  >
+    <h2 class="text-lg font-semibold text-gray-900">
+      Recent operations history
+    </h2>
+    <div class="flex items-center gap-2">
+      <label
+        for="tasks-history-filter"
+        class="text-sm font-medium text-gray-700"
+        >Filter:</label
+      >
+      <select
+        id="tasks-history-filter"
+        class="rounded-lg border border-gray-300 bg-white text-gray-900 text-sm px-3 py-2 focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">All</option>
+        <option value="docs_analyze">Analyze</option>
+        <option value="docs_validate">Validate</option>
+        <option value="docs_generate_json">Generate JSON</option>
+        <option value="docs_generate_postman">Generate Postman</option>
+        <option value="docs_upload_s3">Upload S3</option>
+        <option value="docs_seed">Seed</option>
+      </select>
     </div>
+  </div>
+  <div id="tasks-history-loading" class="c360-mm-muted">Loading…</div>
+  <div id="tasks-history-content" class="hidden overflow-x-auto">
+    <table class="min-w-full text-sm text-left text-gray-700">
+      <thead>
+        <tr class="border-b border-gray-200">
+          <th class="py-3 pr-4 font-medium text-gray-900">Type</th>
+          <th class="py-3 pr-4 font-medium text-gray-900">Name</th>
+          <th class="py-3 pr-4 font-medium text-gray-900">Status</th>
+          <th class="py-3 pr-4 font-medium text-gray-900">When</th>
+          <th class="py-3 font-medium text-gray-900 min-w-[12rem]">Summary</th>
+        </tr>
+      </thead>
+      <tbody id="tasks-history-tbody"></tbody>
+    </table>
+  </div>
+  <div
+    id="tasks-history-empty"
+    class="hidden text-sm text-gray-500 py-8 text-center"
+  >
+    No operations found.
+  </div>
+  <div id="tasks-history-error" class="hidden text-sm text-red-600 py-4"></div>
+  <div id="tasks-history-load-more" class="hidden mt-4 text-center">
+    <button
+      type="button"
+      id="tasks-history-load-more-btn"
+      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+    >
+      Load more
+    </button>
+  </div>
+</div>
 
 <script>
-(function() {
+  (function () {
     var apiUrl = '{% url "documentation:api_operations_history" %}';
     var limit = 20;
     var offset = 0;
-    var filterType = '';
+    var filterType = "";
 
     var labels = {
-        'docs_analyze': 'Analyze',
-        'docs_validate': 'Validate',
-        'docs_generate_json': 'Generate JSON',
-        'docs_generate_postman': 'Generate Postman',
-        'docs_upload_s3': 'Upload S3',
-        'docs_seed': 'Seed'
+      docs_analyze: "Analyze",
+      docs_validate: "Validate",
+      docs_generate_json: "Generate JSON",
+      docs_generate_postman: "Generate Postman",
+      docs_upload_s3: "Upload S3",
+      docs_seed: "Seed",
     };
 
     var colors = {
-        'docs_analyze': 'bg-blue-500',
-        'docs_validate': 'bg-green-500',
-        'docs_generate_json': 'bg-purple-500',
-        'docs_generate_postman': 'bg-amber-500',
-        'docs_upload_s3': 'bg-indigo-500',
-        'docs_seed': 'bg-teal-500'
+      docs_analyze: "bg-blue-500",
+      docs_validate: "bg-green-500",
+      docs_generate_json: "bg-purple-500",
+      docs_generate_postman: "bg-amber-500",
+      docs_upload_s3: "bg-indigo-500",
+      docs_seed: "bg-teal-500",
     };
 
     function escapeHtml(s) {
-        if (s == null || s === '') return '';
-        var div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
+      if (s == null || s === "") return "";
+      var div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
     }
 
     function formatDate(iso) {
-        if (!iso) return '—';
-        try {
-            var d = new Date(iso);
-            return isNaN(d.getTime()) ? iso : d.toLocaleString();
-        } catch (e) { return iso; }
+      if (!iso) return "—";
+      try {
+        var d = new Date(iso);
+        return isNaN(d.getTime()) ? iso : d.toLocaleString();
+      } catch (e) {
+        return iso;
+      }
     }
 
     function summaryText(summary, opType) {
-        if (!summary) return '—';
-        if (typeof summary === 'string') return escapeHtml(summary.substring(0, 120));
-        if (summary.error) return escapeHtml(summary.error.substring(0, 120));
-        if (summary.message) return escapeHtml(summary.message.substring(0, 120));
-        if (opType === 'docs_analyze' || opType === 'docs_validate') {
-            var parts = [];
-            ['pages', 'endpoints', 'relationships'].forEach(function(k) {
-                var d = summary[k];
-                if (d && typeof d === 'object' && (d.valid !== undefined || d.invalid !== undefined)) {
-                    parts.push(k + ': ' + (d.valid || 0) + ' valid, ' + (d.invalid || 0) + ' invalid');
-                }
-            });
-            return parts.length ? escapeHtml(parts.join('; ')) : (summary.success !== undefined ? (summary.success ? 'Success' : 'Failed') : '—');
-        }
-        if (opType === 'docs_generate_json' && summary.indexes) {
-            var idx = summary.indexes;
-            var list = Object.keys(idx).map(function(k) { return k + ' ' + (idx[k] ? '✓' : '✗'); }).join(', ');
-            return escapeHtml(list || (summary.success ? 'Success' : 'Failed'));
-        }
-        if (opType === 'docs_generate_postman') {
-            if (summary.success && summary.filename) return escapeHtml('Saved: ' + summary.filename);
-            return summary.error ? escapeHtml(summary.error.substring(0, 80)) : (summary.success ? 'Success' : 'Failed');
-        }
-        if (opType === 'docs_upload_s3' && summary.by_type) {
-            var by = summary.by_type;
-            var up = Object.keys(by).map(function(k) { return k + ': ' + (by[k].synced || 0) + ' synced, ' + (by[k].errors || 0) + ' errors'; }).join('; ');
-            return escapeHtml(up || (summary.success ? 'Success' : 'Failed'));
-        }
-        if (opType === 'docs_seed') return summary.success ? 'Seeding completed' : (summary.message || 'Failed');
-        return summary.success !== undefined ? (summary.success ? 'Success' : 'Failed') : '—';
+      if (!summary) return "—";
+      if (typeof summary === "string")
+        return escapeHtml(summary.substring(0, 120));
+      if (summary.error) return escapeHtml(summary.error.substring(0, 120));
+      if (summary.message) return escapeHtml(summary.message.substring(0, 120));
+      if (opType === "docs_analyze" || opType === "docs_validate") {
+        var parts = [];
+        ["pages", "endpoints", "relationships"].forEach(function (k) {
+          var d = summary[k];
+          if (
+            d &&
+            typeof d === "object" &&
+            (d.valid !== undefined || d.invalid !== undefined)
+          ) {
+            parts.push(
+              k +
+                ": " +
+                (d.valid || 0) +
+                " valid, " +
+                (d.invalid || 0) +
+                " invalid",
+            );
+          }
+        });
+        return parts.length
+          ? escapeHtml(parts.join("; "))
+          : summary.success !== undefined
+            ? summary.success
+              ? "Success"
+              : "Failed"
+            : "—";
+      }
+      if (opType === "docs_generate_json" && summary.indexes) {
+        var idx = summary.indexes;
+        var list = Object.keys(idx)
+          .map(function (k) {
+            return k + " " + (idx[k] ? "✓" : "✗");
+          })
+          .join(", ");
+        return escapeHtml(list || (summary.success ? "Success" : "Failed"));
+      }
+      if (opType === "docs_generate_postman") {
+        if (summary.success && summary.filename)
+          return escapeHtml("Saved: " + summary.filename);
+        return summary.error
+          ? escapeHtml(summary.error.substring(0, 80))
+          : summary.success
+            ? "Success"
+            : "Failed";
+      }
+      if (opType === "docs_upload_s3" && summary.by_type) {
+        var by = summary.by_type;
+        var up = Object.keys(by)
+          .map(function (k) {
+            return (
+              k +
+              ": " +
+              (by[k].synced || 0) +
+              " synced, " +
+              (by[k].errors || 0) +
+              " errors"
+            );
+          })
+          .join("; ");
+        return escapeHtml(up || (summary.success ? "Success" : "Failed"));
+      }
+      if (opType === "docs_seed")
+        return summary.success
+          ? "Seeding completed"
+          : summary.message || "Failed";
+      return summary.success !== undefined
+        ? summary.success
+          ? "Success"
+          : "Failed"
+        : "—";
     }
 
     function statusBadge(status) {
-        var s = (status || '').toLowerCase();
-        if (s === 'completed') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Completed</span>';
-        if (s === 'failed') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed</span>';
-        if (s === 'running') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Running</span>';
-        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">' + escapeHtml(status || '—') + '</span>';
+      var s = (status || "").toLowerCase();
+      if (s === "completed")
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Completed</span>';
+      if (s === "failed")
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed</span>';
+      if (s === "running")
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Running</span>';
+      return (
+        '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">' +
+        escapeHtml(status || "—") +
+        "</span>"
+      );
     }
 
     // Graph: fetch and render bar chart by operation_type
     function loadGraph() {
-        var loading = document.getElementById('tasks-graph-loading');
-        var content = document.getElementById('tasks-graph-content');
-        var empty = document.getElementById('tasks-graph-empty');
-        var errEl = document.getElementById('tasks-graph-error');
-        var barsEl = document.getElementById('tasks-graph-bars');
+      var loading = document.getElementById("tasks-graph-loading");
+      var content = document.getElementById("tasks-graph-content");
+      var empty = document.getElementById("tasks-graph-empty");
+      var errEl = document.getElementById("tasks-graph-error");
+      var barsEl = document.getElementById("tasks-graph-bars");
 
-        loading.classList.remove('hidden');
-        content.classList.add('hidden');
-        empty.classList.add('hidden');
-        errEl.classList.add('hidden');
+      loading.classList.remove("hidden");
+      content.classList.add("hidden");
+      empty.classList.add("hidden");
+      errEl.classList.add("hidden");
 
-        fetch(apiUrl + '?limit=100', { credentials: 'same-origin' })
-            .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error(r.statusText)); })
-            .then(function(data) {
-                loading.classList.add('hidden');
-                if (data.error) {
-                    errEl.textContent = data.error;
-                    errEl.classList.remove('hidden');
-                    return;
-                }
-                var ops = data.operations || [];
-                var counts = {};
-                ops.forEach(function(op) {
-                    var t = op.operation_type || 'other';
-                    counts[t] = (counts[t] || 0) + 1;
-                });
-                var maxCount = Math.max(1, Math.max.apply(null, Object.values(counts)));
-                var order = ['docs_analyze', 'docs_validate', 'docs_generate_json', 'docs_generate_postman', 'docs_upload_s3', 'docs_seed'];
-                barsEl.innerHTML = '';
-                order.forEach(function(t) {
-                    var n = counts[t] || 0;
-                    var label = labels[t] || t;
-                    var pct = maxCount ? Math.round((n / maxCount) * 100) : 0;
-                    var bar = document.createElement('div');
-                    bar.className = 'flex items-center gap-3';
-                    bar.innerHTML =
-                        '<span class="w-28 text-sm font-medium text-gray-700">' + escapeHtml(label) + '</span>' +
-                        '<div class="flex-1 min-w-0 h-6 bg-gray-100 rounded overflow-hidden flex flex-row">' +
-                        '<div class="h-full flex-none rounded transition-all duration-300 ' + (colors[t] || 'bg-gray-500') + '" style="flex: 0 0 ' + pct + '%; max-width: ' + pct + '%"></div>' +
-                        '</div>' +
-                        '<span class="w-8 text-sm text-gray-600 text-right">' + n + '</span>';
-                    barsEl.appendChild(bar);
-                });
-                if (ops.length === 0) {
-                    empty.classList.remove('hidden');
-                } else {
-                    content.classList.remove('hidden');
-                }
-            })
-            .catch(function(e) {
-                loading.classList.add('hidden');
-                errEl.textContent = 'Could not load graph: ' + (e.message || 'Unknown error');
-                errEl.classList.remove('hidden');
-            });
+      fetch(apiUrl + "?limit=100", { credentials: "same-origin" })
+        .then(function (r) {
+          return r.ok ? r.json() : Promise.reject(new Error(r.statusText));
+        })
+        .then(function (data) {
+          loading.classList.add("hidden");
+          if (data.error) {
+            errEl.textContent = data.error;
+            errEl.classList.remove("hidden");
+            return;
+          }
+          var ops = data.operations || [];
+          var counts = {};
+          ops.forEach(function (op) {
+            var t = op.operation_type || "other";
+            counts[t] = (counts[t] || 0) + 1;
+          });
+          var maxCount = Math.max(
+            1,
+            Math.max.apply(null, Object.values(counts)),
+          );
+          var order = [
+            "docs_analyze",
+            "docs_validate",
+            "docs_generate_json",
+            "docs_generate_postman",
+            "docs_upload_s3",
+            "docs_seed",
+          ];
+          barsEl.innerHTML = "";
+          order.forEach(function (t) {
+            var n = counts[t] || 0;
+            var label = labels[t] || t;
+            var pct = maxCount ? Math.round((n / maxCount) * 100) : 0;
+            var bar = document.createElement("div");
+            bar.className = "flex items-center gap-3";
+            bar.innerHTML =
+              '<span class="w-28 text-sm font-medium text-gray-700">' +
+              escapeHtml(label) +
+              "</span>" +
+              '<div class="flex-1 min-w-0 h-6 bg-gray-100 rounded overflow-hidden flex flex-row">' +
+              '<div class="h-full flex-none rounded transition-all duration-300 ' +
+              (colors[t] || "bg-gray-500") +
+              '" style="flex: 0 0 ' +
+              pct +
+              "%; max-width: " +
+              pct +
+              '%"></div>' +
+              "</div>" +
+              '<span class="w-8 text-sm text-gray-600 text-right">' +
+              n +
+              "</span>";
+            barsEl.appendChild(bar);
+          });
+          if (ops.length === 0) {
+            empty.classList.remove("hidden");
+          } else {
+            content.classList.remove("hidden");
+          }
+        })
+        .catch(function (e) {
+          loading.classList.add("hidden");
+          errEl.textContent =
+            "Could not load graph: " + (e.message || "Unknown error");
+          errEl.classList.remove("hidden");
+        });
     }
 
     // History table
     function buildUrl() {
-        var u = apiUrl + '?limit=' + limit + '&offset=' + offset;
-        if (filterType) u += '&operation_type=' + encodeURIComponent(filterType);
-        return u;
+      var u = apiUrl + "?limit=" + limit + "&offset=" + offset;
+      if (filterType) u += "&operation_type=" + encodeURIComponent(filterType);
+      return u;
     }
 
     function renderRows(ops) {
-        var tbody = document.getElementById('tasks-history-tbody');
-        ops.forEach(function(op) {
-            var tr = document.createElement('tr');
-            tr.className = 'border-b border-gray-100';
-            tr.innerHTML =
-                '<td class="py-2 pr-4">' + escapeHtml(labels[op.operation_type] || op.operation_type || '—') + '</td>' +
-                '<td class="py-2 pr-4">' + escapeHtml(op.name || '—') + '</td>' +
-                '<td class="py-2 pr-4">' + statusBadge(op.status) + '</td>' +
-                '<td class="py-2 pr-4 text-gray-600">' + escapeHtml(formatDate(op.created_at)) + '</td>' +
-                '<td class="py-2 text-gray-600 max-w-md break-words">' + summaryText(op.report_summary, op.operation_type) + '</td>';
-            tbody.appendChild(tr);
-        });
+      var tbody = document.getElementById("tasks-history-tbody");
+      ops.forEach(function (op) {
+        var tr = document.createElement("tr");
+        tr.className = "border-b border-gray-100";
+        tr.innerHTML =
+          '<td class="py-2 pr-4">' +
+          escapeHtml(labels[op.operation_type] || op.operation_type || "—") +
+          "</td>" +
+          '<td class="py-2 pr-4">' +
+          escapeHtml(op.name || "—") +
+          "</td>" +
+          '<td class="py-2 pr-4">' +
+          statusBadge(op.status) +
+          "</td>" +
+          '<td class="py-2 pr-4 text-gray-600">' +
+          escapeHtml(formatDate(op.created_at)) +
+          "</td>" +
+          '<td class="py-2 text-gray-600 max-w-md break-words">' +
+          summaryText(op.report_summary, op.operation_type) +
+          "</td>";
+        tbody.appendChild(tr);
+      });
     }
 
     function loadHistory(append) {
-        var loading = document.getElementById('tasks-history-loading');
-        var content = document.getElementById('tasks-history-content');
-        var empty = document.getElementById('tasks-history-empty');
-        var errEl = document.getElementById('tasks-history-error');
-        var loadMore = document.getElementById('tasks-history-load-more');
-        var tbody = document.getElementById('tasks-history-tbody');
+      var loading = document.getElementById("tasks-history-loading");
+      var content = document.getElementById("tasks-history-content");
+      var empty = document.getElementById("tasks-history-empty");
+      var errEl = document.getElementById("tasks-history-error");
+      var loadMore = document.getElementById("tasks-history-load-more");
+      var tbody = document.getElementById("tasks-history-tbody");
 
-        if (!append) {
-            loading.classList.remove('hidden');
-            content.classList.add('hidden');
-            empty.classList.add('hidden');
-            errEl.classList.add('hidden');
-            loadMore.classList.add('hidden');
-            tbody.innerHTML = '';
-        }
+      if (!append) {
+        loading.classList.remove("hidden");
+        content.classList.add("hidden");
+        empty.classList.add("hidden");
+        errEl.classList.add("hidden");
+        loadMore.classList.add("hidden");
+        tbody.innerHTML = "";
+      }
 
-        fetch(buildUrl(), { credentials: 'same-origin' })
-            .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error(r.statusText)); })
-            .then(function(data) {
-                loading.classList.add('hidden');
-                if (data.error) {
-                    errEl.textContent = data.error;
-                    errEl.classList.remove('hidden');
-                    return;
-                }
-                var ops = data.operations || [];
-                if (ops.length === 0 && !append) {
-                    empty.classList.remove('hidden');
-                    return;
-                }
-                renderRows(ops);
-                content.classList.remove('hidden');
-                if (ops.length >= limit) {
-                    document.getElementById('tasks-history-load-more-btn').onclick = function() {
-                        offset += limit;
-                        loadHistory(true);
-                    };
-                    loadMore.classList.remove('hidden');
-                } else {
-                    loadMore.classList.add('hidden');
-                }
-            })
-            .catch(function(e) {
-                loading.classList.add('hidden');
-                errEl.textContent = 'Could not load history: ' + (e.message || 'Unknown error');
-                errEl.classList.remove('hidden');
-            });
+      fetch(buildUrl(), { credentials: "same-origin" })
+        .then(function (r) {
+          return r.ok ? r.json() : Promise.reject(new Error(r.statusText));
+        })
+        .then(function (data) {
+          loading.classList.add("hidden");
+          if (data.error) {
+            errEl.textContent = data.error;
+            errEl.classList.remove("hidden");
+            return;
+          }
+          var ops = data.operations || [];
+          if (ops.length === 0 && !append) {
+            empty.classList.remove("hidden");
+            return;
+          }
+          renderRows(ops);
+          content.classList.remove("hidden");
+          if (ops.length >= limit) {
+            document.getElementById("tasks-history-load-more-btn").onclick =
+              function () {
+                offset += limit;
+                loadHistory(true);
+              };
+            loadMore.classList.remove("hidden");
+          } else {
+            loadMore.classList.add("hidden");
+          }
+        })
+        .catch(function (e) {
+          loading.classList.add("hidden");
+          errEl.textContent =
+            "Could not load history: " + (e.message || "Unknown error");
+          errEl.classList.remove("hidden");
+        });
     }
 
-    document.getElementById('tasks-history-filter').addEventListener('change', function() {
-        filterType = this.value || '';
+    document
+      .getElementById("tasks-history-filter")
+      .addEventListener("change", function () {
+        filterType = this.value || "";
         offset = 0;
         loadHistory(false);
-    });
+      });
 
     loadGraph();
     loadHistory(false);
-})();
+  })();
 </script>
 {% endblock %}

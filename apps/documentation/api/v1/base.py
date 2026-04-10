@@ -10,25 +10,18 @@ logger = logging.getLogger(__name__)
 
 def api_response(data: Any, status: int = 200) -> JsonResponse:
     """Create a standard API JSON response."""
-    return JsonResponse(
-        data,
-        status=status,
-        json_dumps_params={'ensure_ascii': False}
-    )
+    return JsonResponse(data, status=status, json_dumps_params={"ensure_ascii": False})
 
 
 def api_error(message: str, status: int = 400) -> JsonResponse:
     """Create a standard error JSON response."""
-    return JsonResponse(
-        {'error': message, 'success': False},
-        status=status
-    )
+    return JsonResponse({"error": message, "success": False}, status=status)
 
 
 def extract_query_params(
     request: HttpRequest,
     param_names: list[str],
-    type_map: Optional[Dict[str, type]] = None
+    type_map: Optional[Dict[str, type]] = None,
 ) -> Dict[str, Any]:
     """
     Extract and type-convert query parameters from request.
@@ -59,7 +52,7 @@ def extract_query_params(
                 except ValueError:
                     pass
             elif target_type == bool:
-                params[name] = value.lower() in ('true', '1', 'yes')
+                params[name] = value.lower() in ("true", "1", "yes")
             else:
                 params[name] = value
 

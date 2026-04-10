@@ -5,52 +5,122 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='PostmanCollection',
+            name="PostmanCollection",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=300)),
-                ('description', models.TextField(blank=True, default='')),
-                ('postman_id', models.CharField(blank=True, default='', help_text='_postman_id from info block', max_length=200)),
-                ('schema_version', models.CharField(blank=True, default='v2.1.0', max_length=100)),
-                ('s3_bucket_id', models.CharField(max_length=300)),
-                ('s3_file_key', models.CharField(help_text='Relative key, e.g. json/<uuid>.json', max_length=500)),
-                ('item_count', models.PositiveIntegerField(default=0, help_text='Top-level item count parsed on upload')),
-                ('request_count', models.PositiveIntegerField(default=0, help_text='Total request count (recursive)')),
-                ('size_bytes', models.PositiveIntegerField(default=0)),
-                ('uploaded_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('uploaded_by', models.CharField(blank=True, default='', max_length=254)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=300)),
+                ("description", models.TextField(blank=True, default="")),
+                (
+                    "postman_id",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="_postman_id from info block",
+                        max_length=200,
+                    ),
+                ),
+                (
+                    "schema_version",
+                    models.CharField(blank=True, default="v2.1.0", max_length=100),
+                ),
+                ("s3_bucket_id", models.CharField(max_length=300)),
+                (
+                    "s3_file_key",
+                    models.CharField(
+                        help_text="Relative key, e.g. json/<uuid>.json", max_length=500
+                    ),
+                ),
+                (
+                    "item_count",
+                    models.PositiveIntegerField(
+                        default=0, help_text="Top-level item count parsed on upload"
+                    ),
+                ),
+                (
+                    "request_count",
+                    models.PositiveIntegerField(
+                        default=0, help_text="Total request count (recursive)"
+                    ),
+                ),
+                ("size_bytes", models.PositiveIntegerField(default=0)),
+                (
+                    "uploaded_at",
+                    models.DateTimeField(default=django.utils.timezone.now),
+                ),
+                (
+                    "uploaded_by",
+                    models.CharField(blank=True, default="", max_length=254),
+                ),
             ],
             options={
-                'verbose_name': 'Postman Collection',
-                'verbose_name_plural': 'Postman Collections',
-                'ordering': ['-uploaded_at'],
+                "verbose_name": "Postman Collection",
+                "verbose_name_plural": "Postman Collections",
+                "ordering": ["-uploaded_at"],
             },
         ),
         migrations.CreateModel(
-            name='PostmanEnvironment',
+            name="PostmanEnvironment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=300)),
-                ('postman_id', models.CharField(blank=True, default='', help_text='id from environment JSON', max_length=200)),
-                ('s3_bucket_id', models.CharField(max_length=300)),
-                ('s3_file_key', models.CharField(help_text='Relative key, e.g. json/<uuid>.json', max_length=500)),
-                ('variable_count', models.PositiveIntegerField(default=0, help_text='Number of variables in environment')),
-                ('size_bytes', models.PositiveIntegerField(default=0)),
-                ('uploaded_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('uploaded_by', models.CharField(blank=True, default='', max_length=254)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=300)),
+                (
+                    "postman_id",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="id from environment JSON",
+                        max_length=200,
+                    ),
+                ),
+                ("s3_bucket_id", models.CharField(max_length=300)),
+                (
+                    "s3_file_key",
+                    models.CharField(
+                        help_text="Relative key, e.g. json/<uuid>.json", max_length=500
+                    ),
+                ),
+                (
+                    "variable_count",
+                    models.PositiveIntegerField(
+                        default=0, help_text="Number of variables in environment"
+                    ),
+                ),
+                ("size_bytes", models.PositiveIntegerField(default=0)),
+                (
+                    "uploaded_at",
+                    models.DateTimeField(default=django.utils.timezone.now),
+                ),
+                (
+                    "uploaded_by",
+                    models.CharField(blank=True, default="", max_length=254),
+                ),
             ],
             options={
-                'verbose_name': 'Postman Environment',
-                'verbose_name_plural': 'Postman Environments',
-                'ordering': ['-uploaded_at'],
+                "verbose_name": "Postman Environment",
+                "verbose_name_plural": "Postman Environments",
+                "ordering": ["-uploaded_at"],
             },
         ),
     ]

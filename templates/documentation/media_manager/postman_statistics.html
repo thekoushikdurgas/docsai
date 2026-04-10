@@ -1,46 +1,57 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Postman Statistics - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Postman Statistics
+- Media Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">Postman Statistics</h1>
-            <p class="c360-mm-hero__subtitle">Comprehensive statistics for all Postman configurations</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Postman
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">Postman Statistics</h1>
+      <p class="c360-mm-hero__subtitle">
+        Comprehensive statistics for all Postman configurations
+      </p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Statistics Cards -->
-    {% if statistics %}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {% for key, value in statistics.items %}
-                <div class="section-card">
-                    <dt class="text-sm font-medium text-gray-500">{{ key|title }}</dt>
-                    <dd class="mt-2 text-3xl font-bold text-gray-900">{{ value }}</dd>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="text-center py-12">
-            <p class="c360-mm-muted">No statistics available</p>
-        </div>
-    {% endif %}
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Postman
+      </a>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Statistics Cards -->
+  {% if statistics %}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for key, value in statistics.items %}
+    <div class="section-card">
+      <dt class="text-sm font-medium text-gray-500">{{ key|title }}</dt>
+      <dd class="mt-2 text-3xl font-bold text-gray-900">{{ value }}</dd>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-12">
+    <p class="c360-mm-muted">No statistics available</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

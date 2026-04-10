@@ -1,60 +1,77 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Relationships Usage Types - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Relationships Usage
+Types - Media Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">Usage Types</h1>
-            <p class="c360-mm-hero__subtitle">Relationships grouped by usage type</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard_relationships' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Relationships
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">Usage Types</h1>
+      <p class="c360-mm-hero__subtitle">Relationships grouped by usage type</p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Usage Types List -->
-    {% if usage_types %}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {% for type_item in usage_types %}
-                <div class="section-card hover:shadow-lg transition-shadow">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-lg font-semibold text-gray-900">{{ type_item.usage_type|title }}</h3>
-                        <span class="text-2xl font-bold text-blue-600">{{ type_item.count|default:0 }}</span>
-                    </div>
-                    <a href="{% url 'documentation:relationships_by_usage_type' type_item.usage_type %}" 
-                       class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                        View all {{ type_item.usage_type }} relationships →
-                    </a>
-                </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Total -->
-        <div class="section-card">
-            <div class="flex items-center justify-between">
-                <span class="text-lg font-semibold text-gray-900">Total Relationships</span>
-                <span class="text-3xl font-bold text-gray-900">{{ total }}</span>
-            </div>
-        </div>
-    {% else %}
-        <div class="text-center py-12">
-            <p class="c360-mm-muted">No usage types found</p>
-        </div>
-    {% endif %}
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard_relationships' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Relationships
+      </a>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Usage Types List -->
+  {% if usage_types %}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for type_item in usage_types %}
+    <div class="section-card hover:shadow-lg transition-shadow">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-lg font-semibold text-gray-900">
+          {{ type_item.usage_type|title }}
+        </h3>
+        <span class="text-2xl font-bold text-blue-600"
+          >{{ type_item.count|default:0 }}</span
+        >
+      </div>
+      <a
+        href="{% url 'documentation:relationships_by_usage_type' type_item.usage_type %}"
+        class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+      >
+        View all {{ type_item.usage_type }} relationships →
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Total -->
+  <div class="section-card">
+    <div class="flex items-center justify-between">
+      <span class="text-lg font-semibold text-gray-900"
+        >Total Relationships</span
+      >
+      <span class="text-3xl font-bold text-gray-900">{{ total }}</span>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-12">
+    <p class="c360-mm-muted">No usage types found</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

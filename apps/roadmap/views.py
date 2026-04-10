@@ -9,9 +9,13 @@ def dashboard_view(request):
     eras = ERAS
     if era_filter:
         eras = [e for e in ERAS if e["status"] == era_filter]
-    return render(request, "roadmap/dashboard.html", {
-        "eras": eras,
-        "status_color": STATUS_COLOR,
-        "era_filter": era_filter,
-        "page_title": "Roadmap",
-    })
+    return render(
+        request,
+        "roadmap/dashboard.html",
+        {
+            "eras": eras,
+            "status_color": STATUS_COLOR,
+            "era_filter": era_filter,
+            "page_title": "Roadmap",
+        },
+    )

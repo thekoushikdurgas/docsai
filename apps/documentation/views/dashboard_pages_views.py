@@ -1,4 +1,5 @@
 """Documentation Dashboard - Pages resource views."""
+
 from __future__ import annotations
 
 import json
@@ -10,7 +11,9 @@ from apps.core.decorators.auth import require_super_admin
 
 from apps.documentation.constants import PAGE_TYPES
 from apps.documentation.services import get_pages_service
-from apps.documentation.views.dashboard_views_common import render_resource_view as _render_resource_view
+from apps.documentation.views.dashboard_views_common import (
+    render_resource_view as _render_resource_view,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +40,15 @@ def media_manager_page_detail(request: HttpRequest, page_id: str) -> HttpRespons
         access_control = pages_service.get_page_access_control(page_id)
 
         context: Dict[str, Any] = {
-            'page': page,
-            'page_sections': page_sections,
-            'page_components': page_components,
-            'page_endpoints': page_endpoints,
-            'page_versions': page_versions,
-            'access_control': access_control,
+            "page": page,
+            "page_sections": page_sections,
+            "page_components": page_components,
+            "page_endpoints": page_endpoints,
+            "page_versions": page_versions,
+            "access_control": access_control,
         }
 
-        return _render_resource_view(request, 'page_detail.html', context)
+        return _render_resource_view(request, "page_detail.html", context)
 
     except Http404:
         raise
@@ -63,7 +66,9 @@ def media_manager_pages_format(request: HttpRequest) -> HttpResponse:
     Mirrors: GET /api/v1/pages/format/
     """
     try:
-        from apps.documentation.api.v1.pages_views import pages_format as api_pages_format
+        from apps.documentation.api.v1.pages_views import (
+            pages_format as api_pages_format,
+        )
 
         # Call the API function to get format data
         json_response = api_pages_format(request)
@@ -71,28 +76,35 @@ def media_manager_pages_format(request: HttpRequest) -> HttpResponse:
 
         # Format examples for display
         examples = None
-        if 'examples' in format_data:
-            examples = json.dumps(format_data['examples'], indent=2)
+        if "examples" in format_data:
+            examples = json.dumps(format_data["examples"], indent=2)
 
         analyse_payload_example = None
-        if 'analyse_payload_example' in format_data:
-            analyse_payload_example = json.dumps(format_data['analyse_payload_example'], indent=2)
+        if "analyse_payload_example" in format_data:
+            analyse_payload_example = json.dumps(
+                format_data["analyse_payload_example"], indent=2
+            )
 
         context: Dict[str, Any] = {
-            'format_data': format_data,
-            'examples': examples,
-            'analyse_payload_example': analyse_payload_example,
+            "format_data": format_data,
+            "examples": examples,
+            "analyse_payload_example": analyse_payload_example,
         }
 
-        return _render_resource_view(request, 'pages_format.html', context)
+        return _render_resource_view(request, "pages_format.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages format: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_format.html',
-            {'format_data': {}, 'examples': None, 'analyse_payload_example': None, 'error': str(e)},
-            error_message=str(e)
+            "pages_format.html",
+            {
+                "format_data": {},
+                "examples": None,
+                "analyse_payload_example": None,
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
@@ -113,19 +125,19 @@ def media_manager_pages_types(request: HttpRequest) -> HttpResponse:
         total = sum(t["count"] for t in types_data)
 
         context: Dict[str, Any] = {
-            'types': types_data,
-            'total': total,
+            "types": types_data,
+            "total": total,
         }
 
-        return _render_resource_view(request, 'pages_types.html', context)
+        return _render_resource_view(request, "pages_types.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages types: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_types.html',
-            {'types': [], 'total': 0, 'error': str(e)},
-            error_message=str(e)
+            "pages_types.html",
+            {"types": [], "total": 0, "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -137,21 +149,21 @@ def media_manager_pages_by_type_docs(request: HttpRequest) -> HttpResponse:
         result = pages_service.list_pages(page_type="docs", limit=None, offset=0)
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': 'docs',
-            'filters': {'page_type': 'docs'},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": "docs",
+            "filters": {"page_type": "docs"},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages by type docs: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': 'docs', 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {"pages": [], "total": 0, "page_type": "docs", "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -163,21 +175,21 @@ def media_manager_pages_by_type_marketing(request: HttpRequest) -> HttpResponse:
         result = pages_service.list_pages(page_type="marketing", limit=None, offset=0)
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': 'marketing',
-            'filters': {'page_type': 'marketing'},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": "marketing",
+            "filters": {"page_type": "marketing"},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages by type marketing: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': 'marketing', 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {"pages": [], "total": 0, "page_type": "marketing", "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -189,21 +201,21 @@ def media_manager_pages_by_type_dashboard(request: HttpRequest) -> HttpResponse:
         result = pages_service.list_pages(page_type="dashboard", limit=None, offset=0)
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': 'dashboard',
-            'filters': {'page_type': 'dashboard'},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": "dashboard",
+            "filters": {"page_type": "dashboard"},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages by type dashboard: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': 'dashboard', 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {"pages": [], "total": 0, "page_type": "dashboard", "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -215,21 +227,21 @@ def media_manager_pages_by_type_product(request: HttpRequest) -> HttpResponse:
         result = pages_service.list_pages(page_type="product", limit=None, offset=0)
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': 'product',
-            'filters': {'page_type': 'product'},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": "product",
+            "filters": {"page_type": "product"},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages by type product: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': 'product', 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {"pages": [], "total": 0, "page_type": "product", "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -241,21 +253,21 @@ def media_manager_pages_by_type_title(request: HttpRequest) -> HttpResponse:
         result = pages_service.list_pages(page_type="title", limit=None, offset=0)
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': 'title',
-            'filters': {'page_type': 'title'},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": "title",
+            "filters": {"page_type": "title"},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages by type title: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': 'title', 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {"pages": [], "total": 0, "page_type": "title", "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -267,50 +279,56 @@ def media_manager_pages_by_type(request: HttpRequest, page_type: str) -> HttpRes
         result = pages_service.list_pages(page_type=page_type, limit=None, offset=0)
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': page_type,
-            'filters': {'page_type': page_type},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": page_type,
+            "filters": {"page_type": page_type},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages by type {page_type}: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': page_type, 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {"pages": [], "total": 0, "page_type": page_type, "error": str(e)},
+            error_message=str(e),
         )
 
 
 @require_super_admin
-def media_manager_pages_by_type_count(request: HttpRequest, page_type: str) -> HttpResponse:
+def media_manager_pages_by_type_count(
+    request: HttpRequest, page_type: str
+) -> HttpResponse:
     """GET /docs/media-manager/pages/by-type/<page_type>/count/"""
     try:
         pages_service = get_pages_service()
         count = pages_service.count_pages_by_type(page_type)
 
         context: Dict[str, Any] = {
-            'page_type': page_type,
-            'count': count,
+            "page_type": page_type,
+            "count": count,
         }
 
-        return _render_resource_view(request, 'pages_count.html', context)
+        return _render_resource_view(request, "pages_count.html", context)
 
     except Exception as e:
-        logger.error(f"Error loading pages by type count for {page_type}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading pages by type count for {page_type}: {e}", exc_info=True
+        )
         return _render_resource_view(
             request,
-            'pages_count.html',
-            {'page_type': page_type, 'count': 0, 'error': str(e)},
-            error_message=str(e)
+            "pages_count.html",
+            {"page_type": page_type, "count": 0, "error": str(e)},
+            error_message=str(e),
         )
 
 
 @require_super_admin
-def media_manager_pages_by_type_published(request: HttpRequest, page_type: str) -> HttpResponse:
+def media_manager_pages_by_type_published(
+    request: HttpRequest, page_type: str
+) -> HttpResponse:
     """GET /docs/media-manager/pages/by-type/<page_type>/published/"""
     try:
         pages_service = get_pages_service()
@@ -320,31 +338,41 @@ def media_manager_pages_by_type_published(request: HttpRequest, page_type: str) 
             include_deleted=False,
             page_state="published",
             limit=None,
-            offset=0
+            offset=0,
         )
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': page_type,
-            'state': 'published',
-            'filters': {'page_type': page_type, 'state': 'published'},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": page_type,
+            "state": "published",
+            "filters": {"page_type": page_type, "state": "published"},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
-        logger.error(f"Error loading pages by type published for {page_type}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading pages by type published for {page_type}: {e}", exc_info=True
+        )
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': page_type, 'state': 'published', 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {
+                "pages": [],
+                "total": 0,
+                "page_type": page_type,
+                "state": "published",
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
 @require_super_admin
-def media_manager_pages_by_type_draft(request: HttpRequest, page_type: str) -> HttpResponse:
+def media_manager_pages_by_type_draft(
+    request: HttpRequest, page_type: str
+) -> HttpResponse:
     """GET /docs/media-manager/pages/by-type/<page_type>/draft/"""
     try:
         pages_service = get_pages_service()
@@ -354,31 +382,41 @@ def media_manager_pages_by_type_draft(request: HttpRequest, page_type: str) -> H
             include_deleted=False,
             page_state="draft",
             limit=None,
-            offset=0
+            offset=0,
         )
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'page_type': page_type,
-            'state': 'draft',
-            'filters': {'page_type': page_type, 'state': 'draft'},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "page_type": page_type,
+            "state": "draft",
+            "filters": {"page_type": page_type, "state": "draft"},
         }
 
-        return _render_resource_view(request, 'pages_by_type.html', context)
+        return _render_resource_view(request, "pages_by_type.html", context)
 
     except Exception as e:
-        logger.error(f"Error loading pages by type draft for {page_type}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading pages by type draft for {page_type}: {e}", exc_info=True
+        )
         return _render_resource_view(
             request,
-            'pages_by_type.html',
-            {'pages': [], 'total': 0, 'page_type': page_type, 'state': 'draft', 'error': str(e)},
-            error_message=str(e)
+            "pages_by_type.html",
+            {
+                "pages": [],
+                "total": 0,
+                "page_type": page_type,
+                "state": "draft",
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
 @require_super_admin
-def media_manager_pages_by_type_stats(request: HttpRequest, page_type: str) -> HttpResponse:
+def media_manager_pages_by_type_stats(
+    request: HttpRequest, page_type: str
+) -> HttpResponse:
     """GET /docs/media-manager/pages/by-type/<page_type>/stats/"""
     try:
         pages_service = get_pages_service()
@@ -387,27 +425,37 @@ def media_manager_pages_by_type_stats(request: HttpRequest, page_type: str) -> H
         type_stats = next((s for s in statistics if s.get("type") == page_type), {})
 
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         index_data = index_manager.read_index("pages")
 
         context: Dict[str, Any] = {
-            'page_type': page_type,
-            'total': type_stats.get("count", 0),
-            'published': type_stats.get("published", 0),
-            'draft': type_stats.get("draft", 0),
-            'deleted': type_stats.get("deleted", 0),
-            'last_updated': index_data.get("last_updated"),
+            "page_type": page_type,
+            "total": type_stats.get("count", 0),
+            "published": type_stats.get("published", 0),
+            "draft": type_stats.get("draft", 0),
+            "deleted": type_stats.get("deleted", 0),
+            "last_updated": index_data.get("last_updated"),
         }
 
-        return _render_resource_view(request, 'pages_stats.html', context)
+        return _render_resource_view(request, "pages_stats.html", context)
 
     except Exception as e:
-        logger.error(f"Error loading pages by type stats for {page_type}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading pages by type stats for {page_type}: {e}", exc_info=True
+        )
         return _render_resource_view(
             request,
-            'pages_stats.html',
-            {'page_type': page_type, 'total': 0, 'published': 0, 'draft': 0, 'deleted': 0, 'error': str(e)},
-            error_message=str(e)
+            "pages_stats.html",
+            {
+                "page_type": page_type,
+                "total": 0,
+                "published": 0,
+                "draft": 0,
+                "deleted": 0,
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
@@ -419,26 +467,28 @@ def media_manager_pages_by_state(request: HttpRequest, state: str) -> HttpRespon
         result = pages_service.list_pages(page_state=state, limit=None, offset=0)
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'state': state,
-            'filters': {'state': state},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "state": state,
+            "filters": {"state": state},
         }
 
-        return _render_resource_view(request, 'pages_by_state.html', context)
+        return _render_resource_view(request, "pages_by_state.html", context)
 
     except Exception as e:
         logger.error(f"Error loading pages by state {state}: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_state.html',
-            {'pages': [], 'total': 0, 'state': state, 'error': str(e)},
-            error_message=str(e)
+            "pages_by_state.html",
+            {"pages": [], "total": 0, "state": state, "error": str(e)},
+            error_message=str(e),
         )
 
 
 @require_super_admin
-def media_manager_pages_by_state_count(request: HttpRequest, state: str) -> HttpResponse:
+def media_manager_pages_by_state_count(
+    request: HttpRequest, state: str
+) -> HttpResponse:
     """GET /docs/media-manager/pages/by-state/<state>/count/"""
     try:
         pages_service = get_pages_service()
@@ -446,24 +496,28 @@ def media_manager_pages_by_state_count(request: HttpRequest, state: str) -> Http
         count = result.get("total", 0)
 
         context: Dict[str, Any] = {
-            'state': state,
-            'count': count,
+            "state": state,
+            "count": count,
         }
 
-        return _render_resource_view(request, 'pages_count.html', context)
+        return _render_resource_view(request, "pages_count.html", context)
 
     except Exception as e:
-        logger.error(f"Error loading pages by state count for {state}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading pages by state count for {state}: {e}", exc_info=True
+        )
         return _render_resource_view(
             request,
-            'pages_count.html',
-            {'state': state, 'count': 0, 'error': str(e)},
-            error_message=str(e)
+            "pages_count.html",
+            {"state": state, "count": 0, "error": str(e)},
+            error_message=str(e),
         )
 
 
 @require_super_admin
-def media_manager_pages_by_user_type(request: HttpRequest, user_type: str) -> HttpResponse:
+def media_manager_pages_by_user_type(
+    request: HttpRequest, user_type: str
+) -> HttpResponse:
     """GET /docs/media-manager/pages/by-user-type/<user_type>/"""
     try:
         pages_service = get_pages_service()
@@ -481,29 +535,31 @@ def media_manager_pages_by_user_type(request: HttpRequest, user_type: str) -> Ht
         )
 
         context: Dict[str, Any] = {
-            'pages': result.get("pages", []),
-            'total': result.get("total", 0),
-            'user_type': user_type,
-            'filters': {'user_type': user_type},
+            "pages": result.get("pages", []),
+            "total": result.get("total", 0),
+            "user_type": user_type,
+            "filters": {"user_type": user_type},
         }
 
-        return _render_resource_view(request, 'pages_by_user_type.html', context)
+        return _render_resource_view(request, "pages_by_user_type.html", context)
 
     except ValueError as e:
         logger.error(f"Invalid user type {user_type}: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'pages_by_user_type.html',
-            {'pages': [], 'total': 0, 'user_type': user_type, 'error': str(e)},
-            error_message=str(e)
+            "pages_by_user_type.html",
+            {"pages": [], "total": 0, "user_type": user_type, "error": str(e)},
+            error_message=str(e),
         )
     except Exception as e:
-        logger.error(f"Error loading pages by user type {user_type}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading pages by user type {user_type}: {e}", exc_info=True
+        )
         return _render_resource_view(
             request,
-            'pages_by_user_type.html',
-            {'pages': [], 'total': 0, 'user_type': user_type, 'error': str(e)},
-            error_message=str(e)
+            "pages_by_user_type.html",
+            {"pages": [], "total": 0, "user_type": user_type, "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -520,12 +576,12 @@ def media_manager_page_sections(request: HttpRequest, page_id: str) -> HttpRespo
         sections = pages_service.get_page_sections(page_id)
 
         context: Dict[str, Any] = {
-            'page': page,
-            'page_id': page_id,
-            'sections': sections,
+            "page": page,
+            "page_id": page_id,
+            "sections": sections,
         }
 
-        return _render_resource_view(request, 'page_sections.html', context)
+        return _render_resource_view(request, "page_sections.html", context)
 
     except Http404:
         raise
@@ -533,9 +589,9 @@ def media_manager_page_sections(request: HttpRequest, page_id: str) -> HttpRespo
         logger.error(f"Error loading page sections for {page_id}: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'page_sections.html',
-            {'page_id': page_id, 'sections': None, 'error': str(e)},
-            error_message=str(e)
+            "page_sections.html",
+            {"page_id": page_id, "sections": None, "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -555,14 +611,14 @@ def media_manager_page_components(request: HttpRequest, page_id: str) -> HttpRes
         section_components = sections.get("components", []) if sections else []
 
         context: Dict[str, Any] = {
-            'page': page,
-            'page_id': page_id,
-            'components': section_components,
-            'ui_components': components or [],
-            'total': len(section_components) + len(components or []),
+            "page": page,
+            "page_id": page_id,
+            "components": section_components,
+            "ui_components": components or [],
+            "total": len(section_components) + len(components or []),
         }
 
-        return _render_resource_view(request, 'page_components.html', context)
+        return _render_resource_view(request, "page_components.html", context)
 
     except Http404:
         raise
@@ -570,9 +626,15 @@ def media_manager_page_components(request: HttpRequest, page_id: str) -> HttpRes
         logger.error(f"Error loading page components for {page_id}: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'page_components.html',
-            {'page_id': page_id, 'components': [], 'ui_components': [], 'total': 0, 'error': str(e)},
-            error_message=str(e)
+            "page_components.html",
+            {
+                "page_id": page_id,
+                "components": [],
+                "ui_components": [],
+                "total": 0,
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
@@ -589,14 +651,14 @@ def media_manager_page_endpoints(request: HttpRequest, page_id: str) -> HttpResp
         endpoints = pages_service.get_page_endpoints(page_id)
 
         context: Dict[str, Any] = {
-            'page': page,
-            'page_id': page_id,
-            'section_endpoints': [],
-            'metadata_endpoints': endpoints or [],
-            'total': len(endpoints or []),
+            "page": page,
+            "page_id": page_id,
+            "section_endpoints": [],
+            "metadata_endpoints": endpoints or [],
+            "total": len(endpoints or []),
         }
 
-        return _render_resource_view(request, 'page_endpoints.html', context)
+        return _render_resource_view(request, "page_endpoints.html", context)
 
     except Http404:
         raise
@@ -604,9 +666,15 @@ def media_manager_page_endpoints(request: HttpRequest, page_id: str) -> HttpResp
         logger.error(f"Error loading page endpoints for {page_id}: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'page_endpoints.html',
-            {'page_id': page_id, 'section_endpoints': [], 'metadata_endpoints': [], 'total': 0, 'error': str(e)},
-            error_message=str(e)
+            "page_endpoints.html",
+            {
+                "page_id": page_id,
+                "section_endpoints": [],
+                "metadata_endpoints": [],
+                "total": 0,
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
@@ -623,13 +691,13 @@ def media_manager_page_versions(request: HttpRequest, page_id: str) -> HttpRespo
         versions = pages_service.get_page_versions(page_id)
 
         context: Dict[str, Any] = {
-            'page': page,
-            'page_id': page_id,
-            'versions': versions or [],
-            'count': len(versions or []),
+            "page": page,
+            "page_id": page_id,
+            "versions": versions or [],
+            "count": len(versions or []),
         }
 
-        return _render_resource_view(request, 'page_versions.html', context)
+        return _render_resource_view(request, "page_versions.html", context)
 
     except Http404:
         raise
@@ -637,14 +705,16 @@ def media_manager_page_versions(request: HttpRequest, page_id: str) -> HttpRespo
         logger.error(f"Error loading page versions for {page_id}: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'page_versions.html',
-            {'page_id': page_id, 'versions': [], 'count': 0, 'error': str(e)},
-            error_message=str(e)
+            "page_versions.html",
+            {"page_id": page_id, "versions": [], "count": 0, "error": str(e)},
+            error_message=str(e),
         )
 
 
 @require_super_admin
-def media_manager_page_access_control(request: HttpRequest, page_id: str) -> HttpResponse:
+def media_manager_page_access_control(
+    request: HttpRequest, page_id: str
+) -> HttpResponse:
     """GET /docs/media-manager/pages/<page_id>/access-control/"""
     try:
         pages_service = get_pages_service()
@@ -656,20 +726,22 @@ def media_manager_page_access_control(request: HttpRequest, page_id: str) -> Htt
         access_control = pages_service.get_page_access_control(page_id)
 
         context: Dict[str, Any] = {
-            'page': page,
-            'page_id': page_id,
-            'access_control': access_control,
+            "page": page,
+            "page_id": page_id,
+            "access_control": access_control,
         }
 
-        return _render_resource_view(request, 'page_access_control.html', context)
+        return _render_resource_view(request, "page_access_control.html", context)
 
     except Http404:
         raise
     except Exception as e:
-        logger.error(f"Error loading page access control for {page_id}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading page access control for {page_id}: {e}", exc_info=True
+        )
         return _render_resource_view(
             request,
-            'page_access_control.html',
-            {'page_id': page_id, 'access_control': None, 'error': str(e)},
-            error_message=str(e)
+            "page_access_control.html",
+            {"page_id": page_id, "access_control": None, "error": str(e)},
+            error_message=str(e),
         )

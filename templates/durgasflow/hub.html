@@ -1,12 +1,212 @@
-{% extends "base.html" %}
-{% block title %}Workflow hub — Durgasflow{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}Workflow
+Hub — Durgasflow{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
 <div class="page-header">
-  <div><h1 class="page-title">Workflow hub</h1><p class="page-subtitle">Tabs placeholder (engine not wired)</p></div>
+  <div>
+    <h1 class="page-title">Workflow Hub</h1>
+    <p class="page-subtitle">Browse and import n8n workflows</p>
+  </div>
   <div class="page-actions">
-    <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline">Workflows</a>
-    <a href="{% url 'durgasflow:editor_new' %}" class="btn btn-primary">New</a>
+    <a href="{% url 'durgasflow:dashboard' %}" class="btn btn-outline"
+      ><i class="lni lni-arrow-left"></i> Dashboard</a
+    >
+    <a href="{% url 'durgasflow:upload' %}" class="btn btn-primary"
+      ><i class="lni lni-cloud-upload"></i> Upload</a
+    >
   </div>
 </div>
-{% include "components/alert.html" with type="info" message="Hub aggregates workflows, n8n library, templates, and executions. Connect WorkflowStorageService for full parity." %}
+
+<!-- Tabs -->
+<div class="df-tabs" style="margin-bottom: var(--space-4)">
+  <a
+    href="?tab=library"
+    class="df-tab {% if tab == 'library' %}df-tab--active{% endif %}"
+  >
+    <i class="lni lni-grid-alt"></i> n8n Library
+    <span class="badge">{{ total_lib }}</span>
+  </a>
+  <a
+    href="?tab=my_workflows"
+    class="df-tab {% if tab == 'my_workflows' %}df-tab--active{% endif %}"
+  >
+    <i class="lni lni-layers"></i> My Workflows
+    <span class="badge">{{ my_workflows|length }}</span>
+  </a>
+</div>
+
+{% if tab == 'library' %}
+<!-- Search & Filter -->
+<form
+  method="get"
+  class="df-filter-bar card"
+  style="margin-bottom: var(--space-4)"
+>
+  <input type="hidden" name="tab" value="library" />
+  <input
+    type="text"
+    name="q"
+    class="form-control df-search-input"
+    placeholder="Search workflows…"
+    value="{{ search }}"
+  />
+  <select name="category" class="form-control df-filter-select">
+    <option value="">All Categories</option>
+    {% for cat in categories %}
+    <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>
+      {{ cat }}
+    </option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-outline">
+    <i class="lni lni-search-alt"></i> Search
+  </button>
+  {% if search or category %}
+  <a href="?tab=library" class="btn btn-outline">Clear</a>
+  {% endif %}
+</form>
+
+<!-- Library Grid -->
+{% if library_entries %}
+<div class="df-hub-grid">
+  {% for entry in library_entries %}
+  <div class="df-hub-card card">
+    <div class="df-hub-card-header">
+      <span class="df-hub-category">{{ entry.category|default:"n8n" }}</span>
+      <span class="df-hub-nodes"
+        ><i class="lni lni-layers"></i> {{ entry.node_count }}</span
+      >
+    </div>
+    <h4 class="df-hub-name">{{ entry.name|default:entry.id }}</h4>
+    {% if entry.description %}
+    <p class="df-hub-desc">{{ entry.description|truncatechars:100 }}</p>
+    {% endif %}
+    <div class="df-hub-footer">
+      <span
+        class="df-hub-conf {% if entry.conversion_stats.conversion_confidence >= 0.7 %}df-hub-conf-high{% elif entry.conversion_stats.conversion_confidence >= 0.4 %}df-hub-conf-med{% else %}df-hub-conf-low{% endif %}"
+      >
+        {{ entry.conversion_stats.conversion_confidence|floatformat:0 }}%
+        compatible
+      </span>
+      {% if entry.n8n_path %}
+      <form
+        method="post"
+        action="{% url 'durgasflow:import_n8n' entry.n8n_path %}"
+        style="display: inline"
+      >
+        {% csrf_token %}
+        <button type="submit" class="btn btn-xs btn-primary">
+          <i class="lni lni-download"></i> Import
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="df-pagination" style="margin-top: var(--space-4)">
+  {% if page > 1 %}
+  <a
+    href="?tab=library&q={{ search }}&category={{ category }}&page={{ page|add:'-1' }}"
+    class="btn btn-outline btn-sm"
+    >&laquo; Prev</a
+  >
+  {% endif %}
+  <span class="df-page-info"
+    >Page {{ page }} / {{ total_pages }} ({{ total_lib }} total)</span
+  >
+  {% if page < total_pages %}
+  <a
+    href="?tab=library&q={{ search }}&category={{ category }}&page={{ page|add:'1' }}"
+    class="btn btn-outline btn-sm"
+    >Next &raquo;</a
+  >
+  {% endif %}
+</div>
+{% endif %} {% else %}
+<div class="card">
+  {% include "components/alert.html" with type="info" message="No workflows
+  found in the local n8n library. Check that docs/n8n/index.json exists." %}
+</div>
+{% endif %} {% else %}
+<!-- My Workflows tab -->
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Trigger</th>
+          <th>Status</th>
+          <th>Nodes</th>
+          <th>Runs</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for wf in my_workflows %}
+        <tr>
+          <td>
+            <a href="{% url 'durgasflow:workflow_detail' wf.id %}"
+              >{{ wf.name }}</a
+            >
+          </td>
+          <td>
+            <span class="df-trigger-badge df-trigger-{{ wf.trigger_type }}"
+              >{{ wf.trigger_type }}</span
+            >
+          </td>
+          <td>
+            <span
+              class="df-status-badge df-exec-status-{% if wf.is_active %}completed{% else %}{{ wf.status }}{% endif %}"
+            >
+              {% if wf.is_active %}active{% else %}{{ wf.status }}{% endif %}
+            </span>
+          </td>
+          <td>{{ wf.node_count }}</td>
+          <td>{{ wf.execution_count }}</td>
+          <td class="table-actions">
+            <a
+              href="{% url 'durgasflow:editor' wf.id %}"
+              class="btn btn-xs btn-outline"
+              ><i class="lni lni-pencil"></i
+            ></a>
+            <button
+              class="btn btn-xs btn-primary df-run-btn"
+              data-workflow-id="{{ wf.id }}"
+            >
+              <i class="lni lni-play"></i>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="table-empty">
+            No workflows yet.
+            <a href="{% url 'durgasflow:upload' %}">Upload one</a>.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %} {% endblock %} {% block extra_js %}
+<script src="{% static 'admin/js/durgasflow.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".df-run-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (window.ExecutionRunner)
+          window.ExecutionRunner.run(btn.dataset.workflowId, {});
+      });
+    });
+  });
+</script>
 {% endblock %}

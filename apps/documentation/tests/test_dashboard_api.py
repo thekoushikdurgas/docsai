@@ -12,10 +12,10 @@ import json
 User = get_user_model()
 
 # API v1 dashboard base path (no reverse to avoid name conflict with documentation:dashboard_pages)
-API_V1_DASHBOARD_PAGES = '/api/v1/dashboard/pages/'
-API_V1_DASHBOARD_ENDPOINTS = '/api/v1/dashboard/endpoints/'
-API_V1_DASHBOARD_RELATIONSHIPS = '/api/v1/dashboard/relationships/'
-API_V1_DASHBOARD_POSTMAN = '/api/v1/dashboard/postman/'
+API_V1_DASHBOARD_PAGES = "/api/v1/dashboard/pages/"
+API_V1_DASHBOARD_ENDPOINTS = "/api/v1/dashboard/endpoints/"
+API_V1_DASHBOARD_RELATIONSHIPS = "/api/v1/dashboard/relationships/"
+API_V1_DASHBOARD_POSTMAN = "/api/v1/dashboard/postman/"
 
 
 class DashboardAPITestCase(TestCase):
@@ -25,16 +25,14 @@ class DashboardAPITestCase(TestCase):
         """Set up test client and user."""
         self.client = Client()
         self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
+            username="testuser", email="test@example.com", password="testpass123"
         )
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username="testuser", password="testpass123")
 
     def get_json_response(self, url, params=None):
         """Helper to get JSON response."""
         response = self.client.get(url, params or {})
-        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertEqual(response["Content-Type"], "application/json")
         return json.loads(response.content)
 
 
@@ -44,20 +42,22 @@ class DashboardPagesAPITest(DashboardAPITestCase):
     def test_pages_list_api_basic(self):
         """Test basic pages list API call (API v1 format: success, data, meta.pagination)."""
         data = self.get_json_response(API_V1_DASHBOARD_PAGES)
-        self.assertTrue(data.get('success'))
-        self.assertIn('data', data)
-        self.assertIn('meta', data)
-        self.assertIn('pagination', data['meta'])
-        pag = data['meta']['pagination']
-        self.assertIn('total', pag)
-        self.assertIn('page', pag)
-        self.assertIn('page_size', pag)
+        self.assertTrue(data.get("success"))
+        self.assertIn("data", data)
+        self.assertIn("meta", data)
+        self.assertIn("pagination", data["meta"])
+        pag = data["meta"]["pagination"]
+        self.assertIn("total", pag)
+        self.assertIn("page", pag)
+        self.assertIn("page_size", pag)
 
     def test_pages_list_api_pagination(self):
         """Test pagination parameters."""
-        data = self.get_json_response(API_V1_DASHBOARD_PAGES, {'page': 1, 'page_size': 10})
-        self.assertEqual(data['meta']['pagination']['page'], 1)
-        self.assertEqual(data['meta']['pagination']['page_size'], 10)
+        data = self.get_json_response(
+            API_V1_DASHBOARD_PAGES, {"page": 1, "page_size": 10}
+        )
+        self.assertEqual(data["meta"]["pagination"]["page"], 1)
+        self.assertEqual(data["meta"]["pagination"]["page_size"], 10)
 
 
 class DashboardEndpointsAPITest(DashboardAPITestCase):
@@ -66,10 +66,10 @@ class DashboardEndpointsAPITest(DashboardAPITestCase):
     def test_endpoints_list_api_basic(self):
         """Test basic endpoints list API call."""
         data = self.get_json_response(API_V1_DASHBOARD_ENDPOINTS)
-        self.assertTrue(data.get('success'))
-        self.assertIn('data', data)
-        self.assertIn('meta', data)
-        self.assertIn('pagination', data['meta'])
+        self.assertTrue(data.get("success"))
+        self.assertIn("data", data)
+        self.assertIn("meta", data)
+        self.assertIn("pagination", data["meta"])
 
 
 class DashboardRelationshipsAPITest(DashboardAPITestCase):
@@ -78,10 +78,10 @@ class DashboardRelationshipsAPITest(DashboardAPITestCase):
     def test_relationships_list_api_basic(self):
         """Test basic relationships list API call."""
         data = self.get_json_response(API_V1_DASHBOARD_RELATIONSHIPS)
-        self.assertTrue(data.get('success'))
-        self.assertIn('data', data)
-        self.assertIn('meta', data)
-        self.assertIn('pagination', data['meta'])
+        self.assertTrue(data.get("success"))
+        self.assertIn("data", data)
+        self.assertIn("meta", data)
+        self.assertIn("pagination", data["meta"])
 
 
 class DashboardPostmanAPITest(DashboardAPITestCase):
@@ -90,13 +90,15 @@ class DashboardPostmanAPITest(DashboardAPITestCase):
     def test_postman_list_api_basic(self):
         """Test basic Postman list API call."""
         data = self.get_json_response(API_V1_DASHBOARD_POSTMAN)
-        self.assertTrue(data.get('success'))
-        self.assertIn('data', data)
-        self.assertIn('meta', data)
-        self.assertIn('pagination', data['meta'])
+        self.assertTrue(data.get("success"))
+        self.assertIn("data", data)
+        self.assertIn("meta", data)
+        self.assertIn("pagination", data["meta"])
 
     def test_postman_list_api_pagination(self):
         """Test pagination."""
-        data = self.get_json_response(API_V1_DASHBOARD_POSTMAN, {'page': 1, 'page_size': 10})
-        self.assertEqual(data['meta']['pagination']['page'], 1)
-        self.assertEqual(data['meta']['pagination']['page_size'], 10)
+        data = self.get_json_response(
+            API_V1_DASHBOARD_POSTMAN, {"page": 1, "page_size": 10}
+        )
+        self.assertEqual(data["meta"]["pagination"]["page"], 1)
+        self.assertEqual(data["meta"]["pagination"]["page_size"], 10)

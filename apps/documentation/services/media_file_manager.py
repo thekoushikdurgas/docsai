@@ -37,7 +37,9 @@ class MediaFileManagerService:
 
     def __init__(self) -> None:
         self.media_root = get_media_root()
-        self.data_prefix = (getattr(settings, "S3_DATA_PREFIX", "data/") or "data/").rstrip("/")
+        self.data_prefix = (
+            getattr(settings, "S3_DATA_PREFIX", "data/") or "data/"
+        ).rstrip("/")
 
     def _resource_dirs(self, resource_type: str) -> List[Path]:
         """Return directories to scan for a resource type. media/result/ is not included (operation results, not documentation content)."""
@@ -60,8 +62,13 @@ class MediaFileManagerService:
             ]
         if resource_type == "n8n":
             n8n = get_n8n_dir()
-            return [n8n / "workflows", n8n / "Database Cleaning", n8n / "Email Pattern",
-                   n8n / "P2PMigration", n8n / "Sales Navigator Workflows"]
+            return [
+                n8n / "workflows",
+                n8n / "Database Cleaning",
+                n8n / "Email Pattern",
+                n8n / "P2PMigration",
+                n8n / "Sales Navigator Workflows",
+            ]
         if resource_type == "result":
             return [get_result_dir()]
         if resource_type == "project":
@@ -82,12 +89,14 @@ class MediaFileManagerService:
         for d in dirs:
             if not d.exists():
                 continue
-            files = list_directory_files(d, extensions=[".json"], exclude_files=INDEX_EXCLUDE)
+            files = list_directory_files(
+                d, extensions=[".json"], exclude_files=INDEX_EXCLUDE
+            )
             for fi in files:
                 fp = Path(fi["path"])
                 s3_key = self.calculate_s3_key(fp, resource_type)
                 rel = (fi.get("relative_path") or "").replace("\\", "/")
-                
+
                 # Extract subdirectory for relationships and postman
                 subdirectory = None
                 if resource_type in ["relationships", "postman"]:
@@ -96,13 +105,17 @@ class MediaFileManagerService:
                     if len(parts) >= 2:
                         # Find the resource_type part and get the next part as subdirectory
                         try:
-                            resource_idx = next(i for i, part in enumerate(parts) if part == resource_type)
+                            resource_idx = next(
+                                i
+                                for i, part in enumerate(parts)
+                                if part == resource_type
+                            )
                             if resource_idx + 1 < len(parts):
                                 subdirectory = parts[resource_idx + 1]
                         except StopIteration:
                             # Fallback: try to find subdirectory from directory name
                             subdirectory = d.name if d.name != resource_type else None
-                
+
                 file_data = {
                     "file_path": fi["path"],
                     "relative_path": rel,
@@ -112,10 +125,10 @@ class MediaFileManagerService:
                     "resource_type": resource_type,
                     "s3_key": s3_key,
                 }
-                
+
                 if subdirectory:
                     file_data["subdirectory"] = subdirectory
-                
+
                 result.append(file_data)
 
         result.sort(key=lambda x: (x["name"].lower(), x["relative_path"]))
@@ -125,7 +138,13 @@ class MediaFileManagerService:
         """Return {file_path, size, modified, hash, exists} for a file."""
         p = Path(file_path)
         if not p.exists() or not p.is_file():
-            return {"file_path": str(p), "size": 0, "modified": None, "hash": None, "exists": False}
+            return {
+                "file_path": str(p),
+                "size": 0,
+                "modified": None,
+                "hash": None,
+                "exists": False,
+            }
         try:
             st = p.stat()
             h = hashlib.md5()
@@ -176,7 +195,10 @@ class MediaFileManagerService:
             return "pages"
         if parts[0] == "endpoints":
             return "endpoints"
-        if parts[0] in ("relationship", "relationships"):  # Support both legacy and new names
+        if parts[0] in (
+            "relationship",
+            "relationships",
+        ):  # Support both legacy and new names
             return "relationships"
         if parts[0] == "postman":
             return "postman"
@@ -243,19 +265,33 @@ class MediaFileManagerService:
             directory = get_endpoints_dir()
         elif resource_type == "relationships":
             fid = data.get("relationship_id") or "unknown"
-            directory = get_relationships_dir()  # default to root; could use by-page/by-endpoint
+            directory = (
+                get_relationships_dir()
+            )  # default to root; could use by-page/by-endpoint
         elif resource_type == "postman":
-            fid = data.get("config_id") or (data.get("info") or {}).get("name", "unknown")
+            fid = data.get("config_id") or (data.get("info") or {}).get(
+                "name", "unknown"
+            )
             directory = get_postman_dir()
         else:
-            return {"success": False, "file_path": None, "relative_path": None, "error": f"Unknown resource_type: {resource_type}"}
+            return {
+                "success": False,
+                "file_path": None,
+                "relative_path": None,
+                "error": f"Unknown resource_type: {resource_type}",
+            }
 
         directory.mkdir(parents=True, exist_ok=True)
         name = f"{fid}.json" if not str(fid).endswith(".json") else fid
         file_path = directory / name
 
         if file_path.exists():
-            return {"success": False, "file_path": str(file_path), "relative_path": None, "error": "File already exists"}
+            return {
+                "success": False,
+                "file_path": str(file_path),
+                "relative_path": None,
+                "error": "File already exists",
+            }
 
         try:
             with open(file_path, "w", encoding="utf-8") as f:
@@ -265,16 +301,31 @@ class MediaFileManagerService:
                 relative_path = str(rel).replace("\\", "/")
             except ValueError:
                 relative_path = name
-            return {"success": True, "file_path": str(file_path), "relative_path": relative_path, "error": None}
+            return {
+                "success": True,
+                "file_path": str(file_path),
+                "relative_path": relative_path,
+                "error": None,
+            }
         except Exception as e:
             logger.exception("create_file error")
-            return {"success": False, "file_path": None, "relative_path": None, "error": str(e)}
+            return {
+                "success": False,
+                "file_path": None,
+                "relative_path": None,
+                "error": str(e),
+            }
 
     def update_file(self, full_path: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Overwrite JSON file at full_path. Returns {success, file_path, relative_path, error}."""
         p = Path(full_path)
         if not p.exists() or not p.is_file():
-            return {"success": False, "file_path": full_path, "relative_path": None, "error": "File not found"}
+            return {
+                "success": False,
+                "file_path": full_path,
+                "relative_path": None,
+                "error": "File not found",
+            }
         try:
             with open(p, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
@@ -283,10 +334,20 @@ class MediaFileManagerService:
                 relative_path = str(rel).replace("\\", "/")
             except ValueError:
                 relative_path = p.name
-            return {"success": True, "file_path": full_path, "relative_path": relative_path, "error": None}
+            return {
+                "success": True,
+                "file_path": full_path,
+                "relative_path": relative_path,
+                "error": None,
+            }
         except Exception as e:
             logger.exception("update_file error")
-            return {"success": False, "file_path": full_path, "relative_path": None, "error": str(e)}
+            return {
+                "success": False,
+                "file_path": full_path,
+                "relative_path": None,
+                "error": str(e),
+            }
 
     def get_file_sync_status(self, file_path: str) -> Dict[str, Any]:
         """Return sync status for a file. Placeholder: local exists, remote unknown."""
@@ -299,7 +360,9 @@ class MediaFileManagerService:
             "sync_needed": None,
         }
 
-    def delete_file(self, full_path: str, delete_remote: bool = False) -> Dict[str, Any]:
+    def delete_file(
+        self, full_path: str, delete_remote: bool = False
+    ) -> Dict[str, Any]:
         """
         Delete local file. If delete_remote, also delete from S3 using calculated key.
         Returns {success, error}.
@@ -322,10 +385,14 @@ class MediaFileManagerService:
         if delete_remote and s3_key:
             try:
                 from apps.core.services.s3_service import S3Service
+
                 svc = S3Service()
                 svc.delete_file(s3_key)
             except Exception as e:
                 logger.warning("S3 delete_file failed key=%s: %s", s3_key, e)
-                return {"success": True, "error": f"Local deleted; S3 delete failed: {e}"}
+                return {
+                    "success": True,
+                    "error": f"Local deleted; S3 delete failed: {e}",
+                }
 
         return {"success": True, "error": None}

@@ -1,7 +1,5 @@
-{% comment %}
-Usage: {% include "components/progress.html" with value=75 label="Job progress" size="" %}
-{% endcomment %}
-{% load admin_tags %}
+{% comment %} Usage: {% include "components/progress.html" with value=75
+label="Job progress" size="" %} {% endcomment %} {% load admin_tags %}
 <div class="progress-wrap">
   {% if label %}
   <div class="progress-label">
@@ -9,13 +7,17 @@ Usage: {% include "components/progress.html" with value=75 label="Job progress" 
     <span>{{ value }}%</span>
   </div>
   {% endif %}
-  <div class="progress{% if size == 'sm' %} progress-sm{% elif size == 'lg' %} progress-lg{% elif size %} progress-{{ size }}{% endif %}"
-       role="progressbar"
-       aria-valuenow="{{ value }}"
-       aria-valuemin="0"
-       aria-valuemax="100">
-    <div class="progress-bar {{ value|progress_color }}"
-         style="width: {{ value }}%"
-         data-threshold="{{ value|progress_threshold }}"></div>
+  <div
+    class="progress{% if size == 'sm' %} progress-sm{% elif size == 'lg' %} progress-lg{% elif size %} progress-{{ size }}{% endif %}"
+    role="progressbar"
+    aria-valuenow="{{ value }}"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <div
+      class="progress-bar {{ value|progress_color }}"
+      style="width: {{ value }}%"
+      data-threshold="{{ value|progress_threshold }}"
+    ></div>
   </div>
 </div>

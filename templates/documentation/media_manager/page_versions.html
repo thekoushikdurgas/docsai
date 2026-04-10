@@ -1,60 +1,68 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}{{ page_id }} - Versions - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}{{ page_id }} -
+Versions - Media Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">{{ page_id }}</h1>
-            <p class="c360-mm-hero__subtitle">Page Versions ({{ count }} total)</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:page_detail_enhanced' page_id %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Page
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">{{ page_id }}</h1>
+      <p class="c360-mm-hero__subtitle">Page Versions ({{ count }} total)</p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:page_detail_enhanced' page_id %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Page
+      </a>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Versions List -->
+  {% if versions %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">Versions</h2>
+    <div class="space-y-3">
+      {% for version in versions %}
+      <div class="p-4 bg-gray-50 rounded-lg">
+        {% if version.version %}
+        <div class="flex items-center justify-between">
+          <span class="font-medium text-gray-900">{{ version.version }}</span>
+          {% if version.created_at %}
+          <span class="c360-mm-muted">{{ version.created_at }}</span>
+          {% endif %}
         </div>
-    {% endif %}
-    
-    <!-- Versions List -->
-    {% if versions %}
-        <div class="section-card">
-            <h2 class="c360-mm-section-title">Versions</h2>
-            <div class="space-y-3">
-                {% for version in versions %}
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        {% if version.version %}
-                            <div class="flex items-center justify-between">
-                                <span class="font-medium text-gray-900">{{ version.version }}</span>
-                                {% if version.created_at %}
-                                    <span class="c360-mm-muted">{{ version.created_at }}</span>
-                                {% endif %}
-                            </div>
-                            {% if version.description %}
-                                <p class="text-sm text-gray-600 mt-2">{{ version.description }}</p>
-                            {% endif %}
-                        {% else %}
-                            <pre class="text-sm overflow-x-auto">{{ version|safe|pprint }}</pre>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% else %}
-        <div class="section-card">
-            <p class="c360-mm-muted">No versions available for this page</p>
-        </div>
-    {% endif %}
+        {% if version.description %}
+        <p class="text-sm text-gray-600 mt-2">{{ version.description }}</p>
+        {% endif %} {% else %}
+        <pre class="text-sm overflow-x-auto">{{ version|safe|pprint }}</pre>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="section-card">
+    <p class="c360-mm-muted">No versions available for this page</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

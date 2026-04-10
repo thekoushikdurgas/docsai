@@ -11,7 +11,10 @@ from django.http import HttpRequest, JsonResponse
 from apps.documentation.services.docs_graphql_adapter import get_adapter
 from apps.documentation.utils.format_examples import postman_examples, analysis_examples
 from django.conf import settings
-from apps.documentation.utils.api_v1_helpers import should_expand_full, to_postman_list_item
+from apps.documentation.utils.api_v1_helpers import (
+    should_expand_full,
+    to_postman_list_item,
+)
 
 logger = logging.getLogger(__name__)
 DATA_PREFIX = getattr(settings, "S3_DATA_PREFIX", "data/")
@@ -25,7 +28,9 @@ def postman_list(request: HttpRequest) -> JsonResponse:
         configurations = r.get("configurations", [])
         if not should_expand_full(request.GET):
             configurations = [to_postman_list_item(c) for c in configurations]
-        return JsonResponse({"configurations": configurations, "total": r.get("total", 0)})
+        return JsonResponse(
+            {"configurations": configurations, "total": r.get("total", 0)}
+        )
     except Exception as e:
         logger.exception("postman list failed")
         return JsonResponse({"detail": str(e)}, status=500)
@@ -45,11 +50,13 @@ def postman_statistics(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def postman_format(request: HttpRequest) -> JsonResponse:
     examples = postman_examples(DATA_PREFIX)
-    return JsonResponse({
-        "resource": "postman",
-        "s3_data_prefix": DATA_PREFIX,
-        "examples": examples,
-    })
+    return JsonResponse(
+        {
+            "resource": "postman",
+            "s3_data_prefix": DATA_PREFIX,
+            "examples": examples,
+        }
+    )
 
 
 @require_http_methods(["GET"])
@@ -57,8 +64,17 @@ def postman_by_state_list(request: HttpRequest, state: str) -> JsonResponse:
     try:
         s = get_postman_service()
         r = s.list_by_state(state)
-        if not should_expand_full(request.GET) and isinstance(r, dict) and isinstance(r.get("configurations"), list):
-            r = {**r, "configurations": [to_postman_list_item(c) for c in r.get("configurations", [])]}
+        if (
+            not should_expand_full(request.GET)
+            and isinstance(r, dict)
+            and isinstance(r.get("configurations"), list)
+        ):
+            r = {
+                **r,
+                "configurations": [
+                    to_postman_list_item(c) for c in r.get("configurations", [])
+                ],
+            }
         return JsonResponse(r)
     except Exception as e:
         logger.exception("postman by-state failed")
@@ -81,7 +97,9 @@ def postman_detail(request: HttpRequest, config_id: str) -> JsonResponse:
         s = get_postman_service()
         c = s.get_configuration(config_id)
         if not c:
-            return JsonResponse({"detail": f"Configuration '{config_id}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Configuration '{config_id}' not found"}, status=404
+            )
         return JsonResponse(c)
     except Exception as e:
         logger.exception("postman detail failed")
@@ -91,7 +109,7 @@ def postman_detail(request: HttpRequest, config_id: str) -> JsonResponse:
 @require_http_methods(["GET"])
 def postman_detail_collection(request: HttpRequest, config_id: str) -> JsonResponse:
     """GET /api/v1/postman/{config_id}/collection/
-    
+
     Returns collection from a configuration. Matches Lambda API behavior:
     - Returns 404 only if configuration not found
     - Returns collection object wrapped in {"collection": ...}
@@ -100,7 +118,9 @@ def postman_detail_collection(request: HttpRequest, config_id: str) -> JsonRespo
         s = get_postman_service()
         collection = s.get_collection(config_id)
         if collection is None:
-            return JsonResponse({"detail": f"Configuration '{config_id}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Configuration '{config_id}' not found"}, status=404
+            )
         # Match Lambda API format: {"collection": collection}
         return JsonResponse({"collection": collection})
     except Exception as e:
@@ -119,12 +139,16 @@ def postman_detail_environments(request: HttpRequest, config_id: str) -> JsonRes
 
 
 @require_http_methods(["GET"])
-def postman_detail_environment(request: HttpRequest, config_id: str, env_name: str) -> JsonResponse:
+def postman_detail_environment(
+    request: HttpRequest, config_id: str, env_name: str
+) -> JsonResponse:
     try:
         s = get_postman_service()
         env = s.get_environment(config_id, env_name)
         if env is None:
-            return JsonResponse({"detail": f"Environment '{env_name}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Environment '{env_name}' not found"}, status=404
+            )
         return JsonResponse(env)
     except Exception as e:
         return JsonResponse({"detail": str(e)}, status=500)
@@ -141,11 +165,21 @@ def postman_detail_mappings(request: HttpRequest, config_id: str) -> JsonRespons
 
 
 @require_http_methods(["GET"])
-def postman_detail_mapping(request: HttpRequest, config_id: str, mapping_id: str) -> JsonResponse:
+def postman_detail_mapping(
+    request: HttpRequest, config_id: str, mapping_id: str
+) -> JsonResponse:
     try:
         s = get_postman_service()
         mappings = s.get_endpoint_mappings(config_id)
-        m = next((x for x in (mappings or []) if str(x.get("id")) == str(mapping_id) or x.get("mapping_id") == mapping_id), None)
+        m = next(
+            (
+                x
+                for x in (mappings or [])
+                if str(x.get("id")) == str(mapping_id)
+                or x.get("mapping_id") == mapping_id
+            ),
+            None,
+        )
         if m is None:
             return JsonResponse({"detail": "Mapping not found"}, status=404)
         return JsonResponse(m)
@@ -164,7 +198,9 @@ def postman_detail_test_suites(request: HttpRequest, config_id: str) -> JsonResp
 
 
 @require_http_methods(["GET"])
-def postman_detail_test_suite(request: HttpRequest, config_id: str, suite_id: str) -> JsonResponse:
+def postman_detail_test_suite(
+    request: HttpRequest, config_id: str, suite_id: str
+) -> JsonResponse:
     try:
         s = get_postman_service()
         suite = s.get_test_suite(config_id, suite_id)

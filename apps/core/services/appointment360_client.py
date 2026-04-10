@@ -2,6 +2,7 @@
 Appointment360 GraphQL client — auth and profile helpers.
 Aligned with contact360.io/api (Strawberry) and app/src/services/graphql/authService.ts.
 """
+
 from typing import Any, Dict, Optional
 
 from .graphql_client import graphql_query, graphql_mutation
@@ -34,6 +35,7 @@ query Me {
       name
       isActive
       createdAt
+      bucket
       profile {
         role
         credits
@@ -105,7 +107,11 @@ def sign_in(email: str, password: str, *, max_retries: int = 1) -> dict:
 
     errs = resp.get("errors")
     if errs:
-        msg = errs[0].get("message", "Login failed") if isinstance(errs, list) else "Login failed"
+        msg = (
+            errs[0].get("message", "Login failed")
+            if isinstance(errs, list)
+            else "Login failed"
+        )
         return {"error": msg}
 
     data = resp.get("data")

@@ -14,7 +14,11 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from apps.documentation.services import relationships_service, pages_service, endpoints_service
+from apps.documentation.services import (
+    relationships_service,
+    pages_service,
+    endpoints_service,
+)
 from apps.documentation.utils.api_responses import (
     APIResponse,
     error_response,
@@ -28,7 +32,18 @@ logger = logging.getLogger(__name__)
 DEFAULT_RELATIONSHIP_LIMIT = 20
 MAX_RELATIONSHIP_LIMIT = 500
 DEFAULT_OFFSET = 0
-VALID_DETAIL_TABS = frozenset({"overview", "connection", "usage", "related", "page", "data_flow", "postman_ref", "raw"})
+VALID_DETAIL_TABS = frozenset(
+    {
+        "overview",
+        "connection",
+        "usage",
+        "related",
+        "page",
+        "data_flow",
+        "postman_ref",
+        "raw",
+    }
+)
 
 
 from apps.documentation.utils.view_helpers import parse_json_body, validate_detail_tab
@@ -41,18 +56,25 @@ def _validate_relationship_id(relationship_id: Optional[str]) -> Optional[str]:
     return relationship_id.strip()
 
 
-def _safe_redirect_url(request: HttpRequest, default_name: str = "documentation:dashboard_relationships"):
+def _safe_redirect_url(
+    request: HttpRequest, default_name: str = "documentation:dashboard_relationships"
+):
     """Return redirect target: return_url if present and safe, else default."""
     return_url = request.GET.get("return_url") or request.POST.get("return_url", "")
     if return_url and return_url.startswith("/") and "//" not in return_url:
         from django.utils.http import url_has_allowed_host_and_scheme
-        if url_has_allowed_host_and_scheme(return_url, allowed_hosts={request.get_host(), None}):
+
+        if url_has_allowed_host_and_scheme(
+            return_url, allowed_hosts={request.get_host(), None}
+        ):
             return return_url
     return reverse(default_name)
 
 
 @require_super_admin
-def relationship_detail_view(request: HttpRequest, relationship_id: str) -> HttpResponse:
+def relationship_detail_view(
+    request: HttpRequest, relationship_id: str
+) -> HttpResponse:
     """Get single relationship detail with enhanced tabs and related data. GET /docs/relationships/<relationship_id>/"""
     validated_id = _validate_relationship_id(relationship_id)
     if not validated_id:
@@ -67,51 +89,62 @@ def relationship_detail_view(request: HttpRequest, relationship_id: str) -> Http
             logger.warning("Relationship not found: %s", validated_id)
             messages.error(request, "Relationship not found.")
             return redirect("documentation:dashboard_relationships")
-        
+
         # Format usage_context for display (replace underscores with spaces)
-        if relationship.get('usage_context'):
-            relationship['usage_context_display'] = relationship['usage_context'].replace('_', ' ').title()
-        
+        if relationship.get("usage_context"):
+            relationship["usage_context_display"] = (
+                relationship["usage_context"].replace("_", " ").title()
+            )
+
         # Get linked page details
         linked_page = None
-        page_id = relationship.get('page_id') or relationship.get('page_path')
+        page_id = relationship.get("page_id") or relationship.get("page_path")
         if page_id:
             try:
                 linked_page = pages_service.get_page(page_id)
             except Exception as e:
                 logger.debug(f"Could not load page {page_id}: {e}")
-        
+
         # Get linked endpoint details
         linked_endpoint = None
-        endpoint_id = relationship.get('endpoint_id') or relationship.get('endpoint_path')
-        endpoint_method = relationship.get('method', 'QUERY')
+        endpoint_id = relationship.get("endpoint_id") or relationship.get(
+            "endpoint_path"
+        )
+        endpoint_method = relationship.get("method", "QUERY")
         if endpoint_id:
             try:
                 linked_endpoint = endpoints_service.get_endpoint(endpoint_id)
             except Exception as e:
                 logger.debug(f"Could not load endpoint {endpoint_id}: {e}")
-        
+
         # Get related relationships (same page or endpoint)
         related_relationships = []
         try:
             # Get relationships for the same page
             if page_id:
-                page_rels_result = relationships_service.list_relationships(page_id=page_id, limit=100)
-                for rel in page_rels_result.get('relationships', []):
-                    if rel.get('relationship_id') != relationship_id:
+                page_rels_result = relationships_service.list_relationships(
+                    page_id=page_id, limit=100
+                )
+                for rel in page_rels_result.get("relationships", []):
+                    if rel.get("relationship_id") != relationship_id:
                         related_relationships.append(rel)
-            
+
             # Get relationships for the same endpoint
             if endpoint_id:
-                endpoint_rels_result = relationships_service.list_relationships(endpoint_id=endpoint_id, limit=100)
-                for rel in endpoint_rels_result.get('relationships', []):
-                    if rel.get('relationship_id') != relationship_id:
+                endpoint_rels_result = relationships_service.list_relationships(
+                    endpoint_id=endpoint_id, limit=100
+                )
+                for rel in endpoint_rels_result.get("relationships", []):
+                    if rel.get("relationship_id") != relationship_id:
                         # Avoid duplicates
-                        if not any(r.get('relationship_id') == rel.get('relationship_id') for r in related_relationships):
+                        if not any(
+                            r.get("relationship_id") == rel.get("relationship_id")
+                            for r in related_relationships
+                        ):
                             related_relationships.append(rel)
         except Exception as e:
             logger.warning(f"Failed to load related relationships: {e}")
-        
+
         # Convert relationship to JSON string for Raw JSON tab
         relationship_json = json.dumps(relationship, indent=2, default=str)
 
@@ -121,43 +154,60 @@ def relationship_detail_view(request: HttpRequest, relationship_id: str) -> Http
         endpoint_reference = relationship.get("endpoint_reference")
         breadcrumb_items = [
             {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-            {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+            {
+                "label": "Relationships",
+                "url": reverse("documentation:dashboard") + "?tab=relationships",
+            },
             {"label": relationship.get("relationship_id") or validated_id, "url": None},
         ]
         actions = [
-            {"text": "Edit", "url": reverse("documentation:relationship_edit", kwargs={"relationship_id": validated_id}), "variant": "primary"},
+            {
+                "text": "Edit",
+                "url": reverse(
+                    "documentation:relationship_edit",
+                    kwargs={"relationship_id": validated_id},
+                ),
+                "variant": "primary",
+            },
         ]
         context = {
-            'relationship': relationship,
-            'relationship_json': relationship_json,
-            'active_tab': active_tab,
-            'linked_page': linked_page,
-            'linked_endpoint': linked_endpoint,
-            'related_relationships': related_relationships,
-            'related_count': len(related_relationships),
-            'data_flow': data_flow,
-            'page_reference': page_reference,
-            'endpoint_reference': endpoint_reference,
-            'breadcrumb_items': breadcrumb_items,
-            'resource_type': 'relationships',
-            'page_title': relationship.get("relationship_id") or "Unknown Relationship",
-            'actions': actions,
+            "relationship": relationship,
+            "relationship_json": relationship_json,
+            "active_tab": active_tab,
+            "linked_page": linked_page,
+            "linked_endpoint": linked_endpoint,
+            "related_relationships": related_relationships,
+            "related_count": len(related_relationships),
+            "data_flow": data_flow,
+            "page_reference": page_reference,
+            "endpoint_reference": endpoint_reference,
+            "breadcrumb_items": breadcrumb_items,
+            "resource_type": "relationships",
+            "page_title": relationship.get("relationship_id") or "Unknown Relationship",
+            "actions": actions,
         }
     except Exception as e:
-        logger.error(f"Error loading relationship {relationship_id}: {e}", exc_info=True)
-        messages.error(request, 'An error occurred while loading the relationship.')
-        return redirect('documentation:dashboard_relationships')
-    
-    return render(request, 'documentation/relationships/detail.html', context)
+        logger.error(
+            f"Error loading relationship {relationship_id}: {e}", exc_info=True
+        )
+        messages.error(request, "An error occurred while loading the relationship.")
+        return redirect("documentation:dashboard_relationships")
+
+    return render(request, "documentation/relationships/detail.html", context)
 
 
 @require_super_admin
-def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] = None) -> HttpResponse:
+def relationship_form_view(
+    request: HttpRequest, relationship_id: Optional[str] = None
+) -> HttpResponse:
     """Relationship create/edit form with enhanced tabs and comprehensive data collection. GET/POST /docs/relationships/create/ or /docs/relationships/<relationship_id>/edit/"""
     create_mode_generated = (
-        request.GET.get("generated") == "1" or request.GET.get("template") == "generated"
+        request.GET.get("generated") == "1"
+        or request.GET.get("template") == "generated"
     )
-    active_tab = request.GET.get("tab") or ("connection" if create_mode_generated else "basic")
+    active_tab = request.GET.get("tab") or (
+        "connection" if create_mode_generated else "basic"
+    )
     return_url = request.GET.get("return_url")
     is_edit = relationship_id is not None
 
@@ -183,7 +233,7 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
             logger.warning("Could not load relationship %s: %s", validated_id, e)
             messages.error(request, "An error occurred while loading the relationship.")
             return redirect("documentation:dashboard_relationships")
-    
+
     if request.method == "POST":
         try:
             # Check if enhanced form data is present
@@ -196,8 +246,15 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                     logger.warning("Invalid JSON in relationship form: %s", e)
                     messages.error(request, "Invalid form data format.")
                     _breadcrumbs = [
-                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                        {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                        {
+                            "label": "Dashboard",
+                            "url": reverse("documentation:dashboard"),
+                        },
+                        {
+                            "label": "Relationships",
+                            "url": reverse("documentation:dashboard")
+                            + "?tab=relationships",
+                        },
                         {"label": "Edit" if is_edit else "Create"},
                     ]
                     return render(
@@ -219,9 +276,11 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                 # Collect form data from all tabs
                 relationship_data = {
                     "relationship_id": request.POST.get("relationship_id", ""),
-                    "page_id": request.POST.get("page_id") or request.POST.get("page_path", ""),
+                    "page_id": request.POST.get("page_id")
+                    or request.POST.get("page_path", ""),
                     "page_path": request.POST.get("page_path", ""),
-                    "endpoint_id": request.POST.get("endpoint_id") or request.POST.get("endpoint_path", ""),
+                    "endpoint_id": request.POST.get("endpoint_id")
+                    or request.POST.get("endpoint_path", ""),
                     "endpoint_path": request.POST.get("endpoint_path", ""),
                     "method": request.POST.get("method", "QUERY"),
                     "usage_type": request.POST.get("usage_type", "primary"),
@@ -238,7 +297,11 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                 messages.error(request, "Relationship ID is required.")
                 _breadcrumbs = [
                     {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                    {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                    {
+                        "label": "Relationships",
+                        "url": reverse("documentation:dashboard")
+                        + "?tab=relationships",
+                    },
                     {"label": "Edit" if is_edit else "Create"},
                 ]
                 return render(
@@ -257,11 +320,17 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                     },
                 )
 
-            if not relationship_data.get("page_id") and not relationship_data.get("page_path"):
+            if not relationship_data.get("page_id") and not relationship_data.get(
+                "page_path"
+            ):
                 messages.error(request, "Page ID or Page Path is required.")
                 _breadcrumbs = [
                     {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                    {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                    {
+                        "label": "Relationships",
+                        "url": reverse("documentation:dashboard")
+                        + "?tab=relationships",
+                    },
                     {"label": "Edit" if is_edit else "Create"},
                 ]
                 return render(
@@ -280,7 +349,9 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                     },
                 )
 
-            if not relationship_data.get("endpoint_id") and not relationship_data.get("endpoint_path"):
+            if not relationship_data.get("endpoint_id") and not relationship_data.get(
+                "endpoint_path"
+            ):
                 messages.error(request, "Endpoint ID or Endpoint Path is required.")
                 return render(
                     request,
@@ -295,8 +366,15 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                         "available_endpoints": [],
                         "create_mode_generated": create_mode_generated,
                         "breadcrumb_items": [
-                            {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                            {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+                            {
+                                "label": "Dashboard",
+                                "url": reverse("documentation:dashboard"),
+                            },
+                            {
+                                "label": "Relationships",
+                                "url": reverse("documentation:dashboard")
+                                + "?tab=relationships",
+                            },
                             {"label": "Edit" if is_edit else "Create"},
                         ],
                     },
@@ -309,13 +387,18 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                     messages.error(request, "Invalid relationship ID.")
                     return redirect("documentation:dashboard_relationships")
 
-                updated = relationships_service.update_relationship(validated_id, relationship_data)
+                updated = relationships_service.update_relationship(
+                    validated_id, relationship_data
+                )
                 if updated:
                     logger.debug("Relationship updated successfully: %s", validated_id)
                     messages.success(request, "Relationship updated successfully.")
                     if return_url:
                         return redirect(return_url)
-                    return redirect("documentation:relationship_detail", relationship_id=validated_id)
+                    return redirect(
+                        "documentation:relationship_detail",
+                        relationship_id=validated_id,
+                    )
                 else:
                     messages.error(request, "Failed to update relationship.")
             else:
@@ -326,7 +409,9 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
                     messages.success(request, "Relationship created successfully.")
                     if return_url:
                         return redirect(return_url)
-                    return redirect("documentation:relationship_detail", relationship_id=created_id)
+                    return redirect(
+                        "documentation:relationship_detail", relationship_id=created_id
+                    )
                 else:
                     messages.error(request, "Failed to create relationship.")
         except Exception as e:
@@ -362,13 +447,21 @@ def relationship_form_view(request: HttpRequest, relationship_id: Optional[str] 
 
     breadcrumb_items: List[Dict[str, Any]] = [
         {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-        {"label": "Relationships", "url": reverse("documentation:dashboard") + "?tab=relationships"},
+        {
+            "label": "Relationships",
+            "url": reverse("documentation:dashboard") + "?tab=relationships",
+        },
     ]
     if is_edit and relationship.get("relationship_id"):
-        breadcrumb_items.append({
-            "label": relationship["relationship_id"],
-            "url": reverse("documentation:relationship_detail", kwargs={"relationship_id": relationship["relationship_id"]}),
-        })
+        breadcrumb_items.append(
+            {
+                "label": relationship["relationship_id"],
+                "url": reverse(
+                    "documentation:relationship_detail",
+                    kwargs={"relationship_id": relationship["relationship_id"]},
+                ),
+            }
+        )
     breadcrumb_items.append({"label": "Edit" if is_edit else "Create"})
 
     context: Dict[str, Any] = {
@@ -399,14 +492,26 @@ def relationship_create_api(request: HttpRequest) -> JsonResponse:
     try:
         created = relationships_service.create_relationship(data)
         if created:
-            logger.debug("Relationship created successfully: %s", data.get("relationship_id"))
-            return success_response(data=created, message="Relationship created successfully", status_code=201).to_json_response()
+            logger.debug(
+                "Relationship created successfully: %s", data.get("relationship_id")
+            )
+            return success_response(
+                data=created,
+                message="Relationship created successfully",
+                status_code=201,
+            ).to_json_response()
         else:
-            logger.error("Failed to create relationship: %s", data.get("relationship_id"))
-            return server_error_response("Failed to create relationship").to_json_response()
+            logger.error(
+                "Failed to create relationship: %s", data.get("relationship_id")
+            )
+            return server_error_response(
+                "Failed to create relationship"
+            ).to_json_response()
     except Exception as e:
         logger.error("Error creating relationship: %s", e, exc_info=True)
-        return server_error_response(f"Error creating relationship: {str(e)}").to_json_response()
+        return server_error_response(
+            f"Error creating relationship: {str(e)}"
+        ).to_json_response()
 
 
 @require_super_admin
@@ -416,7 +521,9 @@ def relationship_update_api(request: HttpRequest, relationship_id: str) -> JsonR
     """API endpoint to update a relationship. PUT/PATCH /docs/api/relationships/<relationship_id>/"""
     validated_id = _validate_relationship_id(relationship_id)
     if not validated_id:
-        return error_response(message="Invalid relationship ID", status_code=400).to_json_response()
+        return error_response(
+            message="Invalid relationship ID", status_code=400
+        ).to_json_response()
 
     data, error_msg = parse_json_body(request)
     if error_msg:
@@ -427,17 +534,25 @@ def relationship_update_api(request: HttpRequest, relationship_id: str) -> JsonR
         updated = relationships_service.update_relationship(validated_id, data)
         if updated:
             logger.debug("Relationship updated successfully: %s", validated_id)
-            return success_response(data=updated, message="Relationship updated successfully").to_json_response()
+            return success_response(
+                data=updated, message="Relationship updated successfully"
+            ).to_json_response()
         else:
             logger.warning("Relationship not found for update: %s", validated_id)
             return not_found_response("Relationship").to_json_response()
     except Exception as e:
-        logger.error("Error updating relationship %s: %s", validated_id, e, exc_info=True)
-        return server_error_response(f"Error updating relationship: {str(e)}").to_json_response()
+        logger.error(
+            "Error updating relationship %s: %s", validated_id, e, exc_info=True
+        )
+        return server_error_response(
+            f"Error updating relationship: {str(e)}"
+        ).to_json_response()
 
 
 @require_super_admin
-def relationship_delete_view(request: HttpRequest, relationship_id: str) -> HttpResponse:
+def relationship_delete_view(
+    request: HttpRequest, relationship_id: str
+) -> HttpResponse:
     """Delete relationship view. GET/POST /docs/relationships/<relationship_id>/delete/"""
     validated_id = _validate_relationship_id(relationship_id)
     if not validated_id:
@@ -454,8 +569,12 @@ def relationship_delete_view(request: HttpRequest, relationship_id: str) -> Http
                 logger.warning("Failed to delete relationship: %s", validated_id)
                 messages.error(request, "Failed to delete relationship.")
         except Exception as e:
-            logger.error("Error deleting relationship %s: %s", validated_id, e, exc_info=True)
-            messages.error(request, "An error occurred while deleting the relationship.")
+            logger.error(
+                "Error deleting relationship %s: %s", validated_id, e, exc_info=True
+            )
+            messages.error(
+                request, "An error occurred while deleting the relationship."
+            )
         return redirect(_safe_redirect_url(request))
 
     try:
@@ -465,19 +584,33 @@ def relationship_delete_view(request: HttpRequest, relationship_id: str) -> Http
             messages.error(request, "Relationship not found.")
             return redirect(_safe_redirect_url(request))
     except Exception as e:
-        logger.error("Error loading relationship %s: %s", validated_id, e, exc_info=True)
+        logger.error(
+            "Error loading relationship %s: %s", validated_id, e, exc_info=True
+        )
         messages.error(request, "An error occurred while loading the relationship.")
         return redirect(_safe_redirect_url(request))
 
     return_url = request.GET.get("return_url", "")
     from django.urls import reverse
+
     breadcrumb_items = [
         {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-        {"label": "Relationships", "url": reverse("documentation:dashboard_relationships")},
-        {"label": (relationship.get("relationship_id") or "Relationship")[:30], "url": reverse("documentation:relationship_detail", kwargs={"relationship_id": validated_id})},
+        {
+            "label": "Relationships",
+            "url": reverse("documentation:dashboard_relationships"),
+        },
+        {
+            "label": (relationship.get("relationship_id") or "Relationship")[:30],
+            "url": reverse(
+                "documentation:relationship_detail",
+                kwargs={"relationship_id": validated_id},
+            ),
+        },
         {"label": "Delete"},
     ]
-    cancel_url = reverse("documentation:relationship_detail", kwargs={"relationship_id": validated_id})
+    cancel_url = reverse(
+        "documentation:relationship_detail", kwargs={"relationship_id": validated_id}
+    )
     context = {
         "relationship": relationship,
         "return_url": return_url,
@@ -494,16 +627,24 @@ def relationship_delete_api(request: HttpRequest, relationship_id: str) -> JsonR
     """API endpoint to delete a relationship. DELETE /docs/api/relationships/<relationship_id>/"""
     validated_id = _validate_relationship_id(relationship_id)
     if not validated_id:
-        return error_response(message="Invalid relationship ID", status_code=400).to_json_response()
+        return error_response(
+            message="Invalid relationship ID", status_code=400
+        ).to_json_response()
 
     try:
         deleted = relationships_service.delete_relationship(validated_id)
         if deleted:
             logger.debug("Relationship deleted successfully: %s", validated_id)
-            return success_response(message="Relationship deleted successfully").to_json_response()
+            return success_response(
+                message="Relationship deleted successfully"
+            ).to_json_response()
         else:
             logger.warning("Relationship not found for deletion: %s", validated_id)
             return not_found_response("Relationship").to_json_response()
     except Exception as e:
-        logger.error("Error deleting relationship %s: %s", validated_id, e, exc_info=True)
-        return server_error_response(f"Error deleting relationship: {str(e)}").to_json_response()
+        logger.error(
+            "Error deleting relationship %s: %s", validated_id, e, exc_info=True
+        )
+        return server_error_response(
+            f"Error deleting relationship: {str(e)}"
+        ).to_json_response()

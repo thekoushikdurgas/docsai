@@ -1,46 +1,86 @@
 {% extends "base.html" %}
 {% load static admin_tags %}
-
 {% block title %}Storage — Contact360 Admin{% endblock %}
-
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">Storage</h1>
-    <p class="page-subtitle">S3 artifact management — Admins: browse &amp; download. Super Admins: also delete.</p>
+    <p class="page-subtitle">
+      S3 artifact management — Admins: browse &amp; download. Super Admins: also
+      delete.
+    </p>
   </div>
   {% if total and selected_bucket %}
-  <span class="badge badge-secondary">{{ total }} file{{ total|pluralize }}</span>
+  <span class="badge badge-secondary"
+    >{{ total }} file{{ total|pluralize }}</span
+  >
   {% endif %}
 </div>
 
 <!-- User / bucket picker -->
-<div class="card" style="margin-bottom:var(--space-4)">
-  <div class="card-body" style="padding:var(--space-4)">
-    <form method="get" id="bucket-form" style="display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:flex-end">
-      <div style="flex:0 0 320px">
-        <label class="form-label" for="bucket-select" style="font-size:var(--text-sm);margin-bottom:4px;display:block">User / Bucket</label>
-        <select id="bucket-select" name="bucket" class="form-control" onchange="this.form.submit()">
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div class="card-body" style="padding: var(--space-4)">
+    <form
+      method="get"
+      id="bucket-form"
+      style="
+        display: flex;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+        align-items: flex-end;
+      "
+    >
+      <div style="flex: 0 0 320px">
+        <label
+          class="form-label"
+          for="bucket-select"
+          style="font-size: var(--text-sm); margin-bottom: 4px; display: block"
+          >User / Bucket</label
+        >
+        <select
+          id="bucket-select"
+          name="bucket"
+          class="form-control"
+          onchange="this.form.submit()"
+        >
           <option value="">— Select a user —</option>
           {% for user in users %}
-          <option value="{{ user.bucket }}" {% if user.bucket == selected_bucket %}selected{% endif %}>
+          <option
+            value="{{ user.bucket }}"
+            {% if user.bucket == selected_bucket %}selected{% endif %}
+          >
             {{ user.email }} ({{ user.bucket|default:"no bucket"|slice:":12" }})
           </option>
           {% endfor %}
         </select>
       </div>
       {% if selected_bucket %}
-      <div style="flex:1;min-width:200px">
-        <label class="form-label" style="font-size:var(--text-sm);margin-bottom:4px;display:block">Sub-prefix filter</label>
-        <div style="display:flex;gap:var(--space-2)">
-          <input type="text" name="prefix" class="form-control" placeholder="e.g. exports/" value="{{ prefix }}">
-          <input type="hidden" name="page" value="0">
-          <button type="submit" class="btn btn-primary btn-sm"><i class="lni lni-magnifier"></i></button>
+      <div style="flex: 1; min-width: 200px">
+        <label
+          class="form-label"
+          style="font-size: var(--text-sm); margin-bottom: 4px; display: block"
+          >Sub-prefix filter</label
+        >
+        <div style="display: flex; gap: var(--space-2)">
+          <input
+            type="text"
+            name="prefix"
+            class="form-control"
+            placeholder="e.g. exports/"
+            value="{{ prefix }}"
+          />
+          <input type="hidden" name="page" value="0" />
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="lni lni-magnifier"></i>
+          </button>
         </div>
       </div>
-      {% endif %}
-      {% if selected_bucket %}
-      <a href="{% url 'admin_ops:storage' %}" class="btn btn-outline btn-sm" style="align-self:flex-end">
+      {% endif %} {% if selected_bucket %}
+      <a
+        href="{% url 'admin_ops:storage' %}"
+        class="btn btn-outline btn-sm"
+        style="align-self: flex-end"
+      >
         <i class="lni lni-close"></i> Clear
       </a>
       {% endif %}
@@ -50,16 +90,27 @@
 
 <!-- Breadcrumb navigation -->
 {% if breadcrumbs %}
-<nav aria-label="Storage breadcrumb" style="margin-bottom:var(--space-3);font-size:var(--text-sm);display:flex;align-items:center;flex-wrap:wrap;gap:4px">
-  {% for crumb in breadcrumbs %}
-    {% if not forloop.last %}
-      <a href="{% url 'admin_ops:storage' %}?bucket={{ crumb.bucket }}&prefix={{ crumb.prefix }}"
-         style="color:var(--color-primary);text-decoration:none">{{ crumb.label }}</a>
-      <span style="color:var(--color-text-muted)">/</span>
-    {% else %}
-      <span style="color:var(--color-text-muted)">{{ crumb.label }}</span>
-    {% endif %}
-  {% endfor %}
+<nav
+  aria-label="Storage breadcrumb"
+  style="
+    margin-bottom: var(--space-3);
+    font-size: var(--text-sm);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  "
+>
+  {% for crumb in breadcrumbs %} {% if not forloop.last %}
+  <a
+    href="{% url 'admin_ops:storage' %}?bucket={{ crumb.bucket }}&prefix={{ crumb.prefix }}"
+    style="color: var(--color-primary); text-decoration: none"
+    >{{ crumb.label }}</a
+  >
+  <span style="color: var(--color-text-muted)">/</span>
+  {% else %}
+  <span style="color: var(--color-text-muted)">{{ crumb.label }}</span>
+  {% endif %} {% endfor %}
 </nav>
 {% endif %}
 
@@ -76,40 +127,68 @@
           <th>Type</th>
           <th>Size</th>
           <th>Last Modified</th>
-          <th style="width:160px">Actions</th>
+          <th style="width: 160px">Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for file in artifacts %}
         <tr>
-          <td style="max-width:420px;overflow:hidden;text-overflow:ellipsis">
-            <code style="font-size:var(--text-xs)">{{ file.key }}</code>
+          <td
+            style="max-width: 420px; overflow: hidden; text-overflow: ellipsis"
+          >
+            <code style="font-size: var(--text-xs)">{{ file.key }}</code>
           </td>
-          <td style="white-space:nowrap;font-size:var(--text-xs);color:var(--color-text-muted)">
+          <td
+            style="
+              white-space: nowrap;
+              font-size: var(--text-xs);
+              color: var(--color-text-muted);
+            "
+          >
             {{ file.content_type|default:"—" }}
           </td>
-          <td style="white-space:nowrap">{{ file.size|format_bytes }}</td>
-          <td style="white-space:nowrap">{{ file.last_modified|date:"M d, Y H:i" }}</td>
+          <td style="white-space: nowrap">{{ file.size|format_bytes }}</td>
+          <td style="white-space: nowrap">
+            {{ file.last_modified|date:"M d, Y H:i" }}
+          </td>
           <td>
-            <div style="display:flex;gap:var(--space-1)">
-              <button type="button" class="btn btn-outline btn-sm"
-                      onclick="downloadArtifact('{{ file.key|escapejs }}')"
-                      title="Download">
+            <div style="display: flex; gap: var(--space-1)">
+              <button
+                type="button"
+                class="btn btn-outline btn-sm"
+                onclick="downloadArtifact('{{ file.key|escapejs }}')"
+                title="Download"
+              >
                 <i class="lni lni-download"></i>
               </button>
-              <button type="button" class="btn btn-outline btn-sm"
-                      onclick="copyKey('{{ file.key|escapejs }}')"
-                      title="Copy key">
+              <button
+                type="button"
+                class="btn btn-outline btn-sm"
+                onclick="copyKey('{{ file.key|escapejs }}')"
+                title="Copy key"
+              >
                 <i class="lni lni-files"></i>
               </button>
               {% if operator.role == "super_admin" %}
-              <form method="post" action="{% url 'admin_ops:delete_artifact' %}" style="display:inline"
-                    onsubmit="return confirm('Delete {{ file.key|escapejs }}? This cannot be undone.')">
+              <form
+                method="post"
+                action="{% url 'admin_ops:delete_artifact' %}"
+                style="display: inline"
+                onsubmit="return confirm('Delete {{ file.key|escapejs }}? This cannot be undone.')"
+              >
                 {% csrf_token %}
-                <input type="hidden" name="key" value="{{ file.key }}">
-                <input type="hidden" name="bucket" value="{{ selected_bucket }}">
-                <input type="hidden" name="prefix" value="{{ prefix }}">
-                <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                <input type="hidden" name="key" value="{{ file.key }}" />
+                <input
+                  type="hidden"
+                  name="bucket"
+                  value="{{ selected_bucket }}"
+                />
+                <input type="hidden" name="prefix" value="{{ prefix }}" />
+                <button
+                  type="submit"
+                  class="btn btn-danger btn-sm"
+                  title="Delete"
+                >
                   <i class="lni lni-trash"></i>
                 </button>
               </form>
@@ -118,13 +197,13 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="table-empty">
-          {% if prefix %}
-            No files found under prefix <code>{{ prefix }}</code>. Try a different prefix.
-          {% else %}
-            No files found in this bucket.
-          {% endif %}
-        </td></tr>
+        <tr>
+          <td colspan="5" class="table-empty">
+            {% if prefix %} No files found under prefix
+            <code>{{ prefix }}</code>. Try a different prefix. {% else %} No
+            files found in this bucket. {% endif %}
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -133,59 +212,90 @@
 
 <!-- Pagination -->
 {% if has_previous or has_next %}
-<div style="display:flex;gap:var(--space-3);justify-content:center;margin-top:var(--space-5)">
+<div
+  style="
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-top: var(--space-5);
+  "
+>
   {% if has_previous %}
-  <a href="?bucket={{ selected_bucket }}&prefix={{ prefix }}&page={{ page|add:"-1" }}"
-     class="btn btn-outline btn-sm">
+  <a
+    href="?bucket={{ selected_bucket }}&prefix={{ prefix }}&page={{ page|add:'-1' }}"
+    class="btn btn-outline btn-sm"
+  >
     <i class="lni lni-chevron-left"></i> Previous
   </a>
   {% endif %}
-  <span style="align-self:center;font-size:var(--text-sm);color:var(--color-text-muted)">Page {{ page|add:"1" }}</span>
+  <span
+    style="
+      align-self: center;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    "
+    >Page {{ page|add:'1' }}</span
+  >
   {% if has_next %}
-  <a href="?bucket={{ selected_bucket }}&prefix={{ prefix }}&page={{ page|add:"1" }}"
-     class="btn btn-outline btn-sm">
+  <a
+    href="?bucket={{ selected_bucket }}&prefix={{ prefix }}&page={{ page|add:'1' }}"
+    class="btn btn-outline btn-sm"
+  >
     Next <i class="lni lni-chevron-right"></i>
   </a>
   {% endif %}
 </div>
-{% endif %}
-{% endif %}
-{% endblock %}
-
-{% block extra_js %}
+{% endif %} {% endif %} {% endblock %} {% block extra_js %}
 <script>
   function downloadArtifact(key) {
-    fetch("{% url 'admin_ops:storage_download_url' %}?key=" + encodeURIComponent(key))
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (d.url) { window.open(d.url, '_blank'); }
-        else { showToast('Could not generate download URL.', 'error'); }
+    fetch(
+      "{% url 'admin_ops:storage_download_url' %}?key=" +
+        encodeURIComponent(key),
+    )
+      .then(function (r) {
+        return r.json();
       })
-      .catch(function() { showToast('Download URL request failed.', 'error'); });
+      .then(function (d) {
+        if (d.url) {
+          window.open(d.url, "_blank");
+        } else {
+          showToast("Could not generate download URL.", "error");
+        }
+      })
+      .catch(function () {
+        showToast("Download URL request failed.", "error");
+      });
   }
 
   function copyKey(key) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(key).then(function() {
-        showToast('Key copied to clipboard.', 'success');
-      }).catch(function() {
-        fallbackCopy(key);
-      });
+      navigator.clipboard
+        .writeText(key)
+        .then(function () {
+          showToast("Key copied to clipboard.", "success");
+        })
+        .catch(function () {
+          fallbackCopy(key);
+        });
     } else {
       fallbackCopy(key);
     }
   }
 
   function fallbackCopy(text) {
-    var el = document.createElement('textarea');
+    var el = document.createElement("textarea");
     el.value = text;
-    el.style.position = 'fixed';
-    el.style.opacity = '0';
+    el.style.position = "fixed";
+    el.style.opacity = "0";
     document.body.appendChild(el);
     el.focus();
     el.select();
-    try { document.execCommand('copy'); showToast('Key copied.', 'success'); }
-    catch (e) { showToast('Copy failed — key: ' + text, 'error'); }
+    try {
+      document.execCommand("copy");
+      showToast("Key copied.", "success");
+    } catch (e) {
+      showToast("Copy failed — key: " + text, "error");
+    }
     document.body.removeChild(el);
   }
 </script>

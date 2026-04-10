@@ -1,6 +1,7 @@
 """
 REST API v1 — JSON endpoints (health, dashboard, stats).
 """
+
 import logging
 
 from django.conf import settings
@@ -38,7 +39,9 @@ query DocsStatsApi {
 """
 
 
-@extend_schema(summary="Service info", tags=["Health"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Service info", tags=["Health"], responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def service_info(request):
@@ -55,7 +58,9 @@ def service_info(request):
     return Response(payload)
 
 
-@extend_schema(summary="Overall health", tags=["Health"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Overall health", tags=["Health"], responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_view(request):
@@ -68,51 +73,74 @@ def health_view(request):
     return Response(payload)
 
 
-@extend_schema(summary="Database health", tags=["Health"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Database health", tags=["Health"], responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_database(request):
     try:
         from django.db import connection
+
         connection.ensure_connection()
         return Response({"status": "ok"})
     except Exception as exc:
         return Response({"status": "error", "error": str(exc)}, status=503)
 
 
-@extend_schema(summary="Cache health", tags=["Health"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Cache health", tags=["Health"], responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_cache(request):
     return Response({"status": "ok", "backend": "db"})
 
 
-@extend_schema(summary="Storage health", tags=["Health"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Storage health", tags=["Health"], responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_storage(request):
     url = getattr(settings, "S3STORAGE_API_URL", "")
-    return Response({"status": "configured" if url else "not_configured", "url": url or None})
+    return Response(
+        {"status": "configured" if url else "not_configured", "url": url or None}
+    )
 
 
-@extend_schema(summary="Endpoint stats", tags=["Stats"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Endpoint stats", tags=["Stats"], responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 def endpoint_stats(request):
-    token = request.session.get("operator", {}).get("token") if hasattr(request, "session") else None
+    token = (
+        request.session.get("operator", {}).get("token")
+        if hasattr(request, "session")
+        else None
+    )
     try:
         resp = graphql_query(_DOCS_STATS, token=token)
         data = (resp.get("data") or {}).get("docs") or {}
         stats = data.get("stats") or {}
-        return Response({"stats": stats, "endpointsByMethod": stats.get("endpointsByMethod") or []})
+        return Response(
+            {"stats": stats, "endpointsByMethod": stats.get("endpointsByMethod") or []}
+        )
     except Exception as exc:
         logger.warning("endpoint_stats: %s", exc)
         return Response({"stats": {}, "endpointsByMethod": []})
 
 
-@extend_schema(summary="Endpoint stats by user type", tags=["Stats"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Endpoint stats by user type",
+    tags=["Stats"],
+    responses={200: OpenApiTypes.OBJECT},
+)
 @api_view(["GET"])
 def endpoint_stats_by_user_type(request):
-    return Response({"byUserType": [], "note": "Populate when gateway exposes user-type breakdown."})
+    return Response(
+        {"byUserType": [], "note": "Populate when gateway exposes user-type breakdown."}
+    )
 
 
 def _page_info(total: int, limit: int, offset: int) -> dict:
@@ -125,7 +153,9 @@ def _page_info(total: int, limit: int, offset: int) -> dict:
     }
 
 
-@extend_schema(summary="Dashboard pages", tags=["Dashboard"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Dashboard pages", tags=["Dashboard"], responses={200: OpenApiTypes.OBJECT}
+)
 @api_view(["GET"])
 def dashboard_pages(request):
     limit = int(request.query_params.get("limit", 10))
@@ -138,7 +168,11 @@ def dashboard_pages(request):
     return Response({"items": items, "pageInfo": _page_info(total, limit, offset)})
 
 
-@extend_schema(summary="Dashboard endpoints", tags=["Dashboard"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Dashboard endpoints",
+    tags=["Dashboard"],
+    responses={200: OpenApiTypes.OBJECT},
+)
 @api_view(["GET"])
 def dashboard_endpoints(request):
     limit = int(request.query_params.get("limit", 10))
@@ -151,7 +185,11 @@ def dashboard_endpoints(request):
     return Response({"items": items, "pageInfo": _page_info(total, limit, offset)})
 
 
-@extend_schema(summary="Dashboard relationships", tags=["Dashboard"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Dashboard relationships",
+    tags=["Dashboard"],
+    responses={200: OpenApiTypes.OBJECT},
+)
 @api_view(["GET"])
 def dashboard_relationships(request):
     limit = int(request.query_params.get("limit", 20))
@@ -164,7 +202,11 @@ def dashboard_relationships(request):
     return Response({"items": items, "pageInfo": _page_info(total, limit, offset)})
 
 
-@extend_schema(summary="Dashboard postman", tags=["Dashboard"], responses={200: OpenApiTypes.OBJECT})
+@extend_schema(
+    summary="Dashboard postman",
+    tags=["Dashboard"],
+    responses={200: OpenApiTypes.OBJECT},
+)
 @api_view(["GET"])
 def dashboard_postman(request):
     limit = int(request.query_params.get("limit", 10))

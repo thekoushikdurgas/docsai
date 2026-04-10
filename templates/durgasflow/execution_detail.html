@@ -1,9 +1,215 @@
-{% extends "base.html" %}
-{% block title %}Execution {{ execution_id }}{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title
+%}Execution {{ execution.id|stringformat:"s"|slice:":8" }} — Durgasflow{%
+endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
 <div class="page-header">
-  <div><h1 class="page-title">Execution</h1><p class="page-subtitle"><code>{{ execution_id }}</code></p></div>
-  <a href="{% url 'durgasflow:execution_list' %}" class="btn btn-outline">All executions</a>
+  <div>
+    <h1 class="page-title">Execution Detail</h1>
+    <p class="page-subtitle">
+      <span class="df-exec-status-badge df-exec-status-{{ execution.status }}"
+        >{{ execution.status }}</span
+      >
+      &nbsp;{{ execution.workflow.name }}
+    </p>
+  </div>
+  <div class="page-actions">
+    <a
+      href="{% url 'durgasflow:execution_list' %}?workflow_id={{ execution.workflow_id }}"
+      class="btn btn-outline"
+    >
+      <i class="lni lni-arrow-left"></i> Executions
+    </a>
+    <a
+      href="{% url 'durgasflow:workflow_detail' execution.workflow_id %}"
+      class="btn btn-outline"
+    >
+      <i class="lni lni-layers"></i> Workflow
+    </a>
+    <a
+      href="{% url 'durgasflow:execution_json' execution.id %}"
+      class="btn btn-outline"
+      target="_blank"
+    >
+      <i class="lni lni-code-alt"></i> JSON
+    </a>
+  </div>
 </div>
-{% include "components/alert.html" with type="info" message="Execution payload from engine (stub)." %}
+
+<!-- Header cards -->
+<div
+  style="
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  "
+>
+  <div class="card">
+    <div class="card-body" style="text-align: center">
+      <div
+        class="df-exec-status-badge df-exec-status-{{ execution.status }}"
+        style="font-size: 1rem; padding: 0.5rem 1rem"
+      >
+        {{ execution.status|upper }}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="text-align: center">
+      <div class="df-stat-value">{{ execution.trigger_type }}</div>
+      <div class="df-stat-label">Trigger</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="text-align: center">
+      <div class="df-stat-value">
+        {% if execution.duration_seconds %}{{ execution.duration_seconds }}s{%
+        else %}—{% endif %}
+      </div>
+      <div class="df-stat-label">Duration</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body" style="text-align: center">
+      <div class="df-stat-value">{{ logs|length }}</div>
+      <div class="df-stat-label">Node Logs</div>
+    </div>
+  </div>
+</div>
+
+{% if execution.error_message %}
+<div
+  class="card"
+  style="
+    border-left: 4px solid var(--c360-danger);
+    margin-bottom: var(--space-4);
+  "
+>
+  <div class="card-body">
+    <strong><i class="lni lni-cross-circle"></i> Error:</strong> {{
+    execution.error_message }}
+  </div>
+</div>
+{% endif %}
+
+<!-- Timing -->
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div class="card-header"><h3 class="card-title">Timing</h3></div>
+  <div class="card-body" style="display: flex; gap: var(--space-6)">
+    <div class="df-meta-row">
+      <span class="df-meta-label">Started</span>
+      <span
+        >{% if execution.started_at %}{{ execution.started_at|date:"M d, Y
+        H:i:s" }}{% else %}—{% endif %}</span
+      >
+    </div>
+    <div class="df-meta-row">
+      <span class="df-meta-label">Finished</span>
+      <span
+        >{% if execution.finished_at %}{{ execution.finished_at|date:"M d, Y
+        H:i:s" }}{% else %}—{% endif %}</span
+      >
+    </div>
+    <div class="df-meta-row">
+      <span class="df-meta-label">Triggered by</span>
+      <span>{{ execution.triggered_by|default:"—" }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Node Execution Timeline -->
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div class="card-header">
+    <h3 class="card-title">Node Execution Timeline</h3>
+  </div>
+  <div class="card-body" style="padding: 0">
+    {% if logs %}
+    <div class="df-exec-timeline">
+      {% for log in logs %}
+      <div
+        class="df-exec-log-item df-log-{{ log.level }}"
+        id="log-{{ log.id }}"
+      >
+        <div
+          class="df-exec-log-header"
+          onclick="this.parentElement.classList.toggle('df-expanded')"
+        >
+          <span class="df-log-level df-log-level-{{ log.level }}"
+            >{{ log.level|upper }}</span
+          >
+          <span class="df-log-node-name"
+            >{{ log.node_name|default:log.node_type }}</span
+          >
+          <span class="df-log-node-type df-mono"
+            >{{ log.node_type|truncatechars:40 }}</span
+          >
+          <span class="df-log-time" style="margin-left: auto">
+            {% if log.started_at %}{{ log.started_at|date:"H:i:s" }}{% endif %}
+          </span>
+          <i class="lni lni-chevron-down df-expand-icon"></i>
+        </div>
+        <div class="df-exec-log-body">
+          <p class="df-log-message">{{ log.message }}</p>
+          {% if log.data %}
+          <pre class="df-json-viewer" id="log-data-{{ log.id }}">
+{{ log.data|safe }}</pre
+          >
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="padding: var(--space-4)">
+      {% include "components/alert.html" with type="info" message="No node logs
+      recorded for this execution." %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Result Data -->
+{% if execution.result_data %}
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div class="card-header">
+    <h3 class="card-title">Result Data</h3>
+    <button class="btn btn-xs btn-outline" onclick="copyJson('df-result-json')">
+      <i class="lni lni-files"></i> Copy
+    </button>
+  </div>
+  <div class="card-body" style="padding: 0">
+    <pre class="df-json-viewer" id="df-result-json">
+{{ execution.result_data|safe }}</pre
+    >
+  </div>
+</div>
+{% endif %} {% endblock %} {% block extra_js %}
+<script src="{% static 'admin/js/durgasflow.js' %}"></script>
+<script>
+  function copyJson(id) {
+    var el = document.getElementById(id);
+    if (el) navigator.clipboard.writeText(el.textContent);
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    // Pretty-print JSON in pre elements
+    document.querySelectorAll(".df-json-viewer").forEach(function (el) {
+      try {
+        var parsed = JSON.parse(el.textContent);
+        el.textContent = JSON.stringify(parsed, null, 2);
+        if (
+          window.DurgasflowDashboard &&
+          window.DurgasflowDashboard.colorizeJson
+        ) {
+          el.innerHTML = window.DurgasflowDashboard.colorizeJson(
+            el.textContent,
+          );
+        }
+      } catch (e) {}
+    });
+  });
+</script>
 {% endblock %}

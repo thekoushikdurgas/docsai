@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 def _norm(path: str) -> str:
     """Normalize path separators (backslash to forward slash).
-    
+
     Args:
         path: Path string to normalize
-        
+
     Returns:
         Normalized path string
     """
@@ -27,10 +27,10 @@ def _norm(path: str) -> str:
 class MediaManagerService(BaseService):
     """
     High-level service for managing media files with CRUD, list, sync, and sync summary operations.
-    
+
     This service acts as a facade over MediaFileManagerService and MediaSyncService,
     providing a unified interface for media file operations.
-    
+
     Extends BaseService for consistent logging and error handling (Phase 3.1.1).
     """
 
@@ -48,28 +48,28 @@ class MediaManagerService(BaseService):
     ) -> List[Dict[str, Any]]:
         """
         List files for a resource type with filtering and sorting.
-        
+
         Supports filters:
         - search: Filter by filename (case-insensitive)
         - subdirectory: Filter by subdirectory (for relationships and postman)
         - sort_by: Sort field ('name', 'size', 'modified')
         - sort_order: Sort direction ('asc' or 'desc')
-        
+
         Includes project dir for resource_type 'project'.
-        
+
         Args:
             resource_type: Type of resource ('pages', 'endpoints', 'relationships', 'postman', 'n8n', 'project')
             filters: Optional dictionary of filter criteria
-            
+
         Returns:
             List of file dictionaries with metadata (file_path, relative_path, name, size, modified, etc.)
-            
+
         Raises:
             ValueError: If resource_type is invalid
         """
         if not resource_type:
             raise ValueError("resource_type is required")
-        
+
         filters = filters or {}
         files: List[Dict[str, Any]] = []
 
@@ -81,16 +81,18 @@ class MediaManagerService(BaseService):
                         try:
                             st = p.stat()
                             rel = str(p.relative_to(self.media_root)).replace("\\", "/")
-                            files.append({
-                                "file_path": str(p),
-                                "relative_path": _norm(rel),
-                                "name": p.name,
-                                "size": st.st_size,
-                                "modified": st.st_mtime,
-                                "resource_type": "project",
-                                "s3_key": None,
-                                "sync_status": "unknown",
-                            })
+                            files.append(
+                                {
+                                    "file_path": str(p),
+                                    "relative_path": _norm(rel),
+                                    "name": p.name,
+                                    "size": st.st_size,
+                                    "modified": st.st_mtime,
+                                    "resource_type": "project",
+                                    "s3_key": None,
+                                    "sync_status": "unknown",
+                                }
+                            )
                         except (OSError, ValueError):
                             continue
             files.sort(key=lambda x: x["name"].lower())
@@ -103,7 +105,7 @@ class MediaManagerService(BaseService):
         search = (filters.get("search") or "").strip().lower()
         if search:
             files = [x for x in files if search in (x.get("name") or "").lower()]
-        
+
         # Subdirectory filter (for relationships and postman)
         subdirectory = filters.get("subdirectory")
         if subdirectory:
@@ -133,10 +135,10 @@ class MediaManagerService(BaseService):
     def get_file_detail(self, file_path: str) -> Optional[Dict[str, Any]]:
         """
         Get detailed information about a specific file.
-        
+
         Args:
             file_path: Path to the file
-            
+
         Returns:
             Dictionary containing:
             - content: File content (if readable)
@@ -149,7 +151,7 @@ class MediaManagerService(BaseService):
         """
         if not file_path:
             raise ValueError("file_path is required")
-        
+
         return self.file_manager.get_file_detail(file_path)
 
     def create_file(
@@ -160,19 +162,19 @@ class MediaManagerService(BaseService):
     ) -> Dict[str, Any]:
         """
         Create a new file for the specified resource type.
-        
+
         Args:
             resource_type: Type of resource ('pages', 'endpoints', 'relationships', 'postman', 'n8n')
             data: File data dictionary (must include required fields for resource type)
             auto_sync: If True, automatically sync file to S3 after creation
-            
+
         Returns:
             Dictionary with:
             - success: Boolean indicating success
             - file_path: Path to created file (if successful)
             - sync_result: Sync result dictionary (if auto_sync=True)
             - error: Error message (if failed)
-            
+
         Raises:
             ValueError: If resource_type or data is invalid
         """
@@ -180,7 +182,7 @@ class MediaManagerService(BaseService):
             raise ValueError("resource_type is required")
         if not data:
             raise ValueError("data is required")
-        
+
         out = self.file_manager.create_file(resource_type, data)
         if out.get("success") and auto_sync and out.get("file_path"):
             sync = self.sync_service.sync_file_to_s3(out["file_path"])
@@ -188,7 +190,7 @@ class MediaManagerService(BaseService):
             self.logger.debug(f"Created and synced file: {out['file_path']}")
         elif out.get("success"):
             self.logger.debug(f"Created file: {out.get('file_path', 'unknown')}")
-        
+
         return out
 
     def update_file(
@@ -199,19 +201,19 @@ class MediaManagerService(BaseService):
     ) -> Dict[str, Any]:
         """
         Update an existing file.
-        
+
         Args:
             file_path: Path to the file to update
             data: Updated file data dictionary
             auto_sync: If True, automatically sync file to S3 after update
-            
+
         Returns:
             Dictionary with:
             - success: Boolean indicating success
             - file_path: Path to updated file (if successful)
             - sync_result: Sync result dictionary (if auto_sync=True)
             - error: Error message (if failed)
-            
+
         Raises:
             ValueError: If file_path or data is invalid
         """
@@ -219,7 +221,7 @@ class MediaManagerService(BaseService):
             raise ValueError("file_path is required")
         if not data:
             raise ValueError("data is required")
-        
+
         out = self.file_manager.update_file(file_path, data)
         if out.get("success") and auto_sync:
             sync = self.sync_service.sync_file_to_s3(file_path)
@@ -227,59 +229,64 @@ class MediaManagerService(BaseService):
             self.logger.debug(f"Updated and synced file: {file_path}")
         elif out.get("success"):
             self.logger.debug(f"Updated file: {file_path}")
-        
+
         return out
 
-    def delete_file(self, file_path: str, delete_remote: bool = False) -> Dict[str, Any]:
+    def delete_file(
+        self, file_path: str, delete_remote: bool = False
+    ) -> Dict[str, Any]:
         """Delete local file; optionally delete from S3."""
         return self.file_manager.delete_file(file_path, delete_remote=delete_remote)
 
     def sync_file(self, file_path: str, direction: str = "to_lambda") -> Dict[str, Any]:
         """
         Sync a single file to or from S3.
-        
+
         Args:
             file_path: Path to the file to sync
             direction: Sync direction ('to_lambda' for upload to S3, 'from_lambda' for download)
                       Note: 'from_lambda' is not yet implemented
-            
+
         Returns:
             Dictionary with:
             - success: Boolean indicating success
             - file_path: Path to synced file (if successful)
             - error: Error message (if failed)
-            
+
         Raises:
             ValueError: If file_path is invalid or direction is unsupported
         """
         if not file_path:
             raise ValueError("file_path is required")
-        
+
         if direction == "from_lambda":
-            return {"success": False, "error": "Sync from Lambda/S3 not implemented yet"}
-        
+            return {
+                "success": False,
+                "error": "Sync from Lambda/S3 not implemented yet",
+            }
+
         if direction != "to_lambda":
             raise ValueError(f"Unsupported sync direction: {direction}")
-        
+
         result = self.sync_service.sync_file_to_s3(file_path)
         if result.get("success"):
             self.logger.debug(f"Synced file to S3: {file_path}")
-        
+
         return result
 
     def get_sync_summary(self) -> Dict[str, Any]:
         """
         Get aggregated sync statistics for all resource types.
-        
+
         Returns a summary of file counts and sync status across all resource types.
         Currently uses placeholder sync status (all files marked as 'not_synced').
         Future enhancement: Implement real sync status checking.
-        
+
         Returns:
             Dictionary with:
             - by_type: Dictionary mapping resource type to sync statistics
             - overall: Overall statistics across all resource types
-            
+
         Example:
             {
                 "by_type": {
@@ -294,7 +301,14 @@ class MediaManagerService(BaseService):
                 }
             }
         """
-        resource_types = ["pages", "endpoints", "relationships", "postman", "n8n", "project"]
+        resource_types = [
+            "pages",
+            "endpoints",
+            "relationships",
+            "postman",
+            "n8n",
+            "project",
+        ]
         by_type: Dict[str, Dict[str, Any]] = {}
         total_files = 0
         total_synced = 0

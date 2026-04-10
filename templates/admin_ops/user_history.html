@@ -1,23 +1,47 @@
 {% extends "base.html" %}
 {% load static %}
-
 {% block title %}User activity — Contact360 Admin{% endblock %}
-
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">User activity</h1>
     <p class="page-subtitle">{{ user_id }}</p>
   </div>
-  <div class="page-actions" style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center">
-    <form method="get" style="display:flex;gap:var(--space-2);align-items:center">
-      <select name="event_type" class="form-control" onchange="this.form.submit()" style="min-width:160px">
-        <option value="all" {% if event_type == 'all' %}selected{% endif %}>All events</option>
-        <option value="login" {% if event_type == 'login' %}selected{% endif %}>Login</option>
-        <option value="registration" {% if event_type == 'registration' %}selected{% endif %}>Registration</option>
+  <div
+    class="page-actions"
+    style="
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      align-items: center;
+    "
+  >
+    <form
+      method="get"
+      style="display: flex; gap: var(--space-2); align-items: center"
+    >
+      <select
+        name="event_type"
+        class="form-control"
+        onchange="this.form.submit()"
+        style="min-width: 160px"
+      >
+        <option value="all" {% if event_type == "all" %}selected{% endif %}>
+          All events
+        </option>
+        <option value="login" {% if event_type == "login" %}selected{% endif %}>
+          Login
+        </option>
+        <option value="registration" {% if event_type == "registration" %}selected{% endif %}>
+          Registration
+        </option>
       </select>
     </form>
-    <a href="{% url 'admin_ops:user_detail' user_id=user_id %}" class="btn btn-outline">User detail</a>
+    <a
+      href="{% url 'admin_ops:user_detail' user_id=user_id %}"
+      class="btn btn-outline"
+      >User detail</a
+    >
     <a href="{% url 'admin_ops:users' %}" class="btn btn-outline">Users</a>
   </div>
 </div>
@@ -27,7 +51,7 @@
 {% endif %}
 
 <div class="card">
-  <div class="card-body" style="padding:0">
+  <div class="card-body" style="padding: 0">
     {% if history %}
     <div class="table-wrap">
       <table class="table">
@@ -43,27 +67,58 @@
           {% for h in history %}
           <tr>
             <td>{{ h.created_at|default:"—" }}</td>
-            <td><span class="badge badge-info">{{ h.event_type|default:"—" }}</span></td>
-            <td>{{ h.user_name|default:h.user_email|default:h.user_id|default:"—" }}</td>
-            <td class="text-muted">{% if h.ip %}{{ h.ip }}{% endif %}{% if h.city or h.country %} · {{ h.city|default:"" }}{% if h.city and h.country %}, {% endif %}{{ h.country|default:"" }}{% endif %}</td>
+            <td>
+              <span class="badge badge-info"
+                >{{ h.event_type|default:"—" }}</span
+              >
+            </td>
+            <td>
+              {{ h.user_name|default:h.user_email|default:h.user_id|default:"—"
+              }}
+            </td>
+            <td class="text-muted">
+              {% if h.ip %}{{ h.ip }}{% endif %}{% if h.city or h.country %} ·
+              {{ h.city|default:"" }}{% if h.city and h.country %}, {% endif
+              %}{{ h.country|default:"" }}{% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
     {% else %}
-    <p class="text-muted" style="padding:var(--space-6)">No activity returned (empty result or gateway filter not supported).</p>
+    <p class="text-muted" style="padding: var(--space-6)">
+      No activity returned (empty result or gateway filter not supported).
+    </p>
     {% endif %}
   </div>
   {% if total_pages > 1 %}
-  <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-2)">
-    <span class="text-muted">Page {{ page }} of {{ total_pages }} ({{ total }} records)</span>
-    <div style="display:flex;gap:var(--space-2)">
+  <div
+    class="card-footer"
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    "
+  >
+    <span class="text-muted"
+      >Page {{ page }} of {{ total_pages }} ({{ total }} records)</span
+    >
+    <div style="display: flex; gap: var(--space-2)">
       {% if page > 1 %}
-      <a class="btn btn-sm btn-outline" href="?page={{ page|add:'-1' }}{% if event_type != 'all' %}&event_type={{ event_type }}{% endif %}">Previous</a>
-      {% endif %}
-      {% if page < total_pages %}
-      <a class="btn btn-sm btn-outline" href="?page={{ page|add:'1' }}{% if event_type != 'all' %}&event_type={{ event_type }}{% endif %}">Next</a>
+      <a
+        class="btn btn-sm btn-outline"
+        href="?page={{ page|add:'-1' }}{% if event_type != 'all' %}&event_type={{ event_type }}{% endif %}"
+        >Previous</a
+      >
+      {% endif %} {% if page < total_pages %}
+      <a
+        class="btn btn-sm btn-outline"
+        href="?page={{ page|add:'1' }}{% if event_type != 'all' %}&event_type={{ event_type }}{% endif %}"
+        >Next</a
+      >
       {% endif %}
     </div>
   </div>

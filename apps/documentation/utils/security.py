@@ -3,6 +3,7 @@ Security utilities for documentation app.
 
 Provides enhanced security measures for file operations and API access.
 """
+
 import logging
 import re
 from pathlib import Path
@@ -14,17 +15,15 @@ logger = logging.getLogger(__name__)
 
 # Dangerous path patterns
 DANGEROUS_PATH_PATTERNS = [
-    r'\.\.',  # Directory traversal
-    r'^\s*/',  # Absolute paths
-    r'[\x00-\x1f\x7f-\x9f]',  # Control characters
+    r"\.\.",  # Directory traversal
+    r"^\s*/",  # Absolute paths
+    r"[\x00-\x1f\x7f-\x9f]",  # Control characters
     r'[<>:"|?*]',  # Windows forbidden characters
-    r'^\.+$',  # Current/parent directory only
+    r"^\.+$",  # Current/parent directory only
 ]
 
 # Allowed file extensions for media files
-ALLOWED_EXTENSIONS: Set[str] = {
-    '.json', '.md', '.txt', '.csv', '.yaml', '.yml'
-}
+ALLOWED_EXTENSIONS: Set[str] = {".json", ".md", ".txt", ".csv", ".yaml", ".yml"}
 
 # Maximum file size (10MB)
 MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -57,7 +56,7 @@ class SecurityValidator:
         try:
             normalized = Path(path).resolve()
             # Additional check: ensure no .. components remain after resolution
-            if '..' in str(normalized) or str(normalized).startswith('/'):
+            if ".." in str(normalized) or str(normalized).startswith("/"):
                 return False
         except (ValueError, OSError):
             return False
@@ -109,17 +108,19 @@ class SecurityValidator:
             return ""
 
         # Remove path separators and dangerous characters
-        sanitized = re.sub(r'[<>:"/\\|?*\x00-\x1f\x7f-\x9f]', '', filename)
+        sanitized = re.sub(r'[<>:"/\\|?*\x00-\x1f\x7f-\x9f]', "", filename)
 
         # Limit length
         if len(sanitized) > 255:
             name, ext = Path(sanitized).stem, Path(sanitized).suffix
-            sanitized = name[:255-len(ext)] + ext
+            sanitized = name[: 255 - len(ext)] + ext
 
         return sanitized.strip()
 
     @staticmethod
-    def validate_request_origin(request: HttpRequest, allowed_origins: Optional[Set[str]] = None) -> bool:
+    def validate_request_origin(
+        request: HttpRequest, allowed_origins: Optional[Set[str]] = None
+    ) -> bool:
         """
         Validate request origin for CSRF protection.
 
@@ -132,17 +133,18 @@ class SecurityValidator:
         """
         if allowed_origins is None:
             # Default allowed origins (can be configured)
-            allowed_origins = {'localhost', '127.0.0.1'}
+            allowed_origins = {"localhost", "127.0.0.1"}
 
-        origin = request.META.get('HTTP_ORIGIN', '')
-        referer = request.META.get('HTTP_REFERER', '')
+        origin = request.META.get("HTTP_ORIGIN", "")
+        referer = request.META.get("HTTP_REFERER", "")
 
         # Extract domain from origin/referer
         def extract_domain(url: str) -> str:
             try:
                 from urllib.parse import urlparse
+
                 parsed = urlparse(url)
-                return parsed.netloc.split(':')[0]  # Remove port
+                return parsed.netloc.split(":")[0]  # Remove port
             except:
                 return ""
 
@@ -156,8 +158,14 @@ class AuditLogger:
     """Audit logging for security events."""
 
     @staticmethod
-    def log_file_access(request: HttpRequest, action: str, resource: str,
-                       resource_type: str = "", success: bool = True, details: str = ""):
+    def log_file_access(
+        request: HttpRequest,
+        action: str,
+        resource: str,
+        resource_type: str = "",
+        success: bool = True,
+        details: str = "",
+    ):
         """
         Log file access operations.
 
@@ -169,8 +177,8 @@ class AuditLogger:
             success: Whether operation succeeded
             details: Additional details
         """
-        user = getattr(request, 'user', None)
-        user_id = user.id if user and user.is_authenticated else 'anonymous'
+        user = getattr(request, "user", None)
+        user_id = user.id if user and user.is_authenticated else "anonymous"
         ip = AuditLogger._get_client_ip(request)
 
         logger.debug(
@@ -179,8 +187,13 @@ class AuditLogger:
         )
 
     @staticmethod
-    def log_api_access(request: HttpRequest, endpoint: str, method: str,
-                      success: bool = True, response_time: Optional[float] = None):
+    def log_api_access(
+        request: HttpRequest,
+        endpoint: str,
+        method: str,
+        success: bool = True,
+        response_time: Optional[float] = None,
+    ):
         """
         Log API access operations.
 
@@ -191,8 +204,8 @@ class AuditLogger:
             success: Whether request succeeded
             response_time: Response time in milliseconds
         """
-        user = getattr(request, 'user', None)
-        user_id = user.id if user and user.is_authenticated else 'anonymous'
+        user = getattr(request, "user", None)
+        user_id = user.id if user and user.is_authenticated else "anonymous"
         ip = AuditLogger._get_client_ip(request)
 
         response_info = f", response_time={response_time}ms" if response_time else ""
@@ -212,8 +225,8 @@ class AuditLogger:
             event_type: Type of security event
             details: Event details
         """
-        user = getattr(request, 'user', None)
-        user_id = user.id if user and user.is_authenticated else 'anonymous'
+        user = getattr(request, "user", None)
+        user_id = user.id if user and user.is_authenticated else "anonymous"
         ip = AuditLogger._get_client_ip(request)
 
         logger.warning(
@@ -231,11 +244,11 @@ class AuditLogger:
         Returns:
             str: Client IP address
         """
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(",")[0].strip()
         else:
-            ip = request.META.get('REMOTE_ADDR', '')
+            ip = request.META.get("REMOTE_ADDR", "")
         return ip
 
 
@@ -249,16 +262,20 @@ def require_secure_path(view_func):
         # file_path is guaranteed to be safe
         pass
     """
+
     def wrapper(request, *args, **kwargs):
         # Check all string kwargs for path safety
         for key, value in kwargs.items():
-            if isinstance(value, str) and not SecurityValidator.validate_path_safety(value):
+            if isinstance(value, str) and not SecurityValidator.validate_path_safety(
+                value
+            ):
                 AuditLogger.log_security_event(
                     request,
                     "path_traversal_attempt",
-                    f"Unsafe path detected in {key}: {value}"
+                    f"Unsafe path detected in {key}: {value}",
                 )
                 raise SuspiciousOperation(f"Unsafe path detected: {value}")
 
         return view_func(request, *args, **kwargs)
+
     return wrapper

@@ -1,4 +1,5 @@
 """Page Builder — dashboard, upload, editor, JSON API."""
+
 import io
 import json
 import logging
@@ -150,21 +151,29 @@ def upload_page_view(request):
 @require_http_methods(["POST"])
 def upload_view(request):
     if not S3STORAGE_ENABLED:
-        return JsonResponse({"success": False, "error": "S3 storage is not configured."}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "S3 storage is not configured."}, status=400
+        )
 
     file = request.FILES.get("file")
     if not file:
-        return JsonResponse({"success": False, "error": "No file provided."}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "No file provided."}, status=400
+        )
 
     bucket_id = (request.POST.get("bucket_id") or _default_bucket()).strip()
     if not bucket_id:
-        return JsonResponse({"success": False, "error": "No bucket configured."}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "No bucket configured."}, status=400
+        )
 
     try:
         raw_bytes = file.read()
         data = json.loads(raw_bytes.decode("utf-8"))
     except Exception as exc:
-        return JsonResponse({"success": False, "error": f"Invalid JSON: {exc}"}, status=400)
+        return JsonResponse(
+            {"success": False, "error": f"Invalid JSON: {exc}"}, status=400
+        )
 
     if data.get("kind") != "page_spec":
         return JsonResponse(
@@ -179,10 +188,18 @@ def upload_view(request):
 
     try:
         client = _s3_client()
-        result = client.upload_json(bucket_id=bucket_id, file=io.BytesIO(raw_bytes), filename=file.name)
+        result = client.upload_json(
+            bucket_id=bucket_id, file=io.BytesIO(raw_bytes), filename=file.name
+        )
         file_key = (result.get("fileKey") or result.get("file_key") or "").strip()
         if not file_key:
-            return JsonResponse({"success": False, "error": "Upload succeeded but no fileKey returned."}, status=500)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Upload succeeded but no fileKey returned.",
+                },
+                status=500,
+            )
     except LambdaAPIError as exc:
         return JsonResponse({"success": False, "error": str(exc)}, status=500)
 
@@ -278,7 +295,11 @@ def page_spec_json_view(request, spec_id: int):
         return JsonResponse({"success": False, "error": str(exc)}, status=500)
 
     out = deepcopy(data)
-    if spec.sections_override and isinstance(spec.sections_override, list) and len(spec.sections_override) > 0:
+    if (
+        spec.sections_override
+        and isinstance(spec.sections_override, list)
+        and len(spec.sections_override) > 0
+    ):
         out["sections"] = spec.sections_override
     return JsonResponse(
         {
@@ -300,10 +321,14 @@ def save_sections_view(request, spec_id: int):
     try:
         payload = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "Invalid JSON body."}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Invalid JSON body."}, status=400
+        )
     sections = payload.get("sections")
     if not isinstance(sections, list):
-        return JsonResponse({"success": False, "error": "sections must be a list."}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "sections must be a list."}, status=400
+        )
     spec.sections_override = sections
     spec.section_count = len(sections)
     spec.save(update_fields=["sections_override", "section_count", "updated_at"])

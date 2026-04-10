@@ -1,17 +1,21 @@
-{% comment %}
-Usage: {% include "components/card.html" with value="1,234" label="Total Users" icon="lni-users" color="primary" trend="+12%" trend_dir="up" %}
-{% endcomment %}
+{% comment %} Usage: {% include "components/card.html" with value="1,234"
+label="Total Users" icon="lni-users" color="primary" trend="+12%" trend_dir="up"
+%} {% endcomment %}
 <div class="kpi-card">
   <div class="kpi-icon {{ color|default:'primary' }}" aria-hidden="true">
     <i class="lni {{ icon|default:'lni-bar-chart' }}"></i>
   </div>
   <div class="kpi-body">
     {# |default treats 0 as empty — use explicit check so real zeros render #}
-    <div class="kpi-value">{% if value == None or value == "" %}—{% else %}{{ value }}{% endif %}</div>
+    <div class="kpi-value">
+      {% if value == None or value == "" %}—{% else %}{{ value }}{% endif %}
+    </div>
     <div class="kpi-label">{{ label }}</div>
     {% if trend %}
     <div class="kpi-trend {{ trend_dir|default:'up' }}">
-      <i class="lni {% if trend_dir == 'up' %}lni-arrow-up{% else %}lni-arrow-down{% endif %}"></i>
+      <i
+        class="lni {% if trend_dir == 'up' %}lni-arrow-up{% else %}lni-arrow-down{% endif %}"
+      ></i>
       {{ trend }}
     </div>
     {% endif %}

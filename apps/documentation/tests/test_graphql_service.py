@@ -15,7 +15,9 @@ from unittest.mock import Mock, patch, MagicMock
 from django.test import TestCase
 from django.core.cache import cache
 
-from apps.documentation.services.graphql_documentation_service import GraphQLDocumentationService
+from apps.documentation.services.graphql_documentation_service import (
+    GraphQLDocumentationService,
+)
 from apps.core.services.graphql_client import GraphQLError
 
 
@@ -61,7 +63,7 @@ class GraphQLDocumentationServiceTestCase(TestCase):
                     "contentUrl": "/content/test",
                     "lastUpdated": "2024-01-01",
                     "version": "1.0",
-                    "id": "123"
+                    "id": "123",
                 }
             }
         }
@@ -109,7 +111,7 @@ class GraphQLDocumentationServiceTestCase(TestCase):
                             "contentUrl": "/content/1",
                             "lastUpdated": "2024-01-01",
                             "version": "1.0",
-                            "id": "1"
+                            "id": "1",
                         },
                         {
                             "pageId": "page-2",
@@ -119,10 +121,10 @@ class GraphQLDocumentationServiceTestCase(TestCase):
                             "contentUrl": "/content/2",
                             "lastUpdated": "2024-01-02",
                             "version": "1.0",
-                            "id": "2"
-                        }
+                            "id": "2",
+                        },
                     ],
-                    "total": 2
+                    "total": 2,
                 }
             }
         }
@@ -162,19 +164,14 @@ class GraphQLDocumentationServiceTestCase(TestCase):
         self.assertEqual(self.service.cache_hits, 1)
         # Should not call execute_query when cache hit
         self.service.client.execute_query.assert_not_called()
-        
+
         # Restore original
         self.service.client.execute_query = original_execute
 
     def test_list_pages_with_filters(self):
         """Test list_pages with various filters."""
         mock_result = {
-            "documentation": {
-                "documentationPages": {
-                    "pages": [],
-                    "total": 0
-                }
-            }
+            "documentation": {"documentationPages": {"pages": [], "total": 0}}
         }
         self.service.client = Mock()
         self.service.client.execute_query.return_value = mock_result
@@ -185,7 +182,7 @@ class GraphQLDocumentationServiceTestCase(TestCase):
             include_deleted=True,
             status="active",
             limit=10,
-            offset=5
+            offset=5,
         )
 
         call_args = self.service.client.execute_query.call_args
@@ -211,7 +208,7 @@ class GraphQLDocumentationServiceTestCase(TestCase):
                 "createDocumentationPage": {
                     "pageId": "new-page",
                     "title": "New Page",
-                    "id": "123"
+                    "id": "123",
                 }
             }
         }
@@ -222,7 +219,7 @@ class GraphQLDocumentationServiceTestCase(TestCase):
         page_data = {
             "page_id": "new-page",
             "metadata": {"title": "New Page"},
-            "page_type": "docs"
+            "page_type": "docs",
         }
 
         result = self.service.create_page(page_data)
@@ -248,16 +245,14 @@ class GraphQLDocumentationServiceTestCase(TestCase):
                 "updateDocumentationPage": {
                     "pageId": "test-page",
                     "title": "Updated Title",
-                    "id": "123"
+                    "id": "123",
                 }
             }
         }
         self.service.client = Mock()
         self.service.client.execute_mutation.return_value = mock_result
 
-        page_data = {
-            "metadata": {"title": "Updated Title"}
-        }
+        page_data = {"metadata": {"title": "Updated Title"}}
 
         result = self.service.update_page("test-page", page_data)
 
@@ -270,16 +265,14 @@ class GraphQLDocumentationServiceTestCase(TestCase):
     def test_update_page_invalidates_cache(self):
         """Test update_page attempts cache invalidation."""
         mock_result = {
-            "documentation": {
-                "updateDocumentationPage": {"pageId": "test-page"}
-            }
+            "documentation": {"updateDocumentationPage": {"pageId": "test-page"}}
         }
         self.service.client = Mock()
         self.service.client.execute_mutation.return_value = mock_result
 
         # Mock _invalidate_cache if it exists, or just verify update_page completes
-        if hasattr(self.service, '_invalidate_cache'):
-            with patch.object(self.service, '_invalidate_cache') as mock_invalidate:
+        if hasattr(self.service, "_invalidate_cache"):
+            with patch.object(self.service, "_invalidate_cache") as mock_invalidate:
                 self.service.update_page("test-page", {"metadata": {}})
                 # Should attempt to invalidate cache
                 self.assertGreater(mock_invalidate.call_count, 0)
@@ -291,11 +284,7 @@ class GraphQLDocumentationServiceTestCase(TestCase):
     def test_delete_page_success(self):
         """Test delete_page with successful response."""
         mock_result = {
-            "documentation": {
-                "deleteDocumentationPage": {
-                    "pageId": "test-page"
-                }
-            }
+            "documentation": {"deleteDocumentationPage": {"pageId": "test-page"}}
         }
         self.service.client = Mock()
         self.service.client.execute_mutation.return_value = mock_result

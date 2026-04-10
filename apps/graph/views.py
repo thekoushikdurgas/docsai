@@ -22,11 +22,21 @@ def visualization_view(request):
         docs = (data.get("docs") or {}) if isinstance(data, dict) else {}
         rels = (docs.get("relationships") or {}).get("items") or []
         for r in rels:
-            graph_edges.append({"source": r["pageId"], "target": r["endpointId"], "label": r["usageType"]})
+            graph_edges.append(
+                {
+                    "source": r["pageId"],
+                    "target": r["endpointId"],
+                    "label": r["usageType"],
+                }
+            )
     except Exception as exc:
         logger.warning("graph data failed: %s", exc)
-    return render(request, "graph/visualization.html", {
-        "graph_nodes_json": json.dumps(graph_nodes),
-        "graph_edges_json": json.dumps(graph_edges),
-        "page_title": "Relationship Graph",
-    })
+    return render(
+        request,
+        "graph/visualization.html",
+        {
+            "graph_nodes_json": json.dumps(graph_nodes),
+            "graph_edges_json": json.dumps(graph_edges),
+            "page_title": "Relationship Graph",
+        },
+    )

@@ -1,0 +1,169 @@
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}Upload
+Workflow — Durgasflow{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Upload n8n Workflow</h1>
+    <p class="page-subtitle">Import an exported n8n workflow JSON file</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'durgasflow:dashboard' %}" class="btn btn-outline"
+      ><i class="lni lni-arrow-left"></i> Dashboard</a
+    >
+    <a href="{% url 'durgasflow:workflow_hub' %}" class="btn btn-outline"
+      ><i class="lni lni-grid-alt"></i> Hub</a
+    >
+  </div>
+</div>
+
+<div style="max-width: 640px; margin: 0 auto">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <i class="lni lni-cloud-upload"></i> Workflow JSON
+      </h3>
+    </div>
+    <div class="card-body">
+      {% if not s3_enabled %} {% include "components/alert.html" with
+      type="warning" message="S3 storage is not configured. Upload is disabled."
+      %} {% else %}
+
+      <div class="df-upload-zone" id="df-drop-zone">
+        <i
+          class="lni lni-upload"
+          style="font-size: 2.5rem; color: var(--c360-primary)"
+        ></i>
+        <p style="margin: 0.75rem 0 0.25rem">
+          Drag &amp; drop your n8n workflow JSON here
+        </p>
+        <p>
+          or
+          <label for="df-file-input" class="df-browse-link">browse files</label>
+        </p>
+        <p class="df-upload-hint">
+          Supported: exported n8n workflow JSON (.json) · max 2 MB
+        </p>
+        <input
+          type="file"
+          id="df-file-input"
+          accept=".json"
+          style="display: none"
+        />
+      </div>
+
+      <div id="df-file-info" class="df-file-info" style="display: none">
+        <i
+          class="lni lni-checkmark-circle"
+          style="color: var(--c360-success)"
+        ></i>
+        <span id="df-file-name"></span>
+        <span id="df-file-size" class="df-file-size"></span>
+        <button
+          type="button"
+          id="df-file-clear"
+          class="btn btn-xs btn-outline"
+          style="margin-left: 0.5rem"
+        >
+          &times; Clear
+        </button>
+      </div>
+
+      <div
+        class="df-upload-fields"
+        id="df-upload-fields"
+        style="display: none; margin-top: 1rem"
+      >
+        <div class="form-group">
+          <label class="form-label">Bucket ID</label>
+          <input
+            type="text"
+            id="df-bucket-id"
+            class="form-control"
+            value="{{ default_bucket }}"
+            placeholder="Bucket ID"
+          />
+          <small class="form-hint">S3 bucket to store the workflow JSON</small>
+        </div>
+        <div
+          class="progress"
+          id="df-progress"
+          style="display: none; margin: 1rem 0"
+        >
+          <div
+            class="progress-bar"
+            id="df-progress-bar"
+            style="width: 0%; transition: width 0.3s"
+          ></div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="df-upload-btn"
+          style="width: 100%"
+        >
+          <i class="lni lni-cloud-upload"></i> Upload Workflow
+        </button>
+      </div>
+
+      <div id="df-result" style="margin-top: 1rem"></div>
+
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Help card -->
+  <div class="card" style="margin-top: var(--space-4)">
+    <div class="card-header">
+      <h3 class="card-title">How to export from n8n</h3>
+    </div>
+    <div class="card-body">
+      <ol style="margin: 0; padding-left: 1.5rem; line-height: 2">
+        <li>Open your workflow in n8n</li>
+        <li>Click the <strong>⋮ menu</strong> → <strong>Download</strong></li>
+        <li>Save the <code>.json</code> file</li>
+        <li>Upload it here</li>
+      </ol>
+      <p style="margin-top: 0.5rem">
+        Or browse the
+        <a href="{% url 'durgasflow:workflow_hub' %}">Workflow Hub</a> for
+        pre-built templates.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'admin/js/durgasflow.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.UploadZone) {
+      window.UploadZone.init({
+        dropZoneId: "df-drop-zone",
+        fileInputId: "df-file-input",
+        fileInfoId: "df-file-info",
+        fileNameId: "df-file-name",
+        fileSizeId: "df-file-size",
+        fileClearId: "df-file-clear",
+        fieldsId: "df-upload-fields",
+        progressId: "df-progress",
+        progressBarId: "df-progress-bar",
+        uploadBtnId: "df-upload-btn",
+        bucketId: "df-bucket-id",
+        resultId: "df-result",
+        uploadUrl: '{% url "durgasflow:upload_api" %}',
+        csrfToken: "{{ csrf_token }}",
+        onSuccess: function (data) {
+          window.location.href =
+            '{% url "durgasflow:workflow_detail" "00000000-0000-0000-0000-000000000000" %}'.replace(
+              "00000000-0000-0000-0000-000000000000",
+              data.workflow_id,
+            );
+        },
+      });
+    }
+  });
+</script>
+{% endblock %}

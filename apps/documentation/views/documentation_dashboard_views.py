@@ -9,6 +9,7 @@ Implementation is split into:
 
 This module re-exports all media_manager_* views for urls.py compatibility.
 """
+
 from __future__ import annotations
 
 import json
@@ -166,14 +167,18 @@ def media_manager_dashboard(request: HttpRequest) -> HttpResponse:
     - Additional filters per resource type
     """
     # Determine active tab from URL path or query param
-    path_parts = request.path.strip('/').split('/')
-    if len(path_parts) >= 3 and path_parts[1] == 'media-manager' and path_parts[2] in VALID_TABS:
+    path_parts = request.path.strip("/").split("/")
+    if (
+        len(path_parts) >= 3
+        and path_parts[1] == "media-manager"
+        and path_parts[2] in VALID_TABS
+    ):
         active_tab = path_parts[2]
     else:
-        active_tab = request.GET.get('tab', 'pages')
+        active_tab = request.GET.get("tab", "pages")
 
     active_tab = _validate_tab(active_tab)
-    view_mode = _validate_view_mode(request.GET.get('view', 'list'))
+    view_mode = _validate_view_mode(request.GET.get("view", "list"))
 
     # Initialize services
     dashboard_service = get_media_manager_dashboard_service()
@@ -197,94 +202,101 @@ def media_manager_dashboard(request: HttpRequest) -> HttpResponse:
     try:
         # Extract filters from query params
         filters = {
-            'limit': int(request.GET.get('per_page', 20)),
-            'offset': (int(request.GET.get('page', 1)) - 1) * int(request.GET.get('per_page', 20)),
+            "limit": int(request.GET.get("per_page", 20)),
+            "offset": (int(request.GET.get("page", 1)) - 1)
+            * int(request.GET.get("per_page", 20)),
         }
 
         # Add resource-specific filters
-        if active_tab == 'pages':
-            if request.GET.get('page_type'):
-                filters['page_type'] = request.GET.get('page_type')
-            if request.GET.get('status'):
-                filters['status'] = request.GET.get('status')
-            if request.GET.get('state'):
-                filters['state'] = request.GET.get('state')
-            if request.GET.get('include_drafts'):
-                filters['include_drafts'] = request.GET.get('include_drafts', 'true').lower() == 'true'
-            if request.GET.get('include_deleted'):
-                filters['include_deleted'] = request.GET.get('include_deleted', 'false').lower() == 'true'
+        if active_tab == "pages":
+            if request.GET.get("page_type"):
+                filters["page_type"] = request.GET.get("page_type")
+            if request.GET.get("status"):
+                filters["status"] = request.GET.get("status")
+            if request.GET.get("state"):
+                filters["state"] = request.GET.get("state")
+            if request.GET.get("include_drafts"):
+                filters["include_drafts"] = (
+                    request.GET.get("include_drafts", "true").lower() == "true"
+                )
+            if request.GET.get("include_deleted"):
+                filters["include_deleted"] = (
+                    request.GET.get("include_deleted", "false").lower() == "true"
+                )
 
-            result = dashboard_service.get_resource_list('pages', filters)
+            result = dashboard_service.get_resource_list("pages", filters)
             initial_data = {
-                'pages': result.get('pages', [])[:filters['limit']],
-                'total': result.get('total', 0),
-                'source': result.get('source', 'local'),
+                "pages": result.get("pages", [])[: filters["limit"]],
+                "total": result.get("total", 0),
+                "source": result.get("source", "local"),
             }
 
-        elif active_tab == 'endpoints':
-            if request.GET.get('api_version'):
-                filters['api_version'] = request.GET.get('api_version')
-            if request.GET.get('method'):
-                filters['method'] = request.GET.get('method')
-            if request.GET.get('state'):
-                filters['state'] = request.GET.get('state')
-            if request.GET.get('lambda_service'):
-                filters['lambda_service'] = request.GET.get('lambda_service')
+        elif active_tab == "endpoints":
+            if request.GET.get("api_version"):
+                filters["api_version"] = request.GET.get("api_version")
+            if request.GET.get("method"):
+                filters["method"] = request.GET.get("method")
+            if request.GET.get("state"):
+                filters["state"] = request.GET.get("state")
+            if request.GET.get("lambda_service"):
+                filters["lambda_service"] = request.GET.get("lambda_service")
 
-            result = dashboard_service.get_resource_list('endpoints', filters)
+            result = dashboard_service.get_resource_list("endpoints", filters)
             initial_data = {
-                'endpoints': result.get('endpoints', [])[:filters['limit']],
-                'total': result.get('total', 0),
-                'source': result.get('source', 'local'),
+                "endpoints": result.get("endpoints", [])[: filters["limit"]],
+                "total": result.get("total", 0),
+                "source": result.get("source", "local"),
             }
 
-        elif active_tab == 'relationships':
-            if request.GET.get('page_id'):
-                filters['page_id'] = request.GET.get('page_id')
-            if request.GET.get('endpoint_id'):
-                filters['endpoint_id'] = request.GET.get('endpoint_id')
-            if request.GET.get('usage_type'):
-                filters['usage_type'] = request.GET.get('usage_type')
-            if request.GET.get('usage_context'):
-                filters['usage_context'] = request.GET.get('usage_context')
+        elif active_tab == "relationships":
+            if request.GET.get("page_id"):
+                filters["page_id"] = request.GET.get("page_id")
+            if request.GET.get("endpoint_id"):
+                filters["endpoint_id"] = request.GET.get("endpoint_id")
+            if request.GET.get("usage_type"):
+                filters["usage_type"] = request.GET.get("usage_type")
+            if request.GET.get("usage_context"):
+                filters["usage_context"] = request.GET.get("usage_context")
 
-            result = dashboard_service.get_resource_list('relationships', filters)
+            result = dashboard_service.get_resource_list("relationships", filters)
             initial_data = {
-                'relationships': result.get('relationships', [])[:filters['limit']],
-                'total': result.get('total', 0),
-                'source': result.get('source', 'local'),
+                "relationships": result.get("relationships", [])[: filters["limit"]],
+                "total": result.get("total", 0),
+                "source": result.get("source", "local"),
             }
 
-        elif active_tab == 'postman':
-            if request.GET.get('state'):
-                filters['state'] = request.GET.get('state')
+        elif active_tab == "postman":
+            if request.GET.get("state"):
+                filters["state"] = request.GET.get("state")
 
-            result = dashboard_service.get_resource_list('postman', filters)
+            result = dashboard_service.get_resource_list("postman", filters)
             initial_data = {
-                'postman': result.get('configurations', [])[:filters['limit']],
-                'total': result.get('total', 0),
-                'source': result.get('source', 'local'),
+                "postman": result.get("configurations", [])[: filters["limit"]],
+                "total": result.get("total", 0),
+                "source": result.get("source", "local"),
             }
 
     except Exception as e:
-        logger.error(f"Error loading initial data for tab {active_tab}: {e}", exc_info=True)
+        logger.error(
+            f"Error loading initial data for tab {active_tab}: {e}", exc_info=True
+        )
         initial_data = {
-            'pages': [],
-            'endpoints': [],
-            'relationships': [],
-            'postman': [],
-            'total': 0,
+            "pages": [],
+            "endpoints": [],
+            "relationships": [],
+            "postman": [],
+            "total": 0,
         }
 
     context: Dict[str, Any] = {
-        'active_tab': active_tab,
-        'view_mode': view_mode,
-        'overview_stats': overview_stats,
-        'health_status': health_status,
-        'initial_data': mark_safe(json.dumps(initial_data)),
+        "active_tab": active_tab,
+        "view_mode": view_mode,
+        "overview_stats": overview_stats,
+        "health_status": health_status,
+        "initial_data": mark_safe(json.dumps(initial_data)),
     }
 
-    return render(request, 'documentation/media_manager_dashboard.html', context)
+    return render(request, "documentation/media_manager_dashboard.html", context)
 
 
 @require_super_admin
@@ -292,13 +304,19 @@ def media_manager_index_pages(request: HttpRequest) -> HttpResponse:
     """GET /docs/media-manager/index/pages/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         index_data = index_manager.read_index("pages")
-        context: Dict[str, Any] = {'index_type': 'pages', 'index_data': index_data}
-        return _render_resource_view(request, 'index_detail.html', context)
+        context: Dict[str, Any] = {"index_type": "pages", "index_data": index_data}
+        return _render_resource_view(request, "index_detail.html", context)
     except Exception as e:
         logger.error(f"Error loading pages index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_detail.html', {'index_type': 'pages', 'index_data': {}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_detail.html",
+            {"index_type": "pages", "index_data": {}, "error": str(e)},
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -306,13 +324,19 @@ def media_manager_index_endpoints(request: HttpRequest) -> HttpResponse:
     """GET /docs/media-manager/index/endpoints/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         index_data = index_manager.read_index("endpoints")
-        context: Dict[str, Any] = {'index_type': 'endpoints', 'index_data': index_data}
-        return _render_resource_view(request, 'index_detail.html', context)
+        context: Dict[str, Any] = {"index_type": "endpoints", "index_data": index_data}
+        return _render_resource_view(request, "index_detail.html", context)
     except Exception as e:
         logger.error(f"Error loading endpoints index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_detail.html', {'index_type': 'endpoints', 'index_data': {}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_detail.html",
+            {"index_type": "endpoints", "index_data": {}, "error": str(e)},
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -320,13 +344,22 @@ def media_manager_index_relationships(request: HttpRequest) -> HttpResponse:
     """GET /docs/media-manager/index/relationships/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         index_data = index_manager.read_index("relationships")
-        context: Dict[str, Any] = {'index_type': 'relationships', 'index_data': index_data}
-        return _render_resource_view(request, 'index_detail.html', context)
+        context: Dict[str, Any] = {
+            "index_type": "relationships",
+            "index_data": index_data,
+        }
+        return _render_resource_view(request, "index_detail.html", context)
     except Exception as e:
         logger.error(f"Error loading relationships index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_detail.html', {'index_type': 'relationships', 'index_data': {}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_detail.html",
+            {"index_type": "relationships", "index_data": {}, "error": str(e)},
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -334,13 +367,19 @@ def media_manager_index_postman(request: HttpRequest) -> HttpResponse:
     """GET /docs/media-manager/index/postman/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         index_data = index_manager.read_index("postman")
-        context: Dict[str, Any] = {'index_type': 'postman', 'index_data': index_data}
-        return _render_resource_view(request, 'index_detail.html', context)
+        context: Dict[str, Any] = {"index_type": "postman", "index_data": index_data}
+        return _render_resource_view(request, "index_detail.html", context)
     except Exception as e:
         logger.error(f"Error loading postman index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_detail.html', {'index_type': 'postman', 'index_data': {}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_detail.html",
+            {"index_type": "postman", "index_data": {}, "error": str(e)},
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -348,13 +387,23 @@ def media_manager_index_pages_validate(request: HttpRequest) -> HttpResponse:
     """GET /docs/media-manager/index/pages/validate/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         result = index_manager.validate_index("pages")
-        context: Dict[str, Any] = {'index_type': 'pages', 'validation_result': result}
-        return _render_resource_view(request, 'index_validate.html', context)
+        context: Dict[str, Any] = {"index_type": "pages", "validation_result": result}
+        return _render_resource_view(request, "index_validate.html", context)
     except Exception as e:
         logger.error(f"Error validating pages index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_validate.html', {'index_type': 'pages', 'validation_result': {'valid': False, 'error': str(e)}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_validate.html",
+            {
+                "index_type": "pages",
+                "validation_result": {"valid": False, "error": str(e)},
+                "error": str(e),
+            },
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -362,13 +411,26 @@ def media_manager_index_endpoints_validate(request: HttpRequest) -> HttpResponse
     """GET /docs/media-manager/index/endpoints/validate/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         result = index_manager.validate_index("endpoints")
-        context: Dict[str, Any] = {'index_type': 'endpoints', 'validation_result': result}
-        return _render_resource_view(request, 'index_validate.html', context)
+        context: Dict[str, Any] = {
+            "index_type": "endpoints",
+            "validation_result": result,
+        }
+        return _render_resource_view(request, "index_validate.html", context)
     except Exception as e:
         logger.error(f"Error validating endpoints index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_validate.html', {'index_type': 'endpoints', 'validation_result': {'valid': False, 'error': str(e)}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_validate.html",
+            {
+                "index_type": "endpoints",
+                "validation_result": {"valid": False, "error": str(e)},
+                "error": str(e),
+            },
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -376,13 +438,26 @@ def media_manager_index_relationships_validate(request: HttpRequest) -> HttpResp
     """GET /docs/media-manager/index/relationships/validate/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         result = index_manager.validate_index("relationships")
-        context: Dict[str, Any] = {'index_type': 'relationships', 'validation_result': result}
-        return _render_resource_view(request, 'index_validate.html', context)
+        context: Dict[str, Any] = {
+            "index_type": "relationships",
+            "validation_result": result,
+        }
+        return _render_resource_view(request, "index_validate.html", context)
     except Exception as e:
         logger.error(f"Error validating relationships index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_validate.html', {'index_type': 'relationships', 'validation_result': {'valid': False, 'error': str(e)}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_validate.html",
+            {
+                "index_type": "relationships",
+                "validation_result": {"valid": False, "error": str(e)},
+                "error": str(e),
+            },
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -390,13 +465,23 @@ def media_manager_index_postman_validate(request: HttpRequest) -> HttpResponse:
     """GET /docs/media-manager/index/postman/validate/"""
     try:
         from apps.documentation.services import get_shared_s3_index_manager
+
         index_manager = get_shared_s3_index_manager()
         result = index_manager.validate_index("postman")
-        context: Dict[str, Any] = {'index_type': 'postman', 'validation_result': result}
-        return _render_resource_view(request, 'index_validate.html', context)
+        context: Dict[str, Any] = {"index_type": "postman", "validation_result": result}
+        return _render_resource_view(request, "index_validate.html", context)
     except Exception as e:
         logger.error(f"Error validating postman index: {e}", exc_info=True)
-        return _render_resource_view(request, 'index_validate.html', {'index_type': 'postman', 'validation_result': {'valid': False, 'error': str(e)}, 'error': str(e)}, error_message=str(e))
+        return _render_resource_view(
+            request,
+            "index_validate.html",
+            {
+                "index_type": "postman",
+                "validation_result": {"valid": False, "error": str(e)},
+                "error": str(e),
+            },
+            error_message=str(e),
+        )
 
 
 @require_super_admin
@@ -414,19 +499,19 @@ def media_manager_service_info(request: HttpRequest) -> HttpResponse:
         data = json.loads(json_response.content)
 
         context: Dict[str, Any] = {
-            'service_info': data.get('data', {}),
-            'success': data.get('success', True),
+            "service_info": data.get("data", {}),
+            "success": data.get("success", True),
         }
 
-        return _render_resource_view(request, 'service_info.html', context)
+        return _render_resource_view(request, "service_info.html", context)
 
     except Exception as e:
         logger.error(f"Error loading service info: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'service_info.html',
-            {'service_info': {}, 'success': False, 'error': str(e)},
-            error_message=str(e)
+            "service_info.html",
+            {"service_info": {}, "success": False, "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -445,19 +530,19 @@ def media_manager_docs_endpoint_stats(request: HttpRequest) -> HttpResponse:
         data = json.loads(json_response.content)
 
         context: Dict[str, Any] = {
-            'endpoint_stats': data.get('data', {}),
-            'success': data.get('success', True),
+            "endpoint_stats": data.get("data", {}),
+            "success": data.get("success", True),
         }
 
-        return _render_resource_view(request, 'docs_endpoint_stats.html', context)
+        return _render_resource_view(request, "docs_endpoint_stats.html", context)
 
     except Exception as e:
         logger.error(f"Error loading endpoint stats: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'docs_endpoint_stats.html',
-            {'endpoint_stats': {}, 'success': False, 'error': str(e)},
-            error_message=str(e)
+            "docs_endpoint_stats.html",
+            {"endpoint_stats": {}, "success": False, "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -476,21 +561,21 @@ def media_manager_dashboard_pages(request: HttpRequest) -> HttpResponse:
         data = json.loads(json_response.content)
 
         context: Dict[str, Any] = {
-            'resource': 'pages',
-            'dashboard_data': data,
-            'items': data.get('items', []),
-            'pagination': data.get('pagination', {}),
+            "resource": "pages",
+            "dashboard_data": data,
+            "items": data.get("items", []),
+            "pagination": data.get("pagination", {}),
         }
 
-        return _render_resource_view(request, 'dashboard_pages.html', context)
+        return _render_resource_view(request, "dashboard_pages.html", context)
 
     except Exception as e:
         logger.error(f"Error loading dashboard pages: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'dashboard_pages.html',
-            {'resource': 'pages', 'dashboard_data': {}, 'items': [], 'error': str(e)},
-            error_message=str(e)
+            "dashboard_pages.html",
+            {"resource": "pages", "dashboard_data": {}, "items": [], "error": str(e)},
+            error_message=str(e),
         )
 
 
@@ -509,21 +594,26 @@ def media_manager_dashboard_endpoints(request: HttpRequest) -> HttpResponse:
         data = json.loads(json_response.content)
 
         context: Dict[str, Any] = {
-            'resource': 'endpoints',
-            'dashboard_data': data,
-            'items': data.get('items', []),
-            'pagination': data.get('pagination', {}),
+            "resource": "endpoints",
+            "dashboard_data": data,
+            "items": data.get("items", []),
+            "pagination": data.get("pagination", {}),
         }
 
-        return _render_resource_view(request, 'dashboard_endpoints.html', context)
+        return _render_resource_view(request, "dashboard_endpoints.html", context)
 
     except Exception as e:
         logger.error(f"Error loading dashboard endpoints: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'dashboard_endpoints.html',
-            {'resource': 'endpoints', 'dashboard_data': {}, 'items': [], 'error': str(e)},
-            error_message=str(e)
+            "dashboard_endpoints.html",
+            {
+                "resource": "endpoints",
+                "dashboard_data": {},
+                "items": [],
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
@@ -542,21 +632,26 @@ def media_manager_dashboard_relationships(request: HttpRequest) -> HttpResponse:
         data = json.loads(json_response.content)
 
         context: Dict[str, Any] = {
-            'resource': 'relationships',
-            'dashboard_data': data,
-            'items': data.get('items', []),
-            'pagination': data.get('pagination', {}),
+            "resource": "relationships",
+            "dashboard_data": data,
+            "items": data.get("items", []),
+            "pagination": data.get("pagination", {}),
         }
 
-        return _render_resource_view(request, 'dashboard_relationships.html', context)
+        return _render_resource_view(request, "dashboard_relationships.html", context)
 
     except Exception as e:
         logger.error(f"Error loading dashboard relationships: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'dashboard_relationships.html',
-            {'resource': 'relationships', 'dashboard_data': {}, 'items': [], 'error': str(e)},
-            error_message=str(e)
+            "dashboard_relationships.html",
+            {
+                "resource": "relationships",
+                "dashboard_data": {},
+                "items": [],
+                "error": str(e),
+            },
+            error_message=str(e),
         )
 
 
@@ -575,19 +670,19 @@ def media_manager_dashboard_postman(request: HttpRequest) -> HttpResponse:
         data = json.loads(json_response.content)
 
         context: Dict[str, Any] = {
-            'resource': 'postman',
-            'dashboard_data': data,
-            'items': data.get('items', []),
-            'pagination': data.get('pagination', {}),
+            "resource": "postman",
+            "dashboard_data": data,
+            "items": data.get("items", []),
+            "pagination": data.get("pagination", {}),
         }
 
-        return _render_resource_view(request, 'dashboard_postman.html', context)
+        return _render_resource_view(request, "dashboard_postman.html", context)
 
     except Exception as e:
         logger.error(f"Error loading dashboard postman: {e}", exc_info=True)
         return _render_resource_view(
             request,
-            'dashboard_postman.html',
-            {'resource': 'postman', 'dashboard_data': {}, 'items': [], 'error': str(e)},
-            error_message=str(e)
+            "dashboard_postman.html",
+            {"resource": "postman", "dashboard_data": {}, "items": [], "error": str(e)},
+            error_message=str(e),
         )

@@ -1,22 +1,25 @@
-{% comment %}
-Usage:
-  {% include "components/tabs.html" with tabs=tab_list active_tab=current_tab style="underline" %}
-  tab_list = [{"id":"tab1","label":"Tab One","badge":0},...]
-{% endcomment %}
-<div class="tab-nav {% if style == 'pills' %}tab-nav-pills{% elif style == 'filter' %}tab-nav-filter{% endif %}"
-     role="tablist"
-     data-tab-group="{{ group_id|default:'tabs' }}">
+{% comment %} Usage: {% include "components/tabs.html" with tabs=tab_list
+active_tab=current_tab style="underline" %} tab_list =
+[{"id":"tab1","label":"Tab One","badge":0},...] {% endcomment %}
+<div
+  class="tab-nav {% if style == 'pills' %}tab-nav-pills{% elif style == 'filter' %}tab-nav-filter{% endif %}"
+  role="tablist"
+  data-tab-group="{{ group_id|default:'tabs' }}"
+>
   {% for tab in tabs %}
-  <button type="button"
-          class="tab-link {% if tab.id == active_tab %}active{% endif %}"
-          role="tab"
-          id="tab-{{ tab.id }}"
-          aria-selected="{% if tab.id == active_tab %}true{% else %}false{% endif %}"
-          aria-controls="panel-{{ tab.id }}"
-          data-tab="{{ tab.id }}">
-    {{ tab.label }}
-    {% if tab.badge %}
-    <span class="tab-badge" aria-label="{{ tab.badge }} items">{{ tab.badge }}</span>
+  <button
+    type="button"
+    class="tab-link {% if tab.id == active_tab %}active{% endif %}"
+    role="tab"
+    id="tab-{{ tab.id }}"
+    aria-selected="{% if tab.id == active_tab %}true{% else %}false{% endif %}"
+    aria-controls="panel-{{ tab.id }}"
+    data-tab="{{ tab.id }}"
+  >
+    {{ tab.label }} {% if tab.badge %}
+    <span class="tab-badge" aria-label="{{ tab.badge }} items"
+      >{{ tab.badge }}</span
+    >
     {% endif %}
   </button>
   {% endfor %}

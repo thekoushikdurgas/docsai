@@ -30,7 +30,11 @@ def _get_client_identifier(request: HttpRequest) -> str:
     appointment360_user = getattr(request, "appointment360_user", None)
     if isinstance(appointment360_user, dict) and appointment360_user.get("uuid"):
         return f"user:{appointment360_user['uuid']}"
-    if hasattr(request, "user") and request.user and getattr(request.user, "is_authenticated", False):
+    if (
+        hasattr(request, "user")
+        and request.user
+        and getattr(request.user, "is_authenticated", False)
+    ):
         return f"user:{request.user.id}"
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
@@ -56,19 +60,19 @@ def _check_rate_limit(
 ) -> tuple[bool, int, int]:
     """
     Check if request is within rate limit.
-    
+
     Args:
         key: Cache key for rate limit
         limit: Maximum requests allowed
         window: Time window in seconds
-        
+
     Returns:
         Tuple of (is_allowed, remaining, reset_time)
     """
     try:
         # Get current count
         current_count = cache.get(key, 0)
-        
+
         if current_count >= limit:
             # Calculate reset time
             ttl = cache.ttl(key)
@@ -76,19 +80,19 @@ def _check_rate_limit(
                 reset_time = int(time.time()) + window
             else:
                 reset_time = int(time.time()) + ttl
-            
+
             return False, 0, reset_time
-        
+
         # Increment count
         new_count = cache.incr(key)
         if new_count == 1:
             # First request, set expiration
             cache.set(key, 1, timeout=window)
-        
+
         remaining = max(0, limit - new_count)
         ttl = cache.ttl(key)
         reset_time = int(time.time()) + (ttl if ttl else window)
-        
+
         return True, remaining, reset_time
     except Exception as e:
         logger.warning("Rate limit check failed for key %s: %s", key, e)
@@ -105,32 +109,33 @@ def rate_limit(
 ) -> Callable[[F], F]:
     """
     Decorator to rate limit API endpoints.
-    
+
     Args:
         limit: Maximum number of requests allowed
         window: Time window in seconds (default: 3600 = 1 hour)
         per: Rate limit per "user" (authenticated) or "ip" (IP address)
         method: HTTP method to limit (None = all methods)
         key_func: Custom function to generate rate limit key
-        
+
     Returns:
         Decorated function with rate limiting
-        
+
     Example:
         @rate_limit(limit=100, window=3600, per="user")
         def my_api(request: HttpRequest) -> JsonResponse:
             ...
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
             # Check if method matches
             if method and request.method != method:
                 return func(request, *args, **kwargs)
-            
+
             # Get endpoint identifier
             endpoint = request.path
-            
+
             # Get client identifier
             if key_func:
                 identifier = key_func(request)
@@ -143,57 +148,57 @@ def rate_limit(
                 else:
                     ip = request.META.get("REMOTE_ADDR", "unknown")
                 identifier = f"ip:{ip}"
-            
+
             # Generate cache key
             cache_key = _get_rate_limit_key(identifier, endpoint, request.method)
-            
+
             # Check rate limit
             is_allowed, remaining, reset_time = _check_rate_limit(
-                cache_key,
-                limit,
-                window
+                cache_key, limit, window
             )
-            
+
             if not is_allowed:
                 logger.warning(
                     "Rate limit exceeded for %s on %s %s",
                     identifier,
                     request.method,
-                    endpoint
+                    endpoint,
                 )
-                
+
                 # Calculate retry_after
                 retry_after = max(1, reset_time - int(time.time()))
-                
+
                 response = rate_limited_response(
                     message=f"Rate limit exceeded: {limit} requests per {window} seconds",
-                    retry_after=retry_after
+                    retry_after=retry_after,
                 ).to_json_response()
-                
+
                 # Add rate limit headers
                 response["X-RateLimit-Limit"] = str(limit)
                 response["X-RateLimit-Remaining"] = "0"
                 response["X-RateLimit-Reset"] = str(reset_time)
                 response["Retry-After"] = str(retry_after)
-                
+
                 return response
-            
+
             # Call original function
             result = func(request, *args, **kwargs)
-            
+
             # Add rate limit headers to response
             if isinstance(result, JsonResponse):
                 result["X-RateLimit-Limit"] = str(limit)
                 result["X-RateLimit-Remaining"] = str(remaining)
                 result["X-RateLimit-Reset"] = str(reset_time)
-            
+
             return result
-        
+
         return wrapper  # type: ignore
+
     return decorator
 
 
 # Pre-configured rate limit decorators for common use cases
+
 
 def rate_limit_per_user(
     limit: int = 1000,
@@ -228,6 +233,7 @@ def rate_limit_light_endpoint(
 
 
 # Endpoint-specific rate limits
+
 
 def rate_limit_create_endpoint() -> Callable[[F], F]:
     """Rate limit for create endpoints (50/hour per user)."""

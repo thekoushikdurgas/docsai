@@ -13,7 +13,9 @@ def chat_view(request):
         sessions = get_sessions(request.session.get("operator", {}).get("token", ""))
     except Exception:
         pass
-    return render(request, "ai/chat.html", {"sessions": sessions, "page_title": "AI Chat"})
+    return render(
+        request, "ai/chat.html", {"sessions": sessions, "page_title": "AI Chat"}
+    )
 
 
 @require_login
@@ -23,12 +25,18 @@ def sessions_view(request):
         sessions = get_sessions(request.session.get("operator", {}).get("token", ""))
     except Exception:
         pass
-    return render(request, "ai/sessions.html", {"sessions": sessions, "page_title": "AI Sessions"})
+    return render(
+        request, "ai/sessions.html", {"sessions": sessions, "page_title": "AI Sessions"}
+    )
 
 
 @require_login
 def session_detail_view(request, session_id):
-    return render(request, "ai/chat.html", {"session_id": session_id, "page_title": f"Session {session_id[:8]}"})
+    return render(
+        request,
+        "ai/chat.html",
+        {"session_id": session_id, "page_title": f"Session {session_id[:8]}"},
+    )
 
 
 @require_login

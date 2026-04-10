@@ -2,6 +2,7 @@
 
 Uses httpx (already available in the admin virtualenv).
 """
+
 import re
 import time
 import logging
@@ -27,7 +28,9 @@ def _substitute_vars(text: str, variables: Dict[str, str]) -> str:
     return re.sub(r"\{\{([^}]+)\}\}", _replacer, text)
 
 
-def _apply_vars_to_headers(headers: Dict[str, str], variables: Dict[str, str]) -> Dict[str, str]:
+def _apply_vars_to_headers(
+    headers: Dict[str, str], variables: Dict[str, str]
+) -> Dict[str, str]:
     return {k: _substitute_vars(v, variables) for k, v in headers.items()}
 
 
@@ -74,9 +77,17 @@ def run_request(
             follow_redirects=follow_redirects,
         ) as client:
             if body_type == "form" and form_data:
-                resp = client.request(method, url, headers=headers, data=form_data, params=query_params)
+                resp = client.request(
+                    method, url, headers=headers, data=form_data, params=query_params
+                )
             elif body_type == "raw" and body:
-                resp = client.request(method, url, headers=headers, content=body.encode("utf-8"), params=query_params)
+                resp = client.request(
+                    method,
+                    url,
+                    headers=headers,
+                    content=body.encode("utf-8"),
+                    params=query_params,
+                )
             else:
                 resp = client.request(method, url, headers=headers, params=query_params)
 
@@ -131,12 +142,25 @@ def _error_result(message: str) -> Dict[str, Any]:
 
 def _status_text(code: int) -> str:
     _map = {
-        100: "Continue", 101: "Switching Protocols",
-        200: "OK", 201: "Created", 202: "Accepted", 204: "No Content",
-        301: "Moved Permanently", 302: "Found", 304: "Not Modified",
-        400: "Bad Request", 401: "Unauthorized", 403: "Forbidden",
-        404: "Not Found", 405: "Method Not Allowed", 409: "Conflict",
-        422: "Unprocessable Entity", 429: "Too Many Requests",
-        500: "Internal Server Error", 502: "Bad Gateway", 503: "Service Unavailable",
+        100: "Continue",
+        101: "Switching Protocols",
+        200: "OK",
+        201: "Created",
+        202: "Accepted",
+        204: "No Content",
+        301: "Moved Permanently",
+        302: "Found",
+        304: "Not Modified",
+        400: "Bad Request",
+        401: "Unauthorized",
+        403: "Forbidden",
+        404: "Not Found",
+        405: "Method Not Allowed",
+        409: "Conflict",
+        422: "Unprocessable Entity",
+        429: "Too Many Requests",
+        500: "Internal Server Error",
+        502: "Bad Gateway",
+        503: "Service Unavailable",
     }
     return _map.get(code, "Unknown")

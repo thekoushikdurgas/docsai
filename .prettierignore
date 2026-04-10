@@ -1,0 +1,28 @@
+# =============================================================================
+# Contact360 Admin — Prettier ignore (see codebase.bat step 4b: npx prettier)
+# =============================================================================
+# Prettier is useful for CSS / JSON in this repo. It must NOT parse Django
+# templates as HTML: {% %}, {{ }}, and tags split across lines become invalid
+# Django syntax (TemplateSyntaxError at runtime). Ignore template trees entirely.
+# =============================================================================
+
+# --- Django: all server-rendered HTML (Django Template Language) -------------
+templates/
+
+# --- Build / tooling output (never format) ---------------------------------
+staticfiles/
+reports/
+.pytest_cache/
+.ruff_cache/
+
+# --- Third-party & minified front-end bundles --------------------------------
+**/vendor/**
+**/*.min.js
+**/*.min.css
+**/*.bundle.js
+**/*.bundle.css
+
+# --- Optional: lockfiles if Prettier is ever invoked with broad globs ---------
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

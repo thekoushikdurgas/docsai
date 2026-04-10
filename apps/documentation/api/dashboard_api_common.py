@@ -1,4 +1,5 @@
 """Shared dashboard API: statistics and health endpoints."""
+
 from __future__ import annotations
 
 import logging
@@ -26,25 +27,26 @@ def get_statistics_api(request: HttpRequest) -> JsonResponse:
         dashboard_service = get_media_manager_dashboard_service()
 
         pages_stats = dashboard_service.pages_service.get_pages_statistics()
-        endpoints_stats = dashboard_service.endpoints_service.get_api_version_statistics()
+        endpoints_stats = (
+            dashboard_service.endpoints_service.get_api_version_statistics()
+        )
         relationships_stats = dashboard_service.relationships_service.get_statistics()
         postman_stats = dashboard_service.postman_service.get_statistics()
 
         return success_response(
             data={
-                'pages': pages_stats,
-                'endpoints': endpoints_stats,
-                'relationships': relationships_stats,
-                'postman': postman_stats,
+                "pages": pages_stats,
+                "endpoints": endpoints_stats,
+                "relationships": relationships_stats,
+                "postman": postman_stats,
             },
-            message="Statistics retrieved successfully"
+            message="Statistics retrieved successfully",
         ).to_json_response()
 
     except Exception as e:
         logger.error(f"Error in get_statistics_api: {e}", exc_info=True)
         return error_response(
-            message=f"Failed to retrieve statistics: {str(e)}",
-            status_code=500
+            message=f"Failed to retrieve statistics: {str(e)}", status_code=500
         ).to_json_response()
 
 
@@ -60,13 +62,11 @@ def get_health_api(request: HttpRequest) -> JsonResponse:
         health_status = get_comprehensive_health_status()
 
         return success_response(
-            data=health_status,
-            message="Health status retrieved successfully"
+            data=health_status, message="Health status retrieved successfully"
         ).to_json_response()
 
     except Exception as e:
         logger.error(f"Error in get_health_api: {e}", exc_info=True)
         return error_response(
-            message=f"Failed to retrieve health status: {str(e)}",
-            status_code=500
+            message=f"Failed to retrieve health status: {str(e)}", status_code=500
         ).to_json_response()

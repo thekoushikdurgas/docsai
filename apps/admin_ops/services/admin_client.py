@@ -2,6 +2,7 @@
 Admin operations service client.
 Bridges to GraphQL gateway + logs.api + s3storage.server.
 """
+
 import json
 import logging
 import uuid
@@ -91,7 +92,13 @@ query AdminUsers($filters: UserFilterInput) {
     users(filters: $filters) {
       items {
         uuid email name isActive lastSignInAt createdAt bucket
-        profile { role credits subscriptionPlan }
+        profile {
+          role
+          credits
+          subscriptionPlan
+          subscriptionStatus
+          subscriptionEndsAt
+        }
       }
       pageInfo { total limit offset hasNext hasPrevious }
     }
@@ -189,7 +196,7 @@ query AdminPaymentSubmissions($status: String, $limit: Int, $offset: Int) {
   billing {
     paymentSubmissions(status: $status, limit: $limit, offset: $offset) {
       items {
-        id userId userEmail amount planTier planPeriod
+        id userId userEmail amount planTier planPeriod addonPackageId
         screenshotDownloadUrl status creditsToAdd
         declineReason reviewedBy reviewedAt createdAt
       }
@@ -340,7 +347,9 @@ def _normalize_job_detail(j: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def get_users(token: str, filters: Optional[Dict] = None, limit: int = 25, offset: int = 0) -> Dict:
+def get_users(
+    token: str, filters: Optional[Dict] = None, limit: int = 25, offset: int = 0
+) -> Dict:
     # Gateway expects limit/offset inside UserFilterInput, not as separate users(...) arguments.
     merged = dict(filters or {})
     merged["limit"] = limit
@@ -388,7 +397,10 @@ def adjust_credits(token: str, user_id: str, amount: int, reason: str) -> Dict:
     _ = reason  # audit note reserved for future gateway field
     row = find_admin_user(token, user_id)
     if not row:
-        return {"success": False, "error": "User not found in admin directory (scan limit reached)."}
+        return {
+            "success": False,
+            "error": "User not found in admin directory (scan limit reached).",
+        }
     profile = row.get("profile") if isinstance(row.get("profile"), dict) else {}
     try:
         current = int(profile.get("credits") or 0)
@@ -430,7 +442,9 @@ def update_user_role(token: str, user_id: str, role: str) -> Dict[str, Any]:
 
 def delete_user_account(token: str, user_id: str) -> Dict[str, Any]:
     try:
-        resp = graphql_mutation(_DELETE_USER, {"input": {"userId": user_id}}, token=token)
+        resp = graphql_mutation(
+            _DELETE_USER, {"input": {"userId": user_id}}, token=token
+        )
     except Exception as exc:
         return {"success": False, "error": str(exc)}
     if isinstance(resp, dict) and resp.get("errors"):
@@ -441,7 +455,9 @@ def delete_user_account(token: str, user_id: str) -> Dict[str, Any]:
 
 def promote_to_admin(token: str, user_id: str) -> Dict[str, Any]:
     try:
-        resp = graphql_mutation(_PROMOTE_TO_ADMIN, {"input": {"userId": user_id}}, token=token)
+        resp = graphql_mutation(
+            _PROMOTE_TO_ADMIN, {"input": {"userId": user_id}}, token=token
+        )
     except Exception as exc:
         return {"success": False, "error": str(exc)}
     if isinstance(resp, dict) and resp.get("errors"):
@@ -490,14 +506,18 @@ def get_pending_payments(
 
 
 def approve_payment(token: str, submission_id: str) -> Dict:
-    resp = graphql_mutation(_APPROVE_PAYMENT, {"submissionId": submission_id}, token=token)
+    resp = graphql_mutation(
+        _APPROVE_PAYMENT, {"submissionId": submission_id}, token=token
+    )
     _raise_if_graphql_errors(resp)
     out = _billing(resp).get("approvePayment")
     return out if isinstance(out, dict) else {}
 
 
 def decline_payment(token: str, submission_id: str, reason: str) -> Dict:
-    resp = graphql_mutation(_DECLINE_PAYMENT, {"submissionId": submission_id, "reason": reason}, token=token)
+    resp = graphql_mutation(
+        _DECLINE_PAYMENT, {"submissionId": submission_id, "reason": reason}, token=token
+    )
     _raise_if_graphql_errors(resp)
     out = _billing(resp).get("declinePayment")
     return out if isinstance(out, dict) else {}
@@ -531,7 +551,9 @@ def get_jobs(
     items = [_normalize_job_list_row(j) for j in rows if isinstance(j, dict)]
     return {
         "items": items,
-        "pageInfo": raw.get("pageInfo") if isinstance(raw.get("pageInfo"), dict) else {},
+        "pageInfo": raw.get("pageInfo")
+        if isinstance(raw.get("pageInfo"), dict)
+        else {},
     }
 
 
@@ -553,7 +575,9 @@ def retry_job(token: str, job_id: str) -> Dict:
     if isinstance(out, str):
         try:
             parsed = json.loads(out)
-            return parsed if isinstance(parsed, dict) else {"success": False, "error": out}
+            return (
+                parsed if isinstance(parsed, dict) else {"success": False, "error": out}
+            )
         except json.JSONDecodeError:
             return {"success": False, "error": out}
     return {"success": bool(out), "detail": out}
@@ -646,7 +670,9 @@ def get_user_activity_for_user(
         logger.warning("get_user_activity_for_user failed: %s", exc)
         return {"items": [], "total": 0, "error": str(exc)}
     if isinstance(resp, dict) and resp.get("errors"):
-        logger.warning("get_user_activity_for_user GraphQL errors: %s", resp.get("errors"))
+        logger.warning(
+            "get_user_activity_for_user GraphQL errors: %s", resp.get("errors")
+        )
         return {"items": [], "total": 0, "error": "GraphQL error"}
     conn = _admin(resp).get("userHistory")
     if not isinstance(conn, dict):
@@ -686,7 +712,9 @@ def _norm_period(obj: Any) -> Optional[Dict[str, Any]]:
     return {
         "period": obj.get("period", ""),
         "credits": obj.get("credits", 0),
-        "rate_per_credit": obj.get("ratePerCredit") or obj.get("rate_per_credit") or 0.0,
+        "rate_per_credit": obj.get("ratePerCredit")
+        or obj.get("rate_per_credit")
+        or 0.0,
         "price": obj.get("price", 0.0),
         "savings": _norm_savings(sav) if sav else None,
     }
@@ -740,7 +768,9 @@ def get_billing_addons(token: str) -> List[Dict[str, Any]]:
                 "id": a.get("id", ""),
                 "name": a.get("name", ""),
                 "credits": a.get("credits", 0),
-                "rate_per_credit": a.get("ratePerCredit") or a.get("rate_per_credit") or 0.0,
+                "rate_per_credit": a.get("ratePerCredit")
+                or a.get("rate_per_credit")
+                or 0.0,
                 "price": a.get("price", 0.0),
             }
         )
@@ -901,7 +931,9 @@ def billing_update_plan(
         input_obj["category"] = category.strip()
     if is_active is not None:
         input_obj["isActive"] = is_active
-    resp = graphql_mutation(_BILLING_UPDATE_PLAN, {"tier": tier, "input": input_obj}, token=token)
+    resp = graphql_mutation(
+        _BILLING_UPDATE_PLAN, {"tier": tier, "input": input_obj}, token=token
+    )
     _raise_if_graphql_errors(resp)
     return _billing_root(resp).get("updatePlan") or {}
 
@@ -912,7 +944,9 @@ def billing_delete_plan(token: str, tier: str) -> Dict[str, Any]:
     return _billing_root(resp).get("deletePlan") or {}
 
 
-def billing_create_plan_period(token: str, tier: str, period_row: Dict[str, Any]) -> Dict[str, Any]:
+def billing_create_plan_period(
+    token: str, tier: str, period_row: Dict[str, Any]
+) -> Dict[str, Any]:
     resp = graphql_mutation(
         _BILLING_CREATE_PLAN_PERIOD,
         {"tier": tier, "input": _period_row_gql(period_row)},
@@ -1013,7 +1047,9 @@ def billing_update_addon(
 
 
 def billing_delete_addon(token: str, package_id: str) -> Dict[str, Any]:
-    resp = graphql_mutation(_BILLING_DELETE_ADDON, {"packageId": package_id}, token=token)
+    resp = graphql_mutation(
+        _BILLING_DELETE_ADDON, {"packageId": package_id}, token=token
+    )
     _raise_if_graphql_errors(resp)
     return _billing_root(resp).get("deleteAddon") or {}
 
@@ -1031,12 +1067,13 @@ def get_payment_instructions(token: str) -> Optional[Dict]:
 
 def update_payment_instructions(token: str, input_data: Dict[str, Any]) -> Dict:
     try:
-        resp = graphql_mutation(_UPDATE_PAYMENT_INSTRUCTIONS_M, {"input": input_data}, token=token)
+        resp = graphql_mutation(
+            _UPDATE_PAYMENT_INSTRUCTIONS_M, {"input": input_data}, token=token
+        )
     except Exception as exc:
         logger.warning("update_payment_instructions failed: %s", exc)
-        return {}
-    if isinstance(resp, dict) and resp.get("errors"):
-        return {}
+        raise
+    _raise_if_graphql_errors(resp)
     return _billing_root(resp).get("updatePaymentInstructions") or {}
 
 
@@ -1086,7 +1123,9 @@ def get_logs(
             )
         return {
             "items": out_rows,
-            "pageInfo": raw.get("pageInfo") if isinstance(raw.get("pageInfo"), dict) else {},
+            "pageInfo": raw.get("pageInfo")
+            if isinstance(raw.get("pageInfo"), dict)
+            else {},
         }
     except Exception as exc:
         logger.warning("get_logs failed: %s", exc)
@@ -1096,7 +1135,9 @@ def get_logs(
 def delete_log(token: str, log_id: str) -> bool:
     """Delete one log via GraphQL ``admin.deleteLog`` (SuperAdmin → log.server DELETE)."""
     try:
-        resp = graphql_mutation(_ADMIN_DELETE_LOG, {"input": {"logId": log_id}}, token=token)
+        resp = graphql_mutation(
+            _ADMIN_DELETE_LOG, {"input": {"logId": log_id}}, token=token
+        )
         _raise_if_graphql_errors(resp)
         return bool(_admin(resp).get("deleteLog"))
     except Exception as exc:
@@ -1105,6 +1146,7 @@ def delete_log(token: str, log_id: str) -> bool:
 
 
 # ===== S3 Storage =====
+
 
 def _s3_headers() -> Dict[str, str]:
     return {"X-API-Key": settings.S3STORAGE_API_KEY, "X-Request-ID": str(uuid.uuid4())}
@@ -1136,7 +1178,9 @@ def _normalize_artifact(obj: Any) -> Dict[str, Any]:
     }
 
 
-def get_storage_artifacts(prefix: str = "", limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+def get_storage_artifacts(
+    prefix: str = "", limit: int = 50, offset: int = 0
+) -> Dict[str, Any]:
     """Return ``{"items": [...], "total": int}`` from ``GET /api/v1/files``."""
     root = _s3_api_root()
     if not root:
@@ -1169,7 +1213,9 @@ def get_download_url(key: str) -> Optional[str]:
             )
             resp.raise_for_status()
             body = resp.json()
-            return body.get("downloadUrl") or body.get("download_url") or body.get("url")
+            return (
+                body.get("downloadUrl") or body.get("download_url") or body.get("url")
+            )
     except Exception as exc:
         logger.warning("get_download_url failed: %s", exc)
         return None
@@ -1211,6 +1257,7 @@ def get_users_with_buckets(token: str, limit: int = 200, offset: int = 0) -> Lis
 
 
 # ===== System health =====
+
 
 def _graphql_health_url() -> str:
     """GET /health on the GraphQL gateway host (strip /graphql suffix if present)."""
@@ -1280,7 +1327,11 @@ def get_system_health() -> List[Dict]:
         ("Logs API", "logs", _health_url(settings.LOGS_API_URL or "")),
         ("Contact AI", "ai", _health_url(settings.AI_API_URL or "")),
         ("Extension Server", "extension", _health_url(extension)),
-        ("Email Campaign", "emailcampaign", _health_url(settings.EMAILCAMPAIGN_URL or "")),
+        (
+            "Email Campaign",
+            "emailcampaign",
+            _health_url(settings.EMAILCAMPAIGN_URL or ""),
+        ),
         ("Mailvetter", "mailvetter", _health_url(mailvetter)),
     ]
     return [_probe_http_health(name, key, url) for name, key, url in specs]

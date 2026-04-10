@@ -2,6 +2,7 @@
 One-off bulk replacements for Tailwind-like classes -> c360-* semantic classes.
 Run: python scripts/c360_bulk_migrate_templates.py
 """
+
 from __future__ import annotations
 
 import pathlib
@@ -191,9 +192,7 @@ ICON_FIXES = [
 ]
 
 
-_DARK_UTIL_RE = re.compile(
-    r"\s+dark:(?:[a-z0-9]+(?:-[a-z0-9]+)*)(?:/[0-9]+)?"
-)
+_DARK_UTIL_RE = re.compile(r"\s+dark:(?:[a-z0-9]+(?:-[a-z0-9]+)*)(?:/[0-9]+)?")
 _HOVER_DARK_RE = re.compile(r"\s+hover:dark:[^\s\"']+")
 
 
@@ -207,9 +206,7 @@ def strip_dark_utilities(html: str) -> str:
     return html
 
 
-_DOUBLE_HOVER_RE = re.compile(
-    r"\b(hover|group-hover):([a-z0-9-]+):[a-z0-9/.%-]+"
-)
+_DOUBLE_HOVER_RE = re.compile(r"\b(hover|group-hover):([a-z0-9-]+):[a-z0-9/.%-]+")
 
 
 def repair_double_hover_tokens(html: str) -> str:
@@ -231,7 +228,9 @@ def post_pass(html: str) -> str:
     html = html.replace(
         "{% static 'css/components/", "{% static 'admin/css/components/"
     )
-    html = html.replace("{% static \"css/components/", "{% static \"admin/css/components/")
+    html = html.replace(
+        '{% static "css/components/', '{% static "admin/css/components/'
+    )
     html = html.replace(
         "{% block operations_wrapper_class %}w-full{% endblock %}",
         "{% block operations_wrapper_class %}c360-ops-root--wide{% endblock %}",

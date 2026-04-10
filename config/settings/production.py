@@ -10,7 +10,9 @@ DEBUG = False
 
 _secret = (os.environ.get("SECRET_KEY") or "").strip()
 if not _secret:
-    raise ImproperlyConfigured("SECRET_KEY must be set in the environment for production.")
+    raise ImproperlyConfigured(
+        "SECRET_KEY must be set in the environment for production."
+    )
 SECRET_KEY = _secret
 
 # HTTPS: mirror contact360.io/2 — SECURE_SSL_REDIRECT=true when behind TLS

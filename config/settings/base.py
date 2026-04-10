@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     "apps.codebase",
     "apps.knowledge",
     "apps.operations",
-    "apps.postman_app",
     "apps.json_store",
     "apps.page_builder",
     "apps.templates_app",
@@ -130,7 +129,9 @@ else:
     DATABASES["default"]["CONN_MAX_AGE"] = int(os.getenv("CONN_MAX_AGE", "0"))
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -159,7 +160,9 @@ SESSION_COOKIE_AGE = config("SESSION_COOKIE_AGE", default=86400, cast=int)
 SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=False, cast=bool)
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
-GRAPHQL_URL = _normalize_graphql_url(config("GRAPHQL_URL", default="http://localhost:8001/graphql"))
+GRAPHQL_URL = _normalize_graphql_url(
+    config("GRAPHQL_URL", default="http://localhost:8001/graphql")
+)
 GRAPHQL_INTERNAL_TOKEN = config("GRAPHQL_INTERNAL_TOKEN", default="")
 LOGS_API_URL = config("LOGS_API_URL", default="")
 LOGS_API_KEY = config("LOGS_API_KEY", default="")
@@ -169,6 +172,14 @@ SCHEDULER_URL = config("SCHEDULER_URL", default="")
 AI_API_URL = config("AI_API_URL", default="")
 AI_API_KEY = config("AI_API_KEY", default="")
 EMAILCAMPAIGN_URL = config("EMAILCAMPAIGN_URL", default="")
+
+# Direct AWS S3 (documentation JSON store, S3Service). Optional locally; set in env for prod.
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
+AWS_REGION = config("AWS_REGION", default="us-east-1")
+S3_BUCKET_NAME = config("S3_BUCKET_NAME", default="")
+S3_DATA_PREFIX = config("S3_DATA_PREFIX", default="")
+S3_DOCUMENTATION_PREFIX = config("S3_DOCUMENTATION_PREFIX", default="")
 
 DOCS_AGENT_VERSION = config("DOCS_AGENT_VERSION", default="1.0.0")
 
@@ -193,7 +204,9 @@ SPECTACULAR_SETTINGS = {
 INTERNAL_IPS = ["127.0.0.1"]
 
 API_TRACKING_ENABLED = config("API_TRACKING_ENABLED", default=True, cast=bool)
-API_TRACKING_USER_TYPE_ENABLED = config("API_TRACKING_USER_TYPE_ENABLED", default=True, cast=bool)
+API_TRACKING_USER_TYPE_ENABLED = config(
+    "API_TRACKING_USER_TYPE_ENABLED", default=True, cast=bool
+)
 API_TRACKING_PATH_PREFIX = config("API_TRACKING_PATH_PREFIX", default="/api/v1/")
 
 # Cache: optional Redis (USE_REDIS_CACHE=true + REDIS_URL or host/port)

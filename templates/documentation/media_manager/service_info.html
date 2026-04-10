@@ -1,51 +1,53 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block title %}Service Info - Media Manager{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% load static %} {% block title %}Service Info -
+Media Manager{% endblock %} {% block content %}
 <div class="c360-mm-container">
-    <div class="mb-6">
-        <h1 class="c360-mm-heading">Service Information</h1>
-        <p class="c360-mm-lead">Documentation API Service details</p>
-    </div>
+  <div class="mb-6">
+    <h1 class="c360-mm-heading">Service Information</h1>
+    <p class="c360-mm-lead">Documentation API Service details</p>
+  </div>
 
-    {% if error %}
-    <div class="c360-mm-alert c360-mm-alert--danger c360-mt-4">
-        <p class="text-red-800">{{ error }}</p>
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger c360-mt-4">
+    <p class="text-red-800">{{ error }}</p>
+  </div>
+  {% endif %} {% if service_info %}
+  <div class="section-card">
+    <div class="space-y-4">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+          Service Details
+        </h2>
+        <dl class="c360-mm-dl-grid">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Service Name</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              {{ service_info.service|default:"N/A" }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Version</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              {{ service_info.version|default:"N/A" }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Status</dt>
+            <dd class="mt-1">
+              <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if service_info.status == 'running' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}"
+              >
+                {{ service_info.status|default:"unknown" }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
     </div>
-    {% endif %}
-
-    {% if service_info %}
-    <div class="section-card">
-        <div class="space-y-4">
-            <div>
-                <h2 class="text-xl font-semibold text-gray-900 mb-4">Service Details</h2>
-                <dl class="c360-mm-dl-grid">
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Service Name</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ service_info.service|default:"N/A" }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Version</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ service_info.version|default:"N/A" }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm font-medium text-gray-500">Status</dt>
-                        <dd class="mt-1">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if service_info.status == 'running' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-                                {{ service_info.status|default:"unknown" }}
-                            </span>
-                        </dd>
-                    </div>
-                </dl>
-            </div>
-        </div>
-    </div>
-    {% else %}
-    <div class="c360-mm-empty-panel">
-        <p class="text-gray-500">No service information available</p>
-    </div>
-    {% endif %}
+  </div>
+  {% else %}
+  <div class="c360-mm-empty-panel">
+    <p class="text-gray-500">No service information available</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

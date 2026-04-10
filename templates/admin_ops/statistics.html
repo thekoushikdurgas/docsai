@@ -1,20 +1,23 @@
 {% extends "base.html" %}
 {% load static admin_tags %}
-
 {% block title %}Statistics — Contact360 Admin{% endblock %}
-
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">Statistics</h1>
-    <p class="page-subtitle">User counts from the GraphQL gateway (<code>admin.userStats</code>)</p>
+    <p class="page-subtitle">
+      User counts from the GraphQL gateway (<code>admin.userStats</code>)
+    </p>
   </div>
 </div>
 
 {% if not stats %}
 <div class="card">
   <div class="card-body">
-    <p class="text-muted" style="margin:0">No statistics loaded. Check the gateway token and GraphQL connection, or see messages above.</p>
+    <p class="text-muted" style="margin: 0">
+      No statistics loaded. Check the gateway token and GraphQL connection, or
+      see messages above.
+    </p>
   </div>
 </div>
 {% endif %}
@@ -27,15 +30,26 @@
 </div>
 
 <div class="card c360-mt-6">
-  <div class="card-header"><h2 class="card-title">Users by subscription plan</h2></div>
+  <div class="card-header">
+    <h2 class="card-title">Users by subscription plan</h2>
+  </div>
   <div class="card-body">
-    {% if chart_data.labels %}
-    {{ chart_data|json_script_tag:"statsChartData" }}
-    <canvas id="statsChart" height="250" aria-label="Users by plan chart" role="img"></canvas>
+    {% if chart_data.labels %} {{ chart_data|json_script_tag:"statsChartData" }}
+    <canvas
+      id="statsChart"
+      height="250"
+      aria-label="Users by plan chart"
+      role="img"
+    ></canvas>
     {% else %}
-    <div class="text-center" style="padding: 2rem 1rem;">
-      <p style="margin:0 0 var(--space-2)"><strong>No plan breakdown yet</strong></p>
-      <p class="text-muted" style="margin:0">When the gateway returns counts per subscription plan, they appear here and in the table below.</p>
+    <div class="text-center" style="padding: 2rem 1rem">
+      <p style="margin: 0 0 var(--space-2)">
+        <strong>No plan breakdown yet</strong>
+      </p>
+      <p class="text-muted" style="margin: 0">
+        When the gateway returns counts per subscription plan, they appear here
+        and in the table below.
+      </p>
     </div>
     {% endif %}
   </div>
@@ -46,18 +60,20 @@
   <div class="card-header"><h2 class="card-title">Plan breakdown</h2></div>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Plan</th><th>Count</th><th>Share</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Count</th>
+          <th>Share</th>
+        </tr>
+      </thead>
       <tbody>
         {% for plan_name, plan_count in plan_items %}
         <tr>
           <td>{{ plan_name|plan_badge }}</td>
           <td>{{ plan_count }}</td>
           <td>
-            {% if stats.totalUsers %}
-            {% widthratio plan_count stats.totalUsers 100 %}%
-            {% else %}
-            —
-            {% endif %}
+            {% if stats.totalUsers %}{% widthratio plan_count stats.totalUsers 100 %}%{% else %}—{% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -65,25 +81,25 @@
     </table>
   </div>
 </div>
-{% endif %}
-
-{% if role_items %}
+{% endif %} {% if role_items %}
 <div class="card c360-mt-4">
   <div class="card-header"><h2 class="card-title">Users by role</h2></div>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Role</th><th>Count</th><th>Share</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Count</th>
+          <th>Share</th>
+        </tr>
+      </thead>
       <tbody>
         {% for role_name, role_count in role_items %}
         <tr>
           <td>{{ role_name|role_badge }}</td>
           <td>{{ role_count }}</td>
           <td>
-            {% if stats.totalUsers %}
-            {% widthratio role_count stats.totalUsers 100 %}%
-            {% else %}
-            —
-            {% endif %}
+            {% if stats.totalUsers %}{% widthratio role_count stats.totalUsers 100 %}%{% else %}—{% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -93,17 +109,16 @@
 </div>
 {% endif %}
 {% endblock %}
-
 {% block extra_js %}
 {% if chart_data.labels %}
 <script src="{% static 'admin/vendor/chartjs/chart.umd.min.js' %}"></script>
 <script src="{% static 'admin/js/charts.js' %}"></script>
 <script>
-  (function() {
-    var raw = document.getElementById('statsChartData');
+  (function () {
+    var raw = document.getElementById("statsChartData");
     if (!raw) return;
     var d = JSON.parse(raw.textContent);
-    initBarChart('statsChart', d.labels, d.values, 'Users by plan');
+    initBarChart("statsChart", d.labels, d.values, "Users by plan");
   })();
 </script>
 {% endif %}

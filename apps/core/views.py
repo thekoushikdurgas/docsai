@@ -1,6 +1,7 @@
 """
 Core views: dashboard, login, logout.
 """
+
 import logging
 
 from django.conf import settings
@@ -44,6 +45,7 @@ def _django_staff_login(request, email: str, password: str):
         "name": (user.get_full_name() or "").strip() or user.username,
         "role": role,
     }
+
 
 _DASHBOARD_STATS = """
 query AdminDashboardStats {
@@ -125,8 +127,7 @@ def dashboard_view(request):
         user_stats = (data.get("admin") or {}).get("userStats") or {}
         labels, values = _users_by_plan_to_chart(user_stats)
         by_plan_rows = [
-            {"subscriptionPlan": lab, "count": val}
-            for lab, val in zip(labels, values)
+            {"subscriptionPlan": lab, "count": val} for lab, val in zip(labels, values)
         ]
         stats = {
             "total_users": user_stats.get("totalUsers", 0),
@@ -144,12 +145,16 @@ def dashboard_view(request):
     if not graphql_ok:
         stats, chart_data = _django_user_stats_fallback()
 
-    return render(request, "core/dashboard.html", {
-        "stats": stats,
-        "chart_data": chart_data,
-        "health_services": health_services,
-        "page_title": "Dashboard",
-    })
+    return render(
+        request,
+        "core/dashboard.html",
+        {
+            "stats": stats,
+            "chart_data": chart_data,
+            "health_services": health_services,
+            "page_title": "Dashboard",
+        },
+    )
 
 
 @ratelimit(key="ip", rate="10/m", method="POST", block=False)
@@ -197,7 +202,9 @@ def login_view(request):
                             "name": user.get("name"),
                             "role": role,
                         }
-                        messages.success(request, f"Welcome back, {user.get('name', email)}!")
+                        messages.success(
+                            request, f"Welcome back, {user.get('name', email)}!"
+                        )
                         return redirect("core:dashboard")
                 else:
                     error = result.get("error") or "Invalid credentials."

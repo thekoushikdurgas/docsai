@@ -1,51 +1,69 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Health Status - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Health Status -
+Media Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Page Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">Health Status</h1>
-            <p class="c360-mm-hero__subtitle">System component health monitoring</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Dashboard
-            </a>
-        </div>
+  <!-- Page Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">Health Status</h1>
+      <p class="c360-mm-hero__subtitle">System component health monitoring</p>
     </div>
-    
-    <!-- Health Status Cards -->
-    {% if health_status %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for component, status in health_status.components.items %}
-        <div class="section-card">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-900">{{ component|title }}</h3>
-                {% if status.status == 'healthy' %}
-                <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Healthy</span>
-                {% elif status.status == 'degraded' %}
-                <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Degraded</span>
-                {% else %}
-                <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Unhealthy</span>
-                {% endif %}
-            </div>
-            {% if status.message %}
-            <p class="text-sm text-gray-600">{{ status.message }}</p>
-            {% endif %}
-        </div>
-        {% endfor %}
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Dashboard
+      </a>
     </div>
-    {% else %}
+  </div>
+
+  <!-- Health Status Cards -->
+  {% if health_status %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for component, status in health_status.components.items %}
     <div class="section-card">
-        <p class="text-gray-500">Health status information not available.</p>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">{{ component|title }}</h3>
+        {% if status.status == 'healthy' %}
+        <span
+          class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
+          >Healthy</span
+        >
+        {% elif status.status == 'degraded' %}
+        <span
+          class="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700"
+          >Degraded</span
+        >
+        {% else %}
+        <span
+          class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"
+          >Unhealthy</span
+        >
+        {% endif %}
+      </div>
+      {% if status.message %}
+      <p class="text-sm text-gray-600">{{ status.message }}</p>
+      {% endif %}
     </div>
-    {% endif %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="section-card">
+    <p class="text-gray-500">Health status information not available.</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

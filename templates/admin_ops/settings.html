@@ -1,24 +1,29 @@
 {% extends "base.html" %}
 {% load static admin_tags %}
-
 {% block title %}Settings — Contact360 Admin{% endblock %}
-
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">Settings</h1>
-    <p class="page-subtitle">Read-only runtime configuration snapshot (super admin only)</p>
+    <p class="page-subtitle">
+      Read-only runtime configuration snapshot (super admin only)
+    </p>
   </div>
 </div>
 
 {% include "components/alert.html" with type="info" message="This is a read-only view. To change values, update environment variables and restart the service." %}
 
 <div class="card">
-  <div class="card-header"><h2 class="card-title">Service Configuration</h2></div>
+  <div class="card-header">
+    <h2 class="card-title">Service Configuration</h2>
+  </div>
   <div class="table-wrap">
     <table class="table" aria-label="Configuration table">
       <thead>
-        <tr><th>Key</th><th>Value</th></tr>
+        <tr>
+          <th>Key</th>
+          <th>Value</th>
+        </tr>
       </thead>
       <tbody>
         {% for key, value in config.items %}
@@ -26,9 +31,12 @@
           <td><code>{{ key }}</code></td>
           <td>
             {% if "TOKEN" in key or "KEY" in key or "SECRET" in key %}
-            <span style="color:var(--color-text-muted)">••••••••</span>
+            <span style="color: var(--color-text-muted)">••••••••</span>
             {% else %}
-            <span style="font-family:var(--font-mono);font-size:var(--text-xs)">{{ value|default:"(not set)" }}</span>
+            <span
+              style="font-family: var(--font-mono); font-size: var(--text-xs)"
+              >{{ value|default:"(not set)" }}</span
+            >
             {% endif %}
           </td>
         </tr>

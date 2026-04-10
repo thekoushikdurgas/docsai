@@ -1,86 +1,112 @@
-{% extends 'layouts/operations-view.html' %}
-{% load static %}
-
-{% block title %}Run Pipeline - Operations{% endblock %}
-
-{% block operations_wrapper_class %}c360-ops-root--narrow{% endblock %}
-
-{% block operations_content %}
-    <!-- Header -->
-    <div class="section-card mb-6">
-        <div class="flex items-center gap-4">
-            <div class="p-3 bg-amber-100 rounded-lg">
-                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Run Full Pipeline</h1>
-                <p class="text-sm text-gray-500 mt-1">Run Analyze → Validate → Generate JSON → Upload to S3 in sequence. Each step is logged to operations history with chained parent.</p>
-            </div>
-        </div>
+{% extends 'layouts/operations-view.html' %} {% load static %} {% block title
+%}Run Pipeline - Operations{% endblock %} {% block operations_wrapper_class
+%}c360-ops-root--narrow{% endblock %} {% block operations_content %}
+<!-- Header -->
+<div class="section-card mb-6">
+  <div class="flex items-center gap-4">
+    <div class="p-3 bg-amber-100 rounded-lg">
+      <svg
+        class="w-6 h-6 text-amber-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 10V3L4 14h7v7l9-11h-7z"
+        />
+      </svg>
     </div>
-
-    <!-- Form (GET) -->
-    {% if not pipeline_steps %}
-    <div class="section-card">
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-            <p class="text-sm text-gray-600">This will run: <strong>Analyze (all)</strong> → <strong>Validate</strong> → <strong>Generate JSON</strong> (pages, endpoints, relationships) → <strong>Upload to S3</strong> (pages, endpoints, relationships, postman). It may take a few minutes.</p>
-            <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
-                {% url 'documentation:operations_dashboard' as cancel_url %}
-                {% include 'components/button.html' with text='Cancel' type='secondary' size='md' href=cancel_url %}
-                {% include 'components/button.html' with text='Run Full Pipeline' type='warning' size='md' button_type='submit' %}
-            </div>
-        </form>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Run Full Pipeline</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Run Analyze → Validate → Generate JSON → Upload to S3 in sequence. Each
+        step is logged to operations history with chained parent.
+      </p>
     </div>
+  </div>
+</div>
+
+<!-- Form (GET) -->
+{% if not pipeline_steps %}
+<div class="section-card">
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+    <p class="text-sm text-gray-600">
+      This will run: <strong>Analyze (all)</strong> →
+      <strong>Validate</strong> → <strong>Generate JSON</strong> (pages,
+      endpoints, relationships) → <strong>Upload to S3</strong> (pages,
+      endpoints, relationships, postman). It may take a few minutes.
+    </p>
+    <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
+      {% url 'documentation:operations_dashboard' as cancel_url %} {% include
+      'components/button.html' with text='Cancel' type='secondary' size='md'
+      href=cancel_url %} {% include 'components/button.html' with text='Run Full
+      Pipeline' type='warning' size='md' button_type='submit' %}
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- Error (POST failed with exception) -->
+{% if pipeline_error %}
+<div class="mt-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+  <p class="font-medium">Pipeline failed</p>
+  <p class="text-sm mt-1">{{ pipeline_error }}</p>
+</div>
+{% endif %}
+
+<!-- Results (after POST) -->
+{% if pipeline_steps %}
+<div class="section-card mt-6">
+  <h3 class="text-lg font-semibold text-gray-900 mb-4">
+    Pipeline Results {% if pipeline_success %}
+    <span class="ml-2 text-green-600 font-normal"
+      >— All steps completed successfully</span
+    >
+    {% else %}
+    <span class="ml-2 text-red-600 font-normal"
+      >— Stopped after a step failed</span
+    >
     {% endif %}
-
-    <!-- Error (POST failed with exception) -->
-    {% if pipeline_error %}
-    <div class="mt-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
-        <p class="font-medium">Pipeline failed</p>
-        <p class="text-sm mt-1">{{ pipeline_error }}</p>
-    </div>
-    {% endif %}
-
-    <!-- Results (after POST) -->
-    {% if pipeline_steps %}
-    <div class="section-card mt-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-            Pipeline Results
-            {% if pipeline_success %}
-            <span class="ml-2 text-green-600 font-normal">— All steps completed successfully</span>
-            {% else %}
-            <span class="ml-2 text-red-600 font-normal">— Stopped after a step failed</span>
-            {% endif %}
-        </h3>
-        <ul class="space-y-3">
-            {% for step in pipeline_steps %}
-            <li class="flex items-center gap-3 p-3 rounded-lg {% if step.success %}bg-green-50 border border-green-200{% else %}bg-red-50 border border-red-200{% endif %}">
-                {% if step.success %}
-                <span class="text-green-600" aria-hidden="true">✓</span>
-                {% else %}
-                <span class="text-red-600" aria-hidden="true">✗</span>
-                {% endif %}
-                <span class="font-medium text-gray-900">{{ step.name }}</span>
-                {% if step.operation_id %}
-                <a href="{% url 'documentation:operations_history' %}" class="text-sm text-blue-600 hover:underline">View in history</a>
-                {% endif %}
-                {% if not step.success and step.report.analysis_error %}
-                <span class="text-sm text-red-600 ml-auto">{{ step.report.analysis_error|truncatewords:15 }}</span>
-                {% elif not step.success and step.report.message %}
-                <span class="text-sm text-red-600 ml-auto">{{ step.report.message|truncatewords:15 }}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-        <div class="mt-4 pt-4 border-t border-gray-200 flex flex-wrap gap-2">
-            {% url 'documentation:operations_dashboard' as dashboard_url %}
-            {% url 'documentation:operations_history' as history_url %}
-            {% include 'components/button.html' with text='Back to Operations' type='secondary' size='md' href=dashboard_url %}
-            {% include 'components/button.html' with text='View operations history' type='info' size='md' href=history_url %}
-        </div>
-    </div>
-    {% endif %}
-{% endblock %}
+  </h3>
+  <ul class="space-y-3">
+    {% for step in pipeline_steps %}
+    <li
+      class="flex items-center gap-3 p-3 rounded-lg {% if step.success %}bg-green-50 border border-green-200{% else %}bg-red-50 border border-red-200{% endif %}"
+    >
+      {% if step.success %}
+      <span class="text-green-600" aria-hidden="true">✓</span>
+      {% else %}
+      <span class="text-red-600" aria-hidden="true">✗</span>
+      {% endif %}
+      <span class="font-medium text-gray-900">{{ step.name }}</span>
+      {% if step.operation_id %}
+      <a
+        href="{% url 'documentation:operations_history' %}"
+        class="text-sm text-blue-600 hover:underline"
+        >View in history</a
+      >
+      {% endif %} {% if not step.success and step.report.analysis_error %}
+      <span class="text-sm text-red-600 ml-auto"
+        >{{ step.report.analysis_error|truncatewords:15 }}</span
+      >
+      {% elif not step.success and step.report.message %}
+      <span class="text-sm text-red-600 ml-auto"
+        >{{ step.report.message|truncatewords:15 }}</span
+      >
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="mt-4 pt-4 border-t border-gray-200 flex flex-wrap gap-2">
+    {% url 'documentation:operations_dashboard' as dashboard_url %} {% url
+    'documentation:operations_history' as history_url %} {% include
+    'components/button.html' with text='Back to Operations' type='secondary'
+    size='md' href=dashboard_url %} {% include 'components/button.html' with
+    text='View operations history' type='info' size='md' href=history_url %}
+  </div>
+</div>
+{% endif %} {% endblock %}

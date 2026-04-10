@@ -1,4 +1,5 @@
 """Page Builder — persisted page spec metadata (JSON stored in S3)."""
+
 from django.db import models
 from django.utils import timezone
 
@@ -21,9 +22,15 @@ class PageSpec(models.Model):
     component_count = models.PositiveIntegerField(default=0)
     endpoint_count = models.PositiveIntegerField(default=0)
     s3_bucket_id = models.CharField(max_length=300)
-    s3_file_key = models.CharField(max_length=500, help_text="Relative key, e.g. json/<uuid>.json")
+    s3_file_key = models.CharField(
+        max_length=500, help_text="Relative key, e.g. json/<uuid>.json"
+    )
     size_bytes = models.PositiveIntegerField(default=0)
-    sections_override = models.JSONField(default=list, blank=True, help_text="Edited sections; merged over S3 spec in editor")
+    sections_override = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Edited sections; merged over S3 spec in editor",
+    )
     uploaded_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     uploaded_by = models.CharField(max_length=254, blank=True, default="")

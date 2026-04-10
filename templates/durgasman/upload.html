@@ -1,0 +1,579 @@
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}Upload
+Collection / Environment — Durgasman{% endblock %} {% block extra_css %}
+<style>
+  .pm-upload-card {
+    border: 2px dashed var(--c360-border-strong);
+    border-radius: var(--c360-radius-lg);
+    padding: var(--c360-spacing-8) var(--c360-spacing-6);
+    text-align: center;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
+    background: var(--c360-bg-secondary);
+  }
+  .pm-upload-card.dragover {
+    border-color: var(--c360-primary);
+    background: var(--c360-primary-light);
+  }
+  .pm-upload-card i.upload-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: var(--c360-spacing-3);
+  }
+  .pm-upload-card.type-collection .upload-icon {
+    color: var(--c360-primary);
+  }
+  .pm-upload-card.type-environment .upload-icon {
+    color: var(--c360-success);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Upload Postman Files</h1>
+    <p class="page-subtitle">
+      Import Postman Collection (v2.1.0) and Environment JSON files.
+    </p>
+  </div>
+  <a href="{% url 'durgasman:dashboard' %}" class="btn btn-outline btn-sm">
+    <i class="lni lni-arrow-left"></i> Back to Durgasman
+  </a>
+</div>
+
+{% if not s3_enabled %} {% include "components/alert.html" with type="warning"
+message="S3 storage is not configured (S3STORAGE_API_URL missing). Uploads will
+fail." %} {% endif %} {% include "components/alert.html" with type="info"
+message="Upload any Postman Collection JSON (v2.1.0) or Environment JSON.
+Collections from docs/backend/postman/ can be drag-and-dropped directly." %}
+
+<div
+  style="
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--c360-spacing-6);
+    margin-top: var(--c360-spacing-4);
+  "
+>
+  <!-- Collection upload card -->
+  <div class="card">
+    <div class="card-body">
+      <h3
+        class="card-title"
+        style="display: flex; align-items: center; gap: var(--c360-spacing-2)"
+      >
+        <i class="lni lni-folder" style="color: var(--c360-primary)"></i>
+        Collection
+      </h3>
+      <p
+        style="
+          font-size: var(--c360-text-sm);
+          color: var(--c360-text-muted);
+          margin-bottom: var(--c360-spacing-4);
+        "
+      >
+        Upload a Postman Collection v2.1.0 JSON. The file must have an
+        <code>info</code> block with a <code>name</code> field.
+      </p>
+
+      <div
+        class="pm-upload-card type-collection"
+        id="col-dropzone"
+        onclick="document.getElementById('col-file').click()"
+      >
+        <i class="lni lni-cloud-upload upload-icon"></i>
+        <p style="margin: 0; font-weight: var(--c360-font-medium)">
+          Drop collection JSON here
+        </p>
+        <p
+          style="
+            margin: 4px 0 0;
+            font-size: var(--c360-text-xs);
+            color: var(--c360-text-muted);
+          "
+        >
+          or click to browse — max 2 MB
+        </p>
+      </div>
+      <input
+        type="file"
+        id="col-file"
+        accept=".json,application/json"
+        style="display: none"
+      />
+      <p
+        id="col-file-name"
+        style="
+          margin-top: var(--c360-spacing-2);
+          font-size: var(--c360-text-sm);
+          color: var(--c360-text-muted);
+        "
+      >
+        No file selected
+      </p>
+
+      <div style="margin-top: var(--c360-spacing-3)">
+        <label class="form-label" for="col-bucket">Bucket ID</label>
+        <input
+          type="text"
+          id="col-bucket"
+          class="form-control"
+          value="{{ default_bucket }}"
+          placeholder="bucket-id"
+        />
+      </div>
+
+      <div
+        class="progress-wrap"
+        id="col-progress-wrap"
+        style="display: none; margin-top: var(--c360-spacing-3)"
+      >
+        <div class="progress-label"><span>Uploading collection…</span></div>
+        <div class="progress">
+          <div
+            class="progress-bar animated"
+            id="col-progress-bar"
+            style="width: 0"
+          ></div>
+        </div>
+      </div>
+
+      <button
+        class="btn btn-primary"
+        id="col-upload-btn"
+        disabled
+        style="margin-top: var(--c360-spacing-4)"
+      >
+        <i class="lni lni-cloud-upload"></i> Upload Collection
+      </button>
+      <div id="col-result" style="margin-top: var(--c360-spacing-3)"></div>
+    </div>
+  </div>
+
+  <!-- Environment upload card -->
+  <div class="card">
+    <div class="card-body">
+      <h3
+        class="card-title"
+        style="display: flex; align-items: center; gap: var(--c360-spacing-2)"
+      >
+        <i class="lni lni-cog" style="color: var(--c360-success)"></i>
+        Environment
+      </h3>
+      <p
+        style="
+          font-size: var(--c360-text-sm);
+          color: var(--c360-text-muted);
+          margin-bottom: var(--c360-spacing-4);
+        "
+      >
+        Upload a Postman Environment JSON. It must have a <code>name</code> and
+        <code>values</code> array.
+      </p>
+
+      <div
+        class="pm-upload-card type-environment"
+        id="env-dropzone"
+        onclick="document.getElementById('env-file').click()"
+      >
+        <i class="lni lni-leaf upload-icon"></i>
+        <p style="margin: 0; font-weight: var(--c360-font-medium)">
+          Drop environment JSON here
+        </p>
+        <p
+          style="
+            margin: 4px 0 0;
+            font-size: var(--c360-text-xs);
+            color: var(--c360-text-muted);
+          "
+        >
+          or click to browse — max 2 MB
+        </p>
+      </div>
+      <input
+        type="file"
+        id="env-file"
+        accept=".json,application/json"
+        style="display: none"
+      />
+      <p
+        id="env-file-name"
+        style="
+          margin-top: var(--c360-spacing-2);
+          font-size: var(--c360-text-sm);
+          color: var(--c360-text-muted);
+        "
+      >
+        No file selected
+      </p>
+
+      <div style="margin-top: var(--c360-spacing-3)">
+        <label class="form-label" for="env-bucket">Bucket ID</label>
+        <input
+          type="text"
+          id="env-bucket"
+          class="form-control"
+          value="{{ default_bucket }}"
+          placeholder="bucket-id"
+        />
+      </div>
+
+      <div
+        class="progress-wrap"
+        id="env-progress-wrap"
+        style="display: none; margin-top: var(--c360-spacing-3)"
+      >
+        <div class="progress-label"><span>Uploading environment…</span></div>
+        <div class="progress">
+          <div
+            class="progress-bar animated success"
+            id="env-progress-bar"
+            style="width: 0"
+          ></div>
+        </div>
+      </div>
+
+      <button
+        class="btn btn-primary"
+        id="env-upload-btn"
+        disabled
+        style="margin-top: var(--c360-spacing-4)"
+      >
+        <i class="lni lni-cloud-upload"></i> Upload Environment
+      </button>
+      <div id="env-result" style="margin-top: var(--c360-spacing-3)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Existing collections -->
+<div class="card" style="margin-top: var(--c360-spacing-6)">
+  <div class="card-body" style="padding-bottom: 0">
+    <h3 class="card-title">Uploaded Collections</h3>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Folders/Requests</th>
+          <th>Uploaded</th>
+          <th>By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="col-list-body">
+        {% for col in collections %}
+        <tr id="col-row-{{ col.id }}">
+          <td style="font-weight: var(--c360-font-medium)">{{ col.name }}</td>
+          <td>{{ col.item_count }} items · {{ col.request_count }} requests</td>
+          <td style="white-space: nowrap">
+            {{ col.uploaded_at|date:"M d, Y H:i" }}
+          </td>
+          <td
+            style="
+              font-size: var(--c360-text-xs);
+              color: var(--c360-text-muted);
+            "
+          >
+            {{ col.uploaded_by|default:"—" }}
+          </td>
+          <td>
+            <div style="display: flex; gap: 4px">
+              <a
+                href="{% url 'durgasman:dashboard' %}"
+                class="btn btn-outline btn-sm"
+                title="Open in Durgasman"
+              >
+                <i class="lni lni-arrow-right"></i>
+              </a>
+              <button
+                class="btn btn-danger btn-sm"
+                onclick="deleteCol({{ col.id }},'{{ col.name|escapejs }}')"
+                title="Delete"
+              >
+                <i class="lni lni-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr id="col-empty-row">
+          <td colspan="5" class="table-empty">No collections uploaded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Existing environments -->
+<div class="card" style="margin-top: var(--c360-spacing-4)">
+  <div class="card-body" style="padding-bottom: 0">
+    <h3 class="card-title">Uploaded Environments</h3>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Variables</th>
+          <th>Uploaded</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="env-list-body">
+        {% for env in environments %}
+        <tr id="env-row-{{ env.id }}">
+          <td style="font-weight: var(--c360-font-medium)">{{ env.name }}</td>
+          <td>{{ env.variable_count }} variables</td>
+          <td style="white-space: nowrap">
+            {{ env.uploaded_at|date:"M d, Y H:i" }}
+          </td>
+          <td>
+            <button
+              class="btn btn-danger btn-sm"
+              onclick="deleteEnv({{ env.id }},'{{ env.name|escapejs }}')"
+              title="Delete"
+            >
+              <i class="lni lni-trash"></i>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr id="env-empty-row">
+          <td colspan="4" class="table-empty">No environments uploaded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% csrf_token %} {% endblock %} {% block extra_js %}
+<script>
+  (function () {
+    var CSRF = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+    function setupDropzone(
+      dropId,
+      inputId,
+      fileNameId,
+      btnId,
+      endpoint,
+      resultId,
+      progressWrapId,
+      progressBarId,
+      bucketInputId,
+      onSuccess,
+    ) {
+      var dz = document.getElementById(dropId);
+      var inp = document.getElementById(inputId);
+      var fnEl = document.getElementById(fileNameId);
+      var btn = document.getElementById(btnId);
+      var progWrap = document.getElementById(progressWrapId);
+      var progBar = document.getElementById(progressBarId);
+      var bucketEl = document.getElementById(bucketInputId);
+      var selectedFile = null;
+
+      if (!dz) return;
+      dz.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        dz.classList.add("dragover");
+      });
+      dz.addEventListener("dragleave", function () {
+        dz.classList.remove("dragover");
+      });
+      dz.addEventListener("drop", function (e) {
+        e.preventDefault();
+        dz.classList.remove("dragover");
+        var f = e.dataTransfer.files[0];
+        if (f) pick(f);
+      });
+      inp &&
+        inp.addEventListener("change", function () {
+          if (inp.files[0]) pick(inp.files[0]);
+        });
+
+      function pick(f) {
+        selectedFile = f;
+        fnEl && (fnEl.textContent = f.name + " (" + fmtBytes(f.size) + ")");
+        btn && (btn.disabled = false);
+      }
+
+      btn &&
+        btn.addEventListener("click", async function () {
+          if (!selectedFile) return;
+          btn.disabled = true;
+          progWrap && (progWrap.style.display = "block");
+          progBar && (progBar.style.width = "30%");
+          var fd = new FormData();
+          fd.append("file", selectedFile);
+          if (bucketEl) fd.append("bucket_id", bucketEl.value);
+          try {
+            progBar && (progBar.style.width = "60%");
+            var resp = await fetch(endpoint, {
+              method: "POST",
+              headers: { "X-CSRFToken": CSRF },
+              body: fd,
+            });
+            progBar && (progBar.style.width = "95%");
+            var data = await resp.json();
+            setTimeout(function () {
+              progWrap && (progWrap.style.display = "none");
+              progBar && (progBar.style.width = "0");
+            }, 800);
+            var resultEl = document.getElementById(resultId);
+            if (data.success) {
+              if (resultEl)
+                resultEl.innerHTML =
+                  '<div class="alert alert-success"><span class="alert-body">Uploaded successfully!</span></div>';
+              if (typeof showToast === "function")
+                showToast("Uploaded!", "success");
+              if (onSuccess) onSuccess(data);
+              selectedFile = null;
+              inp && (inp.value = "");
+              fnEl && (fnEl.textContent = "No file selected");
+            } else {
+              if (resultEl)
+                resultEl.innerHTML =
+                  '<div class="alert alert-danger"><span class="alert-body">' +
+                  escHtml(data.error || "Upload failed.") +
+                  "</span></div>";
+              if (typeof showToast === "function")
+                showToast(data.error || "Upload failed.", "error");
+              btn.disabled = false;
+            }
+          } catch (e) {
+            if (typeof showToast === "function") showToast(String(e), "error");
+            btn.disabled = false;
+            progWrap && (progWrap.style.display = "none");
+          }
+        });
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+    function fmtBytes(b) {
+      if (b < 1024) return b + " B";
+      if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+      return (b / 1048576).toFixed(1) + " MB";
+    }
+
+    setupDropzone(
+      "col-dropzone",
+      "col-file",
+      "col-file-name",
+      "col-upload-btn",
+      "/durgasman/upload/collection/",
+      "col-result",
+      "col-progress-wrap",
+      "col-progress-bar",
+      "col-bucket",
+      function (data) {
+        var body = document.getElementById("col-list-body");
+        var empty = document.getElementById("col-empty-row");
+        if (empty) empty.remove();
+        if (body) {
+          body.insertAdjacentHTML(
+            "afterbegin",
+            '<tr id="col-row-' +
+              data.id +
+              '"><td style="font-weight:var(--c360-font-medium)">' +
+              escHtml(data.name) +
+              "</td>" +
+              "<td>" +
+              data.item_count +
+              " items · " +
+              data.request_count +
+              " requests</td>" +
+              "<td>Just now</td><td>—</td>" +
+              '<td><div style="display:flex;gap:4px">' +
+              '<a href="/durgasman/" class="btn btn-outline btn-sm"><i class="lni lni-arrow-right"></i></a>' +
+              '<button class="btn btn-danger btn-sm" onclick="deleteCol(' +
+              data.id +
+              ",'" +
+              escHtml(data.name) +
+              '\')"><i class="lni lni-trash"></i></button>' +
+              "</div></td></tr>",
+          );
+        }
+      },
+    );
+
+    setupDropzone(
+      "env-dropzone",
+      "env-file",
+      "env-file-name",
+      "env-upload-btn",
+      "/durgasman/upload/environment/",
+      "env-result",
+      "env-progress-wrap",
+      "env-progress-bar",
+      "env-bucket",
+      function (data) {
+        var body = document.getElementById("env-list-body");
+        var empty = document.getElementById("env-empty-row");
+        if (empty) empty.remove();
+        if (body) {
+          body.insertAdjacentHTML(
+            "afterbegin",
+            '<tr id="env-row-' +
+              data.id +
+              '"><td style="font-weight:var(--c360-font-medium)">' +
+              escHtml(data.name) +
+              "</td>" +
+              "<td>" +
+              data.variable_count +
+              " variables</td><td>Just now</td>" +
+              '<td><button class="btn btn-danger btn-sm" onclick="deleteEnv(' +
+              data.id +
+              ",'" +
+              escHtml(data.name) +
+              '\')"><i class="lni lni-trash"></i></button></td></tr>',
+          );
+        }
+      },
+    );
+
+    window.deleteCol = async function (id, name) {
+      if (!confirm('Delete collection "' + name + '"?')) return;
+      try {
+        var resp = await fetch("/durgasman/collections/" + id + "/delete/", {
+          method: "POST",
+          headers: { "X-CSRFToken": CSRF },
+        });
+        var data = await resp.json();
+        if (data.success) {
+          var row = document.getElementById("col-row-" + id);
+          if (row) row.remove();
+          if (typeof showToast === "function") showToast("Deleted.", "success");
+        }
+      } catch (e) {
+        if (typeof showToast === "function") showToast(String(e), "error");
+      }
+    };
+    window.deleteEnv = async function (id, name) {
+      if (!confirm('Delete environment "' + name + '"?')) return;
+      try {
+        var resp = await fetch("/durgasman/environments/" + id + "/delete/", {
+          method: "POST",
+          headers: { "X-CSRFToken": CSRF },
+        });
+        var data = await resp.json();
+        if (data.success) {
+          var row = document.getElementById("env-row-" + id);
+          if (row) row.remove();
+          if (typeof showToast === "function") showToast("Deleted.", "success");
+        }
+      } catch (e) {
+        if (typeof showToast === "function") showToast(String(e), "error");
+      }
+    };
+  })();
+</script>
+{% endblock %}

@@ -2,6 +2,7 @@
 Shared GraphQL client for all admin service calls.
 Handles retry, exponential backoff, request ID propagation, and token injection.
 """
+
 import logging
 import uuid
 import time
@@ -80,19 +81,28 @@ def _execute(
             with httpx.Client(timeout=timeout) as client:
                 resp = client.post(url, json=payload, headers=headers)
             if resp.status_code >= 500:
-                raise RuntimeError(f"GraphQL gateway {resp.status_code}: {resp.text[:200]}")
+                raise RuntimeError(
+                    f"GraphQL gateway {resp.status_code}: {resp.text[:200]}"
+                )
             resp.raise_for_status()
             try:
                 data = resp.json()
             except ValueError as je:
-                raise RuntimeError(f"GraphQL response is not JSON: {resp.text[:200]}") from je
+                raise RuntimeError(
+                    f"GraphQL response is not JSON: {resp.text[:200]}"
+                ) from je
             return data
         except (httpx.RequestError, httpx.HTTPStatusError, RuntimeError) as exc:
             last_exc = exc
             if attempt + 1 >= attempts:
                 break
-            wait = _BACKOFF_BASE ** attempt
-            logger.warning("GraphQL attempt %d failed (%s); retrying in %.1fs", attempt + 1, exc, wait)
+            wait = _BACKOFF_BASE**attempt
+            logger.warning(
+                "GraphQL attempt %d failed (%s); retrying in %.1fs",
+                attempt + 1,
+                exc,
+                wait,
+            )
             time.sleep(wait)
 
     raise RuntimeError(f"GraphQL request failed after {attempts} attempts: {last_exc}")

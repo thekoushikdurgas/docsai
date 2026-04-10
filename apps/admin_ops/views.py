@@ -2,6 +2,7 @@
 Admin operations views — users, jobs, logs, billing, storage, system status, settings, statistics.
 All views require admin or super_admin role.
 """
+
 import json
 import logging
 import re
@@ -18,8 +19,13 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from apps.core.decorators import require_admin_or_super_admin, require_login, require_super_admin
+from apps.core.decorators import (
+    require_admin_or_super_admin,
+    require_login,
+    require_super_admin,
+)
 from apps.core.exceptions import LambdaAPIError
+from apps.core.services.appointment360_client import get_profile
 
 from .services.admin_client import (
     AdminGraphQLError,
@@ -65,7 +71,9 @@ from .utils import time_range_to_iso
 
 logger = logging.getLogger(__name__)
 
-LOGS_API_ENABLED = getattr(settings, "LOGS_API_ENABLED", bool(getattr(settings, "LOGS_API_URL", "")))
+LOGS_API_ENABLED = getattr(
+    settings, "LOGS_API_ENABLED", bool(getattr(settings, "LOGS_API_URL", ""))
+)
 S3STORAGE_ENABLED = bool(getattr(settings, "S3STORAGE_API_URL", ""))
 
 
@@ -121,14 +129,69 @@ def _token(request) -> str:
     return request.session.get("operator", {}).get("token", "")
 
 
+def _coalesce_bucket_str(*candidates: object) -> str | None:
+    """Normalize GraphQL / session ids to a non-empty bucket string."""
+    for c in candidates:
+        if c is None:
+            continue
+        s = str(c).strip()
+        if s:
+            return s
+    return None
+
+
+def _get_operator_bucket_for_upload(request) -> str | None:
+    """
+    S3 logical bucket for the signed-in operator.
+
+    Order: ``auth.me.bucket`` (if set), else ``auth.me.uuid``, else
+    ``admin.users`` row for this user (SuperAdmin list), else **session
+    ``operator.id``** (always set at gateway login — same prefix the API uses
+    when ``user.bucket`` is null).
+
+    Without the session fallback, null DB buckets and non–SuperAdmin operators
+    hit "No bucket available" even though uploads are keyed by user id.
+    """
+    token = _token(request)
+    op = request.session.get("operator") or {}
+    session_uid = op.get("id")
+
+    if token:
+        try:
+            me = get_profile(token)
+            if isinstance(me, dict):
+                b = _coalesce_bucket_str(
+                    me.get("bucket"),
+                    me.get("uuid"),
+                )
+                if b:
+                    return b
+        except Exception:
+            logger.warning("get_profile for operator bucket failed", exc_info=True)
+        if session_uid:
+            try:
+                u = find_admin_user(token, str(session_uid))
+                if isinstance(u, dict):
+                    b = _coalesce_bucket_str(u.get("bucket"), u.get("uuid"))
+                    if b:
+                        return b
+            except Exception:
+                logger.debug("find_admin_user for operator bucket failed", exc_info=True)
+
+    return _coalesce_bucket_str(session_uid)
+
+
 def _get_payment_qr_bucket(request) -> str | None:
+    """Bucket used for payment QR uploads and UI hint: env override, then operator bucket, then any listed user."""
     bucket = getattr(settings, "PAYMENT_QR_BUCKET_ID", None) or ""
     if bucket:
         return bucket
+    op = _get_operator_bucket_for_upload(request)
+    if op:
+        return op
     try:
         data = get_users(_token(request), limit=10, offset=0)
         for u in data.get("items", []):
-            # S3 logical prefix: prefer explicit user.bucket, else user uuid (matches API presign path).
             b = (u.get("bucket") or u.get("uuid") or "").strip()
             if b:
                 return b
@@ -142,13 +205,21 @@ def _billing_qr_upload_json(request) -> JsonResponse:
     S3 upload for payment QR image. Used from Payment setup via XHR (multipart ``file`` field).
     """
     if not S3STORAGE_ENABLED:
-        return JsonResponse({"success": False, "error": "Storage is not configured"}, status=400)
-    bucket_id = (request.POST.get("qr_code_bucket_id") or "").strip() or _get_payment_qr_bucket(request)
+        return JsonResponse(
+            {"success": False, "error": "Storage is not configured"}, status=400
+        )
+    raw_post_bucket = (request.POST.get("qr_code_bucket_id") or "").strip()
+    resolved = _get_payment_qr_bucket(request)
+    bucket_id = raw_post_bucket or resolved
     if not bucket_id:
         return JsonResponse(
             {
                 "success": False,
-                "error": "No bucket available. Set PAYMENT_QR_BUCKET_ID or ensure users have buckets.",
+                "error": (
+                    "No bucket available. Set PAYMENT_QR_BUCKET_ID, sign in again "
+                    "(session must include your user id), or ensure GraphQL auth.me "
+                    "returns bucket/uuid."
+                ),
             },
             status=400,
         )
@@ -170,15 +241,20 @@ def _billing_qr_upload_json(request) -> JsonResponse:
             if isinstance(result, dict)
             else ""
         )
-        return JsonResponse({"success": True, "fileKey": file_key, "bucketId": bucket_id})
+        return JsonResponse(
+            {"success": True, "fileKey": file_key, "bucketId": bucket_id}
+        )
     except LambdaAPIError as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=getattr(e, "status_code", 500))
+        return JsonResponse(
+            {"success": False, "error": str(e)}, status=getattr(e, "status_code", 500)
+        )
     except Exception as e:
         logger.exception("billing_settings qr upload")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 # ===== Users =====
+
 
 def _users_page_querystring(request, page_num: int) -> str:
     q = request.GET.copy()
@@ -276,7 +352,9 @@ def users_view(request):
         )
     else:
         try:
-            users_data = get_users(_token(request), filters=filters, limit=limit, offset=offset)
+            users_data = get_users(
+                _token(request), filters=filters, limit=limit, offset=offset
+            )
         except AdminGraphQLError as exc:
             users_load_failed = True
             logger.error("users_view GraphQL error: %s", exc)
@@ -292,7 +370,11 @@ def users_view(request):
     if users_load_failed:
         users_subtitle_mode = "error"
         users_total = None
-    elif isinstance(page_info, dict) and "total" in page_info and page_info.get("total") is not None:
+    elif (
+        isinstance(page_info, dict)
+        and "total" in page_info
+        and page_info.get("total") is not None
+    ):
         users_subtitle_mode = "count"
         try:
             users_total = int(page_info["total"])
@@ -317,18 +399,26 @@ def users_view(request):
             if page_info.get("hasNext"):
                 pagination_query_next = _users_page_querystring(request, page + 1)
 
-    return render(request, "admin_ops/users.html", {
-        "users": items,
-        "page_info": page_info if isinstance(page_info, dict) else {},
-        "search": search, "plan": plan, "role": role, "active": active,
-        "current_page": page, "page_title": "Users",
-        "filters_active": filters_active,
-        "users_load_failed": users_load_failed,
-        "users_subtitle_mode": users_subtitle_mode,
-        "users_total": users_total,
-        "pagination_query_prev": pagination_query_prev,
-        "pagination_query_next": pagination_query_next,
-    })
+    return render(
+        request,
+        "admin_ops/users.html",
+        {
+            "users": items,
+            "page_info": page_info if isinstance(page_info, dict) else {},
+            "search": search,
+            "plan": plan,
+            "role": role,
+            "active": active,
+            "current_page": page,
+            "page_title": "Users",
+            "filters_active": filters_active,
+            "users_load_failed": users_load_failed,
+            "users_subtitle_mode": users_subtitle_mode,
+            "users_total": users_total,
+            "pagination_query_prev": pagination_query_prev,
+            "pagination_query_next": pagination_query_next,
+        },
+    )
 
 
 @require_admin_or_super_admin
@@ -344,14 +434,18 @@ def user_detail_view(request, user_id):
                 if result.get("success"):
                     messages.success(request, f"Credits updated (delta {amount:+d}).")
                 else:
-                    messages.error(request, result.get("error", "Failed to adjust credits."))
+                    messages.error(
+                        request, result.get("error", "Failed to adjust credits.")
+                    )
             elif action == "update_role":
                 role = (request.POST.get("role") or "").strip()
                 result = update_user_role(tok, user_id, role)
                 if result.get("success"):
                     messages.success(request, f"Role set to {role}.")
                 else:
-                    messages.error(request, result.get("error", "Failed to update role."))
+                    messages.error(
+                        request, result.get("error", "Failed to update role.")
+                    )
             elif action == "delete_user":
                 result = delete_user_account(tok, user_id)
                 if result.get("success"):
@@ -363,13 +457,17 @@ def user_detail_view(request, user_id):
                 if result.get("success"):
                     messages.success(request, "User promoted to Admin.")
                 else:
-                    messages.error(request, result.get("error", "Promote to Admin failed."))
+                    messages.error(
+                        request, result.get("error", "Promote to Admin failed.")
+                    )
             elif action == "promote_super":
                 result = promote_to_super_admin(tok, user_id)
                 if result.get("success"):
                     messages.success(request, "User promoted to SuperAdmin.")
                 else:
-                    messages.error(request, result.get("error", "Promote to SuperAdmin failed."))
+                    messages.error(
+                        request, result.get("error", "Promote to SuperAdmin failed.")
+                    )
             else:
                 messages.error(request, "Unknown action.")
         except Exception as exc:
@@ -382,15 +480,20 @@ def user_detail_view(request, user_id):
     except Exception as exc:
         logger.warning("user_detail find_admin_user: %s", exc)
 
-    return render(request, "admin_ops/user_detail.html", {
-        "user_id": user_id,
-        "user_row": user_row,
-        "page_title": "User Detail",
-        "valid_roles": ["FreeUser", "ProUser", "Admin", "SuperAdmin"],
-    })
+    return render(
+        request,
+        "admin_ops/user_detail.html",
+        {
+            "user_id": user_id,
+            "user_row": user_row,
+            "page_title": "User Detail",
+            "valid_roles": ["FreeUser", "ProUser", "Admin", "SuperAdmin"],
+        },
+    )
 
 
 # ===== Jobs =====
+
 
 def _jobs_page_querystring(request, page_num: int) -> str:
     q = request.GET.copy()
@@ -450,18 +553,22 @@ def jobs_view(request):
         {"id": "failed", "label": "Failed"},
         {"id": "retry", "label": "Retry"},
     ]
-    return render(request, "admin_ops/jobs.html", {
-        "jobs": jobs_data.get("items", []),
-        "page_info": page_info,
-        "status_filter": status_filter,
-        "source_filter": source_filter,
-        "status_tabs": status_tabs,
-        "current_page": page,
-        "page_title": "Jobs",
-        "jobs_load_failed": jobs_load_failed,
-        "pagination_query_prev": pagination_query_prev,
-        "pagination_query_next": pagination_query_next,
-    })
+    return render(
+        request,
+        "admin_ops/jobs.html",
+        {
+            "jobs": jobs_data.get("items", []),
+            "page_info": page_info,
+            "status_filter": status_filter,
+            "source_filter": source_filter,
+            "status_tabs": status_tabs,
+            "current_page": page,
+            "page_title": "Jobs",
+            "jobs_load_failed": jobs_load_failed,
+            "pagination_query_prev": pagination_query_prev,
+            "pagination_query_next": pagination_query_next,
+        },
+    )
 
 
 @require_admin_or_super_admin
@@ -470,12 +577,15 @@ def job_detail_view(request, job_id):
         try:
             result = retry_job(_token(request), job_id)
             if result.get("idempotent"):
-                messages.info(request, "Job is already in a terminal state or currently running.")
+                messages.info(
+                    request, "Job is already in a terminal state or currently running."
+                )
             elif result.get("success"):
                 detail = (result.get("detail") or "").strip()
                 messages.success(
                     request,
-                    detail or "Retry recorded on the gateway (sync jobs: local status reset to open).",
+                    detail
+                    or "Retry recorded on the gateway (sync jobs: local status reset to open).",
                 )
             else:
                 messages.error(request, result.get("error", "Retry failed."))
@@ -489,13 +599,19 @@ def job_detail_view(request, job_id):
     except Exception as exc:
         messages.error(request, f"Failed to load job: {exc}")
 
-    return render(request, "admin_ops/job_detail.html", {
-        "job": job, "job_id": job_id,
-        "page_title": f"Job {job_id[:8]}…" if job_id else "Job Detail",
-    })
+    return render(
+        request,
+        "admin_ops/job_detail.html",
+        {
+            "job": job,
+            "job_id": job_id,
+            "page_title": f"Job {job_id[:8]}…" if job_id else "Job Detail",
+        },
+    )
 
 
 # ===== Logs =====
+
 
 def _logs_page_querystring(request, page_num: int) -> str:
     q = request.GET.copy()
@@ -567,18 +683,22 @@ def logs_view(request):
         "emailcampaign",
         "mailvetter",
     ]
-    return render(request, "admin_ops/logs.html", {
-        "logs": log_payload.get("items", []),
-        "service": service,
-        "level_filter": level,
-        "services": services,
-        "current_page": page,
-        "page_title": "Logs",
-        "page_info": page_info,
-        "logs_load_failed": logs_load_failed,
-        "pagination_query_prev": pagination_query_prev,
-        "pagination_query_next": pagination_query_next,
-    })
+    return render(
+        request,
+        "admin_ops/logs.html",
+        {
+            "logs": log_payload.get("items", []),
+            "service": service,
+            "level_filter": level,
+            "services": services,
+            "current_page": page,
+            "page_title": "Logs",
+            "page_info": page_info,
+            "logs_load_failed": logs_load_failed,
+            "pagination_query_prev": pagination_query_prev,
+            "pagination_query_next": pagination_query_next,
+        },
+    )
 
 
 @require_super_admin
@@ -593,6 +713,7 @@ def delete_log_view(request, log_id):
 
 
 # ===== Billing =====
+
 
 @require_admin_or_super_admin
 def billing_view(request):
@@ -612,22 +733,26 @@ def billing_view(request):
     except Exception as exc:
         messages.error(request, f"Failed to load payments: {exc}")
 
-    return render(request, "admin_ops/billing.html", {
-        "payments": payment_data["items"],
-        "total": payment_data["total"],
-        "has_next": payment_data["hasNext"],
-        "has_previous": payment_data["hasPrevious"],
-        "page": page,
-        "status_filter": status_filter,
-        "billing_nav_active": "payments",
-        "status_tabs": [
-            ("pending", "Pending"),
-            ("approved", "Approved"),
-            ("declined", "Declined"),
-            ("", "All"),
-        ],
-        "page_title": "Billing — Payment Submissions",
-    })
+    return render(
+        request,
+        "admin_ops/billing.html",
+        {
+            "payments": payment_data["items"],
+            "total": payment_data["total"],
+            "has_next": payment_data["hasNext"],
+            "has_previous": payment_data["hasPrevious"],
+            "page": page,
+            "status_filter": status_filter,
+            "billing_nav_active": "payments",
+            "status_tabs": [
+                ("pending", "Pending"),
+                ("approved", "Approved"),
+                ("declined", "Declined"),
+                ("", "All"),
+            ],
+            "page_title": "Billing — Payment Submissions",
+        },
+    )
 
 
 _PLAN_CATEGORIES = ("STARTER", "PROFESSIONAL", "BUSINESS", "ENTERPRISE")
@@ -660,8 +785,12 @@ def _collect_plan_periods_from_post(request) -> list:
                 "credits": int(cr),
                 "rate_per_credit": float(request.POST.get(f"rate_{key}", "0") or 0),
                 "price": float(request.POST.get(f"price_{key}", "0") or 0),
-                "savings_amount": _optional_post_float(request.POST.get(f"savings_amt_{key}")),
-                "savings_percentage": _optional_post_int(request.POST.get(f"savings_pct_{key}")),
+                "savings_amount": _optional_post_float(
+                    request.POST.get(f"savings_amt_{key}")
+                ),
+                "savings_percentage": _optional_post_int(
+                    request.POST.get(f"savings_pct_{key}")
+                ),
             }
         )
     return periods
@@ -681,13 +810,17 @@ def billing_plans_view(request):
         plans = get_billing_plans(_token(request))
     except Exception as exc:
         messages.error(request, f"Failed to load subscription plans: {exc}")
-    return render(request, "admin_ops/billing_plans.html", {
-        "plans": plans,
-        "billing_nav_active": "plans",
-        "page_title": "Billing — Subscription plans",
-        "plan_categories": _PLAN_CATEGORIES,
-        "billing_period_keys": _BILLING_PERIOD_KEYS,
-    })
+    return render(
+        request,
+        "admin_ops/billing_plans.html",
+        {
+            "plans": plans,
+            "billing_nav_active": "plans",
+            "page_title": "Billing — Subscription plans",
+            "plan_categories": _PLAN_CATEGORIES,
+            "billing_period_keys": _BILLING_PERIOD_KEYS,
+        },
+    )
 
 
 @require_super_admin
@@ -701,7 +834,9 @@ def billing_plan_create_view(request):
         try:
             periods = _collect_plan_periods_from_post(request)
             if not periods:
-                messages.error(request, "Add at least one billing period (credits + rate + price).")
+                messages.error(
+                    request, "Add at least one billing period (credits + rate + price)."
+                )
             else:
                 result = billing_create_plan(
                     _token(request),
@@ -721,13 +856,17 @@ def billing_plan_create_view(request):
             messages.error(request, str(ge))
         except Exception as exc:
             messages.error(request, str(exc))
-    return render(request, "admin_ops/billing_plan_form.html", {
-        "billing_nav_active": "plans",
-        "page_title": "New subscription plan",
-        "form_mode": "create",
-        "plan_categories": _PLAN_CATEGORIES,
-        "billing_period_keys": _BILLING_PERIOD_KEYS,
-    })
+    return render(
+        request,
+        "admin_ops/billing_plan_form.html",
+        {
+            "billing_nav_active": "plans",
+            "page_title": "New subscription plan",
+            "form_mode": "create",
+            "plan_categories": _PLAN_CATEGORIES,
+            "billing_period_keys": _BILLING_PERIOD_KEYS,
+        },
+    )
 
 
 @require_super_admin
@@ -761,12 +900,16 @@ def billing_plan_edit_view(request, tier: str):
             messages.error(request, str(ge))
         except Exception as exc:
             messages.error(request, str(exc))
-    return render(request, "admin_ops/billing_plan_edit.html", {
-        "plan": plan,
-        "billing_nav_active": "plans",
-        "page_title": f"Edit plan — {tier}",
-        "plan_categories": _PLAN_CATEGORIES,
-    })
+    return render(
+        request,
+        "admin_ops/billing_plan_edit.html",
+        {
+            "plan": plan,
+            "billing_nav_active": "plans",
+            "page_title": f"Edit plan — {tier}",
+            "plan_categories": _PLAN_CATEGORIES,
+        },
+    )
 
 
 @require_super_admin
@@ -801,7 +944,9 @@ def billing_plan_period_add_view(request, tier: str):
     existing = {k for k in _BILLING_PERIOD_KEYS if plan.get("periods", {}).get(k)}
     available = [k for k in _BILLING_PERIOD_KEYS if k not in existing]
     if not available:
-        messages.error(request, "This plan already has monthly, quarterly, and yearly periods.")
+        messages.error(
+            request, "This plan already has monthly, quarterly, and yearly periods."
+        )
         return redirect("admin_ops:billing_plans")
     if request.method == "POST":
         period = (request.POST.get("period") or "").strip().lower()
@@ -812,10 +957,16 @@ def billing_plan_period_add_view(request, tier: str):
                 row = {
                     "period": period,
                     "credits": int(request.POST.get("credits", "0")),
-                    "rate_per_credit": float(request.POST.get("rate_per_credit", "0") or 0),
+                    "rate_per_credit": float(
+                        request.POST.get("rate_per_credit", "0") or 0
+                    ),
                     "price": float(request.POST.get("price", "0") or 0),
-                    "savings_amount": _optional_post_float(request.POST.get("savings_amt")),
-                    "savings_percentage": _optional_post_int(request.POST.get("savings_pct")),
+                    "savings_amount": _optional_post_float(
+                        request.POST.get("savings_amt")
+                    ),
+                    "savings_percentage": _optional_post_int(
+                        request.POST.get("savings_pct")
+                    ),
                 }
                 result = billing_create_plan_period(_token(request), tier, row)
                 if result.get("period"):
@@ -828,13 +979,17 @@ def billing_plan_period_add_view(request, tier: str):
                 messages.error(request, str(ge))
             except Exception as exc:
                 messages.error(request, str(exc))
-    return render(request, "admin_ops/billing_plan_period_form.html", {
-        "plan": plan,
-        "billing_nav_active": "plans",
-        "page_title": f"Add period — {tier}",
-        "form_mode": "add",
-        "available_periods": available,
-    })
+    return render(
+        request,
+        "admin_ops/billing_plan_period_form.html",
+        {
+            "plan": plan,
+            "billing_nav_active": "plans",
+            "page_title": f"Add period — {tier}",
+            "form_mode": "add",
+            "available_periods": available,
+        },
+    )
 
 
 @require_super_admin
@@ -865,7 +1020,9 @@ def billing_plan_period_edit_view(request, tier: str, period: str):
                 "rate_per_credit": float(request.POST.get("rate_per_credit", "0") or 0),
                 "price": float(request.POST.get("price", "0") or 0),
                 "savings_amount": _optional_post_float(request.POST.get("savings_amt")),
-                "savings_percentage": _optional_post_int(request.POST.get("savings_pct")),
+                "savings_percentage": _optional_post_int(
+                    request.POST.get("savings_pct")
+                ),
             }
             result = billing_update_plan_period(_token(request), tier, period, updates)
             if result.get("period"):
@@ -878,14 +1035,18 @@ def billing_plan_period_edit_view(request, tier: str, period: str):
             messages.error(request, str(ge))
         except Exception as exc:
             messages.error(request, str(exc))
-    return render(request, "admin_ops/billing_plan_period_form.html", {
-        "plan": plan,
-        "period_row": pdata,
-        "period_key": period,
-        "billing_nav_active": "plans",
-        "page_title": f"Edit {period} — {tier}",
-        "form_mode": "edit",
-    })
+    return render(
+        request,
+        "admin_ops/billing_plan_period_form.html",
+        {
+            "plan": plan,
+            "period_row": pdata,
+            "period_key": period,
+            "billing_nav_active": "plans",
+            "page_title": f"Edit {period} — {tier}",
+            "form_mode": "edit",
+        },
+    )
 
 
 @require_super_admin
@@ -915,11 +1076,15 @@ def billing_addons_view(request):
         addons = get_billing_addons(_token(request))
     except Exception as exc:
         messages.error(request, f"Failed to load add-on packages: {exc}")
-    return render(request, "admin_ops/billing_addons.html", {
-        "addons": addons,
-        "billing_nav_active": "addons",
-        "page_title": "Billing — Add-on packages",
-    })
+    return render(
+        request,
+        "admin_ops/billing_addons.html",
+        {
+            "addons": addons,
+            "billing_nav_active": "addons",
+            "page_title": "Billing — Add-on packages",
+        },
+    )
 
 
 @require_super_admin
@@ -952,11 +1117,15 @@ def billing_addon_create_view(request):
             messages.error(request, str(ge))
         except Exception as exc:
             messages.error(request, str(exc))
-    return render(request, "admin_ops/billing_addon_form.html", {
-        "billing_nav_active": "addons",
-        "page_title": "New add-on package",
-        "form_mode": "create",
-    })
+    return render(
+        request,
+        "admin_ops/billing_addon_form.html",
+        {
+            "billing_nav_active": "addons",
+            "page_title": "New add-on package",
+            "form_mode": "create",
+        },
+    )
 
 
 @require_super_admin
@@ -968,7 +1137,9 @@ def billing_addon_edit_view(request, package_id: str):
     except Exception as exc:
         messages.error(request, str(exc))
         return redirect("admin_ops:billing_addons")
-    pkg = next((a for a in addons if isinstance(a, dict) and a.get("id") == package_id), None)
+    pkg = next(
+        (a for a in addons if isinstance(a, dict) and a.get("id") == package_id), None
+    )
     if not pkg:
         messages.error(request, "Package not found.")
         return redirect("admin_ops:billing_addons")
@@ -998,12 +1169,16 @@ def billing_addon_edit_view(request, package_id: str):
             messages.error(request, str(ge))
         except Exception as exc:
             messages.error(request, str(exc))
-    return render(request, "admin_ops/billing_addon_form.html", {
-        "addon": pkg,
-        "billing_nav_active": "addons",
-        "page_title": f"Edit add-on — {package_id}",
-        "form_mode": "edit",
-    })
+    return render(
+        request,
+        "admin_ops/billing_addon_form.html",
+        {
+            "addon": pkg,
+            "billing_nav_active": "addons",
+            "page_title": f"Edit add-on — {package_id}",
+            "form_mode": "edit",
+        },
+    )
 
 
 @require_super_admin
@@ -1028,7 +1203,9 @@ def approve_payment_view(request, payment_id):
     try:
         result = approve_payment(_token(request), payment_id)
         if result.get("id"):
-            messages.success(request, f"Payment approved. Credits: {result.get('creditsToAdd', '—')}")
+            messages.success(
+                request, f"Payment approved. Credits: {result.get('creditsToAdd', '—')}"
+            )
         else:
             messages.error(request, "Approval failed — no response from gateway.")
     except Exception as exc:
@@ -1056,6 +1233,7 @@ def decline_payment_view(request, payment_id):
 
 # ===== Storage =====
 
+
 @require_admin_or_super_admin
 def storage_view(request):
     selected_bucket = request.GET.get("bucket", "").strip()
@@ -1077,9 +1255,13 @@ def storage_view(request):
     has_previous = False
 
     if selected_bucket:
-        full_prefix = f"{selected_bucket}/{prefix}".lstrip("/") if prefix else selected_bucket
+        full_prefix = (
+            f"{selected_bucket}/{prefix}".lstrip("/") if prefix else selected_bucket
+        )
         try:
-            result = get_storage_artifacts(prefix=full_prefix, limit=limit, offset=offset)
+            result = get_storage_artifacts(
+                prefix=full_prefix, limit=limit, offset=offset
+            )
             artifacts = result["items"]
             total = result["total"]
             has_next = offset + limit < total
@@ -1093,28 +1275,36 @@ def storage_view(request):
         breadcrumb_parts.append({"label": "All", "bucket": "", "prefix": ""})
         selected_user = bucket_to_user.get(selected_bucket)
         user_label = selected_user["email"] if selected_user else selected_bucket[:12]
-        breadcrumb_parts.append({"label": user_label, "bucket": selected_bucket, "prefix": ""})
+        breadcrumb_parts.append(
+            {"label": user_label, "bucket": selected_bucket, "prefix": ""}
+        )
         if prefix:
             segments = [s for s in prefix.split("/") if s]
             for i, seg in enumerate(segments):
-                breadcrumb_parts.append({
-                    "label": seg,
-                    "bucket": selected_bucket,
-                    "prefix": "/".join(segments[: i + 1]),
-                })
+                breadcrumb_parts.append(
+                    {
+                        "label": seg,
+                        "bucket": selected_bucket,
+                        "prefix": "/".join(segments[: i + 1]),
+                    }
+                )
 
-    return render(request, "admin_ops/storage.html", {
-        "artifacts": artifacts,
-        "total": total,
-        "has_next": has_next,
-        "has_previous": has_previous,
-        "page": page,
-        "prefix": prefix,
-        "selected_bucket": selected_bucket,
-        "users": users,
-        "breadcrumbs": breadcrumb_parts,
-        "page_title": "Storage",
-    })
+    return render(
+        request,
+        "admin_ops/storage.html",
+        {
+            "artifacts": artifacts,
+            "total": total,
+            "has_next": has_next,
+            "has_previous": has_previous,
+            "page": page,
+            "prefix": prefix,
+            "selected_bucket": selected_bucket,
+            "users": users,
+            "breadcrumbs": breadcrumb_parts,
+            "page_title": "Storage",
+        },
+    )
 
 
 @require_admin_or_super_admin
@@ -1146,6 +1336,7 @@ def delete_artifact_view(request):
 
 # ===== System status =====
 
+
 @require_login
 def system_status_view(request):
     health = []
@@ -1161,20 +1352,26 @@ def system_status_view(request):
     up_probed = sum(1 for s in probed if s.get("status") == "up")
     uptime_pct = round((up_probed / len(probed)) * 100) if probed else 0
 
-    return render(request, "admin_ops/system_status.html", {
-        "health_services": health,
-        "up_count": up_count,
-        "total_services": total,
-        "uptime_pct": uptime_pct,
-        "page_title": "System Status",
-    })
+    return render(
+        request,
+        "admin_ops/system_status.html",
+        {
+            "health_services": health,
+            "up_count": up_count,
+            "total_services": total,
+            "uptime_pct": uptime_pct,
+            "page_title": "System Status",
+        },
+    )
 
 
 # ===== Settings =====
 
+
 @require_super_admin
 def settings_view(request):
     from django.conf import settings as dj_settings
+
     config_snapshot = {
         "GRAPHQL_URL": dj_settings.GRAPHQL_URL,
         "LOGS_API_URL": dj_settings.LOGS_API_URL,
@@ -1184,13 +1381,18 @@ def settings_view(request):
         "DEBUG": dj_settings.DEBUG,
         "DOCS_AGENT_VERSION": dj_settings.DOCS_AGENT_VERSION,
     }
-    return render(request, "admin_ops/settings.html", {
-        "config": config_snapshot,
-        "page_title": "Settings (Read-only)",
-    })
+    return render(
+        request,
+        "admin_ops/settings.html",
+        {
+            "config": config_snapshot,
+            "page_title": "Settings (Read-only)",
+        },
+    )
 
 
 # ===== Statistics =====
+
 
 @require_admin_or_super_admin
 def statistics_view(request):
@@ -1202,27 +1404,39 @@ def statistics_view(request):
 
     # Gateway AdminUserStats: usersByPlan / usersByRole are JSON objects { "free": 12, ... }
     # Accept camelCase (typical GraphQL JSON) or snake_case.
-    by_plan = stats.get("usersByPlan") if isinstance(stats.get("usersByPlan"), dict) else {}
+    by_plan = (
+        stats.get("usersByPlan") if isinstance(stats.get("usersByPlan"), dict) else {}
+    )
     if not by_plan and isinstance(stats.get("users_by_plan"), dict):
         by_plan = stats["users_by_plan"]
-    plan_items = sorted(by_plan.items(), key=lambda x: (-(x[1] or 0), str(x[0]).lower()))
+    plan_items = sorted(
+        by_plan.items(), key=lambda x: (-(x[1] or 0), str(x[0]).lower())
+    )
     chart_data = {
         "labels": [str(k) for k, _ in plan_items],
         "values": [int(v or 0) for _, v in plan_items],
     }
 
-    by_role = stats.get("usersByRole") if isinstance(stats.get("usersByRole"), dict) else {}
+    by_role = (
+        stats.get("usersByRole") if isinstance(stats.get("usersByRole"), dict) else {}
+    )
     if not by_role and isinstance(stats.get("users_by_role"), dict):
         by_role = stats["users_by_role"]
-    role_items = sorted(by_role.items(), key=lambda x: (-(x[1] or 0), str(x[0]).lower()))
+    role_items = sorted(
+        by_role.items(), key=lambda x: (-(x[1] or 0), str(x[0]).lower())
+    )
 
-    return render(request, "admin_ops/statistics.html", {
-        "stats": stats,
-        "chart_data": chart_data,
-        "plan_items": plan_items,
-        "role_items": role_items,
-        "page_title": "Statistics",
-    })
+    return render(
+        request,
+        "admin_ops/statistics.html",
+        {
+            "stats": stats,
+            "chart_data": chart_data,
+            "plan_items": plan_items,
+            "role_items": role_items,
+            "page_title": "Statistics",
+        },
+    )
 
 
 # ===== Per-user activity (GraphQL userHistory / userActivity parity) =====
@@ -1274,7 +1488,9 @@ def user_history_view(request, user_id: str):
 @require_http_methods(["POST"])
 def logs_bulk_delete_view(request):
     if not LOGS_API_ENABLED:
-        return JsonResponse({"success": False, "error": "Logs API is not enabled"}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Logs API is not enabled"}, status=400
+        )
     try:
         body = json.loads(request.body) if request.body else {}
         time_range = (body.get("time_range") or "").strip()
@@ -1311,7 +1527,9 @@ def logs_bulk_delete_view(request):
                     "message": "No matching logs to delete",
                 }
             )
-        return JsonResponse({"success": False, "error": str(e)}, status=getattr(e, "status_code", 500))
+        return JsonResponse(
+            {"success": False, "error": str(e)}, status=getattr(e, "status_code", 500)
+        )
     except Exception as e:
         logger.exception("logs_bulk_delete_view")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -1321,7 +1539,9 @@ def logs_bulk_delete_view(request):
 @require_http_methods(["POST"])
 def log_update_view(request, log_id: str):
     if not LOGS_API_ENABLED:
-        return JsonResponse({"success": False, "error": "Logs API is not enabled"}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Logs API is not enabled"}, status=400
+        )
     try:
         body = json.loads(request.body) if request.body else {}
         message = body.get("message")
@@ -1335,7 +1555,9 @@ def log_update_view(request, log_id: str):
         log = client.update_log(log_id=log_id, message=message, context=context)
         return JsonResponse({"success": True, "data": log})
     except LambdaAPIError as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=getattr(e, "status_code", 500))
+        return JsonResponse(
+            {"success": False, "error": str(e)}, status=getattr(e, "status_code", 500)
+        )
     except Exception as e:
         logger.exception("log_update_view")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -1347,12 +1569,15 @@ def job_retry_view(request, job_id: str):
     try:
         result = retry_job(_token(request), job_id)
         if result.get("idempotent"):
-            messages.info(request, "Job is already in a terminal state or currently running.")
+            messages.info(
+                request, "Job is already in a terminal state or currently running."
+            )
         elif result.get("success"):
             detail = (result.get("detail") or "").strip()
             messages.success(
                 request,
-                detail or "Retry recorded on the gateway (sync jobs: local status reset to open).",
+                detail
+                or "Retry recorded on the gateway (sync jobs: local status reset to open).",
             )
         else:
             messages.error(request, result.get("error", "Retry failed."))
@@ -1380,7 +1605,9 @@ def billing_settings_view(request):
         phone_number = (request.POST.get("phone_number") or "").strip()
         email = (request.POST.get("email") or "").strip()
         qr_code_s3_key = (request.POST.get("qr_code_s3_key") or "").strip() or None
-        qr_code_bucket_id = (request.POST.get("qr_code_bucket_id") or "").strip() or None
+        qr_code_bucket_id = (
+            request.POST.get("qr_code_bucket_id") or ""
+        ).strip() or None
         errors = _validate_billing_settings_input(
             upi_id=upi_id,
             phone_number=phone_number,

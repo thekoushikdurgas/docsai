@@ -40,18 +40,23 @@ class MediaSyncService:
 
         try:
             from apps.core.services.s3_service import S3Service
+
             svc = S3Service()
             svc.upload_file(content, s3_key, content_type="application/json")
             return {"success": True, "s3_key": s3_key, "error": None}
         except Exception as e:
-            logger.warning("sync_file_to_s3 failed path=%s key=%s: %s", file_path, s3_key, e)
+            logger.warning(
+                "sync_file_to_s3 failed path=%s key=%s: %s", file_path, s3_key, e
+            )
             return {"success": False, "s3_key": s3_key, "error": str(e)}
 
     def _sync_resource_type(
         self,
         resource_type: str,
         dry_run: bool,
-        progress_callback: Optional[Callable[[int, int, str, int, int, str], None]] = None,
+        progress_callback: Optional[
+            Callable[[int, int, str, int, int, str], None]
+        ] = None,
         global_start_index: int = 0,
         global_total: int = 0,
     ) -> Dict[str, Any]:
@@ -75,7 +80,9 @@ class MediaSyncService:
 
         for idx, fi in enumerate(files):
             fp = fi.get("file_path")
-            rel_path = (fi.get("relative_path") or fi.get("name") or str(fp)).replace("\\", "/")
+            rel_path = (fi.get("relative_path") or fi.get("name") or str(fp)).replace(
+                "\\", "/"
+            )
             if not fp:
                 continue
             if progress_callback and global_total > 0:
@@ -97,6 +104,7 @@ class MediaSyncService:
                 rt = fi.get("resource_type", resource_type)
                 s3_key = self.file_manager.calculate_s3_key(Path(fp), rt)
                 from apps.core.services.s3_service import S3Service
+
                 svc = S3Service()
                 svc.upload_file(out, s3_key, content_type="application/json")
                 result["synced"] += 1
@@ -111,13 +119,19 @@ class MediaSyncService:
     def sync_pages_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
         return self._sync_resource_type("pages", dry_run, **kwargs)
 
-    def sync_endpoints_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
+    def sync_endpoints_to_s3(
+        self, dry_run: bool = False, **kwargs: Any
+    ) -> Dict[str, Any]:
         return self._sync_resource_type("endpoints", dry_run, **kwargs)
 
-    def sync_relationships_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
+    def sync_relationships_to_s3(
+        self, dry_run: bool = False, **kwargs: Any
+    ) -> Dict[str, Any]:
         return self._sync_resource_type("relationships", dry_run, **kwargs)
 
-    def sync_postman_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
+    def sync_postman_to_s3(
+        self, dry_run: bool = False, **kwargs: Any
+    ) -> Dict[str, Any]:
         return self._sync_resource_type("postman", dry_run, **kwargs)
 
     def sync_n8n_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
@@ -126,7 +140,9 @@ class MediaSyncService:
     def sync_result_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
         return self._sync_resource_type("result", dry_run, **kwargs)
 
-    def sync_project_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
+    def sync_project_to_s3(
+        self, dry_run: bool = False, **kwargs: Any
+    ) -> Dict[str, Any]:
         return self._sync_resource_type("project", dry_run, **kwargs)
 
     def sync_media_to_s3(self, dry_run: bool = False, **kwargs: Any) -> Dict[str, Any]:
@@ -134,6 +150,15 @@ class MediaSyncService:
 
     def sync_all_to_s3(self, dry_run: bool = False) -> Dict[str, Any]:
         out: Dict[str, Any] = {}
-        for rt in ("pages", "endpoints", "relationships", "postman", "n8n", "result", "project", "media"):
+        for rt in (
+            "pages",
+            "endpoints",
+            "relationships",
+            "postman",
+            "n8n",
+            "result",
+            "project",
+            "media",
+        ):
             out[rt] = self._sync_resource_type(rt, dry_run)
         return out

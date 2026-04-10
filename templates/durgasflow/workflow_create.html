@@ -1,11 +1,55 @@
-{% extends "base.html" %}
-{% block title %}Create workflow{% endblock %}
-{% block content %}
-<div class="page-header"><h1 class="page-title">Create workflow</h1></div>
-<form method="post" class="card card-body" style="max-width:480px">
-  {% csrf_token %}
-  <p class="text-muted">Stub form — submit returns to list.</p>
-  <button type="submit" class="btn btn-primary">Create (stub)</button>
-  <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline">Cancel</a>
-</form>
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}New
+Workflow — Durgasflow{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
+<div class="page-header">
+  <div><h1 class="page-title">New Workflow</h1></div>
+  <div class="page-actions">
+    <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline"
+      ><i class="lni lni-arrow-left"></i> Cancel</a
+    >
+  </div>
+</div>
+<div style="max-width: 480px; margin: 0 auto">
+  <div class="card">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input
+            type="text"
+            name="name"
+            class="form-control"
+            placeholder="My Workflow"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea
+            name="description"
+            class="form-control"
+            rows="3"
+            placeholder="Optional description"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Trigger Type</label>
+          <select name="trigger_type" class="form-control">
+            <option value="manual">Manual</option>
+            <option value="webhook">Webhook</option>
+            <option value="schedule">Schedule</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">
+          <i class="lni lni-plus-circle"></i> Create &amp; Open Editor
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}

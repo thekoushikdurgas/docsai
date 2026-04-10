@@ -4,8 +4,8 @@
  */
 export async function getJson(url, options = {}) {
   const res = await fetch(url, {
-    credentials: 'same-origin',
-    headers: { Accept: 'application/json', ...options.headers },
+    credentials: "same-origin",
+    headers: { Accept: "application/json", ...options.headers },
     ...options,
   });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -14,11 +14,11 @@ export async function getJson(url, options = {}) {
 
 export async function postJson(url, body, options = {}) {
   const res = await fetch(url, {
-    method: 'POST',
-    credentials: 'same-origin',
+    method: "POST",
+    credentials: "same-origin",
     headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
+      "Content-Type": "application/json",
+      Accept: "application/json",
       ...options.headers,
     },
     body: JSON.stringify(body),

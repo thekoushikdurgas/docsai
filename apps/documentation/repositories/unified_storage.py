@@ -8,6 +8,7 @@ Implementation is split into:
 - relationships_storage: RelationshipsStorageMixin (get_relationship, list_relationships, etc.)
 - postman_storage: PostmanStorageMixin (clear_cache for 'postman' handled by base)
 """
+
 from __future__ import annotations
 
 import logging
@@ -19,7 +20,9 @@ from apps.documentation.repositories.unified_storage_base import (
 )
 from apps.documentation.repositories.pages_storage import PagesStorageMixin
 from apps.documentation.repositories.endpoints_storage import EndpointsStorageMixin
-from apps.documentation.repositories.relationships_storage import RelationshipsStorageMixin
+from apps.documentation.repositories.relationships_storage import (
+    RelationshipsStorageMixin,
+)
 from apps.documentation.repositories.postman_storage import PostmanStorageMixin
 
 logger = logging.getLogger(__name__)

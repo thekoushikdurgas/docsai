@@ -1,44 +1,75 @@
 {% extends "base.html" %}
 {% load static admin_tags %}
-
 {% block title %}Jobs — Contact360 Admin{% endblock %}
-
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">Jobs</h1>
     <p class="page-subtitle">
-      Gateway <code>scheduler_jobs</code> (email.server + sync.server / Connectra). Live satellite status loads on the detail page.
-      {% if page_info.total is not None %}
-      <span class="text-muted">— {{ page_info.total }} total</span>
-      {% endif %}
+      Gateway <code>scheduler_jobs</code> (email.server + sync.server /
+      Connectra). Live satellite status loads on the detail page.
+      {% if page_info.total is not None %}<span class="text-muted">— {{ page_info.total }} total</span>{% endif %}
     </p>
   </div>
 </div>
 
-<form method="get" class="card" style="margin-bottom:var(--space-4);padding:0;border:none;background:transparent">
-  <div class="card-body" style="padding:var(--space-3) var(--space-4);display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:flex-end">
-    <input type="hidden" name="status" value="{{ status_filter }}">
-    <div class="form-group" style="margin:0">
+<form
+  method="get"
+  class="card"
+  style="
+    margin-bottom: var(--space-4);
+    padding: 0;
+    border: none;
+    background: transparent;
+  "
+>
+  <div
+    class="card-body"
+    style="
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: flex-end;
+    "
+  >
+    <input type="hidden" name="status" value="{{ status_filter }}" />
+    <div class="form-group" style="margin: 0">
       <label class="form-label" for="id_job_source">Source</label>
-      <select id="id_job_source" name="source" class="form-control" onchange="this.form.submit()">
-        <option value="" {% if not source_filter %}selected{% endif %}>All sources</option>
-        <option value="email_server" {% if source_filter == 'email_server' %}selected{% endif %}>email.server</option>
-        <option value="sync_server" {% if source_filter == 'sync_server' %}selected{% endif %}>sync.server (Connectra)</option>
+      <select
+        id="id_job_source"
+        name="source"
+        class="form-control"
+        onchange="this.form.submit()"
+      >
+        <option value="" {% if not source_filter %}selected{% endif %}>
+          All sources
+        </option>
+        <option value="email_server" {% if source_filter == "email_server" %}selected{% endif %}>
+          email.server
+        </option>
+        <option value="sync_server" {% if source_filter == "sync_server" %}selected{% endif %}>
+          sync.server (Connectra)
+        </option>
       </select>
     </div>
-    <noscript><button type="submit" class="btn btn-primary">Apply</button></noscript>
+    <noscript
+      ><button type="submit" class="btn btn-primary">Apply</button></noscript
+    >
   </div>
 </form>
 
 <!-- Status filter tabs -->
 {% include "components/tabs.html" with tabs=status_tabs active_tab=status_filter style="filter" group_id="jobTabs" %}
 
-<div style="margin-top:var(--space-4)">
+<div style="margin-top: var(--space-4)">
   <div class="card">
     {% if jobs_load_failed %}
     <div class="card-body">
-      <p class="text-muted" style="margin:0" role="alert">Could not load jobs from the gateway. Check your session token and try again.</p>
+      <p class="text-muted" style="margin: 0" role="alert">
+        Could not load jobs from the gateway. Check your session token and try
+        again.
+      </p>
     </div>
     {% else %}
     <div class="table-wrap">
@@ -57,21 +88,55 @@
         <tbody>
           {% for job in jobs %}
           <tr>
-            <td><code style="font-size:var(--text-xs)" title="{{ job.jobId }}">{{ job.jobId|slice:":10" }}…</code></td>
-            <td><span style="font-size:var(--text-xs)">{{ job.type|default:"—" }}</span></td>
-            <td><span class="badge badge-neutral">{{ job.sourceService|default:"—" }}</span></td>
-            <td>{{ job.status|job_status_badge }}</td>
-            <td><span style="font-size:var(--text-xs)">{{ job.userId|slice:":8" }}…</span></td>
-            <td style="white-space:nowrap">{{ job.createdAt|date:"M d, Y H:i" }}</td>
             <td>
-              <div class="row-actions" style="opacity:1;display:flex;gap:var(--space-2)">
-                <a href="{% url 'admin_ops:job_detail' job.id %}" class="btn btn-ghost btn-sm" title="View detail" aria-label="View job {{ job.jobId }}">
+              <code style="font-size: var(--text-xs)" title="{{ job.jobId }}"
+                >{{ job.jobId|slice:":10" }}…</code
+              >
+            </td>
+            <td>
+              <span style="font-size: var(--text-xs)"
+                >{{ job.type|default:"—" }}</span
+              >
+            </td>
+            <td>
+              <span class="badge badge-neutral"
+                >{{ job.sourceService|default:"—" }}</span
+              >
+            </td>
+            <td>{{ job.status|job_status_badge }}</td>
+            <td>
+              <span style="font-size: var(--text-xs)"
+                >{{ job.userId|slice:":8" }}…</span
+              >
+            </td>
+            <td style="white-space: nowrap">
+              {{ job.createdAt|date:"M d, Y H:i" }}
+            </td>
+            <td>
+              <div
+                class="row-actions"
+                style="opacity: 1; display: flex; gap: var(--space-2)"
+              >
+                <a
+                  href="{% url 'admin_ops:job_detail' job.id %}"
+                  class="btn btn-ghost btn-sm"
+                  title="View detail"
+                  aria-label="View job {{ job.jobId }}"
+                >
                   <i class="lni lni-eye" aria-hidden="true"></i>
                 </a>
                 {% if job.status == "failed" and job.sourceService == "sync_server" %}
-                <form method="post" action="{% url 'admin_ops:job_retry' job.id %}" style="display:inline">
+                <form
+                  method="post"
+                  action="{% url 'admin_ops:job_retry' job.id %}"
+                  style="display: inline"
+                >
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-warning btn-sm" title="Retry (gateway DB only for sync)">
+                  <button
+                    type="submit"
+                    class="btn btn-warning btn-sm"
+                    title="Retry (gateway DB only for sync)"
+                  >
                     <i class="lni lni-reload"></i>
                   </button>
                 </form>
@@ -80,7 +145,11 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="7" class="table-empty">No jobs in this view. Adjust status, source, or pagination.</td></tr>
+          <tr>
+            <td colspan="7" class="table-empty">
+              No jobs in this view. Adjust status, source, or pagination.
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -92,29 +161,40 @@
       </span>
       <div class="pagination-controls">
         {% if page_info.hasPrevious and pagination_query_prev %}
-        <a href="{% url 'admin_ops:jobs' %}?{{ pagination_query_prev }}" class="pagination-btn">‹ Prev</a>
-        {% endif %}
-        {% if page_info.hasNext and pagination_query_next %}
-        <a href="{% url 'admin_ops:jobs' %}?{{ pagination_query_next }}" class="pagination-btn">Next ›</a>
+        <a
+          href="{% url 'admin_ops:jobs' %}?{{ pagination_query_prev }}"
+          class="pagination-btn"
+          >‹ Prev</a
+        >
+        {% endif %} {% if page_info.hasNext and pagination_query_next %}
+        <a
+          href="{% url 'admin_ops:jobs' %}?{{ pagination_query_next }}"
+          class="pagination-btn"
+          >Next ›</a
+        >
         {% endif %}
       </div>
     </div>
-    {% endif %}
-    {% endif %}
+    {% endif %} {% endif %}
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
-  document.querySelectorAll('[data-tab-group="jobTabs"] .tab-link').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var status = this.dataset.tab;
-      var url = new URL(window.location.href);
-      if (status) { url.searchParams.set('status', status); } else { url.searchParams.delete('status'); }
-      url.searchParams.delete('page');
-      window.location.href = url.toString();
+  document
+    .querySelectorAll('[data-tab-group="jobTabs"] .tab-link')
+    .forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var status = this.dataset.tab;
+        var url = new URL(window.location.href);
+        if (status) {
+          url.searchParams.set("status", status);
+        } else {
+          url.searchParams.delete("status");
+        }
+        url.searchParams.delete("page");
+        window.location.href = url.toString();
+      });
     });
-  });
 </script>
 {% endblock %}

@@ -1,4 +1,5 @@
 """AI service client."""
+
 import logging
 import httpx
 from django.conf import settings
@@ -28,8 +29,10 @@ def get_sessions(token: str = "") -> list:
         return []
     try:
         with httpx.Client(timeout=10.0) as c:
-            resp = c.get(f"{settings.AI_API_URL}/api/v1/sessions",
-                         headers={"Authorization": f"Bearer {token}"} if token else {})
+            resp = c.get(
+                f"{settings.AI_API_URL}/api/v1/sessions",
+                headers={"Authorization": f"Bearer {token}"} if token else {},
+            )
             resp.raise_for_status()
             return resp.json().get("sessions", [])
     except Exception as exc:

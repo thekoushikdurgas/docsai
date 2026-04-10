@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class MediaManagerDashboardService(BaseService):
     """Unified service for the Documentation Dashboard operations."""
-    
+
     def __init__(self):
         """Initialize Documentation Dashboard Service."""
         super().__init__("MediaManagerDashboardService")
@@ -25,11 +25,11 @@ class MediaManagerDashboardService(BaseService):
         self.relationships_service = get_relationships_service()
         self.postman_service = get_postman_service()
         self.cache_timeout = 300  # 5 minutes default
-    
+
     def get_dashboard_overview(self) -> Dict[str, Any]:
         """
         Get overview statistics for all resource types.
-        
+
         Returns:
             Dictionary with overview statistics including:
             - total_pages, total_endpoints, total_relationships, total_postman
@@ -42,7 +42,7 @@ class MediaManagerDashboardService(BaseService):
             endpoints_stats = self.endpoints_service.get_api_version_statistics()
             relationships_stats = self.relationships_service.get_statistics()
             postman_stats = self.postman_service.get_statistics()
-            
+
             return {
                 "pages": {
                     "total": pages_stats.get("total", 0),
@@ -51,9 +51,16 @@ class MediaManagerDashboardService(BaseService):
                     "last_updated": pages_stats.get("last_updated"),
                 },
                 "endpoints": {
-                    "total": sum(v.get("count", 0) for v in endpoints_stats.get("versions", [])),
-                    "by_api_version": {v.get("api_version"): v.get("count", 0) for v in endpoints_stats.get("versions", [])},
-                    "by_method": self.endpoints_service.get_method_statistics().get("methods", []),
+                    "total": sum(
+                        v.get("count", 0) for v in endpoints_stats.get("versions", [])
+                    ),
+                    "by_api_version": {
+                        v.get("api_version"): v.get("count", 0)
+                        for v in endpoints_stats.get("versions", [])
+                    },
+                    "by_method": self.endpoints_service.get_method_statistics().get(
+                        "methods", []
+                    ),
                 },
                 "relationships": {
                     "total": relationships_stats.get("total_relationships", 0),
@@ -71,10 +78,14 @@ class MediaManagerDashboardService(BaseService):
             return {
                 "pages": {"total": 0, "by_type": {}, "by_state": {}},
                 "endpoints": {"total": 0, "by_api_version": {}, "by_method": []},
-                "relationships": {"total": 0, "by_usage_type": {}, "by_usage_context": {}},
+                "relationships": {
+                    "total": 0,
+                    "by_usage_type": {},
+                    "by_usage_context": {},
+                },
                 "postman": {"total": 0, "by_state": {}},
             }
-    
+
     def get_resource_list(
         self,
         resource_type: str,
@@ -82,16 +93,16 @@ class MediaManagerDashboardService(BaseService):
     ) -> Dict[str, Any]:
         """
         Get list of resources with filters.
-        
+
         Args:
             resource_type: Resource type ('pages', 'endpoints', 'relationships', 'postman')
             filters: Optional filters dictionary
-            
+
         Returns:
             Dictionary with resource list and total count
         """
         filters = filters or {}
-        
+
         try:
             if resource_type == "pages":
                 return self.pages_service.list_pages(
@@ -129,9 +140,17 @@ class MediaManagerDashboardService(BaseService):
             else:
                 raise ValueError(f"Invalid resource_type: {resource_type}")
         except Exception as e:
-            self.logger.error(f"Failed to get resource list for {resource_type}: {e}", exc_info=True)
-            return {"pages": [], "endpoints": [], "relationships": [], "postman": [], "total": 0}.get(resource_type, {})
-    
+            self.logger.error(
+                f"Failed to get resource list for {resource_type}: {e}", exc_info=True
+            )
+            return {
+                "pages": [],
+                "endpoints": [],
+                "relationships": [],
+                "postman": [],
+                "total": 0,
+            }.get(resource_type, {})
+
     def get_resource_detail(
         self,
         resource_type: str,
@@ -139,11 +158,11 @@ class MediaManagerDashboardService(BaseService):
     ) -> Optional[Dict[str, Any]]:
         """
         Get detailed resource information.
-        
+
         Args:
             resource_type: Resource type ('pages', 'endpoints', 'relationships', 'postman')
             resource_id: Resource identifier
-            
+
         Returns:
             Resource data dictionary or None if not found
         """
@@ -159,13 +178,16 @@ class MediaManagerDashboardService(BaseService):
             else:
                 raise ValueError(f"Invalid resource_type: {resource_type}")
         except Exception as e:
-            self.logger.error(f"Failed to get resource detail for {resource_type}/{resource_id}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to get resource detail for {resource_type}/{resource_id}: {e}",
+                exc_info=True,
+            )
             return None
-    
+
     def get_health_status(self) -> Dict[str, Any]:
         """
         Get health status for all components.
-        
+
         Returns:
             Dictionary with health status for all components
         """
@@ -183,20 +205,22 @@ class MediaManagerDashboardService(BaseService):
                     "external_api": {"status": "unknown"},
                 },
             }
-    
+
     def get_resource_counts(self) -> Dict[str, int]:
         """
         Get counts for all resource types.
-        
+
         Returns:
             Dictionary with counts for each resource type
         """
         try:
             pages_result = self.pages_service.list_pages(limit=1, offset=0)
             endpoints_result = self.endpoints_service.list_endpoints(limit=1, offset=0)
-            relationships_result = self.relationships_service.list_relationships(limit=1, offset=0)
+            relationships_result = self.relationships_service.list_relationships(
+                limit=1, offset=0
+            )
             postman_result = self.postman_service.list_configurations(limit=1, offset=0)
-            
+
             return {
                 "pages": pages_result.get("total", 0),
                 "endpoints": endpoints_result.get("total", 0),

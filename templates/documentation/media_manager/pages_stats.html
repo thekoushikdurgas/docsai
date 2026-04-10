@@ -1,56 +1,79 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Pages Statistics: {{ page_type|title }} - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Pages Statistics:
+{{ page_type|title }} - Media Manager Dashboard{% endblock %} {% block content
+%}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">{{ page_type|title }} Statistics</h1>
-            <p class="c360-mm-hero__subtitle">Detailed statistics for {{ page_type }} pages</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard_pages' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Pages
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">{{ page_type|title }} Statistics</h1>
+      <p class="c360-mm-hero__subtitle">
+        Detailed statistics for {{ page_type }} pages
+      </p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="section-card">
-            <dt class="text-sm font-medium text-gray-500">Total</dt>
-            <dd class="mt-2 text-3xl font-bold text-gray-900">{{ total|default:"0" }}</dd>
-        </div>
-        <div class="section-card">
-            <dt class="text-sm font-medium text-gray-500">Published</dt>
-            <dd class="mt-2 text-3xl font-bold text-green-600">{{ published|default:"0" }}</dd>
-        </div>
-        <div class="section-card">
-            <dt class="text-sm font-medium text-gray-500">Draft</dt>
-            <dd class="mt-2 text-3xl font-bold text-yellow-600">{{ draft|default:"0" }}</dd>
-        </div>
-        <div class="section-card">
-            <dt class="text-sm font-medium text-gray-500">Deleted</dt>
-            <dd class="mt-2 text-3xl font-bold text-red-600">{{ deleted|default:"0" }}</dd>
-        </div>
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard_pages' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Pages
+      </a>
     </div>
-    
-    {% if last_updated %}
-        <div class="section-card">
-            <p class="c360-mm-muted">Last Updated: <span class="font-medium text-gray-900">{{ last_updated }}</span></p>
-        </div>
-    {% endif %}
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="section-card">
+      <dt class="text-sm font-medium text-gray-500">Total</dt>
+      <dd class="mt-2 text-3xl font-bold text-gray-900">
+        {{ total|default:"0" }}
+      </dd>
+    </div>
+    <div class="section-card">
+      <dt class="text-sm font-medium text-gray-500">Published</dt>
+      <dd class="mt-2 text-3xl font-bold text-green-600">
+        {{ published|default:"0" }}
+      </dd>
+    </div>
+    <div class="section-card">
+      <dt class="text-sm font-medium text-gray-500">Draft</dt>
+      <dd class="mt-2 text-3xl font-bold text-yellow-600">
+        {{ draft|default:"0" }}
+      </dd>
+    </div>
+    <div class="section-card">
+      <dt class="text-sm font-medium text-gray-500">Deleted</dt>
+      <dd class="mt-2 text-3xl font-bold text-red-600">
+        {{ deleted|default:"0" }}
+      </dd>
+    </div>
+  </div>
+
+  {% if last_updated %}
+  <div class="section-card">
+    <p class="c360-mm-muted">
+      Last Updated:
+      <span class="font-medium text-gray-900">{{ last_updated }}</span>
+    </p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -1,4 +1,5 @@
 """Codebase scanner UI (parity routes; wire scanner service for live data)."""
+
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
@@ -18,7 +19,9 @@ def codebase_dashboard(request):
 @require_super_admin
 def scan_view(request):
     if request.method == "POST":
-        messages.info(request, "Scan trigger (stub) — connect codebase scanner microservice.")
+        messages.info(
+            request, "Scan trigger (stub) — connect codebase scanner microservice."
+        )
         return redirect("codebase:dashboard")
     return render(request, "codebase/scan.html", {"page_title": "New scan"})
 

@@ -39,8 +39,12 @@ GRAPH_DATA_CACHE_KEY = "dashboard:graph_data"
 GRAPH_DATA_CACHE_TTL = 600  # 10 minutes
 STATISTICS_CACHE_KEY = "dashboard:statistics"
 STATISTICS_CACHE_TTL = 300  # 5 minutes
-VALID_TABS = frozenset[str]({"pages", "endpoints", "relationships", "postman", "graph", "health"})
-VALID_HEALTH_SUBTABS = frozenset[str]({"database", "cache", "storage", "status", "service_info"})
+VALID_TABS = frozenset[str](
+    {"pages", "endpoints", "relationships", "postman", "graph", "health"}
+)
+VALID_HEALTH_SUBTABS = frozenset[str](
+    {"database", "cache", "storage", "status", "service_info"}
+)
 VALID_VIEW_MODES = frozenset[str]({"list", "table"})
 
 # Removed custom helpers - now using api_responses utilities
@@ -54,12 +58,12 @@ def build_graph_data(
 ) -> Dict[str, Any]:
     """
     Build graph structure from pages, endpoints, and relationships. Cached 10 min.
-    
+
     Args:
         pages_svc: Pages service instance
         endpoints_svc: Endpoints service instance
         relationships_svc: Relationships service instance
-        
+
     Returns:
         Dict with 'nodes', 'edges', and 'statistics'
     """
@@ -78,35 +82,41 @@ def build_graph_data(
         pages_result = None
         endpoints_result = None
         relationships_result = None
-        
+
         with ThreadPoolExecutor(max_workers=3) as executor:
             # Submit all three service calls concurrently
             pages_future = executor.submit(pages_svc.list_pages, limit=1000)
             endpoints_future = executor.submit(endpoints_svc.list_endpoints, limit=1000)
-            relationships_future = executor.submit(relationships_svc.list_relationships, limit=1000)
-            
+            relationships_future = executor.submit(
+                relationships_svc.list_relationships, limit=1000
+            )
+
             # Wait for all results with error handling
             try:
                 pages_result = pages_future.result(timeout=30)
             except Exception as e:
                 logger.warning(f"Error fetching pages for graph: {e}")
                 pages_result = {"pages": []}
-            
+
             try:
                 endpoints_result = endpoints_future.result(timeout=30)
             except Exception as e:
                 logger.warning(f"Error fetching endpoints for graph: {e}")
                 endpoints_result = {"endpoints": []}
-            
+
             try:
                 relationships_result = relationships_future.result(timeout=30)
             except Exception as e:
                 logger.warning(f"Error fetching relationships for graph: {e}")
                 relationships_result = {"relationships": []}
-        
+
         pages = pages_result.get("pages", []) if pages_result else []
         endpoints = endpoints_result.get("endpoints", []) if endpoints_result else []
-        relationships = relationships_result.get("relationships", []) if relationships_result else []
+        relationships = (
+            relationships_result.get("relationships", [])
+            if relationships_result
+            else []
+        )
 
         # Optimize node processing with list comprehension where possible
         # Pre-compile metadata access patterns for better performance
@@ -115,26 +125,28 @@ def build_graph_data(
                 page_id = page.get("page_id") or page.get("_id")
                 if not page_id or page_id in node_ids:
                     continue
-                
+
                 # Safely access nested metadata (optimized access pattern)
                 metadata = page.get("metadata") or {}
                 content_sections = metadata.get("content_sections") or {}
                 title = content_sections.get("title") or page_id
                 route = metadata.get("route") or page.get("route")
                 status = metadata.get("status")
-                
+
                 node_id = f"page_{page_id}"
-                nodes.append({
-                    "id": node_id,
-                    "label": title,
-                    "type": "page",
-                    "data": {
-                        "page_id": page_id,
-                        "route": route,
-                        "page_type": page.get("page_type"),
-                        "status": status,
-                    },
-                })
+                nodes.append(
+                    {
+                        "id": node_id,
+                        "label": title,
+                        "type": "page",
+                        "data": {
+                            "page_id": page_id,
+                            "route": route,
+                            "page_type": page.get("page_type"),
+                            "status": status,
+                        },
+                    }
+                )
                 node_ids.add(node_id)
             except Exception as e:
                 logger.warning(f"Error processing page node: {e}")
@@ -146,22 +158,24 @@ def build_graph_data(
                 endpoint_id = endpoint.get("endpoint_id") or endpoint.get("_id")
                 if not endpoint_id:
                     continue
-                
+
                 node_id = f"endpoint_{endpoint_id}"
                 if node_id in node_ids:
                     continue
-                
-                nodes.append({
-                    "id": node_id,
-                    "label": endpoint_id,
-                    "type": "endpoint",
-                    "data": {
-                        "endpoint_id": endpoint_id,
-                        "endpoint_path": endpoint.get("endpoint_path"),
-                        "method": endpoint.get("method", "QUERY"),
-                        "api_version": endpoint.get("api_version"),
-                    },
-                })
+
+                nodes.append(
+                    {
+                        "id": node_id,
+                        "label": endpoint_id,
+                        "type": "endpoint",
+                        "data": {
+                            "endpoint_id": endpoint_id,
+                            "endpoint_path": endpoint.get("endpoint_path"),
+                            "method": endpoint.get("method", "QUERY"),
+                            "api_version": endpoint.get("api_version"),
+                        },
+                    }
+                )
                 node_ids.add(node_id)
             except Exception as e:
                 logger.warning(f"Error processing endpoint node: {e}")
@@ -172,28 +186,32 @@ def build_graph_data(
             try:
                 pid = rel.get("page_id") or rel.get("page_path")
                 eid = rel.get("endpoint_id") or rel.get("endpoint_path")
-                
+
                 if not pid or not eid:
                     continue
-                
+
                 source_id = f"page_{pid}"
                 target_id = f"endpoint_{eid}"
-                
+
                 # Use set membership check (O(1)) instead of list check (O(n))
                 if source_id in node_ids and target_id in node_ids:
-                    edges.append({
-                        "id": rel.get("relationship_id", f"{source_id}_{target_id}"),
-                        "source": source_id,
-                        "target": target_id,
-                        "type": rel.get("usage_type", "primary"),
-                        "label": rel.get("usage_type", "primary"),
-                        "data": {
-                            "relationship_id": rel.get("relationship_id"),
-                            "usage_type": rel.get("usage_type"),
-                            "usage_context": rel.get("usage_context"),
-                            "method": rel.get("method"),
-                        },
-                    })
+                    edges.append(
+                        {
+                            "id": rel.get(
+                                "relationship_id", f"{source_id}_{target_id}"
+                            ),
+                            "source": source_id,
+                            "target": target_id,
+                            "type": rel.get("usage_type", "primary"),
+                            "label": rel.get("usage_type", "primary"),
+                            "data": {
+                                "relationship_id": rel.get("relationship_id"),
+                                "usage_type": rel.get("usage_type"),
+                                "usage_context": rel.get("usage_context"),
+                                "method": rel.get("method"),
+                            },
+                        }
+                    )
             except Exception as e:
                 logger.warning(f"Error processing relationship edge: {e}")
                 continue
@@ -201,7 +219,7 @@ def build_graph_data(
         # Optimize statistics calculation using pre-computed values
         pages_count = sum(1 for n in nodes if n.get("type") == "page")
         endpoints_count = sum(1 for n in nodes if n.get("type") == "endpoint")
-        
+
         stats = {
             "total_nodes": len(nodes),
             "total_edges": len(edges),
@@ -210,7 +228,7 @@ def build_graph_data(
             "relationships_count": len(edges),
         }
         result: Dict[str, Any] = {"nodes": nodes, "edges": edges, "statistics": stats}
-        
+
         # Cache using RedisCacheManager with namespace and dynamic TTL (Task 2.2.2)
         cache_manager.set(
             GRAPH_DATA_CACHE_KEY,
@@ -245,9 +263,9 @@ def _validate_view_mode(view_mode: Optional[str]) -> str:
 def documentation_dashboard(request: HttpRequest):
     """
     Unified Media Manager Dashboard - combines documentation dashboard and media manager.
-    
+
     GET /docs/
-    Query params: 
+    Query params:
     - tab (pages|endpoints|relationships|postman|graph)
     - graph_tab
     """
@@ -255,7 +273,7 @@ def documentation_dashboard(request: HttpRequest):
     active_tab = _validate_tab(raw_tab)
     if raw_tab != active_tab:
         logger.debug("Invalid tab %r, defaulting to pages", raw_tab)
-    
+
     # Get view mode (list, files, sync)
     raw_view = request.GET.get("view", "list")
     view_mode = _validate_view_mode(raw_view)
@@ -302,7 +320,9 @@ def documentation_dashboard(request: HttpRequest):
 
         health_status["s3_storage"]["pages_count"] = pages_index.get("total", 0)
         health_status["s3_storage"]["endpoints_count"] = endpoints_index.get("total", 0)
-        health_status["s3_storage"]["relationships_count"] = relationships_index.get("total", 0)
+        health_status["s3_storage"]["relationships_count"] = relationships_index.get(
+            "total", 0
+        )
 
         try:
             postman_index = index_manager.read_index("postman")
@@ -310,7 +330,9 @@ def documentation_dashboard(request: HttpRequest):
         except Exception:
             try:
                 postman_result = postman_service.list_configurations()
-                health_status["s3_storage"]["postman_count"] = postman_result.get("total", 0)
+                health_status["s3_storage"]["postman_count"] = postman_result.get(
+                    "total", 0
+                )
             except Exception:
                 health_status["s3_storage"]["postman_count"] = 0
     except Exception as e:
@@ -330,7 +352,9 @@ def documentation_dashboard(request: HttpRequest):
     try:
         # For SSR, only load list data when in list view; files/sync are JS-driven.
         if active_tab == "graph":
-            graph_data = build_graph_data(pages_service, endpoints_service, relationships_service)
+            graph_data = build_graph_data(
+                pages_service, endpoints_service, relationships_service
+            )
             initial_data = {
                 "graph": graph_data,
                 "nodes_count": len(graph_data.get("nodes", [])),
@@ -346,11 +370,16 @@ def documentation_dashboard(request: HttpRequest):
                 if filters_param:
                     try:
                         from urllib.parse import unquote
+
                         filters_obj = json.loads(unquote(filters_param))
                         if isinstance(filters_obj, dict):
-                            page_type_filter = filters_obj.get("page_type") or page_type_filter
+                            page_type_filter = (
+                                filters_obj.get("page_type") or page_type_filter
+                            )
                             status_filter = filters_obj.get("status") or status_filter
-                            user_type_filter = filters_obj.get("user_type") or user_type_filter
+                            user_type_filter = (
+                                filters_obj.get("user_type") or user_type_filter
+                            )
                     except (json.JSONDecodeError, TypeError):
                         pass
                 if user_type_filter:
@@ -374,21 +403,27 @@ def documentation_dashboard(request: HttpRequest):
                     "source": result.get("source", "local"),
                 }
             elif active_tab == "endpoints":
-                result = endpoints_service.list_endpoints(limit=page_size, offset=offset)
+                result = endpoints_service.list_endpoints(
+                    limit=page_size, offset=offset
+                )
                 initial_data = {
                     "endpoints": result.get("endpoints", []),
                     "total": result.get("total", 0),
                     "source": result.get("source", "local"),
                 }
             elif active_tab == "relationships":
-                result = relationships_service.list_relationships(limit=page_size, offset=offset)
+                result = relationships_service.list_relationships(
+                    limit=page_size, offset=offset
+                )
                 initial_data = {
                     "relationships": result.get("relationships", []),
                     "total": result.get("total", 0),
                     "source": result.get("source", "local"),
                 }
             elif active_tab == "postman":
-                result = postman_service.list_configurations(limit=page_size, offset=offset)
+                result = postman_service.list_configurations(
+                    limit=page_size, offset=offset
+                )
                 configs = result.get("configurations", [])
                 initial_data = {
                     "postman": configs,
@@ -396,7 +431,9 @@ def documentation_dashboard(request: HttpRequest):
                     "source": result.get("source", "lambda"),
                 }
     except Exception as e:
-        logger.error("Error loading initial data for tab %s: %s", active_tab, e, exc_info=True)
+        logger.error(
+            "Error loading initial data for tab %s: %s", active_tab, e, exc_info=True
+        )
         initial_data = {
             "pages": [],
             "endpoints": [],
@@ -407,23 +444,41 @@ def documentation_dashboard(request: HttpRequest):
         }
 
     graph_subtab = request.GET.get("graph_tab", "overview") or "overview"
-    
+
     # Health tab data (when active_tab == "health")
     comprehensive_health_status: Dict[str, Any] = {}
-    service_info: Dict[str, Any] = {"service": "Documentation API Service", "version": "1.0.0", "status": "running"}
+    service_info: Dict[str, Any] = {
+        "service": "Documentation API Service",
+        "version": "1.0.0",
+        "status": "running",
+    }
     health_subtab = (request.GET.get("health_tab") or "status").strip().lower()
     if health_subtab not in VALID_HEALTH_SUBTABS:
         health_subtab = "status"
     if active_tab == "health":
         try:
-            from apps.documentation.utils.health_checks import get_comprehensive_health_status
+            from apps.documentation.utils.health_checks import (
+                get_comprehensive_health_status,
+            )
+
             comprehensive_health_status = get_comprehensive_health_status()
         except Exception as e:
             logger.warning("Error loading health status for dashboard: %s", e)
-            comprehensive_health_status = {"status": "unknown", "components": {}, "timestamp": 0}
-    
+            comprehensive_health_status = {
+                "status": "unknown",
+                "components": {},
+                "timestamp": 0,
+            }
+
     # S3-only: no local file browser; counts from S3 index
-    resource_types = ["pages", "endpoints", "relationships", "postman", "n8n", "project"]
+    resource_types = [
+        "pages",
+        "endpoints",
+        "relationships",
+        "postman",
+        "n8n",
+        "project",
+    ]
     sync_summary: Dict[str, Any] = {"by_type": {}, "status": "s3_only"}
     file_counts: Dict[str, int] = {rt: 0 for rt in resource_types}
     try:
@@ -437,11 +492,21 @@ def documentation_dashboard(request: HttpRequest):
         logger.warning("Error loading S3 index for file counts: %s", e, exc_info=True)
 
     # Statistics for dashboard (server-rendered; replaces /docs/api/statistics/*)
-    stats_pages: Dict[str, Any] = {"total": 0, "version": None, "last_updated": None, "statistics": {}, "indexes": {}}
+    stats_pages: Dict[str, Any] = {
+        "total": 0,
+        "version": None,
+        "last_updated": None,
+        "statistics": {},
+        "indexes": {},
+    }
     stats_pages_types: Dict[str, Any] = {"types": [], "total": 0}
     stats_endpoints_versions: Dict[str, Any] = {"versions": [], "total": 0}
     stats_endpoints_methods: Dict[str, Any] = {"methods": [], "total": 0}
-    stats_relationships: Dict[str, Any] = {"total_relationships": 0, "unique_pages": 0, "unique_endpoints": 0}
+    stats_relationships: Dict[str, Any] = {
+        "total_relationships": 0,
+        "unique_pages": 0,
+        "unique_endpoints": 0,
+    }
     stats_postman: Dict[str, Any] = {}
     try:
         index_manager = get_shared_s3_index_manager()
@@ -457,11 +522,15 @@ def documentation_dashboard(request: HttpRequest):
         logger.warning("Error loading pages index for stats: %s", e)
     try:
         from apps.documentation.constants import PAGE_TYPES
+
         types_data = []
         for pt in PAGE_TYPES:
             count = pages_service.count_pages_by_type(pt)
             types_data.append({"type": pt, "count": count})
-        stats_pages_types = {"types": types_data, "total": sum(t["count"] for t in types_data)}
+        stats_pages_types = {
+            "types": types_data,
+            "total": sum(t["count"] for t in types_data),
+        }
     except Exception as e:
         logger.warning("Error loading pages types for stats: %s", e)
     try:
@@ -489,19 +558,25 @@ def documentation_dashboard(request: HttpRequest):
         pages_list_total = int(list_result.get("total", 0) or 0)
     except Exception:
         pages_list_total = 0
-    stats_pages["total"] = pages_list_total if pages_list_total else stats_pages_types["total"]
+    stats_pages["total"] = (
+        pages_list_total if pages_list_total else stats_pages_types["total"]
+    )
     overview_stats["total_pages"] = stats_pages["total"]
 
     # Derive a reliable total endpoints count.
     # Prefer dedicated statistics if available; otherwise, fall back to list totals or local index counts.
-    endpoints_total = stats_endpoints_versions.get("total", 0) or stats_endpoints_methods.get("total", 0)
+    endpoints_total = stats_endpoints_versions.get(
+        "total", 0
+    ) or stats_endpoints_methods.get("total", 0)
     if not endpoints_total:
         # When viewing the endpoints tab, initial_data.total reflects the list API's total.
         if active_tab == "endpoints":
             endpoints_total = int(initial_data.get("total", 0) or 0)
         # Fallback to S3 index counts if stats and initial_data are unavailable.
         if not endpoints_total:
-            endpoints_total = int(health_status.get("s3_storage", {}).get("endpoints_count", 0) or 0)
+            endpoints_total = int(
+                health_status.get("s3_storage", {}).get("endpoints_count", 0) or 0
+            )
 
     overview_stats["total_endpoints"] = endpoints_total
 
@@ -511,74 +586,156 @@ def documentation_dashboard(request: HttpRequest):
     if not stats_endpoints_methods.get("total"):
         stats_endpoints_methods["total"] = endpoints_total
 
-    overview_stats["total_relationships"] = stats_relationships.get("total_relationships", 0)
-    overview_stats["total_postman"] = stats_postman.get("total_configurations", stats_postman.get("total", 0))
+    overview_stats["total_relationships"] = stats_relationships.get(
+        "total_relationships", 0
+    )
+    overview_stats["total_postman"] = stats_postman.get(
+        "total_configurations", stats_postman.get("total", 0)
+    )
 
     from apps.documentation.constants import PAGE_TYPES, PAGE_TYPES_DISPLAY
 
     # Quick Actions Dropdown (used by templates/documentation/dashboard.html)
     pages_dropdown_items: List[Dict[str, Any]] = [
         {"label": "Statistics", "url": "#stats-section"},
-        {"label": "Format Examples", "url": reverse("documentation:page_create") + "?tab=format"},
+        {
+            "label": "Format Examples",
+            "url": reverse("documentation:page_create") + "?tab=format",
+        },
         {"label": "By Type", "url": reverse("documentation:pages_types")},
         {"label": "Docs Pages", "url": reverse("documentation:pages_by_type_docs")},
-        {"label": "Marketing Pages", "url": reverse("documentation:pages_by_type_marketing")},
-        {"label": "Dashboard Pages", "url": reverse("documentation:pages_by_type_dashboard")},
+        {
+            "label": "Marketing Pages",
+            "url": reverse("documentation:pages_by_type_marketing"),
+        },
+        {
+            "label": "Dashboard Pages",
+            "url": reverse("documentation:pages_by_type_dashboard"),
+        },
         {"divider": True},
-        {"label": "Download in Excel", "onclick": "openDownloadExcelModal(); return false;"},
-        {"label": "Upload in Excel", "onclick": "openUploadExcelModal(); return false;"},
+        {
+            "label": "Download in Excel",
+            "onclick": "openDownloadExcelModal(); return false;",
+        },
+        {
+            "label": "Upload in Excel",
+            "onclick": "openUploadExcelModal(); return false;",
+        },
         {"label": "Upload JSON", "onclick": "openUploadJsonModal(); return false;"},
     ]
     endpoints_dropdown_items: List[Dict[str, Any]] = [
         {"label": "Statistics", "url": reverse("documentation:endpoints_statistics")},
         {"label": "Format Examples", "url": reverse("documentation:endpoints_format")},
-        {"label": "API Versions", "url": reverse("documentation:endpoints_api_versions")},
+        {
+            "label": "API Versions",
+            "url": reverse("documentation:endpoints_api_versions"),
+        },
         {"label": "By Method", "url": reverse("documentation:endpoints_methods")},
-        {"label": "v1 Endpoints", "url": reverse("documentation:endpoints_by_api_version_v1")},
-        {"label": "v4 Endpoints", "url": reverse("documentation:endpoints_by_api_version_v4")},
-        {"label": "GraphQL Endpoints", "url": reverse("documentation:endpoints_by_api_version_graphql")},
+        {
+            "label": "v1 Endpoints",
+            "url": reverse("documentation:endpoints_by_api_version_v1"),
+        },
+        {
+            "label": "v4 Endpoints",
+            "url": reverse("documentation:endpoints_by_api_version_v4"),
+        },
+        {
+            "label": "GraphQL Endpoints",
+            "url": reverse("documentation:endpoints_by_api_version_graphql"),
+        },
         {"divider": True},
-        {"label": "Download in Excel", "onclick": "openEndpointsDownloadExcelModal(); return false;"},
-        {"label": "Upload in Excel", "onclick": "openEndpointsUploadExcelModal(); return false;"},
-        {"label": "Upload JSON", "onclick": "openEndpointsUploadJsonModal(); return false;"},
+        {
+            "label": "Download in Excel",
+            "onclick": "openEndpointsDownloadExcelModal(); return false;",
+        },
+        {
+            "label": "Upload in Excel",
+            "onclick": "openEndpointsUploadExcelModal(); return false;",
+        },
+        {
+            "label": "Upload JSON",
+            "onclick": "openEndpointsUploadJsonModal(); return false;",
+        },
     ]
     relationships_dropdown_items: List[Dict[str, Any]] = [
-        {"label": "Statistics", "url": reverse("documentation:relationships_statistics")},
+        {
+            "label": "Statistics",
+            "url": reverse("documentation:relationships_statistics"),
+        },
         {"label": "Graph View", "url": reverse("documentation:relationships_graph")},
-        {"label": "Format Examples", "url": reverse("documentation:relationships_format")},
-        {"label": "Usage Types", "url": reverse("documentation:relationships_usage_types")},
-        {"label": "Usage Contexts", "url": reverse("documentation:relationships_usage_contexts")},
-        {"label": "Primary Relationships", "url": reverse("documentation:relationships_by_usage_type_primary")},
-        {"label": "Slow Performance", "url": reverse("documentation:relationships_performance_slow")},
+        {
+            "label": "Format Examples",
+            "url": reverse("documentation:relationships_format"),
+        },
+        {
+            "label": "Usage Types",
+            "url": reverse("documentation:relationships_usage_types"),
+        },
+        {
+            "label": "Usage Contexts",
+            "url": reverse("documentation:relationships_usage_contexts"),
+        },
+        {
+            "label": "Primary Relationships",
+            "url": reverse("documentation:relationships_by_usage_type_primary"),
+        },
+        {
+            "label": "Slow Performance",
+            "url": reverse("documentation:relationships_performance_slow"),
+        },
         {"divider": True},
-        {"label": "Download in Excel", "onclick": "openRelationshipsDownloadExcelModal(); return false;"},
-        {"label": "Upload in Excel", "onclick": "openRelationshipsUploadExcelModal(); return false;"},
-        {"label": "Upload JSON", "onclick": "openRelationshipsUploadJsonModal(); return false;"},
+        {
+            "label": "Download in Excel",
+            "onclick": "openRelationshipsDownloadExcelModal(); return false;",
+        },
+        {
+            "label": "Upload in Excel",
+            "onclick": "openRelationshipsUploadExcelModal(); return false;",
+        },
+        {
+            "label": "Upload JSON",
+            "onclick": "openRelationshipsUploadJsonModal(); return false;",
+        },
     ]
     postman_dropdown_items: List[Dict[str, Any]] = [
         {"label": "Statistics", "url": reverse("documentation:postman_statistics")},
         {"label": "Format Examples", "url": reverse("documentation:postman_format")},
         {"divider": True},
-        {"label": "Download in Excel", "onclick": "openPostmanDownloadExcelModal(); return false;"},
-        {"label": "Upload in Excel", "onclick": "openPostmanUploadExcelModal(); return false;"},
-        {"label": "Upload JSON", "onclick": "openPostmanUploadJsonModal(); return false;"},
+        {
+            "label": "Download in Excel",
+            "onclick": "openPostmanDownloadExcelModal(); return false;",
+        },
+        {
+            "label": "Upload in Excel",
+            "onclick": "openPostmanUploadExcelModal(); return false;",
+        },
+        {
+            "label": "Upload JSON",
+            "onclick": "openPostmanUploadJsonModal(); return false;",
+        },
     ]
 
     # For Download Excel modal: list of {type, label, count} for page-type checkboxes
     page_types_export: List[Dict[str, Any]] = []
     for pt in stats_pages_types.get("types", []):
-        page_types_export.append({
-            "type": pt.get("type", ""),
-            "label": PAGE_TYPES_DISPLAY.get(pt.get("type", ""), (pt.get("type") or "").capitalize()),
-            "count": pt.get("count", 0),
-        })
+        page_types_export.append(
+            {
+                "type": pt.get("type", ""),
+                "label": PAGE_TYPES_DISPLAY.get(
+                    pt.get("type", ""), (pt.get("type") or "").capitalize()
+                ),
+                "count": pt.get("count", 0),
+            }
+        )
     if not page_types_export:
         for pt in PAGE_TYPES:
-            page_types_export.append({
-                "type": pt,
-                "label": PAGE_TYPES_DISPLAY.get(pt, pt.capitalize()),
-                "count": 0,
-            })
+            page_types_export.append(
+                {
+                    "type": pt,
+                    "label": PAGE_TYPES_DISPLAY.get(pt, pt.capitalize()),
+                    "count": 0,
+                }
+            )
 
     context: Dict[str, Any] = {
         "active_tab": active_tab,
@@ -620,24 +777,23 @@ def documentation_dashboard(request: HttpRequest):
 def health_status_api(request: HttpRequest) -> JsonResponse:
     """
     API endpoint for comprehensive health status.
-    
+
     GET /docs/api/health/
     Returns: { success, data: { status, components: { application, database, cache, storage, external_api } } }
     """
     try:
-        from apps.documentation.utils.health_checks import get_comprehensive_health_status
-        
+        from apps.documentation.utils.health_checks import (
+            get_comprehensive_health_status,
+        )
+
         health_status = get_comprehensive_health_status()
         return success_response(
-            data=health_status,
-            message="Health status retrieved successfully"
+            data=health_status, message="Health status retrieved successfully"
         ).to_json_response()
     except Exception as e:
         logger.error("Error loading health status: %s", e, exc_info=True)
         return error_response(
-            message="Failed to retrieve health status",
-            errors=[str(e)],
-            status_code=500
+            message="Failed to retrieve health status", errors=[str(e)], status_code=500
         ).to_json_response()
 
 
@@ -646,10 +802,10 @@ def health_status_api(request: HttpRequest) -> JsonResponse:
 def dashboard_stats_api(request: HttpRequest) -> JsonResponse:
     """
     API endpoint for dashboard statistics.
-    
+
     GET /docs/api/stats/
     Returns: { success, data: { total_pages, total_endpoints, ... } }
-    
+
     Statistics are cached for 5 minutes using RedisCacheManager.
     """
     # Try to get from cache first
@@ -661,9 +817,9 @@ def dashboard_stats_api(request: HttpRequest) -> JsonResponse:
         logger.debug("Statistics cache hit")
         return success_response(
             data=cached_stats,
-            message="Dashboard statistics retrieved successfully (cached)"
+            message="Dashboard statistics retrieved successfully (cached)",
         ).to_json_response()
-    
+
     index_manager = get_shared_s3_index_manager()
     stats: Dict[str, Any] = {
         "total_pages": 0,
@@ -699,7 +855,7 @@ def dashboard_stats_api(request: HttpRequest) -> JsonResponse:
             "QUERY": len(by_method.get("QUERY", [])),
             "MUTATION": len(by_method.get("MUTATION", [])),
         }
-        
+
         # Cache statistics using RedisCacheManager
         cache_manager.set(
             STATISTICS_CACHE_KEY,
@@ -710,16 +866,20 @@ def dashboard_stats_api(request: HttpRequest) -> JsonResponse:
         logger.debug("Statistics cached successfully")
     except Exception as e:
         logger.error("Error loading dashboard stats: %s", e, exc_info=True)
-        return server_error_response(f"Error loading dashboard stats: {str(e)}").to_json_response()
+        return server_error_response(
+            f"Error loading dashboard stats: {str(e)}"
+        ).to_json_response()
 
-    return success_response(data=stats, message="Dashboard statistics retrieved successfully").to_json_response()
+    return success_response(
+        data=stats, message="Dashboard statistics retrieved successfully"
+    ).to_json_response()
 
 
 # Cache invalidation utilities
 def invalidate_graph_cache() -> None:
     """
     Invalidate graph data cache.
-    
+
     Call this function when pages, endpoints, or relationships are created, updated, or deleted.
     """
     try:
@@ -732,7 +892,7 @@ def invalidate_graph_cache() -> None:
 def invalidate_statistics_cache() -> None:
     """
     Invalidate statistics cache.
-    
+
     Call this function when any resource count changes (pages, endpoints, relationships, postman).
     """
     try:
@@ -745,7 +905,7 @@ def invalidate_statistics_cache() -> None:
 def invalidate_dashboard_caches() -> None:
     """
     Invalidate all dashboard-related caches (graph and statistics).
-    
+
     Call this function when any major data change occurs.
     """
     invalidate_graph_cache()

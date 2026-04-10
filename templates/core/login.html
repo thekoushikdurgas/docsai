@@ -1,75 +1,122 @@
-{% load static %}<!DOCTYPE html>
+{% load static %}<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Sign In — Contact360 Admin</title>
-  <link rel="icon" type="image/svg+xml" href="{% static 'admin/images/favicon.svg' %}">
-  <!-- Fonts: Poppins (headings) + Nunito (body) — c360 canonical typography -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;600&display=swap">
-  <link rel="stylesheet" href="{% static 'admin/css/design-tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'admin/css/components/button.css' %}">
-  <link rel="stylesheet" href="{% static 'admin/css/components/form-inputs.css' %}">
-  <link rel="stylesheet" href="{% static 'admin/css/components/alerts.css' %}">
-  <link rel="stylesheet" href="{% static 'admin/css/components/login.css' %}">
-  <link rel="stylesheet" href="{% static 'admin/vendor/lineicons/LineIcons.css' %}">
-</head>
-<body class="c360-login-body">
-  <div class="c360-login-card">
-    <div class="c360-login-logo">
-      <div class="c360-login-logo-text">Contact360</div>
-    </div>
-    <p class="c360-login-subtitle">Admin &amp; DocsAI Governance Panel</p>
-
-    {% if error %}
-    <div class="alert alert-danger c360-login-alert" role="alert">
-      <span class="alert-body">{{ error }}</span>
-    </div>
-    {% endif %}
-
-    <form method="post" action="{% url 'core:login' %}" novalidate>
-      {% csrf_token %}
-
-      <div class="form-group">
-        <label class="form-label" for="id_email">Email address</label>
-        <div class="form-input-wrap">
-          <i class="lni lni-envelope input-icon" aria-hidden="true"></i>
-          <input type="email" id="id_email" name="email" class="form-control"
-                 placeholder="admin@contact360.io" autocomplete="username"
-                 required autofocus value="{{ request.POST.email|default:'' }}">
-        </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sign In — Contact360 Admin</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{% static 'admin/images/favicon.svg' %}"
+    />
+    <!-- Fonts: Poppins (headings) + Nunito (body) — c360 canonical typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;600&display=swap"
+    />
+    <link rel="stylesheet" href="{% static 'admin/css/design-tokens.css' %}" />
+    <link
+      rel="stylesheet"
+      href="{% static 'admin/css/components/button.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'admin/css/components/form-inputs.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'admin/css/components/alerts.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'admin/css/components/login.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'admin/vendor/lineicons/LineIcons.css' %}"
+    />
+  </head>
+  <body class="c360-login-body">
+    <div class="c360-login-card">
+      <div class="c360-login-logo">
+        <div class="c360-login-logo-text">Contact360</div>
       </div>
+      <p class="c360-login-subtitle">Admin &amp; DocsAI Governance Panel</p>
 
-      <div class="form-group">
-        <label class="form-label" for="id_password">Password</label>
-        <div class="form-input-wrap icon-right">
-          <input type="password" id="id_password" name="password" class="form-control"
-                 placeholder="••••••••" autocomplete="current-password" required>
-          <button type="button" class="input-icon btn-icon c360-login-toggle-pwd" id="togglePwd" aria-label="Toggle password visibility">
-            <i class="lni lni-eye" aria-hidden="true"></i>
-          </button>
-        </div>
+      {% if error %}
+      <div class="alert alert-danger c360-login-alert" role="alert">
+        <span class="alert-body">{{ error }}</span>
       </div>
+      {% endif %}
 
-      <button type="submit" class="btn btn-primary btn-full btn-lg c360-login-submit">
-        <i class="lni lni-enter" aria-hidden="true"></i>
-        Sign In
-      </button>
-    </form>
+      <form method="post" action="{% url 'core:login' %}" novalidate>
+        {% csrf_token %}
 
-    <div class="c360-login-footer">
-      Only admin and super_admin roles may access this panel.
+        <div class="form-group">
+          <label class="form-label" for="id_email">Email address</label>
+          <div class="form-input-wrap">
+            <i class="lni lni-envelope input-icon" aria-hidden="true"></i>
+            <input
+              type="email"
+              id="id_email"
+              name="email"
+              class="form-control"
+              placeholder="admin@contact360.io"
+              autocomplete="username"
+              required
+              autofocus
+              value="{{ request.POST.email|default:'' }}"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="id_password">Password</label>
+          <div class="form-input-wrap icon-right">
+            <input
+              type="password"
+              id="id_password"
+              name="password"
+              class="form-control"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              class="input-icon btn-icon c360-login-toggle-pwd"
+              id="togglePwd"
+              aria-label="Toggle password visibility"
+            >
+              <i class="lni lni-eye" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-full btn-lg c360-login-submit"
+        >
+          <i class="lni lni-enter" aria-hidden="true"></i>
+          Sign In
+        </button>
+      </form>
+
+      <div class="c360-login-footer">
+        Only admin and super_admin roles may access this panel.
+      </div>
     </div>
-  </div>
 
-  <script>
-    document.getElementById('togglePwd').addEventListener('click', function() {
-      var inp = document.getElementById('id_password');
-      inp.type = inp.type === 'password' ? 'text' : 'password';
-    });
-  </script>
-</body>
+    <script>
+      document
+        .getElementById("togglePwd")
+        .addEventListener("click", function () {
+          var inp = document.getElementById("id_password");
+          inp.type = inp.type === "password" ? "text" : "password";
+        });
+    </script>
+  </body>
 </html>

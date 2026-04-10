@@ -1,4 +1,5 @@
 """API v1 list projection helpers (Lambda-compatible shapes)."""
+
 from __future__ import annotations
 
 from typing import Any, Dict

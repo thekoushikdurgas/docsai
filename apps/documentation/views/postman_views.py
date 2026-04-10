@@ -17,7 +17,9 @@ from apps.documentation.utils.view_helpers import validate_detail_tab
 
 logger = logging.getLogger(__name__)
 
-VALID_DETAIL_TABS = frozenset({"overview", "requests", "variables", "environments", "endpoints", "info", "raw"})
+VALID_DETAIL_TABS = frozenset(
+    {"overview", "requests", "variables", "environments", "endpoints", "info", "raw"}
+)
 
 
 def _validate_postman_id(postman_id: Optional[str]) -> Optional[str]:
@@ -27,12 +29,17 @@ def _validate_postman_id(postman_id: Optional[str]) -> Optional[str]:
     return postman_id.strip()
 
 
-def _safe_redirect_url(request: HttpRequest, default_name: str = "documentation:dashboard"):
+def _safe_redirect_url(
+    request: HttpRequest, default_name: str = "documentation:dashboard"
+):
     """Return redirect target: return_url if present and safe, else default."""
     return_url = request.GET.get("return_url") or request.POST.get("return_url", "")
     if return_url and return_url.startswith("/") and "//" not in return_url:
         from django.utils.http import url_has_allowed_host_and_scheme
-        if url_has_allowed_host_and_scheme(return_url, allowed_hosts={request.get_host(), None}):
+
+        if url_has_allowed_host_and_scheme(
+            return_url, allowed_hosts={request.get_host(), None}
+        ):
             return return_url
     return reverse(default_name)
 
@@ -49,36 +56,64 @@ def postman_delete_view(request: HttpRequest, postman_id: str) -> HttpResponse:
         try:
             success = postman_service.delete_configuration(validated_id)
             if success:
-                logger.debug("Postman configuration deleted successfully: %s", validated_id)
+                logger.debug(
+                    "Postman configuration deleted successfully: %s", validated_id
+                )
                 messages.success(request, "Postman configuration deleted successfully!")
             else:
-                logger.warning("Failed to delete Postman configuration: %s", validated_id)
+                logger.warning(
+                    "Failed to delete Postman configuration: %s", validated_id
+                )
                 messages.error(request, "Failed to delete Postman configuration.")
         except Exception as e:
-            logger.error("Error deleting Postman configuration %s: %s", validated_id, e, exc_info=True)
-            messages.error(request, "An error occurred while deleting the Postman configuration.")
+            logger.error(
+                "Error deleting Postman configuration %s: %s",
+                validated_id,
+                e,
+                exc_info=True,
+            )
+            messages.error(
+                request, "An error occurred while deleting the Postman configuration."
+            )
         return redirect(_safe_redirect_url(request))
 
     try:
         postman_config = postman_service.get_configuration(validated_id)
         if not postman_config:
-            logger.warning("Postman configuration not found for deletion: %s", validated_id)
+            logger.warning(
+                "Postman configuration not found for deletion: %s", validated_id
+            )
             messages.error(request, "Postman configuration not found.")
             return redirect(_safe_redirect_url(request))
     except Exception as e:
-        logger.error("Error loading Postman configuration %s: %s", validated_id, e, exc_info=True)
-        messages.error(request, "An error occurred while loading the Postman configuration.")
+        logger.error(
+            "Error loading Postman configuration %s: %s", validated_id, e, exc_info=True
+        )
+        messages.error(
+            request, "An error occurred while loading the Postman configuration."
+        )
         return redirect(_safe_redirect_url(request))
 
     return_url = request.GET.get("return_url", "")
     from django.urls import reverse
+
     breadcrumb_items = [
         {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-        {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
-        {"label": (postman_config.get("name") or validated_id)[:30], "url": reverse("documentation:postman_detail", kwargs={"postman_id": validated_id})},
+        {
+            "label": "Postman",
+            "url": reverse("documentation:dashboard") + "?tab=postman",
+        },
+        {
+            "label": (postman_config.get("name") or validated_id)[:30],
+            "url": reverse(
+                "documentation:postman_detail", kwargs={"postman_id": validated_id}
+            ),
+        },
         {"label": "Delete"},
     ]
-    cancel_url = reverse("documentation:postman_detail", kwargs={"postman_id": validated_id})
+    cancel_url = reverse(
+        "documentation:postman_detail", kwargs={"postman_id": validated_id}
+    )
     context = {
         "postman": postman_config,
         "postman_id": validated_id,
@@ -106,68 +141,75 @@ def postman_detail_view(request: HttpRequest, postman_id: str) -> HttpResponse:
             logger.warning("Postman configuration not found: %s", validated_id)
             messages.error(request, "Postman configuration not found.")
             return redirect("documentation:dashboard")
-        
+
         # Get collection data (if available)
         collection = None
         try:
             collection = postman_service.get_collection(postman_id)
         except Exception as e:
             logger.debug(f"Could not load collection for {postman_id}: {e}")
-        
+
         # Extract items/requests from collection
         requests = []
         if collection and isinstance(collection, dict):
-            items = collection.get('item', [])
+            items = collection.get("item", [])
+
             # Flatten items recursively
-            def extract_requests(items_list, folder_path=''):
+            def extract_requests(items_list, folder_path=""):
                 for item in items_list:
-                    if 'request' in item:
+                    if "request" in item:
                         # This is a request
-                        request_data = item.get('request', {})
-                        url_data = request_data.get('url', {})
+                        request_data = item.get("request", {})
+                        url_data = request_data.get("url", {})
                         if isinstance(url_data, dict):
-                            url = url_data.get('raw', '')
+                            url = url_data.get("raw", "")
                         else:
                             url = url_data
-                        
-                        requests.append({
-                            'name': item.get('name', 'Unnamed Request'),
-                            'method': request_data.get('method', 'GET'),
-                            'url': url,
-                            'description': item.get('description', ''),
-                            'folder': folder_path,
-                            'headers': request_data.get('header', []),
-                            'body': request_data.get('body', {}),
-                            'auth': request_data.get('auth') or item.get('auth'),
-                            'event': item.get('event', []),
-                        })
-                    elif 'item' in item:
+
+                        requests.append(
+                            {
+                                "name": item.get("name", "Unnamed Request"),
+                                "method": request_data.get("method", "GET"),
+                                "url": url,
+                                "description": item.get("description", ""),
+                                "folder": folder_path,
+                                "headers": request_data.get("header", []),
+                                "body": request_data.get("body", {}),
+                                "auth": request_data.get("auth") or item.get("auth"),
+                                "event": item.get("event", []),
+                            }
+                        )
+                    elif "item" in item:
                         # This is a folder
-                        folder_name = item.get('name', '')
-                        new_folder_path = f"{folder_path}/{folder_name}" if folder_path else folder_name
-                        extract_requests(item.get('item', []), new_folder_path)
-            
+                        folder_name = item.get("name", "")
+                        new_folder_path = (
+                            f"{folder_path}/{folder_name}"
+                            if folder_path
+                            else folder_name
+                        )
+                        extract_requests(item.get("item", []), new_folder_path)
+
             extract_requests(items)
-        
+
         # Get environments
         environments = []
         try:
             environments = postman_service.get_environments(postman_id)
         except Exception as e:
             logger.debug(f"Could not load environments for {postman_id}: {e}")
-        
+
         # Get endpoint mappings
         endpoint_mappings = []
         try:
             endpoint_mappings = postman_service.get_endpoint_mappings(postman_id)
         except Exception as e:
             logger.debug(f"Could not load endpoint mappings for {postman_id}: {e}")
-        
+
         # Get related endpoints (if mappings exist)
         related_endpoints = []
         if endpoint_mappings:
             for mapping in endpoint_mappings:
-                endpoint_id = mapping.get('endpoint_id')
+                endpoint_id = mapping.get("endpoint_id")
                 if endpoint_id:
                     try:
                         endpoint = endpoints_service.get_endpoint(endpoint_id)
@@ -175,56 +217,65 @@ def postman_detail_view(request: HttpRequest, postman_id: str) -> HttpResponse:
                             related_endpoints.append(endpoint)
                     except Exception as e:
                         logger.debug(f"Could not load endpoint {endpoint_id}: {e}")
-        
+
         # Extract variables from collection
         variables = []
         if collection and isinstance(collection, dict):
-            variables = collection.get('variable', [])
-        
+            variables = collection.get("variable", [])
+
         # Convert postman config to JSON string for Raw JSON tab
         postman_json = json.dumps(postman_config, indent=2, default=str)
-        
+
         # Extract info from collection
         collection_info = {}
         if collection and isinstance(collection, dict):
-            collection_info = collection.get('info', {})
-        collection_name = collection_info.get('name') or postman_id
+            collection_info = collection.get("info", {})
+        collection_name = collection_info.get("name") or postman_id
         breadcrumb_items = [
             {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-            {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+            {
+                "label": "Postman",
+                "url": reverse("documentation:dashboard") + "?tab=postman",
+            },
             {"label": collection_name, "url": None},
         ]
         context = {
-            'postman': postman_config,
-            'postman_id': postman_id,
-            'postman_json': postman_json,
-            'active_tab': active_tab,
-            'collection': collection,
-            'collection_info': collection_info,
-            'requests': requests,
-            'requests_count': len(requests),
-            'environments': environments,
-            'environments_count': len(environments),
-            'variables': variables,
-            'variables_count': len(variables),
-            'endpoint_mappings': endpoint_mappings,
-            'mappings_count': len(endpoint_mappings),
-            'related_endpoints': related_endpoints,
-            'endpoints_count': len(related_endpoints),
-            'breadcrumb_items': breadcrumb_items,
-            'resource_type': 'postman',
-            'page_title': collection_name,
+            "postman": postman_config,
+            "postman_id": postman_id,
+            "postman_json": postman_json,
+            "active_tab": active_tab,
+            "collection": collection,
+            "collection_info": collection_info,
+            "requests": requests,
+            "requests_count": len(requests),
+            "environments": environments,
+            "environments_count": len(environments),
+            "variables": variables,
+            "variables_count": len(variables),
+            "endpoint_mappings": endpoint_mappings,
+            "mappings_count": len(endpoint_mappings),
+            "related_endpoints": related_endpoints,
+            "endpoints_count": len(related_endpoints),
+            "breadcrumb_items": breadcrumb_items,
+            "resource_type": "postman",
+            "page_title": collection_name,
         }
     except Exception as e:
-        logger.error(f"Error loading Postman configuration {postman_id}: {e}", exc_info=True)
-        messages.error(request, 'An error occurred while loading the Postman configuration.')
-        return redirect('documentation:dashboard')
-    
-    return render(request, 'documentation/postman/detail.html', context)
+        logger.error(
+            f"Error loading Postman configuration {postman_id}: {e}", exc_info=True
+        )
+        messages.error(
+            request, "An error occurred while loading the Postman configuration."
+        )
+        return redirect("documentation:dashboard")
+
+    return render(request, "documentation/postman/detail.html", context)
 
 
 @require_super_admin
-def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) -> HttpResponse:
+def postman_form_view(
+    request: HttpRequest, postman_id: Optional[str] = None
+) -> HttpResponse:
     """Postman collection create/edit form with enhanced tabs and comprehensive data collection. GET/POST /docs/postman/create/ or /docs/postman/<postman_id>/edit/"""
     active_tab = request.GET.get("tab", "basic")
     return_url = request.GET.get("return_url")
@@ -256,9 +307,11 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                 collection_json = json.dumps(collection, indent=2, default=str)
         except Exception as e:
             logger.warning("Could not load postman %s: %s", validated_id, e)
-            messages.error(request, "An error occurred while loading the Postman configuration.")
+            messages.error(
+                request, "An error occurred while loading the Postman configuration."
+            )
             return redirect("documentation:dashboard")
-    
+
     if request.method == "POST":
         try:
             # Check if enhanced form data is present
@@ -271,8 +324,14 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                     logger.warning("Invalid JSON in postman form: %s", e)
                     messages.error(request, "Invalid form data format.")
                     _breadcrumbs = [
-                        {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                        {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+                        {
+                            "label": "Dashboard",
+                            "url": reverse("documentation:dashboard"),
+                        },
+                        {
+                            "label": "Postman",
+                            "url": reverse("documentation:dashboard") + "?tab=postman",
+                        },
                         {"label": "Edit" if is_edit else "Create"},
                     ]
                     return render(
@@ -317,7 +376,9 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                 }
 
                 # Add collection ID
-                collection_id = request.POST.get("collection_id") or (postman_id if is_edit else None)
+                collection_id = request.POST.get("collection_id") or (
+                    postman_id if is_edit else None
+                )
                 if collection_id:
                     collection_data["id"] = collection_id
                     collection_data["_id"] = collection_id
@@ -327,7 +388,10 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                 messages.error(request, "Collection ID is required.")
                 _breadcrumbs = [
                     {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                    {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+                    {
+                        "label": "Postman",
+                        "url": reverse("documentation:dashboard") + "?tab=postman",
+                    },
                     {"label": "Edit" if is_edit else "Create"},
                 ]
                 return render(
@@ -349,7 +413,9 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                     },
                 )
 
-            collection_id = collection_data.get("id") or (postman_id if is_edit else None)
+            collection_id = collection_data.get("id") or (
+                postman_id if is_edit else None
+            )
             if not collection_id:
                 messages.error(request, "Collection ID is required.")
                 return redirect("documentation:dashboard")
@@ -358,7 +424,10 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                 messages.error(request, "Collection name is required.")
                 _breadcrumbs = [
                     {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-                    {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+                    {
+                        "label": "Postman",
+                        "url": reverse("documentation:dashboard") + "?tab=postman",
+                    },
                     {"label": "Edit" if is_edit else "Create"},
                 ]
                 return render(
@@ -388,24 +457,38 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
                     return redirect("documentation:dashboard")
 
                 # Update existing collection
-                updated = postman_service.repository.update_collection(validated_id, collection_data)
+                updated = postman_service.repository.update_collection(
+                    validated_id, collection_data
+                )
                 if updated:
-                    logger.debug("Postman collection updated successfully: %s", validated_id)
-                    messages.success(request, "Postman collection updated successfully.")
+                    logger.debug(
+                        "Postman collection updated successfully: %s", validated_id
+                    )
+                    messages.success(
+                        request, "Postman collection updated successfully."
+                    )
                     if return_url:
                         return redirect(return_url)
-                    return redirect("documentation:postman_detail", postman_id=validated_id)
+                    return redirect(
+                        "documentation:postman_detail", postman_id=validated_id
+                    )
                 else:
                     messages.error(request, "Failed to update Postman collection.")
             else:
                 # Create new collection
                 created = postman_service.repository.create_collection(collection_data)
                 if created:
-                    logger.debug("Postman collection created successfully: %s", collection_id)
-                    messages.success(request, "Postman collection created successfully.")
+                    logger.debug(
+                        "Postman collection created successfully: %s", collection_id
+                    )
+                    messages.success(
+                        request, "Postman collection created successfully."
+                    )
                     if return_url:
                         return redirect(return_url)
-                    return redirect("documentation:postman_detail", postman_id=collection_id)
+                    return redirect(
+                        "documentation:postman_detail", postman_id=collection_id
+                    )
                 else:
                     messages.error(request, "Failed to create Postman collection.")
         except Exception as e:
@@ -424,13 +507,20 @@ def postman_form_view(request: HttpRequest, postman_id: Optional[str] = None) ->
 
     breadcrumb_items: List[Dict[str, Any]] = [
         {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-        {"label": "Postman", "url": reverse("documentation:dashboard") + "?tab=postman"},
+        {
+            "label": "Postman",
+            "url": reverse("documentation:dashboard") + "?tab=postman",
+        },
     ]
     if is_edit and postman_id:
-        breadcrumb_items.append({
-            "label": collection_info.get("name") or postman_id,
-            "url": reverse("documentation:postman_detail", kwargs={"postman_id": postman_id}),
-        })
+        breadcrumb_items.append(
+            {
+                "label": collection_info.get("name") or postman_id,
+                "url": reverse(
+                    "documentation:postman_detail", kwargs={"postman_id": postman_id}
+                ),
+            }
+        )
     breadcrumb_items.append({"label": "Edit" if is_edit else "Create"})
 
     context: Dict[str, Any] = {

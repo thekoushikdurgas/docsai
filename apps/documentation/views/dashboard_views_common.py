@@ -1,4 +1,5 @@
 """Shared helpers and constants for documentation dashboard views."""
+
 from __future__ import annotations
 
 import logging
@@ -66,11 +67,11 @@ def render_resource_view(
 ) -> HttpResponse:
     """Reusable helper to render resource views with standardized error handling."""
     if error_message:
-        context['error'] = error_message
+        context["error"] = error_message
         logger.warning(f"View error: {error_message}")
     if "pagination" in context:
         context["pagination"] = normalize_pagination(context.get("pagination"))
-    full_template_path = f'documentation/media_manager/{template_name}'
+    full_template_path = f"documentation/media_manager/{template_name}"
     return render(request, full_template_path, context)
 
 

@@ -1,4 +1,5 @@
 """Postman dashboard API: list and bulk import/upload endpoints."""
+
 from __future__ import annotations
 
 import logging
@@ -10,8 +11,15 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.documentation.services import get_postman_service
-from apps.documentation.utils.api_responses import success_response, error_response, paginated_response
-from apps.documentation.utils.list_projectors import should_expand_full, to_postman_list_item
+from apps.documentation.utils.api_responses import (
+    success_response,
+    error_response,
+    paginated_response,
+)
+from apps.documentation.utils.list_projectors import (
+    should_expand_full,
+    to_postman_list_item,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +27,7 @@ logger = logging.getLogger(__name__)
 def _parse_json_body_postman(req):
     try:
         import json as _json
+
         body = _json.loads(req.body or b"{}")
         return body, None
     except Exception as e:
@@ -39,12 +48,12 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
     try:
         postman_service = get_postman_service()
 
-        state = request.GET.get('state')
+        state = request.GET.get("state")
 
-        page_param = request.GET.get('page')
-        page_size_param = request.GET.get('page_size')
-        limit_param = request.GET.get('limit')
-        offset_param = request.GET.get('offset')
+        page_param = request.GET.get("page")
+        page_size_param = request.GET.get("page_size")
+        limit_param = request.GET.get("limit")
+        offset_param = request.GET.get("offset")
 
         try:
             if page_param is not None or page_size_param is not None:
@@ -69,28 +78,33 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
             offset=offset,
         )
 
-        configurations = result.get('configurations', [])
-        total = result.get('total', 0)
+        configurations = result.get("configurations", [])
+        total = result.get("total", 0)
 
-        search_query = request.GET.get('search', '').strip().lower()
+        search_query = request.GET.get("search", "").strip().lower()
         if search_query:
             filtered_configs = []
             for config in configurations:
-                config_id = (config.get('config_id') or '').lower()
-                name = (config.get('name') or '').lower()
+                config_id = (config.get("config_id") or "").lower()
+                name = (config.get("name") or "").lower()
                 if search_query in config_id or search_query in name:
                     filtered_configs.append(config)
             configurations = filtered_configs
             total = len(filtered_configs)
 
-        sort_field = request.GET.get('sort')
-        sort_order = request.GET.get('order', 'asc').lower()
+        sort_field = request.GET.get("sort")
+        sort_order = request.GET.get("order", "asc").lower()
         if sort_field:
-            reverse_order = sort_order == 'desc'
-            if sort_field == 'name':
-                configurations.sort(key=lambda c: (c.get('config_id') or '').lower(), reverse=reverse_order)
-            elif sort_field == 'updated':
-                configurations.sort(key=lambda c: c.get('updated_at', ''), reverse=reverse_order)
+            reverse_order = sort_order == "desc"
+            if sort_field == "name":
+                configurations.sort(
+                    key=lambda c: (c.get("config_id") or "").lower(),
+                    reverse=reverse_order,
+                )
+            elif sort_field == "updated":
+                configurations.sort(
+                    key=lambda c: c.get("updated_at", ""), reverse=reverse_order
+                )
 
         if not should_expand_full(request.GET):
             configurations = [to_postman_list_item(c) for c in configurations]
@@ -107,7 +121,7 @@ def get_postman_list_api(request: HttpRequest) -> JsonResponse:
         logger.error(f"Error in get_postman_list_api: {e}", exc_info=True)
         return error_response(
             message=f"Failed to retrieve Postman configurations: {str(e)}",
-            status_code=500
+            status_code=500,
         ).to_json_response()
 
 
@@ -118,12 +132,19 @@ def postman_bulk_import_preview_api(request: HttpRequest) -> JsonResponse:
     """Preview bulk import for Postman configurations. Body: { "configs": [ ... ] }."""
     data, err = _parse_json_body_postman(request)
     if err:
-        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+        return error_response(
+            f"Invalid JSON body: {err}", status_code=400
+        ).to_json_response()
     configs = (data or {}).get("configs") or (data or {}).get("configurations") or []
     if not isinstance(configs, list) or not configs:
-        return error_response("Field 'configs' or 'configurations' must be a non-empty list.", status_code=400).to_json_response()
+        return error_response(
+            "Field 'configs' or 'configurations' must be a non-empty list.",
+            status_code=400,
+        ).to_json_response()
     if len(configs) > 500:
-        return error_response("Maximum 500 configurations per import.", status_code=400).to_json_response()
+        return error_response(
+            "Maximum 500 configurations per import.", status_code=400
+        ).to_json_response()
 
     service = get_postman_service()
     existing: list[str] = []
@@ -134,7 +155,9 @@ def postman_bulk_import_preview_api(request: HttpRequest) -> JsonResponse:
         row = raw_row or {}
         config_id = str(row.get("config_id") or row.get("id") or "").strip()
         if not config_id:
-            validation_errors.append({"row": index, "error": "config_id (or id) is required"})
+            validation_errors.append(
+                {"row": index, "error": "config_id (or id) is required"}
+            )
             continue
         try:
             try:
@@ -146,7 +169,9 @@ def postman_bulk_import_preview_api(request: HttpRequest) -> JsonResponse:
             else:
                 to_create.append(config_id)
         except Exception as exc:
-            validation_errors.append({"row": index, "config_id": config_id, "error": str(exc)})
+            validation_errors.append(
+                {"row": index, "config_id": config_id, "error": str(exc)}
+            )
 
     return success_response(
         data={
@@ -168,12 +193,19 @@ def postman_bulk_import_api(request: HttpRequest) -> JsonResponse:
     """Bulk import Postman configurations (writes to S3). Body: { "configs": [ ... ] }."""
     data, err = _parse_json_body_postman(request)
     if err:
-        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+        return error_response(
+            f"Invalid JSON body: {err}", status_code=400
+        ).to_json_response()
     configs = (data or {}).get("configs") or (data or {}).get("configurations") or []
     if not isinstance(configs, list) or not configs:
-        return error_response("Field 'configs' or 'configurations' must be a non-empty list.", status_code=400).to_json_response()
+        return error_response(
+            "Field 'configs' or 'configurations' must be a non-empty list.",
+            status_code=400,
+        ).to_json_response()
     if len(configs) > 500:
-        return error_response("Maximum 500 configurations per import.", status_code=400).to_json_response()
+        return error_response(
+            "Maximum 500 configurations per import.", status_code=400
+        ).to_json_response()
 
     from django.conf import settings
     from apps.documentation.repositories.s3_json_storage import S3JSONStorage
@@ -211,7 +243,9 @@ def postman_bulk_import_api(request: HttpRequest) -> JsonResponse:
             except Exception:
                 pass
         except Exception as exc:
-            logger.warning("postman_bulk_import_api config %s failed: %s", config_id, exc)
+            logger.warning(
+                "postman_bulk_import_api config %s failed: %s", config_id, exc
+            )
             errors.append({"row": index, "config_id": config_id, "error": str(exc)})
 
     try:
@@ -220,7 +254,12 @@ def postman_bulk_import_api(request: HttpRequest) -> JsonResponse:
         pass
 
     return success_response(
-        data={"created": created, "updated": updated, "failed": len(errors), "errors": errors[:50]},
+        data={
+            "created": created,
+            "updated": updated,
+            "failed": len(errors),
+            "errors": errors[:50],
+        },
         message="Postman configurations bulk import completed",
     ).to_json_response()
 
@@ -232,12 +271,19 @@ def postman_bulk_upload_to_s3_api(request: HttpRequest) -> JsonResponse:
     """Upload Postman configuration JSON objects to S3. Body: { "configs": [ ... ] }."""
     data, err = _parse_json_body_postman(request)
     if err:
-        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+        return error_response(
+            f"Invalid JSON body: {err}", status_code=400
+        ).to_json_response()
     configs = (data or {}).get("configs") or (data or {}).get("configurations") or []
     if not isinstance(configs, list) or not configs:
-        return error_response("Field 'configs' or 'configurations' must be a non-empty list.", status_code=400).to_json_response()
+        return error_response(
+            "Field 'configs' or 'configurations' must be a non-empty list.",
+            status_code=400,
+        ).to_json_response()
     if len(configs) > 500:
-        return error_response("Maximum 500 configurations per upload.", status_code=400).to_json_response()
+        return error_response(
+            "Maximum 500 configurations per upload.", status_code=400
+        ).to_json_response()
 
     from django.conf import settings
     from apps.documentation.repositories.s3_json_storage import S3JSONStorage
@@ -258,7 +304,9 @@ def postman_bulk_upload_to_s3_api(request: HttpRequest) -> JsonResponse:
             storage.write_json(s3_key, row)
             uploaded += 1
         except Exception as exc:
-            logger.warning("postman_bulk_upload_to_s3_api config %s failed: %s", config_id, exc)
+            logger.warning(
+                "postman_bulk_upload_to_s3_api config %s failed: %s", config_id, exc
+            )
             errors.append({"config_id": config_id, "error": str(exc)})
 
     return success_response(
@@ -274,13 +322,19 @@ def postman_import_one_api(request: HttpRequest) -> JsonResponse:
     """Import a single Postman configuration. Body: { "config": { ... } }."""
     data, err = _parse_json_body_postman(request)
     if err:
-        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+        return error_response(
+            f"Invalid JSON body: {err}", status_code=400
+        ).to_json_response()
     row = (data or {}).get("config")
     if not row or not isinstance(row, dict):
-        return error_response("Field 'config' must be a non-empty object.", status_code=400).to_json_response()
+        return error_response(
+            "Field 'config' must be a non-empty object.", status_code=400
+        ).to_json_response()
     config_id = str(row.get("config_id") or row.get("id") or "").strip()
     if not config_id:
-        return error_response("config_id (or id) is required.", status_code=400).to_json_response()
+        return error_response(
+            "config_id (or id) is required.", status_code=400
+        ).to_json_response()
 
     from django.conf import settings
     from apps.documentation.repositories.s3_json_storage import S3JSONStorage
@@ -315,13 +369,19 @@ def postman_upload_one_to_s3_api(request: HttpRequest) -> JsonResponse:
     """Upload a single Postman configuration JSON to S3. Body: { "config": { ... } }."""
     data, err = _parse_json_body_postman(request)
     if err:
-        return error_response(f"Invalid JSON body: {err}", status_code=400).to_json_response()
+        return error_response(
+            f"Invalid JSON body: {err}", status_code=400
+        ).to_json_response()
     row = (data or {}).get("config")
     if not row or not isinstance(row, dict):
-        return error_response("Field 'config' must be a non-empty object.", status_code=400).to_json_response()
+        return error_response(
+            "Field 'config' must be a non-empty object.", status_code=400
+        ).to_json_response()
     config_id = str(row.get("config_id") or row.get("id") or "").strip()
     if not config_id:
-        return error_response("config_id (or id) is required.", status_code=400).to_json_response()
+        return error_response(
+            "config_id (or id) is required.", status_code=400
+        ).to_json_response()
 
     from django.conf import settings
     from apps.documentation.repositories.s3_json_storage import S3JSONStorage
@@ -336,5 +396,7 @@ def postman_upload_one_to_s3_api(request: HttpRequest) -> JsonResponse:
             message="Postman configuration uploaded to S3",
         ).to_json_response()
     except Exception as exc:
-        logger.warning("postman_upload_one_to_s3_api config %s failed: %s", config_id, exc)
+        logger.warning(
+            "postman_upload_one_to_s3_api config %s failed: %s", config_id, exc
+        )
         return error_response(message=str(exc), status_code=500).to_json_response()

@@ -22,17 +22,18 @@ User = get_user_model()
 # Test Helpers
 # ============================================================================
 
+
 def create_test_user(
     username: str = "testuser",
     email: Optional[str] = None,
     password: str = "testpass123",
     is_staff: bool = False,
     is_superuser: bool = False,
-    **kwargs
+    **kwargs,
 ) -> User:
     """
     Create a test user.
-    
+
     Args:
         username: Username for the user
         email: Email address (defaults to username@test.com)
@@ -40,7 +41,7 @@ def create_test_user(
         is_staff: Whether user is staff
         is_superuser: Whether user is superuser
         **kwargs: Additional user fields
-    
+
     Returns:
         Created User instance
     """
@@ -51,18 +52,18 @@ def create_test_user(
         password=password,
         is_staff=is_staff,
         is_superuser=is_superuser,
-        **kwargs
+        **kwargs,
     )
 
 
 def authenticate_client(client: Client, user: Optional[User] = None) -> User:
     """
     Authenticate a test client with a user.
-    
+
     Args:
         client: Django test client
         user: User to authenticate (creates one if not provided)
-    
+
     Returns:
         Authenticated User instance
     """
@@ -78,11 +79,11 @@ def make_request(
     path: str,
     data: Optional[Dict[str, Any]] = None,
     content_type: str = "application/json",
-    **kwargs
+    **kwargs,
 ) -> Any:
     """
     Make a test request.
-    
+
     Args:
         client: Django test client
         method: HTTP method (GET, POST, PUT, DELETE, etc.)
@@ -90,16 +91,16 @@ def make_request(
         data: Request data (will be JSON-encoded if content_type is application/json)
         content_type: Content type header
         **kwargs: Additional arguments to pass to client method
-    
+
     Returns:
         Response object
     """
     method = method.upper()
-    
+
     if data and content_type == "application/json":
         data = json.dumps(data)
         kwargs.setdefault("content_type", content_type)
-    
+
     if method == "GET":
         return client.get(path, data=data, **kwargs)
     elif method == "POST":
@@ -118,6 +119,7 @@ def make_request(
 # Assertion Utilities
 # ============================================================================
 
+
 def assert_api_response(
     test_case: TestCase,
     response: Any,
@@ -128,7 +130,7 @@ def assert_api_response(
 ):
     """
     Assert that an API response matches expected format.
-    
+
     Args:
         test_case: TestCase instance
         response: Response object
@@ -138,20 +140,20 @@ def assert_api_response(
         expected_message: Expected message field value (None to skip check)
     """
     test_case.assertEqual(response.status_code, expected_status)
-    
+
     if hasattr(response, "json"):
         data = response.json()
     else:
         data = json.loads(response.content)
-    
+
     if expected_success is not None:
         test_case.assertEqual(data.get("success"), expected_success)
-    
+
     if expected_data_keys:
         test_case.assertIn("data", data)
         for key in expected_data_keys:
             test_case.assertIn(key, data["data"])
-    
+
     if expected_message:
         test_case.assertEqual(data.get("message"), expected_message)
 
@@ -165,7 +167,7 @@ def assert_paginated_response(
 ):
     """
     Assert that a paginated API response matches expected format.
-    
+
     Args:
         test_case: TestCase instance
         response: Response object
@@ -174,27 +176,27 @@ def assert_paginated_response(
         expected_keys: Expected keys in each item (None to skip check)
     """
     assert_api_response(test_case, response, expected_status=200, expected_success=True)
-    
+
     if hasattr(response, "json"):
         data = response.json()
     else:
         data = json.loads(response.content)
-    
+
     test_case.assertIn("data", data)
     test_case.assertIn("items", data["data"])
     test_case.assertIn("total", data["data"])
     test_case.assertIn("page", data["data"])
     test_case.assertIn("page_size", data["data"])
-    
+
     items = data["data"]["items"]
-    
+
     if expected_count is not None:
         test_case.assertEqual(len(items), expected_count)
         test_case.assertEqual(data["data"]["total"], expected_count)
-    
+
     if min_count is not None:
         test_case.assertGreaterEqual(len(items), min_count)
-    
+
     if expected_keys and items:
         for key in expected_keys:
             test_case.assertIn(key, items[0])
@@ -209,7 +211,7 @@ def assert_error_response(
 ):
     """
     Assert that an error API response matches expected format.
-    
+
     Args:
         test_case: TestCase instance
         response: Response object
@@ -218,18 +220,18 @@ def assert_error_response(
         expected_error_type: Expected error type (None to skip check)
     """
     test_case.assertEqual(response.status_code, expected_status)
-    
+
     if hasattr(response, "json"):
         data = response.json()
     else:
         data = json.loads(response.content)
-    
+
     test_case.assertEqual(data.get("success"), False)
     test_case.assertIn("message", data)
-    
+
     if expected_message:
         test_case.assertEqual(data.get("message"), expected_message)
-    
+
     if expected_error_type:
         test_case.assertIn("errors", data)
         # Check if error type is in errors array or message
@@ -248,24 +250,28 @@ def assert_validation_error(
 ):
     """
     Assert that a validation error response matches expected format.
-    
+
     Args:
         test_case: TestCase instance
         response: Response object
         expected_fields: Expected fields with validation errors (None to skip check)
     """
     assert_error_response(test_case, response, expected_status=400)
-    
+
     if hasattr(response, "json"):
         data = response.json()
     else:
         data = json.loads(response.content)
-    
+
     test_case.assertIn("errors", data)
-    
+
     if expected_fields:
         errors = data.get("errors", [])
-        error_str = " ".join(str(e) for e in errors) if isinstance(errors, list) else str(errors)
+        error_str = (
+            " ".join(str(e) for e in errors)
+            if isinstance(errors, list)
+            else str(errors)
+        )
         for field in expected_fields:
             test_case.assertIn(field.lower(), error_str.lower())
 
@@ -277,20 +283,20 @@ def assert_not_found_response(
 ):
     """
     Assert that a not found error response matches expected format.
-    
+
     Args:
         test_case: TestCase instance
         response: Response object
         resource_name: Expected resource name in error message (None to skip check)
     """
     assert_error_response(test_case, response, expected_status=404)
-    
+
     if resource_name:
         if hasattr(response, "json"):
             data = response.json()
         else:
             data = json.loads(response.content)
-        
+
         message = data.get("message", "").lower()
         test_case.assertIn(resource_name.lower(), message)
 
@@ -299,15 +305,16 @@ def assert_not_found_response(
 # Base Test Classes
 # ============================================================================
 
+
 class BaseAPITestCase(TestCase):
     """Base test case for API tests."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.client = Client()
         self.user = create_test_user()
         authenticate_client(self.client, self.user)
-    
+
     def tearDown(self):
         """Clean up after tests."""
         User.objects.all().delete()
@@ -315,11 +322,11 @@ class BaseAPITestCase(TestCase):
 
 class BaseServiceTestCase(TestCase):
     """Base test case for service layer tests."""
-    
+
     def setUp(self):
         """Set up test fixtures."""
         pass
-    
+
     def tearDown(self):
         """Clean up after tests."""
         pass

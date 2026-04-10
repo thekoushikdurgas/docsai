@@ -36,13 +36,18 @@ DOCS_OPERATION_LABELS: Dict[str, str] = {
 def _get_operations_service():
     """Lazy import to avoid circular imports."""
     from apps.operations.services.operations_service import OperationsService
+
     return OperationsService()
 
 
 def _user_id(request) -> Optional[str]:
     """Extract user id for started_by (id or pk as string)."""
     user = getattr(request, "user", None)
-    if not user or not getattr(user, "is_authenticated", False) or not user.is_authenticated:
+    if (
+        not user
+        or not getattr(user, "is_authenticated", False)
+        or not user.is_authenticated
+    ):
         return None
     return str(getattr(user, "pk", None) or getattr(user, "id", None) or "")
 

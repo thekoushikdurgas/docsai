@@ -14,13 +14,23 @@ class ListSummaryResponsesTestCase(TestCase):
     """
 
     @patch("apps.documentation.api.v1.pages_views.get_pages_service")
-    def test_api_v1_pages_list_summary_default_and_expand_full(self, mock_get_pages_service):
+    def test_api_v1_pages_list_summary_default_and_expand_full(
+        self, mock_get_pages_service
+    ):
         mock_service = Mock()
         mock_get_pages_service.return_value = mock_service
         mock_service.list_pages.return_value = {
             "pages": [
-                {"page_id": "page1", "page_type": "docs", "metadata": {"title": "T1", "status": "published"}},
-                {"page_id": "page2", "page_type": "docs", "metadata": {"title": "T2", "status": "draft"}},
+                {
+                    "page_id": "page1",
+                    "page_type": "docs",
+                    "metadata": {"title": "T1", "status": "published"},
+                },
+                {
+                    "page_id": "page2",
+                    "page_type": "docs",
+                    "metadata": {"title": "T2", "status": "draft"},
+                },
             ],
             "total": 2,
         }
@@ -41,7 +51,9 @@ class ListSummaryResponsesTestCase(TestCase):
         self.assertIn("metadata", payload_full["pages"][0])
 
     @patch("apps.documentation.api.v1.core.get_pages_service")
-    def test_docs_dashboard_pages_summary_default_and_expand_full(self, mock_get_pages_service):
+    def test_docs_dashboard_pages_summary_default_and_expand_full(
+        self, mock_get_pages_service
+    ):
         # Dashboard list is now /api/v1/dashboard/pages/ (response: success, data, meta.pagination).
         user = User.objects.create(username="testuser")
         self.client.force_login(user)
@@ -50,7 +62,11 @@ class ListSummaryResponsesTestCase(TestCase):
         mock_get_pages_service.return_value = mock_service
         mock_service.list_pages.return_value = {
             "pages": [
-                {"page_id": "page1", "page_type": "docs", "metadata": {"title": "T1", "status": "published"}},
+                {
+                    "page_id": "page1",
+                    "page_type": "docs",
+                    "metadata": {"title": "T1", "status": "published"},
+                },
             ],
             "total": 1,
             "source": "local",
@@ -68,9 +84,10 @@ class ListSummaryResponsesTestCase(TestCase):
         self.assertNotIn("metadata", payload["data"][0])
 
         # expand=full: full documents
-        resp_full = self.client.get("/api/v1/dashboard/pages/?page=1&page_size=20&expand=full")
+        resp_full = self.client.get(
+            "/api/v1/dashboard/pages/?page=1&page_size=20&expand=full"
+        )
         self.assertEqual(resp_full.status_code, 200)
         payload_full = json.loads(resp_full.content)
         self.assertIn("data", payload_full)
         self.assertIn("metadata", payload_full["data"][0])
-

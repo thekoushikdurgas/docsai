@@ -1,46 +1,57 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Postman Count: {{ state|title }} - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Postman Count: {{
+state|title }} - Media Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">Postman Count</h1>
-            <p class="c360-mm-hero__subtitle">{{ state|title }} configurations</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Postman
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">Postman Count</h1>
+      <p class="c360-mm-hero__subtitle">{{ state|title }} configurations</p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Count Display -->
-    <div class="section-card section-card--lg text-center">
-        <div class="mb-4">
-            <span class="text-sm font-medium text-gray-500">State</span>
-            <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ state|title }}</h2>
-        </div>
-        <div class="mb-6">
-            <span class="text-6xl font-black text-blue-600">{{ count }}</span>
-            <p class="text-sm text-gray-500 mt-2">configurations</p>
-        </div>
-        <a href="{% url 'documentation:postman_by_state' state %}" 
-           class="btn btn-primary">
-            View All {{ state|title }} Configurations →
-        </a>
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Postman
+      </a>
     </div>
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Count Display -->
+  <div class="section-card section-card--lg text-center">
+    <div class="mb-4">
+      <span class="text-sm font-medium text-gray-500">State</span>
+      <h2 class="text-2xl font-bold text-gray-900 mt-2">{{ state|title }}</h2>
+    </div>
+    <div class="mb-6">
+      <span class="text-6xl font-black text-blue-600">{{ count }}</span>
+      <p class="text-sm text-gray-500 mt-2">configurations</p>
+    </div>
+    <a
+      href="{% url 'documentation:postman_by_state' state %}"
+      class="btn btn-primary"
+    >
+      View All {{ state|title }} Configurations →
+    </a>
+  </div>
 </div>
 {% endblock %}

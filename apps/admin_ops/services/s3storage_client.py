@@ -1,7 +1,8 @@
 """S3Storage API client (photo upload, bucket objects) — same as contact360.io/2."""
+
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import httpx
 from django.conf import settings
@@ -19,10 +20,22 @@ class S3StorageClient:
         timeout: Optional[int] = None,
         request_id: Optional[str] = None,
     ):
-        self.base_url = (base_url or getattr(settings, "S3STORAGE_API_URL", "") or "").rstrip("/")
+        self.base_url = (
+            base_url or getattr(settings, "S3STORAGE_API_URL", "") or ""
+        ).rstrip("/")
         self.api_key = api_key or getattr(settings, "S3STORAGE_API_KEY", "") or ""
         self.timeout = timeout or getattr(settings, "S3STORAGE_API_TIMEOUT", 30)
         self.request_id = request_id or str(uuid.uuid4())
+
+    def _api_v1_base(self) -> str:
+        """Base URL including ``/api/v1`` once (env may already end with ``/api/v1``)."""
+        b = self.base_url
+        if not b:
+            return ""
+        b = b.rstrip("/")
+        if b.endswith("/api/v1"):
+            return b
+        return f"{b}/api/v1"
 
     def _headers(self) -> Dict[str, str]:
         headers = {
@@ -94,13 +107,16 @@ class S3StorageClient:
             )
         name = filename or getattr(file, "name", "qr.png")
         content_type = getattr(file, "content_type", None) or "image/png"
-        url = f"{self.base_url}/api/v1/uploads/photo"
+        url = f"{self._api_v1_base()}/uploads/photo"
         params = {"bucket_id": bucket_id}
         with httpx.Client(timeout=self.timeout) as client:
             try:
                 resp = client.post(
                     url,
-                    headers={"X-Request-ID": self.request_id, **({"X-API-Key": self.api_key} if self.api_key else {})},
+                    headers={
+                        "X-Request-ID": self.request_id,
+                        **({"X-API-Key": self.api_key} if self.api_key else {}),
+                    },
                     params=params,
                     files={"file": (name, file, content_type)},
                 )
@@ -154,13 +170,16 @@ class S3StorageClient:
                 status_code=503,
             )
         name = filename or getattr(file, "name", "document.json")
-        url = f"{self.base_url}/api/v1/uploads/json"
+        url = f"{self._api_v1_base()}/uploads/json"
         params = {"bucket_id": bucket_id}
         with httpx.Client(timeout=self.timeout) as client:
             try:
                 resp = client.post(
                     url,
-                    headers={"X-Request-ID": self.request_id, **({"X-API-Key": self.api_key} if self.api_key else {})},
+                    headers={
+                        "X-Request-ID": self.request_id,
+                        **({"X-API-Key": self.api_key} if self.api_key else {}),
+                    },
                     params=params,
                     files={"file": (name, file, "application/json")},
                 )
@@ -206,7 +225,7 @@ class S3StorageClient:
                 endpoint="/api/v1/objects/get",
                 status_code=503,
             )
-        url = f"{self.base_url}/api/v1/objects/get"
+        url = f"{self._api_v1_base()}/objects/get"
         with httpx.Client(timeout=self.timeout) as client:
             try:
                 resp = client.get(

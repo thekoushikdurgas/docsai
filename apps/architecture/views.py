@@ -5,8 +5,12 @@ from .constants import SERVICES, URL_MOUNTS
 
 @require_login
 def blueprint_view(request):
-    return render(request, "architecture/blueprint.html", {
-        "services": SERVICES,
-        "url_mounts": URL_MOUNTS,
-        "page_title": "Architecture",
-    })
+    return render(
+        request,
+        "architecture/blueprint.html",
+        {
+            "services": SERVICES,
+            "url_mounts": URL_MOUNTS,
+            "page_title": "Architecture",
+        },
+    )

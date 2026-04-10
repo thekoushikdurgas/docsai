@@ -22,7 +22,7 @@ class MediaFilesListAPITestCase(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.list_api_url = reverse('documentation:api_media_files')
+        self.list_api_url = reverse("documentation:api_media_files")
 
     def test_list_files_api_success(self):
         """List files API returns 200 and empty data in S3-only mode."""
@@ -34,8 +34,10 @@ class MediaFilesListAPITestCase(BaseAPITestCase):
 
     def test_list_files_api_resource_type_param(self):
         """List files API accepts resource_type query param."""
-        for resource_type in ('pages', 'endpoints', 'relationships', 'postman'):
-            response = self.client.get(self.list_api_url, {'resource_type': resource_type})
+        for resource_type in ("pages", "endpoints", "relationships", "postman"):
+            response = self.client.get(
+                self.list_api_url, {"resource_type": resource_type}
+            )
             self.assertEqual(response.status_code, 200)
             data = response.json()
             self.assertEqual(data.get("meta", {}).get("resource_type"), resource_type)
@@ -53,8 +55,8 @@ class MediaSyncAPITestCase(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.sync_status_url = reverse('documentation:api_media_sync_status')
-        self.bulk_sync_url = reverse('documentation:api_media_bulk_sync')
+        self.sync_status_url = reverse("documentation:api_media_sync_status")
+        self.bulk_sync_url = reverse("documentation:api_media_bulk_sync")
 
     def test_sync_status_api_success(self):
         """Sync status API returns 200 and s3_only in S3-only mode."""

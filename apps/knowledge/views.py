@@ -1,4 +1,5 @@
 """Knowledge base CRUD (GraphQL wiring optional)."""
+
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods

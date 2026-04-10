@@ -51,7 +51,7 @@ class S3JSONStorage:
 
     def __init__(self, s3_service: Optional[S3Service] = None):
         """Initialize S3 JSON storage client.
-        
+
         Args:
             s3_service: Optional S3Service instance. If not provided, creates new one.
         """
@@ -73,7 +73,7 @@ class S3JSONStorage:
 
         Returns:
             Parsed JSON data as dictionary, or None if file doesn't exist
-            
+
         Raises:
             S3Error: If S3 operation fails (other than file not found) and local fallback not used
         """
@@ -83,7 +83,9 @@ class S3JSONStorage:
             try:
                 file_content = self.s3_service.download_file(s3_key)
                 if not isinstance(file_content, (bytes, bytearray, str)):
-                    logger.warning(f"Unexpected file_content type for {s3_key}: {type(file_content)}")
+                    logger.warning(
+                        f"Unexpected file_content type for {s3_key}: {type(file_content)}"
+                    )
                     return None
                 if isinstance(file_content, bytes):
                     content_str = file_content.decode("utf-8")
@@ -91,7 +93,12 @@ class S3JSONStorage:
                     content_str = file_content
                 return json.loads(content_str)
             except S3Error as e:
-                if "NoSuchKey" in str(e) or "404" in str(e) or "not found" in str(e).lower() or "FILE_NOT_FOUND" in str(e):
+                if (
+                    "NoSuchKey" in str(e)
+                    or "404" in str(e)
+                    or "not found" in str(e).lower()
+                    or "FILE_NOT_FOUND" in str(e)
+                ):
                     logger.debug(f"JSON file not found in S3: {s3_key}")
                     return None
                 raise
@@ -157,17 +164,19 @@ class S3JSONStorage:
 
         Returns:
             The S3 key where the file was written
-            
+
         Raises:
             S3Error: If S3 upload fails
             RepositoryError: If JSON serialization fails
         """
         try:
-            json_content = json.dumps(data, indent=2, ensure_ascii=False).encode('utf-8')
+            json_content = json.dumps(data, indent=2, ensure_ascii=False).encode(
+                "utf-8"
+            )
             self.s3_service.upload_file(
                 file_content=json_content,
                 s3_key=s3_key,
-                content_type='application/json'
+                content_type="application/json",
             )
             logger.debug(f"Wrote JSON to S3: {s3_key}")
             return s3_key
@@ -176,8 +185,8 @@ class S3JSONStorage:
             raise RepositoryError(
                 f"Failed to serialize JSON: {str(e)}",
                 entity_id=s3_key,
-                operation='write_json',
-                error_code='JSON_SERIALIZE_ERROR'
+                operation="write_json",
+                error_code="JSON_SERIALIZE_ERROR",
             )
         except S3Error:
             raise
@@ -191,14 +200,19 @@ class S3JSONStorage:
 
         Returns:
             True if deleted successfully
-            
+
         Raises:
             S3Error: If S3 delete fails
         """
         try:
             return self.s3_service.delete_file(s3_key)
         except S3Error as e:
-            if 'NoSuchKey' in str(e) or '404' in str(e) or 'not found' in str(e).lower() or 'FILE_NOT_FOUND' in str(e):
+            if (
+                "NoSuchKey" in str(e)
+                or "404" in str(e)
+                or "not found" in str(e).lower()
+                or "FILE_NOT_FOUND" in str(e)
+            ):
                 logger.debug(f"JSON file not found (already deleted): {s3_key}")
                 return True
             raise
@@ -223,7 +237,7 @@ class S3JSONStorage:
         """
         try:
             files = self.s3_service.list_files(prefix=prefix, max_keys=max_keys or 1000)
-            keys = [f['key'] for f in files if f['key'].endswith('.json')]
+            keys = [f["key"] for f in files if f["key"].endswith(".json")]
             return keys[:max_keys] if max_keys else keys
         except Exception as e:
             logger.error(f"Failed to list JSON files with prefix {prefix}: {e}")
@@ -241,6 +255,6 @@ class S3JSONStorage:
         """
         try:
             files = self.s3_service.list_files(prefix=s3_key, max_keys=1)
-            return len(files) > 0 and files[0]['key'] == s3_key
+            return len(files) > 0 and files[0]["key"] == s3_key
         except Exception:
             return False

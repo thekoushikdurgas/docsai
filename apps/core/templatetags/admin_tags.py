@@ -1,6 +1,7 @@
 """
 Contact360 Admin template tags and filters.
 """
+
 import json
 
 from django import template
@@ -253,7 +254,9 @@ def service_status_dot(status):
         "not_configured": "unknown",
     }
     cls = cls_map.get(str(status).lower(), "unknown pulse")
-    return mark_safe(f'<span class="status-dot {cls}" aria-label="Status: {status}" title="{status}"></span>')
+    return mark_safe(
+        f'<span class="status-dot {cls}" aria-label="Status: {status}" title="{status}"></span>'
+    )
 
 
 @register.filter
@@ -275,7 +278,13 @@ def health_status_display(status):
 
 @register.filter
 def get_item(dictionary, key):
-    """Get dict item by key in templates."""
+    """Get dict item or object attribute by key (string) in templates."""
+    key_str = str(key)
     if isinstance(dictionary, dict):
-        return dictionary.get(key)
-    return None
+        return dictionary.get(key_str)
+    if dictionary is None:
+        return None
+    try:
+        return getattr(dictionary, key_str)
+    except AttributeError:
+        return None

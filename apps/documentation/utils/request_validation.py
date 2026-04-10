@@ -29,21 +29,22 @@ def validate_request(
 ) -> Callable[[F], F]:
     """
     Decorator to validate request body against a Pydantic schema.
-    
+
     Args:
         schema: Pydantic model class to validate against
         parse_json: Whether to parse JSON body (default: True)
         allow_empty: Whether to allow empty body (default: False)
-        
+
     Returns:
         Decorated function with validated data in request.validated_data
-        
+
     Example:
         @validate_request(PageCreateSchema)
         def create_page_api(request: HttpRequest) -> JsonResponse:
             data = request.validated_data  # Validated Pydantic model
             ...
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
@@ -55,7 +56,7 @@ def validate_request(
                         return validation_error_response(
                             ["Request body is required"]
                         ).to_json_response()
-                    
+
                     if not body:
                         data = {}
                     else:
@@ -67,33 +68,38 @@ def validate_request(
                     ).to_json_response()
             else:
                 # Use GET params or form data
-                data = dict(request.GET) if request.method == "GET" else dict(request.POST)
-            
+                data = (
+                    dict(request.GET) if request.method == "GET" else dict(request.POST)
+                )
+
             # Validate against schema
             try:
                 validated_data = schema(**data)
                 # Attach validated data to request object
                 request.validated_data = validated_data
             except PydanticValidationError as e:
-                logger.warning("Validation failed for %s: %s", func.__name__, e.errors())
+                logger.warning(
+                    "Validation failed for %s: %s", func.__name__, e.errors()
+                )
                 # Format Pydantic errors into list of strings
                 errors = []
                 for error in e.errors():
                     field = ".".join(str(loc) for loc in error.get("loc", []))
                     msg = error.get("msg", "Validation error")
                     errors.append(f"{field}: {msg}")
-                
+
                 return validation_error_response(errors).to_json_response()
             except Exception as e:
                 logger.error("Unexpected error during validation: %s", e, exc_info=True)
                 return validation_error_response(
                     [f"Validation error: {str(e)}"]
                 ).to_json_response()
-            
+
             # Call original function
             return func(request, *args, **kwargs)
-        
+
         return wrapper  # type: ignore
+
     return decorator
 
 
@@ -102,25 +108,26 @@ def validate_query_params(
 ) -> Callable[[F], F]:
     """
     Decorator to validate query parameters against a Pydantic schema.
-    
+
     Args:
         schema: Pydantic model class to validate against
-        
+
     Returns:
         Decorated function with validated data in request.validated_params
-        
+
     Example:
         @validate_query_params(PageListQuerySchema)
         def list_pages_api(request: HttpRequest) -> JsonResponse:
             params = request.validated_params  # Validated Pydantic model
             ...
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
             # Convert query params to dict
             query_params = dict(request.GET)
-            
+
             # Convert string values to appropriate types where possible
             # (Pydantic will handle type conversion)
             processed_params = {}
@@ -130,31 +137,38 @@ def validate_query_params(
                     processed_params[key] = value[0] if value else None
                 else:
                     processed_params[key] = value
-            
+
             # Validate against schema
             try:
                 validated_params = schema(**processed_params)
                 # Attach validated params to request object
                 request.validated_params = validated_params
             except PydanticValidationError as e:
-                logger.warning("Query param validation failed for %s: %s", func.__name__, e.errors())
+                logger.warning(
+                    "Query param validation failed for %s: %s",
+                    func.__name__,
+                    e.errors(),
+                )
                 errors = []
                 for error in e.errors():
                     field = ".".join(str(loc) for loc in error.get("loc", []))
                     msg = error.get("msg", "Validation error")
                     errors.append(f"{field}: {msg}")
-                
+
                 return validation_error_response(errors).to_json_response()
             except Exception as e:
-                logger.error("Unexpected error during query validation: %s", e, exc_info=True)
+                logger.error(
+                    "Unexpected error during query validation: %s", e, exc_info=True
+                )
                 return validation_error_response(
                     [f"Query parameter validation error: {str(e)}"]
                 ).to_json_response()
-            
+
             # Call original function
             return func(request, *args, **kwargs)
-        
+
         return wrapper  # type: ignore
+
     return decorator
 
 
@@ -163,47 +177,53 @@ def validate_path_params(
 ) -> Callable[[F], F]:
     """
     Decorator to validate path parameters against a Pydantic schema.
-    
+
     Args:
         schema: Pydantic model class to validate against
-        
+
     Returns:
         Decorated function with validated data in request.validated_path_params
-        
+
     Example:
         @validate_path_params(PageDetailPathSchema)
         def get_page_api(request: HttpRequest, page_id: str) -> JsonResponse:
             params = request.validated_path_params  # Validated Pydantic model
             ...
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
             # Use kwargs as path params
             path_params = kwargs.copy()
-            
+
             # Validate against schema
             try:
                 validated_params = schema(**path_params)
                 # Attach validated params to request object
                 request.validated_path_params = validated_params
             except PydanticValidationError as e:
-                logger.warning("Path param validation failed for %s: %s", func.__name__, e.errors())
+                logger.warning(
+                    "Path param validation failed for %s: %s", func.__name__, e.errors()
+                )
                 errors = []
                 for error in e.errors():
                     field = ".".join(str(loc) for loc in error.get("loc", []))
                     msg = error.get("msg", "Validation error")
                     errors.append(f"{field}: {msg}")
-                
+
                 return validation_error_response(errors).to_json_response()
             except Exception as e:
-                logger.error("Unexpected error during path validation: %s", e, exc_info=True)
+                logger.error(
+                    "Unexpected error during path validation: %s", e, exc_info=True
+                )
                 return validation_error_response(
                     [f"Path parameter validation error: {str(e)}"]
                 ).to_json_response()
-            
+
             # Call original function
             return func(request, *args, **kwargs)
-        
+
         return wrapper  # type: ignore
+
     return decorator

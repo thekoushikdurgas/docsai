@@ -54,7 +54,9 @@ def test_generate_json_progress_reads_persisted_job_state_when_memory_empty():
         },
     )
     operations._generate_json_jobs.clear()
-    request = RequestFactory().get(f"/docs/api/operations/generate-json-progress/{job_id}/")
+    request = RequestFactory().get(
+        f"/docs/api/operations/generate-json-progress/{job_id}/"
+    )
     response = _unwrap_view(operations.generate_json_progress_api)(request, str(job_id))
     payload = json.loads(response.content.decode("utf-8"))
     assert response.status_code == 200
@@ -84,4 +86,3 @@ def test_upload_progress_reads_persisted_job_state_when_memory_empty():
     assert response.status_code == 200
     assert payload["done"] is True
     assert payload["report"]["results"]["postman"]["synced"] == 2
-

@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 def check_database_health() -> Dict[str, Any]:
     """
     Check database connectivity and health.
-    
+
     Returns:
         Dict with 'status', 'response_time_ms', and 'error' (if any)
     """
@@ -41,13 +41,13 @@ def check_database_health() -> Dict[str, Any]:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             cursor.fetchone()
-        
+
         response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-        
+
         name = settings.DATABASES.get("default", {}).get("NAME", "unknown")
         # Ensure JSON-serializable: Path (e.g. WindowsPath) is not serializable
         database_display = str(name) if isinstance(name, Path) else name
-        
+
         return {
             "status": "healthy",
             "response_time_ms": round(response_time, 2),
@@ -65,26 +65,26 @@ def check_database_health() -> Dict[str, Any]:
 def check_cache_health() -> Dict[str, Any]:
     """
     Check cache connectivity and health.
-    
+
     Returns:
         Dict with 'status', 'response_time_ms', and cache backend info
     """
     start_time = time.time()
     test_key = "__health_check__"
     test_value = "test"
-    
+
     try:
         # Test cache write
         cache.set(test_key, test_value, timeout=10)
-        
+
         # Test cache read
         retrieved = cache.get(test_key)
-        
+
         # Clean up
         cache.delete(test_key)
-        
+
         response_time = (time.time() - start_time) * 1000
-        
+
         if retrieved == test_value:
             cache_backend = settings.CACHES.get("default", {}).get("BACKEND", "unknown")
             return {
@@ -111,7 +111,7 @@ def check_cache_health() -> Dict[str, Any]:
 def check_storage_health() -> Dict[str, Any]:
     """
     Check S3 storage health (local storage removed - S3 only).
-    
+
     Returns:
         Dict with 'status' and storage information for S3
     """
@@ -119,17 +119,17 @@ def check_storage_health() -> Dict[str, Any]:
         "local": {"status": "removed", "message": "Local storage removed; S3 only"},
         "s3": {"status": "unknown"},
     }
-    
+
     # Check S3 storage
     try:
         from apps.core.services.s3_service import S3Service
-        
+
         if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
             s3_service = S3Service()
             start_time = time.time()
-            s3_service.list_files(prefix='health_check/', max_keys=1)
+            s3_service.list_files(prefix="health_check/", max_keys=1)
             response_time = (time.time() - start_time) * 1000
-            
+
             storage_info["s3"] = {
                 "status": "healthy",
                 "bucket": settings.S3_BUCKET_NAME,
@@ -147,14 +147,14 @@ def check_storage_health() -> Dict[str, Any]:
             "status": "unhealthy",
             "error": str(e),
         }
-    
+
     # Overall status from S3 only
     s3_status = storage_info["s3"].get("status")
     if s3_status == "healthy" or s3_status == "not_configured":
         overall_status = "healthy"
     else:
         overall_status = "unhealthy"
-    
+
     return {
         "status": overall_status,
         "storage": storage_info,
@@ -164,7 +164,7 @@ def check_storage_health() -> Dict[str, Any]:
 def check_external_api_health() -> Dict[str, Any]:
     """
     Check external API health (Lambda API removed).
-    
+
     Returns:
         Dict with 'status' indicating Lambda API is no longer used
     """
@@ -179,10 +179,10 @@ def check_external_api_health() -> Dict[str, Any]:
 def check_graphql_backend_health() -> Dict[str, Any]:
     """
     Check Appointment360 GraphQL backend health via its /health endpoint.
-    
+
     Uses APPOINTMENT360_GRAPHQL_URL to derive base URL (e.g. http://api.contact360.io/graphql
     -> http://api.contact360.io/health). If URL is not configured, returns not_available.
-    
+
     Returns:
         Dict with 'status' ('healthy', 'unhealthy', 'not_available'), 'response_time_ms', and optional 'error'
     """
@@ -241,13 +241,13 @@ def check_graphql_backend_health() -> Dict[str, Any]:
 def check_application_health() -> Dict[str, Any]:
     """
     Check overall application health.
-    
+
     Returns:
         Dict with application status and version info
     """
     try:
         from django.conf import settings
-        
+
         return {
             "status": "healthy",
             "version": getattr(settings, "VERSION", "1.0.0"),
@@ -265,16 +265,16 @@ def check_application_health() -> Dict[str, Any]:
 def check_disk_space() -> Dict[str, Any]:
     """
     Check disk space availability.
-    
+
     Returns:
         Dict with 'status' and disk space information
     """
     try:
         import shutil
-        
-        total, used, free = shutil.disk_usage('/')
+
+        total, used, free = shutil.disk_usage("/")
         free_percent = (free / total) * 100
-        
+
         return {
             "status": "healthy" if free_percent > 10 else "warning",
             "total_gb": round(total / (1024**3), 2),
@@ -293,55 +293,55 @@ def check_disk_space() -> Dict[str, Any]:
 def get_comprehensive_health_status() -> Dict[str, Any]:
     """
     Get comprehensive health status for all system components.
-    
+
     Returns:
         Dict with health status for all components and overall status
     """
     health_checks = {}
-    
+
     # Wrap each health check in try-except to prevent one failure from breaking all checks
     try:
         health_checks["application"] = check_application_health()
     except Exception as e:
         logger.error(f"Application health check failed: {e}", exc_info=True)
         health_checks["application"] = {"status": "unhealthy", "error": str(e)}
-    
+
     try:
         health_checks["database"] = check_database_health()
     except Exception as e:
         logger.error(f"Database health check failed: {e}", exc_info=True)
         health_checks["database"] = {"status": "unhealthy", "error": str(e)}
-    
+
     try:
         health_checks["cache"] = check_cache_health()
     except Exception as e:
         logger.error(f"Cache health check failed: {e}", exc_info=True)
         health_checks["cache"] = {"status": "unhealthy", "error": str(e)}
-    
+
     try:
         health_checks["storage"] = check_storage_health()
     except Exception as e:
         logger.error(f"Storage health check failed: {e}", exc_info=True)
         health_checks["storage"] = {"status": "unhealthy", "error": str(e)}
-    
+
     try:
         health_checks["disk"] = check_disk_space()
     except Exception as e:
         logger.error(f"Disk space check failed: {e}", exc_info=True)
         health_checks["disk"] = {"status": "unknown", "error": str(e)}
-    
+
     try:
         health_checks["external_api"] = check_external_api_health()
     except Exception as e:
         logger.error(f"External API health check failed: {e}", exc_info=True)
         health_checks["external_api"] = {"status": "unhealthy", "error": str(e)}
-    
+
     try:
         health_checks["graphql_backend"] = check_graphql_backend_health()
     except Exception as e:
         logger.error(f"GraphQL backend health check failed: {e}", exc_info=True)
         health_checks["graphql_backend"] = {"status": "unhealthy", "error": str(e)}
-    
+
     # Determine overall status
     # Critical components: application, database
     critical_components = ["application", "database"]
@@ -349,20 +349,20 @@ def get_comprehensive_health_status() -> Dict[str, Any]:
         health_checks.get(component, {}).get("status") == "healthy"
         for component in critical_components
     )
-    
+
     # Non-critical components can be degraded but not unhealthy
     any_critical_unhealthy = any(
         health_checks.get(component, {}).get("status") == "unhealthy"
         for component in critical_components
     )
-    
+
     if critical_healthy and not any_critical_unhealthy:
         overall_status = "healthy"
     elif any_critical_unhealthy:
         overall_status = "unhealthy"
     else:
         overall_status = "degraded"
-    
+
     return {
         "status": overall_status,
         "timestamp": int(time.time()),

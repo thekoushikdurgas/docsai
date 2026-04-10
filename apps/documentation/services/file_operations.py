@@ -52,7 +52,14 @@ class FileOperationsService:
             if not parts:
                 return None
             d = parts[0]
-            if d in ("pages", "endpoints", "relationship", "relationships", "postman", "project"):
+            if d in (
+                "pages",
+                "endpoints",
+                "relationship",
+                "relationships",
+                "postman",
+                "project",
+            ):
                 return "relationships" if d == "relationship" else d
         except ValueError:
             pass
@@ -71,7 +78,13 @@ class FileOperationsService:
         """Analyze one file: required fields by type. Returns {status, valid, errors, warnings, file_info, content_keys}."""
         resolved = self._validate_file_path(file_path)
         if not resolved:
-            return {"status": "error", "valid": False, "errors": ["Invalid file path"], "warnings": [], "file_info": None}
+            return {
+                "status": "error",
+                "valid": False,
+                "errors": ["Invalid file path"],
+                "warnings": [],
+                "file_info": None,
+            }
         content = self._load_file_content(resolved)
         if content is None:
             return {
@@ -122,22 +135,53 @@ class FileOperationsService:
         """Ensure file is valid JSON; 'generate' is effectively validate. Returns {status, generated, output_path, errors}."""
         resolved = self._validate_file_path(file_path)
         if not resolved:
-            return {"status": "error", "generated": False, "output_path": None, "errors": ["Invalid file path"]}
+            return {
+                "status": "error",
+                "generated": False,
+                "output_path": None,
+                "errors": ["Invalid file path"],
+            }
         if self._load_file_content(resolved) is None:
-            return {"status": "error", "generated": False, "output_path": None, "errors": ["File is not valid JSON"]}
-        return {"status": "success", "generated": True, "output_path": str(resolved), "errors": [], "message": "File is valid JSON"}
+            return {
+                "status": "error",
+                "generated": False,
+                "output_path": None,
+                "errors": ["File is not valid JSON"],
+            }
+        return {
+            "status": "success",
+            "generated": True,
+            "output_path": str(resolved),
+            "errors": [],
+            "message": "File is valid JSON",
+        }
 
     def upload_single_file_to_s3(self, file_path: str) -> Dict[str, Any]:
         """Upload one file to S3. Returns {status, uploaded, s3_key, errors, lambda_api_response}."""
         resolved = self._validate_file_path(file_path)
         if not resolved:
-            return {"status": "error", "uploaded": False, "s3_key": None, "errors": ["Invalid file path"], "lambda_api_response": None}
+            return {
+                "status": "error",
+                "uploaded": False,
+                "s3_key": None,
+                "errors": ["Invalid file path"],
+                "lambda_api_response": None,
+            }
         directory = self._determine_file_directory(resolved)
         if not directory:
-            return {"status": "error", "uploaded": False, "s3_key": None, "errors": ["Could not determine file directory"], "lambda_api_response": None}
+            return {
+                "status": "error",
+                "uploaded": False,
+                "s3_key": None,
+                "errors": ["Could not determine file directory"],
+                "lambda_api_response": None,
+            }
         try:
             from django.conf import settings
-            prefix = (getattr(settings, "S3_DATA_PREFIX", "data/") or "data/").rstrip("/")
+
+            prefix = (getattr(settings, "S3_DATA_PREFIX", "data/") or "data/").rstrip(
+                "/"
+            )
             name = resolved.name
             if directory == "pages":
                 s3_key = f"{prefix}/pages/{name}"
@@ -158,20 +202,41 @@ class FileOperationsService:
                 except ValueError:
                     s3_key = f"{prefix}/postman/{name}"
             elif directory == "project":
-                return {"status": "error", "uploaded": False, "s3_key": None, "errors": ["Project files are not synced to S3"], "lambda_api_response": None}
+                return {
+                    "status": "error",
+                    "uploaded": False,
+                    "s3_key": None,
+                    "errors": ["Project files are not synced to S3"],
+                    "lambda_api_response": None,
+                }
             else:
                 s3_key = f"{prefix}/{name}"
             with open(resolved, "rb") as f:
                 body = f.read()
             from apps.core.services.s3_service import S3Service
+
             svc = S3Service()
             svc.upload_file(body, s3_key, content_type="application/json")
-            return {"status": "success", "uploaded": True, "s3_key": s3_key, "errors": [], "lambda_api_response": None}
+            return {
+                "status": "success",
+                "uploaded": True,
+                "s3_key": s3_key,
+                "errors": [],
+                "lambda_api_response": None,
+            }
         except Exception as e:
             logger.exception("upload_single_file_to_s3")
-            return {"status": "error", "uploaded": False, "s3_key": None, "errors": [str(e)], "lambda_api_response": None}
+            return {
+                "status": "error",
+                "uploaded": False,
+                "s3_key": None,
+                "errors": [str(e)],
+                "lambda_api_response": None,
+            }
 
-    def save_operation_result(self, file_path: str, operation: str, result: Dict[str, Any]) -> bool:
+    def save_operation_result(
+        self, file_path: str, operation: str, result: Dict[str, Any]
+    ) -> bool:
         """Write operation result under media/result/{relative_dir}/{stem}_result.json. All result types (analyze, validate, generate, upload_s3) are stored in media/result/."""
         resolved = self._validate_file_path(file_path)
         if not resolved:

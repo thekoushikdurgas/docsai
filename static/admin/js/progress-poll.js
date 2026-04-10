@@ -3,7 +3,7 @@
  * AJAX polling for job/operation progress endpoints.
  */
 (function () {
-  'use strict';
+  "use strict";
 
   /**
    * pollProgress — polls a progress endpoint every `interval` ms.
@@ -16,23 +16,29 @@
   window.pollProgress = function (endpoint, jobId, onUpdate, onDone, interval) {
     interval = interval || 2000;
     var url = endpoint;
-    if (jobId) url = url.replace(/\/?$/, '/') + jobId + '/';
+    if (jobId) url = url.replace(/\/?$/, "/") + jobId + "/";
 
     var timer = null;
 
     function poll() {
-      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(function (r) { return r.json(); })
+      fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(function (r) {
+          return r.json();
+        })
         .then(function (data) {
-          if (typeof onUpdate === 'function') onUpdate(data);
-          var status = data.status || data.state || '';
-          if (['completed', 'failed', 'cancelled', 'done', 'error'].indexOf(status.toLowerCase()) !== -1) {
+          if (typeof onUpdate === "function") onUpdate(data);
+          var status = data.status || data.state || "";
+          if (
+            ["completed", "failed", "cancelled", "done", "error"].indexOf(
+              status.toLowerCase(),
+            ) !== -1
+          ) {
             clearInterval(timer);
-            if (typeof onDone === 'function') onDone(data);
+            if (typeof onDone === "function") onDone(data);
           }
         })
         .catch(function (err) {
-          console.warn('pollProgress error:', err);
+          console.warn("pollProgress error:", err);
         });
     }
 
@@ -40,7 +46,9 @@
     timer = setInterval(poll, interval);
 
     return {
-      stop: function () { clearInterval(timer); }
+      stop: function () {
+        clearInterval(timer);
+      },
     };
   };
 
@@ -48,15 +56,15 @@
    * updateProgressBar — update a progress bar element by selector.
    */
   window.updateProgressBar = function (selector, value) {
-    var bar = document.querySelector(selector + ' .progress-bar');
+    var bar = document.querySelector(selector + " .progress-bar");
     var wrap = document.querySelector(selector);
-    if (bar) bar.style.width = value + '%';
-    if (bar) bar.setAttribute('aria-valuenow', value);
+    if (bar) bar.style.width = value + "%";
+    if (bar) bar.setAttribute("aria-valuenow", value);
     // Update label if present
     var label = wrap && wrap.previousElementSibling;
-    if (label && label.classList.contains('progress-label')) {
-      var span = label.querySelector('span:last-child');
-      if (span) span.textContent = value + '%';
+    if (label && label.classList.contains("progress-label")) {
+      var span = label.querySelector("span:last-child");
+      if (span) span.textContent = value + "%";
     }
   };
 })();

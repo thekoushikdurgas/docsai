@@ -1,84 +1,177 @@
-{% extends "base.html" %}
-{% load static admin_tags %}
-{% block title %}AI Chat — Contact360 Admin{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}AI Chat
+— Contact360 Admin{% endblock %} {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">AI Chat</h1>
     <p class="page-subtitle">Contact AI conversation interface</p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'ai_agent:sessions' %}" class="btn btn-outline"><i class="lni lni-history"></i> Sessions</a>
+    <a href="{% url 'ai_agent:sessions' %}" class="btn btn-outline"
+      ><i class="lni lni-history"></i> Sessions</a
+    >
   </div>
 </div>
-<div style="display:grid;grid-template-columns:240px 1fr;gap:var(--space-4);height:calc(100vh - 280px)">
+<div
+  style="
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: var(--space-4);
+    height: calc(100vh - 280px);
+  "
+>
   <!-- Sessions sidebar -->
-  <div class="card" style="display:flex;flex-direction:column;overflow:hidden">
-    <div class="card-header" style="padding:var(--space-3) var(--space-4)">
-      <span class="card-title" style="font-size:var(--text-sm)">Sessions</span>
-      <button class="btn btn-ghost btn-sm" onclick="newSession()"><i class="lni lni-plus-circle"></i></button>
+  <div
+    class="card"
+    style="display: flex; flex-direction: column; overflow: hidden"
+  >
+    <div class="card-header" style="padding: var(--space-3) var(--space-4)">
+      <span class="card-title" style="font-size: var(--text-sm)">Sessions</span>
+      <button class="btn btn-ghost btn-sm" onclick="newSession()">
+        <i class="lni lni-plus-circle"></i>
+      </button>
     </div>
-    <div style="flex:1;overflow-y:auto;padding:var(--space-2)">
+    <div style="flex: 1; overflow-y: auto; padding: var(--space-2)">
       {% for session in sessions %}
-      <a href="{% url 'ai_agent:session_detail' session.id %}"
-         class="btn btn-ghost btn-sm btn-full" style="justify-content:flex-start;margin-bottom:4px;text-align:left">
+      <a
+        href="{% url 'ai_agent:session_detail' session.id %}"
+        class="btn btn-ghost btn-sm btn-full"
+        style="
+          justify-content: flex-start;
+          margin-bottom: 4px;
+          text-align: left;
+        "
+      >
         <i class="lni lni-bubble"></i>
-        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ session.id|slice:":12" }}…</span>
+        <span
+          style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+          >{{ session.id|slice:":12" }}…</span
+        >
       </a>
       {% empty %}
-      <p style="font-size:var(--text-xs);color:var(--color-text-muted);padding:var(--space-3)">No sessions yet.</p>
+      <p
+        style="
+          font-size: var(--text-xs);
+          color: var(--color-text-muted);
+          padding: var(--space-3);
+        "
+      >
+        No sessions yet.
+      </p>
       {% endfor %}
     </div>
   </div>
   <!-- Chat area -->
-  <div class="card" style="display:flex;flex-direction:column;overflow:hidden">
-    <div id="chatMessages" style="flex:1;overflow-y:auto;padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
-      <div style="text-align:center;color:var(--color-text-muted);font-size:var(--text-sm);margin:auto">
+  <div
+    class="card"
+    style="display: flex; flex-direction: column; overflow: hidden"
+  >
+    <div
+      id="chatMessages"
+      style="
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--space-4);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+      "
+    >
+      <div
+        style="
+          text-align: center;
+          color: var(--color-text-muted);
+          font-size: var(--text-sm);
+          margin: auto;
+        "
+      >
         Send a message to start the conversation.
       </div>
     </div>
-    <div style="padding:var(--space-4);border-top:1px solid var(--color-border)">
-      <div style="display:flex;gap:var(--space-3)">
-        <textarea id="chatInput" class="form-control" rows="2" placeholder="Type your message…" style="resize:none;flex:1"></textarea>
-        <button type="button" class="btn btn-primary" id="sendBtn" onclick="sendChat()" style="align-self:flex-end">
+    <div
+      style="padding: var(--space-4); border-top: 1px solid var(--color-border)"
+    >
+      <div style="display: flex; gap: var(--space-3)">
+        <textarea
+          id="chatInput"
+          class="form-control"
+          rows="2"
+          placeholder="Type your message…"
+          style="resize: none; flex: 1"
+        ></textarea>
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="sendBtn"
+          onclick="sendChat()"
+          style="align-self: flex-end"
+        >
           <i class="lni lni-enter"></i> Send
         </button>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
   var sessionId = '{{ session_id|default:"" }}';
   function sendChat() {
-    var input = document.getElementById('chatInput');
+    var input = document.getElementById("chatInput");
     var msg = input.value.trim();
     if (!msg) return;
-    appendMsg('You', msg, 'right');
-    input.value = '';
+    appendMsg("You", msg, "right");
+    input.value = "";
     fetch("{% url 'ai_agent:api_chat' %}", {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','X-CSRFToken': getCookie('csrftoken')},
-      body: JSON.stringify({session_id: sessionId, content: msg})
-    }).then(function(r) { return r.json(); }).then(function(d) {
-      appendMsg('AI', d.reply || d.error || 'No response', 'left');
-    }).catch(function(e) { appendMsg('Error', String(e), 'left'); });
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({ session_id: sessionId, content: msg }),
+    })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (d) {
+        appendMsg("AI", d.reply || d.error || "No response", "left");
+      })
+      .catch(function (e) {
+        appendMsg("Error", String(e), "left");
+      });
   }
   function appendMsg(sender, text, side) {
-    var box = document.getElementById('chatMessages');
-    var div = document.createElement('div');
-    div.style.cssText = 'max-width:80%;' + (side==='right' ? 'margin-left:auto;text-align:right' : '');
-    div.innerHTML = '<div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:4px">' + sender + '</div>' +
-      '<div style="background:' + (side==='right' ? 'var(--color-primary);color:#fff' : 'var(--color-gray-100)') +
-      ';padding:10px 14px;border-radius:var(--radius-md);font-size:var(--text-sm)">' + text + '</div>';
+    var box = document.getElementById("chatMessages");
+    var div = document.createElement("div");
+    div.style.cssText =
+      "max-width:80%;" +
+      (side === "right" ? "margin-left:auto;text-align:right" : "");
+    div.innerHTML =
+      '<div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:4px">' +
+      sender +
+      "</div>" +
+      '<div style="background:' +
+      (side === "right"
+        ? "var(--color-primary);color:#fff"
+        : "var(--color-gray-100)") +
+      ';padding:10px 14px;border-radius:var(--radius-md);font-size:var(--text-sm)">' +
+      text +
+      "</div>";
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
   }
-  function getCookie(n) { return (document.cookie.match('(^|;) ?'+n+'=([^;]*)(;|$)')||[])[2]; }
-  document.getElementById('chatInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
-  });
-  function newSession() { sessionId = ''; document.getElementById('chatMessages').innerHTML = ''; }
+  function getCookie(n) {
+    return (document.cookie.match("(^|;) ?" + n + "=([^;]*)(;|$)") || [])[2];
+  }
+  document
+    .getElementById("chatInput")
+    .addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+  function newSession() {
+    sessionId = "";
+    document.getElementById("chatMessages").innerHTML = "";
+  }
 </script>
 {% endblock %}

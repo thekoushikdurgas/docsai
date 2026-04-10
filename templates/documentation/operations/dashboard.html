@@ -1,470 +1,1051 @@
-{% extends 'layouts/operations-view.html' %}
-{% load static %}
+{% extends 'layouts/operations-view.html' %} {% load static %} {% block title
+%}Operations Dashboard - Documentation{% endblock %} {% block
+operations_wrapper_class %}c360-ops-root--wide{% endblock %} {% block extra_css
+%}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/cards.css' %}?v=20260125"
+/>
+{% endblock %} {% block operations_content %}
+<!-- Header -->
+<div class="section-card">
+  <h1 class="text-2xl font-bold text-gray-900 mb-2">Operations Dashboard</h1>
+  <p class="c360-mm-muted">
+    Manage documentation operations, workflows, and tasks
+  </p>
+</div>
 
-{% block title %}Operations Dashboard - Documentation{% endblock %}
+<!-- Suggested flow strip -->
+<div class="mt-6 mb-2">
+  <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
+    Suggested flow
+  </p>
+  <div class="flex flex-wrap items-center gap-2 text-sm">
+    <a
+      href="{% url 'documentation:operations_run_pipeline' %}"
+      class="px-3 py-1-5 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors font-medium"
+      >Run full pipeline</a
+    >
+    <span class="text-gray-400" aria-hidden="true">|</span>
+    <a
+      href="{% url 'documentation:operations_analyze' %}"
+      class="px-3 py-1-5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+      >Analyze</a
+    >
+    <span class="text-gray-400" aria-hidden="true">→</span>
+    <a
+      href="{% url 'documentation:operations_validate' %}"
+      class="px-3 py-1-5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+      >Validate</a
+    >
+    <span class="text-gray-400" aria-hidden="true">→</span>
+    <a
+      href="{% url 'documentation:operations_generate_json' %}"
+      class="px-3 py-1-5 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+      >Generate JSON</a
+    >
+    <span class="text-gray-400" aria-hidden="true">→</span>
+    <a
+      href="{% url 'documentation:operations_upload' %}"
+      class="px-3 py-1-5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+      >Upload to S3</a
+    >
+  </div>
+</div>
 
-{% block operations_wrapper_class %}c360-ops-root--wide{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'admin/css/components/cards.css' %}?v=20260125">
-{% endblock %}
-
-{% block operations_content %}
-    <!-- Header -->
-    <div class="section-card">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Operations Dashboard</h1>
-        <p class="c360-mm-muted">Manage documentation operations, workflows, and tasks</p>
+<!-- Hubs & studios -->
+<p class="text-xs font-medium uppercase tracking-wide text-gray-500 mt-6 mb-3">
+  Hubs & studios
+</p>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- API Studio -->
+  <a
+    href="{% url 'durgasman:dashboard' %}"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-sky-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-sky-100 rounded-lg group-hover:bg-sky-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-sky-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-sky-600 transition-colors"
+        >
+          API Studio
+        </h3>
+        <p class="c360-mm-muted">Explore and test APIs in the API Studio</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-sky-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+        />
+      </svg>
     </div>
-
-    <!-- Suggested flow strip -->
-    <div class="mt-6 mb-2">
-        <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Suggested flow</p>
-        <div class="flex flex-wrap items-center gap-2 text-sm">
-            <a href="{% url 'documentation:operations_run_pipeline' %}" class="px-3 py-1-5 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors font-medium">Run full pipeline</a>
-            <span class="text-gray-400" aria-hidden="true">|</span>
-            <a href="{% url 'documentation:operations_analyze' %}" class="px-3 py-1-5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">Analyze</a>
-            <span class="text-gray-400" aria-hidden="true">→</span>
-            <a href="{% url 'documentation:operations_validate' %}" class="px-3 py-1-5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors">Validate</a>
-            <span class="text-gray-400" aria-hidden="true">→</span>
-            <a href="{% url 'documentation:operations_generate_json' %}" class="px-3 py-1-5 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors">Generate JSON</a>
-            <span class="text-gray-400" aria-hidden="true">→</span>
-            <a href="{% url 'documentation:operations_upload' %}" class="px-3 py-1-5 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors">Upload to S3</a>
-        </div>
+  </a>
+  <!-- Durgasman dashboard -->
+  <a
+    href="{% url 'postman:dashboard' %}"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-orange-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-orange-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors"
+        >
+          Durgasman dashboard
+        </h3>
+        <p class="c360-mm-muted">Postman collections and Durgasman dashboard</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+        />
+      </svg>
     </div>
-
-    <!-- Hubs & studios -->
-    <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mt-6 mb-3">Hubs & studios</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- API Studio -->
-        <a href="{% url 'durgasman:dashboard' %}" target="_blank" rel="noopener noreferrer" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-sky-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-sky-100 rounded-lg group-hover:bg-sky-200 transition-colors">
-                    <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-sky-600 transition-colors">API Studio</h3>
-                    <p class="c360-mm-muted">Explore and test APIs in the API Studio</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-sky-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-            </div>
-        </a>
-        <!-- Durgasman dashboard -->
-        <a href="{% url 'postman:dashboard' %}" target="_blank" rel="noopener noreferrer" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-orange-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors">Durgasman dashboard</h3>
-                    <p class="c360-mm-muted">Postman collections and Durgasman dashboard</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-            </div>
-        </a>
-        <!-- Workflow hub -->
-        <a href="{% url 'durgasflow:workflow_hub' %}" target="_blank" rel="noopener noreferrer" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-rose-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-rose-100 rounded-lg group-hover:bg-rose-200 transition-colors">
-                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-rose-600 transition-colors">Workflow hub</h3>
-                    <p class="c360-mm-muted">Manage and run workflows in the workflow hub</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-rose-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-            </div>
-        </a>
+  </a>
+  <!-- Workflow hub -->
+  <a
+    href="{% url 'durgasflow:workflow_hub' %}"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-rose-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-rose-100 rounded-lg group-hover:bg-rose-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-rose-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-rose-600 transition-colors"
+        >
+          Workflow hub
+        </h3>
+        <p class="c360-mm-muted">
+          Manage and run workflows in the workflow hub
+        </p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-rose-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+        />
+      </svg>
     </div>
+  </a>
+</div>
 
-    <!-- Recent operations history (card) -->
-    <div class="section-card mt-6" id="operations-history-section">
-        <div class="flex items-center justify-between mb-3">
-            <h2 class="text-lg font-semibold text-gray-900">Recent operations history</h2>
-            <a href="{% url 'documentation:operations_history' %}" class="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">View all</a>
-        </div>
-        <div id="operations-history-loading" class="c360-mm-muted">Loading…</div>
-        <div id="operations-history-content" class="hidden overflow-x-auto">
-            <table class="min-w-full text-sm text-left text-gray-700">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="py-2 pr-4 font-medium">Type</th>
-                        <th class="py-2 pr-4 font-medium">Name</th>
-                        <th class="py-2 pr-4 font-medium">Status</th>
-                        <th class="py-2 pr-4 font-medium">When</th>
-                        <th class="py-2 font-medium">Summary</th>
-                    </tr>
-                </thead>
-                <tbody id="operations-history-tbody"></tbody>
-            </table>
-        </div>
-        <div id="operations-history-empty" class="hidden text-sm text-gray-500">No recent operations.</div>
-        <div id="operations-history-error" class="hidden text-sm text-red-600"></div>
+<!-- Recent operations history (card) -->
+<div class="section-card mt-6" id="operations-history-section">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-lg font-semibold text-gray-900">
+      Recent operations history
+    </h2>
+    <a
+      href="{% url 'documentation:operations_history' %}"
+      class="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+      >View all</a
+    >
+  </div>
+  <div id="operations-history-loading" class="c360-mm-muted">Loading…</div>
+  <div id="operations-history-content" class="hidden overflow-x-auto">
+    <table class="min-w-full text-sm text-left text-gray-700">
+      <thead>
+        <tr class="border-b border-gray-200">
+          <th class="py-2 pr-4 font-medium">Type</th>
+          <th class="py-2 pr-4 font-medium">Name</th>
+          <th class="py-2 pr-4 font-medium">Status</th>
+          <th class="py-2 pr-4 font-medium">When</th>
+          <th class="py-2 font-medium">Summary</th>
+        </tr>
+      </thead>
+      <tbody id="operations-history-tbody"></tbody>
+    </table>
+  </div>
+  <div id="operations-history-empty" class="hidden text-sm text-gray-500">
+    No recent operations.
+  </div>
+  <div id="operations-history-error" class="hidden text-sm text-red-600"></div>
+</div>
+
+<!-- Quick actions: Pipeline -->
+<p class="text-xs font-medium uppercase tracking-wide text-gray-500 mt-8 mb-3">
+  Pipeline
+</p>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- Analyze Documentation -->
+  <a
+    href="{% url 'documentation:operations_analyze' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-blue-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors"
+        >
+          Analyze Documentation
+        </h3>
+        <p class="c360-mm-muted">Analyze and process documentation files</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
     </div>
+  </a>
 
-    <!-- Quick actions: Pipeline -->
-    <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mt-8 mb-3">Pipeline</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Analyze Documentation -->
-        <a href="{% url 'documentation:operations_analyze' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">Analyze Documentation</h3>
-                    <p class="c360-mm-muted">Analyze and process documentation files</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-        
-        <!-- Validate Files -->
-        <a href="{% url 'documentation:operations_validate' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-green-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-green-600 transition-colors">Validate Files</h3>
-                    <p class="c360-mm-muted">Validate JSON schema and structure</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-        
-        <!-- Generate JSON -->
-        <a href="{% url 'documentation:operations_generate_json' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-purple-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">Generate JSON</h3>
-                    <p class="c360-mm-muted">Generate JSON files from documentation</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Generate Postman -->
-        <a href="{% url 'documentation:operations_generate_postman' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-amber-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-amber-600 transition-colors">Generate Postman</h3>
-                    <p class="c360-mm-muted">Generate Postman collection files</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-amber-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Upload to S3 -->
-        <a href="{% url 'documentation:operations_upload' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-indigo-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">Upload to S3</h3>
-                    <p class="c360-mm-muted">Upload documentation to S3 storage</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Seed Documentation -->
-        <a href="{% url 'documentation:operations_seed' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-teal-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-teal-100 rounded-lg group-hover:bg-teal-200 transition-colors">
-                    <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-teal-600 transition-colors">Seed Documentation</h3>
-                    <p class="c360-mm-muted">Seed initial documentation data</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
+  <!-- Validate Files -->
+  <a
+    href="{% url 'documentation:operations_validate' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-green-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-green-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-green-600 transition-colors"
+        >
+          Validate Files
+        </h3>
+        <p class="c360-mm-muted">Validate JSON schema and structure</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
     </div>
+  </a>
 
-    <!-- Quick actions: Tools -->
-    <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mt-8 mb-3">Tools</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Workflow -->
-        <a href="{% url 'documentation:operations_workflow' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-pink-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-pink-100 rounded-lg group-hover:bg-pink-200 transition-colors">
-                    <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-pink-600 transition-colors">Workflow</h3>
-                    <p class="c360-mm-muted">Manage documentation workflows</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-pink-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Status -->
-        <a href="{% url 'documentation:operations_status' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-gray-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-gray-600 transition-colors">Status</h3>
-                    <p class="c360-mm-muted">View system and operation status</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Tasks -->
-        <a href="{% url 'documentation:operations_tasks' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-cyan-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-cyan-100 rounded-lg group-hover:bg-cyan-200 transition-colors">
-                    <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-cyan-600 transition-colors">Tasks</h3>
-                    <p class="c360-mm-muted">View and manage operation tasks</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-cyan-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Generated page -->
-        <a href="{% url 'documentation:page_create' %}?generated=1" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-violet-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-violet-100 rounded-lg group-hover:bg-violet-200 transition-colors">
-                    <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-violet-600 transition-colors">Generated page</h3>
-                    <p class="c360-mm-muted">Create a page from generated documentation content</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-violet-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Generated endpoint -->
-        <a href="{% url 'documentation:endpoint_create' %}?generated=1" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-fuchsia-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-fuchsia-100 rounded-lg group-hover:bg-fuchsia-200 transition-colors">
-                    <svg class="w-6 h-6 text-fuchsia-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-fuchsia-600 transition-colors">Generated endpoint</h3>
-                    <p class="c360-mm-muted">Create an endpoint from generated documentation or API spec</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-fuchsia-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Generated relationship -->
-        <a href="{% url 'documentation:relationship_create' %}?generated=1" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-emerald-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
-                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.172-1.172a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.172 1.172a4 4 0 01-5.656 0L11.829 6.828a2 2 0 012.828 2.828l-2.829 2.829" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors">Generated relationship</h3>
-                    <p class="c360-mm-muted">Create a relationship from generated documentation (page–endpoint links)</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
-
-        <!-- Documentation Files -->
-        <a href="{% url 'documentation:dashboard' %}" class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all p-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h3 class="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">Documentation Files</h3>
-                    <p class="c360-mm-muted">Browse, edit, and sync media JSON files</p>
-                </div>
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        </a>
+  <!-- Generate JSON -->
+  <a
+    href="{% url 'documentation:operations_generate_json' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-purple-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-purple-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors"
+        >
+          Generate JSON
+        </h3>
+        <p class="c360-mm-muted">Generate JSON files from documentation</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
     </div>
+  </a>
+
+  <!-- Generate Postman -->
+  <a
+    href="{% url 'documentation:operations_generate_postman' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-amber-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-amber-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-amber-600 transition-colors"
+        >
+          Generate Postman
+        </h3>
+        <p class="c360-mm-muted">Generate Postman collection files</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-amber-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Upload to S3 -->
+  <a
+    href="{% url 'documentation:operations_upload' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-indigo-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-indigo-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors"
+        >
+          Upload to S3
+        </h3>
+        <p class="c360-mm-muted">Upload documentation to S3 storage</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Seed Documentation -->
+  <a
+    href="{% url 'documentation:operations_seed' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-teal-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-teal-100 rounded-lg group-hover:bg-teal-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-teal-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-teal-600 transition-colors"
+        >
+          Seed Documentation
+        </h3>
+        <p class="c360-mm-muted">Seed initial documentation data</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-teal-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+</div>
+
+<!-- Quick actions: Tools -->
+<p class="text-xs font-medium uppercase tracking-wide text-gray-500 mt-8 mb-3">
+  Tools
+</p>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- Workflow -->
+  <a
+    href="{% url 'documentation:operations_workflow' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-pink-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-pink-100 rounded-lg group-hover:bg-pink-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-pink-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-pink-600 transition-colors"
+        >
+          Workflow
+        </h3>
+        <p class="c360-mm-muted">Manage documentation workflows</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-pink-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Status -->
+  <a
+    href="{% url 'documentation:operations_status' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-gray-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-gray-600 transition-colors"
+        >
+          Status
+        </h3>
+        <p class="c360-mm-muted">View system and operation status</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Tasks -->
+  <a
+    href="{% url 'documentation:operations_tasks' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-cyan-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-cyan-100 rounded-lg group-hover:bg-cyan-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-cyan-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-cyan-600 transition-colors"
+        >
+          Tasks
+        </h3>
+        <p class="c360-mm-muted">View and manage operation tasks</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-cyan-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Generated page -->
+  <a
+    href="{% url 'documentation:page_create' %}?generated=1"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-violet-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-violet-100 rounded-lg group-hover:bg-violet-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-violet-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-violet-600 transition-colors"
+        >
+          Generated page
+        </h3>
+        <p class="c360-mm-muted">
+          Create a page from generated documentation content
+        </p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-violet-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Generated endpoint -->
+  <a
+    href="{% url 'documentation:endpoint_create' %}?generated=1"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-fuchsia-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-fuchsia-100 rounded-lg group-hover:bg-fuchsia-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-fuchsia-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-fuchsia-600 transition-colors"
+        >
+          Generated endpoint
+        </h3>
+        <p class="c360-mm-muted">
+          Create an endpoint from generated documentation or API spec
+        </p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-fuchsia-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Generated relationship -->
+  <a
+    href="{% url 'documentation:relationship_create' %}?generated=1"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-emerald-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-emerald-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.172-1.172a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.172 1.172a4 4 0 01-5.656 0L11.829 6.828a2 2 0 012.828 2.828l-2.829 2.829"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors"
+        >
+          Generated relationship
+        </h3>
+        <p class="c360-mm-muted">
+          Create a relationship from generated documentation (page–endpoint
+          links)
+        </p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+
+  <!-- Documentation Files -->
+  <a
+    href="{% url 'documentation:dashboard' %}"
+    class="group bg-white rounded-xl shadow-md border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all p-6"
+  >
+    <div class="flex items-start gap-4">
+      <div
+        class="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors"
+      >
+        <svg
+          class="w-6 h-6 text-blue-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+          />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3
+          class="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors"
+        >
+          Documentation Files
+        </h3>
+        <p class="c360-mm-muted">Browse, edit, and sync media JSON files</p>
+      </div>
+      <svg
+        class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </a>
+</div>
 
 <script>
-(function() {
-    var section = document.getElementById('operations-history-section');
+  (function () {
+    var section = document.getElementById("operations-history-section");
     if (!section) return;
     var url = '{% url "documentation:api_operations_history" %}';
-    var loading = document.getElementById('operations-history-loading');
-    var content = document.getElementById('operations-history-content');
-    var tbody = document.getElementById('operations-history-tbody');
-    var empty = document.getElementById('operations-history-empty');
-    var errEl = document.getElementById('operations-history-error');
+    var loading = document.getElementById("operations-history-loading");
+    var content = document.getElementById("operations-history-content");
+    var tbody = document.getElementById("operations-history-tbody");
+    var empty = document.getElementById("operations-history-empty");
+    var errEl = document.getElementById("operations-history-error");
 
     var labels = {
-        'docs_analyze': 'Analyze',
-        'docs_validate': 'Validate',
-        'docs_generate_json': 'Generate JSON',
-        'docs_generate_postman': 'Generate Postman',
-        'docs_upload_s3': 'Upload S3',
-        'docs_seed': 'Seed'
+      docs_analyze: "Analyze",
+      docs_validate: "Validate",
+      docs_generate_json: "Generate JSON",
+      docs_generate_postman: "Generate Postman",
+      docs_upload_s3: "Upload S3",
+      docs_seed: "Seed",
     };
 
     function formatDate(iso) {
-        if (!iso) return '—';
-        try {
-            var d = new Date(iso);
-            return isNaN(d.getTime()) ? iso : d.toLocaleString();
-        } catch (e) { return iso; }
+      if (!iso) return "—";
+      try {
+        var d = new Date(iso);
+        return isNaN(d.getTime()) ? iso : d.toLocaleString();
+      } catch (e) {
+        return iso;
+      }
     }
 
     function escapeHtml(s) {
-        if (s == null || s === '') return '';
-        var div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
+      if (s == null || s === "") return "";
+      var div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
     }
 
     function summaryText(summary, opType) {
-        if (!summary) return '—';
-        if (typeof summary === 'string') return escapeHtml(summary.substring(0, 120));
-        if (summary.error) return escapeHtml(summary.error.substring(0, 120));
-        if (summary.message) return escapeHtml(summary.message.substring(0, 120));
-        if (opType === 'docs_analyze' || opType === 'docs_validate') {
-            var parts = [];
-            ['pages', 'endpoints', 'relationships'].forEach(function(k) {
-                var d = summary[k];
-                if (d && typeof d === 'object' && (d.valid !== undefined || d.invalid !== undefined)) {
-                    parts.push(k + ': ' + (d.valid || 0) + ' valid, ' + (d.invalid || 0) + ' invalid');
-                }
-            });
-            return parts.length ? escapeHtml(parts.join('; ')) : (summary.success !== undefined ? (summary.success ? 'Success' : 'Failed') : '—');
-        }
-        if (opType === 'docs_generate_json' && summary.indexes) {
-            var idx = summary.indexes;
-            var list = Object.keys(idx).map(function(k) { return k + ' ' + (idx[k] ? '✓' : '✗'); }).join(', ');
-            return escapeHtml(list || (summary.success ? 'Success' : 'Failed'));
-        }
-        if (opType === 'docs_generate_postman') {
-            if (summary.success && summary.filename) return escapeHtml('Saved: ' + summary.filename);
-            return summary.error ? escapeHtml(summary.error.substring(0, 80)) : (summary.success ? 'Success' : 'Failed');
-        }
-        if (opType === 'docs_upload_s3' && summary.by_type) {
-            var by = summary.by_type;
-            var up = Object.keys(by).map(function(k) { return k + ': ' + (by[k].synced || 0) + ' synced, ' + (by[k].errors || 0) + ' errors'; }).join('; ');
-            return escapeHtml(up || (summary.success ? 'Success' : 'Failed'));
-        }
-        if (opType === 'docs_seed') return summary.success ? 'Seeding completed' : (summary.message || 'Failed');
-        return summary.success !== undefined ? (summary.success ? 'Success' : 'Failed') : '—';
+      if (!summary) return "—";
+      if (typeof summary === "string")
+        return escapeHtml(summary.substring(0, 120));
+      if (summary.error) return escapeHtml(summary.error.substring(0, 120));
+      if (summary.message) return escapeHtml(summary.message.substring(0, 120));
+      if (opType === "docs_analyze" || opType === "docs_validate") {
+        var parts = [];
+        ["pages", "endpoints", "relationships"].forEach(function (k) {
+          var d = summary[k];
+          if (
+            d &&
+            typeof d === "object" &&
+            (d.valid !== undefined || d.invalid !== undefined)
+          ) {
+            parts.push(
+              k +
+                ": " +
+                (d.valid || 0) +
+                " valid, " +
+                (d.invalid || 0) +
+                " invalid",
+            );
+          }
+        });
+        return parts.length
+          ? escapeHtml(parts.join("; "))
+          : summary.success !== undefined
+            ? summary.success
+              ? "Success"
+              : "Failed"
+            : "—";
+      }
+      if (opType === "docs_generate_json" && summary.indexes) {
+        var idx = summary.indexes;
+        var list = Object.keys(idx)
+          .map(function (k) {
+            return k + " " + (idx[k] ? "✓" : "✗");
+          })
+          .join(", ");
+        return escapeHtml(list || (summary.success ? "Success" : "Failed"));
+      }
+      if (opType === "docs_generate_postman") {
+        if (summary.success && summary.filename)
+          return escapeHtml("Saved: " + summary.filename);
+        return summary.error
+          ? escapeHtml(summary.error.substring(0, 80))
+          : summary.success
+            ? "Success"
+            : "Failed";
+      }
+      if (opType === "docs_upload_s3" && summary.by_type) {
+        var by = summary.by_type;
+        var up = Object.keys(by)
+          .map(function (k) {
+            return (
+              k +
+              ": " +
+              (by[k].synced || 0) +
+              " synced, " +
+              (by[k].errors || 0) +
+              " errors"
+            );
+          })
+          .join("; ");
+        return escapeHtml(up || (summary.success ? "Success" : "Failed"));
+      }
+      if (opType === "docs_seed")
+        return summary.success
+          ? "Seeding completed"
+          : summary.message || "Failed";
+      return summary.success !== undefined
+        ? summary.success
+          ? "Success"
+          : "Failed"
+        : "—";
     }
 
     function statusBadge(status) {
-        var s = (status || '').toLowerCase();
-        if (s === 'completed') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Completed</span>';
-        if (s === 'failed') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed</span>';
-        if (s === 'running') return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Running</span>';
-        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">' + escapeHtml(status || '—') + '</span>';
+      var s = (status || "").toLowerCase();
+      if (s === "completed")
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Completed</span>';
+      if (s === "failed")
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed</span>';
+      if (s === "running")
+        return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Running</span>';
+      return (
+        '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">' +
+        escapeHtml(status || "—") +
+        "</span>"
+      );
     }
 
     var dashboardLimit = 8;
 
-    fetch(url + '?limit=' + dashboardLimit, { credentials: 'same-origin' })
-        .then(function(r) { return r.ok ? r.json() : Promise.reject(new Error(r.statusText)); })
-        .then(function(data) {
-            loading.classList.add('hidden');
-            if (data.error) {
-                errEl.textContent = data.error;
-                errEl.classList.remove('hidden');
-                return;
-            }
-            var ops = data.operations || [];
-            if (ops.length === 0) {
-                empty.classList.remove('hidden');
-                return;
-            }
-            ops.forEach(function(op) {
-                var tr = document.createElement('tr');
-                tr.className = 'border-b border-gray-100';
-                tr.innerHTML =
-                    '<td class="py-2 pr-4">' + escapeHtml(labels[op.operation_type] || op.operation_type || '—') + '</td>' +
-                    '<td class="py-2 pr-4">' + escapeHtml(op.name || '—') + '</td>' +
-                    '<td class="py-2 pr-4">' + statusBadge(op.status) + '</td>' +
-                    '<td class="py-2 pr-4 text-gray-600">' + escapeHtml(formatDate(op.created_at)) + '</td>' +
-                    '<td class="py-2 text-gray-600">' + summaryText(op.report_summary, op.operation_type) + '</td>';
-                tbody.appendChild(tr);
-            });
-            content.classList.remove('hidden');
-        })
-        .catch(function(e) {
-            loading.classList.add('hidden');
-            errEl.textContent = 'Could not load history: ' + (e.message || 'Unknown error');
-            errEl.classList.remove('hidden');
+    fetch(url + "?limit=" + dashboardLimit, { credentials: "same-origin" })
+      .then(function (r) {
+        return r.ok ? r.json() : Promise.reject(new Error(r.statusText));
+      })
+      .then(function (data) {
+        loading.classList.add("hidden");
+        if (data.error) {
+          errEl.textContent = data.error;
+          errEl.classList.remove("hidden");
+          return;
+        }
+        var ops = data.operations || [];
+        if (ops.length === 0) {
+          empty.classList.remove("hidden");
+          return;
+        }
+        ops.forEach(function (op) {
+          var tr = document.createElement("tr");
+          tr.className = "border-b border-gray-100";
+          tr.innerHTML =
+            '<td class="py-2 pr-4">' +
+            escapeHtml(labels[op.operation_type] || op.operation_type || "—") +
+            "</td>" +
+            '<td class="py-2 pr-4">' +
+            escapeHtml(op.name || "—") +
+            "</td>" +
+            '<td class="py-2 pr-4">' +
+            statusBadge(op.status) +
+            "</td>" +
+            '<td class="py-2 pr-4 text-gray-600">' +
+            escapeHtml(formatDate(op.created_at)) +
+            "</td>" +
+            '<td class="py-2 text-gray-600">' +
+            summaryText(op.report_summary, op.operation_type) +
+            "</td>";
+          tbody.appendChild(tr);
         });
-})();
+        content.classList.remove("hidden");
+      })
+      .catch(function (e) {
+        loading.classList.add("hidden");
+        errEl.textContent =
+          "Could not load history: " + (e.message || "Unknown error");
+        errEl.classList.remove("hidden");
+      });
+  })();
 </script>
 {% endblock %}

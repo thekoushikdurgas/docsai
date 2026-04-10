@@ -80,16 +80,13 @@ def record_hit(endpoint_key: str, status_code: int, duration_ms: float) -> None:
 
 
 def record_hit_with_user_type(
-    endpoint_key: str, 
-    user_type: str, 
-    status_code: int, 
-    duration_ms: float
+    endpoint_key: str, user_type: str, status_code: int, duration_ms: float
 ) -> None:
     """
     Record one request hit for the given endpoint and user_type.
     This tracks per-user-type statistics in addition to global stats.
     Does not raise; logs and returns on cache errors.
-    
+
     Args:
         endpoint_key: The endpoint identifier (e.g., "pages/list")
         user_type: The user type (super_admin, admin, pro_user, free_user, guest)
@@ -98,12 +95,16 @@ def record_hit_with_user_type(
     """
     if not endpoint_key or not user_type:
         return
-    
+
     # Validate user_type
     if user_type not in VALID_USER_TYPES:
-        logger.warning("Invalid user_type '%s' for endpoint %s, defaulting to 'guest'", user_type, endpoint_key)
+        logger.warning(
+            "Invalid user_type '%s' for endpoint %s, defaulting to 'guest'",
+            user_type,
+            endpoint_key,
+        )
         user_type = "guest"
-    
+
     try:
         # Count: increment with user_type
         count_key = _key("count", endpoint_key, user_type)
@@ -130,11 +131,15 @@ def record_hit_with_user_type(
         _incr_or_set(dur_count_key)
         s = cache.get(dur_sum_key, 0) or 0
         cache.set(dur_sum_key, s + duration_ms, DEFAULT_TTL)
-        
+
         logger.debug("Recorded hit for %s by %s", endpoint_key, user_type)
     except Exception as e:
-        logger.warning("api_tracking record_hit_with_user_type failed for %s/%s: %s", 
-                      endpoint_key, user_type, e)
+        logger.warning(
+            "api_tracking record_hit_with_user_type failed for %s/%s: %s",
+            endpoint_key,
+            user_type,
+            e,
+        )
 
 
 def _incr_or_set(key: str) -> None:
@@ -181,11 +186,15 @@ def _get_single_stats(endpoint_key: str) -> Dict[str, Any]:
         if dur_count and int(dur_count) > 0 and dur_sum is not None:
             out["avg_duration_ms"] = round(float(dur_sum) / int(dur_count), 2)
     except Exception as e:
-        logger.warning("api_tracking get_endpoint_stats failed for %s: %s", endpoint_key, e)
+        logger.warning(
+            "api_tracking get_endpoint_stats failed for %s: %s", endpoint_key, e
+        )
     return out
 
 
-def _get_single_stats_with_user_type(endpoint_key: str, user_type: str) -> Dict[str, Any]:
+def _get_single_stats_with_user_type(
+    endpoint_key: str, user_type: str
+) -> Dict[str, Any]:
     """Get stats for a specific endpoint and user_type."""
     out: Dict[str, Any] = {
         "request_count": 0,
@@ -210,18 +219,24 @@ def _get_single_stats_with_user_type(endpoint_key: str, user_type: str) -> Dict[
         if dur_count and int(dur_count) > 0 and dur_sum is not None:
             out["avg_duration_ms"] = round(float(dur_sum) / int(dur_count), 2)
     except Exception as e:
-        logger.warning("api_tracking get_endpoint_stats failed for %s/%s: %s", 
-                      endpoint_key, user_type, e)
+        logger.warning(
+            "api_tracking get_endpoint_stats failed for %s/%s: %s",
+            endpoint_key,
+            user_type,
+            e,
+        )
     return out
 
 
-def get_endpoint_stats_by_user_type(endpoint_keys: List[str]) -> Dict[str, Dict[str, Dict[str, Any]]]:
+def get_endpoint_stats_by_user_type(
+    endpoint_keys: List[str],
+) -> Dict[str, Dict[str, Dict[str, Any]]]:
     """
     Return per-endpoint stats broken down by user_type.
-    
+
     Args:
         endpoint_keys: List of endpoint identifiers
-        
+
     Returns:
         Dict with structure:
         {
@@ -233,7 +248,7 @@ def get_endpoint_stats_by_user_type(endpoint_keys: List[str]) -> Dict[str, Dict[
         }
     """
     result: Dict[str, Dict[str, Dict[str, Any]]] = {}
-    
+
     for endpoint_key in endpoint_keys:
         result[endpoint_key] = {}
         for user_type in VALID_USER_TYPES:
@@ -241,14 +256,14 @@ def get_endpoint_stats_by_user_type(endpoint_keys: List[str]) -> Dict[str, Dict[
             # Only include user_type if it has data
             if stats.get("request_count", 0) > 0:
                 result[endpoint_key][user_type] = stats
-    
+
     return result
 
 
 def get_aggregated_stats_by_user_type() -> Dict[str, Dict[str, Any]]:
     """
     Get aggregated statistics per user_type across all endpoints.
-    
+
     Returns:
         Dict with structure:
         {
@@ -261,38 +276,38 @@ def get_aggregated_stats_by_user_type() -> Dict[str, Dict[str, Any]]:
         }
     """
     from apps.documentation.api.v1.api_docs_registry import get_all_endpoint_keys
-    
+
     endpoint_keys = get_all_endpoint_keys()
     result: Dict[str, Dict[str, Any]] = {}
-    
+
     for user_type in VALID_USER_TYPES:
         total_requests = 0
         unique_endpoints = 0
         total_duration = 0.0
         total_duration_count = 0
-        
+
         for endpoint_key in endpoint_keys:
             stats = _get_single_stats_with_user_type(endpoint_key, user_type)
             req_count = stats.get("request_count", 0)
             if req_count > 0:
                 total_requests += req_count
                 unique_endpoints += 1
-                
+
                 # Accumulate duration for overall average
                 dur_sum = cache.get(_key("duration_sum", endpoint_key, user_type))
                 dur_count = cache.get(_key("duration_count", endpoint_key, user_type))
                 if dur_sum and dur_count:
                     total_duration += float(dur_sum)
                     total_duration_count += int(dur_count)
-        
+
         avg_duration = None
         if total_duration_count > 0:
             avg_duration = round(total_duration / total_duration_count, 2)
-        
+
         result[user_type] = {
             "total_requests": total_requests,
             "unique_endpoints": unique_endpoints,
             "avg_duration_ms": avg_duration,
         }
-    
+
     return result

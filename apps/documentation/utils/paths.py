@@ -92,7 +92,7 @@ def list_directory_files(
 
     Args:
         directory: Directory path to list.
-        extensions: File extensions to include (e.g. ['.json', '.md']). 
+        extensions: File extensions to include (e.g. ['.json', '.md']).
                    If None, all files are included.
         exclude_files: Set of filenames to exclude (e.g. {'index.json'}).
 
@@ -105,7 +105,7 @@ def list_directory_files(
         - size_human: Human-readable file size (e.g., "1.5 MB")
         - modified: Modification timestamp as datetime object
         - extension: File extension (lowercase, e.g., ".json")
-        
+
     Note:
         Files are sorted alphabetically by name (case-insensitive).
         Non-existent directories return an empty list.
@@ -131,15 +131,17 @@ def list_directory_files(
                     rel = str(fp.relative_to(media_root))
                 except ValueError:
                     rel = str(fp)
-                files.append({
-                    "name": fp.name,
-                    "path": str(fp),
-                    "relative_path": rel.replace("\\", "/"),
-                    "size": st.st_size,
-                    "size_human": _format_file_size(st.st_size),
-                    "modified": datetime.fromtimestamp(st.st_mtime),
-                    "extension": fp.suffix.lower(),
-                })
+                files.append(
+                    {
+                        "name": fp.name,
+                        "path": str(fp),
+                        "relative_path": rel.replace("\\", "/"),
+                        "size": st.st_size,
+                        "size_human": _format_file_size(st.st_size),
+                        "modified": datetime.fromtimestamp(st.st_mtime),
+                        "extension": fp.suffix.lower(),
+                    }
+                )
             except (OSError, PermissionError):
                 continue
     except (OSError, PermissionError):
@@ -152,13 +154,13 @@ def list_directory_files(
 def _format_file_size(size_bytes: int) -> str:
     """
     Format file size in human-readable form.
-    
+
     Args:
         size_bytes: File size in bytes.
-        
+
     Returns:
         Human-readable file size string (e.g., "1.5 KB", "2.3 MB", "500.0 B").
-        
+
     Examples:
         >>> _format_file_size(1024)
         '1.0 KB'

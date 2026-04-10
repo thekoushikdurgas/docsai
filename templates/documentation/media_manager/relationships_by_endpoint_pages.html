@@ -1,55 +1,68 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Relationships: Endpoint {{ endpoint_id }} - Pages - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Relationships:
+Endpoint {{ endpoint_id }} - Pages - Media Manager Dashboard{% endblock %} {%
+block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">Pages Using Endpoint: {{ endpoint_id }}</h1>
-            <p class="c360-mm-hero__subtitle">{{ count }} pages found</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard_relationships' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Relationships
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">
+        Pages Using Endpoint: {{ endpoint_id }}
+      </h1>
+      <p class="c360-mm-hero__subtitle">{{ count }} pages found</p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Pages List -->
-    {% if pages %}
-        <div class="section-card">
-            <h2 class="c360-mm-section-title">Pages ({{ count }})</h2>
-            <div class="space-y-3">
-                {% for page in pages %}
-                    <div class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        {% if page.page_path %}
-                            <span class="font-medium text-gray-900">{{ page.page_path }}</span>
-                            {% if page.page_title %}
-                                <p class="text-sm text-gray-600 mt-1">{{ page.page_title }}</p>
-                            {% endif %}
-                        {% else %}
-                            <pre class="text-sm overflow-x-auto">{{ page|safe|pprint }}</pre>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% else %}
-        <div class="section-card">
-            <p class="c360-mm-muted">No pages are using this endpoint</p>
-        </div>
-    {% endif %}
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard_relationships' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Relationships
+      </a>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Pages List -->
+  {% if pages %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">Pages ({{ count }})</h2>
+    <div class="space-y-3">
+      {% for page in pages %}
+      <div
+        class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+      >
+        {% if page.page_path %}
+        <span class="font-medium text-gray-900">{{ page.page_path }}</span>
+        {% if page.page_title %}
+        <p class="text-sm text-gray-600 mt-1">{{ page.page_title }}</p>
+        {% endif %} {% else %}
+        <pre class="text-sm overflow-x-auto">{{ page|safe|pprint }}</pre>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="section-card">
+    <p class="c360-mm-muted">No pages are using this endpoint</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

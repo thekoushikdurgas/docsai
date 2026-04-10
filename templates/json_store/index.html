@@ -1,46 +1,56 @@
-{% extends "base.html" %}
-{% load static admin_tags %}
-
-{% block title %}JSON Store — Contact360 Admin{% endblock %}
-
-{% block extra_css %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}JSON
+Store — Contact360 Admin{% endblock %} {% block extra_css %}
 <style>
-.js-dropzone {
-  border: 2px dashed var(--c360-border-strong);
-  border-radius: var(--c360-radius-lg);
-  padding: var(--c360-spacing-8) var(--c360-spacing-6);
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-  background: var(--c360-bg-secondary);
-}
-.js-dropzone.dragover {
-  border-color: var(--c360-primary);
-  background: var(--c360-primary-light);
-}
-.js-dropzone i { font-size: 2rem; color: var(--c360-text-muted); display: block; margin-bottom: var(--c360-spacing-2); }
-.json-viewer-pre {
-  background: var(--c360-dark-bg);
-  color: #c8f7c5;
-  font-family: var(--c360-font-mono);
-  font-size: var(--c360-text-sm);
-  padding: var(--c360-spacing-4);
-  border-radius: var(--c360-radius-md);
-  overflow: auto;
-  max-height: 60vh;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
+  .js-dropzone {
+    border: 2px dashed var(--c360-border-strong);
+    border-radius: var(--c360-radius-lg);
+    padding: var(--c360-spacing-8) var(--c360-spacing-6);
+    text-align: center;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
+    background: var(--c360-bg-secondary);
+  }
+  .js-dropzone.dragover {
+    border-color: var(--c360-primary);
+    background: var(--c360-primary-light);
+  }
+  .js-dropzone i {
+    font-size: 2rem;
+    color: var(--c360-text-muted);
+    display: block;
+    margin-bottom: var(--c360-spacing-2);
+  }
+  .json-viewer-pre {
+    background: var(--c360-dark-bg);
+    color: #c8f7c5;
+    font-family: var(--c360-font-mono);
+    font-size: var(--c360-text-sm);
+    padding: var(--c360-spacing-4);
+    border-radius: var(--c360-radius-md);
+    overflow: auto;
+    max-height: 60vh;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">JSON Store</h1>
-    <p class="page-subtitle">Upload, browse, and manage JSON documents stored in S3.</p>
+    <p class="page-subtitle">
+      Upload, browse, and manage JSON documents stored in S3.
+    </p>
   </div>
-  <button class="btn btn-primary" onclick="document.getElementById('upload-card').scrollIntoView({behavior:'smooth'})">
+  <button
+    class="btn btn-primary"
+    onclick="
+      document
+        .getElementById('upload-card')
+        .scrollIntoView({ behavior: 'smooth' })
+    "
+  >
     <i class="lni lni-cloud-upload"></i> Upload JSON
   </button>
 </div>
@@ -48,38 +58,101 @@
 <!-- Upload card -->
 <div class="card" id="upload-card" style="margin-bottom: var(--c360-spacing-6)">
   <div class="card-body">
-    <h3 class="card-title" style="margin-bottom: var(--c360-spacing-4)">Upload JSON Document</h3>
-    {% if not s3_enabled %}
-      {% include "components/alert.html" with type="warning" message="S3 storage is not configured (S3STORAGE_API_URL missing). Cannot upload." %}
-    {% else %}
-    <div class="js-dropzone" id="js-dropzone" onclick="document.getElementById('js-file-input').click()">
+    <h3 class="card-title" style="margin-bottom: var(--c360-spacing-4)">
+      Upload JSON Document
+    </h3>
+    {% if not s3_enabled %} {% include "components/alert.html" with
+    type="warning" message="S3 storage is not configured (S3STORAGE_API_URL
+    missing). Cannot upload." %} {% else %}
+    <div
+      class="js-dropzone"
+      id="js-dropzone"
+      onclick="document.getElementById('js-file-input').click()"
+    >
       <i class="lni lni-files"></i>
-      <p style="margin:0;font-weight:var(--c360-font-medium);color:var(--c360-text)">Drag & drop a JSON file here, or click to browse</p>
-      <p style="margin:4px 0 0;font-size:var(--c360-text-sm);color:var(--c360-text-muted)">Max 2 MB · .json files only</p>
+      <p
+        style="
+          margin: 0;
+          font-weight: var(--c360-font-medium);
+          color: var(--c360-text);
+        "
+      >
+        Drag & drop a JSON file here, or click to browse
+      </p>
+      <p
+        style="
+          margin: 4px 0 0;
+          font-size: var(--c360-text-sm);
+          color: var(--c360-text-muted);
+        "
+      >
+        Max 2 MB · .json files only
+      </p>
     </div>
-    <input type="file" id="js-file-input" accept=".json,application/json" style="display:none">
+    <input
+      type="file"
+      id="js-file-input"
+      accept=".json,application/json"
+      style="display: none"
+    />
 
-    <div style="display:flex;gap:var(--c360-spacing-3);margin-top:var(--c360-spacing-4);flex-wrap:wrap">
-      <div style="flex:1;min-width:200px">
+    <div
+      style="
+        display: flex;
+        gap: var(--c360-spacing-3);
+        margin-top: var(--c360-spacing-4);
+        flex-wrap: wrap;
+      "
+    >
+      <div style="flex: 1; min-width: 200px">
         <label class="form-label" for="js-label">Label (optional)</label>
-        <input type="text" id="js-label" class="form-control" placeholder="My Collection">
+        <input
+          type="text"
+          id="js-label"
+          class="form-control"
+          placeholder="My Collection"
+        />
       </div>
-      <div style="flex:1;min-width:200px">
+      <div style="flex: 1; min-width: 200px">
         <label class="form-label" for="js-bucket">Bucket ID</label>
-        <input type="text" id="js-bucket" class="form-control" value="{{ default_bucket }}" placeholder="bucket-id">
+        <input
+          type="text"
+          id="js-bucket"
+          class="form-control"
+          value="{{ default_bucket }}"
+          placeholder="bucket-id"
+        />
       </div>
     </div>
 
-    <div class="progress-wrap" id="js-progress-wrap" style="display:none;margin-top:var(--c360-spacing-3)">
+    <div
+      class="progress-wrap"
+      id="js-progress-wrap"
+      style="display: none; margin-top: var(--c360-spacing-3)"
+    >
       <div class="progress-label"><span>Uploading…</span></div>
-      <div class="progress"><div class="progress-bar animated" id="js-progress-bar" style="width:0%"></div></div>
+      <div class="progress">
+        <div
+          class="progress-bar animated"
+          id="js-progress-bar"
+          style="width: 0%"
+        ></div>
+      </div>
     </div>
 
-    <div style="margin-top:var(--c360-spacing-4)">
+    <div style="margin-top: var(--c360-spacing-4)">
       <button class="btn btn-primary" id="js-upload-btn" disabled>
         <i class="lni lni-cloud-upload"></i> Upload
       </button>
-      <span id="js-file-name" style="margin-left:var(--c360-spacing-3);font-size:var(--c360-text-sm);color:var(--c360-text-muted)">No file selected</span>
+      <span
+        id="js-file-name"
+        style="
+          margin-left: var(--c360-spacing-3);
+          font-size: var(--c360-text-sm);
+          color: var(--c360-text-muted);
+        "
+        >No file selected</span
+      >
     </div>
     {% endif %}
   </div>
@@ -87,9 +160,18 @@
 
 <!-- Documents table -->
 <div class="card">
-  <div style="padding: var(--c360-spacing-4) var(--c360-spacing-6) var(--c360-spacing-2);display:flex;align-items:center;justify-content:space-between">
-    <h3 class="card-title" style="margin:0">Documents</h3>
-    <span class="badge badge-secondary" id="doc-count-badge">{{ docs|length }} document{{ docs|length|pluralize }}</span>
+  <div
+    style="
+      padding: var(--c360-spacing-4) var(--c360-spacing-6) var(--c360-spacing-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    "
+  >
+    <h3 class="card-title" style="margin: 0">Documents</h3>
+    <span class="badge badge-secondary" id="doc-count-badge"
+      >{{ docs|length }} document{{ docs|length|pluralize }}</span
+    >
   </div>
   <div class="table-wrap">
     <table class="table" id="docs-table" aria-label="JSON documents">
@@ -100,33 +182,61 @@
           <th>Size</th>
           <th>Uploaded</th>
           <th>By</th>
-          <th style="width:160px">Actions</th>
+          <th style="width: 160px">Actions</th>
         </tr>
       </thead>
       <tbody id="docs-tbody">
         {% for doc in docs %}
         <tr id="doc-row-{{ doc.pk }}">
-          <td style="font-weight:var(--c360-font-medium)">{{ doc.label }}</td>
-          <td><code style="font-size:var(--c360-text-xs)">{{ doc.key }}</code></td>
-          <td style="white-space:nowrap">{{ doc.size_display }}</td>
-          <td style="white-space:nowrap">{{ doc.uploaded_at|date:"M d, Y H:i" }}</td>
-          <td style="font-size:var(--c360-text-xs);color:var(--c360-text-muted)">{{ doc.uploaded_by|default:"—" }}</td>
+          <td style="font-weight: var(--c360-font-medium)">{{ doc.label }}</td>
           <td>
-            <div style="display:flex;gap:4px">
-              <button class="btn btn-outline btn-sm" onclick="viewDoc({{ doc.pk }}, '{{ doc.label|escapejs }}')" title="View JSON">
+            <code style="font-size: var(--c360-text-xs)">{{ doc.key }}</code>
+          </td>
+          <td style="white-space: nowrap">{{ doc.size_display }}</td>
+          <td style="white-space: nowrap">
+            {{ doc.uploaded_at|date:"M d, Y H:i" }}
+          </td>
+          <td
+            style="
+              font-size: var(--c360-text-xs);
+              color: var(--c360-text-muted);
+            "
+          >
+            {{ doc.uploaded_by|default:"—" }}
+          </td>
+          <td>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="btn btn-outline btn-sm"
+                onclick="viewDoc({{ doc.pk }}, '{{ doc.label|escapejs }}')"
+                title="View JSON"
+              >
                 <i class="lni lni-eye"></i>
               </button>
-              <a href="{% url 'json_store:download' doc.pk %}" class="btn btn-outline btn-sm" title="Download" target="_blank">
+              <a
+                href="{% url 'json_store:download' doc.pk %}"
+                class="btn btn-outline btn-sm"
+                title="Download"
+                target="_blank"
+              >
                 <i class="lni lni-download"></i>
               </a>
-              <button class="btn btn-danger btn-sm" onclick="deleteDoc({{ doc.pk }}, '{{ doc.label|escapejs }}')" title="Delete">
+              <button
+                class="btn btn-danger btn-sm"
+                onclick="deleteDoc({{ doc.pk }}, '{{ doc.label|escapejs }}')"
+                title="Delete"
+              >
                 <i class="lni lni-trash"></i>
               </button>
             </div>
           </td>
         </tr>
         {% empty %}
-        <tr id="empty-row"><td colspan="6" class="table-empty">No JSON documents yet. Upload one above.</td></tr>
+        <tr id="empty-row">
+          <td colspan="6" class="table-empty">
+            No JSON documents yet. Upload one above.
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -134,121 +244,177 @@
 </div>
 
 <!-- JSON Viewer Modal -->
-<div class="modal" id="json-viewer-modal" aria-labelledby="json-modal-title" role="dialog" aria-modal="true">
-  <div class="modal-dialog" style="max-width:780px">
+<div
+  class="modal"
+  id="json-viewer-modal"
+  aria-labelledby="json-modal-title"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="modal-dialog" style="max-width: 780px">
     <div class="modal-header">
       <h4 class="modal-title" id="json-modal-title">JSON Viewer</h4>
-      <button class="modal-close" onclick="closeModal('json-viewer-modal')" aria-label="Close">&times;</button>
+      <button
+        class="modal-close"
+        onclick="closeModal('json-viewer-modal')"
+        aria-label="Close"
+      >
+        &times;
+      </button>
     </div>
-    <div class="modal-body" style="padding:0">
-      <div id="json-viewer-loading" style="padding:var(--c360-spacing-6);text-align:center;color:var(--c360-text-muted)">
-        <i class="lni lni-spinner-arrow" style="font-size:1.5rem"></i> Loading…
+    <div class="modal-body" style="padding: 0">
+      <div
+        id="json-viewer-loading"
+        style="
+          padding: var(--c360-spacing-6);
+          text-align: center;
+          color: var(--c360-text-muted);
+        "
+      >
+        <i class="lni lni-spinner-arrow" style="font-size: 1.5rem"></i> Loading…
       </div>
-      <pre class="json-viewer-pre" id="json-viewer-pre" style="display:none;margin:0;border-radius:0 0 var(--c360-radius-md) var(--c360-radius-md)"></pre>
+      <pre
+        class="json-viewer-pre"
+        id="json-viewer-pre"
+        style="
+          display: none;
+          margin: 0;
+          border-radius: 0 0 var(--c360-radius-md) var(--c360-radius-md);
+        "
+      ></pre>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline btn-sm" onclick="copyViewerContent()"><i class="lni lni-files"></i> Copy</button>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('json-viewer-modal')">Close</button>
+      <button class="btn btn-outline btn-sm" onclick="copyViewerContent()">
+        <i class="lni lni-files"></i> Copy
+      </button>
+      <button
+        class="btn btn-outline btn-sm"
+        onclick="closeModal('json-viewer-modal')"
+      >
+        Close
+      </button>
     </div>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-(function() {
-  const dropzone = document.getElementById('js-dropzone');
-  const fileInput = document.getElementById('js-file-input');
-  const uploadBtn = document.getElementById('js-upload-btn');
-  const fileNameEl = document.getElementById('js-file-name');
-  const progressWrap = document.getElementById('js-progress-wrap');
-  const progressBar = document.getElementById('js-progress-bar');
-  let selectedFile = null;
+  (function () {
+    const dropzone = document.getElementById("js-dropzone");
+    const fileInput = document.getElementById("js-file-input");
+    const uploadBtn = document.getElementById("js-upload-btn");
+    const fileNameEl = document.getElementById("js-file-name");
+    const progressWrap = document.getElementById("js-progress-wrap");
+    const progressBar = document.getElementById("js-progress-bar");
+    let selectedFile = null;
 
-  if (dropzone) {
-    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-    dropzone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropzone.classList.remove('dragover');
-      const f = e.dataTransfer.files[0];
-      if (f) handleFile(f);
-    });
-    fileInput && fileInput.addEventListener('change', () => {
-      if (fileInput.files[0]) handleFile(fileInput.files[0]);
-    });
-  }
-
-  function handleFile(f) {
-    if (!f.name.endsWith('.json') && f.type !== 'application/json' && f.type !== 'text/plain') {
-      if (typeof showToast === 'function') showToast('Only .json files are allowed.', 'error');
-      return;
+    if (dropzone) {
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("dragover");
+      });
+      dropzone.addEventListener("dragleave", () =>
+        dropzone.classList.remove("dragover"),
+      );
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("dragover");
+        const f = e.dataTransfer.files[0];
+        if (f) handleFile(f);
+      });
+      fileInput &&
+        fileInput.addEventListener("change", () => {
+          if (fileInput.files[0]) handleFile(fileInput.files[0]);
+        });
     }
-    selectedFile = f;
-    fileNameEl && (fileNameEl.textContent = f.name + ' (' + formatBytes(f.size) + ')');
-    uploadBtn && (uploadBtn.disabled = false);
-    const labelEl = document.getElementById('js-label');
-    if (labelEl && !labelEl.value.trim()) {
-      labelEl.value = f.name.replace(/\.json$/i, '');
-    }
-  }
 
-  function formatBytes(b) {
-    if (b < 1024) return b + ' B';
-    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
-    return (b / (1024 * 1024)).toFixed(1) + ' MB';
-  }
-
-  uploadBtn && uploadBtn.addEventListener('click', async () => {
-    if (!selectedFile) return;
-    uploadBtn.disabled = true;
-    progressWrap && (progressWrap.style.display = 'block');
-    progressBar && (progressBar.style.width = '30%');
-
-    const fd = new FormData();
-    fd.append('file', selectedFile);
-    const label = (document.getElementById('js-label') || {}).value || selectedFile.name;
-    const bucket = (document.getElementById('js-bucket') || {}).value || '';
-    fd.append('label', label);
-    if (bucket) fd.append('bucket_id', bucket);
-
-    const csrf = document.querySelector('[name=csrfmiddlewaretoken]');
-    const headers = {};
-    if (csrf) headers['X-CSRFToken'] = csrf.value;
-
-    try {
-      progressBar && (progressBar.style.width = '60%');
-      const resp = await fetch('{% url "json_store:upload" %}', { method: 'POST', headers, body: fd });
-      progressBar && (progressBar.style.width = '90%');
-      const data = await resp.json();
-      progressBar && (progressBar.style.width = '100%');
-      setTimeout(() => { progressWrap && (progressWrap.style.display = 'none'); progressBar && (progressBar.style.width = '0'); }, 800);
-      if (data.success) {
-        if (typeof showToast === 'function') showToast('Uploaded: ' + data.label, 'success');
-        addDocRow(data);
-        selectedFile = null;
-        fileNameEl && (fileNameEl.textContent = 'No file selected');
-        uploadBtn.disabled = true;
-        fileInput && (fileInput.value = '');
-      } else {
-        if (typeof showToast === 'function') showToast(data.error || 'Upload failed.', 'error');
-        uploadBtn.disabled = false;
+    function handleFile(f) {
+      if (
+        !f.name.endsWith(".json") &&
+        f.type !== "application/json" &&
+        f.type !== "text/plain"
+      ) {
+        if (typeof showToast === "function")
+          showToast("Only .json files are allowed.", "error");
+        return;
       }
-    } catch(e) {
-      if (typeof showToast === 'function') showToast(String(e), 'error');
-      uploadBtn.disabled = false;
-      progressWrap && (progressWrap.style.display = 'none');
+      selectedFile = f;
+      fileNameEl &&
+        (fileNameEl.textContent = f.name + " (" + formatBytes(f.size) + ")");
+      uploadBtn && (uploadBtn.disabled = false);
+      const labelEl = document.getElementById("js-label");
+      if (labelEl && !labelEl.value.trim()) {
+        labelEl.value = f.name.replace(/\.json$/i, "");
+      }
     }
-  });
 
-  function addDocRow(doc) {
-    const tbody = document.getElementById('docs-tbody');
-    if (!tbody) return;
-    const empty = document.getElementById('empty-row');
-    if (empty) empty.remove();
-    const tr = document.createElement('tr');
-    tr.id = 'doc-row-' + doc.id;
-    tr.innerHTML = `
+    function formatBytes(b) {
+      if (b < 1024) return b + " B";
+      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + " KB";
+      return (b / (1024 * 1024)).toFixed(1) + " MB";
+    }
+
+    uploadBtn &&
+      uploadBtn.addEventListener("click", async () => {
+        if (!selectedFile) return;
+        uploadBtn.disabled = true;
+        progressWrap && (progressWrap.style.display = "block");
+        progressBar && (progressBar.style.width = "30%");
+
+        const fd = new FormData();
+        fd.append("file", selectedFile);
+        const label =
+          (document.getElementById("js-label") || {}).value ||
+          selectedFile.name;
+        const bucket = (document.getElementById("js-bucket") || {}).value || "";
+        fd.append("label", label);
+        if (bucket) fd.append("bucket_id", bucket);
+
+        const csrf = document.querySelector("[name=csrfmiddlewaretoken]");
+        const headers = {};
+        if (csrf) headers["X-CSRFToken"] = csrf.value;
+
+        try {
+          progressBar && (progressBar.style.width = "60%");
+          const resp = await fetch('{% url "json_store:upload" %}', {
+            method: "POST",
+            headers,
+            body: fd,
+          });
+          progressBar && (progressBar.style.width = "90%");
+          const data = await resp.json();
+          progressBar && (progressBar.style.width = "100%");
+          setTimeout(() => {
+            progressWrap && (progressWrap.style.display = "none");
+            progressBar && (progressBar.style.width = "0");
+          }, 800);
+          if (data.success) {
+            if (typeof showToast === "function")
+              showToast("Uploaded: " + data.label, "success");
+            addDocRow(data);
+            selectedFile = null;
+            fileNameEl && (fileNameEl.textContent = "No file selected");
+            uploadBtn.disabled = true;
+            fileInput && (fileInput.value = "");
+          } else {
+            if (typeof showToast === "function")
+              showToast(data.error || "Upload failed.", "error");
+            uploadBtn.disabled = false;
+          }
+        } catch (e) {
+          if (typeof showToast === "function") showToast(String(e), "error");
+          uploadBtn.disabled = false;
+          progressWrap && (progressWrap.style.display = "none");
+        }
+      });
+
+    function addDocRow(doc) {
+      const tbody = document.getElementById("docs-tbody");
+      if (!tbody) return;
+      const empty = document.getElementById("empty-row");
+      if (empty) empty.remove();
+      const tr = document.createElement("tr");
+      tr.id = "doc-row-" + doc.id;
+      tr.innerHTML = `
       <td style="font-weight:var(--c360-font-medium)">${escHtml(doc.label)}</td>
       <td><code style="font-size:var(--c360-text-xs)">${escHtml(doc.key)}</code></td>
       <td style="white-space:nowrap">${escHtml(doc.size)}</td>
@@ -261,75 +427,85 @@
           <button class="btn btn-danger btn-sm" onclick="deleteDoc(${doc.id},'${escHtml(doc.label)}')" title="Delete"><i class="lni lni-trash"></i></button>
         </div>
       </td>`;
-    tbody.insertBefore(tr, tbody.firstChild);
-    const badge = document.getElementById('doc-count-badge');
-    if (badge) {
-      const n = tbody.querySelectorAll('tr').length;
-      badge.textContent = n + ' document' + (n === 1 ? '' : 's');
-    }
-  }
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  window.viewDoc = async function(id, label) {
-    const modal = document.getElementById('json-viewer-modal');
-    const loading = document.getElementById('json-viewer-loading');
-    const pre = document.getElementById('json-viewer-pre');
-    const title = document.getElementById('json-modal-title');
-    if (!modal) return;
-    title && (title.textContent = label);
-    loading && (loading.style.display = 'block');
-    pre && (pre.style.display = 'none');
-    if (typeof openModal === 'function') openModal('json-viewer-modal');
-    else modal.classList.add('open');
-
-    try {
-      const resp = await fetch('/json-store/' + id + '/view/');
-      const data = await resp.json();
-      if (data.success) {
-        pre.textContent = JSON.stringify(data.data, null, 2);
-        loading.style.display = 'none';
-        pre.style.display = 'block';
-      } else {
-        loading.textContent = data.error || 'Failed to load.';
+      tbody.insertBefore(tr, tbody.firstChild);
+      const badge = document.getElementById("doc-count-badge");
+      if (badge) {
+        const n = tbody.querySelectorAll("tr").length;
+        badge.textContent = n + " document" + (n === 1 ? "" : "s");
       }
-    } catch(e) {
-      loading && (loading.textContent = String(e));
     }
-  };
 
-  window.copyViewerContent = function() {
-    const pre = document.getElementById('json-viewer-pre');
-    if (!pre) return;
-    navigator.clipboard && navigator.clipboard.writeText(pre.textContent).then(() => {
-      if (typeof showToast === 'function') showToast('Copied to clipboard.', 'success');
-    });
-  };
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
 
-  window.deleteDoc = async function(id, label) {
-    if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
-    const csrf = document.querySelector('[name=csrfmiddlewaretoken]');
-    try {
-      const resp = await fetch('/json-store/' + id + '/delete/', {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf ? csrf.value : '' },
-      });
-      const data = await resp.json();
-      if (data.success) {
-        const row = document.getElementById('doc-row-' + id);
-        if (row) row.remove();
-        if (typeof showToast === 'function') showToast('Deleted "' + label + '".', 'success');
-      } else {
-        if (typeof showToast === 'function') showToast(data.error || 'Delete failed.', 'error');
+    window.viewDoc = async function (id, label) {
+      const modal = document.getElementById("json-viewer-modal");
+      const loading = document.getElementById("json-viewer-loading");
+      const pre = document.getElementById("json-viewer-pre");
+      const title = document.getElementById("json-modal-title");
+      if (!modal) return;
+      title && (title.textContent = label);
+      loading && (loading.style.display = "block");
+      pre && (pre.style.display = "none");
+      if (typeof openModal === "function") openModal("json-viewer-modal");
+      else modal.classList.add("open");
+
+      try {
+        const resp = await fetch("/json-store/" + id + "/view/");
+        const data = await resp.json();
+        if (data.success) {
+          pre.textContent = JSON.stringify(data.data, null, 2);
+          loading.style.display = "none";
+          pre.style.display = "block";
+        } else {
+          loading.textContent = data.error || "Failed to load.";
+        }
+      } catch (e) {
+        loading && (loading.textContent = String(e));
       }
-    } catch(e) {
-      if (typeof showToast === 'function') showToast(String(e), 'error');
-    }
-  };
-})();
+    };
+
+    window.copyViewerContent = function () {
+      const pre = document.getElementById("json-viewer-pre");
+      if (!pre) return;
+      navigator.clipboard &&
+        navigator.clipboard.writeText(pre.textContent).then(() => {
+          if (typeof showToast === "function")
+            showToast("Copied to clipboard.", "success");
+        });
+    };
+
+    window.deleteDoc = async function (id, label) {
+      if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
+      const csrf = document.querySelector("[name=csrfmiddlewaretoken]");
+      try {
+        const resp = await fetch("/json-store/" + id + "/delete/", {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": csrf ? csrf.value : "",
+          },
+        });
+        const data = await resp.json();
+        if (data.success) {
+          const row = document.getElementById("doc-row-" + id);
+          if (row) row.remove();
+          if (typeof showToast === "function")
+            showToast('Deleted "' + label + '".', "success");
+        } else {
+          if (typeof showToast === "function")
+            showToast(data.error || "Delete failed.", "error");
+        }
+      } catch (e) {
+        if (typeof showToast === "function") showToast(String(e), "error");
+      }
+    };
+  })();
 </script>
 <!-- CSRF token for JS fetch calls -->
-{% csrf_token %}
-{% endblock %}
+{% csrf_token %} {% endblock %}

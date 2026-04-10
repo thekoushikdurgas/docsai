@@ -1,33 +1,304 @@
-{% extends "base.html" %}
-{% load static admin_tags %}
-{% block title %}Workflow Editor — Durgasflow{% endblock %}
-{% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Workflow Editor</h1>
-    {% if workflow_id %}<p class="page-subtitle">{{ workflow_id }}</p>{% endif %}
+{% extends "base.html" %} {% load static admin_tags %} {% block title %}{% if
+workflow %}{{ workflow.name }} — Editor{% else %}New Workflow{% endif %} —
+Durgasflow{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'admin/css/components/durgasflow.css' %}"
+/>
+{% endblock %} {% block content %}
+<!-- Top bar -->
+<div class="df-editor-topbar">
+  <div class="df-editor-topbar-left">
+    <a
+      href="{% url 'durgasflow:workflow_list' %}"
+      class="btn btn-sm btn-outline"
+      ><i class="lni lni-arrow-left"></i
+    ></a>
+    <input
+      type="text"
+      id="df-workflow-name"
+      class="df-name-input form-control"
+      value="{{ workflow.name|default:'New Workflow' }}"
+      placeholder="Workflow name…"
+    />
+    {% if workflow %}
+    <span
+      id="df-status-pill"
+      class="df-status-badge df-exec-status-{% if workflow.is_active %}completed{% else %}{{ workflow.status }}{% endif %}"
+    >
+      {% if workflow.is_active %}active{% else %}{{ workflow.status }}{% endif
+      %}
+    </span>
+    {% endif %}
   </div>
-  <div class="page-actions">
-    <a href="{% url 'durgasflow:workflow_list' %}" class="btn btn-outline"><i class="lni lni-arrow-left"></i> Workflows</a>
-    <button class="btn btn-primary" onclick="saveWorkflow()"><i class="lni lni-cloud-upload"></i> Save</button>
+  <div class="df-editor-topbar-center">
+    <span class="df-editor-hint"
+      >Click canvas to add node · Drag node to reposition</span
+    >
+  </div>
+  <div class="df-editor-topbar-right">
+    {% if workflow %}
+    <button
+      class="btn btn-sm btn-outline"
+      id="df-toggle-active-btn"
+      data-workflow-id="{{ workflow.id }}"
+      data-active="{{ workflow.is_active|yesno:'1,0' }}"
+    >
+      {% if workflow.is_active %}<i class="lni lni-close"></i> Deactivate{% else
+      %}<i class="lni lni-checkmark"></i> Activate{% endif %}
+    </button>
+    {% endif %}
+    <button class="btn btn-sm btn-outline" id="df-save-btn">
+      <i class="lni lni-cloud-upload"></i> Save
+    </button>
+    {% if workflow %}
+    <button
+      class="btn btn-sm btn-primary"
+      id="df-run-btn"
+      data-workflow-id="{{ workflow.id }}"
+    >
+      <i class="lni lni-play"></i> Run
+    </button>
+    {% endif %}
   </div>
 </div>
-<div id="flow-canvas" class="graph-container graph-container--dynamic c360-flow-editor-canvas" style="--graph-container-height: 600px"></div>
-{% endblock %}
-{% block extra_js %}
-<script src="{% static 'admin/js/graph.js' %}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  if (window.initFlowCanvasSvg) {
-    window.initFlowCanvasSvg('flow-canvas', [
-      { id: 'a', label: 'Trigger' },
-      { id: 'b', label: 'HTTP' },
-      { id: 'c', label: 'Done' }
-    ], [
-      { source: 'a', target: 'b' },
-      { source: 'b', target: 'c' }
-    ]);
+
+<!-- 3-pane shell -->
+<div class="df-shell">
+  <!-- LEFT: Node Palette -->
+  <aside class="df-palette">
+    <div class="df-palette-header">
+      <span>Node Palette</span>
+      <input
+        type="text"
+        id="df-palette-search"
+        class="df-palette-search"
+        placeholder="Search nodes…"
+      />
+    </div>
+    <div id="df-palette-list">
+      <div class="df-palette-group">
+        <div class="df-palette-group-label">Triggers</div>
+        <div
+          class="df-palette-node df-node-trigger"
+          draggable="true"
+          data-type="n8n-nodes-base.manualTrigger"
+          data-label="Manual Trigger"
+        >
+          <i class="lni lni-play"></i> Manual Trigger
+        </div>
+        <div
+          class="df-palette-node df-node-trigger"
+          draggable="true"
+          data-type="n8n-nodes-base.webhook"
+          data-label="Webhook"
+        >
+          <i class="lni lni-link"></i> Webhook
+        </div>
+        <div
+          class="df-palette-node df-node-trigger"
+          draggable="true"
+          data-type="n8n-nodes-base.scheduleTrigger"
+          data-label="Schedule"
+        >
+          <i class="lni lni-timer"></i> Schedule
+        </div>
+      </div>
+      <div class="df-palette-group">
+        <div class="df-palette-group-label">Actions</div>
+        <div
+          class="df-palette-node df-node-action"
+          draggable="true"
+          data-type="n8n-nodes-base.httpRequest"
+          data-label="HTTP Request"
+        >
+          <i class="lni lni-world"></i> HTTP Request
+        </div>
+        <div
+          class="df-palette-node df-node-action"
+          draggable="true"
+          data-type="n8n-nodes-base.emailSend"
+          data-label="Send Email"
+        >
+          <i class="lni lni-envelope"></i> Send Email
+        </div>
+      </div>
+      <div class="df-palette-group">
+        <div class="df-palette-group-label">Logic</div>
+        <div
+          class="df-palette-node df-node-logic"
+          draggable="true"
+          data-type="n8n-nodes-base.if"
+          data-label="IF"
+        >
+          <i class="lni lni-enter"></i> IF
+        </div>
+        <div
+          class="df-palette-node df-node-logic"
+          draggable="true"
+          data-type="n8n-nodes-base.switch"
+          data-label="Switch"
+        >
+          <i class="lni lni-list"></i> Switch
+        </div>
+        <div
+          class="df-palette-node df-node-logic"
+          draggable="true"
+          data-type="n8n-nodes-base.set"
+          data-label="Set"
+        >
+          <i class="lni lni-pencil-alt"></i> Set
+        </div>
+        <div
+          class="df-palette-node df-node-logic"
+          draggable="true"
+          data-type="n8n-nodes-base.merge"
+          data-label="Merge"
+        >
+          <i class="lni lni-code-alt"></i> Merge
+        </div>
+        <div
+          class="df-palette-node df-node-logic"
+          draggable="true"
+          data-type="n8n-nodes-base.code"
+          data-label="Code"
+        >
+          <i class="lni lni-code"></i> Code
+        </div>
+      </div>
+      <div class="df-palette-group">
+        <div class="df-palette-group-label">AI / LLM</div>
+        <div
+          class="df-palette-node df-node-ai"
+          draggable="true"
+          data-type="@n8n/n8n-nodes-langchain.agent"
+          data-label="AI Agent"
+        >
+          <i class="lni lni-brain"></i> AI Agent
+        </div>
+        <div
+          class="df-palette-node df-node-ai"
+          draggable="true"
+          data-type="@n8n/n8n-nodes-langchain.lmChatOpenAi"
+          data-label="OpenAI Chat"
+        >
+          <i class="lni lni-comments-alt-2"></i> OpenAI Chat
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CENTER: Canvas -->
+  <main class="df-canvas-wrap">
+    <div id="df-canvas-toolbar" class="df-canvas-toolbar">
+      <button class="btn btn-xs btn-outline" id="df-zoom-in" title="Zoom in">
+        <i class="lni lni-zoom-in"></i>
+      </button>
+      <button class="btn btn-xs btn-outline" id="df-zoom-out" title="Zoom out">
+        <i class="lni lni-zoom-out"></i>
+      </button>
+      <button
+        class="btn btn-xs btn-outline"
+        id="df-fit-btn"
+        title="Fit to screen"
+      >
+        <i class="lni lni-full-screen"></i>
+      </button>
+      <span class="df-node-count" id="df-node-count">0 nodes</span>
+    </div>
+    <div id="df-canvas" class="df-canvas"></div>
+    <div class="df-canvas-empty-hint" id="df-canvas-empty">
+      <i class="lni lni-layers" style="font-size: 3rem; opacity: 0.3"></i>
+      <p>Drag a node from the palette or upload a workflow JSON</p>
+    </div>
+    <!-- Execution status bar -->
+    <div id="df-exec-bar" class="df-exec-bar" style="display: none">
+      <span id="df-exec-bar-text"></span>
+      <div
+        class="progress"
+        style="width: 200px; display: inline-block; margin-left: 1rem"
+      >
+        <div
+          class="progress-bar"
+          id="df-exec-progress"
+          style="width: 0%; transition: width 0.3s"
+        ></div>
+      </div>
+      <a
+        id="df-exec-link"
+        href="#"
+        style="margin-left: 1rem; display: none"
+        class="btn btn-xs btn-outline"
+        >View Execution</a
+      >
+    </div>
+  </main>
+
+  <!-- RIGHT: Properties Panel -->
+  <aside class="df-props-panel" id="df-props-panel">
+    <div class="df-props-header">
+      <span id="df-props-title">Properties</span>
+      <button class="df-props-close" id="df-props-close" title="Close">
+        &times;
+      </button>
+    </div>
+    <div id="df-props-body" class="df-props-body">
+      <p class="df-props-hint">Select a node to edit its properties.</p>
+    </div>
+    <!-- Credentials section -->
+    <div class="df-props-section" id="df-creds-section" style="display: none">
+      <div class="df-props-section-label">Credential</div>
+      <select id="df-cred-select" class="form-control">
+        <option value="">— No credential —</option>
+        {% for cred in credentials %}
+        <option value="{{ cred.id }}">
+          {{ cred.name }} ({{ cred.credential_type }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+  </aside>
+</div>
+<!-- /.df-shell -->
+
+<!-- Workflow data injected for JS -->
+<script id="df-workflow-data" type="application/json">
+  {% if workflow %}
+  {
+    "id": "{{ workflow.id }}",
+    "name": "{{ workflow.name|escapejs }}",
+    "jsonUrl": "{% url 'durgasflow:workflow_json' workflow.id %}",
+    "saveUrl": "{% url 'durgasflow:save_workflow' workflow.id %}",
+    "executeUrl": "{% url 'durgasflow:workflow_execute' workflow.id %}",
+    "activateUrl": "{% url 'durgasflow:workflow_activate' workflow.id %}",
+    "deactivateUrl": "{% url 'durgasflow:workflow_deactivate' workflow.id %}",
+    "detailUrl": "{% url 'durgasflow:workflow_detail' workflow.id %}",
+    "csrfToken": "{{ csrf_token }}"
   }
+  {% else %}
+  {
+    "id": null,
+    "name": "New Workflow",
+    "jsonUrl": null,
+    "saveUrl": null,
+    "executeUrl": null,
+    "csrfToken": "{{ csrf_token }}"
+  }
+  {% endif %}
+</script>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'admin/js/graph.js' %}"></script>
+<script src="{% static 'admin/js/durgasflow.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var dataEl = document.getElementById("df-workflow-data");
+    var cfg;
+    try {
+      cfg = JSON.parse(dataEl.textContent);
+    } catch (e) {
+      cfg = {};
+    }
+    if (window.WorkflowEditor) window.WorkflowEditor.init(cfg);
 });
 </script>
 {% endblock %}

@@ -1,38 +1,53 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Relationships: Page {{ page_id }}{% if usage_type %} ({{ usage_type|title }}){% endif %} - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Relationships: Page
+{{ page_id }}{% if usage_type %} ({{ usage_type|title }}){% endif %} - Media
+Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">Relationships: {{ page_id }}</h1>
-            <p class="c360-mm-hero__subtitle">{{ total }} relationships found{% if usage_type %} ({{ usage_type }} type){% endif %}</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard_relationships' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Relationships
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">Relationships: {{ page_id }}</h1>
+      <p class="c360-mm-hero__subtitle">
+        {{ total }} relationships found{% if usage_type %} ({{ usage_type }}
+        type){% endif %}
+      </p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Filter Chips -->
-    {% if filters %}
-        {% include 'documentation/media_manager/_components/_filter_chips.html' with active_filters=filters resource_type='relationships' %}
-    {% endif %}
-    
-    <!-- Relationships List -->
-    {% include 'documentation/media_manager/_components/_resource_list.html' with resource_type='relationships' items=relationships total=total filters=filters view_mode='list' %}
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard_relationships' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Relationships
+      </a>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Filter Chips -->
+  {% if filters %} {% include
+  'documentation/media_manager/_components/_filter_chips.html' with
+  active_filters=filters resource_type='relationships' %} {% endif %}
+
+  <!-- Relationships List -->
+  {% include 'documentation/media_manager/_components/_resource_list.html' with
+  resource_type='relationships' items=relationships total=total filters=filters
+  view_mode='list' %}
 </div>
 {% endblock %}

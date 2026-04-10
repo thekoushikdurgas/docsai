@@ -17,7 +17,11 @@ from django.views.decorators.http import require_http_methods
 
 from django.conf import settings
 
-from apps.documentation.services import pages_service, endpoints_service, relationships_service
+from apps.documentation.services import (
+    pages_service,
+    endpoints_service,
+    relationships_service,
+)
 from apps.documentation.utils.format_examples import page_examples, analysis_examples
 from apps.documentation.utils.api_responses import (
     APIResponse,
@@ -40,7 +44,20 @@ DATA_PREFIX = getattr(settings, "S3_DATA_PREFIX", "data/")
 DEFAULT_PAGE_LIMIT = 20
 MAX_PAGE_LIMIT = 500
 DEFAULT_OFFSET = 0
-VALID_DETAIL_TABS = frozenset({"overview", "content", "relationships", "endpoints", "components", "access", "technical", "sections", "data", "raw"})
+VALID_DETAIL_TABS = frozenset(
+    {
+        "overview",
+        "content",
+        "relationships",
+        "endpoints",
+        "components",
+        "access",
+        "technical",
+        "sections",
+        "data",
+        "raw",
+    }
+)
 
 
 @require_super_admin
@@ -66,10 +83,14 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
         page_relationships: List[Dict[str, Any]] = []
 
         try:
-            rel_result = relationships_service.list_relationships(page_id=page_id, limit=100)
+            rel_result = relationships_service.list_relationships(
+                page_id=page_id, limit=100
+            )
             page_relationships = list(rel_result.get("relationships", []))
             if page_path and page_path != page_id:
-                by_path = relationships_service.list_relationships(page_id=page_path, limit=100)
+                by_path = relationships_service.list_relationships(
+                    page_id=page_path, limit=100
+                )
                 existing_ids = {r.get("relationship_id") for r in page_relationships}
                 for r in by_path.get("relationships", []):
                     if r.get("relationship_id") not in existing_ids:
@@ -115,7 +136,9 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
                 relationships_by_type["other"].append(rel)
 
         page_sections = page.get("sections") or {}
-        page_sections_count = sum(len(v) for v in page_sections.values() if isinstance(v, list))
+        page_sections_count = sum(
+            len(v) for v in page_sections.values() if isinstance(v, list)
+        )
         page_title = (page.get("metadata") or {}).get("content_sections") or {}
         if isinstance(page_title, dict):
             page_title = page_title.get("title") or page_id
@@ -123,12 +146,25 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
             page_title = page_id
         breadcrumb_items = [
             {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-            {"label": "Pages", "url": reverse("documentation:dashboard") + "?tab=pages"},
+            {
+                "label": "Pages",
+                "url": reverse("documentation:dashboard") + "?tab=pages",
+            },
             {"label": page_title, "url": None},
         ]
         actions = [
-            {"text": "Edit", "url": reverse("documentation:page_edit", kwargs={"page_id": page_id}), "variant": "primary"},
-            {"text": "Delete", "url": reverse("documentation:page_delete", kwargs={"page_id": page_id}), "variant": "danger"},
+            {
+                "text": "Edit",
+                "url": reverse("documentation:page_edit", kwargs={"page_id": page_id}),
+                "variant": "primary",
+            },
+            {
+                "text": "Delete",
+                "url": reverse(
+                    "documentation:page_delete", kwargs={"page_id": page_id}
+                ),
+                "variant": "danger",
+            },
         ]
         context: Dict[str, Any] = {
             "page_internal_id": page.get("_id"),
@@ -162,7 +198,9 @@ def page_detail_view(request: HttpRequest, page_id: str) -> HttpResponse:
     return render(request, "documentation/pages/detail.html", context)
 
 
-def _collect_form_page_data(request: HttpRequest, page_id: Optional[str]) -> Optional[Dict[str, Any]]:
+def _collect_form_page_data(
+    request: HttpRequest, page_id: Optional[str]
+) -> Optional[Dict[str, Any]]:
     """Collect page form data from POST (non-JSON). Returns None if validation fails.
     Note: This path does not include sections, fallback_data, mock_data, demo_data.
     The enhanced form uses Path A (request.POST['page_data'] from getFormDataForSubmission)
@@ -216,9 +254,12 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
     page: Optional[Dict[str, Any]] = None
     is_edit = page_id is not None
     create_mode_generated = (
-        request.GET.get("generated") == "1" or request.GET.get("template") == "generated"
+        request.GET.get("generated") == "1"
+        or request.GET.get("template") == "generated"
     )
-    active_tab = request.GET.get("tab") or ("format" if create_mode_generated else "basic")
+    active_tab = request.GET.get("tab") or (
+        "format" if create_mode_generated else "basic"
+    )
     if not active_tab:
         active_tab = "basic"
 
@@ -252,14 +293,22 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
                 updated = pages_service.update_page(page_id, page_data)
                 if updated:
                     messages.success(request, "Page updated successfully.")
-                    return redirect(return_url) if return_url else redirect("documentation:page_detail", page_id=page_id)
+                    return (
+                        redirect(return_url)
+                        if return_url
+                        else redirect("documentation:page_detail", page_id=page_id)
+                    )
                 messages.error(request, "Failed to update page.")
             else:
                 created = pages_service.create_page(page_data)
                 if created:
                     messages.success(request, "Page created successfully.")
                     pid = page_data.get("page_id")
-                    return redirect(return_url) if return_url else redirect("documentation:page_detail", page_id=pid)
+                    return (
+                        redirect(return_url)
+                        if return_url
+                        else redirect("documentation:page_detail", page_id=pid)
+                    )
                 messages.error(request, "Failed to create page.")
         except Exception as e:
             logger.error("Error saving page: %s", e, exc_info=True)
@@ -300,7 +349,9 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
             "analyse_payload_example": analysis_examples().get("pages_analysis"),
         }
         format_examples_json = json.dumps(format_data.get("examples", {}), indent=2)
-        format_analyse_payload_json = json.dumps(format_data.get("analyse_payload_example") or {}, indent=2)
+        format_analyse_payload_json = json.dumps(
+            format_data.get("analyse_payload_example") or {}, indent=2
+        )
     except Exception as e:
         raise
 
@@ -317,7 +368,10 @@ def page_form_view(request: HttpRequest, page_id: Optional[str] = None) -> HttpR
         "create_mode_generated": create_mode_generated,
         "breadcrumb_items": [
             {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-            {"label": "Pages", "url": reverse("documentation:dashboard") + "?tab=pages"},
+            {
+                "label": "Pages",
+                "url": reverse("documentation:dashboard") + "?tab=pages",
+            },
             {"label": "Edit" if is_edit else "Create"},
         ],
     }
@@ -341,9 +395,12 @@ def _form_render(
         "analyse_payload_example": analysis_examples().get("pages_analysis"),
     }
     format_examples_json = json.dumps(format_data.get("examples", {}), indent=2)
-    format_analyse_payload_json = json.dumps(format_data.get("analyse_payload_example") or {}, indent=2)
+    format_analyse_payload_json = json.dumps(
+        format_data.get("analyse_payload_example") or {}, indent=2
+    )
     create_mode_generated = (
-        request.GET.get("generated") == "1" or request.GET.get("template") == "generated"
+        request.GET.get("generated") == "1"
+        or request.GET.get("template") == "generated"
     )
     context: Dict[str, Any] = {
         "page": page,
@@ -358,7 +415,10 @@ def _form_render(
         "create_mode_generated": create_mode_generated,
         "breadcrumb_items": [
             {"label": "Dashboard", "url": reverse("documentation:dashboard")},
-            {"label": "Pages", "url": reverse("documentation:dashboard") + "?tab=pages"},
+            {
+                "label": "Pages",
+                "url": reverse("documentation:dashboard") + "?tab=pages",
+            },
             {"label": "Edit" if is_edit else "Create"},
         ],
     }
@@ -377,7 +437,9 @@ def page_create_api(request: HttpRequest) -> JsonResponse:
     try:
         created = pages_service.create_page(data)
         if created:
-            return APIResponse(success=True, data=created, status_code=201).to_json_response()
+            return APIResponse(
+                success=True, data=created, status_code=201
+            ).to_json_response()
         return server_error_response("Failed to create page").to_json_response()
     except Exception as e:
         logger.error("Error creating page: %s", e, exc_info=True)
@@ -400,7 +462,9 @@ def page_draft_api(request: HttpRequest) -> JsonResponse:
         if page_id:
             updated = pages_service.update_page(page_id, data)
             if updated:
-                return success_response(updated, message="Draft saved successfully").to_json_response()
+                return success_response(
+                    updated, message="Draft saved successfully"
+                ).to_json_response()
         else:
             created = pages_service.create_page(data)
             if created:
@@ -448,7 +512,9 @@ def page_delete_api(request: HttpRequest, page_id: str) -> JsonResponse:
     try:
         deleted = pages_service.delete_page(page_id)
         if deleted:
-            return success_response(None, message="Page deleted successfully").to_json_response()
+            return success_response(
+                None, message="Page deleted successfully"
+            ).to_json_response()
         return not_found_response("Page").to_json_response()
     except Exception as e:
         logger.error("Error deleting page %s: %s", page_id, e, exc_info=True)

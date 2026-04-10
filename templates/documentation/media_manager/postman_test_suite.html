@@ -1,42 +1,56 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}{{ config_id }} - Test Suite: {{ suite_id }} - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}{{ config_id }} -
+Test Suite: {{ suite_id }} - Media Manager Dashboard{% endblock %} {% block
+content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">Test Suite: {{ suite_id }}</h1>
-            <p class="c360-mm-hero__subtitle">Test suite for {{ config_id }}</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:postman_test_suites' config_id %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Test Suites
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">Test Suite: {{ suite_id }}</h1>
+      <p class="c360-mm-hero__subtitle">Test suite for {{ config_id }}</p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Test Suite Content -->
-    {% if suite %}
-        <div class="section-card">
-            <h2 class="c360-mm-section-title">Test Suite Details</h2>
-            <pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">{{ suite|safe|pprint }}</pre>
-        </div>
-    {% else %}
-        <div class="section-card">
-            <p class="c360-mm-muted">Test suite not found</p>
-        </div>
-    {% endif %}
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:postman_test_suites' config_id %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Test Suites
+      </a>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Test Suite Content -->
+  {% if suite %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">Test Suite Details</h2>
+    <pre
+      class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto"
+    >
+{{ suite|safe|pprint }}</pre
+    >
+  </div>
+  {% else %}
+  <div class="section-card">
+    <p class="c360-mm-muted">Test suite not found</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -1,83 +1,101 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Endpoints Statistics{% if api_version %}: {{ api_version|upper }}{% elif method %}: {{ method }}{% endif %} - Media Manager Dashboard{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Endpoints
+Statistics{% if api_version %}: {{ api_version|upper }}{% elif method %}: {{
+method }}{% endif %} - Media Manager Dashboard{% endblock %} {% block content %}
 <div class="c360-mm-page c360-mm-stack c360-animate-in">
-    <!-- Header -->
-    <div class="c360-mm-hero">
-        <div>
-            <h1 class="c360-mm-hero__title">
-                {% if api_version %}Endpoints Statistics: {{ api_version|upper }}{% elif method %}Endpoints Statistics: {{ method }}{% else %}Endpoints Statistics{% endif %}
-            </h1>
-            <p class="c360-mm-hero__subtitle">Detailed statistics</p>
-        </div>
-        <div class="c360-mm-hero__actions">
-            <a href="{% url 'documentation:dashboard_endpoints' %}" class="btn btn-secondary c360-mm-back-btn">
-                <svg class="c360-mm-btn-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Endpoints
-            </a>
-        </div>
+  <!-- Header -->
+  <div class="c360-mm-hero">
+    <div>
+      <h1 class="c360-mm-hero__title">
+        {% if api_version %}Endpoints Statistics: {{ api_version|upper }}{% elif
+        method %}Endpoints Statistics: {{ method }}{% else %}Endpoints
+        Statistics{% endif %}
+      </h1>
+      <p class="c360-mm-hero__subtitle">Detailed statistics</p>
     </div>
-    
-    {% if error %}
-        <div class="c360-mm-alert c360-mm-alert--danger">
-            <p class="c360-mm-alert__text">{{ error }}</p>
-        </div>
-    {% endif %}
-    
-    <!-- Statistics Cards -->
-    <div class="section-card">
-        <h2 class="c360-mm-section-title">Overview</h2>
-        <dl class="c360-mm-dl-grid">
-            <div>
-                <dt class="text-sm font-medium text-gray-500">Total</dt>
-                <dd class="mt-1 text-2xl font-semibold text-gray-900">{{ total|default:"0" }}</dd>
-            </div>
-            {% if api_version %}
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">API Version</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ api_version|upper }}</dd>
-                </div>
-            {% elif method %}
-                <div>
-                    <dt class="text-sm font-medium text-gray-500">Method</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ method }}</dd>
-                </div>
-            {% endif %}
-        </dl>
+    <div class="c360-mm-hero__actions">
+      <a
+        href="{% url 'documentation:dashboard_endpoints' %}"
+        class="btn btn-secondary c360-mm-back-btn"
+      >
+        <svg
+          class="c360-mm-btn-icon-svg"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to Endpoints
+      </a>
     </div>
-    
-    <!-- Breakdown -->
-    {% if by_method %}
-        <div class="section-card">
-            <h2 class="c360-mm-section-title">By Method</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% for method_name, method_count in by_method.items %}
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <dt class="text-sm font-medium text-gray-500">{{ method_name }}</dt>
-                        <dd class="mt-1 text-xl font-semibold text-gray-900">{{ method_count }}</dd>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
-    
-    {% if by_api_version %}
-        <div class="section-card">
-            <h2 class="c360-mm-section-title">By API Version</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% for version_name, version_count in by_api_version.items %}
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <dt class="text-sm font-medium text-gray-500">{{ version_name|upper }}</dt>
-                        <dd class="mt-1 text-xl font-semibold text-gray-900">{{ version_count }}</dd>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
+  </div>
+
+  {% if error %}
+  <div class="c360-mm-alert c360-mm-alert--danger">
+    <p class="c360-mm-alert__text">{{ error }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Statistics Cards -->
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">Overview</h2>
+    <dl class="c360-mm-dl-grid">
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Total</dt>
+        <dd class="mt-1 text-2xl font-semibold text-gray-900">
+          {{ total|default:"0" }}
+        </dd>
+      </div>
+      {% if api_version %}
+      <div>
+        <dt class="text-sm font-medium text-gray-500">API Version</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ api_version|upper }}</dd>
+      </div>
+      {% elif method %}
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Method</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ method }}</dd>
+      </div>
+      {% endif %}
+    </dl>
+  </div>
+
+  <!-- Breakdown -->
+  {% if by_method %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">By Method</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {% for method_name, method_count in by_method.items %}
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <dt class="text-sm font-medium text-gray-500">{{ method_name }}</dt>
+        <dd class="mt-1 text-xl font-semibold text-gray-900">
+          {{ method_count }}
+        </dd>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %} {% if by_api_version %}
+  <div class="section-card">
+    <h2 class="c360-mm-section-title">By API Version</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {% for version_name, version_count in by_api_version.items %}
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <dt class="text-sm font-medium text-gray-500">
+          {{ version_name|upper }}
+        </dt>
+        <dd class="mt-1 text-xl font-semibold text-gray-900">
+          {{ version_count }}
+        </dd>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

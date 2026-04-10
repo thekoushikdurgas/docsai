@@ -12,9 +12,15 @@ from django.views.decorators.http import require_http_methods
 from django.http import HttpRequest, JsonResponse
 
 from apps.documentation.services.docs_graphql_adapter import get_adapter
-from apps.documentation.utils.format_examples import endpoint_examples, analysis_examples
+from apps.documentation.utils.format_examples import (
+    endpoint_examples,
+    analysis_examples,
+)
 from django.conf import settings
-from apps.documentation.utils.api_v1_helpers import should_expand_full, to_endpoint_list_item
+from apps.documentation.utils.api_v1_helpers import (
+    should_expand_full,
+    to_endpoint_list_item,
+)
 
 logger = logging.getLogger(__name__)
 DATA_PREFIX = getattr(settings, "S3_DATA_PREFIX", "data/")
@@ -45,12 +51,14 @@ def endpoints_list(request: HttpRequest) -> JsonResponse:
 def endpoints_format(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/endpoints/format/"""
     examples = endpoint_examples(DATA_PREFIX)
-    return JsonResponse({
-        "resource": "endpoints",
-        "s3_data_prefix": DATA_PREFIX,
-        "examples": examples,
-        "analyse_payload_example": analysis_examples().get("endpoints_analysis"),
-    })
+    return JsonResponse(
+        {
+            "resource": "endpoints",
+            "s3_data_prefix": DATA_PREFIX,
+            "examples": examples,
+            "analyse_payload_example": analysis_examples().get("endpoints_analysis"),
+        }
+    )
 
 
 @require_http_methods(["GET"])
@@ -103,7 +111,9 @@ def endpoints_by_api_version_graphql(request: HttpRequest) -> JsonResponse:
 
 
 @require_http_methods(["GET"])
-def endpoints_by_api_version_count(request: HttpRequest, api_version: str) -> JsonResponse:
+def endpoints_by_api_version_count(
+    request: HttpRequest, api_version: str
+) -> JsonResponse:
     """GET /api/v1/endpoints/by-api-version/{api_version}/count/"""
     try:
         service = get_adapter(request)
@@ -115,24 +125,30 @@ def endpoints_by_api_version_count(request: HttpRequest, api_version: str) -> Js
 
 
 @require_http_methods(["GET"])
-def endpoints_by_api_version_stats(request: HttpRequest, api_version: str) -> JsonResponse:
+def endpoints_by_api_version_stats(
+    request: HttpRequest, api_version: str
+) -> JsonResponse:
     """GET /api/v1/endpoints/by-api-version/{api_version}/stats/"""
     try:
         service = get_adapter(request)
         endpoints = service.get_endpoints_by_api_version(api_version)
         by_method = Counter(ep.get("method", "GET") for ep in endpoints)
-        return JsonResponse({
-            "api_version": api_version,
-            "total": len(endpoints),
-            "by_method": dict(by_method),
-        })
+        return JsonResponse(
+            {
+                "api_version": api_version,
+                "total": len(endpoints),
+                "by_method": dict(by_method),
+            }
+        )
     except Exception as e:
         logger.exception("endpoints by-api-version stats failed")
         return JsonResponse({"detail": str(e)}, status=500)
 
 
 @require_http_methods(["GET"])
-def endpoints_by_api_version_by_method(request: HttpRequest, api_version: str, method: str) -> JsonResponse:
+def endpoints_by_api_version_by_method(
+    request: HttpRequest, api_version: str, method: str
+) -> JsonResponse:
     """GET /api/v1/endpoints/by-api-version/{api_version}/by-method/{method}/"""
     try:
         service = get_adapter(request)
@@ -192,11 +208,13 @@ def endpoints_by_method_stats(request: HttpRequest, method: str) -> JsonResponse
         service = get_adapter(request)
         endpoints = service.get_endpoints_by_method(method)
         by_version = Counter(ep.get("api_version", "v1") for ep in endpoints)
-        return JsonResponse({
-            "method": method,
-            "total": len(endpoints),
-            "by_api_version": dict(by_version),
-        })
+        return JsonResponse(
+            {
+                "method": method,
+                "total": len(endpoints),
+                "by_api_version": dict(by_version),
+            }
+        )
     except Exception as e:
         logger.exception("endpoints by-method stats failed")
         return JsonResponse({"detail": str(e)}, status=500)
@@ -208,7 +226,9 @@ def endpoints_by_state_list(request: HttpRequest, state: str) -> JsonResponse:
     try:
         service = get_adapter(request)
         result = service.list_endpoints(endpoint_state=state, limit=None, offset=0)
-        return JsonResponse({"endpoints": result.get("endpoints", []), "total": result.get("total", 0)})
+        return JsonResponse(
+            {"endpoints": result.get("endpoints", []), "total": result.get("total", 0)}
+        )
     except Exception as e:
         logger.exception("endpoints by-state failed")
         return JsonResponse({"detail": str(e)}, status=500)
@@ -239,7 +259,7 @@ def endpoints_by_lambda_list(request: HttpRequest, service_name: str) -> JsonRes
             primary = ls.get("primary") or {}
             if primary.get("service_name") == service_name:
                 filtered.append(ep)
-            for dep in (ls.get("dependencies") or []):
+            for dep in ls.get("dependencies") or []:
                 if dep.get("service_name") == service_name:
                     filtered.append(ep)
                     break
@@ -263,7 +283,7 @@ def endpoints_by_lambda_count(request: HttpRequest, service_name: str) -> JsonRe
             if primary.get("service_name") == service_name:
                 count += 1
                 continue
-            for dep in (ls.get("dependencies") or []):
+            for dep in ls.get("dependencies") or []:
                 if dep.get("service_name") == service_name:
                     count += 1
                     break
@@ -275,6 +295,7 @@ def endpoints_by_lambda_count(request: HttpRequest, service_name: str) -> JsonRe
 
 # ----- Detail and sub-resources (after all static/param lists) -----
 
+
 @require_http_methods(["GET"])
 def endpoints_detail(request: HttpRequest, endpoint_id: str) -> JsonResponse:
     """GET /api/v1/endpoints/{endpoint_id}/"""
@@ -282,7 +303,9 @@ def endpoints_detail(request: HttpRequest, endpoint_id: str) -> JsonResponse:
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
         return JsonResponse(ep)
     except Exception as e:
         logger.exception("endpoints detail failed")
@@ -296,37 +319,53 @@ def endpoints_detail_pages(request: HttpRequest, endpoint_id: str) -> JsonRespon
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
         pages = ep.get("used_by_pages") or []
-        return JsonResponse({"endpoint_id": endpoint_id, "pages": pages, "count": len(pages)})
+        return JsonResponse(
+            {"endpoint_id": endpoint_id, "pages": pages, "count": len(pages)}
+        )
     except Exception as e:
         logger.exception("endpoints detail pages failed")
         return JsonResponse({"detail": str(e)}, status=500)
 
 
 @require_http_methods(["GET"])
-def endpoints_detail_access_control(request: HttpRequest, endpoint_id: str) -> JsonResponse:
+def endpoints_detail_access_control(
+    request: HttpRequest, endpoint_id: str
+) -> JsonResponse:
     """GET /api/v1/endpoints/{endpoint_id}/access-control/"""
     try:
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
-        return JsonResponse({"endpoint_id": endpoint_id, "access_control": ep.get("access_control")})
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
+        return JsonResponse(
+            {"endpoint_id": endpoint_id, "access_control": ep.get("access_control")}
+        )
     except Exception as e:
         logger.exception("endpoints detail access_control failed")
         return JsonResponse({"detail": str(e)}, status=500)
 
 
 @require_http_methods(["GET"])
-def endpoints_detail_lambda_services(request: HttpRequest, endpoint_id: str) -> JsonResponse:
+def endpoints_detail_lambda_services(
+    request: HttpRequest, endpoint_id: str
+) -> JsonResponse:
     """GET /api/v1/endpoints/{endpoint_id}/lambda-services/"""
     try:
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
-        return JsonResponse({"endpoint_id": endpoint_id, "lambda_services": ep.get("lambda_services")})
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
+        return JsonResponse(
+            {"endpoint_id": endpoint_id, "lambda_services": ep.get("lambda_services")}
+        )
     except Exception as e:
         logger.exception("endpoints detail lambda_services failed")
         return JsonResponse({"detail": str(e)}, status=500)
@@ -339,12 +378,16 @@ def endpoints_detail_files(request: HttpRequest, endpoint_id: str) -> JsonRespon
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
-        return JsonResponse({
-            "endpoint_id": endpoint_id,
-            "service_file": ep.get("service_file"),
-            "router_file": ep.get("router_file"),
-        })
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
+        return JsonResponse(
+            {
+                "endpoint_id": endpoint_id,
+                "service_file": ep.get("service_file"),
+                "router_file": ep.get("router_file"),
+            }
+        )
     except Exception as e:
         logger.exception("endpoints detail files failed")
         return JsonResponse({"detail": str(e)}, status=500)
@@ -354,45 +397,62 @@ def endpoints_detail_files(request: HttpRequest, endpoint_id: str) -> JsonRespon
 def endpoints_detail_methods(request: HttpRequest, endpoint_id: str) -> JsonResponse:
     """GET /api/v1/endpoints/{endpoint_id}/methods/ - service_methods."""
     if endpoint_id.startswith("{") and endpoint_id.endswith("}"):
-        return JsonResponse({"detail": "Invalid endpoint_id: placeholder not allowed"}, status=400)
+        return JsonResponse(
+            {"detail": "Invalid endpoint_id: placeholder not allowed"}, status=400
+        )
     try:
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
         methods = ep.get("service_methods") or []
-        return JsonResponse({"endpoint_id": endpoint_id, "methods": methods, "count": len(methods)})
+        return JsonResponse(
+            {"endpoint_id": endpoint_id, "methods": methods, "count": len(methods)}
+        )
     except Exception as e:
         logger.exception("endpoints detail methods failed")
         return JsonResponse({"detail": str(e)}, status=500)
 
 
 @require_http_methods(["GET"])
-def endpoints_detail_used_by_pages(request: HttpRequest, endpoint_id: str) -> JsonResponse:
+def endpoints_detail_used_by_pages(
+    request: HttpRequest, endpoint_id: str
+) -> JsonResponse:
     """GET /api/v1/endpoints/{endpoint_id}/used-by-pages/"""
     try:
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
         pages = ep.get("used_by_pages") or []
-        return JsonResponse({"endpoint_id": endpoint_id, "used_by_pages": pages, "count": len(pages)})
+        return JsonResponse(
+            {"endpoint_id": endpoint_id, "used_by_pages": pages, "count": len(pages)}
+        )
     except Exception as e:
         logger.exception("endpoints detail used-by-pages failed")
         return JsonResponse({"detail": str(e)}, status=500)
 
 
-
 @require_http_methods(["GET"])
-def endpoints_detail_dependencies(request: HttpRequest, endpoint_id: str) -> JsonResponse:
+def endpoints_detail_dependencies(
+    request: HttpRequest, endpoint_id: str
+) -> JsonResponse:
     """GET /api/v1/endpoints/{endpoint_id}/dependencies/"""
     try:
         service = get_adapter(request)
         ep = service.get_endpoint(endpoint_id)
         if not ep:
-            return JsonResponse({"detail": f"Endpoint '{endpoint_id}' not found"}, status=404)
+            return JsonResponse(
+                {"detail": f"Endpoint '{endpoint_id}' not found"}, status=404
+            )
         deps = (ep.get("lambda_services") or {}).get("dependencies") or []
-        return JsonResponse({"endpoint_id": endpoint_id, "dependencies": deps, "count": len(deps)})
+        return JsonResponse(
+            {"endpoint_id": endpoint_id, "dependencies": deps, "count": len(deps)}
+        )
     except Exception as e:
         logger.exception("endpoints detail dependencies failed")
         return JsonResponse({"detail": str(e)}, status=500)
