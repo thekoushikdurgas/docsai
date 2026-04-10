@@ -1,6 +1,6 @@
 # Deploy DocsAI (Django admin) to EC2
 # Secrets: EC2_SSH_PRIVATE_KEY, EC2_HOST, EC2_USER
-# Monorepo: push.paths below filter to contact360.io/admin. Standalone admin repo at root: remove `paths:` under push.
+# Monorepo: changes under contact360.io/admin/**. Standalone (e.g. docsai): Django at repo root — paths below include apps/, config/, etc.
 
 name: Deploy Admin to EC2
 
@@ -9,7 +9,13 @@ on:
     branches: [main]
     paths:
       - "contact360.io/admin/**"
-      - "contact360.io/admin/.github/workflows/deploy.yml"
+      # Standalone admin repo (manage.py at root; no contact360.io/ prefix)
+      - "apps/**"
+      - "config/**"
+      - "requirements.txt"
+      - "manage.py"
+      - "deploy/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
     inputs:
       branch:
