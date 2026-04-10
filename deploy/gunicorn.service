@@ -1,14 +1,15 @@
 [Unit]
-Description=Contact360 DocsAI Admin (Gunicorn)
+Description=Contact360 DocsAI Admin (Gunicorn) — simple HTTP bind template
 After=network.target
+# For production with Nginx + Unix socket, use deploy/systemd/gunicorn.service instead.
 
 [Service]
 User=ubuntu
 Group=ubuntu
-WorkingDirectory=/home/ubuntu/contact360/contact360.io/admin
+WorkingDirectory=/home/ubuntu/docsai
 Environment="DJANGO_SETTINGS_MODULE=docsai.settings"
-EnvironmentFile=/home/ubuntu/contact360/contact360.io/admin/.env
-ExecStart=/home/ubuntu/.venv/bin/gunicorn docsai.wsgi:application \
+EnvironmentFile=/home/ubuntu/docsai/.env.prod
+ExecStart=/home/ubuntu/docsai/venv/bin/gunicorn docsai.wsgi:application \
     --bind 127.0.0.1:8000 \
     --workers 4 \
     --timeout 120 \

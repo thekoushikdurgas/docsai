@@ -1,3 +1,5 @@
+# Monorepo: expects checkout root to contain contact360.io/admin (see working-directory).
+# Standalone admin repo at project root: remove `defaults.run.working-directory` below.
 name: Django CI
 
 on:
@@ -6,12 +8,16 @@ on:
   pull_request:
     branches: [main, master]
 
+defaults:
+  run:
+    working-directory: contact360.io/admin
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dependencies
