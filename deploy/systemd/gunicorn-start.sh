@@ -32,4 +32,4 @@ exec gunicorn \
   --bind unix:/run/gunicorn.sock \
   --preload \
   --name docsai-production \
-  config.wsgi:application
+  docsai.wsgi:application

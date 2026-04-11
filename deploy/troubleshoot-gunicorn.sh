@@ -68,13 +68,13 @@ else
 fi
 echo ""
 
-echo "7. Testing Gunicorn configuration import..."
+echo "7. Testing WSGI module import..."
 if [ -d "$PROJECT_DIR/venv" ]; then
     source "$PROJECT_DIR/venv/bin/activate"
-    if python -c "import config.gunicorn.production" 2>&1; then
-        echo "Gunicorn config import successful ✓"
+    if python -c "import docsai.wsgi" 2>&1; then
+        echo "docsai.wsgi import successful ✓"
     else
-        echo "ERROR: Cannot import config.gunicorn.production"
+        echo "ERROR: Cannot import docsai.wsgi"
         echo "Python path:"
         python -c "import sys; print('\n'.join(sys.path))" || true
     fi
@@ -82,26 +82,28 @@ if [ -d "$PROJECT_DIR/venv" ]; then
 fi
 echo ""
 
-echo "8. Testing WSGI application import..."
+echo "8. Testing WSGI application object..."
 if [ -d "$PROJECT_DIR/venv" ]; then
     source "$PROJECT_DIR/venv/bin/activate"
     export DJANGO_ENV=production
-    if python -c "from config.wsgi import application" 2>&1; then
+    if python -c "from docsai.wsgi import application" 2>&1; then
         echo "WSGI application import successful ✓"
     else
-        echo "ERROR: Cannot import WSGI application"
+        echo "ERROR: Cannot load WSGI application"
     fi
     deactivate
 fi
 echo ""
 
-echo "9. Checking log directory..."
-if [ -d "/var/log/django" ]; then
-    echo "Log directory exists ✓"
-    ls -la /var/log/django/ || true
-else
-    echo "WARNING: Log directory /var/log/django does not exist"
-fi
+echo "9. Checking log directories..."
+for d in /var/log/django /var/log/docsai; do
+    if [ -d "$d" ]; then
+        echo "$d exists ✓"
+        ls -la "$d/" || true
+    else
+        echo "WARNING: $d does not exist (run install-systemd.sh or: sudo mkdir -p $d && sudo chown ubuntu:www-data $d)"
+    fi
+done
 echo ""
 
 echo "10. Testing manual Gunicorn start (dry-run)..."
@@ -113,9 +115,8 @@ if [ -d "$PROJECT_DIR/venv" ]; then
     
     echo "Attempting to start Gunicorn manually (will timeout after 5 seconds)..."
     timeout 5 "$PROJECT_DIR/venv/bin/gunicorn" \
-        --config config.gunicorn.production \
         --bind unix:/run/gunicorn.sock \
-        config.wsgi:application \
+        docsai.wsgi:application \
         2>&1 || echo "Manual start test completed (timeout expected)"
     
     deactivate

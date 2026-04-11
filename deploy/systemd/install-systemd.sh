@@ -66,11 +66,11 @@ if [ ! -d "/run" ]; then
     echo "WARNING: /run directory does not exist. This is unusual on systemd systems."
 fi
 
-# Create log directory for Gunicorn
+# Create log directories for Gunicorn (systemd wrapper uses /var/log/django; simple template may use /var/log/docsai)
 echo "Setting up log directory..."
-mkdir -p /var/log/django
-chown ubuntu:www-data /var/log/django
-chmod 755 /var/log/django
+mkdir -p /var/log/django /var/log/docsai
+chown ubuntu:www-data /var/log/django /var/log/docsai
+chmod 755 /var/log/django /var/log/docsai
 
 # Verify log directory permissions
 if [ ! -w "/var/log/django" ]; then
@@ -94,21 +94,21 @@ if [ -f "$PROJECT_DIR/.env" ]; then
     echo "Fixed permissions for .env"
 fi
 
-# Verify Gunicorn config can be imported
-echo "Verifying Gunicorn configuration..."
+# Verify WSGI module loads (Gunicorn uses deploy/systemd/gunicorn-start.sh → docsai.wsgi:application)
+echo "Verifying WSGI application..."
 cd "$PROJECT_DIR"
 if [ -d "venv" ]; then
     source venv/bin/activate
-    if python -c "import config.gunicorn.production" 2>/dev/null; then
-        echo "Gunicorn configuration verified ✓"
+    if python -c "import docsai.wsgi" 2>/dev/null; then
+        echo "WSGI module docsai.wsgi verified ✓"
     else
-        echo "WARNING: Could not import config.gunicorn.production"
+        echo "WARNING: Could not import docsai.wsgi"
         echo "This may cause the service to fail. Checking Python path..."
         python -c "import sys; print('Python path:', sys.path)" || true
     fi
     deactivate
 else
-    echo "WARNING: Virtual environment not found. Cannot verify Gunicorn config."
+    echo "WARNING: Virtual environment not found. Cannot verify WSGI."
 fi
 
 # Copy socket file
@@ -253,8 +253,8 @@ if ! systemctl start gunicorn.service; then
     echo ""
     echo "Troubleshooting steps:"
     echo "1. Check logs: sudo journalctl -u gunicorn -f"
-    echo "2. Verify Python path: cd $PROJECT_DIR && source venv/bin/activate && python -c 'import config.gunicorn.production'"
-    echo "3. Test Gunicorn manually: cd $PROJECT_DIR && source venv/bin/activate && gunicorn --config config.gunicorn.production config.wsgi:application"
+    echo "2. Verify WSGI: cd $PROJECT_DIR && source venv/bin/activate && python -c 'import docsai.wsgi'"
+    echo "3. Test Gunicorn manually: cd $PROJECT_DIR && source venv/bin/activate && deploy/systemd/gunicorn-start.sh"
     echo "4. Check socket permissions: ls -la /run/gunicorn.sock"
     echo "5. Verify .env.prod exists and is readable: sudo -u ubuntu test -r $PROJECT_DIR/.env.prod"
     exit 1
@@ -288,7 +288,7 @@ else
     fi
     
     # Check if process is running
-    if pgrep -f "gunicorn.*config.wsgi" > /dev/null; then
+    if pgrep -f "gunicorn.*docsai\.wsgi" > /dev/null; then
         echo "✓ Gunicorn process is running"
     else
         echo "✗ Gunicorn process not found"

@@ -271,13 +271,13 @@ if command_exists nginx; then
     fi
 fi
 
-# Phase 9: Gunicorn config (optional)
+# Phase 9: WSGI (Gunicorn uses docsai.wsgi:application via deploy/systemd/gunicorn-start.sh)
 if [ -d "venv" ] && [ -f "venv/bin/activate" ]; then
     source venv/bin/activate 2>/dev/null || true
-    if python -c "import config.gunicorn.production" 2>/dev/null; then
-        print_success "Gunicorn production config loads"
+    if python -c "import docsai.wsgi" 2>/dev/null; then
+        print_success "WSGI module docsai.wsgi loads"
     else
-        print_warning "Could not import config.gunicorn.production (check PYTHONPATH when running)"
+        print_warning "Could not import docsai.wsgi (check PYTHONPATH and DJANGO_SETTINGS_MODULE)"
     fi
 fi
 

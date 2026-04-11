@@ -359,11 +359,7 @@ setup_django() {
         chmod -R a+rX media || true
     fi
     
-    # Validate environment
-    log "Validating environment..."
-    python manage.py validate_env || log_warning "Environment validation had warnings"
-    
-    # Django check
+    # Django check (includes deployment checks; no separate validate_env command)
     python manage.py check --deploy || log_warning "Django deployment check had warnings"
     
     log "Django setup completed ✓"
@@ -378,11 +374,11 @@ install_gunicorn() {
     # Verify Gunicorn can be imported before installing service
     if [ -d "venv" ]; then
         source venv/bin/activate
-        log_info "Verifying Gunicorn configuration..."
-        if python -c "import config.gunicorn.production" 2>/dev/null; then
-            log "Gunicorn configuration verified ✓"
+        log_info "Verifying WSGI application..."
+        if python -c "import docsai.wsgi" 2>/dev/null; then
+            log "WSGI module docsai.wsgi verified ✓"
         else
-            log_error "Failed to import config.gunicorn.production"
+            log_error "Failed to import docsai.wsgi"
             log_info "Checking Python path..."
             python -c "import sys; print('\n'.join(sys.path))" || true
             log_warning "Continuing anyway, but service may fail..."
@@ -407,7 +403,7 @@ install_gunicorn() {
             log_warning "Service installation completed but Gunicorn is not running"
             log_info "Troubleshooting:"
             log_info "  1. Check logs: sudo journalctl -u gunicorn -f"
-            log_info "  2. Test manually: cd $PROJECT_DIR && source venv/bin/activate && gunicorn --config config.gunicorn.production config.wsgi:application --bind unix:/run/gunicorn.sock"
+            log_info "  2. Test manually: cd $PROJECT_DIR && source venv/bin/activate && gunicorn docsai.wsgi:application --bind unix:/run/gunicorn.sock"
             log_info "  3. Check socket: ls -la /run/gunicorn.sock"
             log_info "  4. Check permissions: ls -la $PROJECT_DIR/.env.prod"
         fi
