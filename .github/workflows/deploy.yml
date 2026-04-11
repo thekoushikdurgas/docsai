@@ -60,6 +60,9 @@ jobs:
       - name: Verify deployment
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
         run: |
           sleep 5
-          curl -sf --connect-timeout 15 "http://3.80.35.41/api/v1/health/"
+          # Curl from inside EC2 to 127.0.0.1 avoids ALLOWED_HOSTS rejecting the public IP / elastic IP.
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes "$EC2_USER@$EC2_HOST" \
+            "curl -sf --connect-timeout 15 'http://127.0.0.1/api/v1/health/'"

@@ -41,26 +41,49 @@ python manage.py collectstatic --noinput
 echo ">>> Restarting application server (systemd)..."
 # Many installs use different unit names; missing unit must not fail the deploy after migrate/static.
 restart_ok=0
+found_loaded_unit=0
+unit_loaded() {
+  local u="$1"
+  local state
+  state="$(systemctl show -p LoadState --value "${u}.service" 2>/dev/null || true)"
+  [ "$state" = "loaded" ]
+}
+
 if [ -n "${RESTART_SERVICE:-}" ]; then
   if sudo systemctl restart "$RESTART_SERVICE"; then
     echo ">>> Restarted $RESTART_SERVICE"
     restart_ok=1
   else
     echo "::warning::systemctl restart $RESTART_SERVICE failed."
+    sudo systemctl status "$RESTART_SERVICE" --no-pager -l || true
   fi
 else
   for unit in gunicorn docsai gunicorn-docsai docsai-gunicorn; do
-    if sudo systemctl restart "${unit}.service" 2>/dev/null; then
-      echo ">>> Restarted ${unit}.service"
-      restart_ok=1
-      break
+    if unit_loaded "$unit"; then
+      found_loaded_unit=1
+      if sudo systemctl restart "${unit}.service"; then
+        echo ">>> Restarted ${unit}.service"
+        restart_ok=1
+        break
+      else
+        echo "::warning::systemctl restart ${unit}.service failed (unit is loaded)."
+        sudo systemctl status "${unit}.service" --no-pager -l || true
+        break
+      fi
     fi
   done
 fi
 if [ "$restart_ok" -ne 1 ]; then
-  echo "::warning::No matching systemd service (tried gunicorn, docsai, …). Migrations and static files are already applied."
-  echo "Install a unit from deploy/systemd/gunicorn.service or deploy/gunicorn.service, then: sudo systemctl daemon-reload && sudo systemctl enable --now gunicorn"
-  echo "Override: RESTART_SERVICE=myapp.service bash deploy/remote-deploy.sh"
+  if [ -n "${RESTART_SERVICE:-}" ]; then
+    echo "::warning::RESTART_SERVICE=$RESTART_SERVICE did not restart successfully (see status above)."
+  elif [ "$found_loaded_unit" -eq 1 ]; then
+    echo "::warning::Gunicorn unit is present but restart failed; fix systemd/gunicorn on the server."
+  else
+    echo "::warning::No loaded systemd unit among gunicorn, docsai, gunicorn-docsai, docsai-gunicorn."
+    echo "Install a unit from deploy/systemd/gunicorn.service or deploy/gunicorn.service, then: sudo systemctl daemon-reload && sudo systemctl enable --now gunicorn"
+    echo "Override: RESTART_SERVICE=myapp.service bash deploy/remote-deploy.sh"
+  fi
+  echo "Migrations and static files are already applied."
 fi
 
 echo ">>> Done. Verify: curl -s http://127.0.0.1/api/v1/health/ (or your public EC2 URL)"
