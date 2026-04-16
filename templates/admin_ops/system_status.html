@@ -72,4 +72,41 @@
     </table>
   </div>
 </div>
+
+{% if satellite_health %}
+<div class="card" style="margin-top: var(--space-6)">
+  <div class="card-header">
+    <h2 class="card-title">Gateway satellite health</h2>
+    <p class="page-subtitle" style="margin: 0; font-size: var(--text-sm)">
+      From GraphQL <code>health.satelliteHealth</code> on the API gateway (requires login or internal token).
+    </p>
+  </div>
+  <div class="table-wrap">
+    <table class="table" aria-label="Gateway satellite health">
+      <thead>
+        <tr>
+          <th>Satellite</th>
+          <th>Configured</th>
+          <th>Status</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in satellite_health %}
+        <tr>
+          <td><strong>{{ row.name }}</strong></td>
+          <td>{% if row.configured %}Yes{% else %}No{% endif %}</td>
+          <td>
+            <span class="badge {% if row.status == 'ok' %}badge-success{% elif row.status == 'error' %}badge-danger{% else %}badge-neutral{% endif %}">
+              {{ row.status }}
+            </span>
+          </td>
+          <td style="font-size: var(--text-xs); max-width: 28rem">{{ row.detail|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

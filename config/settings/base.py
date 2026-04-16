@@ -52,6 +52,10 @@ SECRET_KEY = config("SECRET_KEY", default="")
 DEBUG = False
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 
+# Trusted origins for CSRF on HTTPS (e.g. https://admin.contact360.io). Empty in local HTTP dev.
+_csrf_origins = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins if o.strip()]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

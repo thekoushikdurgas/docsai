@@ -1305,14 +1305,61 @@ def _probe_http_health(name: str, key: str, url: str) -> Dict:
     return {**row, "status": status, "latency_ms": latency}
 
 
+_SATELLITE_HEALTH_QUERY = """
+query AdminSatelliteHealth {
+  health {
+    satelliteHealth {
+      name
+      configured
+      status
+      detail
+    }
+  }
+}
+"""
+
+
+def get_gateway_satellite_health(token: str) -> List[Dict[str, Any]]:
+    """
+    Gateway GraphQL ``health.satelliteHealth`` — authenticated pings of configured satellites
+    (see contact360.io/api health module). Requires user JWT or ``GRAPHQL_INTERNAL_TOKEN``.
+    """
+    try:
+        resp = graphql_query(_SATELLITE_HEALTH_QUERY, token=token or None)
+        _raise_if_graphql_errors(resp)
+        health = _graphql_data(resp).get("health")
+        if not isinstance(health, dict):
+            return []
+        raw = health.get("satelliteHealth")
+        if not isinstance(raw, list):
+            return []
+        out: List[Dict[str, Any]] = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            out.append(
+                {
+                    "name": item.get("name"),
+                    "configured": item.get("configured"),
+                    "status": item.get("status"),
+                    "detail": item.get("detail"),
+                }
+            )
+        return out
+    except Exception as exc:
+        logger.warning("get_gateway_satellite_health failed: %s", exc)
+        return []
+
+
 def get_system_health() -> List[Dict]:
     """
     Probe configured services. Order matches the admin dashboard Service Health widget.
     Optional settings (defaults empty): CONNECTRA_URL, EMAIL_SERVER_HEALTH_URL,
-    EXTENSION_SERVER_URL, MAILVETTER_URL.
+    PHONE_SERVER_HEALTH_URL, EXTENSION_SERVER_URL, MAILVETTER_URL.
     """
     connectra = getattr(settings, "CONNECTRA_URL", "") or ""
     email_srv = getattr(settings, "EMAIL_SERVER_HEALTH_URL", "") or ""
+    phone_srv = getattr(settings, "PHONE_SERVER_HEALTH_URL", "") or ""
     extension = getattr(settings, "EXTENSION_SERVER_URL", "") or ""
     mailvetter = getattr(settings, "MAILVETTER_URL", "") or ""
 
@@ -1322,6 +1369,7 @@ def get_system_health() -> List[Dict]:
         ("GraphQL Gateway", "gateway", _graphql_health_url()),
         ("Connectra (Sync)", "sync", _health_url(connectra)),
         ("Email Server", "email", _optional_full_or_base_health(email_srv)),
+        ("Phone Server", "phone", _optional_full_or_base_health(phone_srv)),
         ("Jobs", "jobs", _health_url(jobs_root)),
         ("S3 Storage", "s3storage", _health_url(settings.S3STORAGE_API_URL or "")),
         ("Logs API", "logs", _health_url(settings.LOGS_API_URL or "")),

@@ -7,6 +7,9 @@ from django.core.exceptions import ImproperlyConfigured
 from .base import *  # noqa: F403
 from ._env import resolve_secret_key
 
+# Prefer HTTPS `GRAPHQL_URL` (e.g. https://api.contact360.io/graphql) when this site is served over HTTPS.
+# Set via environment / .env.prod — see README.md.
+
 DEBUG = False
 
 # full-deploy / EC2 use .env.prod; decouple alone only reads .env by default.

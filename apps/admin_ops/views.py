@@ -54,6 +54,7 @@ from .services.admin_client import (
     get_billing_plans,
     get_pending_payments,
     get_storage_artifacts,
+    get_gateway_satellite_health,
     get_system_health,
     get_users_with_buckets,
     get_user_activity_for_user,
@@ -1340,10 +1341,16 @@ def delete_artifact_view(request):
 @require_login
 def system_status_view(request):
     health = []
+    satellite_health: list[dict[str, Any]] = []
     try:
         health = get_system_health()
     except Exception as exc:
         messages.error(request, f"Health probe failed: {exc}")
+
+    try:
+        satellite_health = get_gateway_satellite_health(_token(request))
+    except Exception as exc:
+        messages.warning(request, f"Gateway satellite health: {exc}")
 
     up_count = sum(1 for s in health if s.get("status") == "up")
     total = len(health)
@@ -1357,6 +1364,7 @@ def system_status_view(request):
         "admin_ops/system_status.html",
         {
             "health_services": health,
+            "satellite_health": satellite_health,
             "up_count": up_count,
             "total_services": total,
             "uptime_pct": uptime_pct,
