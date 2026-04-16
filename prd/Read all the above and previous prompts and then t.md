@@ -64,7 +64,7 @@ Each **0.a.b** has a *clear outcome* and a *small set of files/tasks*.
 **Files:**
 
 - `docs/01-architecture/02-domain-ubiquitous-language.md`
-    - Definitions: contact, company, deal, campaign, job, enrichment, BQL, AI query, AI action, memory, etc.
+    - Definitions: contact, company, deal, campaign, job, enrichment, VQL, AI query, AI action, memory, etc.
 
 ***
 

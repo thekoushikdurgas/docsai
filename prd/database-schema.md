@@ -18,7 +18,7 @@
 8. [Templates](#8-templates)
 9. [File Storage (S3 Metadata)](#9-file-storage-s3-metadata)
 10. [Job System](#10-job-system)
-11. [BQL Connector (Query Logs)](#11-bql-connector-query-logs)
+11. [VQL Connector (Query Logs)](#11-vql-connector-query-logs)
 12. [AI + MCP System](#12-ai--mcp-system)
 13. [Integrations](#13-integrations)
 14. [Chrome Extension Data](#14-chrome-extension-data)
@@ -378,11 +378,11 @@ ORDER BY created_at DESC;
 
 ---
 
-## 11. BQL Connector (Query Logs)
+## 11. VQL Connector (Query Logs)
 
 ### bql_queries
 
-Every query through the BQL connector is logged for:
+Every query through the VQL connector is logged for:
 - Debugging & replay
 - Usage analytics
 - AI context (what data was the user looking at?)
@@ -390,7 +390,7 @@ Every query through the BQL connector is logged for:
 
 | Column | Notes |
 |--------|-------|
-| `parsed_ast` | JSONB — parsed BQL AST for replay |
+| `parsed_ast` | JSONB — parsed VQL AST for replay |
 | `result_count` | How many rows returned |
 | `duration_ms` | Query execution time |
 

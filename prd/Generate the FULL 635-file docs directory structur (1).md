@@ -65,7 +65,7 @@ contact360-docs/
 │   │   ├── 06-templates.md
 │   │   ├── 07-files-storage.md
 │   │   ├── 08-jobs.md
-│   │   ├── 09-bql-connector.md
+│   │   ├── 09-vql-connector.md
 │   │   ├── 10-ai-mcp.md
 │   │   ├── 11-integrations.md
 │   │   ├── 12-extension-data.md
@@ -153,7 +153,7 @@ contact360-docs/
 │   │   ├── integrations/
 │   │   ├── users/
 │   │   ├── organizations/
-│   │   ├── bql/
+│   │   ├── vql/
 │   │   ├── templates/
 │   │   ├── openapi-spec.yaml
 │   │   ├── error-reference.md

@@ -134,7 +134,7 @@ Contact360 is designed to operate at **all three stages**, escalating automation
 │ STEP 4: TASK DECOMPOSITION (PLANNER)                                │
 │                                                                     │
 │  plan = [                                                           │
-│    { step: 1, task: "search_contacts",  tool: "bql.query",          │
+│    { step: 1, task: "search_contacts",  tool: "vql.query",          │
 │               params: { jobTitle: "CTO", city: "Bangalore" } },    │
 │    { step: 2, task: "limit_results",    tool: "crm.filter",         │
 │               params: { limit: 50, orderBy: "lead_score DESC" } }, │
@@ -151,7 +151,7 @@ Contact360 is designed to operate at **all three stages**, escalating automation
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STEP 5: TOOL SELECTION (maps plan steps → microservices)            │
 │                                                                     │
-│  Step 1 → Connector Service  (BQL query engine)                     │
+│  Step 1 → Connector Service  (VQL query engine)                     │
 │  Step 2 → CRM Service        (filter + sort)                        │
 │  Step 3 → Email Service      (bulk validation)                      │
 │  Step 4 → Campaign Service   (create draft) ← APPROVAL GATE        │
@@ -162,7 +162,7 @@ Contact360 is designed to operate at **all three stages**, escalating automation
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STEP 6: EXECUTION ENGINE                                            │
 │                                                                     │
-│  [1] BQL: SELECT * FROM contacts                                    │
+│  [1] VQL: SELECT * FROM contacts                                    │
 │           WHERE job_title ILIKE '%CTO%'                             │
 │             AND city = 'Bangalore'                                  │
 │           ORDER BY lead_score DESC LIMIT 50                         │
@@ -354,7 +354,7 @@ export class PlannerEngine {
           steps.push({
             id: 'step_search', stepNumber: 1,
             description: `Search contacts: ${JSON.stringify(intent.params)}`,
-            tool: 'bql.query',
+            tool: 'vql.query',
             params: this.buildBqlParams(intent.params),
             dependsOn: [],
             requiresApproval: false,
@@ -450,8 +450,8 @@ export class PlannerEngine {
 
 export const READ_TOOLS: AgentTool[] = [
   {
-    name:        'bql.query',
-    description: 'Search and filter contacts using BQL (BQL Query Language). Supports filters by name, email, job title, company, location, tags, lead score.',
+    name:        'vql.query',
+    description: 'Search and filter contacts using VQL (VQL Query Language). Supports filters by name, email, job title, company, location, tags, lead score.',
     riskLevel:   'none',
     requiresApproval: false,
     schema: z.object({
@@ -861,7 +861,7 @@ Triggered when: all intents are read-only (search, analyze, rank, export preview
 
 ```
 User: "Show me the top 10 leads this week"
-AI:   → bql.query (lead_score DESC, created_at last 7 days)
+AI:   → vql.query (lead_score DESC, created_at last 7 days)
       → crm.rank_leads
       → Returns formatted table
       ✅ No approval gates, instant response
@@ -1183,7 +1183,7 @@ interface ToolCall {
 const exampleToolCalls: ToolCall[] = [
   {
     id:   "call_001",
-    name: "bql.query",
+    name: "vql.query",
     payload: {
       filters: { jobTitle: "CTO", city: "Bangalore" },
       limit:   50,

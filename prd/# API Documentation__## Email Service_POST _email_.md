@@ -38,11 +38,11 @@ GET /file/metadata
 POST /ai/query
 POST /ai/action
 
-## Connector (BQL)
+## Connector (VQL)
 
-POST /bql/query
-POST /bql/export
-POST /bql/import
+POST /vql/query
+POST /vql/export
+POST /vql/import
 
 Your full API documentation is ready — **1,348 lines** covering all 8 services and 23 endpoints.  Here's what's inside:
 
@@ -64,14 +64,14 @@ Every section opens with a consistent **base URL, auth header, rate limit, reque
 | **Campaign** | `/create`, `/schedule`, `/stats` | Multi-step multi-channel sequences, send windows, daily caps, A/B test flag |
 | **Storage** | `/file/upload`, `/file/metadata` | Presigned S3 upload flow, purpose-based file categorization |
 | **AI** | `/ai/query`, `/ai/action` | Hybrid RAG (pgvector + OpenSearch), SSE token streaming, HITL approval gate |
-| **Connector (BQL)** | `/bql/query`, `/bql/export`, `/bql/import` | Full BQL operator reference, multi-source execution plan, column mapping |
+| **Connector (VQL)** | `/vql/query`, `/vql/export`, `/vql/import` | Full VQL operator reference, multi-source execution plan, column mapping |
 
 ### Developer-First Extras
 
 - **SSE streaming** documented for every async endpoint with exact `data:` event shapes
 - **Job progress pattern** — all bulk operations return a `jobId` + `streamUrl` for live progress
 - **Webhook events table** — 14 outbound events with HMAC `sha256` signature example
-- **BQL explain mode** — shows query execution plan across PostgreSQL + OpenSearch before running
+- **VQL explain mode** — shows query execution plan across PostgreSQL + OpenSearch before running
 - **Upload flow diagram** — 4-step S3 presigned URL pattern (request → upload → Lambda validate → SSE status)
 <span style="display:none">[^1][^10][^11][^12][^13][^14][^15][^16][^17][^18][^19][^2][^20][^3][^4][^5][^6][^7][^8][^9]</span>
 

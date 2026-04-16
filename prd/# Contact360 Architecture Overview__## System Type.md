@@ -27,7 +27,7 @@ AI-driven, microservices-based CRM platform
 - Email Service
 - Phone Service
 - Campaign Service
-- Connector Service (BQL)
+- Connector Service (VQL)
 - Storage Service
 - AI Agent Service
 - Notification Service
@@ -82,7 +82,7 @@ The BFF pattern is fully designed: **Kong** handles JWT validation, rate limitin
 
 Every service has port, tech stack, responsibilities, Kafka events, and DB choice. Two new additions beyond the previous version:
 
-- **Connector Service (BQL)** — a custom Business Query Language DSL that translates plain-language queries into multi-source fetches across PostgreSQL + OpenSearch + Redis, used by the AI Agent, Campaign, and Analytics services
+- **Connector Service (VQL)** — a custom Business Query Language DSL that translates plain-language queries into multi-source fetches across PostgreSQL + OpenSearch + Redis, used by the AI Agent, Campaign, and Analytics services
 - **MCP (Model Control Panel)** — central registry for all ML models, LLM config per org, prompt versioning, A/B testing, and AI cost tracking
 
 
@@ -100,7 +100,7 @@ LLM selection logic (GPT-4o → Claude → Gemini → local Ollama fallback chai
 
 | Decision | Rationale |
 | :-- | :-- |
-| **BQL Connector Service** | Single query surface for AI Agent + campaigns + analytics — avoids N service calls from one agent action [^2] |
+| **VQL Connector Service** | Single query surface for AI Agent + campaigns + analytics — avoids N service calls from one agent action [^2] |
 | **MCP as separate service** | Model drift detection, A/B testing, and LLM cost control need a dedicated control plane [^3] |
 | **Apollo Federation** | GraphQL subgraphs let each service own its schema without a monolithic GraphQL server |
 | **Hybrid RAG (BM25 + pgvector)** | Keyword search catches exact matches, vector search catches semantic intent — combined via RRF gives best recall [^4] |

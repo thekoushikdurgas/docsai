@@ -58,7 +58,7 @@ AI Agent Layer (LLM)
 ┌──────┼───────────────┐
 │      │               │
 ▼      ▼               ▼
-CRM   Campaign       Connector (BQL)
+CRM   Campaign       Connector (VQL)
 Service Service        Service
 │      │               │
 ▼      ▼               ▼
@@ -144,8 +144,8 @@ Tracking Service
 ▼
 Analytics + AI Insights
 
-🔎 7. Connector (BQL) Query Flow
-User Query (BQL)
+🔎 7. Connector (VQL) Query Flow
+User Query (VQL)
 │
 ▼
 Connector Service
@@ -226,7 +226,7 @@ This is a clean **happy-path narrative** — great for onboarding new devs. Cons
 
 ### 🤖 3. AI Agent (MCP) Flow
 
-Strong. The **LLM → Tool → DB** pattern is exactly right. The `BQL Connector Service` branch is a smart addition — it means the AI can query data without direct DB access. You should rename it to **"Connector Service (BQL/RAG)"** to reflect that it also handles vector retrieval, not just structured queries.
+Strong. The **LLM → Tool → DB** pattern is exactly right. The `VQL Connector Service` branch is a smart addition — it means the AI can query data without direct DB access. You should rename it to **"Connector Service (VQL/RAG)"** to reflect that it also handles vector retrieval, not just structured queries.
 
 ### 📂 4. File Storage Flow
 
@@ -240,7 +240,7 @@ This maps perfectly to what's in `ai-architecture.md`. A useful addition: show t
 
 Well structured. Add a **DLQ (Dead Letter Queue)** branch off each Channel API — if WhatsApp or SMS delivery fails after retries, it should land in the DLQ for alerting and manual replay, as documented in `event-driven.md`.
 
-### 🔎 7. BQL Query Flow
+### 🔎 7. VQL Query Flow
 
 Correct. The `Merge Results` node is the key insight here — this is where **Reciprocal Rank Fusion (RRF)** happens (combining Postgres + OpenSearch scores), as defined in the RAG pipeline. Worth labelling it `RRF Merge` for technical accuracy.
 
@@ -260,7 +260,7 @@ Here's what would complete your Contact360 documentation suite:
 | 🔴 High | `api-reference.md` | Every endpoint, request/response schema, error codes — needed before any external integration |
 | 🔴 High | `deployment.md` | Kubernetes manifests, ECS task definitions, environment variable table — needed for DevOps handoff |
 | 🟡 Medium | `onboarding.md` | Local dev setup, `docker-compose` bootstrap, seed scripts — needed for new team members |
-| 🟡 Medium | `bql-query-language.md` | BQL syntax spec, query examples, error handling — needed before AI agent uses it |
+| 🟡 Medium | `vql-query-language.md` | VQL syntax spec, query examples, error handling — needed before AI agent uses it |
 | 🟢 Low | `runbook.md` | Incident playbooks: high bounce rate, DLQ spike, SES suspension, DB failover |
 | 🟢 Low | `changelog.md` | Versioned release notes starting from v0.1 (MVP) |
 
@@ -284,7 +284,7 @@ docs/
 ├── api-reference.md         ← 🔴 Recommended next
 ├── deployment.md            ← 🔴 Recommended next
 ├── onboarding.md            ← 🟡 After that
-├── bql-query-language.md    ← 🟡 After that
+├── vql-query-language.md    ← 🟡 After that
 └── runbook.md               ← 🟢 When going to prod
 ```
 

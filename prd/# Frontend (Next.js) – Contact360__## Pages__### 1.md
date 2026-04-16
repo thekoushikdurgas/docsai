@@ -91,7 +91,7 @@ The app uses **Next.js 15 App Router** with a `(dashboard)` route group wrapping
 
 - **Dashboard** — Hybrid SSR for KPI numbers + client-hydrated charts + SSE-backed live activity feed with `AIInsightPanel`
 - **Contacts** — TanStack Table v8 + `react-virtual` for 10k+ rows, compound filter builder, enrichment drawer showing live waterfall progress (Pattern → Hunter → SMTP → ZeroBounce) via SSE
-- **Campaigns** — 5-step wizard with `@dnd-kit` drag-drop sequence builder (channel → delay → template → condition per step), BQL audience segment preview, live send analytics
+- **Campaigns** — 5-step wizard with `@dnd-kit` drag-drop sequence builder (channel → delay → template → condition per step), VQL audience segment preview, live send analytics
 - **Email Studio** — TipTap rich text editor, AI generation via `ReadableStream` (token-by-token), `[More formal] / [Shorter] / [Add CTA]` rewrite buttons, bulk validation job with SSE progress
 - **Phone Studio** — Single lookup + bulk CSV validation with real-time BullMQ progress, DND status, carrier + region metadata
 - **Jobs** — Full job table with expandable step logs, SSE hook (`useJobStream`) that writes directly into React Query cache on each event

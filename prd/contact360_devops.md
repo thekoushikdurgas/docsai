@@ -766,7 +766,7 @@ contact360:{orgId}:rate:{endpoint}:{userId}  → Rate limit counter (TTL: 1m)
 contact360:{orgId}:dnd:{e164}               → TRAI DND result (TTL: 24h)
 contact360:{orgId}:contact:{id}             → Contact cache (TTL: 5m)
 contact360:{orgId}:job:{jobId}:progress     → Job progress (TTL: 24h)
-contact360:{orgId}:bql:{hash}               → BQL result cache (TTL: 5m)
+contact360:{orgId}:vql:{hash}               → VQL result cache (TTL: 5m)
 contact360:{orgId}:enrichment:{email}       → Enrichment cache (TTL: 7d)
 contact360:global:provider:hunter:quota     → Provider quota tracker
 ```
@@ -1326,7 +1326,7 @@ topologySpreadConstraints:
 // packages/shared-config/src/flags.ts
 export const FLAGS = {
   AI_AGENT_V2:          'ai-agent-v2',
-  BQL_EXPORT_XLSX:      'bql-export-xlsx',
+  VQL_EXPORT_XLSX:      'vql-export-xlsx',
   CAMPAIGN_AB_TEST:     'campaign-ab-test',
   PHONE_WHATSAPP:       'phone-whatsapp',
   CHROME_EXT_V2:        'chrome-ext-v2',

@@ -329,7 +329,7 @@ BulkActionBar.tsx        // Fixed bottom bar on selection
 
 ```
 Step 1: Basics        Name · Goal · Tags
-Step 2: Audience      BQL segment builder — live preview count
+Step 2: Audience      VQL segment builder — live preview count
 Step 3: Sequence      Drag-drop step builder:
                         Day 0: Email (subject + body template)
                         Day 2: LinkedIn DM

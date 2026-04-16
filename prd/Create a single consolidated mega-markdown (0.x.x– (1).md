@@ -190,7 +190,7 @@ Optional supporting tables:
 **email_templates**, **campaign_templates**
 - Store subject/body and multi-step sequence definitions (JSONB).
 
-### 2.7.0 Files, Jobs, BQL
+### 2.7.0 Files, Jobs, VQL
 
 **files**
 - S3 metadata:
@@ -210,7 +210,7 @@ Optional supporting tables:
 - Append-only logs for job progress and failures.
 
 **bql_queries**, **bql_exports**
-- BQL query text, execution metadata, and links to exported files.
+- VQL query text, execution metadata, and links to exported files.
 
 ### 2.8.0 AI, MCP, Integrations, Extension Data
 
@@ -270,7 +270,7 @@ Key patterns (examples):
 
 - CRUD and search for:
   - Contacts, companies, deals, activities.
-- BQL parsing and execution.
+- VQL parsing and execution.
 - Import/export pipelines (CSV via `files` + `jobs`).
 - OpenSearch syncing for search indices.
 - Kafka events:

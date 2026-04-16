@@ -46,7 +46,7 @@ Your complete Contact360 Deployment \& DevOps Runbook is ready — **2,056 lines
 - **EKS cluster** — 3 node groups: `core` (m6i.xlarge On-Demand for CRM/Auth), `workers` (m6i.2xlarge Spot for Email/Phone/AI), and `gpu` (g4dn.xlarge for AI Agent); OIDC/IRSA enabled; taint/toleration strategy per group
 - **RDS PostgreSQL 16** — Multi-AZ r7g.xlarge, PITR enabled, 30-day backups, pgvector + pg_stat_statements loaded, PgBouncer sidecar in transaction mode (1000 clients → 25 server conns per DB)
 - **OpenSearch** — 3-node cluster with dedicated master nodes, kNN vector field for semantic search, ILM-ready index templates
-- **Redis** — 3-shard cluster mode with full key namespace strategy (`dnd:`, `bql:`, `enrichment:`, `rate:`, `job:progress`)
+- **Redis** — 3-shard cluster mode with full key namespace strategy (`dnd:`, `vql:`, `enrichment:`, `rate:`, `job:progress`)
 - **S3** — 3 buckets (uploads, exports, backups), lifecycle rules (30d → IA → 90d → Glacier → 365d expire), CORS for direct browser upload
 - **Lambda** — 5 functions: file-validator, enrichment-trigger, DND-refresh, DB-backup-verify, export-cleanup
 

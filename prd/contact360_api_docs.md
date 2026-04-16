@@ -748,7 +748,7 @@ Create a new multi-channel outreach campaign.
 | `name` | string | ✓ | Campaign name |
 | `goal` | enum | ✓ | `awareness` · `demo_booking` · `re_engage` · `upsell` |
 | `audienceType` | enum | ✓ | `segment` · `contactIds` · `file` |
-| `segmentId` | string | cond. | BQL segment ID |
+| `segmentId` | string | cond. | VQL segment ID |
 | `steps` | array | ✓ | Sequence steps (1–20) |
 | `steps[].channel` | enum | ✓ | `email` · `whatsapp` · `sms` · `linkedin` |
 | `steps[].delayDays` | integer | ✓ | Days after previous step |
@@ -1109,11 +1109,11 @@ Body: { "approved": true }
 
 ---
 
-# CONNECTOR SERVICE (BQL) · `/bql`
+# CONNECTOR SERVICE (VQL) · `/vql`
 
-## POST /bql/query
+## POST /vql/query
 
-Execute a BQL (Business Query Language) query against multi-source CRM data.
+Execute a VQL (Business Query Language) query against multi-source CRM data.
 
 **Auth:** Required · **Rate limit:** 100/min
 
@@ -1132,13 +1132,13 @@ Execute a BQL (Business Query Language) query against multi-source CRM data.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `query` | string | ✓ | BQL query string |
+| `query` | string | ✓ | VQL query string |
 | `options.cache` | boolean | — | Cache result in Redis (default: true) |
 | `options.cacheTtl` | integer | — | Cache TTL in seconds (default: 300) |
 | `options.includeCount` | boolean | — | Return total matching count |
 | `options.explain` | boolean | — | Return execution plan without running |
 
-### BQL Supported Operators
+### VQL Supported Operators
 ```
 =, !=, >, >=, <, <=
 IN (list), NOT IN (list)
@@ -1149,7 +1149,7 @@ BETWEEN val1 AND val2
 NOW(), TODAY(), DAYS_AGO(n), MONTHS_AGO(n)
 ```
 
-### BQL Supported Fields
+### VQL Supported Fields
 ```
 contacts.*         name, email, phone, jobTitle, enrichmentScore, source, createdAt
 email.*            verified, confidence, status, provider
@@ -1201,9 +1201,9 @@ activity.*         type, date, channel
 
 ---
 
-## POST /bql/export
+## POST /vql/export
 
-Export the results of a BQL query to a file (CSV or JSON).
+Export the results of a VQL query to a file (CSV or JSON).
 
 **Auth:** Required · **Rate limit:** 20/min
 
@@ -1220,7 +1220,7 @@ Export the results of a BQL query to a file (CSV or JSON).
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `query` | string | ✓ | BQL query to export |
+| `query` | string | ✓ | VQL query to export |
 | `format` | enum | ✓ | `csv` · `json` · `xlsx` |
 | `columns` | string[] | — | Columns to include (default: all) |
 | `filename` | string | — | Output file name |
@@ -1242,9 +1242,9 @@ Export the results of a BQL query to a file (CSV or JSON).
 
 ---
 
-## POST /bql/import
+## POST /vql/import
 
-Import contacts or data from a CSV/JSON file into the CRM via BQL-mapped fields.
+Import contacts or data from a CSV/JSON file into the CRM via VQL-mapped fields.
 
 **Auth:** Required · **Rate limit:** 10/min
 

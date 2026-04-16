@@ -12,7 +12,7 @@
 6. [Layer 5 — AI Layer](#6-ai-layer)
 7. [Event-Driven Backbone](#7-event-driven-backbone)
 8. [MCP — Model Control Panel](#8-mcp-model-control-panel)
-9. [Connector Service (BQL)](#9-connector-service-bql)
+9. [Connector Service (VQL)](#9-connector-service-vql)
 10. [Multi-Tenant SaaS Design](#10-multi-tenant-saas-design)
 11. [Security Architecture](#11-security-architecture)
 12. [AWS Infrastructure](#12-aws-infrastructure)
@@ -38,7 +38,7 @@
    │      │      │      │      │      │      │      │
 ┌──▼──────▼──────▼──────▼──────▼──────▼──────▼──────▼─────────────────┐
 │                    MICROSERVICES LAYER                               │
-│  CRM │ Email │ Phone │ Campaign │ Connector(BQL) │ Storage           │
+│  CRM │ Email │ Phone │ Campaign │ Connector(VQL) │ Storage           │
 │  AI Agent │ Notification │ Integration │ MCP                        │
 └──┬──────┬──────────────────────────────────────────────────────────┘
    │      │           Event Bus (Kafka / Redis Streams)
@@ -339,13 +339,13 @@ Sequence Automation:
   → Step 4: Task for rep to call if no engagement in 14 days
 ```
 
-### 4.5 Connector Service (BQL)
+### 4.5 Connector Service (VQL)
 ```
 tech:         Node.js 20 + Fastify
 port:         3006
 purpose:      Business Query Language — unified data access layer
 
-BQL (Business Query Language):
+VQL (Business Query Language):
   A custom DSL that translates plain-English-like queries into
   multi-source data fetches across PostgreSQL + OpenSearch + Redis.
 
@@ -358,7 +358,7 @@ BQL (Business Query Language):
     ORDER BY lead_score DESC
     LIMIT 50
 
-  BQL Query → Connector Service:
+  VQL Query → Connector Service:
     → Parses AST
     → Generates PostgreSQL query (Prisma)
     → Merges with OpenSearch filter for full-text fields
@@ -369,7 +369,7 @@ BQL (Business Query Language):
     - AI Agent's search_contacts() tool
     - Campaign Service for audience targeting
     - Analytics Service for custom reports
-    - NL Interface (converts LLM output → BQL)
+    - NL Interface (converts LLM output → VQL)
 ```
 
 ### 4.6 Storage Service
@@ -422,7 +422,7 @@ Agent Architecture (LangGraph StatefulGraph):
   └──────────────────────────────────────────────┘
 
 Available Tools:
-  search_contacts(query, filters)       → BQL connector
+  search_contacts(query, filters)       → VQL connector
   get_deal_history(deal_id)             → CRM service
   get_activity_timeline(contact_id)     → CRM service
   draft_email(contact_id, goal, tone)   → LLM + CRM context
@@ -866,11 +866,11 @@ Active A/B Tests:
 
 ---
 
-## 9. Connector Service (BQL)
+## 9. Connector Service (VQL)
 
 *(See Section 4.5 for full spec)*
 
-**BQL Grammar Reference:**
+**VQL Grammar Reference:**
 ```
 FIND <entity>
   WHERE <field> <op> <value>
@@ -1163,7 +1163,7 @@ All feedback events:
 | Email Service | Node.js 20, Fastify, BullMQ | Enrichment + sending |
 | Phone Service | Node.js 20, Fastify, BullMQ | Enrichment + validation |
 | Campaign Service | Node.js 20, Express | Multi-channel campaigns |
-| Connector Service | Node.js 20, Fastify | BQL query engine |
+| Connector Service | Node.js 20, Fastify | VQL query engine |
 | Storage Service | Node.js 20, Express, AWS SDK v3 | S3 file management |
 | AI Agent Service | Python 3.12, FastAPI, LangGraph | Orchestration + RAG |
 | Notification Service | Node.js 20, Express, Socket.io | All notification channels |

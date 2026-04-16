@@ -244,7 +244,7 @@ level TEXT,
 created_at TIMESTAMP
 );
 
-🔎 10. CONNECTOR (BQL QUERY LOGS)
+🔎 10. CONNECTOR (VQL QUERY LOGS)
 CREATE TABLE bql_queries (
 id UUID PRIMARY KEY,
 org_id UUID,
@@ -343,7 +343,7 @@ AI Layer (Vector DB optional) → intelligence
 I can now:
 Draw ER Diagram (visual)
 Create Prisma schema / ORM models
-Design BQL query language syntax
+Design VQL query language syntax
 Generate real backend starter code (NestJS/Go)
 Just tell me 👍
 

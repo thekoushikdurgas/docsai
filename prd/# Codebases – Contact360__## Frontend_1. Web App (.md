@@ -15,7 +15,7 @@
 6. Email Service
 7. Phone Service
 8. Campaign Service
-9. Connector Service (BQL)
+9. Connector Service (VQL)
 10. Storage Service
 11. AI Agent Service
 12. Notification Service
@@ -52,7 +52,7 @@ All 15 codebases live inside a single **Turborepo monorepo** under `apps/`, with
 - **CRM Service** — NestJS + Prisma with full multi-tenant RLS, REST + GraphQL dual interface, OpenSearch sync via Kafka consumer, and 5 distinct event types published
 - **Email Service** — waterfall enrichment (Pattern Engine → Hunter.io → Apollo → SMTP Verify → ZeroBounce) as individual providers behind a `waterfall.service.ts` orchestrator, all driven by BullMQ
 - **Phone Service** — Truecaller/NumVerify discovery, Twilio carrier lookup, TRAI DND check (Redis-cached 24h), plus SMS (Twilio/MSG91) and WhatsApp (Meta Business API) sending
-- **Connector Service (BQL)** — PEG.js grammar parses your custom BQL DSL into an AST, plans multi-source queries across PostgreSQL + OpenSearch + Redis + pgvector, used by campaigns for audience segmentation
+- **Connector Service (VQL)** — PEG.js grammar parses your custom VQL DSL into an AST, plans multi-source queries across PostgreSQL + OpenSearch + Redis + pgvector, used by campaigns for audience segmentation
 - **AI Agent Service (Python)** — LangGraph orchestrates a `plan → retrieve → fuse → generate → tools` loop with hybrid RAG (BM25 + cosine merged via RRF), lead scoring, and embedding generation
 - **MCP (Control Panel)** — routes each AI query to the right LLM model via intent classification, managing per-org model config, system prompts, token budgets, and tool registries
 - **AI MCP (Chat)** — full conversational agent with persistent pgvector memory, 5 tool categories (contact, deal, campaign, email, analytics), a **human-in-the-loop approval gate** before any write action, plus Whisper voice input

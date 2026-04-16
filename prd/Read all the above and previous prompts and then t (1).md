@@ -200,7 +200,7 @@ This is tuned specifically to your Contact360 architecture, AI agent layer, mult
     - File: `docs/09-ai/07-memory-layers-spec.md`
 - **0.5.2.2 – System prompt template \& style rules**
     - File: `docs/09-ai/08-system-prompt-template-v0.md`
-- **0.5.2.3 – Use‑case prompt templates (campaign, insights, follow‑up, BQL)**
+- **0.5.2.3 – Use‑case prompt templates (campaign, insights, follow‑up, VQL)**
     - File: `docs/09-ai/09-usecase-prompt-templates-v0.md`
 
 ***

@@ -141,9 +141,9 @@ UI then shows live stats, and AI can suggest A/B tests or follow-ups.
 1. User opens Chat UI (web/MCP/Slack) and sends a natural language request such as:
 “Find top 50 CTOs in Bangalore and send them an email campaign.”[^2]
 2. **Context Builder** loads org/user/session context (Redis + `ai_memories` + org stats), then **Intent Engine** tags intents (`SEARCH_CONTACTS`, `CREATE_CAMPAIGN`, `SEND_CAMPAIGN`).[^2]
-3. **Planner Engine** decomposes into steps and chooses tools (`bql.query`, `email.validate`, `campaign.create`, `campaign.send`).[^2]
+3. **Planner Engine** decomposes into steps and chooses tools (`vql.query`, `email.validate`, `campaign.create`, `campaign.send`).[^2]
 4. **Execution Engine** runs tools step-by-step:
-    - BQL → Connector/CRM services.
+    - VQL → Connector/CRM services.
     - Validation → Email Service.
     - Campaign creation + send → Campaign Service.
     - Applies safety: permission checks, rate limits, approval gates for sends.[^2]
@@ -173,7 +173,7 @@ This makes Contact360 “follow” the user into sales tools without manual entr
 2. A background job (`jobs` table + Redis/BullMQ) parses file, infers columns (`file_columns`), and generates analysis (`file_analysis`).[^1]
 3. Another job maps columns to CRM fields, validates each row, and writes contacts/companies/deals via CRM service.
 4. Errors and progress are tracked in `job_logs` and surfaced to UI.[^1]
-5. Exports follow reverse path: BQL/CRM → S3 file → `files`/`jobs` metadata → download.
+5. Exports follow reverse path: VQL/CRM → S3 file → `files`/`jobs` metadata → download.
 
 ***
 

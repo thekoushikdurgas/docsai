@@ -1160,7 +1160,7 @@ func getRateLimitConfig(route string) RateLimitConfig {
         "/v1/email/bulk-generate":  {Rate: 0.167, Burst: 10},   // 10/min
         "/v1/email/bulk-validate":  {Rate: 0.167, Burst: 10},
         "/v1/phone/bulk":           {Rate: 0.167, Burst: 10},
-        "/v1/bql/export":           {Rate: 0.333, Burst: 20},   // 20/min
+        "/v1/vql/export":           {Rate: 0.333, Burst: 20},   // 20/min
         "/v1/ai/query":             {Rate: 1.0,   Burst: 60},   // 60/min
         "/v1/ai/action":            {Rate: 0.5,   Burst: 30},
         "/v1/auth/login":           {Rate: 0.333, Burst: 20},   // 20/min per IP

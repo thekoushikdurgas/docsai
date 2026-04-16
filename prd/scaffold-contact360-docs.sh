@@ -225,7 +225,7 @@ write "02-services/crm-service/README.md" << 'EOF'
 - CRUD: Contacts, Companies, Deals, Activities
 - Full-text + semantic search
 - Lead scoring orchestration
-- BQL query execution
+- VQL query execution
 - CSV import/export job dispatch
 - OpenSearch index sync via Kafka
 
@@ -238,7 +238,7 @@ crm-service/src/
 ├── deals/        controller · service · pipeline.service
 ├── activities/   controller · service
 ├── search/       controller · service (OpenSearch client)
-├── bql/          parser · executor · validator
+├── vql/          parser · executor · validator
 ├── import/       controller · csv.parser · field.mapper
 ├── export/       service · csv.serializer
 ├── kafka/        producer · consumer
@@ -258,7 +258,7 @@ crm-service/src/
 | GET | /v1/deals | Pipeline view |
 | POST | /v1/deals | Create deal |
 | PATCH | /v1/deals/:id/stage | Move stage |
-| POST | /v1/bql/query | Execute BQL |
+| POST | /v1/vql/query | Execute VQL |
 | POST | /v1/import | Upload CSV → job |
 
 ## Kafka Events Published
@@ -333,7 +333,7 @@ files_in "03-database/schemas" \
   "00-tenancy-users.md" "01-contacts-companies.md" "02-deals-pipeline.md" \
   "03-email-system.md" "04-phone-system.md" "05-campaigns.md" \
   "06-templates.md" "07-files-storage.md" "08-jobs.md" \
-  "09-bql-connector.md" "10-ai-mcp.md" "11-integrations.md" \
+  "09-vql-connector.md" "10-ai-mcp.md" "11-integrations.md" \
   "12-extension-data.md" "13-audit-logs.md" "14-billing.md" \
   "15-notifications.md" "FULL-SCHEMA.sql"
 
@@ -588,7 +588,7 @@ REST_DIRS=(
   "04-api/rest/integrations"
   "04-api/rest/users"
   "04-api/rest/organizations"
-  "04-api/rest/bql"
+  "04-api/rest/vql"
   "04-api/rest/templates"
 )
 for d in "${REST_DIRS[@]}"; do mkd "$d"; done
@@ -613,7 +613,7 @@ files_in "04-api/rest/jobs"          "list-jobs.md" "job-status.md" "cancel-job.
 files_in "04-api/rest/integrations"  "list-integrations.md" "connect.md" "disconnect.md"
 files_in "04-api/rest/users"         "list-users.md" "invite-user.md" "update-role.md"
 files_in "04-api/rest/organizations" "get-org.md" "update-org.md" "billing.md"
-files_in "04-api/rest/bql"           "execute-query.md" "query-syntax.md" "export-results.md"
+files_in "04-api/rest/vql"           "execute-query.md" "query-syntax.md" "export-results.md"
 files_in "04-api/rest/templates"     "list-templates.md" "create-template.md" "preview-template.md"
 files_in "04-api/rest"               "openapi-spec.yaml" "error-reference.md" "pagination.md" \
                                      "rate-limiting.md" "versioning.md"

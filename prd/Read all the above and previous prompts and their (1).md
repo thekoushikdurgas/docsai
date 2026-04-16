@@ -73,7 +73,7 @@ docs/
 ├── 09-testing-qa.md
 ├── 10-deployment.md
 ├── 11-onboarding.md
-├── 12-bql-language.md
+├── 12-vql-language.md
 ├── 13-runbook.md
 └── schema.prisma          # lives alongside as DB schema
 ```
@@ -120,7 +120,7 @@ Capture all the diagrams you already outlined:
 - **File Storage Flow** (CSV Upload → S3 → Jobs → DB → UI)
 - **Email Enrichment Flow** (pattern + validation)
 - **Campaign Execution Flow** (multi-channel)
-- **BQL Connector Flow** (BQL → Postgres + OpenSearch → merge)
+- **VQL Connector Flow** (VQL → Postgres + OpenSearch → merge)
 - **Chrome Extension Flow** (LinkedIn/Gmail → extension → API → CRM → OpenSearch)
 
 Each section: ASCII diagram + 1–2 paragraphs of explanation.
@@ -212,7 +212,7 @@ Define:
     - Keyword search via OpenSearch (full-text).
     - RRF merge + re-ranking.
 - Tools exposed to the AI agent:
-    - `bql.query`, `crm.search_contacts`, `campaign.get_analytics`, `crm.rank_leads`
+    - `vql.query`, `crm.search_contacts`, `campaign.get_analytics`, `crm.rank_leads`
     - `email.validate`, `campaign.create`, `campaign.send`, `crm.update_contact`, `crm.add_to_list`, `campaign.schedule_followup`
 - Human-in-the-loop approval model.
 - Model selection (primary vs cost-saving).
@@ -298,9 +298,9 @@ Document how the agent “thinks”:
 
 ***
 
-### 12-bql-language.md — Query Language
+### 12-vql-language.md — Query Language
 
-- Purpose: BQL = internal query language for CRM filtering/search, used by AI and UIs.
+- Purpose: VQL = internal query language for CRM filtering/search, used by AI and UIs.
 - Syntax:
     - `FROM contacts WHERE title = 'CTO' AND city = 'Bangalore' LIMIT 50`
     - Filters, projections, order, pagination.

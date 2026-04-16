@@ -6,14 +6,14 @@
 
 ## Summary
 
-**Campaign service** defines a **sequence** → **Scheduler (BullMQ cron)** pulls **BQL audience** segmentation → dispatches multi-channel sends: **Email** (SendGrid / SES), **WhatsApp** (Meta Business API), **SMS** (Twilio / MSG91). **DND Guard**: **TRAI check** before SMS + WhatsApp India routes, **Redis-cached 24h** per subscriber/destination where applicable. Engagement flows through **tracking**: open **pixel webhook**, click **redirect proxy**, reply **inbound webhook** → normalized to Kafka topics (see below) → **Analytics** updates stats → **Sequence engine** triggers **next step**.
+**Campaign service** defines a **sequence** → **Scheduler (BullMQ cron)** pulls **VQL audience** segmentation → dispatches multi-channel sends: **Email** (SendGrid / SES), **WhatsApp** (Meta Business API), **SMS** (Twilio / MSG91). **DND Guard**: **TRAI check** before SMS + WhatsApp India routes, **Redis-cached 24h** per subscriber/destination where applicable. Engagement flows through **tracking**: open **pixel webhook**, click **redirect proxy**, reply **inbound webhook** → normalized to Kafka topics (see below) → **Analytics** updates stats → **Sequence engine** triggers **next step**.
 
 ## Actors
 
 - Marketer / automation — build campaign & sequence
 - **Campaign Svc** — sequence graph, content resolution
 - **Scheduler** — BullMQ + cron / delayed jobs
-- **BQL / segmentation** — audience materialization
+- **VQL / segmentation** — audience materialization
 - **Channel services** — email, WhatsApp, SMS adapters
 - **Trackers** — pixel, redirect, inbound parsers
 - **Kafka** — engagement event bus

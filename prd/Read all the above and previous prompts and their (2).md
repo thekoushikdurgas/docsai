@@ -11,7 +11,7 @@ Here is the concise answer you’re asking for, based on everything above:
 - The **docs files** that together describe the full end‑to‑end flow of Contact360 are:
 
 1. `01-architecture.md` – overall system architecture and how UIs, services, and data stores fit together from request to response.
-2. `02-system-diagrams.md` – all major diagrams: high-level system, user journey, AI agent flow, file/import flow, enrichment flow, campaign flow, BQL flow, extension flow.
+2. `02-system-diagrams.md` – all major diagrams: high-level system, user journey, AI agent flow, file/import flow, enrichment flow, campaign flow, VQL flow, extension flow.
 3. `03-database-schema.md` – detailed production PostgreSQL schema (multi-tenancy, CRM, campaigns, jobs, AI, integrations, extension) and how it supports the system.
 4. `schema.prisma` – concrete ORM schema for the database, used by backend codebases.
 5. `04-api-reference.md` – HTTP API for all web UI and external clients: endpoints, payloads, responses, errors across Auth/CRM/Email/Phone/Campaign/AI/File/Integration.
@@ -22,7 +22,7 @@ Here is the concise answer you’re asking for, based on everything above:
 10. `09-testing-qa.md` – testing strategy and QA processes across all codebases.
 11. `10-deployment.md` – deployment architecture and environment strategy.
 12. `11-onboarding.md` – how a developer gets the whole system running locally.
-13. `12-bql-language.md` – how the internal query language works and maps to data.
+13. `12-vql-language.md` – how the internal query language works and maps to data.
 14. `13-runbook.md` – operational runbooks for incidents and maintenance.
 - The **end‑to‑end flow** of the project is:
 

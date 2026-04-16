@@ -6,7 +6,7 @@
 
 ## Summary
 
-User asks a **natural-language** question. **MCP / routing** selects model config. **AI Agent (LangGraph)** fans out retrieval: **OpenSearch BM25** keyword hits, **pgvector cosine** semantic hits, **structured CRM** reads, and optional **BQL / multi-source** connector. **BM25 + vector run in parallel** and merge via **RRF (Reciprocal Rank Fusion)** into **top-K context** for **GPT-4o** (or configured model) **grounded generation** plus **tool calls** → **structured response + citations** back to client. Token stream uses **SSE** (see decisions).
+User asks a **natural-language** question. **MCP / routing** selects model config. **AI Agent (LangGraph)** fans out retrieval: **OpenSearch BM25** keyword hits, **pgvector cosine** semantic hits, **structured CRM** reads, and optional **VQL / multi-source** connector. **BM25 + vector run in parallel** and merge via **RRF (Reciprocal Rank Fusion)** into **top-K context** for **GPT-4o** (or configured model) **grounded generation** plus **tool calls** → **structured response + citations** back to client. Token stream uses **SSE** (see decisions).
 
 ## Actors
 
@@ -16,7 +16,7 @@ User asks a **natural-language** question. **MCP / routing** selects model confi
 - **OpenSearch** — BM25 keyword search on CRM index
 - **pgvector** — cosine similarity on embeddings
 - **CRM Service** — authoritative structured rows
-- **BQL connector** — multi-source structured queries (where enabled)
+- **VQL connector** — multi-source structured queries (where enabled)
 - **RRF fusion** — rank merge of parallel retrievers
 - **LLM** — grounded answer + optional tools
 - **Kafka** — `ai.query.completed` for metering

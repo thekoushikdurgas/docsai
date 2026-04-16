@@ -19,7 +19,7 @@ contact360/
 │   ├── email-service/         # 06 — Email Service (NestJS)
 │   ├── phone-service/         # 07 — Phone Service (NestJS)
 │   ├── campaign-service/      # 08 — Campaign Service (NestJS)
-│   ├── connector-service/     # 09 — Connector / BQL (NestJS)
+│   ├── connector-service/     # 09 — Connector / VQL (NestJS)
 │   ├── storage-service/       # 10 — Storage Service (Fastify)
 │   ├── ai-agent-service/      # 11 — AI Agent Service (Python/FastAPI)
 │   ├── notification-service/  # 12 — Notification Service (NestJS)
@@ -280,7 +280,7 @@ GET    /v1/jobs/:id/stream     → SSE proxy → storage-service/crm-service
 - Multi-tenant data isolation via Prisma Row-Level Security
 - Kafka event publishing on all mutations
 - OpenSearch sync via Kafka consumer
-- BQL query execution (delegated to connector-service)
+- VQL query execution (delegated to connector-service)
 - GraphQL API for frontend (nested relational data)
 - Webhooks for outbound integrations
 
@@ -451,7 +451,7 @@ apps/phone-service/
 ### Key Responsibilities
 - Campaign CRUD (name, goal, steps, audience, schedule)
 - Step sequencer with delay + conditional branching
-- BQL audience evaluation (delegates to connector-service)
+- VQL audience evaluation (delegates to connector-service)
 - BullMQ cron job creation per campaign
 - Step dispatch: routes to email-service / phone-service per channel
 - Engagement tracking aggregation
@@ -474,7 +474,7 @@ apps/campaign-service/
 │   │   ├── cron.service.ts          # BullMQ repeatable jobs
 │   │   └── send-window.service.ts   # 08:00–18:00 Mon–Fri logic
 │   ├── audience/
-│   │   └── audience.service.ts      # Calls connector-service BQL
+│   │   └── audience.service.ts      # Calls connector-service VQL
 │   ├── tracking/
 │   │   ├── tracking.controller.ts   # Webhook inbound (open/click/reply)
 │   │   └── tracking.service.ts
@@ -489,22 +489,22 @@ apps/campaign-service/
 
 ---
 
-## 09 — Connector Service (BQL)
+## 09 — Connector Service (VQL)
 
 **Path:** `apps/connector-service/`
 **Framework:** NestJS 10 · TypeScript
 **Port:** 3050
-**Also known as:** BQL Engine (Business Query Language)
+**Also known as:** VQL Engine (Business Query Language)
 
 ### Key Responsibilities
-- Parse + execute BQL (Contact360's SQL-like query DSL)
+- Parse + execute VQL (Contact360's SQL-like query DSL)
 - Multi-source query fan-out: PostgreSQL + OpenSearch + Redis + pgvector
 - Audience segmentation for campaigns
 - Data export query execution
 - Schema introspection endpoint (frontend query builder)
 - Result caching (Redis, 5 min TTL)
 
-### BQL Grammar (sample)
+### VQL Grammar (sample)
 ```sql
 SELECT contacts
 WHERE company = "Acme"
@@ -520,7 +520,7 @@ LIMIT 500
 ```
 apps/connector-service/
 ├── src/
-│   ├── bql/
+│   ├── vql/
 │   │   ├── parser.ts              # PEG.js grammar → AST
 │   │   ├── planner.ts             # AST → execution plan
 │   │   └── executor.ts            # Execute plan across sources
@@ -532,7 +532,7 @@ apps/connector-service/
 │   ├── schema/
 │   │   └── introspect.service.ts  # Returns available fields
 │   ├── export/
-│   │   └── export.service.ts      # BQL → CSV/JSON export
+│   │   └── export.service.ts      # VQL → CSV/JSON export
 │   └── cache/
 │       └── result-cache.service.ts
 └── Dockerfile
