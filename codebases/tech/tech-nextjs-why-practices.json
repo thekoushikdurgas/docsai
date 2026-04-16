@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "tech/tech-nextjs-why-practices.json",
+  "sha256_source": "9781ae24ae6384310ed3c9c0b17cc10bf23139a94d48c2bbe0a6422823746a1d",
+  "generated_at": "2026-04-08T23:26:49.669650+00:00",
+  "title": "why best next js framework , and what is the beat practices of next js framework",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "",
+      "level": 0,
+      "slug": "",
+      "prose": "<img src=\"https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png\" style=\"height:64px;margin-right:32px\"/>",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "why best next js framework , and what is the beat practices of next js framework",
+      "level": 1,
+      "slug": "why-best-next-js-framework-and-what-is-the-beat-practices-of-next-js-framework",
+      "prose": "Next.js is considered one of the best frameworks in the React ecosystem because it adds batteries‑included routing, server rendering, and performance optimizations on top of React while keeping a relatively simple developer experience. For modern production apps that care about SEO, performance, and scalability, it solves many cross‑cutting concerns (SSR/SSG/ISR, code splitting, image optimization, API routes) out of the box.[^1][^2][^3][^4]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Why Next.js is so strong",
+      "level": 2,
+      "slug": "why-nextjs-is-so-strong",
+      "prose": "Next.js extends React with built‑in server‑side rendering (SSR), static site generation (SSG), incremental static regeneration (ISR), and client‑side rendering (CSR), so you can choose the optimal rendering strategy per page instead of hand‑rolling it. It also provides file‑based routing, automatic code splitting, API routes, and image optimization, which reduces boilerplate and improves performance for typical web apps compared with plain React setups.[^2][^3][^4][^5][^1]\n\nNext.js apps are often more SEO‑friendly than vanilla React SPAs because content can be rendered on the server or prebuilt as static HTML, making it easier and faster for search engines to index. The framework’s opinionated structure and built‑in tooling (Fast Refresh, routing conventions, hybrid rendering) also improve scalability and maintainability for larger projects.[^3][^4][^2]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "When Next.js makes the most sense",
+      "level": 2,
+      "slug": "when-nextjs-makes-the-most-sense",
+      "prose": "Next.js is especially well‑suited for content‑driven sites (blogs, docs, marketing pages, e‑commerce) where SEO and initial load performance matter, because you can pre‑render most content and still mix in dynamic parts. It’s also a good fit when you want a single stack for frontend and lightweight backend via API routes or serverless functions inside the same codebase.[^4][^1][^2][^3]\n\nFor highly interactive dashboard‑style apps, you can still leverage Next.js, using CSR and client components where needed, while delegating data fetching and heavy work to the server for performance and security. In contrast, plain React is often enough for small SPAs where SEO is not important and you want maximum flexibility without the framework opinions.[^6][^7][^1][^2][^3][^4]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Project structure and routing",
+      "level": 2,
+      "slug": "project-structure-and-routing",
+      "prose": "With the App Router (app/ directory), organize your app using route segments, nested layouts, and route groups to keep features modular and scalable. Route groups and feature packages are recommended for production‑grade structures, so that related pages, components, and logic live together while the URL structure stays clean.[^7][^8]\n\nPrefer colocating components, loaders, and layouts near their route in the app tree, which matches the mental model of the App Router and keeps refactors local. Use nested layouts to share UI (navigation, sidebars) at the deepest possible level instead of putting everything in the root layout, so Next.js can optimize which parts of the tree re‑render.[^9][^8][^7]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Server vs client components",
+      "level": 2,
+      "slug": "server-vs-client-components",
+      "prose": "Use Server Components by default and only mark files with `'use client'` when you truly need interactivity, local state, or browser APIs like `window` or `localStorage`. This pattern keeps most logic on the server, reduces JavaScript bundle size, and improves performance for users.[^8][^6][^9][^7]\n\nUse Server Components for data fetching, accessing backend resources, and any code that touches secrets or heavy libraries (database clients, data‑parsing libs). Use Client Components for event handlers, React hooks (`useState`, `useEffect`, etc.), browser APIs, and real‑time subscriptions.[^9][^7][^8]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data fetching and rendering strategy",
+      "level": 2,
+      "slug": "data-fetching-and-rendering-strategy",
+      "prose": "For each route, choose the rendering strategy that matches the use case: SSR for highly dynamic or personalized pages, SSG for mostly static content, and ISR when you want static‑like performance with periodic background regeneration. This lets you balance performance, freshness, and server load rather than relying only on client‑side rendering.[^1][^6][^3][^4]\n\nFetch data on the server as close as possible to where it’s used (inside the relevant Server Component or route handler) instead of doing redundant client‑side fetches, which avoids extra network round‑trips and simplifies your HTTP surface. Use caching and revalidation (for example `revalidate` with ISR) to keep content reasonably fresh without rebuilding the whole site.[^6][^7][^8][^1][^9]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Performance optimization",
+      "level": 2,
+      "slug": "performance-optimization",
+      "prose": "Rely on automatic code splitting and avoid shipping large client bundles by keeping most components server‑side and only using `'use client'` at the leaf nodes that actually need it. Use dynamic imports for heavy client‑side components (charts, maps, editors) so they load lazily instead of blocking the main bundle.[^10][^6][^9]\n\nAvoid unnecessary client‑side data fetching; redundant `useEffect` fetches are a common App Router anti‑pattern that increase latency and complexity. Analyze your build using the Next.js bundle analyzer to spot heavy modules and optimize them, as recommended by performance‑oriented Next.js guides.[^10][^9]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "State management and context",
+      "level": 2,
+      "slug": "state-management-and-context",
+      "prose": "Use client‑side state (React context, Zustand, Redux, etc.) only where needed and keep providers as deep as possible in the tree so Next.js can optimize static parts of the app above them. If a context is only used within a specific section (for example, `/dashboard/settings`), mount it in the nearest layout for that section instead of the root layout.[^7][^9]\n\nRemember that React context and hooks cannot be created directly in Server Components; instead, wrap context providers in Client Components and use them where interactivity is required. Keep global state thin and prefer server‑driven data and URL params for things that should be shareable or bookmarkable.[^8][^9][^7]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security and backend logic",
+      "level": 2,
+      "slug": "security-and-backend-logic",
+      "prose": "Keep secrets, database access, and sensitive business logic inside Server Components, route handlers, or server actions so they never end up in the client bundle. Use the `use server` directive and separate `actions.ts` modules for server actions to guarantee they only execute on the server.[^9][^7][^8]\n\nWhen using client components, be careful not to import server‑only modules or environment variables into them, which can unintentionally expose internals. Centralizing mutations in server actions and route handlers also simplifies auditing and makes it easier to enforce authorization checks in one place.[^7][^9]",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Common pitfalls to avoid",
+      "level": 2,
+      "slug": "common-pitfalls-to-avoid",
+      "prose": "Do not mix server and client responsibilities in the same file; keep a clear boundary between server code and client components to avoid hydration issues and security leaks. Avoid trying to use React hooks or `createContext` directly in Server Components, since these are client‑only features and will break when rendered on the server.[^8][^9]\n\nWhen migrating from the Pages Router, resist the urge to recreate `getServerSideProps` with custom fetch calls from client components; in the App Router, prefer putting data fetching directly in Server Components. Also avoid overusing URL state or complex query params when a simple client‑side toggle backed by server‑fetched data is enough.[^11][^9][^8]\n\n***\n\nIf you tell me what you’re building (marketing site, SaaS dashboard, e‑commerce, etc.), I can translate these into a more concrete Next.js folder structure and patterns tailored to your use case.\n<span style=\"display:none\">[^12][^13][^14][^15]</span>\n\n<div align=\"center\">⁂</div>\n\n[^1]: https://digitalsoftware.co/ssr-vs-ssg-vs-csr-vs-isr-a-complete-guide-to-next-js-rendering-strategies/\n\n[^2]: https://www.geeksforgeeks.org/reactjs/nextjs-vs-reactjs-which-one-to-choose/\n\n[^3]: https://www.contentful.com/blog/next-js-vs-react/\n\n[^4]: https://www.freecodecamp.org/news/nextjs-vs-react-differences/\n\n[^5]: https://www.youtube.com/watch?v=I-zhncvdEGU\n\n[^6]: https://dev.to/devjordan/nextjs-15-app-router-complete-guide-to-server-and-client-components-5h6k\n\n[^7]: https://makerkit.dev/blog/tutorials/nextjs-app-router-project-structure\n\n[^8]: https://nextjs.org/docs/app/getting-started/server-and-client-components\n\n[^9]: https://upsun.com/blog/avoid-common-mistakes-with-next-js-app-router/\n\n[^10]: https://www.linkedin.com/posts/thanthein_understanding-ssr-ssg-isr-and-csr-in-nextjs-activity-7356004212817752064-5u4f\n\n[^11]: https://www.reddit.com/r/nextjs/comments/13sjq0p/what_is_best_practice_for_app_router_pass_server/\n\n[^12]: https://www.youtube.com/shorts/lvEc0N0zygU\n\n[^13]: https://www.linkedin.com/pulse/nextjs-essential-framework-driving-modern-web-development-khan-oq0ze\n\n[^14]: https://www.linkedin.com/posts/bradmca_a-complete-beginners-guide-to-nextjs-activity-7307395300116029441-YxQ_\n\n[^15]: https://www.reddit.com/r/nextjs/comments/17qbx9s/advice_on_choosing_nextjs_instead_of_plain_react/",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

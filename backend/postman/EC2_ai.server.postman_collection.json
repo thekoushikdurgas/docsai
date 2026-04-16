@@ -1,0 +1,189 @@
+{
+  "info": {
+    "name": "ai.server",
+    "description": "Contact360 AI satellite (HF + VQL + chats)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000" },
+    { "key": "ai_api_key", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health"
+      }
+    },
+    {
+      "name": "Ready",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health/ready"
+      }
+    },
+    {
+      "name": "Chat stateless",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Hello\",\n  \"conversation_id\": null,\n  \"context\": {}\n}"
+        },
+        "url": "{{base_url}}/api/v1/chat"
+      }
+    },
+    {
+      "name": "Gemini email analyze",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"jane.doe@example.com\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/gemini/email/analyze"
+      }
+    },
+    {
+      "name": "Gemini company summary",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"company_name\": \"Acme Corp\",\n  \"industry\": \"SaaS\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/gemini/company/summary"
+      }
+    },
+    {
+      "name": "Gemini parse filters",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"CTOs in SaaS in US\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/gemini/parse-filters"
+      }
+    },
+    {
+      "name": "List ai-chats",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" },
+          { "key": "X-User-ID", "value": "user-1" }
+        ],
+        "url": "{{base_url}}/api/v1/ai-chats/?limit=20&offset=0"
+      }
+    },
+    {
+      "name": "Create ai-chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" },
+          { "key": "X-User-ID", "value": "user-1" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"New chat\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/ai-chats/"
+      }
+    },
+    {
+      "name": "VQL parse",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"engineers at series B fintech\",\n  \"target\": \"contacts\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/vql/parse"
+      }
+    },
+    {
+      "name": "Apollo to VQL",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://app.apollo.io/#/people?qKeywords=saas&personTitles[]=CEO\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/apollo/to-vql"
+      }
+    },
+    {
+      "name": "Contact enrich",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"uuid\": \"00000000-0000-0000-0000-000000000000\",\n  \"email\": \"\",\n  \"linkedin_url\": \"\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/contact/enrich"
+      }
+    },
+    {
+      "name": "Company enrich",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"uuid\": \"\",\n  \"name\": \"Acme\",\n  \"domain\": \"acme.com\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/company/enrich"
+      }
+    },
+    {
+      "name": "Storage presign download",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{ai_api_key}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"key\": \"path/to/object\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/storage/presign"
+      }
+    }
+  ]
+}

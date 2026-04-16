@@ -1,0 +1,201 @@
+{
+  "info": {
+    "name": "logsapi",
+    "description": "API collection for contactlogs logsapi",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Create Log",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bucket\": \"default\",\n  \"level\": \"info\",\n  \"message\": \"test message\",\n  \"meta\": \"{\\\"key\\\": \\\"value\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/logs",
+          "host": ["{{base_url}}"],
+          "path": ["logs"]
+        }
+      }
+    },
+    {
+      "name": "Create Logs Batch",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    {\n      \"bucket\": \"default\",\n      \"level\": \"info\",\n      \"message\": \"batch msg 1\"\n    },\n    {\n      \"bucket\": \"default\",\n      \"level\": \"error\",\n      \"message\": \"batch msg 2\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/logs/batch",
+          "host": ["{{base_url}}"],
+          "path": ["logs", "batch"]
+        }
+      }
+    },
+    {
+      "name": "Get Logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/logs?limit=50&level=info",
+          "host": ["{{base_url}}"],
+          "path": ["logs"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            },
+            {
+              "key": "level",
+              "value": "info"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search Logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/logs/search?q=test&limit=50",
+          "host": ["{{base_url}}"],
+          "path": ["logs", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": "test"
+            },
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Log by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/logs/:id",
+          "host": ["{{base_url}}"],
+          "path": ["logs", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{log_id}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Log",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"updated message\",\n  \"level\": \"debug\",\n  \"meta\": \"updated meta\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/logs/:id",
+          "host": ["{{base_url}}"],
+          "path": ["logs", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{log_id}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Log",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/logs/:id",
+          "host": ["{{base_url}}"],
+          "path": ["logs", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "{{log_id}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Bulk Delete Logs",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ids\": [\n    \"{{log_id}}\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/logs/delete",
+          "host": ["{{base_url}}"],
+          "path": ["logs", "delete"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://3.91.83.154:8091"
+    },
+    {
+      "key": "log_id",
+      "value": "your-log-id"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/entities/EnrichmentJob.json",
+  "title": "EnrichmentJob",
+  "type": "object",
+  "required": ["id", "org_id", "target_type", "status", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "org_id": { "type": "string", "format": "uuid" },
+    "target_type": { "type": "string", "enum": ["contact", "company"] },
+    "target_id": { "type": "string", "format": "uuid" },
+    "status": {
+      "type": "string",
+      "enum": ["queued", "running", "completed", "failed", "partial", "cancelled"]
+    },
+    "provider_chain": { "type": "array", "items": { "type": "string" } },
+    "credits_reserved": { "type": "number" },
+    "credits_consumed": { "type": "number" },
+    "result_summary": { "type": "object", "additionalProperties": true },
+    "error_code": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "org_id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "target_type": "contact",
+      "target_id": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "status": "completed",
+      "provider_chain": ["internal", "clearbit", "manual"],
+      "credits_consumed": 2,
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ]
+}

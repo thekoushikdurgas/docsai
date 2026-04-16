@@ -1,0 +1,107 @@
+{
+  "kind": "backend",
+  "title": "Database — ER, migrations, RLS",
+  "version": "1.0.0",
+  "status": "draft",
+  "schema_refs": ["Organization.json", "User.json", "Contact.json", "Company.json"],
+  "sections": [
+    {
+      "id": "db.overview",
+      "title": "ER overview and tenancy model",
+      "file": "er-overview.md",
+      "status": "stub",
+      "flow_refs": ["flow1"],
+      "schema_refs": ["OrgContext.json"]
+    },
+    {
+      "id": "db.migrations",
+      "title": "Migration strategy and changelog",
+      "file": "migrations.md",
+      "status": "stub",
+      "flow_refs": [],
+      "schema_refs": []
+    },
+    {
+      "id": "db.rls",
+      "title": "RLS policies pointer",
+      "file": "rls-policies.md",
+      "status": "stub",
+      "flow_refs": ["flow1", "flow3"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.sync.server",
+      "title": "Connectra (sync.server) Postgres + OpenSearch",
+      "file": "sync.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow1", "flow2"],
+      "schema_refs": ["Contact.json", "Company.json"]
+    },
+    {
+      "id": "db.email.server",
+      "title": "email.server — Postgres jobs + patterns",
+      "file": "email.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow2"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.phone.server",
+      "title": "phone.server — Postgres jobs",
+      "file": "phone.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow2"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.s3storage.server",
+      "title": "s3storage.server — Redis jobs + S3 objects",
+      "file": "s3storage.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow2"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.log.server",
+      "title": "log.server — in-memory + S3 + Redis (no Postgres)",
+      "file": "log.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow2"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.extension.server",
+      "title": "extension.server — no local CRM DB (persist via Connectra)",
+      "file": "extension.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow5"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.ai.server",
+      "title": "ai.server — optional Postgres chats + Redis Asynq",
+      "file": "ai.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow3", "flow5"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.campaign.server",
+      "title": "campaign.server — Postgres campaigns + templates + sequences",
+      "file": "campaign.server-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow2", "flow10"],
+      "schema_refs": []
+    },
+    {
+      "id": "db.contact360.api",
+      "title": "contact360.io/api — Gateway Postgres (Alembic)",
+      "file": "contact360.io-schema.md",
+      "status": "populated",
+      "flow_refs": ["flow1", "flow2", "flow3", "flow4"],
+      "schema_refs": []
+    }
+  ],
+  "migration_tool": "Prisma or Atlas (TBD per repo)",
+  "rls_pattern": "SET LOCAL app.current_org_id = '<uuid>' per request"
+}

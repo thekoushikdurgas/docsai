@@ -1,0 +1,597 @@
+{
+  "schema_version": 1,
+  "kind": "document",
+  "source_path": "tech/tech-nextjs-checklist-100.json",
+  "sha256_source": "c686214f90d1a453345d515739913ea6ad89353fb19d3ed320322b5c54c6d64e",
+  "generated_at": "2026-04-08T23:26:49.660598+00:00",
+  "title": "give me 100 checklist that to use full power of next js framework and its best practices",
+  "front_matter": null,
+  "sections": [
+    {
+      "heading": "",
+      "level": 0,
+      "slug": "",
+      "prose": "<img src=\"https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png\" style=\"height:64px;margin-right:32px\"/>",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "give me 100 checklist that to use full power of next js framework and its best practices",
+      "level": 1,
+      "slug": "give-me-100-checklist-that-to-use-full-power-of-next-js-framework-and-its-best-practices",
+      "prose": "Here’s a 100‑point, production‑grade checklist to use the full power of the Next.js App Router and follow solid best practices. I’ve grouped items so you can treat each group like a phase (architecture, data, performance, security, DX, etc.).[^1][^2][^3][^4][^5]\n\n***",
+      "tables": [],
+      "lists": [],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Architecture \\& Project Setup",
+      "level": 2,
+      "slug": "architecture-project-setup",
+      "prose": "1. Use the App Router (`app/` directory) as the primary routing system for new projects instead of the legacy Pages Router.[^3][^1]\n2. Keep Pages Router only if you are actively migrating; avoid mixing both for new features to reduce mental overhead.[^4][^3]\n3. Follow the official folder conventions for `app/`, `app/api/`, `components/`, `lib/`, and `public/` to keep structure predictable.[^2][^1]\n4. Group related routes into feature folders (route groups) so that components, layouts, and hooks sit next to the route that uses them.[^6][^2]\n5. Use route groups `(marketing)`, `(dashboard)`, etc., to separate concerns in large apps without affecting the URL structure.[^1][^6]\n6. Keep global layout logic in `app/layout.tsx` minimal (theme, fonts, top‑level providers only); everything else should live in nested layouts.[^7][^1]\n7. Prefer a monorepo (Turborepo, pnpm workspaces) if you share UI libraries or backend packages across multiple Next.js apps.[^6]\n8. Create a `lib/` directory for pure, framework‑agnostic utilities (validation, formatting, domain logic) to avoid circular dependencies.[^2][^6]\n9. Decide early whether you deploy to Node runtime, Edge runtime, or a mix; document which routes run where.[^3][^1]\n10. Enable TypeScript from day one and keep it in `strict` mode to catch bugs at build time.[^4][^3]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use the App Router (`app/` directory) as the primary routing system for new projects instead of the legacy Pages Router.[^3][^1]",
+              "checked": null
+            },
+            {
+              "text": "Keep Pages Router only if you are actively migrating; avoid mixing both for new features to reduce mental overhead.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Follow the official folder conventions for `app/`, `app/api/`, `components/`, `lib/`, and `public/` to keep structure predictable.[^2][^1]",
+              "checked": null
+            },
+            {
+              "text": "Group related routes into feature folders (route groups) so that components, layouts, and hooks sit next to the route that uses them.[^6][^2]",
+              "checked": null
+            },
+            {
+              "text": "Use route groups `(marketing)`, `(dashboard)`, etc., to separate concerns in large apps without affecting the URL structure.[^1][^6]",
+              "checked": null
+            },
+            {
+              "text": "Keep global layout logic in `app/layout.tsx` minimal (theme, fonts, top‑level providers only); everything else should live in nested layouts.[^7][^1]",
+              "checked": null
+            },
+            {
+              "text": "Prefer a monorepo (Turborepo, pnpm workspaces) if you share UI libraries or backend packages across multiple Next.js apps.[^6]",
+              "checked": null
+            },
+            {
+              "text": "Create a `lib/` directory for pure, framework‑agnostic utilities (validation, formatting, domain logic) to avoid circular dependencies.[^2][^6]",
+              "checked": null
+            },
+            {
+              "text": "Decide early whether you deploy to Node runtime, Edge runtime, or a mix; document which routes run where.[^3][^1]",
+              "checked": null
+            },
+            {
+              "text": "Enable TypeScript from day one and keep it in `strict` mode to catch bugs at build time.[^4][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Routing, Layouts \\& Navigation",
+      "level": 2,
+      "slug": "routing-layouts-navigation",
+      "prose": "11. Use nested layouts (`app/(group)/layout.tsx`) to share navigation, sidebars, and shells per section instead of duplicating UI.[^1][^2]\n12. Use `loading.tsx` in route segments for skeletons and progressive loading experiences instead of one global spinner.[^3][^1]\n13. Implement `error.tsx` at appropriate route boundaries to localize errors and prevent whole‑app crashes.[^1][^3]\n14. Use `not-found.tsx` for per‑section 404 experiences and to handle invalid dynamic routes gracefully.[^4][^1]\n```\n15. Use `<Link>` and `router.push` for internal navigation instead of `<a>` to benefit from prefetching and client‑side transitions.[^8][^1]\n```\n\n16. Use dynamic segments `[id]`, catch‑all `[...slug]`, and route groups thoughtfully; keep URLs stable and human‑readable.[^2][^1]\n17. Use parallel routes and intercepting routes only when necessary; document usage clearly since they add complexity.[^4][^1]\n18. Keep route parameters typed (e.g., zod‑validated IDs) at boundaries to avoid invalid input propagating down.[^9][^3]\n19. Avoid huge “god routes” that do everything; split complex flows into nested routes and layouts.[^7][^6]\n20. Keep public marketing pages separate from authenticated app routes using route groups, so auth logic doesn’t leak everywhere.[^6][^2]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use nested layouts (`app/(group)/layout.tsx`) to share navigation, sidebars, and shells per section instead of duplicating UI.[^1][^2]",
+              "checked": null
+            },
+            {
+              "text": "Use `loading.tsx` in route segments for skeletons and progressive loading experiences instead of one global spinner.[^3][^1]",
+              "checked": null
+            },
+            {
+              "text": "Implement `error.tsx` at appropriate route boundaries to localize errors and prevent whole‑app crashes.[^1][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use `not-found.tsx` for per‑section 404 experiences and to handle invalid dynamic routes gracefully.[^4][^1]",
+              "checked": null
+            },
+            {
+              "text": "Use `<Link>` and `router.push` for internal navigation instead of `<a>` to benefit from prefetching and client‑side transitions.[^8][^1]",
+              "checked": null
+            },
+            {
+              "text": "Use dynamic segments `[id]`, catch‑all `[...slug]`, and route groups thoughtfully; keep URLs stable and human‑readable.[^2][^1]",
+              "checked": null
+            },
+            {
+              "text": "Use parallel routes and intercepting routes only when necessary; document usage clearly since they add complexity.[^4][^1]",
+              "checked": null
+            },
+            {
+              "text": "Keep route parameters typed (e.g., zod‑validated IDs) at boundaries to avoid invalid input propagating down.[^9][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid huge “god routes” that do everything; split complex flows into nested routes and layouts.[^7][^6]",
+              "checked": null
+            },
+            {
+              "text": "Keep public marketing pages separate from authenticated app routes using route groups, so auth logic doesn’t leak everywhere.[^6][^2]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [
+        {
+          "lang": "",
+          "value": "15. Use `<Link>` and `router.push` for internal navigation instead of `<a>` to benefit from prefetching and client‑side transitions.[^8][^1]\n"
+        }
+      ],
+      "links": []
+    },
+    {
+      "heading": "Server vs Client Components",
+      "level": 2,
+      "slug": "server-vs-client-components",
+      "prose": "21. Default to Server Components; only mark files with `'use client'` when you need browser APIs, state, or event handlers.[^10][^1]\n22. Put heavy libraries (database clients, SDKs, markdown parsers) in Server Components or server utilities to avoid bloating the client bundle.[^10][^7]\n23. Create small, focused Client Components at the leaves of the tree, not at top‑level layouts.[^7][^10]\n24. Never use React hooks (`useState`, `useEffect`, etc.) in Server Components; move that logic into a Client Component wrapper.[^7][^1]\n25. Avoid importing server‑only modules (DB, filesystem, secrets) into Client Components; enforce with `server-only` when possible.[^3][^4]\n26. Use Client Components for forms, dropdowns, modals, and highly interactive widgets that depend on user interaction.[^1][^7]\n27. Keep context providers inside Client Components and mount them as deep as possible (closest to where they’re used).[^7][^3]\n28. Extract shared UI into Server Components by default, then wrap with minimal Client Components for interactive bits.[^10][^7]\n29. Avoid unnecessary `'use client'` at the top of big files; split into smaller modules to keep most of the tree server‑rendered.[^10][^7]\n30. Audit your tree periodically to ensure you’re not accidentally pulling large client‑only dependencies into shared layouts.[^3][^7]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Default to Server Components; only mark files with `'use client'` when you need browser APIs, state, or event handlers.[^10][^1]",
+              "checked": null
+            },
+            {
+              "text": "Put heavy libraries (database clients, SDKs, markdown parsers) in Server Components or server utilities to avoid bloating the client bundle.[^10][^7]",
+              "checked": null
+            },
+            {
+              "text": "Create small, focused Client Components at the leaves of the tree, not at top‑level layouts.[^7][^10]",
+              "checked": null
+            },
+            {
+              "text": "Never use React hooks (`useState`, `useEffect`, etc.) in Server Components; move that logic into a Client Component wrapper.[^7][^1]",
+              "checked": null
+            },
+            {
+              "text": "Avoid importing server‑only modules (DB, filesystem, secrets) into Client Components; enforce with `server-only` when possible.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use Client Components for forms, dropdowns, modals, and highly interactive widgets that depend on user interaction.[^1][^7]",
+              "checked": null
+            },
+            {
+              "text": "Keep context providers inside Client Components and mount them as deep as possible (closest to where they’re used).[^7][^3]",
+              "checked": null
+            },
+            {
+              "text": "Extract shared UI into Server Components by default, then wrap with minimal Client Components for interactive bits.[^10][^7]",
+              "checked": null
+            },
+            {
+              "text": "Avoid unnecessary `'use client'` at the top of big files; split into smaller modules to keep most of the tree server‑rendered.[^10][^7]",
+              "checked": null
+            },
+            {
+              "text": "Audit your tree periodically to ensure you’re not accidentally pulling large client‑only dependencies into shared layouts.[^3][^7]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Data Fetching \\& Caching",
+      "level": 2,
+      "slug": "data-fetching-caching",
+      "prose": "31. Fetch data directly in Server Components or route handlers (`app/api`) rather than from Client Components via `useEffect` when possible.[^1][^7]\n32. Use the new data‑fetching patterns (e.g., async Server Components, `fetch` with caching options) instead of legacy `getServerSideProps`/`getStaticProps` in App Router.[^7][^1]\n33. Choose per‑route rendering: static (SSG), dynamic (SSR), or ISR based on data freshness requirements.[^11][^4]\n34. Use `revalidate` or `fetch` cache options to implement ISR and fine‑grained revalidation instead of rebuilding the whole site.[^11][^4]\n35. Avoid duplicate data fetching on server and client for the same data; derive client state from server‑rendered props where possible.[^1][^7]\n36. Centralize external API client configuration in `lib/` so you can apply timeouts, retries, and logging consistently.[^12][^3]\n37. Use `AbortController` or library support to cancel slow external requests and avoid hanging SSR responses.[^12][^4]\n38. For huge payloads, paginate on the server instead of sending massive JSON blobs to the client.[^12][^4]\n39. Use stable cache keys and avoid caching sensitive or user‑specific data at a shared level.[^13][^4]\n40. Use `revalidatePath` or `revalidateTag` in server actions after mutations to keep UI and caches in sync.[^9][^3]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Fetch data directly in Server Components or route handlers (`app/api`) rather than from Client Components via `useEffect` when possible.[^1][^7]",
+              "checked": null
+            },
+            {
+              "text": "Use the new data‑fetching patterns (e.g., async Server Components, `fetch` with caching options) instead of legacy `getServerSideProps`/`getStaticProps` in App Router.[^7][^1]",
+              "checked": null
+            },
+            {
+              "text": "Choose per‑route rendering: static (SSG), dynamic (SSR), or ISR based on data freshness requirements.[^11][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use `revalidate` or `fetch` cache options to implement ISR and fine‑grained revalidation instead of rebuilding the whole site.[^11][^4]",
+              "checked": null
+            },
+            {
+              "text": "Avoid duplicate data fetching on server and client for the same data; derive client state from server‑rendered props where possible.[^1][^7]",
+              "checked": null
+            },
+            {
+              "text": "Centralize external API client configuration in `lib/` so you can apply timeouts, retries, and logging consistently.[^12][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use `AbortController` or library support to cancel slow external requests and avoid hanging SSR responses.[^12][^4]",
+              "checked": null
+            },
+            {
+              "text": "For huge payloads, paginate on the server instead of sending massive JSON blobs to the client.[^12][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use stable cache keys and avoid caching sensitive or user‑specific data at a shared level.[^13][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use `revalidatePath` or `revalidateTag` in server actions after mutations to keep UI and caches in sync.[^9][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Forms \\& Server Actions",
+      "level": 2,
+      "slug": "forms-server-actions",
+      "prose": "41. Use Server Actions for form submissions where possible to keep validation and side‑effects on the server.[^9][^3]\n42. Validate all Server Action inputs with a schema library like Zod (including `FormData` and JSON bodies).[^14][^9]\n43. Ensure Server Actions enforce authorization checks and never rely on client‑side role flags alone.[^15][^14]\n44. Return structured objects (e.g., `{ success, data, error }`) from Server Actions for predictable handling in Client Components.[^9][^3]\n45. Use optimistic UI updates only when you can safely roll back on failure and when the action is idempotent.[^4][^1]\n46. Prevent double submissions in forms with disabled buttons or unique action tokens.[^14][^15]\n47. Handle server errors gracefully, surfacing user‑friendly messages while logging technical details on the server.[^5][^3]\n48. Avoid long‑running Server Actions; push truly long jobs to background queues and show progress via polling or websockets.[^12][^3]\n49. Keep form component code clean by extracting validation and transformation logic into shared utilities.[^9][^3]\n50. Apply rate limiting to sensitive Server Actions (auth, password reset, OTP) to mitigate abuse.[^15][^14]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use Server Actions for form submissions where possible to keep validation and side‑effects on the server.[^9][^3]",
+              "checked": null
+            },
+            {
+              "text": "Validate all Server Action inputs with a schema library like Zod (including `FormData` and JSON bodies).[^14][^9]",
+              "checked": null
+            },
+            {
+              "text": "Ensure Server Actions enforce authorization checks and never rely on client‑side role flags alone.[^15][^14]",
+              "checked": null
+            },
+            {
+              "text": "Return structured objects (e.g., `{ success, data, error }`) from Server Actions for predictable handling in Client Components.[^9][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use optimistic UI updates only when you can safely roll back on failure and when the action is idempotent.[^4][^1]",
+              "checked": null
+            },
+            {
+              "text": "Prevent double submissions in forms with disabled buttons or unique action tokens.[^14][^15]",
+              "checked": null
+            },
+            {
+              "text": "Handle server errors gracefully, surfacing user‑friendly messages while logging technical details on the server.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid long‑running Server Actions; push truly long jobs to background queues and show progress via polling or websockets.[^12][^3]",
+              "checked": null
+            },
+            {
+              "text": "Keep form component code clean by extracting validation and transformation logic into shared utilities.[^9][^3]",
+              "checked": null
+            },
+            {
+              "text": "Apply rate limiting to sensitive Server Actions (auth, password reset, OTP) to mitigate abuse.[^15][^14]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Performance \\& Rendering",
+      "level": 2,
+      "slug": "performance-rendering",
+      "prose": "51. Regularly run Lighthouse and Web Vitals checks; target scores in the green for performance, accessibility, and SEO.[^3][^4]\n52. Use `<Image>` from `next/image` for all non‑trivial images to get automatic optimization, responsive sizing, and lazy loading.[^3][^1]\n53. Configure `next/font` or font optimization to avoid layout shift and reduce font loading overhead.[^4][^1]\n54. Use dynamic imports (`next/dynamic`) for heavy, rarely used components such as charts, editors, and maps.[^4][^3]\n55. Place React Suspense boundaries around individual data‑fetching components rather than wrapping entire pages.[^7][^1]\n56. Prefer streaming for complex pages so users see content progressively instead of waiting for everything at once.[^1][^4]\n57. Avoid blocking the main thread with heavy synchronous work; move CPU‑intensive logic to the server or background jobs.[^3][^4]\n58. Use the bundle analyzer to inspect and reduce client bundle size, especially shared chunks pulled into the main layout.[^4][^3]\n59. Preload critical routes and resources (fonts, key images) to improve perceived performance on first navigation.[^3][^4]\n60. Use caching headers (in route handlers or platform config) that align with your Next.js caching strategy to avoid redundant work.[^4][^3]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Regularly run Lighthouse and Web Vitals checks; target scores in the green for performance, accessibility, and SEO.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use `<Image>` from `next/image` for all non‑trivial images to get automatic optimization, responsive sizing, and lazy loading.[^3][^1]",
+              "checked": null
+            },
+            {
+              "text": "Configure `next/font` or font optimization to avoid layout shift and reduce font loading overhead.[^4][^1]",
+              "checked": null
+            },
+            {
+              "text": "Use dynamic imports (`next/dynamic`) for heavy, rarely used components such as charts, editors, and maps.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Place React Suspense boundaries around individual data‑fetching components rather than wrapping entire pages.[^7][^1]",
+              "checked": null
+            },
+            {
+              "text": "Prefer streaming for complex pages so users see content progressively instead of waiting for everything at once.[^1][^4]",
+              "checked": null
+            },
+            {
+              "text": "Avoid blocking the main thread with heavy synchronous work; move CPU‑intensive logic to the server or background jobs.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use the bundle analyzer to inspect and reduce client bundle size, especially shared chunks pulled into the main layout.[^4][^3]",
+              "checked": null
+            },
+            {
+              "text": "Preload critical routes and resources (fonts, key images) to improve perceived performance on first navigation.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Use caching headers (in route handlers or platform config) that align with your Next.js caching strategy to avoid redundant work.[^4][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "SEO \\& Metadata",
+      "level": 2,
+      "slug": "seo-metadata",
+      "prose": "61. Use the App Router metadata API (`metadata` export, `generateMetadata`) instead of manually adding `<head>` tags.[^9][^1]\n62. Ensure each route has meaningful `title`, `description`, canonical URL, and Open Graph/Twitter metadata.[^9][^4]\n63. Generate dynamic Open Graph images per page or resource when SEO impact is high (blogs, products, docs).[^9][^4]\n64. Configure `robots.txt` and `sitemap.xml` and keep them up‑to‑date with your routing structure.[^3][^4]\n65. Avoid serving content behind hash‑based URLs (`/#/path`) when SEO matters; use proper routes instead.[^16][^4]\n66. Ensure important content is rendered on the server (SSR/SSG/ISR) rather than only client‑side for SEO‑critical pages.[^17][^11]\n67. Use semantic HTML and proper heading hierarchy to help search engines and assistive technologies.[^4]\n68. Implement structured data (JSON‑LD) for key entities like products, articles, and breadcrumbs where it meaningfully boosts search presence.[^4]\n69. Optimize images with descriptive `alt` attributes for accessibility and image search.[^4]\n70. Avoid thin or duplicate content across routes; consolidate where possible or use canonical tags.[^4]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Use the App Router metadata API (`metadata` export, `generateMetadata`) instead of manually adding `<head>` tags.[^9][^1]",
+              "checked": null
+            },
+            {
+              "text": "Ensure each route has meaningful `title`, `description`, canonical URL, and Open Graph/Twitter metadata.[^9][^4]",
+              "checked": null
+            },
+            {
+              "text": "Generate dynamic Open Graph images per page or resource when SEO impact is high (blogs, products, docs).[^9][^4]",
+              "checked": null
+            },
+            {
+              "text": "Configure `robots.txt` and `sitemap.xml` and keep them up‑to‑date with your routing structure.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Avoid serving content behind hash‑based URLs (`/#/path`) when SEO matters; use proper routes instead.[^16][^4]",
+              "checked": null
+            },
+            {
+              "text": "Ensure important content is rendered on the server (SSR/SSG/ISR) rather than only client‑side for SEO‑critical pages.[^17][^11]",
+              "checked": null
+            },
+            {
+              "text": "Use semantic HTML and proper heading hierarchy to help search engines and assistive technologies.[^4]",
+              "checked": null
+            },
+            {
+              "text": "Implement structured data (JSON‑LD) for key entities like products, articles, and breadcrumbs where it meaningfully boosts search presence.[^4]",
+              "checked": null
+            },
+            {
+              "text": "Optimize images with descriptive `alt` attributes for accessibility and image search.[^4]",
+              "checked": null
+            },
+            {
+              "text": "Avoid thin or duplicate content across routes; consolidate where possible or use canonical tags.[^4]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Security \\& Compliance",
+      "level": 2,
+      "slug": "security-compliance",
+      "prose": "71. Keep all dependencies updated and run automated vulnerability scanning (e.g., `npm audit`, Dependabot, Renovate) in CI.[^13][^14]\n72. Store secrets only in environment variables or a proper secret manager, never in source control.[^13][^12]\n73. Type‑check and validate `process.env` using a schema (e.g., Zod) in a central `env.ts` module.[^3]\n74. Enforce HTTPS with HSTS and correct TLS configuration on the hosting platform or via middleware headers.[^13][^3]\n75. Set security headers like `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and a reasonable `Content-Security-Policy`.[^13][^3]\n76. Avoid `dangerouslySetInnerHTML`; if unavoidable, sanitize input with a library like DOMPurify.[^14][^15][^12]\n77. Use parameterized queries or trusted ORMs for all database access to prevent SQL/NoSQL injection.[^14][^12]\n78. Protect API routes and Server Actions with robust authentication and authorization checks, not just client‑side guards.[^15][^14]\n79. Apply rate limiting on auth flows and critical endpoints to mitigate brute‑force and DoS attacks.[^15][^14]\n80. Implement proper session management (short‑lived tokens, HttpOnly secure cookies, session expiry) and audit logs for sensitive actions.[^14][^15]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Keep all dependencies updated and run automated vulnerability scanning (e.g., `npm audit`, Dependabot, Renovate) in CI.[^13][^14]",
+              "checked": null
+            },
+            {
+              "text": "Store secrets only in environment variables or a proper secret manager, never in source control.[^13][^12]",
+              "checked": null
+            },
+            {
+              "text": "Type‑check and validate `process.env` using a schema (e.g., Zod) in a central `env.ts` module.[^3]",
+              "checked": null
+            },
+            {
+              "text": "Enforce HTTPS with HSTS and correct TLS configuration on the hosting platform or via middleware headers.[^13][^3]",
+              "checked": null
+            },
+            {
+              "text": "Set security headers like `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and a reasonable `Content-Security-Policy`.[^13][^3]",
+              "checked": null
+            },
+            {
+              "text": "Avoid `dangerouslySetInnerHTML`; if unavoidable, sanitize input with a library like DOMPurify.[^14][^15][^12]",
+              "checked": null
+            },
+            {
+              "text": "Use parameterized queries or trusted ORMs for all database access to prevent SQL/NoSQL injection.[^14][^12]",
+              "checked": null
+            },
+            {
+              "text": "Protect API routes and Server Actions with robust authentication and authorization checks, not just client‑side guards.[^15][^14]",
+              "checked": null
+            },
+            {
+              "text": "Apply rate limiting on auth flows and critical endpoints to mitigate brute‑force and DoS attacks.[^15][^14]",
+              "checked": null
+            },
+            {
+              "text": "Implement proper session management (short‑lived tokens, HttpOnly secure cookies, session expiry) and audit logs for sensitive actions.[^14][^15]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Observability, Testing \\& CI/CD",
+      "level": 2,
+      "slug": "observability-testing-cicd",
+      "prose": "81. Integrate error tracking (Sentry, Bugsnag, etc.) for both client and server, including Server Actions.[^5][^3]\n82. Enable performance monitoring and distributed tracing (e.g., OpenTelemetry) on key routes and APIs.[^5][^3]\n83. Monitor Core Web Vitals in production and set budgets/alerts for regressions.[^3][^4]\n84. Log structured events (JSON logs) on the server and centralize them (e.g., in a log aggregator) for debugging.[^12][^3]\n85. Write unit tests for core domain logic and components, and integration tests for key flows (auth, checkout, etc.).[^5][^3]\n86. Add E2E tests (Playwright, Cypress) for critical journeys before going to production.[^5][^3]\n87. Run type checking, ESLint (with Next.js rules), unit tests, and E2E tests in your CI pipeline before deploy.[^5][^3]\n88. Include a dependency security audit step (`npm audit` or equivalent) in CI.[^14][^3]\n89. Use preview deployments (per branch) to review changes in a production‑like environment before merging.[^5][^3]\n90. Implement automated rollback or at least a clear rollback procedure in case a deployment degrades performance or breaks flows.[^5][^3]\n\n***",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Integrate error tracking (Sentry, Bugsnag, etc.) for both client and server, including Server Actions.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Enable performance monitoring and distributed tracing (e.g., OpenTelemetry) on key routes and APIs.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Monitor Core Web Vitals in production and set budgets/alerts for regressions.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Log structured events (JSON logs) on the server and centralize them (e.g., in a log aggregator) for debugging.[^12][^3]",
+              "checked": null
+            },
+            {
+              "text": "Write unit tests for core domain logic and components, and integration tests for key flows (auth, checkout, etc.).[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Add E2E tests (Playwright, Cypress) for critical journeys before going to production.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Run type checking, ESLint (with Next.js rules), unit tests, and E2E tests in your CI pipeline before deploy.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Include a dependency security audit step (`npm audit` or equivalent) in CI.[^14][^3]",
+              "checked": null
+            },
+            {
+              "text": "Use preview deployments (per branch) to review changes in a production‑like environment before merging.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Implement automated rollback or at least a clear rollback procedure in case a deployment degrades performance or breaks flows.[^5][^3]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    },
+    {
+      "heading": "Deployment, Hosting \\& Runtime",
+      "level": 2,
+      "slug": "deployment-hosting-runtime",
+      "prose": "91. Choose a hosting platform that understands Next.js (Vercel, or properly configured node/edge infra) for full feature support.[^5][^4]\n92. Configure environment‑specific settings (env vars, logging level, allowed origins) for dev, staging, and prod.[^5][^3]\n93. Enable health checks and uptime monitoring for the application and any critical background services.[^5][^3]\n94. Set up auto‑scaling rules based on actual traffic and resource usage for Node/Edge runtimes.[^5][^3]\n95. Ensure database connections are pooled and configured appropriately for serverless / edge environments.[^12][^5]\n96. Protect source maps in production (serve conditionally or keep them private) to avoid leaking implementation details.[^14][^3]\n97. Configure static assets caching (CDN, `Cache-Control`) with correct invalidation strategy when deploying new versions.[^3][^4]\n98. Keep build times under control by pruning unused code, limiting huge dynamic imports, and caching dependencies between CI runs.[^5][^3]\n99. Periodically review and prune old feature flags, dead code, and unused routes to keep the app lean over time.[^12][^3]\n100. Maintain a written “production readiness checklist” (performance, security, SEO, monitoring, backups) and run through it before major launches.[^3][^4]\n\n***\n\nIf you want, I can turn this into a markdown checklist file you can drop into your repo (for example `docs/nextjs-production-checklist.md`) and customize for your specific stack (auth provider, DB, hosting).\n<span style=\"display:none\">[^18][^19]</span>\n\n<div align=\"center\">⁂</div>\n\n[^1]: https://nextjs.org/docs/app\n\n[^2]: https://nextjs.org/docs/app/getting-started/project-structure\n\n[^3]: https://srivathsav.me/blog/nextjs-15-production-checklist\n\n[^4]: https://nextjs.org/docs/app/guides/production-checklist\n\n[^5]: https://makerkit.dev/docs/next-supabase-turbo/going-to-production/checklist\n\n[^6]: https://makerkit.dev/blog/tutorials/nextjs-app-router-project-structure\n\n[^7]: https://upsun.com/blog/avoid-common-mistakes-with-next-js-app-router/\n\n[^8]: https://nextjs.org/learn/dashboard-app\n\n[^9]: https://anshgupta.in/blog/nextjs-app-router-best-practices-2025\n\n[^10]: https://dev.to/devjordan/nextjs-15-app-router-complete-guide-to-server-and-client-components-5h6k\n\n[^11]: https://digitalsoftware.co/ssr-vs-ssg-vs-csr-vs-isr-a-complete-guide-to-next-js-rendering-strategies/\n\n[^12]: https://digiqt.com/blog/nextjs-security-best-practices/\n\n[^13]: https://blog.arcjet.com/next-js-security-checklist/\n\n[^14]: https://www.turbostarter.dev/blog/complete-nextjs-security-guide-2025-authentication-api-protection-and-best-practices\n\n[^15]: https://www.authgear.com/post/nextjs-security-best-practices\n\n[^16]: https://www.contentful.com/blog/next-js-vs-react/\n\n[^17]: https://www.freecodecamp.org/news/nextjs-vs-react-differences/\n\n[^18]: https://nextjs.org/docs/app/guides\n\n[^19]: https://www.reddit.com/r/nextjs/comments/1dc17tv/best_practice_for_folder_structure_in_nextjs_app/",
+      "tables": [],
+      "lists": [
+        {
+          "ordered": false,
+          "items": [
+            {
+              "text": "Choose a hosting platform that understands Next.js (Vercel, or properly configured node/edge infra) for full feature support.[^5][^4]",
+              "checked": null
+            },
+            {
+              "text": "Configure environment‑specific settings (env vars, logging level, allowed origins) for dev, staging, and prod.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Enable health checks and uptime monitoring for the application and any critical background services.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Set up auto‑scaling rules based on actual traffic and resource usage for Node/Edge runtimes.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Ensure database connections are pooled and configured appropriately for serverless / edge environments.[^12][^5]",
+              "checked": null
+            },
+            {
+              "text": "Protect source maps in production (serve conditionally or keep them private) to avoid leaking implementation details.[^14][^3]",
+              "checked": null
+            },
+            {
+              "text": "Configure static assets caching (CDN, `Cache-Control`) with correct invalidation strategy when deploying new versions.[^3][^4]",
+              "checked": null
+            },
+            {
+              "text": "Keep build times under control by pruning unused code, limiting huge dynamic imports, and caching dependencies between CI runs.[^5][^3]",
+              "checked": null
+            },
+            {
+              "text": "Periodically review and prune old feature flags, dead code, and unused routes to keep the app lean over time.[^12][^3]",
+              "checked": null
+            },
+            {
+              "text": "Maintain a written “production readiness checklist” (performance, security, SEO, monitoring, backups) and run through it before major launches.[^3][^4]",
+              "checked": null
+            }
+          ]
+        }
+      ],
+      "code_blocks": [],
+      "links": []
+    }
+  ],
+  "non_parsed_raw_markdown": ""
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/shared/OrgContext.json",
+  "title": "OrgContext",
+  "type": "object",
+  "required": ["org_id", "plan"],
+  "additionalProperties": false,
+  "properties": {
+    "org_id": { "type": "string", "format": "uuid" },
+    "plan": { "type": "string" },
+    "entitlements": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Feature flags, rate limits, seat counts"
+    },
+    "credit_balance": { "type": "number" }
+  },
+  "examples": [
+    {
+      "org_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "plan": "pro",
+      "entitlements": { "enrichment": true, "ai_chat": true },
+      "credit_balance": 5000
+    }
+  ]
+}

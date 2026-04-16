@@ -1,0 +1,300 @@
+{
+  "kind": "frontend",
+  "title": "Pages and routes",
+  "version": "1.1.0",
+  "status": "complete",
+  "app_path": "contact360.io/app",
+  "schema_refs": [],
+  "sections": [
+    {
+      "id": "routes.catalog",
+      "title": "Canonical route map",
+      "file": "routes.md",
+      "status": "stub",
+      "flow_refs": ["flow1", "flow4"],
+      "schema_refs": []
+    }
+  ],
+  "routes": [
+    {
+      "route": "/",
+      "page_title": "Home",
+      "phase": "0",
+      "api_deps": ["Query.auth", "Query.health (optional)"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/login",
+      "page_title": "Login",
+      "phase": "1",
+      "api_deps": ["Mutation.auth.login", "Mutation.auth.refreshToken"],
+      "flow_refs": []
+    },
+    {
+      "route": "/register",
+      "page_title": "Register",
+      "phase": "1",
+      "api_deps": ["Mutation.auth.register"],
+      "flow_refs": []
+    },
+    {
+      "route": "/forgot-password",
+      "page_title": "Forgot password",
+      "phase": "1",
+      "api_deps": ["Mutation.auth (password reset flow)"],
+      "flow_refs": []
+    },
+    {
+      "route": "/dashboard",
+      "page_title": "Dashboard",
+      "phase": "0",
+      "api_deps": ["Query.analytics", "Query.usage"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/analytics",
+      "page_title": "Analytics",
+      "phase": "10",
+      "api_deps": ["Query.analytics"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/contacts",
+      "page_title": "Contacts list",
+      "phase": "3",
+      "api_deps": ["Query.contacts"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/contacts/:uuid",
+      "page_title": "Contact detail",
+      "phase": "3",
+      "api_deps": ["Query.contacts", "Query.activities"],
+      "flow_refs": ["flow1", "flow2"]
+    },
+    {
+      "route": "/companies",
+      "page_title": "Companies",
+      "phase": "3",
+      "api_deps": ["Query.companies"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/companies/:id",
+      "page_title": "Company detail",
+      "phase": "3",
+      "api_deps": ["Query.companies"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/contacts /companies (import modal)",
+      "page_title": "CSV import (modals)",
+      "phase": "3",
+      "api_deps": ["Mutation.jobs", "Query.jobs"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/email",
+      "page_title": "Email finder & verifier",
+      "phase": "2",
+      "api_deps": ["Query.email"],
+      "flow_refs": ["flow2"]
+    },
+    {
+      "route": "/phone",
+      "page_title": "Phone finder & verifier",
+      "phase": "2",
+      "api_deps": ["Query.phone"],
+      "flow_refs": ["flow2"]
+    },
+    {
+      "route": "/campaigns",
+      "page_title": "Campaigns",
+      "phase": "10",
+      "api_deps": ["Query.campaignSatellite", "Mutation.campaigns"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/campaigns/new",
+      "page_title": "Campaign builder",
+      "phase": "10",
+      "api_deps": ["Mutation.campaigns", "Query.campaignSatellite"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/campaigns/sequences",
+      "page_title": "Sequences",
+      "phase": "10",
+      "api_deps": ["Query.campaignSatellite", "Mutation.campaigns"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/campaigns/sequences/:id",
+      "page_title": "Sequence detail",
+      "phase": "10",
+      "api_deps": ["Query.campaignSatellite", "Mutation.campaigns"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/campaigns/templates",
+      "page_title": "Templates",
+      "phase": "10",
+      "api_deps": ["Query.campaignSatellite", "Mutation.campaigns"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/campaigns/templates/:id/edit",
+      "page_title": "Template editor",
+      "phase": "10",
+      "api_deps": ["Mutation.campaigns"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/campaigns/:id",
+      "page_title": "Campaign detail",
+      "phase": "10",
+      "api_deps": ["Query.campaignSatellite", "Mutation.campaigns"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/ai-chat",
+      "page_title": "AI assistant",
+      "phase": "5",
+      "api_deps": ["Query.aiChats", "Mutation.aiChats"],
+      "flow_refs": ["flow3"]
+    },
+    {
+      "route": "/billing",
+      "page_title": "Billing & credits",
+      "phase": "1",
+      "api_deps": ["Query.billing", "Mutation.billing"],
+      "flow_refs": []
+    },
+    {
+      "route": "/usage",
+      "page_title": "Usage",
+      "phase": "1",
+      "api_deps": ["Query.usage"],
+      "flow_refs": []
+    },
+    {
+      "route": "/settings",
+      "page_title": "Settings",
+      "phase": "8",
+      "api_deps": ["Query.users", "Query.twoFactor", "Mutation.profile"],
+      "flow_refs": []
+    },
+    {
+      "route": "/profile",
+      "page_title": "Profile",
+      "phase": "1",
+      "api_deps": ["Query.profile", "Mutation.profile"],
+      "flow_refs": []
+    },
+    {
+      "route": "/jobs",
+      "page_title": "Jobs",
+      "phase": "3",
+      "api_deps": ["Query.jobs"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/files",
+      "page_title": "Files",
+      "phase": "2",
+      "api_deps": ["Query.s3", "Mutation.upload"],
+      "flow_refs": ["flow2"]
+    },
+    {
+      "route": "/notifications",
+      "page_title": "Notifications",
+      "phase": "10",
+      "api_deps": ["Query.notifications", "Mutation.notifications"],
+      "flow_refs": []
+    },
+    {
+      "route": "/notifications/:id",
+      "page_title": "Notification detail",
+      "phase": "10",
+      "api_deps": ["Query.notifications"],
+      "flow_refs": []
+    },
+    {
+      "route": "/saved-searches",
+      "page_title": "Saved searches",
+      "phase": "3",
+      "api_deps": ["Query.savedSearches"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/status",
+      "page_title": "Status",
+      "phase": "6",
+      "api_deps": ["Query.health"],
+      "flow_refs": []
+    },
+    {
+      "route": "/activities",
+      "page_title": "Activities",
+      "phase": "3",
+      "api_deps": ["Query.activities"],
+      "flow_refs": ["flow1"]
+    },
+    {
+      "route": "/linkedin",
+      "page_title": "LinkedIn",
+      "phase": "4",
+      "api_deps": ["Query.linkedin"],
+      "flow_refs": ["flow5"]
+    },
+    {
+      "route": "/sales-navigator",
+      "page_title": "Sales Navigator",
+      "phase": "4",
+      "api_deps": ["Query.salesNavigator"],
+      "flow_refs": ["flow5"]
+    },
+    {
+      "route": "/live-voice",
+      "page_title": "Live voice",
+      "phase": "5",
+      "api_deps": ["Query.aiChats or feature-specific"],
+      "flow_refs": ["flow3"]
+    },
+    {
+      "route": "/resume",
+      "page_title": "Resume AI",
+      "phase": "5",
+      "api_deps": ["Query.resume"],
+      "flow_refs": ["flow3"]
+    },
+    {
+      "route": "/resume/:id",
+      "page_title": "Resume detail",
+      "phase": "5",
+      "api_deps": ["Query.resume"],
+      "flow_refs": ["flow3"]
+    },
+    {
+      "route": "/ui-kit",
+      "page_title": "UI kit gallery",
+      "phase": "0",
+      "api_deps": [],
+      "flow_refs": []
+    },
+    {
+      "route": "/lead-scoring",
+      "page_title": "Lead scoring",
+      "phase": "11",
+      "api_deps": ["planned — no gateway field yet"],
+      "flow_refs": ["flow4"]
+    },
+    {
+      "route": "/integrations",
+      "page_title": "Integrations hub",
+      "phase": "9",
+      "api_deps": ["planned"],
+      "flow_refs": []
+    }
+  ]
+}

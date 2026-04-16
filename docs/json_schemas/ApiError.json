@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/api/ApiError.json",
+  "title": "ApiError",
+  "type": "object",
+  "required": ["error"],
+  "additionalProperties": false,
+  "properties": {
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "request_id": { "type": "string" },
+        "details": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      }
+    }
+  },
+  "examples": [
+    {
+      "error": {
+        "code": "VALIDATION_FAILED",
+        "message": "email is required",
+        "request_id": "req_abc"
+      }
+    }
+  ]
+}

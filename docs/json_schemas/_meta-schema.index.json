@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/meta/index-entry.v1.json",
+  "title": "Contact360 docs folder index (meta)",
+  "description": "Validates docs/**/index.json for phase, backend, frontend, and codebases folders.",
+  "type": "object",
+  "required": ["kind", "title", "version"],
+  "oneOf": [
+    { "required": ["sections"] },
+    { "required": ["schemas"] }
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["phase", "backend", "frontend", "codebases", "root", "json_schemas_manifest"]
+    },
+    "phase_id": {
+      "type": "string",
+      "description": "e.g. 0, 1, ... 11 for phase folders"
+    },
+    "title": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "in_progress", "review", "stable"]
+    },
+    "schema_refs": {
+      "type": "array",
+      "items": { "type": "string", "description": "Basename under json_schemas/, e.g. Contact.json" }
+    },
+    "schemas": {
+      "type": "array",
+      "description": "Manifest entries for json_schemas/index.json",
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "title", "version", "tags"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "path": { "type": "string" },
+          "title": { "type": "string" },
+          "version": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "description": "e.g. 0.1.0.1 or section slug" },
+          "title": { "type": "string" },
+          "file": { "type": "string", "description": "Relative path under folder" },
+          "status": { "type": "string", "enum": ["stub", "draft", "complete"] },
+          "flow_refs": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["flow1", "flow2", "flow3", "flow4", "flow5"] }
+          },
+          "schema_refs": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

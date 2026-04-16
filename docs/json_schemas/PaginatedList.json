@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/api/PaginatedList.json",
+  "title": "PaginatedList",
+  "type": "object",
+  "required": ["data", "page"],
+  "additionalProperties": false,
+  "properties": {
+    "data": { "type": "array", "items": {} },
+    "page": {
+      "type": "object",
+      "required": ["limit", "cursor"],
+      "additionalProperties": false,
+      "properties": {
+        "limit": { "type": "integer", "minimum": 1 },
+        "cursor": { "type": "string", "description": "Opaque; empty when no next page" },
+        "next_cursor": { "type": "string" },
+        "total": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "examples": [
+    {
+      "data": [],
+      "page": { "limit": 50, "cursor": "", "next_cursor": "eyJpZCI6IjEifQ==" }
+    }
+  ]
+}

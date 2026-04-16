@@ -1,0 +1,611 @@
+{
+  "project_name": "contact360",
+  "description": "AI-powered CRM platform with agentic enterprise capabilities",
+  "current_date": "2026-04-14",
+  "repository_structure": {
+    "monorepo_path": "contact360/",
+    "frontend_applications": {
+      "web_ui": {
+        "path": "apps/web",
+        "technology": "React 18 + Vite + TailwindCSS + React Query",
+        "purpose": "Main CRM interface for users",
+        "key_features": [
+          "Contact management",
+          "Deal pipeline",
+          "Task tracking",
+          "Real-time notifications",
+          "Kanban boards",
+          "Search integration"
+        ],
+        "entry_point": "src/index.tsx",
+        "build_output": "dist/",
+        "port": 3000
+      },
+      "admin_dashboard": {
+        "path": "apps/admin",
+        "technology": "Next.js 14 + App Router + TailwindCSS",
+        "purpose": "Internal admin & analytics dashboard",
+        "key_features": [
+          "User management",
+          "System health",
+          "Analytics",
+          "Configuration"
+        ],
+        "entry_point": "app/page.tsx",
+        "api_routes": "app/api",
+        "port": 3001
+      },
+      "mobile_app": {
+        "path": "apps/mobile",
+        "technology": "React Native + Expo",
+        "purpose": "iOS/Android mobile CRM app",
+        "key_features": [
+          "Native performance",
+          "Offline mode",
+          "Push notifications"
+        ],
+        "entry_point": "app.json"
+      },
+      "slack_bot": {
+        "path": "apps/slack-bot",
+        "technology": "Node.js + Slack Bolt Framework",
+        "purpose": "Slack conversational interface for agents and humans",
+        "key_features": [
+          "Message handling",
+          "Block Kit UI",
+          "OAuth integration",
+          "Event subscriptions"
+        ],
+        "entry_point": "src/index.ts"
+      }
+    },
+    "backend_services": {
+      "auth_service": {
+        "path": "services/auth-service",
+        "technology": "Node.js + Express",
+        "language": "TypeScript",
+        "purpose": "JWT authentication, OAuth2, RBAC",
+        "endpoints": [
+          "POST /auth/login",
+          "POST /auth/signup",
+          "POST /auth/refresh",
+          "POST /auth/logout"
+        ],
+        "database": "PostgreSQL (auth schema)",
+        "port": 5001,
+        "dockerfile": "Dockerfile"
+      },
+      "crm_service": {
+        "path": "services/crm-service",
+        "technology": "Node.js + Fastify",
+        "language": "TypeScript",
+        "purpose": "Core CRM logic - contacts, deals, companies, tasks",
+        "endpoints": [
+          "GET/POST /contacts",
+          "GET/PUT/DELETE /contacts/{id}",
+          "GET/POST /deals",
+          "GET/PUT/DELETE /deals/{id}",
+          "GET/POST /companies",
+          "GET/POST /tasks",
+          "GET /search?q=..."
+        ],
+        "database": "PostgreSQL (crm schema)",
+        "cache": "Redis",
+        "search_engine": "Elasticsearch",
+        "port": 5002,
+        "dockerfile": "Dockerfile"
+      },
+      "ai_agent_service": {
+        "path": "services/ai-agent-service",
+        "technology": "Python + FastAPI",
+        "language": "Python",
+        "purpose": "Agentic AI orchestration, LangGraph, LLM tool calling",
+        "endpoints": [
+          "POST /agents/orchestrate",
+          "POST /agents/reason",
+          "GET /agents/memory/{agentId}",
+          "POST /agents/tools/execute"
+        ],
+        "integrations": [
+          "OpenAI/Anthropic API",
+          "Pinecone",
+          "pgvector"
+        ],
+        "database": "PostgreSQL (agents schema)",
+        "port": 5003,
+        "dockerfile": "Dockerfile"
+      },
+      "analytics_service": {
+        "path": "services/analytics-service",
+        "technology": "Python + FastAPI",
+        "language": "Python",
+        "purpose": "Pipeline metrics, reporting, dashboards",
+        "endpoints": [
+          "GET /analytics/pipeline",
+          "GET /analytics/reports",
+          "POST /analytics/events"
+        ],
+        "database": "PostgreSQL + Snowflake (data warehouse)",
+        "port": 5004
+      },
+      "marketing_service": {
+        "path": "services/marketing-service",
+        "technology": "Node.js + Express",
+        "language": "TypeScript",
+        "purpose": "Campaigns, lead scoring, marketing automation",
+        "endpoints": [
+          "GET/POST /campaigns",
+          "POST /lead-scoring",
+          "GET /performance"
+        ],
+        "database": "PostgreSQL",
+        "port": 5005
+      },
+      "billing_service": {
+        "path": "services/billing-service",
+        "technology": "Node.js + Express",
+        "language": "TypeScript",
+        "purpose": "Subscriptions, invoices, payments",
+        "endpoints": [
+          "POST /subscriptions",
+          "GET /invoices",
+          "POST /payments"
+        ],
+        "database": "PostgreSQL",
+        "port": 5006,
+        "integrations": [
+          "Stripe API"
+        ]
+      },
+      "notification_service": {
+        "path": "services/notification-service",
+        "technology": "Node.js + Express",
+        "language": "TypeScript",
+        "purpose": "Email, SMS, push notifications, Slack messages",
+        "endpoints": [
+          "POST /notifications/email",
+          "POST /notifications/sms",
+          "POST /notifications/slack"
+        ],
+        "database": "PostgreSQL",
+        "port": 5007,
+        "integrations": [
+          "SendGrid",
+          "Twilio",
+          "Slack API"
+        ]
+      },
+      "integration_service": {
+        "path": "services/integration-service",
+        "technology": "Node.js + Express",
+        "language": "TypeScript",
+        "purpose": "3rd-party API integrations, webhooks",
+        "endpoints": [
+          "GET/POST /integrations",
+          "POST /webhooks"
+        ],
+        "database": "PostgreSQL",
+        "port": 5008
+      }
+    },
+    "supporting_infrastructure": {
+      "api_gateway": {
+        "path": "gateway/",
+        "technology": "Kong or Express Gateway",
+        "purpose": "API routing, rate limiting, authentication, request/response transformation",
+        "features": [
+          "JWT validation",
+          "Rate limiting",
+          "Load balancing",
+          "CORS handling"
+        ]
+      },
+      "message_broker": {
+        "technology": "Apache Kafka",
+        "purpose": "Event streaming and asynchronous service communication",
+        "topics": [
+          "contact.created",
+          "contact.updated",
+          "contact.deleted",
+          "deal.created",
+          "deal.updated",
+          "deal.scored",
+          "task.created",
+          "task.completed",
+          "agent.action",
+          "agent.memory.updated"
+        ]
+      },
+      "cache": {
+        "technology": "Redis",
+        "purpose": "Session cache, query cache, rate limit tracking",
+        "use_cases": [
+          "Hot contact data",
+          "Search results cache",
+          "Agent memory states"
+        ]
+      },
+      "search_engine": {
+        "technology": "Elasticsearch",
+        "purpose": "Full-text search across contacts, deals, notes, activity",
+        "indices": [
+          "contacts_v1",
+          "deals_v1",
+          "companies_v1",
+          "activities_v1",
+          "notes_v1"
+        ]
+      }
+    },
+    "shared_packages": {
+      "shared_types": {
+        "path": "packages/shared-types",
+        "purpose": "TypeScript interfaces and types used across services and frontend",
+        "exports": [
+          "Contact",
+          "Deal",
+          "Task",
+          "Company",
+          "User",
+          "Agent"
+        ]
+      },
+      "ui_components": {
+        "path": "packages/ui-components",
+        "technology": "React + Storybook",
+        "purpose": "Shared React component library (design system)",
+        "components": [
+          "Button",
+          "Card",
+          "Form",
+          "Modal",
+          "DataTable",
+          "Dashboard"
+        ]
+      },
+      "api_client": {
+        "path": "packages/api-client",
+        "technology": "OpenAPI Generator",
+        "purpose": "Auto-generated TypeScript SDK for all backend APIs",
+        "regenerated_on": "Each service deployment"
+      },
+      "kafka_schemas": {
+        "path": "packages/kafka-schemas",
+        "technology": "Avro/JSON Schema",
+        "purpose": "Shared event schemas for Kafka topics",
+        "schemas": [
+          "ContactCreated",
+          "DealCreated",
+          "AgentAction"
+        ]
+      }
+    },
+    "infrastructure": {
+      "kubernetes": {
+        "path": "infra/k8s",
+        "contents": [
+          "auth-service-deployment.yaml",
+          "crm-service-deployment.yaml",
+          "ai-agent-service-deployment.yaml",
+          "services.yaml",
+          "ingress.yaml",
+          "secrets.yaml",
+          "configmaps.yaml"
+        ],
+        "deployment_strategy": "Rolling updates with canary deployments",
+        "namespace": "contact360-prod"
+      },
+      "terraform": {
+        "path": "infra/terraform",
+        "purpose": "Infrastructure as Code for cloud resources",
+        "managed_resources": [
+          "VPC and networking",
+          "RDS PostgreSQL instance",
+          "Redis cluster",
+          "Elasticsearch domain",
+          "S3 buckets",
+          "Kafka cluster",
+          "Load balancers"
+        ]
+      },
+      "docker": {
+        "path": "infra/docker",
+        "contents": [
+          "Dockerfile (per service)",
+          "docker-compose.yml (local development)",
+          "docker-compose.prod.yml"
+        ],
+        "registry": "Docker Hub / AWS ECR"
+      }
+    },
+    "ci_cd": {
+      "path": ".github/workflows/",
+      "platform": "GitHub Actions",
+      "pipelines": {
+        "frontend_build": "react-build.yml",
+        "backend_build": "backend-build.yml (per service)",
+        "test": "test.yml (unit + integration)",
+        "deploy_staging": "deploy-staging.yml",
+        "deploy_production": "deploy-prod.yml"
+      }
+    }
+  },
+  "database_schema": {
+    "database_system": "PostgreSQL",
+    "vector_extension": "pgvector (for AI embeddings)",
+    "primary_tables": {
+      "users": {
+        "columns": [
+          "id (UUID)",
+          "email (VARCHAR)",
+          "password_hash (VARCHAR)",
+          "name (VARCHAR)",
+          "role (ENUM)",
+          "created_at (TIMESTAMP)"
+        ]
+      },
+      "contacts": {
+        "columns": [
+          "id (UUID)",
+          "first_name",
+          "last_name",
+          "email",
+          "phone",
+          "company_id (FK)",
+          "owner_id (FK)",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "companies": {
+        "columns": [
+          "id (UUID)",
+          "name",
+          "industry",
+          "size",
+          "location",
+          "created_at"
+        ]
+      },
+      "deals": {
+        "columns": [
+          "id (UUID)",
+          "title",
+          "value (DECIMAL)",
+          "stage (ENUM)",
+          "contact_id (FK)",
+          "company_id (FK)",
+          "owner_id (FK)",
+          "probability",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "tasks": {
+        "columns": [
+          "id (UUID)",
+          "title",
+          "due_date",
+          "assigned_to (FK)",
+          "deal_id (FK)",
+          "status (ENUM)",
+          "created_at"
+        ]
+      },
+      "agents": {
+        "columns": [
+          "id (UUID)",
+          "name",
+          "type (ENUM)",
+          "status",
+          "memory (JSONB)",
+          "configuration (JSONB)",
+          "created_at"
+        ]
+      },
+      "agent_memory": {
+        "columns": [
+          "id (UUID)",
+          "agent_id (FK)",
+          "conversation_history (JSONB)",
+          "context (JSONB)",
+          "embeddings (vector)",
+          "created_at"
+        ]
+      }
+    },
+    "supplementary_storage": {
+      "mongodb_collections": [
+        "activities (high write volume)",
+        "logs (unbounded growth)",
+        "user_preferences (flexible schema)"
+      ],
+      "s3_buckets": [
+        "contact-attachments",
+        "agent-artifacts",
+        "backup-data"
+      ]
+    }
+  },
+  "end_to_end_flow_example": {
+    "scenario": "User creates a new deal via Web UI",
+    "steps": [
+      {
+        "step": 1,
+        "actor": "Frontend (React)",
+        "action": "User fills form and clicks 'Save Deal'",
+        "details": "Form contains: title, value, contact_id, stage",
+        "technology": "React form state management"
+      },
+      {
+        "step": 2,
+        "actor": "API Client",
+        "action": "POST /api/v1/deals with JWT token",
+        "details": "Includes Authorization header with JWT",
+        "technology": "Axios / React Query"
+      },
+      {
+        "step": 3,
+        "actor": "API Gateway",
+        "action": "Validate JWT, apply rate limiting",
+        "details": "Calls auth-service to verify token",
+        "technology": "Kong / Express Gateway"
+      },
+      {
+        "step": 4,
+        "actor": "CRM Service",
+        "action": "Validate payload, insert deal into PostgreSQL",
+        "details": "Enforces business logic: value > 0, valid contact",
+        "technology": "Fastify + Prisma ORM"
+      },
+      {
+        "step": 5,
+        "actor": "PostgreSQL",
+        "action": "ACID transaction: INSERT INTO deals",
+        "details": "Returns new deal record with ID and timestamps",
+        "technology": "PostgreSQL transactions"
+      },
+      {
+        "step": 6,
+        "actor": "CRM Service",
+        "action": "Publish deal.created event to Kafka",
+        "details": "Event includes full deal payload and metadata",
+        "technology": "Kafka producer"
+      },
+      {
+        "step": 7,
+        "actor": "Redis",
+        "action": "Cache updated deal data",
+        "details": "TTL: 1 hour for performance",
+        "technology": "Redis SET with EX"
+      },
+      {
+        "step": 8,
+        "actor": "Elasticsearch",
+        "action": "Index deal for full-text search",
+        "details": "Async via search-sync-worker consumer",
+        "technology": "Elasticsearch indexing"
+      },
+      {
+        "step": 9,
+        "actor": "Kafka Consumers (Async)",
+        "action": "Multiple services react to deal.created event",
+        "branches": [
+          {
+            "service": "Analytics Service",
+            "action": "Update pipeline metrics, write to data warehouse"
+          },
+          {
+            "service": "AI Agent Service",
+            "action": "Score deal, retrieve similar deals from Pinecone, generate recommendations"
+          },
+          {
+            "service": "Notification Service",
+            "action": "Send Slack message to assigned rep with deal summary"
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "actor": "AI Agent Service",
+        "action": "Use LLM with RAG to generate next steps",
+        "details": "Queries Pinecone for similar past deals, calls LLM, writes recommendations to PostgreSQL",
+        "technology": "OpenAI / Anthropic API + Pinecone"
+      },
+      {
+        "step": 11,
+        "actor": "Notification Service",
+        "action": "Send Slack message via Slack API",
+        "details": "Includes deal summary and AI-generated recommendations",
+        "technology": "Slack Bot / Slack API"
+      },
+      {
+        "step": 12,
+        "actor": "CRM Service",
+        "action": "Return success response to Frontend",
+        "details": "HTTP 201 Created with deal object",
+        "technology": "JSON response"
+      },
+      {
+        "step": 13,
+        "actor": "Frontend (React)",
+        "action": "Update UI with new deal",
+        "details": "Invalidate React Query cache, refetch deals list or add to local state",
+        "technology": "React Query invalidateQueries"
+      },
+      {
+        "step": 14,
+        "actor": "Slack Bot",
+        "action": "User sees Slack notification with AI insights",
+        "details": "Notification includes: deal title, value, contact name, AI recommendation",
+        "technology": "Slack message blocks"
+      }
+    ],
+    "performance_metrics": {
+      "synchronous_path_latency": "100-300ms (frontend to DB write)",
+      "end_to_end_latency_with_ai": "2-5 seconds (including AI scoring)",
+      "cache_hit_rate_target": "85%",
+      "database_query_time": "<50ms (with indexes)",
+      "kafka_event_lag": "<1 second",
+      "ai_model_inference_time": "1-2 seconds"
+    }
+  },
+  "technology_summary": {
+    "frontend": [
+      "React 18",
+      "Vite",
+      "TailwindCSS",
+      "React Query",
+      "React Hook Form",
+      "Recharts"
+    ],
+    "backend": [
+      "Node.js (Express/Fastify)",
+      "Python (FastAPI)",
+      "TypeScript",
+      "Prisma ORM",
+      "SQLAlchemy"
+    ],
+    "databases": [
+      "PostgreSQL",
+      "MongoDB",
+      "Redis",
+      "Elasticsearch",
+      "Pinecone"
+    ],
+    "messaging": [
+      "Apache Kafka",
+      "RabbitMQ (for task queues)"
+    ],
+    "ai_ml": [
+      "LangGraph",
+      "OpenAI API",
+      "Anthropic API",
+      "Hugging Face",
+      "pgvector"
+    ],
+    "infrastructure": [
+      "Docker",
+      "Kubernetes",
+      "Terraform",
+      "AWS (EC2, RDS, S3, Lambda)"
+    ],
+    "ci_cd": [
+      "GitHub Actions",
+      "Docker Registry",
+      "Helm"
+    ],
+    "monitoring": [
+      "Datadog",
+      "Sentry",
+      "Prometheus",
+      "Grafana"
+    ],
+    "apis": [
+      "REST",
+      "GraphQL",
+      "gRPC",
+      "WebSockets"
+    ]
+  }
+}

@@ -1,0 +1,1717 @@
+{
+  "kind": "phase",
+  "phase_id": "7",
+  "title": "Contact360 deployment",
+  "version": "1.0.0",
+  "status": "draft",
+  "schema_refs": [],
+  "sections": [
+    {
+      "id": "7.1.0.1",
+      "title": "Terraform module organization (root, modules, environments, variables)",
+      "file": "120-deployment/01-terraform-module-structure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "7.1.0.2",
+      "title": "Terraform state management (backend, locking, remote state)",
+      "file": "120-deployment/02-terraform-state-management.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.1.0.3",
+      "title": "Infrastructure repository structure (Git layout, branching, code review)",
+      "file": "120-deployment/03-infrastructure-repo-structure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.1.1.1",
+      "title": "AWS account structure (prod, staging, dev, security accounts)",
+      "file": "120-deployment/04-aws-account-structure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Company.json"
+      ]
+    },
+    {
+      "id": "7.1.1.2",
+      "title": "VPC design (CIDR blocks, subnets, availability zones, NAT)",
+      "file": "120-deployment/05-vpc-design-and-cidr-planning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.1.1.3",
+      "title": "Network security (security groups, NACLs, VPC endpoints)",
+      "file": "120-deployment/06-network-security-design.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.1.2.1",
+      "title": "Multi-environment setup (dev, staging, production)",
+      "file": "120-deployment/07-multi-environment-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.1.2.2",
+      "title": "Environment-specific variables (region, instance types, scaling)",
+      "file": "120-deployment/08-environment-variables-and-config.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.1.2.3",
+      "title": "Secrets & credentials management (AWS Secrets Manager integration)",
+      "file": "120-deployment/09-secrets-and-credentials-management.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.0.1",
+      "title": "EKS cluster creation (version, node groups, add-ons)",
+      "file": "121-kubernetes/01-eks-cluster-creation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.0.2",
+      "title": "Node group configuration (instance types, scaling, taints, labels)",
+      "file": "121-kubernetes/02-eks-node-group-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.0.3",
+      "title": "Kubernetes add-ons (VPC CNI, CoreDNS, kube-proxy, EIAM)",
+      "file": "121-kubernetes/03-eks-addons-installation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.1.1",
+      "title": "CNI plugin setup (AWS VPC CNI, security groups per pod)",
+      "file": "121-kubernetes/04-cni-plugin-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.1.2",
+      "title": "Ingress controller (ALB Ingress Controller, Nginx)",
+      "file": "121-kubernetes/05-ingress-controller-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.1.3",
+      "title": "Service mesh setup (Istio/Linkerd for advanced routing, optional)",
+      "file": "121-kubernetes/06-service-mesh-setup-optional.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.2.1",
+      "title": "EBS storage (PersistentVolumes, EBS CSI driver)",
+      "file": "121-kubernetes/07-ebs-storage-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.2.2",
+      "title": "EFS storage (shared NFS, StatefulSet support)",
+      "file": "121-kubernetes/08-efs-storage-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.2.2.3",
+      "title": "Storage classes & persistence (retention, snapshots)",
+      "file": "121-kubernetes/09-storage-classes-and-retention.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.3.0.1",
+      "title": "Helm chart structure (values, templates, dependencies)",
+      "file": "122-helm/01-helm-chart-structure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow4"
+      ],
+      "schema_refs": [
+        "Template.json"
+      ]
+    },
+    {
+      "id": "7.3.0.2",
+      "title": "Helm values best practices (dev/staging/prod overrides)",
+      "file": "122-helm/02-helm-values-best-practices.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.3.0.3",
+      "title": "Helm repository setup (artifact registry, chart hosting)",
+      "file": "122-helm/03-helm-repository-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.3.1.1",
+      "title": "API Gateway Helm chart (replicas, resources, probes)",
+      "file": "122-helm/04-api-gateway-helm-chart.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.3.1.2",
+      "title": "CRM Service Helm chart (database migrations, init containers)",
+      "file": "122-helm/05-crm-service-helm-chart.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1",
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.3.1.3",
+      "title": "Campaign Service Helm chart (async workers, sidecars)",
+      "file": "122-helm/06-campaign-service-helm-chart.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "7.3.1.4",
+      "title": "AI Agent Service Helm chart (LLM API keys, memory store)",
+      "file": "122-helm/07-ai-agent-service-helm-chart.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "ApiKey.json"
+      ]
+    },
+    {
+      "id": "7.3.2.1",
+      "title": "Blue-green deployments (dual environments, traffic switch)",
+      "file": "122-helm/08-blue-green-deployment-pattern.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.3.2.2",
+      "title": "Canary deployments (gradual traffic shift, monitoring)",
+      "file": "122-helm/09-canary-deployment-pattern.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.3.2.3",
+      "title": "Rolling update strategy (max surge, max unavailable, readiness probes)",
+      "file": "122-helm/10-rolling-update-strategy.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.0.1",
+      "title": "RDS instance provisioning (instance class, storage, backup)",
+      "file": "123-database/01-rds-instance-provisioning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.0.2",
+      "title": "RDS parameter groups (shared_preload_libraries, max_connections)",
+      "file": "123-database/02-rds-parameter-group-tuning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.0.3",
+      "title": "RDS backup & recovery (automated backups, point-in-time recovery)",
+      "file": "123-database/03-rds-backup-and-recovery.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.1.1",
+      "title": "Schema versioning (Flyway, Liquibase migration strategy)",
+      "file": "123-database/04-schema-versioning-strategy.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.1.2",
+      "title": "Schema migration pipeline (test → staging → prod)",
+      "file": "123-database/05-schema-migration-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "7.4.1.3",
+      "title": "Zero-downtime migrations (backward compatibility, feature flags)",
+      "file": "123-database/06-zero-downtime-migration-patterns.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.2.1",
+      "title": "pgvector extension setup (HNSW index support)",
+      "file": "123-database/07-pgvector-extension-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow5"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.2.2",
+      "title": "RLS (Row-Level Security) policy installation",
+      "file": "123-database/08-rls-policy-installation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.4.2.3",
+      "title": "Custom functions & stored procedures (helper functions)",
+      "file": "123-database/09-custom-functions-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.0.1",
+      "title": "ElastiCache Redis cluster creation (cluster mode, multi-AZ)",
+      "file": "124-cache-search/01-elasticache-redis-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.0.2",
+      "title": "Redis parameter groups (maxmemory, eviction, timeout)",
+      "file": "124-cache-search/02-redis-parameter-tuning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.0.3",
+      "title": "Redis persistence (RDB, AOF backup configuration)",
+      "file": "124-cache-search/03-redis-persistence-backup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.1.1",
+      "title": "OpenSearch domain creation (node types, shard allocation)",
+      "file": "124-cache-search/04-opensearch-domain-creation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.1.2",
+      "title": "OpenSearch index templates (mappings, settings, shards)",
+      "file": "124-cache-search/05-opensearch-index-templates.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow4"
+      ],
+      "schema_refs": [
+        "Template.json"
+      ]
+    },
+    {
+      "id": "7.5.1.3",
+      "title": "OpenSearch backup & snapshots (AWS S3 repository)",
+      "file": "124-cache-search/06-opensearch-backup-and-snapshots.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.2.1",
+      "title": "Redis cache warm-up (pre-populate hot data)",
+      "file": "124-cache-search/07-redis-cache-warmup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.2.2",
+      "title": "OpenSearch index initial sync (bulk indexing from Postgres)",
+      "file": "124-cache-search/08-opensearch-initial-indexing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.5.2.3",
+      "title": "Verification & testing (data consistency checks)",
+      "file": "124-cache-search/09-cache-search-verification.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.0.1",
+      "title": "MSK (Managed Streaming for Kafka) cluster creation",
+      "file": "125-messaging/01-msk-cluster-creation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.0.2",
+      "title": "Kafka broker configuration (log retention, replication)",
+      "file": "125-messaging/02-kafka-broker-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.0.3",
+      "title": "Kafka security (mTLS, SASL, authentication)",
+      "file": "125-messaging/03-kafka-security-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "7.6.1.1",
+      "title": "Topic creation (partitions, replication, retention)",
+      "file": "125-messaging/04-kafka-topic-creation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.1.2",
+      "title": "Consumer group setup (group ID, initial offset)",
+      "file": "125-messaging/05-kafka-consumer-group-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.1.3",
+      "title": "Dead letter topic setup (DLQ for failed messages)",
+      "file": "125-messaging/06-kafka-dlq-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.2.1",
+      "title": "Schema Registry setup (Confluent or custom)",
+      "file": "125-messaging/07-schema-registry-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.2.2",
+      "title": "Event schema registration (Avro, Protobuf schemas)",
+      "file": "125-messaging/08-event-schema-registration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.6.2.3",
+      "title": "Schema versioning & compatibility (backward/forward)",
+      "file": "125-messaging/09-schema-versioning-compatibility.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.0.1",
+      "title": "Prometheus setup (self-hosted or managed, scrape config)",
+      "file": "126-observability/01-prometheus-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.0.2",
+      "title": "Kubernetes metrics (kubelet metrics, API server metrics)",
+      "file": "126-observability/02-kubernetes-metrics-scraping.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.0.3",
+      "title": "Custom metrics (app instrumentation, push gateway)",
+      "file": "126-observability/03-custom-metrics-instrumentation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.1.1",
+      "title": "ELK stack setup (Elasticsearch, Logstash, Kibana)",
+      "file": "126-observability/04-elk-stack-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.1.2",
+      "title": "Fluentd/Fluent Bit deployment (log shipper daemonset)",
+      "file": "126-observability/05-fluent-bit-daemonset-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.1.3",
+      "title": "Log index management (index rotation, retention, cleanup)",
+      "file": "126-observability/06-log-index-lifecycle-management.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.2.1",
+      "title": "Jaeger deployment (collector, query, all-in-one)",
+      "file": "126-observability/07-jaeger-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.2.2",
+      "title": "OpenTelemetry collector setup (traces, metrics, logs)",
+      "file": "126-observability/08-opentelemetry-collector-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.2.3",
+      "title": "Instrumentation libraries (SDKs per language)",
+      "file": "126-observability/09-instrumentation-library-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.3.1",
+      "title": "Grafana setup (dashboards, data sources, plugins)",
+      "file": "126-observability/10-grafana-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.3.2",
+      "title": "AlertManager setup (alert routing, grouping, notifications)",
+      "file": "126-observability/11-alertmanager-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.7.3.3",
+      "title": "Notification channels (PagerDuty, Slack, email)",
+      "file": "126-observability/12-notification-channel-integration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.8.0.1",
+      "title": "GitHub Actions runner setup (self-hosted or cloud)",
+      "file": "127-cicd/01-github-actions-runner-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.8.0.2",
+      "title": "Workflow file organization (lint, test, build, deploy)",
+      "file": "127-cicd/02-github-workflow-file-structure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "7.8.0.3",
+      "title": "Secrets & environment management (API keys, deployment tokens)",
+      "file": "127-cicd/03-github-secrets-and-environments.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "ApiKey.json"
+      ]
+    },
+    {
+      "id": "7.8.1.1",
+      "title": "Docker image building (multi-stage, layer caching)",
+      "file": "127-cicd/04-docker-image-build-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "7.8.1.2",
+      "title": "Image registry setup (ECR, image push, tagging)",
+      "file": "127-cicd/05-ecr-image-registry-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.8.1.3",
+      "title": "Image scanning (vulnerability scanning, compliance checks)",
+      "file": "127-cicd/06-container-image-scanning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.8.2.1",
+      "title": "Unit test execution (coverage reporting, artifacts)",
+      "file": "127-cicd/07-unit-test-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "7.8.2.2",
+      "title": "Integration test execution (database, external services mocked)",
+      "file": "127-cicd/08-integration-test-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "7.8.2.3",
+      "title": "Code quality checks (linting, SAST, SCA)",
+      "file": "127-cicd/09-code-quality-checks.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.8.3.1",
+      "title": "Infrastructure deployment (Terraform apply, approval gates)",
+      "file": "127-cicd/10-infrastructure-deployment-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "7.8.3.2",
+      "title": "Application deployment (Helm upgrade, Kubernetes rollout)",
+      "file": "127-cicd/11-application-deployment-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "7.8.3.3",
+      "title": "Smoke tests & validation (post-deployment checks)",
+      "file": "127-cicd/12-smoke-tests-and-validation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.0.1",
+      "title": "Route 53 hosted zone setup (nameservers, records)",
+      "file": "128-networking/01-route53-hosted-zone-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.0.2",
+      "title": "DNS records (A, AAAA, CNAME, MX, TXT records)",
+      "file": "128-networking/02-dns-records-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.0.3",
+      "title": "Health checks & failover (active-passive routing)",
+      "file": "128-networking/03-dns-health-checks-failover.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.1.1",
+      "title": "ACM certificate provisioning (public certificates, auto-renewal)",
+      "file": "128-networking/04-acm-certificate-provisioning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.1.2",
+      "title": "Certificate deployment (ALB, Kubernetes ingress)",
+      "file": "128-networking/05-certificate-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.1.3",
+      "title": "Certificate rotation & monitoring (expiry alerts)",
+      "file": "128-networking/06-certificate-rotation-monitoring.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.2.1",
+      "title": "CloudFront distribution creation (origins, cache behaviors)",
+      "file": "128-networking/07-cloudfront-distribution-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.2.2",
+      "title": "CloudFront caching policies (TTL, compression)",
+      "file": "128-networking/08-cloudfront-caching-policies.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.9.2.3",
+      "title": "CloudFront WAF & security (DDoS, bot protection)",
+      "file": "128-networking/09-cloudfront-waf-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.0.1",
+      "title": "RDS automated backups (backup window, retention)",
+      "file": "129-backup/01-rds-automated-backup-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.0.2",
+      "title": "S3 backup replication (cross-region, versioning)",
+      "file": "129-backup/02-s3-cross-region-replication.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.0.3",
+      "title": "Redis persistence & snapshots (RDB, AOF)",
+      "file": "129-backup/03-redis-snapshot-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.1.1",
+      "title": "Backup restoration testing (monthly test restores)",
+      "file": "129-backup/04-backup-restoration-testing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.1.2",
+      "title": "Data integrity verification (checksums, row counts)",
+      "file": "129-backup/05-backup-integrity-verification.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.1.3",
+      "title": "Restore procedure documentation (step-by-step runbook)",
+      "file": "129-backup/06-restore-procedure-documentation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.2.1",
+      "title": "Standby region setup (minimal infrastructure)",
+      "file": "129-backup/07-standby-region-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.2.2",
+      "title": "Data replication to DR (real-time or periodic)",
+      "file": "129-backup/08-dr-data-replication.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.10.2.3",
+      "title": "DR failover automation (scripts, playbooks)",
+      "file": "129-backup/09-dr-failover-automation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.0.1",
+      "title": "AWS Secrets Manager setup (secret creation, rotation)",
+      "file": "130-secrets/01-aws-secrets-manager-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.0.2",
+      "title": "HashiCorp Vault setup (optional, HA Vault cluster)",
+      "file": "130-secrets/02-hashicorp-vault-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.0.3",
+      "title": "Kubernetes secrets (sealed secrets, external secrets operator)",
+      "file": "130-secrets/03-kubernetes-secrets-management.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.1.1",
+      "title": "IAM roles & policies (service roles, pod roles)",
+      "file": "130-secrets/04-iam-roles-and-policies.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.1.2",
+      "title": "IRSA (IAM Roles for Service Accounts) setup",
+      "file": "130-secrets/05-irsa-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Company.json"
+      ]
+    },
+    {
+      "id": "7.11.1.3",
+      "title": "RBAC (Role-Based Access Control) in Kubernetes",
+      "file": "130-secrets/06-kubernetes-rbac-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.2.1",
+      "title": "Pod credential injection (environment variables, mounted files)",
+      "file": "130-secrets/07-pod-credential-injection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.2.2",
+      "title": "Database credentials rotation (automatic, zero-downtime)",
+      "file": "130-secrets/08-database-credential-rotation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.11.2.3",
+      "title": "API key rotation (distributed systems, versioning)",
+      "file": "130-secrets/09-api-key-rotation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "ApiKey.json"
+      ]
+    },
+    {
+      "id": "7.12.0.1",
+      "title": "Infrastructure readiness checklist (networks, databases, caches)",
+      "file": "131-validation/01-infrastructure-readiness-checklist.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.12.0.2",
+      "title": "Service deployment readiness (images built, tests passed)",
+      "file": "131-validation/02-service-deployment-readiness.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.12.0.3",
+      "title": "Configuration validation (env vars, secrets, resource limits)",
+      "file": "131-validation/03-configuration-validation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.12.1.1",
+      "title": "Staging environment deployment (full replica of prod)",
+      "file": "131-validation/04-staging-deployment-procedure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.12.1.2",
+      "title": "Production deployment (blue-green or canary)",
+      "file": "131-validation/05-production-deployment-procedure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.12.1.3",
+      "title": "Rollback procedures (automated, manual triggers)",
+      "file": "131-validation/06-rollback-procedures.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.12.2.1",
+      "title": "Health checks (API responses, database connections, queues)",
+      "file": "131-validation/07-post-deployment-health-checks.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.12.2.2",
+      "title": "Smoke tests (critical user journeys, basic functionality)",
+      "file": "131-validation/08-smoke-test-execution.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "7.12.2.3",
+      "title": "Performance validation (latency, throughput, error rates)",
+      "file": "131-validation/09-performance-validation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.0.1",
+      "title": "docker-compose.yml setup (services, volumes, networks)",
+      "file": "132-local-dev/01-docker-compose-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.0.2",
+      "title": "Database initialization (seed data, migrations)",
+      "file": "132-local-dev/02-database-initialization.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.0.3",
+      "title": "Service configuration (env files, API keys)",
+      "file": "132-local-dev/03-service-local-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "ApiKey.json"
+      ]
+    },
+    {
+      "id": "7.13.1.1",
+      "title": "Hot reload setup (code changes auto-refresh)",
+      "file": "132-local-dev/04-hot-reload-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.1.2",
+      "title": "Debugging setup (IDE debuggers, remote debugging)",
+      "file": "132-local-dev/05-debugging-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.1.3",
+      "title": "Testing locally (unit tests, integration tests)",
+      "file": "132-local-dev/06-local-testing-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.2.1",
+      "title": "Getting started guide (clone, setup, run)",
+      "file": "132-local-dev/07-getting-started-guide.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.2.2",
+      "title": "Troubleshooting common issues (Docker issues, port conflicts)",
+      "file": "132-local-dev/08-troubleshooting-common-issues.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.13.2.3",
+      "title": "IDE setup recommendations (VSCode, Jetbrains config)",
+      "file": "132-local-dev/09-ide-setup-recommendations.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.0.1",
+      "title": "Staging replica of production (same architecture, smaller scale)",
+      "file": "133-staging/01-staging-environment-setup.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.0.2",
+      "title": "Data anonymization (production data in staging, safe)",
+      "file": "133-staging/02-staging-data-anonymization.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.0.3",
+      "title": "Staging resource limits (cost-effective, test performance)",
+      "file": "133-staging/03-staging-resource-limits.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.1.1",
+      "title": "Load testing in staging (mimic production load)",
+      "file": "133-staging/04-staging-load-testing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.1.2",
+      "title": "Integration testing in staging (external integrations)",
+      "file": "133-staging/05-staging-integration-testing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.1.3",
+      "title": "Security scanning in staging (SAST, dependency scan)",
+      "file": "133-staging/06-staging-security-scanning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.2.1",
+      "title": "Demo refresh (daily data reset, sample data)",
+      "file": "133-staging/07-demo-environment-refresh.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.14.2.2",
+      "title": "Demo user management (demo accounts, limited access)",
+      "file": "133-staging/08-demo-user-management.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Company.json",
+        "User.json"
+      ]
+    },
+    {
+      "id": "7.14.2.3",
+      "title": "Demo reporting (analytics, usage metrics)",
+      "file": "133-staging/09-demo-analytics-reporting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.0.1",
+      "title": "Production network isolation (private subnets, bastion hosts)",
+      "file": "134-production/01-production-network-isolation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.0.2",
+      "title": "Database hardening (strong passwords, least privilege)",
+      "file": "134-production/02-database-hardening.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.0.3",
+      "title": "Kubernetes hardening (network policies, pod security policies)",
+      "file": "134-production/03-kubernetes-hardening.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.1.1",
+      "title": "Production health monitoring (24/7 dashboards)",
+      "file": "134-production/04-production-health-monitoring.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.1.2",
+      "title": "Critical alerts (on-call escalation, incident response)",
+      "file": "134-production/05-critical-alerts-escalation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.1.3",
+      "title": "Metrics retention (long-term storage, trending)",
+      "file": "134-production/06-metrics-long-term-retention.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.2.1",
+      "title": "Production access controls (limited team, approval required)",
+      "file": "134-production/07-production-access-controls.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.2.2",
+      "title": "Production change management (change logs, approvals)",
+      "file": "134-production/08-production-change-management.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.15.2.3",
+      "title": "Production audit logging (comprehensive logging, immutable)",
+      "file": "134-production/09-production-audit-logging.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.0.1",
+      "title": "ArgoCD setup (declarative deployment from Git)",
+      "file": "135-gitops/01-argocd-setup-and-configuration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.0.2",
+      "title": "GitOps repo structure (apps, infra, overlays)",
+      "file": "135-gitops/02-gitops-repository-structure.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.0.3",
+      "title": "Sync policies (auto-sync, manual approval, pruning)",
+      "file": "135-gitops/03-argocd-sync-policies.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.1.1",
+      "title": "Automated image updates (detect new image tags, auto-deploy)",
+      "file": "135-gitops/04-automated-image-updates.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.1.2",
+      "title": "Helm value updates (update versions in Git, auto-redeploy)",
+      "file": "135-gitops/05-helm-value-automation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.1.3",
+      "title": "Dependency management (cross-service dependencies, ordering)",
+      "file": "135-gitops/06-dependency-ordering-and-sequencing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.2.1",
+      "title": "Merge-to-main deployment trigger (auto-deploy to staging)",
+      "file": "135-gitops/07-merge-to-staging-automation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.2.2",
+      "title": "Tag-based production deployment (tag release, auto-deploy)",
+      "file": "135-gitops/08-tag-based-production-deployment.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.16.2.3",
+      "title": "Manual promotion gates (approval before prod deployment)",
+      "file": "135-gitops/09-manual-promotion-gates.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.0.1",
+      "title": "First deployment runbook (step-by-step, bootstrapping)",
+      "file": "136-runbooks/01-first-deployment-runbook.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.0.2",
+      "title": "Rolling update runbook (deploy new service version)",
+      "file": "136-runbooks/02-rolling-update-runbook.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.0.3",
+      "title": "Emergency rollback runbook (fast revert to previous version)",
+      "file": "136-runbooks/03-emergency-rollback-runbook.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.1.1",
+      "title": "Pod not starting (image pull, resource limits, health checks)",
+      "file": "136-runbooks/04-pod-startup-failure-troubleshooting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.1.2",
+      "title": "Service not responding (networking, upstream, dependencies)",
+      "file": "136-runbooks/05-service-not-responding-troubleshooting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.1.3",
+      "title": "Database migration failures (schema conflicts, rollback)",
+      "file": "136-runbooks/06-database-migration-failure-troubleshooting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.2.1",
+      "title": "Image pull failures (ECR permissions, rate limits)",
+      "file": "136-runbooks/07-image-pull-failure-resolution.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.2.2",
+      "title": "ConfigMap/Secret issues (missing, incorrect values)",
+      "file": "136-runbooks/08-configmap-secret-issues-resolution.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.17.2.3",
+      "title": "Network connectivity issues (DNS, service discovery)",
+      "file": "136-runbooks/09-network-connectivity-troubleshooting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.18.0.1",
+      "title": "Change log & audit trail (who deployed what, when, why)",
+      "file": "137-compliance/01-deployment-audit-trail.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.18.0.2",
+      "title": "Approval workflows (code review, security review)",
+      "file": "137-compliance/02-deployment-approval-workflows.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.18.0.3",
+      "title": "Compliance scanning (license check, vulnerability scan)",
+      "file": "137-compliance/03-deployment-compliance-scanning.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.18.1.1",
+      "title": "Infrastructure audit logging (Terraform, CloudTrail)",
+      "file": "137-compliance/04-infrastructure-audit-logging.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.18.1.2",
+      "title": "Configuration compliance (infrastructure-as-code validation)",
+      "file": "137-compliance/05-infrastructure-compliance-validation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "7.18.1.3",
+      "title": "Secrets compliance (no secrets in code, encrypted storage)",
+      "file": "137-compliance/06-secrets-compliance-checks.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    }
+  ]
+}

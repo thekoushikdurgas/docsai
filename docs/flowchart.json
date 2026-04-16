@@ -1,0 +1,118 @@
+{
+  "canonical_flows": [
+    {
+      "id": "flow1",
+      "file": "docs/prd/flow1_contact_creation.png",
+      "title": "Contact creation",
+      "markdown": "docs/0.Foundation and pre-product stabilization and codebase setup/flows/FLOW-1-contact-creation.md"
+    },
+    {
+      "id": "flow2",
+      "file": "docs/prd/flow2_email_enrichment.png",
+      "title": "Email enrichment pipeline",
+      "markdown": "docs/0.Foundation and pre-product stabilization and codebase setup/flows/FLOW-2-email-enrichment.md"
+    },
+    {
+      "id": "flow3",
+      "file": "docs/prd/flow3_ai_query.png",
+      "title": "AI hybrid RAG query",
+      "markdown": "docs/0.Foundation and pre-product stabilization and codebase setup/flows/FLOW-3-ai-hybrid-rag.md"
+    },
+    {
+      "id": "flow4",
+      "file": "docs/prd/flow4_campaign_execution.png",
+      "title": "Campaign execution and tracking",
+      "markdown": "docs/0.Foundation and pre-product stabilization and codebase setup/flows/FLOW-4-campaign-execution.md"
+    },
+    {
+      "id": "flow5",
+      "file": "docs/prd/flow5_extension.png",
+      "title": "Chrome extension enrichment",
+      "markdown": "docs/0.Foundation and pre-product stabilization and codebase setup/flows/FLOW-5-extension-enrich.md"
+    }
+  ],
+  "architecture_diagrams": [
+    { "id": "arch_layers", "file": "docs/prd/5e154b39.png" },
+    { "id": "arch_alt", "file": "docs/prd/41f5178a.png" },
+    { "id": "arch_alt2", "file": "docs/prd/65addbf4-9abc-467c-aa57-b6441a23b99d.png" }
+  ],
+  "markdown_specs": "docs/0.Foundation and pre-product stabilization and codebase setup/flows/",
+  "satellite_data_plane": {
+    "id": "connectra_sync",
+    "title": "Connectra (sync.server) — contact/company store",
+    "code": "EC2/sync.server",
+    "markdown": "docs/backend/database/sync.server-schema.md",
+    "notes": "GraphQL gateway (contact360.io/api) calls Connectra with X-API-Key; jobs use Redis Asynq + Postgres jobs table."
+  },
+  "satellite_email_plane": {
+    "id": "email_apis",
+    "title": "email.server — finder / verify / patterns",
+    "code": "EC2/email.server",
+    "markdown": "docs/backend/database/email.server-schema.md",
+    "notes": "Gin API + separate cmd/worker (Asynq). Gateway EmailServerClient; scheduler_jobs email_server poll GET /jobs/:id/status."
+  },
+  "satellite_phone_plane": {
+    "id": "phone_apis",
+    "title": "phone.server — verify / patterns / S3 jobs",
+    "code": "EC2/phone.server",
+    "markdown": "docs/backend/database/phone.server-schema.md",
+    "notes": "Gin API + cmd/worker. Gateway PhoneServerClient; paths /phone and /phone-patterns; jobs phoneapi_jobs."
+  },
+  "satellite_storage_plane": {
+    "id": "s3storage",
+    "title": "s3storage.server — S3 objects + Redis job state",
+    "code": "EC2/s3storage.server",
+    "markdown": "docs/backend/database/s3storage.server-schema.md",
+    "notes": "Gin /api/v1 + cmd/worker Asynq. Gateway S3StorageEC2Client; jobs in Redis hashes not Postgres; default port 8087."
+  },
+  "satellite_logs_plane": {
+    "id": "logsapi",
+    "title": "log.server — log ingest + S3 CSV",
+    "code": "EC2/log.server",
+    "markdown": "docs/backend/database/log.server-schema.md",
+    "notes": "Gin logsapi + cmd/worker Asynq. Gateway LogsServerClient; in-memory hot store + S3; no Postgres; default port 8091."
+  },
+  "satellite_extension_plane": {
+    "id": "extension_server",
+    "title": "extension.server — scrape + save-profiles",
+    "code": "EC2/extension.server",
+    "markdown": "docs/backend/database/extension.server-schema.md",
+    "notes": "Gin + in-process pool; Gateway SalesNavigatorServerClient; persists via sync.server POST /internal/extension/upsert-bulk; cmd/worker stub; default port 8092."
+  },
+  "satellite_ai_plane": {
+    "id": "ai_server",
+    "title": "ai.server — HF + VQL + chats",
+    "code": "EC2/ai.server",
+    "markdown": "docs/backend/database/ai.server-schema.md",
+    "notes": "Gin + Asynq worker; Gateway AIServerClient; Connectra VQL; optional Postgres ai_chats; default port 3000."
+  },
+  "satellite_campaign_plane": {
+    "id": "campaign_server",
+    "title": "campaign.server — campaigns + sequences",
+    "code": "EC2/campaign.server",
+    "markdown": "docs/backend/database/campaign.server-schema.md",
+    "notes": "Gin + Asynq worker; Gateway CampaignServiceClient; Postgres campaigns/templates/sequences; default port 9800."
+  },
+  "gateway_plane": {
+    "id": "api_gateway",
+    "title": "contact360.io/api — GraphQL hub",
+    "code": "contact360.io/api",
+    "markdown": "docs/backend/endpoints/contact360.io/GATEWAY-BOUNDARY.md",
+    "notes": "Strawberry /graphql; Postgres gateway DB; optional phone + campaignSatellite + satelliteHealth; deploy api.contact360.io."
+  },
+  "user_web_plane": {
+    "id": "contact360_app",
+    "title": "contact360.io/app — user dashboard",
+    "code": "contact360.io/app",
+    "markdown": "contact360.io/app/README.md",
+    "notes": "Next.js 16; Bearer JWT to POST /graphql; app.contact360.io; ops/logs via admin.contact360.io."
+  },
+  "admin_ops_plane": {
+    "id": "docsai_admin",
+    "title": "contact360.io/admin — DocsAI ops console",
+    "code": "contact360.io/admin",
+    "markdown": "contact360.io/admin/README.md",
+    "notes": "Django; session + gateway GraphQL; jobs scheduler; system status HTTP + satelliteHealth; deploy admin.contact360.io / 34.201.10.84; git docsai/docs."
+  },
+  "updated": "2026-04-16"
+}

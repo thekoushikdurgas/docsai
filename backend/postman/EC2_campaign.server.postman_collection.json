@@ -1,0 +1,55 @@
+{
+  "info": {
+    "name": "campaign.server",
+    "description": "Contact360 campaign satellite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:9800" },
+    { "key": "api_key", "value": "" }
+  ],
+  "item": [
+    { "name": "Health", "request": { "method": "GET", "url": "{{base_url}}/health" } },
+    { "name": "Ready", "request": { "method": "GET", "url": "{{base_url}}/health/ready" } },
+    {
+      "name": "List campaigns",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": "{{base_url}}/campaigns"
+      }
+    },
+    {
+      "name": "Create campaign",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{api_key}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"template_id\": \"uuid\",\n  \"name\": \"Test\",\n  \"filepath\": \"./data/data.csv\",\n  \"channel\": \"email\"\n}" },
+        "url": "{{base_url}}/campaigns"
+      }
+    },
+    {
+      "name": "List templates",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+        "url": "{{base_url}}/campaign-templates?limit=20"
+      }
+    },
+    {
+      "name": "CQL parse",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-API-Key", "value": "{{api_key}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"query\": \"welcome\",\n  \"target\": \"templates\"\n}" },
+        "url": "{{base_url}}/cql/parse"
+      }
+    }
+  ]
+}

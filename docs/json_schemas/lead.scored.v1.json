@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/events/lead.scored.v1.json",
+  "title": "lead.scored payload (v1)",
+  "description": "Kafka topic: lead.scored",
+  "type": "object",
+  "required": ["contact_id", "score", "model_version", "occurred_at"],
+  "additionalProperties": false,
+  "properties": {
+    "contact_id": { "type": "string", "format": "uuid" },
+    "score": { "type": "number" },
+    "previous_score": { "type": "number" },
+    "model_version": { "type": "string" },
+    "signals": { "type": "array", "items": { "type": "string" } },
+    "occurred_at": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "contact_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "score": 88,
+      "previous_score": 72,
+      "model_version": "2026-01",
+      "signals": ["email_opened", "pricing_page"],
+      "occurred_at": "2026-01-01T15:00:00Z"
+    }
+  ]
+}

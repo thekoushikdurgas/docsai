@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/events/email.bounced.v1.json",
+  "title": "email.bounced payload (v1)",
+  "description": "Kafka topic: email.bounced",
+  "type": "object",
+  "required": ["message_id", "bounce_type", "occurred_at"],
+  "additionalProperties": false,
+  "properties": {
+    "message_id": { "type": "string" },
+    "campaign_id": { "type": "string", "format": "uuid" },
+    "contact_id": { "type": "string", "format": "uuid" },
+    "bounce_type": { "type": "string", "enum": ["hard", "soft", "complaint", "blocked"] },
+    "smtp_code": { "type": "string" },
+    "diagnostic": { "type": "string" },
+    "occurred_at": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "message_id": "msg_abc123",
+      "bounce_type": "hard",
+      "smtp_code": "550",
+      "occurred_at": "2026-01-01T12:10:00Z"
+    }
+  ]
+}

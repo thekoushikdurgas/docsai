@@ -1,0 +1,85 @@
+{
+  "kind": "extension",
+  "title": "Contact360 browser extension UI map",
+  "version": "1.0.0",
+  "path": "contact360.extension",
+  "chrome_min": "114",
+  "surfaces": [
+    {
+      "id": "popup",
+      "file": "contact360.extension/popup.html",
+      "script": "contact360.extension/popup.js",
+      "style": "contact360.extension/popup.css",
+      "tabs": [
+        {
+          "id": "tab-status",
+          "panel": "panel-status",
+          "features": ["tokenStatus", "gatewayStatus", "batchFeedback", "captureProgress", "captureNow", "recheck", "openSidePanel"]
+        },
+        {
+          "id": "tab-settings",
+          "panel": "panel-settings",
+          "features": ["gatewayBaseUrl", "gatewayApiKey", "graphqlUrl", "useScrapeEndpoint", "htmlSnapshotMaxKb", "logsApiBaseUrl", "logsApiKey", "telemetryEnabled", "saveGateway"]
+        }
+      ]
+    },
+    {
+      "id": "sidepanel",
+      "file": "contact360.extension/sidepanel.html",
+      "script": "contact360.extension/sidepanel.js",
+      "style": "contact360.extension/sidepanel.css",
+      "tabs": [
+        {
+          "id": "sp-tab-status",
+          "panel": "sp-panel-status",
+          "features": ["pipelineSteps", "spTokenStatus", "spGatewayStatus", "spPageKind", "spCaptureNow", "spRecheck"]
+        },
+        {
+          "id": "sp-tab-preview",
+          "panel": "sp-panel-preview",
+          "features": ["spPreviewMeta", "spPreviewHtml", "c360_last_capture_preview"]
+        },
+        {
+          "id": "sp-tab-settings",
+          "panel": "sp-panel-settings",
+          "features": ["spGatewayBaseUrl", "spGraphqlUrl", "spUseScrapeEndpoint", "spHtmlMaxKb", "telemetry", "spSaveSettings"]
+        }
+      ]
+    }
+  ],
+  "service_worker": {
+    "file": "contact360.extension/background.js",
+    "import_scripts": ["auth/graphqlSession.js", "services/gatewayClient.js"],
+    "messages": [
+      { "type": "C360_CAPTURE_AND_SAVE", "docs": "docs/backend/endpoints/extension.server/ROUTES.md" },
+      { "type": "C360_SCRAPE_ONLY", "docs": "docs/backend/endpoints/extension.server/ROUTES.md" },
+      { "type": "C360_GATEWAY_HEALTH", "maps_to": "GET /health" },
+      { "type": "C360_OPEN_SIDE_PANEL", "docs": "Chrome sidePanel API" }
+    ]
+  },
+  "content_scripts": [
+    {
+      "file": "contact360.extension/content.js",
+      "matches": ["https://www.linkedin.com/sales/*", "https://www.linkedin.com/in/*"],
+      "message": "C360_SCRAPE_PAGE"
+    }
+  ],
+  "api_matrix": [
+    {
+      "client": "gatewayClient",
+      "rest": ["GET /health", "POST /v1/save-profiles", "POST /v1/scrape"],
+      "file": "docs/backend/endpoints/extension.server/ROUTES.md"
+    },
+    {
+      "client": "graphqlSession",
+      "graphql": ["mutation auth.refreshToken"],
+      "url": "https://api.contact360.io/graphql",
+      "file": "docs/backend/endpoints/contact360.io/GRAPHQL-SCHEMA.md"
+    },
+    {
+      "client": "telemetry",
+      "rest": ["POST {logs}/api/v1/logs"],
+      "file": "docs/backend/endpoints/log.server/ROUTE-CLIENT-MATRIX.md"
+    }
+  ]
+}

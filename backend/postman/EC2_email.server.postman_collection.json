@@ -1,0 +1,578 @@
+{
+  "info": {
+    "_postman_id": "56e33f9e-5c85-4900-8c21-656f9e94b10b",
+    "name": "EC2 email.server (Contact360)",
+    "description": "HTTP collection for [`EC2/email.server`](../../../EC2/email.server) (Gin + Asynq). Same routes as [`EmailServerClient`](../../../contact360.io/api/app/clients/email_server_client.py).\n\n**Base URL**: {{base_url}} (default `http://localhost:3000`; production example `http://16.176.172.50:3000`).\n\n**Auth**: `X-API-Key` = satellite `API_KEY` / gateway `EMAIL_SERVER_API_KEY`. Health has no auth.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27065730"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check service health status. Returns service name, version, and configuration diagnostics. No authentication required."
+          },
+          "response": []
+        }
+      ],
+      "description": "Health check endpoint (no authentication required)"
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "List Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs",
+              "host": ["{{base_url}}"],
+              "path": ["jobs"]
+            },
+            "description": "List the last 50 jobs with their status, progress, and metadata."
+          },
+          "response": []
+        },
+        {
+          "name": "Job Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/{{job_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "{{job_id}}", "status"]
+            },
+            "description": "Get detailed status of a specific job including progress, results, and completion state."
+          },
+          "response": []
+        },
+        {
+          "name": "Pause Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/{{job_id}}/pause",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "{{job_id}}", "pause"]
+            },
+            "description": "Pause a running job. Workers will stop processing tasks for this job. Use Resume Job to continue."
+          },
+          "response": []
+        },
+        {
+          "name": "Resume Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/{{job_id}}/resume",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "{{job_id}}", "resume"]
+            },
+            "description": "Resume a paused job. Workers will continue processing pending tasks."
+          },
+          "response": []
+        },
+        {
+          "name": "Terminate Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/{{job_id}}/terminate",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "{{job_id}}", "terminate"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Job management endpoints for listing, checking status, pausing, and resuming jobs"
+    },
+    {
+      "name": "Email Finder",
+      "item": [
+        {
+          "name": "Find Emails",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"first_name\": \"Vivek\",\n    \"last_name\": \"Ray\", \n    \"domain\": \"cyble.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email/finder/?first_name=Andrea&last_name=Willman&domain=teamsoftware.com",
+              "host": ["{{base_url}}"],
+              "path": ["email", "finder", ""],
+              "query": [
+                {
+                  "key": "first_name",
+                  "value": "Andrea",
+                  "description": "Contact first name"
+                },
+                {
+                  "key": "last_name",
+                  "value": "Willman",
+                  "description": "Contact last name"
+                },
+                {
+                  "key": "domain",
+                  "value": "teamsoftware.com",
+                  "description": "Company domain or website URL"
+                }
+              ]
+            },
+            "description": "Find emails by contact name and company domain. Searches for contacts matching the provided first name and last name whose company website domain matches the provided domain/website."
+          },
+          "response": []
+        },
+        {
+          "name": "Find Bulk Emails",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"first_name\": \"Karen\",\n      \"last_name\": \"Childs\",\n      \"domain\": \"premiertm.com\"\n    },\n    {\n      \"first_name\": \"raj\",\n      \"last_name\": \"roy\",\n      \"domain\": \"gmail.com\"\n    },\n    {\n      \"first_name\": \"Ayan\",\n      \"last_name\": \"Saha\",\n      \"domain\": \"piamamedialabs.com\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email/finder/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["email", "finder", "bulk"]
+            },
+            "description": "Find emails for multiple contacts in bulk (synchronous, max 50 items). Returns results for each contact."
+          },
+          "response": []
+        },
+        {
+          "name": "S3 Finder Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"s3_bucket\": \"appointment360uploads\",\n  \"input_csv_key\": \"1ccb78d9-b7bb-4dea-b1d4-2ca9f62d3053/upload/100_test.csv\",\n  \"output_prefix\": \"1ccb78d9-b7bb-4dea-b1d4-2ca9f62d3053/exports/email_export\",\n  \"csv_columns\": {\n    \"first_name\": \"First Name\",\n    \"last_name\": \"Last Name\",\n    \"domain\": \"Website\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email/finder/s3",
+              "host": ["{{base_url}}"],
+              "path": ["email", "finder", "s3"]
+            },
+            "description": "Create an async job to find emails from a CSV file stored in S3. Streams CSV rows and processes each row to find emails. Results are merged back into a new CSV."
+          },
+          "response": []
+        }
+      ],
+      "description": "Email finder endpoints for finding emails by contact name and company domain"
+    },
+    {
+      "name": "Email Verification",
+      "item": [
+        {
+          "name": "Verify Single Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"dennis@definitive.fi\",\n    \"provider\": \"mailtester\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email/single/verifier/",
+              "host": ["{{base_url}}"],
+              "path": ["email", "single", "verifier", ""]
+            },
+            "description": "Verify a single email address. Returns verification status (valid, invalid, catchall, unknown). Supported providers: mailtester, mailvetter."
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Email Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"mailtester\",\n  \"emails\": [\n    \"rajroy.sde@zohomail.in\",\n    \"test@gmail.com\",\n    \"invalid@nonexistentdomain12345.com\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email/bulk/verifier/",
+              "host": ["{{base_url}}"],
+              "path": ["email", "bulk", "verifier", ""]
+            },
+            "description": "Verify multiple emails in bulk (synchronous, max 10,000 emails). Returns verification status for each email."
+          },
+          "response": []
+        },
+        {
+          "name": "S3 Verification Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"s3_bucket\": \"appointment360uploads\",\n  \"input_csv_key\": \"1ccb78d9-b7bb-4dea-b1d4-2ca9f62d3053/upload/emails.csv\",\n  \"output_prefix\": \"1ccb78d9-b7bb-4dea-b1d4-2ca9f62d3053/exports/email_verify\",\n  \"csv_columns\": {\n    \"email\": \"Email\"\n  },\n  \"provider\": \"mailtester\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email/verify/s3",
+              "host": ["{{base_url}}"],
+              "path": ["email", "verify", "s3"]
+            },
+            "description": "Create an async job to verify emails from a CSV file stored in S3. Streams CSV rows and processes each row. Results are merged back into a new CSV with verification status."
+          },
+          "response": []
+        },
+        {
+          "name": "S3 Pattern Learn Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"s3_bucket\": \"appointment360uploads\",\n  \"input_csv_key\": \"upload/patterns.csv\",\n  \"output_prefix\": \"exports/pattern_learn\",\n  \"csv_columns\": {\n    \"company_uuid\": \"company_uuid\",\n    \"email\": \"email\",\n    \"first_name\": \"first_name\",\n    \"last_name\": \"last_name\",\n    \"domain\": \"domain\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email/pattern/s3",
+              "host": ["{{base_url}}"],
+              "path": ["email", "pattern", "s3"]
+            },
+            "description": "Async job: learn email patterns from a CSV in S3. Output CSV adds pattern_learn_status and pattern_learn_detail."
+          },
+          "response": []
+        }
+      ],
+      "description": "Email verification endpoints for verifying emails using mailtester or mailvetter providers"
+    },
+    {
+      "name": "Email Pattern",
+      "item": [
+        {
+          "name": "Add Email Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"company_uuid\": \"kasdhfpuhtnsladnfhjwhei\",\n    \"email\": \"johnD@example.com\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"domain\": \"example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email-patterns/add",
+              "host": ["{{base_url}}"],
+              "path": ["email-patterns", "add"]
+            },
+            "description": "Add a single email pattern for a company. Used to train the email pattern prediction model."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Bulk Patterns",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"company_uuid\": \"rajroy\",\n      \"email\": \"captain.america@amazon.com\",\n      \"first_name\": \"Captain\",\n      \"last_name\": \"America\",\n      \"domain\": \"amazon.com\"\n    },\n    {\n      \"company_uuid\": \"kasdhfpuhtnsladnfhjwhei\",\n      \"email\": \"captain.america@gmail.com\",\n      \"first_name\": \"Captain\",\n      \"last_name\": \"America\",\n      \"domain\": \"gmail.com\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email-patterns/add/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["email-patterns", "add", "bulk"]
+            },
+            "description": "Add multiple email patterns in bulk for training the email pattern prediction model."
+          },
+          "response": []
+        },
+        {
+          "name": "Predict Pattern",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"domain\": \"example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email-patterns/predict",
+              "host": ["{{base_url}}"],
+              "path": ["email-patterns", "predict"]
+            },
+            "description": "POST /email-patterns/predict — ranked pattern candidates for one contact."
+          },
+          "response": []
+        },
+        {
+          "name": "Predict Pattern Bulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"first_name\": \"Jane\", \"last_name\": \"Doe\", \"domain\": \"example.com\" },\n    { \"first_name\": \"John\", \"last_name\": \"Smith\", \"domain\": \"acme.com\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/email-patterns/predict/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["email-patterns", "predict", "bulk"]
+            },
+            "description": "POST /email-patterns/predict/bulk — pattern lists per input row."
+          },
+          "response": []
+        }
+      ],
+      "description": "Email pattern management endpoints for training the email pattern prediction model"
+    },
+    {
+      "name": "Web Search",
+      "item": [
+        {
+          "name": "Web Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "API key for authentication"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"full_name\": \"Vivek Kumar Ray\",\n    \"company_domain\": \"cyble.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/web/web-search",
+              "host": ["{{base_url}}"],
+              "path": ["web", "web-search"]
+            },
+            "description": "Search the web for email addresses associated with a person at a company using DuckDuckGo and AI extraction."
+          },
+          "response": []
+        }
+      ],
+      "description": "Web search endpoints for email discovery"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "your-api-key",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

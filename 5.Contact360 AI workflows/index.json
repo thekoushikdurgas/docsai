@@ -1,0 +1,1480 @@
+{
+  "kind": "phase",
+  "phase_id": "5",
+  "title": "Contact360 AI workflows",
+  "version": "1.0.0",
+  "status": "draft",
+  "schema_refs": [],
+  "sections": [
+    {
+      "id": "5.1.0.1",
+      "title": "LangGraph topology & state machine design",
+      "file": "80-ai-workflows/01-langgraph-topology-design.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.1.0.2",
+      "title": "Agent state shape (context, intents, plan, results, memory)",
+      "file": "80-ai-workflows/02-agent-state-shape-definition.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.1.0.3",
+      "title": "Checkpointing strategy (Redis vs PostgreSQL, session persistence)",
+      "file": "80-ai-workflows/03-checkpointing-and-session-persistence.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.1.1.1",
+      "title": "Build context node (org data, permissions, session history, memories)",
+      "file": "80-ai-workflows/04-context-builder-node.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json",
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.1.1.2",
+      "title": "Classify intent node (LLM intent detection, confidence, mode routing)",
+      "file": "80-ai-workflows/05-intent-classifier-node.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.1.1.3",
+      "title": "Plan decomposer node (break intent into ordered task steps)",
+      "file": "80-ai-workflows/06-plan-decomposer-node.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Activity.json"
+      ]
+    },
+    {
+      "id": "5.1.1.4",
+      "title": "Tool selector & executor node (choose tool, execute, handle results)",
+      "file": "80-ai-workflows/07-tool-selector-executor-node.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.1.1.5",
+      "title": "Memory update node (store in Redis session, long-term DB, vector)",
+      "file": "80-ai-workflows/08-memory-update-node.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.1.1.6",
+      "title": "Response generator node (format output, suggest next steps)",
+      "file": "80-ai-workflows/09-response-generator-node.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.1.2.1",
+      "title": "Intent-based routing (read mode vs action mode vs automation mode)",
+      "file": "80-ai-workflows/10-intent-based-routing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.1.2.2",
+      "title": "Approval gate routing (high-risk actions require human approval)",
+      "file": "80-ai-workflows/11-approval-gate-routing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.1.2.3",
+      "title": "Retry & loop logic (tool fails, plan needs adjustment, max iterations)",
+      "file": "80-ai-workflows/12-retry-and-loop-logic.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.0.1",
+      "title": "Intent types taxonomy (SEARCH, FILTER, CREATE, SEND, ANALYZE, RANK, SCHEDULE)",
+      "file": "81-intent/01-intent-types-taxonomy.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow4"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.0.2",
+      "title": "LLM-based intent classification (prompt, temperature, confidence thresholds)",
+      "file": "81-intent/02-intent-classification-llm.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.0.3",
+      "title": "Intent parameter extraction (role='CTO', location='Bangalore', limit=50)",
+      "file": "81-intent/03-intent-parameter-extraction.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.1.1",
+      "title": "READ mode detection (search, analyze, rank, no writes)",
+      "file": "81-intent/04-read-mode-detection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.1.2",
+      "title": "ACTION mode detection (create, send, update, requires approval)",
+      "file": "81-intent/05-action-mode-detection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow4"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.1.3",
+      "title": "AUTOMATION mode detection (schedule, recurring, workflow)",
+      "file": "81-intent/06-automation-mode-detection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.2.1",
+      "title": "Confidence scoring per intent (high/medium/low)",
+      "file": "81-intent/07-intent-confidence-scoring.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.2.2.2",
+      "title": "Clarification questions (ambiguous input, ask user)",
+      "file": "81-intent/08-clarification-questions.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.2.2.3",
+      "title": "Multi-intent detection (user asks for multiple things at once)",
+      "file": "81-intent/09-multi-intent-handling.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.3.0.1",
+      "title": "Task decomposition (break intent into ordered steps)",
+      "file": "82-planner/01-task-decomposition-strategy.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Activity.json"
+      ]
+    },
+    {
+      "id": "5.3.0.2",
+      "title": "Dependency graph (step A depends on result of step B)",
+      "file": "82-planner/02-dependency-graph-modeling.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.3.0.3",
+      "title": "Parallelism detection (which steps can run concurrently)",
+      "file": "82-planner/03-parallelism-detection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.3.1.1",
+      "title": "Step-level credit estimation (email validation costs 1 credit/email)",
+      "file": "82-planner/04-credit-cost-estimation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3"
+      ],
+      "schema_refs": [
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.3.1.2",
+      "title": "Total plan duration estimation (latency forecast)",
+      "file": "82-planner/05-duration-estimation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.3.1.3",
+      "title": "Risk assessment (high-risk steps flagged for approval)",
+      "file": "82-planner/06-risk-assessment-per-step.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.3.2.1",
+      "title": "Plan reordering (prefer cheaper steps first, cache-friendly order)",
+      "file": "82-planner/07-plan-reordering-optimization.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.3.2.2",
+      "title": "Alternative plan generation (if preferred plan is too expensive)",
+      "file": "82-planner/08-alternative-plan-generation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.3.2.3",
+      "title": "Plan preview for user (show what will happen, confirm/adjust)",
+      "file": "82-planner/09-plan-preview-and-confirmation.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.4.0.1",
+      "title": "READ tools (crm.search_contacts, crm.search_companies, email.validate, campaign.get_analytics)",
+      "file": "83-tools/01-read-tools-catalog.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1",
+        "flow2",
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Contact.json",
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.4.0.2",
+      "title": "WRITE tools (campaign.create, campaign.send, crm.update_contact, crm.add_to_list)",
+      "file": "83-tools/02-write-tools-catalog.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1",
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Contact.json",
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.4.0.3",
+      "title": "AUTOMATION tools (campaign.schedule_followup, contact.schedule_enrichment)",
+      "file": "83-tools/03-automation-tools-catalog.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1",
+        "flow2",
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Contact.json",
+        "Campaign.json",
+        "EnrichmentJob.json"
+      ]
+    },
+    {
+      "id": "5.4.1.1",
+      "title": "Tool input schema (Zod validation, OpenAPI spec)",
+      "file": "83-tools/04-tool-input-schema-design.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.4.1.2",
+      "title": "Tool output schema (structured result, error handling)",
+      "file": "83-tools/05-tool-output-schema-design.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.4.1.3",
+      "title": "Tool documentation (description, parameters, examples, error cases)",
+      "file": "83-tools/06-tool-documentation-format.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.4.2.1",
+      "title": "Tool invocation protocol (LLM calls tool in JSON, executor runs)",
+      "file": "83-tools/07-tool-invocation-protocol.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.4.2.2",
+      "title": "Tool result handling (success, validation, caching)",
+      "file": "83-tools/08-tool-result-handling.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.4.2.3",
+      "title": "Tool error handling & retry (transient vs permanent failures)",
+      "file": "83-tools/09-tool-error-handling-and-retry.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.4.3.1",
+      "title": "Tool access control (who can call which tool, org_id isolation)",
+      "file": "83-tools/10-tool-access-control-rbac.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.4.3.2",
+      "title": "Forbidden tools (hard-blocked list, never callable)",
+      "file": "83-tools/11-forbidden-tools-safelist.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.4.3.3",
+      "title": "Tool-level rate limiting (max calls/minute per tool/org)",
+      "file": "83-tools/12-tool-rate-limiting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.5.0.1",
+      "title": "Short-term memory (Redis session, 2-hour TTL)",
+      "file": "84-memory/01-short-term-memory-redis.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.5.0.2",
+      "title": "Long-term memory (PostgreSQL ai_memories, org+user scoped)",
+      "file": "84-memory/02-long-term-memory-postgres.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json",
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.5.0.3",
+      "title": "Vector memory (pgvector embeddings, semantic search)",
+      "file": "84-memory/03-vector-memory-pgvector.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.5.1.1",
+      "title": "Context retrieval (pull relevant memories for current query)",
+      "file": "84-memory/04-context-retrieval-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "5.5.1.2",
+      "title": "Hybrid RAG (keyword search + vector search + reranking)",
+      "file": "84-memory/05-hybrid-rag-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "5.5.1.3",
+      "title": "Relevance filtering (only use memories above threshold)",
+      "file": "84-memory/06-relevance-filtering-and-thresholds.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.5.2.1",
+      "title": "Memory storage (after each tool execution, store result/insight)",
+      "file": "84-memory/07-memory-storage-strategy.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.5.2.2",
+      "title": "Memory consolidation (old memories expire, summaries kept)",
+      "file": "84-memory/08-memory-consolidation-and-summarization.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.5.2.3",
+      "title": "Memory audit (what memories exist, delete on user request)",
+      "file": "84-memory/09-memory-audit-and-deletion.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.6.0.1",
+      "title": "System prompt template (identity, capabilities, hard rules)",
+      "file": "85-prompts/01-system-prompt-template.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow4"
+      ],
+      "schema_refs": [
+        "Template.json"
+      ]
+    },
+    {
+      "id": "5.6.0.2",
+      "title": "Context injection (org name, user permissions, available tools)",
+      "file": "85-prompts/02-context-injection-patterns.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json",
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.6.0.3",
+      "title": "Tone & style rules (concise, bullet points, emojis for status)",
+      "file": "85-prompts/03-tone-and-style-guidelines.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.6.1.1",
+      "title": "Campaign template (create email campaign, suggest subject lines)",
+      "file": "85-prompts/04-campaign-prompt-template.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json",
+        "Template.json"
+      ]
+    },
+    {
+      "id": "5.6.1.2",
+      "title": "Lead scoring template (rank contacts by fit, explain reasoning)",
+      "file": "85-prompts/05-lead-scoring-prompt-template.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1",
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Contact.json",
+        "Template.json"
+      ]
+    },
+    {
+      "id": "5.6.1.3",
+      "title": "Insights template (analyze campaign performance, recommendations)",
+      "file": "85-prompts/06-insights-prompt-template.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json",
+        "Template.json"
+      ]
+    },
+    {
+      "id": "5.6.1.4",
+      "title": "Follow-up template (design nurture sequence, timing)",
+      "file": "85-prompts/07-followup-prompt-template.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow4"
+      ],
+      "schema_refs": [
+        "Template.json",
+        "SequenceStep.json"
+      ]
+    },
+    {
+      "id": "5.6.2.1",
+      "title": "Primary model strategy (GPT-4o for general, cheaper models for specific tasks)",
+      "file": "85-prompts/08-model-selection-strategy.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Activity.json"
+      ]
+    },
+    {
+      "id": "5.6.2.2",
+      "title": "Cost optimization (downgrade to gpt-4o-mini, gpt-3.5 when budget low)",
+      "file": "85-prompts/09-cost-optimization-model-routing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.6.2.3",
+      "title": "Model fallback (if primary fails, retry with different model)",
+      "file": "85-prompts/10-model-fallback-strategy.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.7.0.1",
+      "title": "Risk classification (none/low/medium/high based on action impact)",
+      "file": "86-approval/01-risk-classification-model.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.7.0.2",
+      "title": "Approval gate triggers (campaign.send is high-risk, requires approval)",
+      "file": "86-approval/02-approval-gate-triggers.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.7.0.3",
+      "title": "Approval UI & notification (WebSocket push, in-app banner, email)",
+      "file": "86-approval/03-approval-notification-ui.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.7.1.1",
+      "title": "Approval request format (what, why, impact, preview)",
+      "file": "86-approval/04-approval-request-format.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.7.1.2",
+      "title": "Approval decision handling (approve, reject, modify then approve)",
+      "file": "86-approval/05-approval-decision-handling.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.7.1.3",
+      "title": "Approval timeout & default behavior (if no response in 1h, auto-reject)",
+      "file": "86-approval/06-approval-timeout-and-defaults.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.7.2.1",
+      "title": "Low-risk auto-approval (search contact doesn't need approval)",
+      "file": "86-approval/07-low-risk-auto-approval.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Contact.json"
+      ]
+    },
+    {
+      "id": "5.7.2.2",
+      "title": "High-confidence auto-approval (campaign.send to known good list)",
+      "file": "86-approval/08-high-confidence-auto-approval.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.7.2.3",
+      "title": "User preference overrides (trust this AI, auto-approve my searches)",
+      "file": "86-approval/09-user-trust-preferences.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.8.0.1",
+      "title": "Prompt injection detection (block malicious instructions)",
+      "file": "87-safety/01-prompt-injection-detection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.8.0.2",
+      "title": "SQL injection prevention (parameterized queries, Prisma ORM)",
+      "file": "87-safety/02-sql-injection-prevention.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.8.0.3",
+      "title": "Command injection prevention (no shell execution)",
+      "file": "87-safety/03-command-injection-prevention.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.8.1.1",
+      "title": "Org-level isolation (agent can only access own org data)",
+      "file": "87-safety/04-org-isolation-enforcement.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.8.1.2",
+      "title": "User permission checks (respect RBAC on all tool calls)",
+      "file": "87-safety/05-user-permission-enforcement.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.8.1.3",
+      "title": "PII masking in logs & outputs (don't expose raw emails/phones)",
+      "file": "87-safety/06-pii-masking-in-agent-output.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.8.2.1",
+      "title": "Hallucination detection (LLM makes up data that wasn't in tool results)",
+      "file": "87-safety/07-hallucination-detection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.8.2.2",
+      "title": "Fact checking (verify LLM claims against actual tool results)",
+      "file": "87-safety/08-fact-checking-pipeline.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Deal.json"
+      ]
+    },
+    {
+      "id": "5.8.2.3",
+      "title": "Output sanitization (no links to phishing, no malicious redirects)",
+      "file": "87-safety/09-output-sanitization.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.8.3.1",
+      "title": "User-level rate limiting (max queries/minute, max concurrent sessions)",
+      "file": "87-safety/10-user-rate-limiting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.8.3.2",
+      "title": "Cost-based limits (max spend/hour, max tokens/day)",
+      "file": "87-safety/11-cost-based-limits.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.8.3.3",
+      "title": "Abuse pattern detection (suspicious query sequences, bulk operations)",
+      "file": "87-safety/12-abuse-pattern-detection.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow4"
+      ],
+      "schema_refs": [
+        "SequenceStep.json"
+      ]
+    },
+    {
+      "id": "5.9.0.1",
+      "title": "READ mode workflow (no approval gates, instant response)",
+      "file": "88-modes/01-read-mode-workflow.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.9.0.2",
+      "title": "Search contact example (find top 50 CTOs in Bangalore)",
+      "file": "88-modes/02-read-mode-search-example.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Contact.json"
+      ]
+    },
+    {
+      "id": "5.9.0.3",
+      "title": "Analyze campaign example (show performance metrics, insights)",
+      "file": "88-modes/03-read-mode-analyze-example.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.9.1.1",
+      "title": "ACTION mode workflow (approval gates before write)",
+      "file": "88-modes/04-action-mode-workflow.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.9.1.2",
+      "title": "Create campaign example (full flow with approval)",
+      "file": "88-modes/05-action-mode-create-campaign-example.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.9.1.3",
+      "title": "Send campaign example (send emails, track response)",
+      "file": "88-modes/06-action-mode-send-campaign-example.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.9.2.1",
+      "title": "AUTOMATION mode workflow (schedule for future execution)",
+      "file": "88-modes/07-automation-mode-workflow.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.9.2.2",
+      "title": "Schedule follow-up example (auto-email non-openers)",
+      "file": "88-modes/08-automation-mode-followup-example.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.9.2.3",
+      "title": "Recurring optimization example (weekly A/B test campaigns)",
+      "file": "88-modes/09-automation-mode-recurring-example.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.9.3.1",
+      "title": "Campaign specialist (focused on email/SMS campaigns)",
+      "file": "88-modes/10-campaign-specialist-agent.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.9.3.2",
+      "title": "Lead specialist (focused on contact discovery, scoring, ranking)",
+      "file": "88-modes/11-lead-specialist-agent.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1",
+        "flow3"
+      ],
+      "schema_refs": [
+        "Contact.json"
+      ]
+    },
+    {
+      "id": "5.9.3.3",
+      "title": "Account specialist (focused on company expansion, multi-threading)",
+      "file": "88-modes/12-account-specialist-agent.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Company.json"
+      ]
+    },
+    {
+      "id": "5.10.0.1",
+      "title": "\"Improve campaign performance\" autonomous loop",
+      "file": "89-workflows/01-improve-campaign-performance-workflow.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.10.0.2",
+      "title": "\"Find and nurture CTOs\" multi-step workflow",
+      "file": "89-workflows/02-find-and-nurture-ctos-workflow.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.10.0.3",
+      "title": "\"Account expansion in Fortune 500s\" workflow",
+      "file": "89-workflows/03-account-expansion-workflow.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Company.json"
+      ]
+    },
+    {
+      "id": "5.10.1.1",
+      "title": "Workflow state machine (draft, running, paused, completed, failed)",
+      "file": "89-workflows/04-workflow-state-machine.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.10.1.2",
+      "title": "Workflow progress tracking (which step running, est. time remaining)",
+      "file": "89-workflows/05-workflow-progress-tracking.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.10.1.3",
+      "title": "Workflow result reporting (summary, detailed log, next recommendations)",
+      "file": "89-workflows/06-workflow-result-reporting.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.10.2.1",
+      "title": "User intervention during workflow (pause, modify plan, resume)",
+      "file": "89-workflows/07-workflow-intervention-and-pause.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.10.2.2",
+      "title": "Conditional branching (if X, then do Y, else do Z)",
+      "file": "89-workflows/08-workflow-conditional-branching.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.10.2.3",
+      "title": "Workflow templates & reusability (save workflow, run again later)",
+      "file": "89-workflows/09-workflow-templates-and-reuse.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Template.json"
+      ]
+    },
+    {
+      "id": "5.11.0.1",
+      "title": "Agent query latency & throughput SLOs",
+      "file": "90-ai-observability/01-agent-latency-throughput-slos.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.11.0.2",
+      "title": "Agent success rate & error rate SLOs",
+      "file": "90-ai-observability/02-agent-success-rate-slos.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.11.0.3",
+      "title": "Token usage & cost per query metrics",
+      "file": "90-ai-observability/03-token-usage-and-cost-metrics.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.11.1.1",
+      "title": "LLM cost tracking (cost per org, cost per user, cost per query)",
+      "file": "90-ai-observability/04-llm-cost-tracking.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json",
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.11.1.2",
+      "title": "Budget enforcement (daily limit per org, auto-downgrade model)",
+      "file": "90-ai-observability/05-budget-enforcement-and-throttling.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Organization.json",
+        "BillingLedgerEntry.json"
+      ]
+    },
+    {
+      "id": "5.11.1.3",
+      "title": "Cost optimization reports (most expensive queries, opportunities)",
+      "file": "90-ai-observability/06-cost-optimization-reports.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.11.2.1",
+      "title": "Agent trace logs (intent, plan, tools called, results, response)",
+      "file": "90-ai-observability/07-agent-trace-logging.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.11.2.2",
+      "title": "Langfuse integration (track all agent runs, debug issues)",
+      "file": "90-ai-observability/08-langfuse-integration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.11.2.3",
+      "title": "Agent behavior analytics (common intents, tool usage, success patterns)",
+      "file": "90-ai-observability/09-agent-behavior-analytics.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.12.0.1",
+      "title": "Intent classification accuracy tests (known inputs, expected intents)",
+      "file": "91-agent-testing/01-intent-classification-tests.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.12.0.2",
+      "title": "Plan decomposition tests (correct task ordering, dependencies)",
+      "file": "91-agent-testing/02-plan-decomposition-tests.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "Activity.json"
+      ]
+    },
+    {
+      "id": "5.12.0.3",
+      "title": "End-to-end workflow tests (E2E scenarios with LLM)",
+      "file": "91-agent-testing/03-e2e-workflow-tests.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.12.1.1",
+      "title": "Agent regression suite (before deploying new model, run tests)",
+      "file": "91-agent-testing/04-agent-regression-suite.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.12.1.2",
+      "title": "Quality gates (success rate > 95%, latency < 5s, cost < \\$0.10)",
+      "file": "91-agent-testing/05-agent-quality-gates.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.12.1.3",
+      "title": "A/B testing (test new prompt, new model, measure improvement)",
+      "file": "91-agent-testing/06-agent-ab-testing.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.12.2.1",
+      "title": "User feedback loops (did agent's recommendation help? Rate it)",
+      "file": "91-agent-testing/07-user-feedback-loops.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": [
+        "User.json"
+      ]
+    },
+    {
+      "id": "5.12.2.2",
+      "title": "Failure analysis (why did this query fail? How to improve?)",
+      "file": "91-agent-testing/08-failure-analysis-and-post-mortems.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.12.2.3",
+      "title": "Prompt iteration (continuously refine system prompts based on feedback)",
+      "file": "91-agent-testing/09-prompt-iteration-and-refinement.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.13.0.1",
+      "title": "CRM service tools (search_contacts, update_contact, add_to_list)",
+      "file": "92-service-integration/01-crm-service-tools.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1"
+      ],
+      "schema_refs": [
+        "Contact.json"
+      ]
+    },
+    {
+      "id": "5.13.0.2",
+      "title": "Campaign service tools (create, send, get_analytics, schedule_followup)",
+      "file": "92-service-integration/02-campaign-service-tools.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.13.0.3",
+      "title": "Email/Phone service tools (validate, find, enrich)",
+      "file": "92-service-integration/03-email-phone-service-tools.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow2",
+        "flow3"
+      ],
+      "schema_refs": [
+        "EnrichmentJob.json"
+      ]
+    },
+    {
+      "id": "5.13.1.1",
+      "title": "Kafka event listeners (contact created → offer enrichment)",
+      "file": "92-service-integration/04-kafka-event-listeners.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow1",
+        "flow2"
+      ],
+      "schema_refs": [
+        "Contact.json",
+        "EnrichmentJob.json"
+      ]
+    },
+    {
+      "id": "5.13.1.2",
+      "title": "Webhook triggers (campaign sent → suggest follow-up)",
+      "file": "92-service-integration/05-webhook-event-triggers.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.13.1.3",
+      "title": "Scheduled agent runs (nightly: analyze campaigns, suggest improvements)",
+      "file": "92-service-integration/06-scheduled-agent-runs.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3",
+        "flow4"
+      ],
+      "schema_refs": [
+        "Campaign.json"
+      ]
+    },
+    {
+      "id": "5.13.2.1",
+      "title": "REST API for agent queries (POST /api/ai/query)",
+      "file": "92-service-integration/07-agent-rest-api.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.13.2.2",
+      "title": "WebSocket for streaming responses (real-time agent thinking)",
+      "file": "92-service-integration/08-agent-websocket-streaming.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    },
+    {
+      "id": "5.13.2.3",
+      "title": "MCP (Model Context Protocol) integration (expose agent as MCP server)",
+      "file": "92-service-integration/09-mcp-integration.md",
+      "status": "stub",
+      "flow_refs": [
+        "flow3"
+      ],
+      "schema_refs": []
+    }
+  ]
+}

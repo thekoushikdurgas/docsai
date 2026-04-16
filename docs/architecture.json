@@ -1,0 +1,85 @@
+{
+  "summary": "Monorepo microservices behind Kong; Kafka for async; Redis for cache/rate limits; Postgres with RLS. Go Connectra satellite owns global contact/company search index.",
+  "layers": ["edge", "api", "domain", "data"],
+  "diagrams": ["docs/prd/flow1.png", "docs/prd/flow2.png", "docs/prd/flow3.png", "docs/prd/flow4.png", "docs/prd/flow5.png"],
+  "api_gateway": {
+    "name": "contact360.io/api",
+    "path": "contact360.io/api",
+    "role": "FastAPI + Strawberry GraphQL; Postgres CRM; JWT; fans out to all satellites via HTTP clients",
+    "docs": "docs/backend/endpoints/contact360.io/ROUTES.md",
+    "default_port": 8000
+  },
+  "user_web_app": {
+    "name": "contact360.io/app",
+    "path": "contact360.io/app",
+    "role": "Next.js 16 App Router; GraphQL client to api.contact360.io; custom CSS design system",
+    "docs": "contact360.io/app/README.md",
+    "default_port": 3000
+  },
+  "docsai_admin": {
+    "name": "contact360.io/admin",
+    "path": "contact360.io/admin",
+    "role": "Django DocsAI Admin; GraphQL to gateway for ops (users, jobs, billing); HTTP probes + health.satelliteHealth; static admin CSS",
+    "docs": "contact360.io/admin/README.md",
+    "default_port": 8000
+  },
+  "user_extension": {
+    "name": "Contact360 browser extension",
+    "path": "contact360.extension",
+    "role": "MV3 Chrome extension; LinkedIn content scripts; toolbar popup + side panel; gateway extension.server (save-profiles, scrape); optional logs ingest; JWT via api.contact360.io GraphQL",
+    "docs": "contact360.extension/README.md",
+    "frontend_map": "docs/frontend/pages/extension-index.json",
+    "flowchart": "docs/flowchart/extension-capture.md"
+  },
+  "satellites": [
+    {
+      "name": "connectra",
+      "path": "EC2/sync.server",
+      "role": "Contact + company CRUD/VQL, OpenSearch indexing, CSV import jobs",
+      "gateway_env": "CONNECTRA_BASE_URL, CONNECTRA_API_KEY"
+    },
+    {
+      "name": "email_server",
+      "path": "EC2/email.server",
+      "role": "Email finder, verification (mailtester/mailvetter), patterns, S3 CSV jobs, web-search",
+      "gateway_env": "EMAIL_SERVER_API_URL, EMAIL_SERVER_API_KEY"
+    },
+    {
+      "name": "phone_server",
+      "path": "EC2/phone.server",
+      "role": "Phone satellite (email-stack derived): verification, patterns, S3 CSV jobs, web-search; paths /phone",
+      "gateway_env": "PHONE_SERVER_API_URL, PHONE_SERVER_API_KEY"
+    },
+    {
+      "name": "s3storage_server",
+      "path": "EC2/s3storage.server",
+      "role": "Object storage + multipart CSV, metadata/sync jobs, analysis; Redis + Asynq; routes /api/v1",
+      "gateway_env": "S3STORAGE_SERVER_API_URL, S3STORAGE_SERVER_API_KEY"
+    },
+    {
+      "name": "log_server",
+      "path": "EC2/log.server",
+      "role": "Log ingest/query, S3 CSV flush, worker TTL sweep; Redis + Asynq worker; default port 8091",
+      "gateway_env": "LOGS_SERVER_API_URL, LOGS_SERVER_API_KEY"
+    },
+    {
+      "name": "extension_server",
+      "path": "EC2/extension.server",
+      "role": "Sales Navigator scrape + save-profiles; Connectra POST /internal/extension/upsert-bulk; in-process pool; default port 8092",
+      "gateway_env": "SALES_NAVIGATOR_SERVER_API_URL, SALES_NAVIGATOR_SERVER_API_KEY"
+    },
+    {
+      "name": "ai_server",
+      "path": "EC2/ai.server",
+      "role": "Contact AI: HF chat, NL to VQL, Apollo URL parse, ai-chats API, Asynq worker; default port 3000",
+      "gateway_env": "AI_SERVER_API_URL, AI_SERVER_API_KEY"
+    },
+    {
+      "name": "campaign_server",
+      "path": "EC2/campaign.server",
+      "role": "Multi-channel campaigns, sequences, templates, CQL search; Asynq worker; default port 9800",
+      "gateway_env": "CAMPAIGN_API_URL, CAMPAIGN_API_KEY"
+    }
+  ],
+  "updated": "2026-04-16"
+}

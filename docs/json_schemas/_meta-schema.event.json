@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/meta/event-envelope.v1.json",
+  "title": "Contact360 Kafka / webhook event envelope",
+  "description": "Standard wrapper for all async events. Payload schema is versioned separately.",
+  "type": "object",
+  "required": ["event_id", "event_type", "org_id", "occurred_at", "schema_version", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id for idempotency"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Dot-separated type, e.g. contact.created"
+    },
+    "org_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^v\\d+$",
+      "description": "Payload schema version, e.g. v1"
+    },
+    "payload": { "type": "object" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional tracing: correlation_id, producer, etc."
+    }
+  }
+}

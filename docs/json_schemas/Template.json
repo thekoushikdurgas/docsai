@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/entities/Template.json",
+  "title": "Template",
+  "type": "object",
+  "required": ["id", "org_id", "name", "channel", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "org_id": { "type": "string", "format": "uuid" },
+    "name": { "type": "string" },
+    "channel": { "type": "string", "enum": ["email", "sms", "linkedin"] },
+    "subject": { "type": "string" },
+    "body_html": { "type": "string" },
+    "body_text": { "type": "string" },
+    "variables": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Merge field tokens, e.g. {{first_name}}"
+    },
+    "version": { "type": "integer", "minimum": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "org_id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "Intro email",
+      "channel": "email",
+      "subject": "Hi {{first_name}}",
+      "body_html": "<p>...</p>",
+      "variables": ["first_name", "company_name"],
+      "version": 1,
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/events/contact.updated.v1.json",
+  "title": "contact.updated payload (v1)",
+  "description": "Kafka topic: contact.updated",
+  "type": "object",
+  "required": ["contact_id", "changes"],
+  "additionalProperties": false,
+  "properties": {
+    "contact_id": { "type": "string", "format": "uuid" },
+    "changes": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Field-level diff or snapshot patch"
+    },
+    "updated_by_user_id": { "type": "string", "format": "uuid" },
+    "correlation_id": { "type": "string", "format": "uuid" }
+  },
+  "examples": [
+    {
+      "contact_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "changes": { "lifecycle_stage": "qualified" },
+      "correlation_id": "4fa85f64-5717-4562-b3fc-2c963f66afa6"
+    }
+  ]
+}

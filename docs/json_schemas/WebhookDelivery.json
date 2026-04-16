@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/api/WebhookDelivery.json",
+  "title": "WebhookDelivery",
+  "description": "Outbound webhook attempt metadata + signed envelope reference.",
+  "type": "object",
+  "required": ["delivery_id", "endpoint_id", "event_type", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "delivery_id": { "type": "string", "format": "uuid" },
+    "endpoint_id": { "type": "string", "format": "uuid" },
+    "event_type": { "type": "string" },
+    "status": { "type": "string", "enum": ["pending", "delivered", "failed", "retrying"] },
+    "http_status": { "type": "integer" },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "next_retry_at": { "type": "string", "format": "date-time" },
+    "payload_digest": { "type": "string", "description": "SHA-256 of serialized body" }
+  },
+  "examples": [
+    {
+      "delivery_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "endpoint_id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "event_type": "contact.created",
+      "status": "delivered",
+      "http_status": 200,
+      "attempt": 1,
+      "payload_digest": "sha256:abcd..."
+    }
+  ]
+}

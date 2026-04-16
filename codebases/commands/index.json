@@ -1,0 +1,61 @@
+{
+  "kind": "codebases",
+  "title": "Commands",
+  "version": "1.0.0",
+  "status": "draft",
+  "schema_refs": [],
+  "sections": [
+    {
+      "id": "commands.catalog",
+      "title": "Command catalog (machine-readable)",
+      "file": "index.json",
+      "status": "complete",
+      "flow_refs": [],
+      "schema_refs": []
+    }
+  ],
+  "commands": [
+    {
+      "id": "bootstrap",
+      "shell": "pnpm install",
+      "description": "Install workspace dependencies",
+      "cwd": ".",
+      "phase": "0"
+    },
+    {
+      "id": "dev-web",
+      "shell": "pnpm dev --filter web",
+      "description": "Run web app locally",
+      "cwd": ".",
+      "phase": "0"
+    },
+    {
+      "id": "migrate",
+      "shell": "pnpm prisma migrate dev",
+      "description": "Apply database migrations",
+      "cwd": "services/crm-service",
+      "phase": "0"
+    },
+    {
+      "id": "test",
+      "shell": "pnpm test",
+      "description": "Run unit tests",
+      "cwd": ".",
+      "phase": "6"
+    },
+    {
+      "id": "compose-up",
+      "shell": "docker compose up -d",
+      "description": "Start local infra (Postgres, Redis, Kafka)",
+      "cwd": ".",
+      "phase": "0"
+    },
+    {
+      "id": "deploy-staging",
+      "shell": "pnpm deploy:staging",
+      "description": "Deploy to staging (CI)",
+      "cwd": ".",
+      "phase": "7"
+    }
+  ]
+}

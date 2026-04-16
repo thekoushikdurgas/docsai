@@ -1,0 +1,80 @@
+{
+  "info": {
+    "name": "contact360.io API (GraphQL gateway)",
+    "description": "FastAPI + Strawberry — use POST /graphql with JSON body {\"query\": \"...\"}. Set baseUrl (e.g. https://api.contact360.io or http://98.84.125.120).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.contact360.io" },
+    { "key": "accessToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "REST /health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "GraphQL health.apiMetadata",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { health { apiMetadata { name version docs } } }\"}"
+        },
+        "url": "{{baseUrl}}/graphql"
+      }
+    },
+    {
+      "name": "GraphQL health.satelliteHealth (auth)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { health { satelliteHealth { name configured status detail } } }\"}"
+        },
+        "url": "{{baseUrl}}/graphql"
+      }
+    },
+    {
+      "name": "GraphQL phone.findPhone (auth)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query($input: PhoneFinderInput!) { phone { findPhone(input: $input) } }\",\"variables\":{\"input\":{\"firstName\":\"Jane\",\"lastName\":\"Doe\",\"domain\":\"example.com\"}}}"
+        },
+        "url": "{{baseUrl}}/graphql"
+      }
+    },
+    {
+      "name": "GraphQL campaignSatellite.campaigns (auth)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { campaignSatellite { campaigns } }\"}"
+        },
+        "url": "{{baseUrl}}/graphql"
+      }
+    }
+  ]
+}

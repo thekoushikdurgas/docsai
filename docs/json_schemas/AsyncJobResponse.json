@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/api/AsyncJobResponse.json",
+  "title": "AsyncJobResponse",
+  "type": "object",
+  "required": ["job_id", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "job_id": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "enum": ["queued", "running", "completed", "failed"] },
+    "poll_url": { "type": "string", "format": "uri" },
+    "result_url": { "type": "string", "format": "uri" },
+    "estimated_seconds": { "type": "integer", "minimum": 0 }
+  },
+  "examples": [
+    {
+      "job_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "status": "queued",
+      "poll_url": "https://api.contact360.dev/v1/jobs/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/events/campaign.sent.v1.json",
+  "title": "campaign.sent payload (v1)",
+  "description": "Kafka topic: campaign.sent — batch or per-recipient fan-out",
+  "type": "object",
+  "required": ["campaign_id", "recipient_count", "occurred_at"],
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": { "type": "string", "format": "uuid" },
+    "batch_id": { "type": "string", "format": "uuid" },
+    "recipient_count": { "type": "integer", "minimum": 0 },
+    "channel": { "type": "string" },
+    "occurred_at": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "campaign_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "recipient_count": 1200,
+      "channel": "email",
+      "occurred_at": "2026-01-01T09:00:00Z"
+    }
+  ]
+}

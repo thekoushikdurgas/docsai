@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/events/contact.created.v1.json",
+  "title": "contact.created payload (v1)",
+  "description": "Kafka topic: contact.created — payload only; wrap with _meta-schema.event.json envelope.",
+  "type": "object",
+  "required": ["contact"],
+  "additionalProperties": false,
+  "properties": {
+    "contact": { "$ref": "./Contact.json" },
+    "source": { "type": "string" },
+    "correlation_id": { "type": "string", "format": "uuid" }
+  },
+  "examples": [
+    {
+      "contact": {
+        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "org_id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "email": "new@example.com",
+        "created_at": "2026-01-01T00:00:00Z"
+      },
+      "source": "api",
+      "correlation_id": "5fa85f64-5717-4562-b3fc-2c963f66afa6"
+    }
+  ]
+}

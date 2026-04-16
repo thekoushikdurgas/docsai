@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/events/ai.query.completed.v1.json",
+  "title": "ai.query.completed payload (v1)",
+  "description": "Kafka topic: ai.query.completed",
+  "type": "object",
+  "required": ["query_id", "status", "finished_at"],
+  "additionalProperties": false,
+  "properties": {
+    "query_id": { "type": "string", "format": "uuid" },
+    "user_id": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "enum": ["success", "error", "cancelled"] },
+    "latency_ms": { "type": "integer", "minimum": 0 },
+    "token_usage": {
+      "type": "object",
+      "properties": {
+        "prompt": { "type": "integer" },
+        "completion": { "type": "integer" }
+      },
+      "additionalProperties": true
+    },
+    "tool_calls": { "type": "array", "items": { "type": "string" } },
+    "finished_at": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "query_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "status": "success",
+      "latency_ms": 842,
+      "token_usage": { "prompt": 1200, "completion": 400 },
+      "tool_calls": ["search_contacts"],
+      "finished_at": "2026-01-01T16:00:00Z"
+    }
+  ]
+}

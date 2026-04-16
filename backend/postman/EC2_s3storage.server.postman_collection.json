@@ -1,0 +1,957 @@
+{
+  "info": {
+    "_postman_id": "ec2-s3storage-server-contact360",
+    "name": "EC2 s3storage.server (Gin API)",
+    "description": "Postman collection for EC2/s3storage.server Gin routes.\n\nAuth: All routes except /health and /health/ready require X-API-Key header (or ?api_key= query param).\n\nError envelope: All errors return {\"error\": string, \"code\": string, \"request_id\": string, \"aws_error_code\"?: string, \"details\"?: any}\n\nUpload flow:\n1. POST /api/v1/uploads/initiate-csv  → upload_id\n2. GET  /api/v1/uploads/:id/parts/:n  → presigned PUT URL per part\n3. PUT each presigned URL directly to S3 (from client)\n4. POST /api/v1/uploads/:id/complete  → {bucket, key, metadata_queued}\n   OR  DELETE /api/v1/uploads/:id/abort  to cancel",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /api/v1/health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/health",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Liveness probe. No auth required."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\"status\": \"ok\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/health" }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/health/ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/health/ready",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "health", "ready"]
+            },
+            "description": "Readiness probe. Checks S3 bucket access and Redis PING. No auth required."
+          },
+          "response": [
+            {
+              "name": "200 Ready",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\"ready\": true}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/health/ready" }
+              }
+            },
+            {
+              "name": "503 Redis unavailable",
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\"error\": \"redis unavailable\", \"code\": \"SERVICE_UNAVAILABLE\", \"request_id\": \"...\", \"details\": {\"redis_error\": \"dial tcp: connection refused\"}}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/health/ready" }
+              }
+            },
+            {
+              "name": "503 S3 unreachable",
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\"error\": \"operation error S3: HeadBucket, ...\", \"code\": \"SERVICE_UNAVAILABLE\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/health/ready" }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "GET /api/v1/jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/jobs?limit=50&offset=0",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "",
+                  "description": "Filter: queued|processing|completed|dead"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Max results (1-500)"
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Pagination offset"
+                }
+              ]
+            },
+            "description": "List metadata jobs. Paginated via offset/limit. Optionally filter by state."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"jobs\": [{\"id\": 1, \"bucket\": \"my-bucket\", \"bucket_id\": \"user-uuid\", \"key\": \"upload/file.csv\", \"state\": \"completed\", \"attempts\": 1, \"created_at\": \"2024-01-01T00:00:00Z\", \"updated_at\": \"2024-01-01T00:01:00Z\"}], \"total\": 1, \"offset\": 0, \"next_offset\": 1}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/jobs" }
+              }
+            },
+            {
+              "name": "500 Redis error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\"error\": \"redis: connection refused\", \"code\": \"INTERNAL_ERROR\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/jobs" }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/jobs/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/jobs/{{job_id}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "jobs", "{{job_id}}"]
+            },
+            "description": "Get single metadata job by numeric ID."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"job\": {\"id\": 1, \"state\": \"completed\", \"bucket\": \"my-bucket\", \"bucket_id\": \"user-uuid\", \"key\": \"upload/file.csv\", \"attempts\": 1, \"created_at\": \"2024-01-01T00:00:00Z\", \"updated_at\": \"2024-01-01T00:01:00Z\"}}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/jobs/1" }
+              }
+            },
+            {
+              "name": "400 Invalid ID",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"invalid job id\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/jobs/abc" }
+              }
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"error\": \"job not found\", \"code\": \"NOT_FOUND\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/jobs/99999" }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/bucket/jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/bucket/jobs?bucket_id={{bucket_id}}&limit=50&offset=0",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "bucket", "jobs"],
+              "query": [
+                {
+                  "key": "bucket_id",
+                  "value": "{{bucket_id}}",
+                  "description": "Required. Tenant prefix (user UUID or bucket name)."
+                },
+                {
+                  "key": "state",
+                  "value": "",
+                  "description": "Optional state filter"
+                },
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "description": "List metadata jobs scoped to a specific tenant bucket_id. Paginated."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"jobs\": [], \"total\": 0, \"offset\": 0, \"next_offset\": 0}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/bucket/jobs?bucket_id=user-uuid"
+                }
+              }
+            },
+            {
+              "name": "400 Missing bucket_id",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"bucket_id required\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/bucket/jobs" }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Buckets",
+      "item": [
+        {
+          "name": "GET /api/v1/buckets/:name/ping",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/buckets/{{bucket}}/ping",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "buckets", "{{bucket}}", "ping"]
+            },
+            "description": "Check if an S3 bucket is accessible."
+          },
+          "response": [
+            {
+              "name": "200 Accessible",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"bucket\": \"my-bucket\", \"ok\": true}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/buckets/my-bucket/ping"
+                }
+              }
+            },
+            {
+              "name": "404 Bucket not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"error\": \"...\", \"code\": \"NOT_FOUND\", \"request_id\": \"...\", \"aws_error_code\": \"NoSuchBucket\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/buckets/no-such-bucket/ping"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "GET /api/v1/files",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/files",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "files"]
+            },
+            "description": "List all objects in the default bucket (up to 500)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"objects\": [{\"key\": \"user-uuid/upload/20240101_file.csv\", \"size\": 1024, \"last_modified\": \"2024-01-01T00:00:00Z\"}]}",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/files" }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/files?prefix=uploads/",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/files?prefix={{prefix}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "files"],
+              "query": [{ "key": "prefix", "value": "{{prefix}}" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/bucket/metadata",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/bucket/metadata?bucket_id={{bucket_id}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "bucket", "metadata"],
+              "query": [{ "key": "bucket_id", "value": "{{bucket_id}}" }]
+            },
+            "description": "Read {bucket_id}/metadata.json. Returns empty object if file not found."
+          },
+          "response": [
+            {
+              "name": "200 With data",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"metadata\": {\"upload\": [{\"file\": \"upload/file.csv\", \"size_bytes\": 1024, \"rows\": 100, \"columns\": 5, \"headers\": [\"a\",\"b\",\"c\",\"d\",\"e\"]}]}}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/bucket/metadata?bucket_id=user-uuid"
+                }
+              }
+            },
+            {
+              "name": "200 Not found (empty)",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"metadata\": {}}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/bucket/metadata?bucket_id=new-user"
+                }
+              }
+            },
+            {
+              "name": "400 Missing bucket_id",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"bucket_id required\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/bucket/metadata"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/v1/objects",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/objects?key={{object_key}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "objects"],
+              "query": [{ "key": "key", "value": "{{object_key}}" }]
+            },
+            "description": "Delete an object from the default bucket."
+          },
+          "response": [
+            {
+              "name": "200 Deleted",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"deleted\": true}",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/objects?key=user-uuid/upload/file.csv"
+                }
+              }
+            },
+            {
+              "name": "400 Missing key",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"key required and must not contain '..'\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": { "raw": "{{s3storage_base_url}}/api/v1/objects" }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/objects/presign-download",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/objects/presign-download?key={{object_key}}&expires_in=3600",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "objects", "presign-download"],
+              "query": [
+                { "key": "key", "value": "{{object_key}}" },
+                {
+                  "key": "expires_in",
+                  "value": "3600",
+                  "description": "Seconds, max 604800 (7 days)"
+                }
+              ]
+            },
+            "description": "Get presigned GET URL for downloading an object."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"downloadUrl\": \"https://s3.amazonaws.com/...\", \"expiresIn\": 3600}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/objects/presign-download?key=user-uuid/upload/file.csv"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "POST /api/v1/uploads/initiate-csv",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              },
+              {
+                "key": "X-Idempotency-Key",
+                "value": "{{idempotency_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "key",
+                  "value": "{{upload_key}}",
+                  "type": "text",
+                  "description": "S3 object key, max 1024 chars, no '..'"
+                },
+                {
+                  "key": "content_type",
+                  "value": "text/csv",
+                  "type": "text",
+                  "description": "One of: text/csv, text/tab-separated-values, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, application/octet-stream"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/initiate-csv",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "uploads", "initiate-csv"]
+            },
+            "description": "Initiate a multipart upload. Returns upload_id (session UUID) to use for subsequent part presigns and completion."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\"upload_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"bucket\": \"my-bucket\", \"key\": \"user-uuid/upload/20240101_file.csv\"}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/initiate-csv"
+                }
+              }
+            },
+            {
+              "name": "200 Dedup (idempotency hit)",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"upload_id\": \"550e8400-e29b-41d4-a716-446655440000\", \"dedup\": true}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/initiate-csv"
+                }
+              }
+            },
+            {
+              "name": "400 Unsupported content_type",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"unsupported content_type\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\", \"details\": {\"provided\": \"image/png\", \"allowed\": [\"text/csv\", \"text/tab-separated-values\"]}}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/initiate-csv"
+                }
+              }
+            },
+            {
+              "name": "400 Key too long",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"key too long: max 1024 characters\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/initiate-csv"
+                }
+              }
+            },
+            {
+              "name": "409 Idempotency key already used",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\"error\": \"idempotency key already used\", \"code\": \"CONFLICT\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/initiate-csv"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/uploads/:id/parts/:n",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/{{upload_id}}/parts/{{part_number}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "uploads",
+                "{{upload_id}}",
+                "parts",
+                "{{part_number}}"
+              ]
+            },
+            "description": "Get presigned PUT URL for uploading a specific part. Expires in 15 minutes."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"url\": \"https://s3.amazonaws.com/...?X-Amz-...\", \"expires_in\": \"15m\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/SESSION-ID/parts/1"
+                }
+              }
+            },
+            {
+              "name": "404 Unknown upload",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"error\": \"unknown upload or part\", \"code\": \"NOT_FOUND\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/no-such-id/parts/1"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/v1/uploads/:id/complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parts\": [\n    {\"part_number\": 1, \"etag\": \"d8e8fca2dc0f896fd7cb4cb0031ba249\"}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/{{upload_id}}/complete",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "uploads", "{{upload_id}}", "complete"]
+            },
+            "description": "Complete a multipart upload. Always returns 200. Check metadata_queued field to know if background metadata analysis was scheduled."
+          },
+          "response": [
+            {
+              "name": "200 Completed + metadata queued",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"bucket\": \"my-bucket\", \"key\": \"user-uuid/upload/20240101_file.csv\", \"metadata_queued\": true}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/SESSION-ID/complete"
+                }
+              }
+            },
+            {
+              "name": "200 Completed, metadata queue failed",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"bucket\": \"my-bucket\", \"key\": \"user-uuid/upload/20240101_file.csv\", \"metadata_queued\": false, \"queue_error\": \"redis: connection refused\"}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/SESSION-ID/complete"
+                }
+              }
+            },
+            {
+              "name": "400 Bad JSON body",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"invalid character...\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/SESSION-ID/complete"
+                }
+              }
+            },
+            {
+              "name": "404 Unknown upload",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"error\": \"unknown upload\", \"code\": \"NOT_FOUND\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/no-such-id/complete"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/v1/uploads/:id/abort",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/uploads/{{upload_id}}/abort",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "uploads", "{{upload_id}}", "abort"]
+            },
+            "description": "Abort a multipart upload. S3 abort is called before Redis session is deleted."
+          },
+          "response": [
+            {
+              "name": "200 Aborted",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"aborted\": true}",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/SESSION-ID/abort"
+                }
+              }
+            },
+            {
+              "name": "404 Unknown upload",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"error\": \"unknown upload\", \"code\": \"NOT_FOUND\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/uploads/no-such-id/abort"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Analysis",
+      "item": [
+        {
+          "name": "GET /api/v1/analysis/schema?key=",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/analysis/schema?key={{analysis_key}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "analysis", "schema"],
+              "query": [{ "key": "key", "value": "{{analysis_key}}" }]
+            },
+            "description": "Sniff CSV/TSV header columns from first 64KB of file."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"delimiter\": \",\", \"sample_bytes\": 65536, \"columns\": [{\"name\": \"first_name\", \"type\": \"string\", \"nullable\": false}, {\"name\": \"email\", \"type\": \"string\", \"nullable\": false}]}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/analysis/schema?key=user-uuid/upload/file.csv"
+                }
+              }
+            },
+            {
+              "name": "400 Missing key",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\"error\": \"key required\", \"code\": \"BAD_REQUEST\", \"request_id\": \"...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/analysis/schema"
+                }
+              }
+            },
+            {
+              "name": "404 File not found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\"error\": \"...\", \"code\": \"NOT_FOUND\", \"request_id\": \"...\", \"aws_error_code\": \"NoSuchKey\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/analysis/schema?key=user-uuid/no-such.csv"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/analysis/stats?key=",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/analysis/stats?key={{analysis_key}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "analysis", "stats"],
+              "query": [{ "key": "key", "value": "{{analysis_key}}" }]
+            },
+            "description": "Count rows in up to first 1MB of a CSV/TSV file."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"rows_in_sample\": 1250}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/analysis/stats?key=user-uuid/upload/file.csv"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Avatars",
+      "item": [
+        {
+          "name": "GET /api/v1/avatars/:user?ext=png",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{s3storage_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{s3storage_base_url}}/api/v1/avatars/{{avatar_user}}?ext={{avatar_ext}}",
+              "host": ["{{s3storage_base_url}}"],
+              "path": ["api", "v1", "avatars", "{{avatar_user}}"],
+              "query": [{ "key": "ext", "value": "{{avatar_ext}}" }]
+            },
+            "description": "Get a presigned GET URL for the user's avatar image (avatars/{user}.{ext})."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"url\": \"https://s3.amazonaws.com/my-bucket/avatars/user-uuid.png?X-Amz-...\"}",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{s3storage_base_url}}/api/v1/avatars/user-uuid?ext=png"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "s3storage_base_url", "value": "http://127.0.0.1:8087" },
+    { "key": "s3storage_api_key", "value": "change-me" },
+    { "key": "bucket", "value": "your-bucket-name" },
+    { "key": "bucket_id", "value": "user-uuid" },
+    { "key": "prefix", "value": "uploads/" },
+    { "key": "idempotency_key", "value": "test-idempotency-key-1" },
+    { "key": "upload_key", "value": "uploads/postman-sample.csv" },
+    { "key": "upload_id", "value": "replace-after-initiate" },
+    { "key": "part_number", "value": "1" },
+    { "key": "analysis_key", "value": "uploads/postman-sample.csv" },
+    { "key": "object_key", "value": "user-uuid/upload/file.csv" },
+    { "key": "job_id", "value": "1" },
+    { "key": "avatar_user", "value": "test-user" },
+    { "key": "avatar_ext", "value": "png" }
+  ]
+}

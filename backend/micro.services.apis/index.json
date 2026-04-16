@@ -1,0 +1,99 @@
+{
+  "kind": "backend",
+  "title": "Microservices API matrix",
+  "version": "1.0.0",
+  "status": "draft",
+  "schema_refs": [],
+  "sections": [
+    {
+      "id": "svc.matrix",
+      "title": "Service ownership and dependencies",
+      "file": "service-matrix.md",
+      "status": "stub",
+      "flow_refs": ["flow1", "flow2", "flow3", "flow4"],
+      "schema_refs": []
+    }
+  ],
+  "services": [
+    {
+      "service": "api-gateway",
+      "language": "Node/Go",
+      "port": 8080,
+      "depends_on": ["auth-service", "crm-service"],
+      "kafka_produces": [],
+      "kafka_consumes": []
+    },
+    {
+      "service": "auth-service",
+      "language": "Node",
+      "port": 8101,
+      "depends_on": ["postgres", "redis"],
+      "kafka_produces": [],
+      "kafka_consumes": []
+    },
+    {
+      "service": "crm-service",
+      "language": "Node",
+      "port": 8102,
+      "depends_on": ["postgres", "redis", "opensearch"],
+      "kafka_produces": ["contact.created", "contact.updated"],
+      "kafka_consumes": ["enrichment.job.completed"]
+    },
+    {
+      "service": "email-service",
+      "language": "Node",
+      "port": 8103,
+      "depends_on": ["postgres", "redis", "kafka"],
+      "kafka_produces": ["email.opened", "email.clicked", "email.bounced", "campaign.sent", "campaign.completed"],
+      "kafka_consumes": ["campaign.sent"]
+    },
+    {
+      "service": "phone-service",
+      "language": "Node",
+      "port": 8104,
+      "depends_on": ["postgres", "redis"],
+      "kafka_produces": [],
+      "kafka_consumes": []
+    },
+    {
+      "service": "campaign-service",
+      "language": "Node",
+      "port": 8105,
+      "depends_on": ["postgres", "kafka", "email-service"],
+      "kafka_produces": ["campaign.sent", "campaign.completed"],
+      "kafka_consumes": ["contact.updated", "lead.scored"]
+    },
+    {
+      "service": "ai-agent-service",
+      "language": "Python/Node",
+      "port": 8106,
+      "depends_on": ["postgres", "redis", "vector-db"],
+      "kafka_produces": ["ai.query.completed"],
+      "kafka_consumes": ["contact.created"]
+    },
+    {
+      "service": "analytics-service",
+      "language": "Go",
+      "port": 8107,
+      "depends_on": ["kafka", "clickhouse-or-opensearch"],
+      "kafka_produces": ["lead.scored"],
+      "kafka_consumes": ["email.opened", "email.clicked", "campaign.completed"]
+    },
+    {
+      "service": "integration-service",
+      "language": "Node",
+      "port": 8108,
+      "depends_on": ["postgres", "kafka"],
+      "kafka_produces": ["contact.updated"],
+      "kafka_consumes": []
+    },
+    {
+      "service": "file-service",
+      "language": "Node",
+      "port": 8109,
+      "depends_on": ["s3", "postgres"],
+      "kafka_produces": [],
+      "kafka_consumes": []
+    }
+  ]
+}

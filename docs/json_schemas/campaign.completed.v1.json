@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.contact360.dev/events/campaign.completed.v1.json",
+  "title": "campaign.completed payload (v1)",
+  "description": "Kafka topic: campaign.completed",
+  "type": "object",
+  "required": ["campaign_id", "stats", "finished_at"],
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": { "type": "string", "format": "uuid" },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "sent": { "type": "integer" },
+        "delivered": { "type": "integer" },
+        "opened": { "type": "integer" },
+        "clicked": { "type": "integer" },
+        "bounced": { "type": "integer" },
+        "unsubscribed": { "type": "integer" }
+      },
+      "additionalProperties": true
+    },
+    "finished_at": { "type": "string", "format": "date-time" }
+  },
+  "examples": [
+    {
+      "campaign_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "stats": { "sent": 1200, "delivered": 1180, "opened": 340 },
+      "finished_at": "2026-01-02T00:00:00Z"
+    }
+  ]
+}

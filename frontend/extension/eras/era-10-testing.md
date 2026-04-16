@@ -1,0 +1,9 @@
+# Era 10 — Testing
+
+**Goal:** Jest + CI hook.
+
+**Checklist**
+
+- [x] `tests/chunk-idempotency.jest.test.js`
+- [x] `tests/scaffold.jest.test.js` — side panel files
+- [x] `.github/workflows/extension-ci.yml` (monorepo root)

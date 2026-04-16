@@ -1,0 +1,93 @@
+{
+  "kind": "frontend",
+  "title": "Contact360 DocsAI Admin — routes",
+  "version": "1.0.0",
+  "status": "complete",
+  "app_path": "contact360.io/admin",
+  "deploy": {
+    "hostname": "admin.contact360.io",
+    "ec2_ip": "34.201.10.84",
+    "git": "https://github.com/thekoushikdurgas/docsai.git",
+    "branch": "docs"
+  },
+  "routes": [
+    {
+      "route": "/",
+      "page_title": "Dashboard",
+      "api_deps": ["GraphQL gateway (session), optional REST"],
+      "notes": "core:dashboard"
+    },
+    {
+      "route": "/login/",
+      "page_title": "Login",
+      "api_deps": ["Mutation.auth via appointment360_client / gateway"],
+      "notes": "Gateway auth vs AUTH_FALLBACK_LOCAL"
+    },
+    {
+      "route": "/admin/",
+      "page_title": "Admin ops (users, jobs, billing, storage, system status)",
+      "api_deps": ["Query.admin", "Query.jobs", "Query.billing", "Query.health.satelliteHealth"],
+      "notes": "apps.admin_ops"
+    },
+    {
+      "route": "/admin/system-status/",
+      "page_title": "System status",
+      "api_deps": ["HTTP GET /health probes", "Query.health.satelliteHealth"],
+      "notes": "Service health + gateway satellite table"
+    },
+    {
+      "route": "/docs/",
+      "page_title": "Documentation hub",
+      "api_deps": ["GraphQL documentation / pages storage"],
+      "notes": "apps.documentation"
+    },
+    {
+      "route": "/operations/",
+      "page_title": "Operations hub",
+      "api_deps": [],
+      "notes": "Links to jobs, system status, architecture, graph, codebase"
+    },
+    {
+      "route": "/graph/",
+      "page_title": "Graph visualization",
+      "api_deps": [],
+      "notes": "apps.graph"
+    },
+    {
+      "route": "/codebase/",
+      "page_title": "Codebase",
+      "api_deps": [],
+      "notes": "apps.codebase"
+    },
+    {
+      "route": "/architecture/",
+      "page_title": "Architecture blueprint",
+      "api_deps": [],
+      "notes": "apps.architecture"
+    },
+    {
+      "route": "/analytics/",
+      "page_title": "Analytics",
+      "api_deps": ["GraphQL + Logs API when configured"],
+      "notes": "apps.analytics"
+    },
+    {
+      "route": "/ai/",
+      "page_title": "AI chat / sessions",
+      "api_deps": ["AI_API_URL direct ai.server"],
+      "notes": "apps.ai_agent — see README in app"
+    },
+    {
+      "route": "/api/tracker/",
+      "page_title": "API endpoint registry",
+      "api_deps": [],
+      "notes": "Align with docs/backend/endpoints"
+    },
+    {
+      "route": "/api/docs/",
+      "page_title": "OpenAPI Swagger",
+      "api_deps": [],
+      "notes": "drf-spectacular"
+    }
+  ]
+}

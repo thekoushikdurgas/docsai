@@ -1,0 +1,81 @@
+{
+  "info": {
+    "name": "extension.server",
+    "description": "EC2 extension.server (Sales Navigator bridge) — health, save-profiles, scrape",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8092"
+    },
+    {
+      "key": "extension_api_key",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Save profiles",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{extension_api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"profiles\": [\n    {\n      \"id\": \"https://www.linkedin.com/in/example\",\n      \"name\": \"Jane Doe\",\n      \"email\": \"jane@example.com\",\n      \"company\": \"Acme\",\n      \"company_url\": \"acme.com\",\n      \"title\": \"Engineer\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/save-profiles",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "save-profiles"]
+        }
+      }
+    },
+    {
+      "name": "Scrape HTML",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{extension_api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"html\": \"<html><body></body></html>\",\n  \"include_metadata\": true,\n  \"save\": false\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/scrape",
+          "host": ["{{base_url}}"],
+          "path": ["v1", "scrape"]
+        }
+      }
+    }
+  ]
+}
