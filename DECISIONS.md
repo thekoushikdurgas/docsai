@@ -114,6 +114,7 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Workers:** In-process pool ([`internal/worker/pool.go`](../EC2/extension.server/internal/worker/pool.go)); **`EXTENSION_WORKERS`** (default **8**). **`cmd/worker`** is a stub — **no Redis queue** in this path.
 - **Connectra:** **`POST /internal/extension/upsert-bulk`** on **sync.server** maps extension DTOs to `UpsertCompany` / `UpsertContact` (including **`linkedin_url`** identity when email is absent).
 - **Gateway:** **`SALES_NAVIGATOR_SERVER_API_URL`** / **`SALES_NAVIGATOR_SERVER_API_KEY`** ([`SalesNavigatorServerClient`](../contact360.io/api/app/clients/sales_navigator_client.py)).
+- **Browser extension:** uses **`POST /graphql`** on the API gateway (`saveSalesNavigatorProfiles`, `scrapeSalesNavigatorHtml` with JWT); it does not call extension.server directly.
 - **Events:** Inbound HTTP only — see [`EVENTS-BOUNDARY.md`](backend/endpoints/extension.server/EVENTS-BOUNDARY.md).
 
 ## AI satellite (`EC2/ai.server`)
@@ -146,6 +147,15 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Git:** [`appointment360.git`](https://github.com/thekoushikdurgas/appointment360.git) — deploy `api.contact360.io` / `98.84.125.120`.
 - **Docs:** `docs/backend/endpoints/contact360.io/*`, Postman `contact360.io-api.postman_collection.json`, DB `docs/backend/database/contact360.io-schema.md`.
 
+## Dashboard — contacts list filters and `filterData` pagination
+
+- **VQL shape in the app:** The Next.js dashboard builds **`VqlQueryInput`** (Strawberry / GraphQL): nested `filters` (`allOf` / `anyOf` / `conditions` with `field`, `operator`, `value`), plus `orderBy`, `selectColumns`, `companyConfig`. Raw Connectra **`where`** JSON is produced only in the gateway (`vql_converter.py`) and on the satellite.
+- **Facet options:** `contacts.filterData` / `companies.filterData` forward **`page`**, **`limit`**, **`searchText`** to Connectra `POST /common/{service}/filters/data`. The GraphQL connection **`total`** must reflect the **global** match count when Connectra returns it, not only the current page length.
+- **Connectra client:** `ConnectraClient._parse_response` preserves **`response["total"]`** when it is a non-negative integer; otherwise it falls back to `len(data)` so legacy responses keep working.
+- **Multi-select facets (contacts UI):** Sidebar facet state is **`Record<string, string[]>`**; a single selection emits **`eq`**, multiple emit **`in_list`** (mapped to API `in`). Infinite scroll + search live in **`FilterCombobox`** + **`useFilterOptions`**.
+- **VQL preview:** The advanced builder modal can show a **full merged list query** (sidebar + advanced + derived columns + list `limit`/`offset`) for debugging and support, not only the advanced-only draft.
+- **Long-form doc + backlog tasks:** [`docs/docs/contacts-filter-vql-ui.md`](docs/contacts-filter-vql-ui.md); phase 3 pointer: [`docs/3.Contact360 contact and company data system/52-app-contacts-vql-filters.md`](3.Contact360%20contact%20and%20company%20data%20system/52-app-contacts-vql-filters.md).
+
 ## Row Level Security (RLS) pattern
 
 - Session sets `SET LOCAL app.current_org_id = '<uuid>'` after JWT validation in CRM path.
@@ -154,4 +164,4 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 
 ---
 
-*Last updated: 2026-04-15 (API Gateway decision added)*
+*Last updated: 2026-04-17 (Extension GraphQL harvest; browser extension → gateway only)*

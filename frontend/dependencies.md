@@ -15,3 +15,7 @@
 | `vitest` / `@playwright/test` | Tests |
 
 See `contact360.io/app/package.json` for exact versions.
+
+## Related product / API notes
+
+- Contacts list filters, VQL merge, and `filterData` pagination: [`../docs/contacts-filter-vql-ui.md`](../docs/contacts-filter-vql-ui.md).

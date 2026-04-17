@@ -2,6 +2,8 @@
 
 Convert Apollo.io **People** search URLs (from CSV `apollo_url` cells) into **Connectra VQL** JSON compatible with `EC2/sync.server` (`POST /contacts/`).
 
+**Related (dashboard VQL vs Connectra):** [`../../docs/contacts-filter-vql-ui.md`](../../docs/contacts-filter-vql-ui.md) — how the Next.js app uses GraphQL `VqlQueryInput` and the gateway converter.
+
 ## Requirements
 
 - Python **3.10+**

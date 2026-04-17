@@ -10,3 +10,5 @@
 - [x] `contact360.extension/README.md`
 
 **Refs:** `docs/backend/endpoints/extension.server/ROUTES.md`
+
+**Note:** Harvest defaults to **`https://api.contact360.io/graphql`** (no satellite base URL in the extension UI for save/scrape).
