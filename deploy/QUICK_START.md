@@ -117,6 +117,7 @@ python manage.py createsuperuser
 ### 2. Configure Environment Variables
 
 Edit `/home/ubuntu/docsai/.env.prod` and set:
+
 - Database credentials (if using RDS or custom setup)
 - AWS S3 credentials (if using S3 storage)
 - API keys (OpenAI, Google Gemini, Lambda APIs, etc.)
@@ -142,11 +143,13 @@ sudo tail -f /var/log/nginx/docsai_error.log
 ### Script Fails at Database Setup
 
 If you're using RDS or external database:
+
 ```bash
 sudo bash deploy/full-deploy.sh --http-only --skip-db-setup
 ```
 
 Then manually configure database in `.env.prod`:
+
 ```env
 DATABASE_ENGINE=postgresql
 DATABASE_NAME=your_db_name
@@ -180,6 +183,7 @@ DATABASE_PORT=5432
 ## Manual Deployment (Alternative)
 
 If you prefer manual deployment, follow the step-by-step guide:
+
 - See [DEPLOY_EC2_34.201.10.84.md](../docs/deployment/DEPLOY_EC2_34.201.10.84.md)
 
 ## Next Steps
@@ -193,6 +197,7 @@ If you prefer manual deployment, follow the step-by-step guide:
 ## Support
 
 For issues or questions:
+
 1. Check logs: `sudo journalctl -u gunicorn -f`
 2. Review deployment documentation
 3. Check GitHub Issues

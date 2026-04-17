@@ -18,14 +18,14 @@ Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) (port may differ).
 
 ## Environment
 
-| Variable | Purpose |
-|----------|---------|
-| `GRAPHQL_URL` | Gateway GraphQL endpoint (must end with `/graphql` or site root; see `config/settings/base.py` normalizer). Prefer **`https://api.contact360.io/graphql`** in production over HTTPS. |
-| `GRAPHQL_INTERNAL_TOKEN` | Optional Bearer for server-to-server calls when no user session token is present. |
-| `ALLOWED_HOSTS` | Include **`admin.contact360.io`** and **`34.201.10.84`** for the production EC2 + hostname. |
-| `SECURE_SSL_REDIRECT` | Set **`true`** when serving over HTTPS (sets secure cookies; see `production.py`). |
-| `CSRF_TRUSTED_ORIGINS` | e.g. `https://admin.contact360.io` when using HTTPS. |
-| `AUTH_FALLBACK_LOCAL` | In production, default **`false`** — use gateway login; local Django staff only for break-glass. |
+| Variable                 | Purpose                                                                                                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GRAPHQL_URL`            | Gateway GraphQL endpoint (must end with `/graphql` or site root; see `config/settings/base.py` normalizer). Prefer **`https://api.contact360.io/graphql`** in production over HTTPS. |
+| `GRAPHQL_INTERNAL_TOKEN` | Optional Bearer for server-to-server calls when no user session token is present.                                                                                                    |
+| `ALLOWED_HOSTS`          | Include **`admin.contact360.io`** and **`34.201.10.84`** for the production EC2 + hostname.                                                                                          |
+| `SECURE_SSL_REDIRECT`    | Set **`true`** when serving over HTTPS (sets secure cookies; see `production.py`).                                                                                                   |
+| `CSRF_TRUSTED_ORIGINS`   | e.g. `https://admin.contact360.io` when using HTTPS.                                                                                                                                 |
+| `AUTH_FALLBACK_LOCAL`    | In production, default **`false`** — use gateway login; local Django staff only for break-glass.                                                                                     |
 
 ## Deploy
 

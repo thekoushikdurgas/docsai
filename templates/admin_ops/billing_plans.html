@@ -65,8 +65,8 @@
         class="btn btn-outline btn-sm"
         >Edit plan</a
       >
-      {% if plan.periods.monthly and plan.periods.quarterly and
-      plan.periods.yearly %} {% else %}
+      {% if plan.periods.monthly and plan.periods.quarterly and plan.periods.yearly %}
+      {% else %}
       <a
         href="{% url 'admin_ops:billing_plan_period_add' plan.tier %}"
         class="btn btn-outline btn-sm"
@@ -86,8 +86,7 @@
     {% endif %}
   </div>
   <div class="card-body" style="padding: 0">
-    {% if not plan.periods.monthly and not plan.periods.quarterly and not
-    plan.periods.yearly %}
+    {% if not plan.periods.monthly and not plan.periods.quarterly and not plan.periods.yearly %}
     <p class="table-empty" style="padding: var(--space-4); margin: 0">
       No billing periods configured for this plan.
     </p>
@@ -99,7 +98,8 @@
         >Add first period</a
       >
     </p>
-    {% endif %} {% else %}
+    {% endif %}
+    {% else %}
     <div class="table-wrap">
       <table class="table" aria-label="Pricing for {{ plan.tier }}">
         <thead>
@@ -115,7 +115,8 @@
           </tr>
         </thead>
         <tbody>
-          {% if plan.periods.monthly %} {% with p=plan.periods.monthly %}
+          {% if plan.periods.monthly %}
+          {% with p=plan.periods.monthly %}
           <tr>
             <td>Monthly</td>
             <td>{{ p.credits }}</td>
@@ -124,9 +125,10 @@
             <td
               style="font-size: var(--text-sm); color: var(--color-text-muted)"
             >
-              {% if p.savings %} {% if p.savings.percentage is not None %}{{
-              p.savings.percentage }}%{% endif %} {% if p.savings.amount %} (${{
-              p.savings.amount }}){% endif %} {% else %}—{% endif %}
+              {% if p.savings %}
+                {% if p.savings.percentage is not None %}{{ p.savings.percentage }}%{% endif %}
+                {% if p.savings.amount %} (${{ p.savings.amount }}){% endif %}
+              {% else %}—{% endif %}
             </td>
             {% if operator.role == "super_admin" %}
             <td>
@@ -147,8 +149,10 @@
             </td>
             {% endif %}
           </tr>
-          {% endwith %} {% endif %} {% if plan.periods.quarterly %} {% with
-          p=plan.periods.quarterly %}
+          {% endwith %}
+          {% endif %}
+          {% if plan.periods.quarterly %}
+          {% with p=plan.periods.quarterly %}
           <tr>
             <td>Quarterly</td>
             <td>{{ p.credits }}</td>
@@ -157,9 +161,10 @@
             <td
               style="font-size: var(--text-sm); color: var(--color-text-muted)"
             >
-              {% if p.savings %} {% if p.savings.percentage is not None %}{{
-              p.savings.percentage }}%{% endif %} {% if p.savings.amount %} (${{
-              p.savings.amount }}){% endif %} {% else %}—{% endif %}
+              {% if p.savings %}
+                {% if p.savings.percentage is not None %}{{ p.savings.percentage }}%{% endif %}
+                {% if p.savings.amount %} (${{ p.savings.amount }}){% endif %}
+              {% else %}—{% endif %}
             </td>
             {% if operator.role == "super_admin" %}
             <td>
@@ -180,8 +185,10 @@
             </td>
             {% endif %}
           </tr>
-          {% endwith %} {% endif %} {% if plan.periods.yearly %} {% with
-          p=plan.periods.yearly %}
+          {% endwith %}
+          {% endif %}
+          {% if plan.periods.yearly %}
+          {% with p=plan.periods.yearly %}
           <tr>
             <td>Yearly</td>
             <td>{{ p.credits }}</td>
@@ -190,9 +197,10 @@
             <td
               style="font-size: var(--text-sm); color: var(--color-text-muted)"
             >
-              {% if p.savings %} {% if p.savings.percentage is not None %}{{
-              p.savings.percentage }}%{% endif %} {% if p.savings.amount %} (${{
-              p.savings.amount }}){% endif %} {% else %}—{% endif %}
+              {% if p.savings %}
+                {% if p.savings.percentage is not None %}{{ p.savings.percentage }}%{% endif %}
+                {% if p.savings.amount %} (${{ p.savings.amount }}){% endif %}
+              {% else %}—{% endif %}
             </td>
             {% if operator.role == "super_admin" %}
             <td>
@@ -213,7 +221,8 @@
             </td>
             {% endif %}
           </tr>
-          {% endwith %} {% endif %}
+          {% endwith %}
+          {% endif %}
         </tbody>
       </table>
     </div>

@@ -11,9 +11,9 @@ To consolidate on a single path, you can later switch views to use `apps.core.se
 
 ## Configuration
 
-| Env | Purpose |
-|-----|---------|
-| `AI_API_URL` | Base URL of ai.server (no trailing slash). |
+| Env          | Purpose                                                              |
+| ------------ | -------------------------------------------------------------------- |
+| `AI_API_URL` | Base URL of ai.server (no trailing slash).                           |
 | `AI_API_KEY` | If the satellite requires a key (passed as Bearer when implemented). |
 
 See monorepo [EVENTS-BOUNDARY.md](../../../../docs/backend/endpoints/contact360.io/EVENTS-BOUNDARY.md) for SSE/streaming notes.

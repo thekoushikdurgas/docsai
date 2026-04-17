@@ -217,22 +217,22 @@ sudo systemctl restart gunicorn
 
 ## Script Comparison
 
-| Feature | `deploy-to-ec2.sh` | `pre-deployment-check.sh` | `post-deployment-verify.sh` | `full-deploy.sh` | `deploy.sh` | `remote-deploy.sh` |
-|---------|--------------------|---------------------------|-----------------------------|------------------|-------------|-------------------|
-| Pre-deploy validation | ✅ (runs script) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Post-deploy verification | ✅ (runs script) | ❌ | ✅ | ❌ | ❌ | ❌ |
-| System dependencies | via full-deploy | ❌ | ❌ | ✅ | ✅ | ❌ |
-| Database setup | n/a (SQLite only) | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Python venv | via full-deploy | ❌ | ❌ | ✅ | ❌ | ❌ |
-| Install dependencies | via full-deploy | ❌ | ❌ | ✅ | ❌ | ✅ |
-| Environment config | via full-deploy | ❌ | ❌ | ✅ | ❌ | ❌ |
-| Django migrations | via full-deploy | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Static files | via full-deploy | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Gunicorn setup | via full-deploy | ❌ | ❌ | ✅ | ✅ | ❌ |
-| Nginx setup | via full-deploy | ❌ | ❌ | ✅ | ✅ | ❌ |
-| SSL setup | via full-deploy | ❌ | ❌ | ✅ | ✅ | ❌ |
-| Log rotation | via full-deploy | ❌ | ❌ | ✅ | ✅ | ❌ |
-| Firewall | via full-deploy | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Feature                  | `deploy-to-ec2.sh` | `pre-deployment-check.sh` | `post-deployment-verify.sh` | `full-deploy.sh` | `deploy.sh` | `remote-deploy.sh` |
+| ------------------------ | ------------------ | ------------------------- | --------------------------- | ---------------- | ----------- | ------------------ |
+| Pre-deploy validation    | ✅ (runs script)   | ✅                        | ❌                          | ❌               | ❌          | ❌                 |
+| Post-deploy verification | ✅ (runs script)   | ❌                        | ✅                          | ❌               | ❌          | ❌                 |
+| System dependencies      | via full-deploy    | ❌                        | ❌                          | ✅               | ✅          | ❌                 |
+| Database setup           | n/a (SQLite only)  | ❌                        | ❌                          | ❌               | ❌          | ❌                 |
+| Python venv              | via full-deploy    | ❌                        | ❌                          | ✅               | ❌          | ❌                 |
+| Install dependencies     | via full-deploy    | ❌                        | ❌                          | ✅               | ❌          | ✅                 |
+| Environment config       | via full-deploy    | ❌                        | ❌                          | ✅               | ❌          | ❌                 |
+| Django migrations        | via full-deploy    | ❌                        | ❌                          | ✅               | ✅          | ✅                 |
+| Static files             | via full-deploy    | ❌                        | ❌                          | ✅               | ✅          | ✅                 |
+| Gunicorn setup           | via full-deploy    | ❌                        | ❌                          | ✅               | ✅          | ❌                 |
+| Nginx setup              | via full-deploy    | ❌                        | ❌                          | ✅               | ✅          | ❌                 |
+| SSL setup                | via full-deploy    | ❌                        | ❌                          | ✅               | ✅          | ❌                 |
+| Log rotation             | via full-deploy    | ❌                        | ❌                          | ✅               | ✅          | ❌                 |
+| Firewall                 | via full-deploy    | ❌                        | ❌                          | ✅               | ❌          | ❌                 |
 
 ---
 

@@ -3,18 +3,21 @@
 ## Gunicorn Service Fails to Start
 
 ### Symptoms
+
 - Error: `Job for gunicorn.service failed because the control process exited with error code`
 - Service status shows `failed` or `inactive`
 
 ### Quick Fixes
 
 #### 1. Check Service Logs
+
 ```bash
 sudo journalctl -u gunicorn.service -f
 sudo journalctl -u gunicorn.service -n 50 --no-pager
 ```
 
 #### 2. Run Troubleshooting Script
+
 ```bash
 cd /home/ubuntu/docsai
 sudo bash deploy/troubleshoot-gunicorn.sh
@@ -23,17 +26,21 @@ sudo bash deploy/troubleshoot-gunicorn.sh
 #### 3. Common Issues and Solutions
 
 **Issue: Gunicorn config module not found**
+
 ```bash
 cd /home/ubuntu/docsai
 source venv/bin/activate
 python -c "import config.gunicorn.production"
 ```
+
 If this fails, check:
+
 - Virtual environment is activated
 - PYTHONPATH includes project directory
 - Config files exist in `config/gunicorn/`
 
 **Issue: Socket permissions**
+
 ```bash
 # Check socket exists and permissions
 ls -la /run/gunicorn.sock
@@ -44,6 +51,7 @@ sudo systemctl restart gunicorn.service
 ```
 
 **Issue: Environment file not readable**
+
 ```bash
 # Fix permissions for .env.prod (used by systemd)
 sudo chown ubuntu:ubuntu /home/ubuntu/docsai/.env.prod
@@ -72,6 +80,7 @@ sudo systemctl restart gunicorn.service
 ```
 
 **Issue: WSGI application import fails**
+
 ```bash
 cd /home/ubuntu/docsai
 source venv/bin/activate
@@ -80,6 +89,7 @@ python -c "from config.wsgi import application"
 ```
 
 If this fails:
+
 - Check `.env.prod` has correct settings
 - Verify database connection
 - Check Django settings are valid
@@ -126,35 +136,41 @@ sudo systemctl status gunicorn.service
 ## Nginx 502 Bad Gateway
 
 ### Symptoms
+
 - Browser shows "502 Bad Gateway"
 - Nginx error log shows connection refused
 
 ### Solutions
 
 #### 1. Check Gunicorn is Running
+
 ```bash
 sudo systemctl status gunicorn
 sudo journalctl -u gunicorn -f
 ```
 
 #### 2. Check Socket File
+
 ```bash
 ls -la /run/gunicorn.sock
 ```
 
 If socket doesn't exist:
+
 ```bash
 sudo systemctl restart gunicorn.socket
 sudo systemctl restart gunicorn.service
 ```
 
 #### 3. Check Nginx Configuration
+
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
 #### 4. Check Socket Permissions
+
 ```bash
 # Socket should be readable by www-data (Nginx user)
 ls -la /run/gunicorn.sock
@@ -169,6 +185,7 @@ sudo systemctl restart gunicorn.socket
 ## Database Connection Errors
 
 ### Symptoms
+
 - Migration fails
 - Application can't connect to database
 - Error: "could not connect to server"
@@ -176,11 +193,13 @@ sudo systemctl restart gunicorn.socket
 ### Solutions
 
 #### 1. Check Database Settings in .env.prod
+
 ```bash
 grep DATABASE /home/ubuntu/docsai/.env.prod
 ```
 
 #### 2. Test Database Connection
+
 ```bash
 cd /home/ubuntu/docsai
 source venv/bin/activate
@@ -189,6 +208,7 @@ python manage.py dbshell
 ```
 
 #### 3. For Local PostgreSQL
+
 ```bash
 # Check PostgreSQL is running
 sudo systemctl status postgresql
@@ -201,6 +221,7 @@ sudo -u postgres psql -d docsai -c "SELECT 1;"
 ```
 
 #### 4. For RDS
+
 - Verify security group allows connections from EC2
 - Check RDS endpoint is correct
 - Verify credentials are correct
@@ -211,12 +232,14 @@ sudo -u postgres psql -d docsai -c "SELECT 1;"
 ## Static Files 404
 
 ### Symptoms
+
 - CSS/JS files return 404
 - Page loads but no styling
 
 ### Solutions
 
 #### 1. Collect Static Files
+
 ```bash
 cd /home/ubuntu/docsai
 source venv/bin/activate
@@ -225,11 +248,13 @@ python manage.py collectstatic --noinput
 ```
 
 #### 2. Check Static Files Directory
+
 ```bash
 ls -la /home/ubuntu/docsai/staticfiles/
 ```
 
 #### 3. Check Nginx Configuration
+
 ```bash
 # Verify static files location in Nginx config
 grep -A 5 "location /static" /etc/nginx/sites-available/docsai.conf
@@ -238,6 +263,7 @@ grep -A 5 "location /static" /etc/nginx/sites-available/docsai.conf
 ```
 
 #### 4. Check Permissions
+
 ```bash
 sudo chown -R ubuntu:ubuntu /home/ubuntu/docsai/staticfiles/
 sudo chmod -R 755 /home/ubuntu/docsai/staticfiles/
@@ -248,6 +274,7 @@ sudo chmod -R 755 /home/ubuntu/docsai/staticfiles/
 ## SSL Certificate Issues
 
 ### Symptoms
+
 - SSL certificate not found
 - Certificate expired
 - HTTPS not working
@@ -255,11 +282,13 @@ sudo chmod -R 755 /home/ubuntu/docsai/staticfiles/
 ### Solutions
 
 #### 1. Check Certificate Status
+
 ```bash
 sudo certbot certificates
 ```
 
 #### 2. Renew Certificate
+
 ```bash
 sudo certbot renew --dry-run  # Test
 sudo certbot renew            # Actual renewal
@@ -267,6 +296,7 @@ sudo systemctl reload nginx
 ```
 
 #### 3. Check DNS
+
 ```bash
 # Verify DNS points to EC2 IP
 dig admin.contact360.io
@@ -274,6 +304,7 @@ nslookup admin.contact360.io
 ```
 
 #### 4. Re-run SSL Setup
+
 ```bash
 cd /home/ubuntu/docsai
 sudo bash deploy/ssl/setup-ssl.sh admin.contact360.io admin@contact360.io
@@ -284,6 +315,7 @@ sudo bash deploy/ssl/setup-ssl.sh admin.contact360.io admin@contact360.io
 ## Environment Variable Issues
 
 ### Symptoms
+
 - Settings not loading
 - Wrong configuration values
 - Application behaves unexpectedly
@@ -291,11 +323,13 @@ sudo bash deploy/ssl/setup-ssl.sh admin.contact360.io admin@contact360.io
 ### Solutions
 
 #### 1. Check .env.prod File
+
 ```bash
 cat /home/ubuntu/docsai/.env.prod
 ```
 
 #### 2. Validate Environment
+
 ```bash
 cd /home/ubuntu/docsai
 source venv/bin/activate
@@ -304,12 +338,14 @@ python manage.py validate_env
 ```
 
 #### 3. Check Service Environment
+
 ```bash
 # Check what environment variables Gunicorn sees
 sudo systemctl show gunicorn.service | grep Environment
 ```
 
 #### 4. Reload Service After .env.prod Changes
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl restart gunicorn.service
@@ -320,11 +356,13 @@ sudo systemctl restart gunicorn.service
 ## General Debugging Steps
 
 ### 1. Check All Services
+
 ```bash
 sudo systemctl status gunicorn nginx postgresql
 ```
 
 ### 2. Check Logs
+
 ```bash
 # Gunicorn logs
 sudo journalctl -u gunicorn -f
@@ -338,6 +376,7 @@ tail -f /home/ubuntu/docsai/logs/django.log
 ```
 
 ### 3. Test Health Endpoint
+
 ```bash
 curl http://34.201.10.84/api/v1/health/
 # or
@@ -345,6 +384,7 @@ curl https://admin.contact360.io/api/v1/health/
 ```
 
 ### 4. Verify Firewall
+
 ```bash
 sudo ufw status
 sudo ufw allow 80/tcp
@@ -358,18 +398,20 @@ sudo ufw allow 443/tcp
 If issues persist:
 
 1. **Run troubleshooting script**:
+
    ```bash
    sudo bash deploy/troubleshoot-gunicorn.sh
    ```
 
 2. **Collect diagnostic information**:
+
    ```bash
    # Service status
    sudo systemctl status gunicorn nginx --no-pager > diagnostics.txt
-   
+
    # Recent logs
    sudo journalctl -u gunicorn -n 100 --no-pager >> diagnostics.txt
-   
+
    # Configuration
    cat /etc/systemd/system/gunicorn.service >> diagnostics.txt
    ```
