@@ -6,13 +6,13 @@
 
 ## Summary
 
-**Campaign service** defines a **sequence** → **Scheduler (BullMQ cron)** pulls **VQL audience** segmentation → dispatches multi-channel sends: **Email** (SendGrid / SES), **WhatsApp** (Meta Business API), **SMS** (Twilio / MSG91). **DND Guard**: **TRAI check** before SMS + WhatsApp India routes, **Redis-cached 24h** per subscriber/destination where applicable. Engagement flows through **tracking**: open **pixel webhook**, click **redirect proxy**, reply **inbound webhook** → normalized to Kafka topics (see below) → **Analytics** updates stats → **Sequence engine** triggers **next step**.
+**campaign.server** (`EC2/campaign.server`) defines **campaigns / sequences / templates** and **CQL**; **Asynq** workers run tasks (`campaign:send`, `campaign:email`, `campaign:phone`, `campaign:linkedin`, `campaign:sequence_step`). The **gateway** exposes GraphQL **`campaignSatellite`** / **`campaigns`** and forwards **`X-API-Key`** to the satellite. **Audience** materializes from **VQL-backed segments** (Connectra) saved in the product. **DND Guard**: **TRAI check** before SMS + WhatsApp India routes, **Redis-cached ~24h** per destination (see `DECISIONS.md`). Engagement flows through **tracking** → normalized to **`email.*` Kafka topics** → analytics + lead scoring inputs (Slices H & I).
 
 ## Actors
 
 - Marketer / automation — build campaign & sequence
-- **Campaign Svc** — sequence graph, content resolution
-- **Scheduler** — BullMQ + cron / delayed jobs
+- **campaign.server** — sequences, CQL, templates
+- **Asynq / Redis** — job queue (per satellite); gateway may use BullMQ for other workloads per `DECISIONS.md` boundary
 - **VQL / segmentation** — audience materialization
 - **Channel services** — email, WhatsApp, SMS adapters
 - **Trackers** — pixel, redirect, inbound parsers

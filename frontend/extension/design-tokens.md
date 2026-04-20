@@ -1,6 +1,8 @@
 # Extension design tokens vs Dashboard UI kit
 
-CSS variables live in `contact360.extension/ui/tokens.css` and are consumed by `ui/components.css` and `sidepanel.css` (which imports both). The **Dashboard UI kit** under `docs/frontend/ideas/Dashboard ui kit` is a **visual reference only**—it is not bundled into the extension.
+CSS variables live in `contact360.extension/src/sidebar/styles/tokens.css` and are consumed by `components.css`, `dashboard.css`, and `sidepanel.css` (side panel imports all three). Legacy copies remain under `contact360.extension/ui/` for diff. The **Dashboard UI kit** under `docs/frontend/ideas/Dashboard ui kit` is a **visual reference only**—it is not bundled into the extension.
+
+React primitives in `contact360.extension/src/sidebar/components/ui/*.tsx` apply these classes (e.g. `c360-panel__button`, `c360-card`). See also [`registry.json`](registry.json).
 
 | Token | Role | Kit / app reference |
 |-------|------|---------------------|
@@ -12,7 +14,7 @@ CSS variables live in `contact360.extension/ui/tokens.css` and are consumed by `
 | `--c360-radius-*` | Buttons, inputs, cards | Radius scale |
 | `--c360-font-size-*` | UI copy | Typography scale |
 
-Side panel markup uses **`c360-panel__*`** primitives (buttons, labels, inputs) and **`c360-card`** sections for grouping; see `contact360.extension/sidepanel.html`.
+Side panel UI uses **`c360-panel__*`** primitives (buttons, labels, inputs) and **`c360-card`** sections for grouping; see `contact360.extension/src/sidebar/App.tsx` and related components.
 
 Charts in [`docs/frontend/ideas/Dashboard ui kit`](../ideas/Dashboard%20ui%20kit) are **not** embedded in the extension; flows use CSS-only **steps** and **progress** components.
 

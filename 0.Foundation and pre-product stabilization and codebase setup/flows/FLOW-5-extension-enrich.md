@@ -6,15 +6,15 @@
 
 ## Summary
 
-On a supported page (e.g. **LinkedIn public DOM**), user clicks enrich → **MV3 content script** parses **structured** fields → **service worker** calls **`POST /enrich`** (or namespaced equivalent) with **JWT**. **API Gateway** forwards **create** to **CRM Service**, which orchestrates parallel jobs: **Email Svc** (enrich + verify → **Postgres**), **Phone Svc** (enrich + **DND** → index in **OpenSearch** / contact index), **AI Agent** (score + **embed** → **pgvector**). **Sidebar UI** receives **live SSE** updates as partial results stream (“Truecaller-style” progressive UI in research diagram). **Audit log** stores `{ userId, sourceUrl, timestamp, fields }` for GDPR accountability.
+On a supported page (e.g. **LinkedIn / Sales Navigator DOM**), user saves or enriches → **MV3 content script** parses **structured** fields → **service worker** calls **`POST /graphql`** with **JWT** (e.g. `saveSalesNavigatorProfiles`, `scrapeSalesNavigatorHtml`, or enrichment mutations). The **gateway** proxies to **extension.server** / **Connectra** / **email.server** / **phone.server** / **ai.server** per operation — **not** a separate monolithic “CRM Service”. **Sidebar UI** receives **live SSE** updates as jobs complete (`DECISIONS.md`). **Sales Navigator save path:** gateway → extension.server → **`POST /companies/batch-upsert`** then **`POST /contacts/batch-upsert`** on Connectra; preview merge uses **`SaveProfilesResponse`** fields and `chrome.storage` (see Phase 4 / flowchart).
 
 ## Actors
 
 - Sales user
 - **Content script** — DOM extraction, strict allowlist of fields
 - **Service worker** — OAuth/JWT, backoff, single-flight requests
-- **API Gateway** — authZ, org injection
-- **CRM Service** — orchestration, dedupe, persistence
+- **Gateway** — authZ, org injection, RLS on gateway-owned tables
+- **Connectra + satellites** — persistence and async jobs per `DECISIONS.md`
 - **Email / Phone / AI** services — specialized enrichment
 - **Postgres** — contacts + audit
 - **OpenSearch** — searchable phone/profile facets
@@ -24,8 +24,8 @@ On a supported page (e.g. **LinkedIn public DOM**), user clicks enrich → **MV3
 
 1. User invokes action on profile page; content script builds payload + **sourceUrl** hash.
 2. Worker obtains/rotates short-lived JWT (extension client).
-3. `POST /enrich` with structured body + metadata.
-4. CRM finds or creates contact; attach provenance (`source=extension`, url hash).
+3. **`POST /graphql`** with structured input + metadata (mutations per schema).
+4. Gateway / Connectra find or create contact; attach provenance (`source=extension`, url hash).
 5. Fire async jobs: **email job**, **phone job**, **AI score** (parallel).
 6. Each worker writes incremental results; CRM **streams** consolidated state.
 7. **SSE channel** pushes updates to sidebar until terminal state.
@@ -35,7 +35,7 @@ On a supported page (e.g. **LinkedIn public DOM**), user clicks enrich → **MV3
 
 | Type | Name / pattern |
 | ---- | ---------------- |
-| HTTP | `POST /enrich` (document exact path in OpenAPI when published) |
+| HTTP | **`POST /graphql`** (product API); public REST is separate (`DECISIONS.md`) |
 | SSE | `GET /v1/extension/stream?session=...` (example) — server→client updates |
 | Postgres | `contacts`, `activities`, `extension_audit_log` (name TBD) |
 | OpenSearch | Contact / phone facets index |
@@ -51,6 +51,8 @@ On a supported page (e.g. **LinkedIn public DOM**), user clicks enrich → **MV3
 
 ## Cross-links
 
+- **Flowchart:** [`docs/flowchart/extension-capture.md`](../../flowchart/extension-capture.md).
+- **Pipeline doc:** [`docs/4.Contact360 Extension and Sales Navigator maturity/63-sales-navigator/00-pipeline-gateway-connectra.md`](../../4.Contact360%20Extension%20and%20Sales%20Navigator%20maturity/63-sales-navigator/00-pipeline-gateway-connectra.md).
 - Phase 4 PRD: `docs/prd/Read all the above and previous prompts and then t (5).md`.
 - `docs/prd/contact360_security.md`, `docs/prd/contact360_extension` topics in PRD bundle.
 - Flow 1 (baseline create), Flow 2 (CSV vs single-profile enrichment), Flow 3 (downstream RAG).

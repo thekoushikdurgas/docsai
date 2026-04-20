@@ -62,6 +62,8 @@ Order aligned with research diagram (see also `docs/DECISIONS.md`):
 
 ## Cross-links
 
+- **Implementation:** [`docs/DECISIONS.md`](../../DECISIONS.md) § Enrichment waterfall; **email.server** / **phone.server** under [`docs/backend/endpoints/`](../../backend/endpoints/).
+- Phase 2 spine: [`../2.Contact360 phone number and email system/README.md`](../../2.Contact360%20phone%20number%20and%20email%20system/README.md).
 - `docs/prd/contact360_detailed_flow.md`, `docs/prd/database-schema.md`.
 - Phase 2 PRD: `docs/prd/Read all the above and previous prompts and then t (3).md`.
 - Flow 1 (contact creation), Flow 4 (campaign uses verified emails).

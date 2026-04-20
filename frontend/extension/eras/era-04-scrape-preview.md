@@ -8,3 +8,9 @@
 - [x] `c360_use_scrape_endpoint`, `c360_html_snapshot_max_kb`
 - [x] Side panel Preview tab — meta (`c360-panel__meta`), profile/company link lists, HTML snippet; `c360_last_capture_preview` in SW; preview helpers in `sidepanel/preview.js`
 - [x] Background routes to GraphQL `postScrape` when enabled **and** `page_kind` is Sales Navigator (`sales_*`); otherwise `saveSalesNavigatorProfiles` only
+
+### Rewrite checklist (v2.0)
+
+- [ ] `src/content/{linkedin,generic}.ts` + index gate for `c360_optin_hosts`
+- [ ] `HostScopeOptIn` in Settings; `PreviewDashboard` reads `c360_last_capture_preview` (same shape as v1)
+- [ ] Blocked generic capture returns `page_kind: blocked` → user-visible error in `CaptureContext`

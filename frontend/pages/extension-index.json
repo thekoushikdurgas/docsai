@@ -1,83 +1,83 @@
 {
   "kind": "extension",
   "title": "Contact360 browser extension UI map",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "path": "contact360.extension",
   "chrome_min": "114",
+  "stack": "Vite + React 18 + TypeScript + @crxjs/vite-plugin",
+  "build_output": "contact360.extension/dist",
   "surfaces": [
     {
-      "id": "popup",
-      "file": "contact360.extension/popup.html",
-      "script": "contact360.extension/popup.js",
-      "style": "contact360.extension/popup.css",
-      "tabs": [
-        {
-          "id": "tab-status",
-          "panel": "panel-status",
-          "features": ["tokenStatus", "gatewayStatus", "batchFeedback", "captureProgress", "captureNow", "recheck", "openSidePanel"]
-        },
-        {
-          "id": "tab-settings",
-          "panel": "panel-settings",
-          "features": ["gatewayBaseUrl", "gatewayApiKey", "graphqlUrl", "useScrapeEndpoint", "htmlSnapshotMaxKb", "logsApiBaseUrl", "logsApiKey", "telemetryEnabled", "saveGateway"]
-        }
-      ]
-    },
-    {
       "id": "sidepanel",
-      "file": "contact360.extension/sidepanel.html",
-      "script": "contact360.extension/sidepanel.js",
-      "style": "contact360.extension/sidepanel.css",
-      "tabs": [
+      "file": "contact360.extension/src/sidebar/index.html",
+      "entry": "contact360.extension/src/sidebar/main.tsx",
+      "style": "contact360.extension/src/sidebar/styles/sidepanel.css",
+      "routes": [
         {
-          "id": "sp-tab-status",
-          "panel": "sp-panel-status",
-          "features": ["pipelineSteps", "spTokenStatus", "spGatewayStatus", "spPageKind", "spCaptureNow", "spRecheck"]
+          "id": "capture",
+          "component": "src/sidebar/pages/CapturePage.tsx",
+          "features": ["pipelineSteps", "PageKindChip", "CaptureCard", "apiHealth"]
         },
         {
-          "id": "sp-tab-preview",
-          "panel": "sp-panel-preview",
-          "features": ["spPreviewMeta", "spPreviewHtml", "c360_last_capture_preview"]
+          "id": "preview",
+          "component": "src/sidebar/pages/PreviewPage.tsx",
+          "features": ["PreviewDashboard", "c360_last_capture_preview"]
         },
         {
-          "id": "sp-tab-settings",
-          "panel": "sp-panel-settings",
-          "features": ["spGatewayBaseUrl", "spGraphqlUrl", "spUseScrapeEndpoint", "spHtmlMaxKb", "telemetry", "spSaveSettings"]
+          "id": "settings",
+          "component": "src/sidebar/pages/SettingsPage.tsx",
+          "features": ["GraphqlUrlField", "TelemetryToggle", "SnapshotSizeField", "HostScopeOptIn"]
+        },
+        {
+          "id": "account",
+          "component": "src/sidebar/pages/AccountPage.tsx",
+          "features": ["LoginModal", "AccountChip", "AccountPopover"]
         }
       ]
     }
   ],
   "service_worker": {
-    "file": "contact360.extension/background.js",
-    "import_scripts": ["auth/graphqlSession.js", "services/gatewayClient.js"],
+    "file": "contact360.extension/src/background/service-worker.ts",
+    "modules": [
+      "src/background/capturePipeline.ts",
+      "src/background/telemetry.ts",
+      "src/services/gatewayClient.ts",
+      "src/services/graphqlSession.ts"
+    ],
     "messages": [
       { "type": "C360_CAPTURE_AND_SAVE", "docs": "docs/backend/endpoints/extension.server/ROUTES.md" },
       { "type": "C360_SCRAPE_ONLY", "docs": "docs/backend/endpoints/extension.server/ROUTES.md" },
       { "type": "C360_GATEWAY_HEALTH", "maps_to": "GET /health" },
-      { "type": "C360_OPEN_SIDE_PANEL", "docs": "Chrome sidePanel API" }
+      { "type": "C360_AUTH_LOGIN", "docs": "docs/backend/endpoints/contact360.io/AUTH-ENV.md" },
+      { "type": "C360_AUTH_LOGOUT", "docs": "docs/backend/endpoints/contact360.io/AUTH-ENV.md" }
     ]
   },
   "content_scripts": [
     {
-      "file": "contact360.extension/content.js",
-      "matches": ["https://www.linkedin.com/sales/*", "https://www.linkedin.com/in/*"],
-      "message": "C360_SCRAPE_PAGE"
+      "file": "contact360.extension/src/content/index.ts",
+      "matches": ["<all_urls>"],
+      "message": "C360_SCRAPE_PAGE",
+      "notes": "LinkedIn always; other origins require c360_optin_hosts"
     }
   ],
   "api_matrix": [
     {
-      "client": "gatewayClient",
-      "rest": ["GET /health", "POST /v1/save-profiles", "POST /v1/scrape"],
+      "client": "gatewayClient.ts",
+      "graphql": [
+        "Mutation.salesNavigator.saveSalesNavigatorProfiles",
+        "Mutation.salesNavigator.scrapeSalesNavigatorHtml"
+      ],
+      "rest": ["GET /health"],
       "file": "docs/backend/endpoints/extension.server/ROUTES.md"
     },
     {
-      "client": "graphqlSession",
-      "graphql": ["mutation auth.refreshToken"],
+      "client": "graphqlSession.ts",
+      "graphql": ["Mutation.auth.refreshToken", "Mutation.auth.login", "Mutation.auth.logout"],
       "url": "https://api.contact360.io/graphql",
       "file": "docs/backend/endpoints/contact360.io/GRAPHQL-SCHEMA.md"
     },
     {
-      "client": "telemetry",
+      "client": "telemetry.ts",
       "rest": ["POST {logs}/api/v1/logs"],
       "file": "docs/backend/endpoints/log.server/ROUTE-CLIENT-MATRIX.md"
     }

@@ -9,3 +9,9 @@
 - [x] `docs/frontend/extension/design-tokens.md`
 - [x] `docs/frontend/docs/index.json` — `fe.extension.tokens`
 - [x] Optional small ES modules under `sidepanel/` (`tabs.js`, `preview.js`) for readability—plain functions only
+
+### Rewrite checklist (v2.0)
+
+- [ ] `src/sidebar/styles/{tokens,components,dashboard,sidepanel}.css` — parity with legacy `ui/*.css`
+- [ ] React primitives under `src/sidebar/components/ui/*` (`Button`, `Input`, `Checkbox`, `Radio`, `RadioGroup`, `Modal`, `Tabs`, `Progress`, `Steps`, `Card`, `Empty`, `Badge`, `Status`, `Field`)
+- [ ] Update `docs/frontend/extension/design-tokens.md` with component file names

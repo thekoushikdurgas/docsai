@@ -12,7 +12,7 @@ Single page tying apps/services to languages and frameworks.
 - **`contact360.io/app`:** **Next.js 16** (App Router), React 19, TypeScript, **`graphql-request`** → `api.contact360.io/graphql`; custom CSS design system (`app/css/dashboard-kit.css`), **no Tailwind** — see `contact360.io/app/README.md`
 - **`contact360.io/admin`:** **Django** + DRF + WhiteNoise, **session** auth + gateway **GraphQL** (`GRAPHQL_URL`); ops UI (jobs, billing, users, **system status** with `health.satelliteHealth`); static CSS (`static/admin/css/design-tokens.css`); deploy **admin.contact360.io** / **34.201.10.84** — see `contact360.io/admin/README.md`
 - **Web / Admin (other):** React + Vite (or Next.js where SSR needed), TanStack Query, Tailwind
-- **`contact360.extension`:** Chrome **MV3** (**side panel** only), vanilla JS + shared `ui/tokens.css` / `ui/components.css`; save/scrape via **`api.contact360.io/graphql`** → **`EC2/extension.server`** (`/v1/save-profiles`, `/v1/scrape`); GraphQL JWT — see `contact360.extension/README.md`, `docs/frontend/pages/extension-index.json`
+- **`contact360.extension`:** Chrome **MV3** (**side panel** only), **Vite + React 18 + TypeScript**, `@crxjs/vite-plugin`, design tokens in `src/sidebar/styles/`; content scripts **`<all_urls>`** with LinkedIn + **opt-in** generic capture; save/scrape via **`api.contact360.io/graphql`** → **`EC2/extension.server`** (`/v1/save-profiles`, `/v1/scrape`); GraphQL JWT — see `contact360.extension/README.md`, `docs/frontend/pages/extension-index.json`, `docs/frontend/extension/registry.json`
 - **Mobile:** Planned (React Native / Expo) — see phase 11 docs
 
 ---

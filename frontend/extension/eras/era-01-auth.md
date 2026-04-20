@@ -10,3 +10,9 @@
 - [x] `graphqlSession.js` — failed refresh clears stored tokens
 - [x] Side panel — email/password, Sign in / Sign out; 2FA accounts get a toast (use web app or future `completeTwoFactorLogin`)
 - [x] `docs/backend/endpoints/contact360.io/AUTH-ENV.md` — extension section
+
+### Rewrite checklist (v2.0)
+
+- [ ] `src/services/graphqlSession.ts` + `AuthContext` / `useAuth` + `LoginModal` / `AccountChip` / `AccountPopover`
+- [ ] Optional `Query.auth.me` ping after login when gateway exposes it
+- [ ] Two-factor path surfaces toast pointing to web `/login`

@@ -5,18 +5,20 @@
 1. **`POST /v1/save-profiles`** receives `{ "profiles": [ ... raw JSON ... ] }`.
 2. **`saveflex.ParseProfilesJSON`** normalizes rows into compact profiles.
 3. **Dedupe** by normalized email / id ([`dedupeProfiles`](../../../../EC2/extension.server/internal/api/router.go)).
-4. **Chunk** size **500** per Connectra request.
-5. **In-process worker pool** submits each chunk: builds `contacts` + `companies` arrays, **`POST /internal/extension/upsert-bulk`** on Connectra.
-6. Any chunk error → **502** with aggregated error strings.
+4. **Chunk** size **500** per worker item; **in-process worker pool** processes chunks.
+5. Each chunk: **`syncbatch.BuildCompanyMaps`** → **`POST /companies/batch-upsert`** (chunks of 100); then **`syncbatch.BuildContactMaps`** → **`POST /contacts/batch-upsert`** (chunks of 100).
+6. Responses are parsed with **`ParseUpsertBatchResponseWithFallback`**: if Connectra returns only `{ "success": true }`, UUIDs are taken from the maps sent in the request body (same order).
+7. Optional **hydration** (`hydrate=1` default): **`POST /contacts/`** and **`POST /companies/`** VQL with `keyword_match.must.uuid` lists.
+8. **Response** includes `contact_uuids`, `company_uuids`, and optional `contacts` / `companies` arrays (capped).
 
 ## scrape
 
 1. **`POST /v1/scrape`** receives `{ "html", "include_metadata", "save" }`.
 2. **`scrapesn.ParseSearchHTML`** extracts profile maps + page metadata.
-3. If **`save`** and profiles exist: map to compact profiles → same dedupe + single bulk payload as above (no chunking split beyond one bulk call for that request’s uniq set).
+3. If **`save`** and profiles exist: map to compact profiles → **`upsertConnectraBatch`** (same companies-first, contacts-second batch-upsert as above).
 
 ## Connectra side
 
-[`UpsertBulk`](../../../../EC2/sync.server/modules/extension/controller.go) upserts **companies** first (name + domain → stable internal `linkedin_url`), then **contacts** via **`ContactService.BulkContacts`** → **`UpsertContact`** (email and/or **`linkedin_url`** identity).
+Batch upserts are handled by **`modules/companies/controller`** and **`modules/contacts/controller`** **`BatchUpsert`** handlers: PostgreSQL + OpenSearch, **HTTP 500** on **`BulkUpsert`** error, **HTTP 200** with **`company_uuids`** / **`contact_uuids`** echoing input order on success.
 
-Last updated: 2026-04-15.
+Last updated: 2026-04-20.

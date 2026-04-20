@@ -6,24 +6,24 @@
 
 ## Summary
 
-User asks a **natural-language** question. **MCP / routing** selects model config. **AI Agent (LangGraph)** fans out retrieval: **OpenSearch BM25** keyword hits, **pgvector cosine** semantic hits, **structured CRM** reads, and optional **VQL / multi-source** connector. **BM25 + vector run in parallel** and merge via **RRF (Reciprocal Rank Fusion)** into **top-K context** for **GPT-4o** (or configured model) **grounded generation** plus **tool calls** → **structured response + citations** back to client. Token stream uses **SSE** (see decisions).
+User asks a **natural-language** question. **Gateway** authenticates JWT and enforces org + tool policy; **`ai.server`** (Go + Asynq) runs the **planner / LangGraph-style** orchestration and fans out retrieval: **OpenSearch BM25** keyword hits, **pgvector cosine** semantic hits, **structured CRM** reads via **Connectra/VQL**, and optional connectors. **BM25 + vector run in parallel** and merge via **RRF (Reciprocal Rank Fusion)** into **top-K context** for the configured model **grounded generation** plus **tool calls** → **structured response + citations** back to client. Token stream uses **SSE** (see [`DECISIONS.md`](../../DECISIONS.md)); cost/token metering ties to the **credit ledger** (Slice B).
 
 ## Actors
 
 - **User** — NL question
-- **MCP layer** — `LLM select+config`, policy gates
-- **AI Agent (LangGraph)** — orchestration, tool router
-- **OpenSearch** — BM25 keyword search on CRM index
+- **Gateway** — JWT, org isolation, tool allowlist, approval gates for writes
+- **ai.server** — orchestration, LangGraph-style planner, workers
+- **OpenSearch** — BM25 keyword search on CRM index (Connectra)
 - **pgvector** — cosine similarity on embeddings
-- **CRM Service** — authoritative structured rows
-- **VQL connector** — multi-source structured queries (where enabled)
+- **Connectra** — authoritative structured rows + VQL
+- **VQL** — structured queries via gateway converter (`vql_converter.py`) → Connectra `where` JSON
 - **RRF fusion** — rank merge of parallel retrievers
 - **LLM** — grounded answer + optional tools
 - **Kafka** — `ai.query.completed` for metering
 
 ## Step-by-step
 
-1. Client `POST /v1/ai/queries` with prompt + optional entity scope.
+1. Client uses **product GraphQL** or **`ai.server` HTTP** behind gateway (see `AIServerClient` / Phase 5 docs) with prompt + optional entity scope.
 2. Load **OrgContext**; enforce model tier, token budget, tool allowlist.
 3. **Parallel retrieve:** BM25 (OpenSearch), vectors (pgvector), SQL/CRM summaries, BQL if configured.
 4. **RRF** merge hit lists → `top_k` context bundle with provenance for citations.
@@ -50,6 +50,8 @@ User asks a **natural-language** question. **MCP / routing** selects model confi
 
 ## Cross-links
 
+- **Decisions:** [`docs/DECISIONS.md`](../../DECISIONS.md) § AI satellite; **runtime split:** [`OPEN-DECISIONS-RESOLVED.md`](../../OPEN-DECISIONS-RESOLVED.md).
+- Phase 5 vertical: [`../5.Contact360 AI workflows/AI-AGENT-VERTICAL-MVP.md`](../../5.Contact360%20AI%20workflows/AI-AGENT-VERTICAL-MVP.md).
 - `docs/prd/Contact360 — AI Agent Internal Reasoning & Impleme.md`, `ai-agent-reasoning.md`.
 - Phase 5 PRD: `docs/prd/Read all the above and previous prompts and then t (6).md`.
 - Flow 1 (embeddings on new contacts), Flow 4 (AI-assisted campaign copy).

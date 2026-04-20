@@ -32,7 +32,8 @@ When both appear in diagrams, prefer **SSE** for new features unless the UI need
 ## GraphQL status
 
 - **Public API:** REST (+ OpenAPI) only.
-- **GraphQL:** **Deferred** — potential internal federation for admin/analytics; see `docs/backend/graphql.modules/index.json`.
+- **Product GraphQL:** The **gateway** (`contact360.io/api`) exposes **`POST /graphql`** (Strawberry) for the web app and **Chrome extension** (auth, CRM, Sales Navigator save/scrape, health). This is **not** deferred for those surfaces.
+- **Federation / admin:** Additional GraphQL federation or admin-only graphs remain **future**; see `docs/backend/graphql.modules/index.json` for module inventory.
 
 ## Kafka vs BullMQ (boundary)
 
@@ -67,6 +68,7 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Idempotency:** UUID5 from `(first_name,last_name,linkedin_url)` for contacts and `(name,linkedin_url)` for companies — must match extension + gateway normalization.
 - **Auth to satellite:** `X-API-Key` only (no JWT on Connectra); gateway holds org context and forwards scoped calls.
 - **Observability:** `GET /health` aggregates Postgres + Redis + OpenSearch pings; `X-Request-ID` echoed on all responses.
+- **Batch upsert (HTTP):** `POST /contacts/batch-upsert` and `POST /companies/batch-upsert` return **`success`**, parallel **`contact_uuids` / `company_uuids`** (same order as the request JSON array after bind), optional correlation slices **`contacts`** / **`companies`** (minimal safe fields, e.g. uuid + linkedin_url + name). If **`BulkUpsert`** fails, respond with an error status and **`success: false`** plus **`error`** — do not return HTTP 200 with a silent failure.
 
 ## Email API (`EC2/email.server`) — finder / verify / patterns satellite
 
@@ -110,11 +112,11 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 ## Sales Navigator / extension satellite (`EC2/extension.server`)
 
 - **Language:** Go (Gin); **module:** `contact360.io/extension` — Git remote [`extension.server.git`](https://github.com/thekoushikdurgas/extension.server) (see [`MODULE-OPTIONAL.md`](backend/endpoints/extension.server/MODULE-OPTIONAL.md)).
-- **HTTP:** `GET /health`; **`POST /v1/save-profiles`**, **`POST /v1/scrape`** — **`X-API-Key`** / **`api_key`** when **`EXTENSION_API_KEY`** is set — see [`AUTH-ENV.md`](backend/endpoints/extension.server/AUTH-ENV.md).
+- **HTTP:** `GET /health`; **`POST /v1/save-profiles`**, **`POST /v1/scrape`** — **`X-API-Key`** / **`api_key`** when **`EXTENSION_API_KEY`** is set — see [`AUTH-ENV.md`](backend/endpoints/extension.server/AUTH-ENV.md). Passthrough routes proxy VQL/bulk to Connectra (e.g. **`POST /contacts/`**, **`POST /companies/`**, **`/contacts/batch-upsert`**, **`/companies/batch-upsert`**).
 - **Workers:** In-process pool ([`internal/worker/pool.go`](../EC2/extension.server/internal/worker/pool.go)); **`EXTENSION_WORKERS`** (default **8**). **`cmd/worker`** is a stub — **no Redis queue** in this path.
-- **Connectra:** **`POST /internal/extension/upsert-bulk`** on **sync.server** maps extension DTOs to `UpsertCompany` / `UpsertContact` (including **`linkedin_url`** identity when email is absent).
+- **Connectra save path:** `POST /v1/save-profiles` → map profiles → **`POST`** Connectra **`/companies/batch-upsert`** then **`/contacts/batch-upsert`** (chunked per sync batch limits). **Parse** each batch-upsert JSON body and aggregate **`company_uuids`** / **`contact_uuids`** in stable chunk order. Optionally **hydrate** saved UUIDs via VQL list queries (`POST /contacts/`, `POST /companies/` with uuid filters, chunked) and attach **`contacts` / `companies`** rows to the HTTP response (query **`hydrate=0`** to skip large payloads). **`POST /v1/scrape`** with **`save: true`** mirrors enrichment into **`save_summary`** (`saved_count`, UUID lists, optional hydrated lists).
 - **Gateway:** **`SALES_NAVIGATOR_SERVER_API_URL`** / **`SALES_NAVIGATOR_SERVER_API_KEY`** ([`SalesNavigatorServerClient`](../contact360.io/api/app/clients/sales_navigator_client.py)).
-- **Browser extension:** uses **`POST /graphql`** on the API gateway (`saveSalesNavigatorProfiles`, `scrapeSalesNavigatorHtml` with JWT); it does not call extension.server directly.
+- **Browser extension:** uses **`POST /graphql`** on the API gateway (`saveSalesNavigatorProfiles`, `scrapeSalesNavigatorHtml` with JWT); it does not call extension.server directly. GraphQL **`SaveProfilesResponse`** exposes **`contactUuids`**, **`companyUuids`**, **`savedContacts`**, **`savedCompanies`** (JSON) for the extension preview merge path.
 - **Events:** Inbound HTTP only — see [`EVENTS-BOUNDARY.md`](backend/endpoints/extension.server/EVENTS-BOUNDARY.md).
 
 ## AI satellite (`EC2/ai.server`)
@@ -162,6 +164,11 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - Policies: `org_id = current_setting('app.current_org_id')::uuid` on all tenant tables.
 - **Superadmin** uses separate role without bypass in app queries; break-glass uses audited maintenance role.
 
+## Governance & working defaults
+
+- **Contract changes:** update this file in the same PR as the code — see [`DECISIONS-GOVERNANCE.md`](DECISIONS-GOVERNANCE.md).
+- **Product defaults** that unblock vertical slices (PSP, merge vs UUID5, AI runtime split, CQL vs workflow DSL, public REST shape): see [`OPEN-DECISIONS-RESOLVED.md`](OPEN-DECISIONS-RESOLVED.md). Override only via ADR + edit here.
+
 ---
 
-*Last updated: 2026-04-17 (Extension GraphQL harvest; browser extension → gateway only)*
+*Last updated: 2026-04-19 (governance link; open-question defaults; Connectra batch-upsert UUID contract; extension.server VQL hydrate; GraphQL SaveProfilesResponse fields; gateway GraphQL clarification)*

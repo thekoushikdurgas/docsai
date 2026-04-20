@@ -79,6 +79,18 @@ Filter metadata and precomputed facet values. Seed: [`EC2/sync.server/docs/sql/s
 
 - **`POST /internal/extension/upsert-bulk`** — implemented in [`EC2/sync.server/modules/extension`](../../EC2/sync.server/modules/extension); accepts the lightweight `{ contacts, companies }` shape from **extension.server** (not the same as `POST /contacts/batch-upsert` JSON array format).
 
+## Public HTTP: `batch-upsert` (companies then contacts)
+
+Aligned with [`DECISIONS.md`](../../DECISIONS.md) § Connectra:
+
+- **`POST /companies/batch-upsert`** and **`POST /contacts/batch-upsert`** accept JSON **arrays** of company/contact objects (see Postman collection).
+- **Success response** includes:
+  - **`success`** — boolean.
+  - **`company_uuids`** / **`contact_uuids`** — **ordered parallel to the request array** after bind/validation (same positions as input rows).
+  - Optional correlation slices **`companies`** / **`contacts`** with minimal safe fields (e.g. uuid + linkedin_url + name) when enabled.
+- **Failure:** return a **non-2xx** status (or explicit error contract), with **`success: false`** and an **`error`** message — **do not** return HTTP 200 with a silent failure for bulk operations.
+- **extension.server save path** calls **companies batch-upsert first**, then **contacts batch-upsert**, aggregating UUID lists across chunks in stable order.
+
 ## OpenSearch
 
 Index mappings: `EC2/sync.server/docs/contact_index_create.json`, `docs/company_index_create.json` (and `examples/` copies).
