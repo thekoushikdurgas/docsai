@@ -7,6 +7,7 @@ Source: [`EC2/extension.server/internal/api/router.go`](../../../../EC2/extensio
 | GET | `/health` | none | Liveness; JSON `{"status":"ok","service":"extension"}` |
 | POST | `/v1/save-profiles` | `X-API-Key` or `api_key` | Parse `profiles[]`, dedupe, chunk, **companies then contacts** via Connectra **`POST /companies/batch-upsert`** and **`POST /contacts/batch-upsert`** |
 | POST | `/v1/scrape` | same | Parse Sales Navigator HTML; optional `save: true` → same batch-upsert path |
+| POST | `/v1/apollo-scrape` | same | Parse Apollo.io HTML (`html`, optional `page_url`, optional `source_file`, `include_metadata`, `save`); optional `save: true` → same batch-upsert path |
 | POST | `/v1/contacts/search` | same | Proxy → Connectra `POST /contacts/` (VQL) |
 | POST | `/v1/companies/search` | same | Proxy → Connectra `POST /companies/` (VQL) |
 | POST | `/v1/contacts/batch-upsert` | same | Proxy → Connectra `POST /contacts/batch-upsert` |
