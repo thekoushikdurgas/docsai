@@ -26,13 +26,6 @@
       "phase": "4"
     },
     {
-      "id": "apollo",
-      "component": "src/sidebar/pages/ApolloPage.tsx",
-      "era": "era-04-scrape-preview",
-      "web_app_route": "/sales-navigator",
-      "phase": "4"
-    },
-    {
       "id": "settings",
       "component": "src/sidebar/pages/SettingsPage.tsx",
       "era": "era-03-design-system",
@@ -79,11 +72,9 @@
       "graphql": [
         "Mutation.salesNavigator.saveSalesNavigatorProfiles",
         "Mutation.salesNavigator.scrapeSalesNavigatorHtml",
-        "Mutation.apollo.saveApolloProfiles",
-        "Mutation.apollo.scrapeApolloHtml",
         "Query.salesNavigator.entitiesByUuids"
       ],
-      "satellite": "extension.server POST /v1/save-profiles, POST /v1/scrape, POST /v1/apollo-scrape",
+      "satellite": "extension.server POST /v1/save-profiles, POST /v1/scrape",
       "env_docs": "docs/backend/endpoints/extension.server/AUTH-ENV.md"
     },
     {
@@ -113,8 +104,6 @@
     { "type": "C360_GATEWAY_HEALTH", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/hooks/useApiHealth.ts" },
     { "type": "C360_CAPTURE_AND_SAVE", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/CaptureContext.tsx" },
     { "type": "C360_SCRAPE_PAGE", "handler": "src/content/index.ts", "sender": "src/background/capturePipeline.ts" },
-    { "type": "C360_SCRAPE_APOLLO", "handler": "src/content/index.ts", "sender": "src/background/apolloPipeline.ts" },
-    { "type": "C360_APOLLO_RUN", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/pages/ApolloPage.tsx" },
     { "type": "C360_SCRAPE_ONLY", "handler": "src/background/service-worker.ts", "sender": "legacy / optional" }
   ],
   "telemetry_fields_v2": [

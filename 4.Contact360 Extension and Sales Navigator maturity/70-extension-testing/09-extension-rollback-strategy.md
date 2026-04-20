@@ -18,8 +18,6 @@ schema_refs: []
 
 TBD — describe the concern owned by this section in the context of **Contact360 Extension and Sales Navigator maturity**.
 
-**Apollo kill-switch:** Set **`c360_apollo_enabled`** = **false** in **`chrome.storage.local`** to hide the Apollo tab without downgrading the extension package. Full rollback: publish previous Chrome Web Store version and ask users to reinstall if needed.
-
 ## Anchors (do not fork)
 
 - Architecture decisions: [`DECISIONS.md`](../../DECISIONS.md)

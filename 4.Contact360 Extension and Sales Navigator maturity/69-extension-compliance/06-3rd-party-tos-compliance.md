@@ -18,8 +18,6 @@ schema_refs: []
 
 TBD — describe the concern owned by this section in the context of **Contact360 Extension and Sales Navigator maturity**.
 
-**Apollo.io:** The extension **Apollo** tab reads the visible DOM on `*.apollo.io` (or sends HTML to **`/v1/apollo-scrape`** for server-side parsing). Product and legal must confirm this use is permitted under **Apollo.io Terms of Service** and your customer agreements before broad rollout. Ship behind storage flag **`c360_apollo_enabled`** (default on); set to `false` for an instant kill-switch — see release/rollback docs under `70-extension-testing/`.
-
 ## Anchors (do not fork)
 
 - Architecture decisions: [`DECISIONS.md`](../../DECISIONS.md)

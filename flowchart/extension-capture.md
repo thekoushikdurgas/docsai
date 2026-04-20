@@ -42,4 +42,4 @@ flowchart TD
 - **Optional path (Sales Navigator pages only):** user enables server HTML parse → capped `outerHTML` → GraphQL **`scrapeSalesNavigatorHtml`** → gateway → **`POST /v1/scrape`** with `save: true` → SN-oriented parser → same batch-upsert chain. Public `linkedin.com/search/` and `/in/` use link extraction + save mutation only (not the SN HTML parser).
 - **Internal bulk:** `POST /internal/extension/upsert-bulk` is a **different** JSON shape for internal/extension fast paths — do not confuse with public `batch-upsert` arrays ([`DECISIONS.md`](../../DECISIONS.md)).
 
-See also: [`docs/backend/endpoints/extension.server/ROUTES.md`](../backend/endpoints/extension.server/ROUTES.md) · Apollo.io path: [`extension-apollo.md`](extension-apollo.md).
+See also: [`docs/backend/endpoints/extension.server/ROUTES.md`](../backend/endpoints/extension.server/ROUTES.md).

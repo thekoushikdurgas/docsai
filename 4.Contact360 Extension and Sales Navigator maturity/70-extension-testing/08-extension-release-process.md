@@ -18,8 +18,6 @@ schema_refs: []
 
 TBD — describe the concern owned by this section in the context of **Contact360 Extension and Sales Navigator maturity**.
 
-**Apollo tab:** Verify GraphQL **`apollo.scrapeApolloHtml`** / **`apollo.saveApolloProfiles`** against staging **`extension.server`** before publishing a build that exposes the Apollo side panel tab. **`c360_apollo_enabled`** defaults to **true** on install; set **`chrome.storage.local`** `c360_apollo_enabled` = **false** to hide the tab without rolling back the `.zip`.
-
 ## Anchors (do not fork)
 
 - Architecture decisions: [`DECISIONS.md`](../../DECISIONS.md)
