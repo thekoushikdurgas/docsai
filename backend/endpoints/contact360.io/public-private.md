@@ -14,7 +14,7 @@
 
 ## SuperAdmin-only
 
-- e.g. `health.performanceStats`, many `admin.*` operations — see resolvers in `app/graphql/modules/admin/`.
+- e.g. `health.performanceStats`, many `admin.*` operations — see resolvers in `app/graphql/modules/admin/` and the field list in [`ADMIN-MODULE.md`](ADMIN-MODULE.md).
 
 ## Public REST (future / v1 subset)
 

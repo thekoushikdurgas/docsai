@@ -1,6 +1,6 @@
 # Deployment matrix (ECS-first)
 
-**Owner:** platform · **Last reviewed:** 2026-04-19  
+**Owner:** platform · **Last reviewed:** 2026-04-21  
 **Anchor:** [`DECISIONS.md`](DECISIONS.md) § ECS vs EKS — **default ECS Fargate** for stateless services; EC2 hosts satellites listed below.
 
 This matrix maps **product components** → **repository / artifact** → **runtime** → **primary env vars** (see each service `AUTH-ENV.md`). Keep in sync with [`backend/endpoints/contact360.io/SATELLITE-PARITY.md`](backend/endpoints/contact360.io/SATELLITE-PARITY.md).
@@ -9,7 +9,7 @@ This matrix maps **product components** → **repository / artifact** → **runt
 | --------- | ----------- | -------- | --------------------- | ------------------- |
 | **Gateway API** | `contact360.io/api` | Docker image → ECS service | ECS Fargate (or EC2) | JWT to callers; `X-API-Key` to satellites |
 | **Dashboard** | `contact360.io/app` | Static / Node SSR | ECS or Vercel-style host | Browser → gateway only |
-| **Admin** | `contact360.io/admin` | Docker | ECS | Gateway / Django auth |
+| **Admin** | `contact360.io/admin` | Docker | ECS | Operator JWT to gateway `POST /graphql`; **no satellite `X-API-Key` on admin in steady state** ([`ADMIN-MODULE.md`](backend/endpoints/contact360.io/ADMIN-MODULE.md), [`codebases/admin.md`](codebases/admin.md)) |
 | **Connectra** (`sync.server`) | `EC2/sync.server` | Go binary + systemd, or container | **EC2** (reference) | `CONNECTRA_API_KEY` on gateway |
 | **extension.server** | `EC2/extension.server` | Go binary | EC2 | `EXTENSION_API_KEY` |
 | **email.server** | `EC2/email.server` | Go binary + worker | EC2 | `EMAIL_SERVER_API_KEY` |

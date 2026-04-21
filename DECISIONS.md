@@ -35,6 +35,12 @@ When both appear in diagrams, prefer **SSE** for new features unless the UI need
 - **Product GraphQL:** The **gateway** (`contact360.io/api`) exposes **`POST /graphql`** (Strawberry) for the web app and **Chrome extension** (auth, CRM, Sales Navigator save/scrape, health). This is **not** deferred for those surfaces.
 - **Federation / admin:** Additional GraphQL federation or admin-only graphs remain **future**; see `docs/backend/graphql.modules/index.json` for module inventory.
 
+## Admin UI (Django) and satellite keys
+
+- **Console:** Internal admin at `contact360.io/admin` (Django) authenticates operators and calls the gateway with a **user JWT** (Admin/SuperAdmin roles on the gateway).
+- **Steady-state rule:** The admin UI **must not** hold satellite **`X-API-Key`** credentials for production operations. Product data and log/satellite paths go through **`admin.*`** and other gateway namespaces; only the gateway holds keys to **log.server**, Connectra, email/phone/campaign satellites, etc.
+- **Contract reference:** [`backend/endpoints/contact360.io/ADMIN-MODULE.md`](backend/endpoints/contact360.io/ADMIN-MODULE.md) lists each `admin` query/mutation, role, and downstream service.
+
 ## Kafka vs BullMQ (boundary)
 
 - **Kafka:** cross-service domain events, analytics hydration, webhook fan-out, audit trail inputs.
@@ -171,4 +177,4 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 
 ---
 
-*Last updated: 2026-04-19 (governance link; open-question defaults; Connectra batch-upsert UUID contract; extension.server VQL hydrate; GraphQL SaveProfilesResponse fields; gateway GraphQL clarification)*
+*Last updated: 2026-04-21 (admin UI policy; ADMIN-MODULE link; prior: 2026-04-19 governance, Connectra batch-upsert, extension SaveProfilesResponse)*

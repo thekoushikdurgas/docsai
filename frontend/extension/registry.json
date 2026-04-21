@@ -12,15 +12,8 @@
       "phase": "4"
     },
     {
-      "id": "capture",
-      "component": "src/sidebar/pages/CapturePage.tsx",
-      "era": "era-04-scrape-preview",
-      "web_app_route": "/sales-navigator",
-      "phase": "4"
-    },
-    {
-      "id": "preview",
-      "component": "src/sidebar/pages/PreviewPage.tsx",
+      "id": "linkedin",
+      "component": "src/sidebar/pages/LinkedInPage.tsx",
       "era": "era-04-scrape-preview",
       "web_app_route": "/sales-navigator",
       "phase": "4"
@@ -50,7 +43,6 @@
       { "class": "c360-modal", "file": "src/sidebar/components/ui/Modal.tsx", "era": "era-03-design-system" },
       { "class": "c360-tabs", "file": "src/sidebar/components/ui/Tabs.tsx", "era": "era-03-design-system" },
       { "class": "c360-progress", "file": "src/sidebar/components/ui/Progress.tsx", "era": "era-03-design-system" },
-      { "class": "c360-steps", "file": "src/sidebar/components/ui/Steps.tsx", "era": "era-03-design-system" },
       { "class": "c360-card", "file": "src/sidebar/components/ui/Card.tsx", "era": "era-03-design-system" },
       { "class": "c360-empty", "file": "src/sidebar/components/ui/Empty.tsx", "era": "era-03-design-system" },
       { "class": "c360-dash-badge", "file": "src/sidebar/components/ui/Badge.tsx", "era": "era-03-design-system" },
@@ -58,9 +50,6 @@
       { "class": "c360-panel__label", "file": "src/sidebar/components/ui/Field.tsx", "era": "era-03-design-system" }
     ],
     "feature": [
-      { "name": "CaptureCard", "file": "src/sidebar/components/capture/CaptureCard.tsx" },
-      { "name": "PipelineSteps", "file": "src/sidebar/components/capture/PipelineSteps.tsx" },
-      { "name": "PreviewDashboard", "file": "src/sidebar/components/preview/PreviewDashboard.tsx" },
       { "name": "EntityList", "file": "src/sidebar/components/entities/EntityList.tsx" },
       { "name": "LoginModal", "file": "src/sidebar/components/auth/LoginModal.tsx" },
       { "name": "HostScopeOptIn", "file": "src/sidebar/components/settings/HostScopeOptIn.tsx" }
@@ -87,24 +76,38 @@
       "rest": "POST {logs_api}/api/v1/logs",
       "admin": "contact360.io/admin + log.server",
       "env_docs": "docs/backend/endpoints/log.server/AUTH-ENV.md"
+    },
+    {
+      "module": "src/background/autoScrape.ts",
+      "note": "Auto-scrape + save (tabs.onUpdated + C360_AUTO_SCRAPE_TRIGGER)"
+    },
+    {
+      "module": "src/background/linkedinCsvRunner.ts",
+      "note": "LinkedIn CSV batch runner (background tabs + runCaptureAndSave)"
     }
   ],
   "storage_keys": [
     { "key": "c360_extension_access_token", "owner": "src/services/graphqlSession.ts", "consumers": ["src/background/service-worker.ts", "src/sidebar/contexts/AuthContext.tsx"] },
     { "key": "c360_extension_refresh_token", "owner": "src/services/graphqlSession.ts", "consumers": ["src/background/service-worker.ts"] },
     { "key": "c360_graphql_url", "owner": "src/background/service-worker.ts", "consumers": ["src/sidebar/contexts/SettingsContext.tsx"] },
-    { "key": "c360_optin_hosts", "owner": "src/content/index.ts", "consumers": ["src/sidebar/components/settings/HostScopeOptIn.tsx"] },
-    { "key": "c360_last_capture_preview", "owner": "src/background/capturePipeline.ts", "consumers": ["src/sidebar/hooks/useLastCapture.ts"] },
+    { "key": "c360_optin_hosts", "owner": "src/content/index.ts", "consumers": ["src/sidebar/components/settings/HostScopeOptIn.tsx", "src/background/autoScrape.ts"] },
+    { "key": "c360_last_capture_preview", "owner": "src/background/capturePipeline.ts", "consumers": ["src/background/capturePipeline.ts"] },
     { "key": "c360_last_capture_entities", "owner": "src/background/capturePipeline.ts", "consumers": ["src/sidebar/hooks/useLastCaptureEntities.ts", "src/sidebar/pages/HomePage.tsx"] },
+    { "key": "c360_linkedin_run_state", "owner": "src/background/linkedinCsvRunner.ts", "consumers": ["src/sidebar/contexts/LinkedInRunContext.tsx"] },
+    { "key": "c360_autoscrape_last", "owner": "src/background/autoScrape.ts", "consumers": ["src/background/autoScrape.ts"] },
     { "key": "c360_telemetry_enabled", "owner": "src/background/telemetry.ts", "consumers": ["src/sidebar/pages/SettingsPage.tsx"] }
   ],
   "messages": [
     { "type": "C360_AUTH_LOGIN", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/AuthContext.tsx" },
     { "type": "C360_AUTH_LOGOUT", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/AuthContext.tsx" },
     { "type": "C360_GATEWAY_HEALTH", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/hooks/useApiHealth.ts" },
-    { "type": "C360_CAPTURE_AND_SAVE", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/CaptureContext.tsx" },
-    { "type": "C360_SCRAPE_PAGE", "handler": "src/content/index.ts", "sender": "src/background/capturePipeline.ts" },
-    { "type": "C360_SCRAPE_ONLY", "handler": "src/background/service-worker.ts", "sender": "legacy / optional" }
+    { "type": "C360_CAPTURE_AND_SAVE", "handler": "src/background/service-worker.ts", "sender": "legacy optional (no sidebar; programmatic or tests)" },
+    { "type": "C360_AUTO_SCRAPE_TRIGGER", "handler": "src/background/service-worker.ts", "sender": "src/content/index.ts" },
+    { "type": "C360_LINKEDIN_RUN_START", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/LinkedInRunContext.tsx" },
+    { "type": "C360_LINKEDIN_RUN_PAUSE", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/LinkedInRunContext.tsx" },
+    { "type": "C360_LINKEDIN_RUN_RESUME", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/LinkedInRunContext.tsx" },
+    { "type": "C360_LINKEDIN_RUN_CANCEL", "handler": "src/background/service-worker.ts", "sender": "src/sidebar/contexts/LinkedInRunContext.tsx" },
+    { "type": "C360_SCRAPE_PAGE", "handler": "src/content/index.ts", "sender": "src/background/capturePipeline.ts" }
   ],
   "telemetry_fields_v2": [
     "extension_version",
