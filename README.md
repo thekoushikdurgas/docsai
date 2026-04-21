@@ -18,14 +18,21 @@ Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) (port may differ).
 
 ## Environment
 
-| Variable                 | Purpose                                                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GRAPHQL_URL`            | Gateway GraphQL endpoint (must end with `/graphql` or site root; see `config/settings/base.py` normalizer). Prefer **`https://api.contact360.io/graphql`** in production over HTTPS. |
-| `GRAPHQL_INTERNAL_TOKEN` | Optional Bearer for server-to-server calls when no user session token is present.                                                                                                    |
-| `ALLOWED_HOSTS`          | Include **`admin.contact360.io`** and **`34.201.10.84`** for the production EC2 + hostname.                                                                                          |
-| `SECURE_SSL_REDIRECT`    | Set **`true`** when serving over HTTPS (sets secure cookies; see `production.py`).                                                                                                   |
-| `CSRF_TRUSTED_ORIGINS`   | e.g. `https://admin.contact360.io` when using HTTPS.                                                                                                                                 |
-| `AUTH_FALLBACK_LOCAL`    | In production, default **`false`** — use gateway login; local Django staff only for break-glass.                                                                                     |
+Variables are read with **`python-decouple`** (`config()` in `config/settings/base.py`). **Process environment always wins** over values from files. Local dev typically uses a single **`.env`** (copy from `.env.example`).
+
+**Production and staging** (`DJANGO_ENV=production` / `staging`) call **`bootstrap_layered_env()`** in `config/settings/_env.py` _before_ loading `base.py`: it merges **`.env`** then **`.env.prod`** into `os.environ` for keys not already exported. That way `DATABASE_URL`, `REDIS_URL`, `SENTRY_*`, and other settings behave like `SECRET_KEY` (which `resolve_secret_key()` also resolves from env → `.env.prod` → `.env`).
+
+| Variable                        | Purpose                                                                                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GRAPHQL_URL`                   | Gateway GraphQL endpoint (must end with `/graphql` or site root; see `config/settings/base.py` normalizer). Prefer **`https://api.contact360.io/graphql`** in production over HTTPS. |
+| `GRAPHQL_INTERNAL_TOKEN`        | Optional Bearer for server-to-server calls when no user session token is present.                                                                                                    |
+| `ALLOWED_HOSTS`                 | Comma-separated. Include **`admin.contact360.io`** and **`34.201.10.84`** for the production EC2 + hostname.                                                                         |
+| `SECURE_SSL_REDIRECT`           | **`true`** when serving over HTTPS (sets secure cookies; see `production.py` / `staging.py`).                                                                                        |
+| `CSRF_TRUSTED_ORIGINS`          | e.g. `https://admin.contact360.io` when using HTTPS.                                                                                                                                 |
+| `AUTH_FALLBACK_LOCAL`           | In production, default **`false`** — use gateway login; local Django staff only for break-glass.                                                                                     |
+| `DATABASE_URL` / `CONN_MAX_AGE` | PostgreSQL in production; see `.env.example`.                                                                                                                                        |
+| `USE_REDIS_CACHE` / `REDIS_URL` | Optional Redis cache; see `.env.example`.                                                                                                                                            |
+| `ADMIN_STORAGE_VIA_GATEWAY`     | Optional; route some deletes via GraphQL `s3.deleteFile` (see Phase 8 note below).                                                                                                   |
 
 ## Deploy
 

@@ -1,11 +1,14 @@
 """Staging — same security posture as production with shorter HSTS."""
 
-import os
-
 from django.core.exceptions import ImproperlyConfigured
 
+from decouple import Csv, config
+
+from ._env import bootstrap_layered_env, resolve_secret_key
+
+bootstrap_layered_env()
+
 from .base import *  # noqa: F403
-from ._env import resolve_secret_key
 
 DEBUG = False
 
@@ -16,7 +19,7 @@ if not _secret:
     )
 SECRET_KEY = _secret
 
-USE_HTTPS = os.getenv("SECURE_SSL_REDIRECT", "true").lower() == "true"
+USE_HTTPS = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
 SECURE_SSL_REDIRECT = USE_HTTPS
 SESSION_COOKIE_SECURE = USE_HTTPS
 CSRF_COOKIE_SECURE = USE_HTTPS
@@ -28,9 +31,13 @@ if USE_HTTPS:
     SECURE_HSTS_SECONDS = 86400
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "staging.example.com").split(",")
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in config("ALLOWED_HOSTS", default="staging.example.com", cast=Csv())
+    if h.strip()
+]
 
-AUTH_FALLBACK_LOCAL = os.getenv("AUTH_FALLBACK_LOCAL", "false").lower() == "true"
+AUTH_FALLBACK_LOCAL = config("AUTH_FALLBACK_LOCAL", default=False, cast=bool)
 
 if SENTRY_DSN:  # noqa: F405
     import sentry_sdk

@@ -1,23 +1,30 @@
-{% comment %} Usage: {% include "components/card.html" with value="1,234"
-label="Total Users" icon="lni-users" color="primary" trend="+12%" trend_dir="up"
-%} {% endcomment %}
-<div class="kpi-card">
-  <div class="kpi-icon {{ color|default:'primary' }}" aria-hidden="true">
-    <i class="lni {{ icon|default:'lni-bar-chart' }}"></i>
-  </div>
-  <div class="kpi-body">
-    {# |default treats 0 as empty — use explicit check so real zeros render #}
-    <div class="kpi-value">
-      {% if value == None or value == "" %}—{% else %}{{ value }}{% endif %}
+{% comment %}
+  Usage: {% include "components/card.html" with value="1,234" label="Total Users"
+  icon="lni-users" color="primary" trend="+12%" trend_dir="up" %}
+  Kit: widget-stat card + bgl-* icon well
+{% endcomment %}
+{% with c=color|default:"primary" %}
+<div class="widget-stat card kpi-card border-0 h-100">
+  <div class="card-body p-4">
+    <div class="media ai-icon align-items-center">
+      <span class="mr-3 bgl-{{ c }} text-{{ c }} kpi-icon {{ c }}" aria-hidden="true">
+        <i class="lni {{ icon|default:'lni-bar-chart' }}"></i>
+      </span>
+      <div class="media-body kpi-body">
+        <h3 class="mb-0 text-black font-w600 kpi-value">
+          {% if value == None or value == "" %}—{% else %}{{ value }}{% endif %}
+        </h3>
+        <p class="mb-0 text-muted small kpi-label">{{ label }}</p>
+        {% if trend %}
+        <p class="mb-0 mt-1 small kpi-trend {{ trend_dir|default:'up' }}">
+          <i
+            class="lni {% if trend_dir == 'up' %}lni-arrow-up{% else %}lni-arrow-down{% endif %}"
+          ></i>
+          {{ trend }}
+        </p>
+        {% endif %}
+      </div>
     </div>
-    <div class="kpi-label">{{ label }}</div>
-    {% if trend %}
-    <div class="kpi-trend {{ trend_dir|default:'up' }}">
-      <i
-        class="lni {% if trend_dir == 'up' %}lni-arrow-up{% else %}lni-arrow-down{% endif %}"
-      ></i>
-      {{ trend }}
-    </div>
-    {% endif %}
   </div>
 </div>
+{% endwith %}

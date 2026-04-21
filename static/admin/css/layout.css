@@ -19,7 +19,7 @@ body.sidebar-open .sidebar-overlay {
 }
 
 /* ===== Main wrapper =====
-   Fixed .dlabnav is out-of-flow; do not make it a flex item — some engines give the
+   Fixed .deznav is out-of-flow; do not make it a flex item — some engines give the
    flex item a collapsed width so the rail looks like a thin strip. Content offset is
    via .content-body margin-left only. */
 #main-wrapper {
@@ -27,13 +27,20 @@ body.sidebar-open .sidebar-overlay {
   min-height: 100vh;
 }
 
-/* ===== Sidebar (full viewport height; brand block at top) ===== */
-.dlabnav {
+/* ===== Nav header (brand + sidebar toggle; same width as sidebar column) ===== */
+.nav-header {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
+}
+
+/* ===== Sidebar (below fixed nav-header strip) ===== */
+.deznav {
   position: fixed;
-  top: 0;
+  top: var(--c360-topbar-height);
   left: 0;
   width: var(--sidebar-width);
-  height: 100vh;
+  height: calc(100vh - var(--c360-topbar-height));
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
   box-shadow: var(--shadow-card);
@@ -44,7 +51,7 @@ body.sidebar-open .sidebar-overlay {
   z-index: var(--c360-z-sidebar);
 }
 
-.dlabnav-brand {
+.deznav-brand {
   flex-shrink: 0;
   padding: var(--space-4);
   border-bottom: 1px solid var(--color-border);
@@ -71,16 +78,16 @@ body.sidebar-open .sidebar-overlay {
   white-space: nowrap;
 }
 
-.dlabnav-scroll {
+.deznav-scroll {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding: var(--space-4) 0;
 }
-.dlabnav-scroll::-webkit-scrollbar {
+.deznav-scroll::-webkit-scrollbar {
   width: 4px;
 }
-.dlabnav-scroll::-webkit-scrollbar-thumb {
+.deznav-scroll::-webkit-scrollbar-thumb {
   background-color: var(--color-gray-300);
   border-radius: 4px;
 }
@@ -354,7 +361,12 @@ nav.breadcrumb.header-breadcrumb {
 }
 
 /* ===== Collapsed rail (body.nav-header-open) ===== */
-body.nav-header-open .dlabnav {
+body.nav-header-open .nav-header {
+  width: var(--sidebar-collapsed-width);
+  min-width: var(--sidebar-collapsed-width);
+  max-width: var(--sidebar-collapsed-width);
+}
+body.nav-header-open .deznav {
   width: var(--sidebar-collapsed-width);
   min-width: var(--sidebar-collapsed-width);
   max-width: var(--sidebar-collapsed-width);
@@ -362,31 +374,21 @@ body.nav-header-open .dlabnav {
 body.nav-header-open .content-body {
   margin-left: var(--sidebar-collapsed-width);
 }
-body.nav-header-open .brand-title,
+body.nav-header-open .nav-header .brand-title,
 body.nav-header-open .menu-group-label,
 body.nav-header-open .sidebar-user-info,
 body.nav-header-open .sidebar-footer-brand,
-body.nav-header-open .nav-branch-label,
-body.nav-header-open .nav-leaf-link span,
-body.nav-header-open .nav-chevron {
+body.nav-header-open .nav-text {
   display: none;
 }
-body.nav-header-open .dlabnav-brand {
-  justify-content: center;
-  align-items: center;
-  padding-left: var(--space-2);
-  padding-right: var(--space-2);
-  padding-top: var(--c360-spacing-3);
-  padding-bottom: var(--c360-spacing-3);
-  margin-bottom: var(--c360-spacing-2);
-}
-body.nav-header-open .brand-logo {
+body.nav-header-open .nav-header .brand-logo {
   justify-content: center;
 }
 body.nav-header-open .metismenu li a {
   justify-content: center;
 }
-body.nav-header-open .nav-branch-toggle {
+body.nav-header-open #menu > li > a.has-arrow,
+body.nav-header-open #menu > li > a:not(.has-arrow) {
   justify-content: center;
   padding-left: var(--space-2);
   padding-right: var(--space-2);
@@ -397,31 +399,17 @@ body.nav-header-open .nav-branch-toggle {
   margin-right: 0;
   box-sizing: border-box;
 }
-body.nav-header-open .nav-branch-toggle > i:first-of-type,
-body.nav-header-open .nav-leaf-link > i:first-of-type {
+body.nav-header-open #menu > li > a.has-arrow > i:first-of-type,
+body.nav-header-open #menu > li > a:not(.has-arrow) > i:first-of-type {
   font-size: 22px;
   line-height: 1;
   flex-shrink: 0;
 }
-body.nav-header-open .nav-leaf-link {
-  justify-content: center;
-  padding-left: var(--space-2);
-  padding-right: var(--space-2);
-  width: 100%;
-  max-width: none;
-  min-height: 44px;
-  margin-left: 0;
-  margin-right: 0;
-  box-sizing: border-box;
-}
-/* In-page accordion submenus hidden when rail collapsed; flyout JS supplies navigation */
-body.nav-header-open .nav-submenu {
+/* Submenus hidden when rail collapsed; flyout JS supplies navigation */
+body.nav-header-open .deznav .metismenu ul {
   display: none !important;
 }
-body.nav-header-open .nav-branch.mm-open > .nav-submenu {
-  display: none !important;
-}
-body.nav-header-open .dlabnav-scroll {
+body.nav-header-open .deznav-scroll {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -438,57 +426,41 @@ body.nav-header-open .nav-tree-root {
   gap: var(--c360-spacing-2);
   list-style: none;
 }
-body.nav-header-open .nav-tree-root > .nav-branch,
-body.nav-header-open .nav-tree-root > .nav-leaf {
+body.nav-header-open #menu > li {
   margin: 0;
   width: 100%;
   max-width: 100%;
   display: flex;
   justify-content: center;
 }
-/* Collapsed rail: no “tile” until hover/active — keeps icons visually on the rail */
-body.nav-header-open .nav-branch-toggle,
-body.nav-header-open .nav-leaf-link {
+body.nav-header-open #menu > li > a {
   background-color: transparent;
   border-radius: 0;
 }
-body.nav-header-open .nav-branch-toggle:hover,
-body.nav-header-open .nav-leaf-link:hover,
-body.nav-header-open .nav-branch.active > .nav-branch-toggle,
-body.nav-header-open .nav-leaf.active > .nav-leaf-link,
-body.nav-header-open .nav-leaf-link.active {
+body.nav-header-open #menu > li > a:hover,
+body.nav-header-open #menu > li.mm-active > a {
   border-radius: var(--c360-radius-lg);
 }
-
-/* Collapsed rail: app-style primary tile + white icon */
-body.nav-header-open .nav-branch-toggle:hover,
-body.nav-header-open .nav-leaf-link:hover {
+body.nav-header-open #menu > li > a:hover {
   background: var(--c360-primary);
   color: #fff;
 }
-body.nav-header-open .nav-branch-toggle:hover i,
-body.nav-header-open .nav-leaf-link:hover i {
+body.nav-header-open #menu > li > a:hover i {
   color: #fff;
 }
-body.nav-header-open .nav-branch.active > .nav-branch-toggle,
-body.nav-header-open .nav-leaf.active > .nav-leaf-link,
-body.nav-header-open .nav-leaf-link.active {
+body.nav-header-open #menu > li.mm-active > a {
   background: var(--c360-primary);
   color: #fff;
   font-weight: var(--c360-font-semibold);
   border-radius: var(--c360-radius-lg);
 }
-body.nav-header-open .nav-branch.active > .nav-branch-toggle::before,
-body.nav-header-open .nav-leaf.active > .nav-leaf-link::before {
+body.nav-header-open #menu > li.mm-active > a::before {
   display: none;
 }
-body.nav-header-open .nav-branch.active > .nav-branch-toggle i,
-body.nav-header-open .nav-leaf.active > .nav-leaf-link i,
-body.nav-header-open .nav-leaf-link.active i {
+body.nav-header-open #menu > li.mm-active > a i {
   color: #fff;
 }
-body.nav-header-open .nav-branch.active > .nav-branch-toggle:hover,
-body.nav-header-open .nav-leaf-link.active:hover {
+body.nav-header-open #menu > li.mm-active > a:hover {
   background: var(--c360-primary-hover);
 }
 
@@ -645,7 +617,7 @@ body.nav-header-open .sidebar-footer-min {
 
 /* ===== Responsive (match app ~1024px) ===== */
 @media (max-width: 1023px) {
-  .dlabnav {
+  .deznav {
     width: var(--sidebar-width);
     transform: translateX(-100%);
     transition:
@@ -653,11 +625,11 @@ body.nav-header-open .sidebar-footer-min {
       width var(--transition-slow);
     z-index: calc(var(--c360-z-sidebar) + 10);
   }
-  body.sidebar-open .dlabnav {
+  body.sidebar-open .deznav {
     transform: translateX(0);
   }
   /* Full sidebar width when drawer open; ignore collapsed width on mobile */
-  body.sidebar-open.nav-header-open .dlabnav {
+  body.sidebar-open.nav-header-open .deznav {
     width: var(--sidebar-width);
   }
   .content-body {
@@ -672,26 +644,24 @@ body.nav-header-open .sidebar-footer-min {
   }
   /* Show labels again in drawer */
   body.sidebar-open .brand-title,
-  body.sidebar-open .nav-branch-label,
-  body.sidebar-open .nav-leaf-link span,
-  body.sidebar-open .nav-chevron,
+  body.sidebar-open .nav-text,
   body.sidebar-open .sidebar-footer-brand {
     display: revert;
   }
-  body.sidebar-open .nav-submenu {
+  body.sidebar-open .metismenu ul {
     display: none !important;
   }
-  body.sidebar-open .nav-branch.mm-open > .nav-submenu {
+  body.sidebar-open .metismenu ul.mm-show {
     display: block !important;
   }
-  body.sidebar-open .dlabnav-scroll {
+  body.sidebar-open .deznav-scroll {
     align-items: stretch;
   }
   body.sidebar-open .nav-tree-root {
     align-items: stretch;
   }
-  body.sidebar-open .nav-branch-toggle,
-  body.sidebar-open .nav-leaf-link {
+  body.sidebar-open .metismenu > li > a,
+  body.sidebar-open .metismenu li ul a {
     max-width: none;
     width: 100%;
     margin-left: 0;
@@ -699,9 +669,6 @@ body.nav-header-open .sidebar-footer-min {
     justify-content: flex-start;
     padding-left: var(--space-4);
     padding-right: var(--space-4);
-  }
-  body.sidebar-open .dlabnav-brand {
-    justify-content: flex-start;
   }
   .page-content {
     padding: var(--space-4);

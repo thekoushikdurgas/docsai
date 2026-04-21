@@ -42,7 +42,7 @@ cd /home/ubuntu/docsai
 bash deploy/pre-deployment-check.sh
 ```
 
-**Checks**: Python/Nginx/Git, app directory, venv, requirements, `.env.prod`, DB connectivity, required deploy files, Gunicorn/Nginx config, security.
+**Checks**: Python/Nginx/Git, app directory, venv, requirements, `.env.prod`, DB connectivity, required deploy files, Gunicorn/Nginx config, security. At runtime, `DJANGO_ENV=production` loads `.env` then `.env.prod` into the process for keys not already exported (see repo `README.md` → Environment).
 
 **Best for**: Running before `full-deploy.sh` or `deploy-to-ec2.sh` to catch issues early.
 

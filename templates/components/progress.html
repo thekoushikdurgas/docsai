@@ -1,22 +1,19 @@
-{% comment %} Usage: {% include "components/progress.html" with value=75
-label="Job progress" size="" %} {% endcomment %} {% load admin_tags %}
-<div class="progress-wrap">
+{% comment %} Kit: progress default-progress {% endcomment %} {% load admin_tags %}
+<div class="mb-3 progress-wrap">
   {% if label %}
-  <div class="progress-label">
-    <span>{{ label }}</span>
-    <span>{{ value }}%</span>
+  <div class="d-flex justify-content-between mb-1">
+    <span class="text-muted small">{{ label }}</span>
+    <span class="small font-weight-semibold">{{ value }}%</span>
   </div>
   {% endif %}
-  <div
-    class="progress{% if size == 'sm' %} progress-sm{% elif size == 'lg' %} progress-lg{% elif size %} progress-{{ size }}{% endif %}"
-    role="progressbar"
-    aria-valuenow="{{ value }}"
-    aria-valuemin="0"
-    aria-valuemax="100"
-  >
+  <div class="progress default-progress{% if size == 'sm' %} progress-sm{% elif size == 'lg' %} progress-lg{% endif %}" style="height: {% if size == 'sm' %}6px{% elif size == 'lg' %}12px{% else %}8px{% endif %};">
     <div
-      class="progress-bar {{ value|progress_color }}"
+      class="progress-bar bg-{% if value|progress_color == 'success' %}success{% elif value|progress_color == 'warning' %}warning{% elif value|progress_color == 'danger' %}danger{% elif value|progress_color == 'info' %}info{% else %}primary{% endif %}"
+      role="progressbar"
       style="width: {{ value }}%"
+      aria-valuenow="{{ value }}"
+      aria-valuemin="0"
+      aria-valuemax="100"
       data-threshold="{{ value|progress_threshold }}"
     ></div>
   </div>

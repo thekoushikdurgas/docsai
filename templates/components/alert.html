@@ -1,33 +1,52 @@
-{% comment %}Usage: {% include "components/alert.html" with type="success" message="Done!" dismissible=True %}{% endcomment %}
+{% comment %}
+  Usage: {% include "components/alert.html" with type="success" message="Done!" dismissible=True %}
+  Kit: Bootstrap 4 alert + LineIcons
+{% endcomment %}
+{% with t=type|default:"info" %}
+{% if t == "neutral" %}
+  {% with bt="secondary" %}
 <div
-  class="alert alert-{{ type|default:'neutral' }}{% if dismissible %} alert-dismissible{% endif %}"
+  class="alert alert-{{ bt }}{% if dismissible %} alert-dismissible fade show{% endif %}"
   role="alert"
 >
-  <span class="alert-icon">
-    {% if type == "success" %}
-    <i class="lni lni-checkmark-circle" aria-hidden="true"></i>
-    {% elif type == "warning" %}
-    <i class="lni lni-warning" aria-hidden="true"></i>
-    {% elif type == "danger" %}
-    <i class="lni lni-cross-circle" aria-hidden="true"></i>
-    {% else %}
-    <i class="lni lni-question-circle" aria-hidden="true"></i>
-    {% endif %}
-  </span>
-  <div class="alert-body">
-    {% if title %}
-    <div class="alert-title">{{ title }}</div>
-    {% endif %}
-    <div class="alert-message">{{ message }}</div>
-  </div>
   {% if dismissible %}
-  <button
-    type="button"
-    class="alert-dismiss"
-    onclick="this.closest('.alert').remove()"
-    aria-label="Dismiss"
-  >
-    &times;
+  <button type="button" class="close" aria-label="Close" onclick="this.closest('.alert').remove()">
+    <span aria-hidden="true">&times;</span>
   </button>
   {% endif %}
+  {% if title %}<strong class="d-block mb-1">{{ title }}</strong>{% endif %}
+  {{ message }}
 </div>
+  {% endwith %}
+{% else %}
+<div
+  class="alert alert-{{ t }}{% if dismissible %} alert-dismissible fade show{% endif %}"
+  role="alert"
+>
+  {% if dismissible %}
+  <button type="button" class="close" aria-label="Close" onclick="this.closest('.alert').remove()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  {% endif %}
+  <div class="d-flex align-items-start">
+    <span class="mr-2 mt-1">
+      {% if t == "success" %}
+      <i class="lni lni-checkmark-circle" aria-hidden="true"></i>
+      {% elif t == "warning" %}
+      <i class="lni lni-warning" aria-hidden="true"></i>
+      {% elif t == "danger" %}
+      <i class="lni lni-cross-circle" aria-hidden="true"></i>
+      {% else %}
+      <i class="lni lni-question-circle" aria-hidden="true"></i>
+      {% endif %}
+    </span>
+    <div class="flex-grow-1">
+      {% if title %}
+      <div class="font-weight-bold mb-1">{{ title }}</div>
+      {% endif %}
+      {{ message }}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endwith %}

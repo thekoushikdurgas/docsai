@@ -87,8 +87,7 @@ Dashboard - DocsAI Agent{% endblock %} {% block content %}
               By Page State
             </h4>
             <div class="flex gap-4 text-sm flex-wrap">
-              {% for state, count in stats_pages.statistics.by_page_state.items
-              %}
+              {% for state, count in stats_pages.statistics.by_page_state.items %}
               <span class="flex items-center gap-1">
                 <span
                   class="w-2 h-2 rounded-full {% if state == 'published' %}bg-green-500{% elif state == 'draft' or state == 'development' or state == 'coming_soon' %}bg-amber-500{% elif state == 'test' %}bg-blue-500{% else %}bg-gray-400{% endif %}"
@@ -169,11 +168,7 @@ Dashboard - DocsAI Agent{% endblock %} {% block content %}
           >
         </div>
         <div class="space-y-4">
-          {% with total_rel=stats_relationships.total_relationships|default:0
-          unique_p=stats_relationships.unique_pages|default:0
-          unique_e=stats_relationships.unique_endpoints|default:0
-          pages_we=stats_relationships.pages_with_endpoints|default:0
-          endpoints_wp=stats_relationships.endpoints_with_pages|default:0 %}
+          {% with total_rel=stats_relationships.total_relationships|default:0 unique_p=stats_relationships.unique_pages|default:0 unique_e=stats_relationships.unique_endpoints|default:0 pages_we=stats_relationships.pages_with_endpoints|default:0 endpoints_wp=stats_relationships.endpoints_with_pages|default:0 %}
           <div class="grid grid-cols-4 gap-3">
             <div class="p-3 rounded-xl bg-blue-50 text-center">
               <p class="text-xl font-bold text-blue-700">{{ total_rel }}</p>
@@ -189,8 +184,7 @@ Dashboard - DocsAI Agent{% endblock %} {% block content %}
             </div>
             <div class="p-3 rounded-xl bg-amber-50 text-center">
               <p class="text-xl font-bold text-amber-700">
-                {% if unique_p %}{% widthratio pages_we unique_p 100 %}{% else
-                %}0{% endif %}%
+                {% if unique_p %}{% widthratio pages_we unique_p 100 %}{% else %}0{% endif %}%
               </p>
               <p class="text-xs text-amber-600">Page Coverage</p>
             </div>
@@ -565,64 +559,19 @@ Dashboard - DocsAI Agent{% endblock %} {% block content %}
                   >
                     All Types
                   </option>
-                  <option
-                    value="docs"
-                    {%
-                    if
-                    request.GET.page_type=""
-                    ="docs"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="docs" {% if request.GET.page_type == "docs" %}selected{% endif %}>
                     Docs
                   </option>
-                  <option
-                    value="marketing"
-                    {%
-                    if
-                    request.GET.page_type=""
-                    ="marketing"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="marketing" {% if request.GET.page_type == "marketing" %}selected{% endif %}>
                     Marketing
                   </option>
-                  <option
-                    value="dashboard"
-                    {%
-                    if
-                    request.GET.page_type=""
-                    ="dashboard"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="dashboard" {% if request.GET.page_type == "dashboard" %}selected{% endif %}>
                     Dashboard
                   </option>
-                  <option
-                    value="product"
-                    {%
-                    if
-                    request.GET.page_type=""
-                    ="product"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="product" {% if request.GET.page_type == "product" %}selected{% endif %}>
                     Product
                   </option>
-                  <option
-                    value="title"
-                    {%
-                    if
-                    request.GET.page_type=""
-                    ="title"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="title" {% if request.GET.page_type == "title" %}selected{% endif %}>
                     Title
                   </option>
                 </select>
@@ -646,40 +595,13 @@ Dashboard - DocsAI Agent{% endblock %} {% block content %}
                   >
                     All States
                   </option>
-                  <option
-                    value="published"
-                    {%
-                    if
-                    request.GET.status=""
-                    ="published"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="published" {% if request.GET.status == "published" %}selected{% endif %}>
                     Published
                   </option>
-                  <option
-                    value="draft"
-                    {%
-                    if
-                    request.GET.status=""
-                    ="draft"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="draft" {% if request.GET.status == "draft" %}selected{% endif %}>
                     Draft
                   </option>
-                  <option
-                    value="archived"
-                    {%
-                    if
-                    request.GET.status=""
-                    ="archived"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="archived" {% if request.GET.status == "archived" %}selected{% endif %}>
                     Archived
                   </option>
                 </select>
@@ -703,76 +625,22 @@ Dashboard - DocsAI Agent{% endblock %} {% block content %}
                   >
                     All Auth Users
                   </option>
-                  <option
-                    value="public"
-                    {%
-                    if
-                    request.GET.user_type=""
-                    ="public"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="public" {% if request.GET.user_type == "public" %}selected{% endif %}>
                     Public
                   </option>
-                  <option
-                    value="guest"
-                    {%
-                    if
-                    request.GET.user_type=""
-                    ="guest"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="guest" {% if request.GET.user_type == "guest" %}selected{% endif %}>
                     Guest
                   </option>
-                  <option
-                    value="free_user"
-                    {%
-                    if
-                    request.GET.user_type=""
-                    ="free_user"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="free_user" {% if request.GET.user_type == "free_user" %}selected{% endif %}>
                     Free User
                   </option>
-                  <option
-                    value="pro_user"
-                    {%
-                    if
-                    request.GET.user_type=""
-                    ="pro_user"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="pro_user" {% if request.GET.user_type == "pro_user" %}selected{% endif %}>
                     Pro User
                   </option>
-                  <option
-                    value="admin"
-                    {%
-                    if
-                    request.GET.user_type=""
-                    ="admin"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="admin" {% if request.GET.user_type == "admin" %}selected{% endif %}>
                     Admin
                   </option>
-                  <option
-                    value="super_admin"
-                    {%
-                    if
-                    request.GET.user_type=""
-                    ="super_admin"
-                    %}selected{%
-                    endif
-                    %}
-                  >
+                  <option value="super_admin" {% if request.GET.user_type == "super_admin" %}selected{% endif %}>
                     Super Admin
                   </option>
                 </select>

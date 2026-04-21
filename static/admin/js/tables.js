@@ -54,4 +54,15 @@
           });
       });
   });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.jQuery && jQuery.fn.DataTable) {
+      jQuery("table.js-dataTable").each(function () {
+        var $t = jQuery(this);
+        if ($t.data("dtInit")) return;
+        $t.DataTable({ pageLength: 25, responsive: true });
+        $t.data("dtInit", true);
+      });
+    }
+  });
 })();

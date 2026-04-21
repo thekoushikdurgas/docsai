@@ -1,148 +1,73 @@
-{% comment %} Reusable resource list template component. Parameters: -
-resource_type: Type of resource (pages, endpoints, relationships, postman) -
-items: List of resource items - total: Total count of items - filters:
-Dictionary of active filters - page: Current page number - per_page: Items per
-page - view_mode: Display mode (list, grid) {% endcomment %}
-
-<div class="space-y-4">
-  {% if items %} {% if view_mode == 'list' %}
-  <!-- List View -->
-  <div
-    class="space-y-3"
-    role="list"
-    aria-label="{{ resource_type|title }} list"
-  >
-    {% for item in items %}
-    <div class="section-card p-4 hover:shadow-md transition-shadow">
-      <div class="flex items-start justify-between">
-        <div class="flex-1">
-          <h4 class="text-base font-semibold text-gray-900">
-            {% if item.page_id %}{{ item.page_id }}{% endif %} {% if
-            item.endpoint_id %}{{ item.endpoint_id }}{% endif %} {% if
-            item.relationship_id %}{{ item.relationship_id }}{% endif %} {% if
-            item.config_id %}{{ item.config_id }}{% endif %}
-          </h4>
-          {% if item.title %}
-          <p class="text-sm text-gray-600 mt-1">{{ item.title }}</p>
-          {% endif %} {% if item.description %}
-          <p class="text-sm text-gray-500 mt-2 line-clamp-2">
-            {{ item.description }}
-          </p>
-          {% endif %}
+{% comment %}
+  resource_type, items, total, filters, page, per_page, view_mode
+{% endcomment %}
+{% load mathfilters %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    {% if items %}
+      {% if view_mode == 'list' %}
+      <div class="row" role="list" aria-label="{{ resource_type|title }} list">
+        {% for item in items %}
+        <div class="col-12 mb-3" role="listitem">
+          <div class="card border h-100 mb-0">
+            <div class="card-body d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1 pr-3">
+                <h5 class="card-title mb-1 font-weight-semibold">
+                  {% if item.page_id %}{{ item.page_id }}{% endif %}{% if item.endpoint_id %}{{ item.endpoint_id }}{% endif %}{% if item.relationship_id %}{{ item.relationship_id }}{% endif %}{% if item.config_id %}{{ item.config_id }}{% endif %}
+                </h5>
+                {% if item.title %}<p class="card-text text-muted small mb-1">{{ item.title }}</p>{% endif %}
+                {% if item.description %}<p class="card-text small mb-0">{{ item.description|truncatewords:24 }}</p>{% endif %}
+              </div>
+              <div class="flex-shrink-0">
+                {% if resource_type == 'pages' %}
+                <a href="{% url 'documentation:page_detail_enhanced' item.page_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                {% elif resource_type == 'endpoints' %}
+                <a href="{% url 'documentation:endpoint_detail_enhanced' item.endpoint_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                {% elif resource_type == 'relationships' %}
+                <a href="{% url 'documentation:relationship_detail_enhanced' item.relationship_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                {% elif resource_type == 'postman' %}
+                <a href="{% url 'documentation:postman_detail_enhanced' item.config_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="ml-4 flex items-center gap-2">
-          {% if resource_type == 'pages' %}
-          <a
-            href="{% url 'documentation:page_detail_enhanced' item.page_id %}"
-            class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            View Details
-          </a>
-          {% elif resource_type == 'endpoints' %}
-          <a
-            href="{% url 'documentation:endpoint_detail_enhanced' item.endpoint_id %}"
-            class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            View Details
-          </a>
-          {% elif resource_type == 'relationships' %}
-          <a
-            href="{% url 'documentation:relationship_detail_enhanced' item.relationship_id %}"
-            class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            View Details
-          </a>
-          {% elif resource_type == 'postman' %}
-          <a
-            href="{% url 'documentation:postman_detail_enhanced' item.config_id %}"
-            class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            View Details
-          </a>
-          {% endif %}
-        </div>
+        {% endfor %}
       </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <!-- Grid View -->
-  <div
-    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-    role="list"
-    aria-label="{{ resource_type|title }} grid"
-  >
-    {% for item in items %}
-    <div class="section-card p-4 hover:shadow-md transition-shadow">
-      <h4 class="text-base font-semibold text-gray-900 mb-2">
-        {% if item.page_id %}{{ item.page_id }}{% endif %} {% if
-        item.endpoint_id %}{{ item.endpoint_id }}{% endif %} {% if
-        item.relationship_id %}{{ item.relationship_id }}{% endif %} {% if
-        item.config_id %}{{ item.config_id }}{% endif %}
-      </h4>
-      {% if item.title %}
-      <p class="text-sm text-gray-600 mb-2">{{ item.title }}</p>
-      {% endif %} {% if resource_type == 'pages' %}
-      <a
-        href="{% url 'documentation:page_detail_enhanced' item.page_id %}"
-        class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-      >
-        View Details →
-      </a>
-      {% elif resource_type == 'endpoints' %}
-      <a
-        href="{% url 'documentation:endpoint_detail_enhanced' item.endpoint_id %}"
-        class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-      >
-        View Details →
-      </a>
-      {% elif resource_type == 'relationships' %}
-      <a
-        href="{% url 'documentation:relationship_detail_enhanced' item.relationship_id %}"
-        class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-      >
-        View Details →
-      </a>
-      {% elif resource_type == 'postman' %}
-      <a
-        href="{% url 'documentation:postman_detail_enhanced' item.config_id %}"
-        class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-      >
-        View Details →
-      </a>
+      {% else %}
+      <div class="row">
+        {% for item in items %}
+        <div class="col-md-6 col-lg-4 mb-3">
+          <div class="card border h-100">
+            <div class="card-body">
+              <h5 class="card-title font-weight-semibold">
+                {% if item.page_id %}{{ item.page_id }}{% endif %}{% if item.endpoint_id %}{{ item.endpoint_id }}{% endif %}{% if item.relationship_id %}{{ item.relationship_id }}{% endif %}{% if item.config_id %}{{ item.config_id }}{% endif %}
+              </h5>
+              {% if item.title %}<p class="card-text text-muted small">{{ item.title }}</p>{% endif %}
+              {% if resource_type == 'pages' %}
+              <a href="{% url 'documentation:page_detail_enhanced' item.page_id %}" class="btn btn-sm btn-primary">View</a>
+              {% elif resource_type == 'endpoints' %}
+              <a href="{% url 'documentation:endpoint_detail_enhanced' item.endpoint_id %}" class="btn btn-sm btn-primary">View</a>
+              {% elif resource_type == 'relationships' %}
+              <a href="{% url 'documentation:relationship_detail_enhanced' item.relationship_id %}" class="btn btn-sm btn-primary">View</a>
+              {% elif resource_type == 'postman' %}
+              <a href="{% url 'documentation:postman_detail_enhanced' item.config_id %}" class="btn btn-sm btn-primary">View</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
       {% endif %}
-    </div>
-    {% endfor %}
+      {% if total > per_page|default:20 %}
+        {% include "components/pagination.html" with page=page|default:1 total=total per_page=per_page|default:20 %}
+      {% endif %}
+    {% else %}
+      {% if filters %}
+        {% include "components/empty_state.html" with title="No results" message="Try adjusting your filters to see more results." %}
+      {% else %}
+        {% include "components/empty_state.html" with title="No items yet" message="Get started by creating a new entry in this section." %}
+      {% endif %}
+    {% endif %}
   </div>
-  {% endif %}
-
-  <!-- Pagination -->
-  {% if total > per_page %} {% include
-  'documentation/media_manager/_components/_pagination.html' with page=page
-  total=total per_page=per_page %} {% endif %} {% else %}
-  <!-- Empty State -->
-  <div class="text-center py-12">
-    <svg
-      class="mx-auto h-12 w-12 text-gray-400"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
-    <h3 class="mt-2 text-sm font-medium text-gray-900">
-      No {{ resource_type }} found
-    </h3>
-    <p class="mt-1 text-sm text-gray-500">
-      {% if filters %} Try adjusting your filters to see more results. {% else
-      %} Get started by creating a new {{ resource_type|slice:":-1" }}. {% endif
-      %}
-    </p>
-  </div>
-  {% endif %}
 </div>

@@ -1,0 +1,27 @@
+{% comment %} page, total, per_page — preserves request.GET except page {% endcomment %}
+{% load mathfilters %}
+{% if total > per_page %}
+{% with total_pages=total|add:per_page|sub:1|intdiv:per_page %}
+<nav aria-label="Pagination" class="d-flex flex-wrap justify-content-between align-items-center border-top pt-3 mt-3">
+  <p class="small text-muted mb-2 mb-md-0">
+    Showing {{ page|mul:per_page|sub:per_page|add:1 }}–{% if page|mul:per_page > total %}{{ total }}{% else %}{{ page|mul:per_page }}{% endif %} of {{ total }}
+  </p>
+  <ul class="pagination pagination-gutter pagination-primary mb-0">
+    {% if page > 1 %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page|add:-1 }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+    {% if page < total_pages %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page|add:1 }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled"><span class="page-link">Next</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endwith %}
+{% endif %}

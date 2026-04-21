@@ -1,6 +1,7 @@
-{% extends 'layouts/detail-view.html' %} {% load static custom_filters %} {%
-block title %}{{ page.metadata.content_sections.title|default:page.page_id }} -
-Documentation{% endblock %} {% block extra_css %}
+{% extends 'layouts/detail-view.html' %}
+{% load static custom_filters %}
+{% block title %}{{ page.metadata.content_sections.title|default:page.page_id }} - Documentation{% endblock %}
+{% block extra_css %}
 <link
   rel="stylesheet"
   href="{% static 'admin/css/components/form-responsive.css' %}?v=20260124d"
@@ -12,13 +13,11 @@ Documentation{% endblock %} {% block extra_css %}
 {% endblock %} {% block detail_subtitle %}
 <p class="text-sm text-gray-500 font-mono mt-0.5">{{ page.page_id }}</p>
 <div class="flex items-center gap-2 mt-2 flex-wrap">
-  {% include 'components/badge.html' with type='status'
-  status=page.metadata.status|default:'draft'
-  text=page.metadata.status|default:'draft' %} {% if page.metadata.route %} {%
-  include 'components/badge.html' with type='resource' resource_type='pages'
-  text=page.metadata.route size='sm' %} {% endif %} {% include
-  'components/badge.html' with type='resource' resource_type='pages'
-  text=page.page_type|default:'page' size='sm' %}
+  {% include 'components/badge.html' with type='status' status=page.metadata.status|default:'draft' text=page.metadata.status|default:'draft' %}
+  {% if page.metadata.route %}
+  {% include 'components/badge.html' with type='resource' resource_type='pages' text=page.metadata.route size='sm' %}
+  {% endif %}
+  {% include 'components/badge.html' with type='resource' resource_type='pages' text=page.page_type|default:'page' size='sm' %}
 </div>
 {% endblock %} {% block detail_tabs %}
 <div class="border-b border-gray-200 px-6 tabs-detail tabs-pages">
@@ -335,37 +334,18 @@ Documentation{% endblock %} {% block extra_css %}
             text=page.metadata.status|default:'draft' %}
           </dd>
         </div>
-        {% include 'components/key_value_row.html' with label='File path'
-        value=page.metadata.file_path format='mono' %} {% include
-        'components/key_value_row.html' with label='S3 Key'
-        value=page.metadata.s3_key format='mono' %} {% include
-        'components/key_value_row.html' with label='Authentication'
-        value=page.metadata.authentication %} {% include
-        'components/key_value_row.html' with label='Authorization'
-        value=page.metadata.authorization %} {% include
-        'components/key_value_row.html' with label='Page State'
-        value=page.metadata.page_state format='badge' %} {% include
-        'components/key_value_row.html' with label='Last Updated'
-        value=page.metadata.last_updated format='date' %} {% include
-        'components/key_value_row.html' with label='Endpoint Count'
-        value=page.metadata.endpoint_count %} {% if page.metadata.api_versions
-        %}
+        {% include 'components/key_value_row.html' with label='File path' value=page.metadata.file_path format='mono' %} {% include 'components/key_value_row.html' with label='S3 Key' value=page.metadata.s3_key format='mono' %} {% include 'components/key_value_row.html' with label='Authentication' value=page.metadata.authentication %} {% include 'components/key_value_row.html' with label='Authorization' value=page.metadata.authorization %} {% include 'components/key_value_row.html' with label='Page State' value=page.metadata.page_state format='badge' %} {% include 'components/key_value_row.html' with label='Last Updated' value=page.metadata.last_updated format='date' %} {% include 'components/key_value_row.html' with label='Endpoint Count' value=page.metadata.endpoint_count %} {% if page.metadata.api_versions %}
         <div class="flex justify-between gap-4">
           <dt class="text-sm text-gray-500 shrink-0">API Versions</dt>
           <dd class="text-right flex flex-wrap gap-1 justify-end">
-            {% for av in page.metadata.api_versions %} {% include
-            'components/badge.html' with type='resource' resource_type='pages'
-            text=av size='sm' %} {% endfor %}
+            {% for av in page.metadata.api_versions %} {% include 'components/badge.html' with type='resource' resource_type='pages' text=av size='sm' %} {% endfor %}
           </dd>
         </div>
-        {% else %} {% include 'components/key_value_row.html' with label='API
-        Versions' value=page.metadata.api_versions %} {% endif %}
+        {% else %} {% include 'components/key_value_row.html' with label='API Versions' value=page.metadata.api_versions %} {% endif %}
         <div class="flex justify-between gap-4">
           <dt class="text-sm text-gray-500 shrink-0">Versions</dt>
           <dd class="text-sm text-gray-900 text-right">
-            {{ page.metadata.versions|length|default:0 }} {% if
-            page.metadata.versions %}({{ page.metadata.versions|join:", " }}){%
-            endif %}
+            {{ page.metadata.versions|length|default:0 }} {% if page.metadata.versions %}({{ page.metadata.versions|join:", " }}){% endif %}
           </dd>
         </div>
         {% if page.created_at %} {% include 'components/key_value_row.html' with
@@ -484,9 +464,7 @@ Documentation{% endblock %} {% block extra_css %}
             >
               {% for item in fallback_data %}
               <li class="truncate" title="{{ item }}">
-                {% if item|is_dict %}{{ item|length }} keys{% elif item|is_list
-                %}{{ item|length }} items{% else %}{{ item|default:"—" }}{%
-                endif %}
+                {% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}
               </li>
               {% endfor %}
             </ul>
@@ -512,9 +490,7 @@ Documentation{% endblock %} {% block extra_css %}
             >
               {% for item in mock_data %}
               <li class="truncate" title="{{ item }}">
-                {% if item|is_dict %}{{ item|length }} keys{% elif item|is_list
-                %}{{ item|length }} items{% else %}{{ item|default:"—" }}{%
-                endif %}
+                {% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}
               </li>
               {% endfor %}
             </ul>
@@ -540,9 +516,7 @@ Documentation{% endblock %} {% block extra_css %}
             >
               {% for item in demo_data %}
               <li class="truncate" title="{{ item }}">
-                {% if item|is_dict %}{{ item|length }} keys{% elif item|is_list
-                %}{{ item|length }} items{% else %}{{ item|default:"—" }}{%
-                endif %}
+                {% if item|is_dict %}{{ item|length }} keys{% elif item|is_list %}{{ item|length }} items{% else %}{{ item|default:"—" }}{% endif %}
               </li>
               {% endfor %}
             </ul>
@@ -946,9 +920,7 @@ Documentation{% endblock %} {% block extra_css %}
     {% endif %}
 
     <!-- Other content_sections keys (hero, navbar, cards, features, product_showcase, pricing, footer, api_example, etc.) -->
-    {% for cs_key, cs_val in page.metadata.content_sections.items %} {% if
-    cs_key != "title" and cs_key != "subtitle" and cs_key !=
-    "value_propositions" and cs_key != "story" %}
+    {% for cs_key, cs_val in page.metadata.content_sections.items %} {% if cs_key != "title" and cs_key != "subtitle" and cs_key != "value_propositions" and cs_key != "story" %}
     <div class="mt-6 border border-gray-200 rounded-lg p-4">
       <h3 class="text-lg font-semibold text-gray-900 mb-3">
         {{ cs_key|title }}
@@ -989,8 +961,7 @@ Documentation{% endblock %} {% block extra_css %}
         </div>
         {% endfor %}
       </div>
-      {% else %} {% if "curl" in cs_key or "code" in cs_key or "example" in
-      cs_key %}
+      {% else %} {% if "curl" in cs_key or "code" in cs_key or "example" in cs_key %}
       <pre
         class="text-sm font-mono bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap"
       >
@@ -1509,13 +1480,9 @@ Documentation{% endblock %} {% block extra_css %}
         Structural elements defined for this page. Edit in the form to add or
         change sections.
       </p>
-      {% url 'documentation:page_edit' page_id=page.page_id as base_edit_url
-      %}{% with edit_sections_href=base_edit_url|add:"?tab=sections" %}{%
-      include 'components/button.html' with href=edit_sections_href text='Edit
-      Sections' type='primary' size='sm' %}{% endwith %}
+      {% url 'documentation:page_edit' page_id=page.page_id as base_edit_url %}{% with edit_sections_href=base_edit_url|add:"?tab=sections" %}{% include 'components/button.html' with href=edit_sections_href text='Edit Sections' type='primary' size='sm' %}{% endwith %}
     </div>
-    {% for section_key, section_list in page_sections.items %} {% if
-    section_list|length %}
+    {% for section_key, section_list in page_sections.items %} {% if section_list|length %}
     <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
       <h3 class="text-md font-semibold text-gray-900 mb-3">
         {{ section_key|title }} ({{ section_list|length }})
@@ -1546,8 +1513,7 @@ Documentation{% endblock %} {% block extra_css %}
               <th class="text-left py-2 pr-4 text-gray-500">ID</th>
               <th class="text-left py-2 pr-4 text-gray-500">Format</th>
               <th class="text-left py-2 text-gray-500">Content</th>
-              {% elif section_key == "components" or section_key ==
-              "ui_components" %}
+              {% elif section_key == "components" or section_key == "ui_components" %}
               <th class="text-left py-2 pr-4 text-gray-500">Name</th>
               <th class="text-left py-2 text-gray-500">File Path</th>
               {% elif section_key == "utilities" %}
@@ -1635,8 +1601,7 @@ Documentation{% endblock %} {% block extra_css %}
               >
                 {{ item.content|default:""|truncatechars:50 }}
               </td>
-              {% elif section_key == "components" or section_key ==
-              "ui_components" %}
+              {% elif section_key == "components" or section_key == "ui_components" %}
               <td class="py-2 pr-4 font-medium text-gray-900">
                 {{ item.name|default:"-" }}
               </td>

@@ -1,0 +1,17 @@
+{% comment %}
+  Optional: search_name, search_placeholder, action_url for GET form
+{% endcomment %}
+<div class="card mb-3 border-0 shadow-sm">
+  <div class="card-body py-3">
+    <form class="form-inline flex-wrap align-items-center" method="get" action="{{ action_url|default:'' }}">
+      {% if search_name %}
+      <div class="form-group mr-sm-3 mb-2 mb-sm-0">
+        <label class="sr-only" for="filterBarSearch">{{ search_placeholder|default:"Search" }}</label>
+        <input type="search" class="form-control" id="filterBarSearch" name="{{ search_name }}" value="{{ search_value|default:'' }}" placeholder="{{ search_placeholder|default:'Search…' }}" />
+      </div>
+      {% endif %}
+      {{ slot|default:'' }}
+      <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+    </form>
+  </div>
+</div>

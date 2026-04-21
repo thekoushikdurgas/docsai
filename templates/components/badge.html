@@ -1,3 +1,11 @@
-{% comment %} Usage: {% include "components/badge.html" with text="Active"
-variant="success" %} {% endcomment %}
-<span class="badge badge-{{ variant|default:'neutral' }}">{{ text }}</span>
+{% comment %}
+  Usage: {% include "components/badge.html" with text="Active" variant="success" %}
+  Kit: badge badge-* ; neutral → secondary
+{% endcomment %}
+{% with v=variant|default:"secondary" %}
+{% if v == "neutral" %}
+<span class="badge badge-secondary badge-rounded">{{ text }}</span>
+{% else %}
+<span class="badge badge-{{ v }} badge-rounded">{{ text }}</span>
+{% endif %}
+{% endwith %}

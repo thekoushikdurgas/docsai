@@ -1,10 +1,13 @@
-{% extends "base.html" %} {% load static admin_tags %} {% block title
-%}Durgasflow — Contact360 Admin{% endblock %} {% block extra_css %}
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Durgasflow — Contact360 Admin{% endblock %}
+{% block extra_css %}
 <link
   rel="stylesheet"
   href="{% static 'admin/css/components/durgasflow.css' %}"
 />
 {% endblock %} {% block content %}
+<div class="container-fluid">
 <div class="page-header">
   <div>
     <h1 class="page-title">Durgasflow</h1>
@@ -14,7 +17,7 @@
     <a href="{% url 'durgasflow:upload' %}" class="btn btn-outline"
       ><i class="lni lni-cloud-upload"></i> Upload</a
     >
-    <a href="{% url 'durgasflow:workflow_hub' %}" class="btn btn-outline"
+    <a href="{% url 'durgasflow:workflow_hub' %}" class="btn btn-outline-primary"
       ><i class="lni lni-grid-alt"></i> Hub</a
     >
     <a href="{% url 'durgasflow:editor_new' %}" class="btn btn-primary"
@@ -25,13 +28,10 @@
 
 <!-- KPI Row -->
 <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr)">
-  {% include "components/card.html" with value=total label="Total Workflows"
-  icon="lni-layers" color="primary" %} {% include "components/card.html" with
-  value=active_count label="Active" icon="lni-checkmark-circle" color="success"
-  %} {% include "components/card.html" with value=total_execs label="Total
-  Executions" icon="lni-arrow-right-circle" color="info" %} {% include
-  "components/card.html" with value=success_rate|default:"—" label="Success Rate
-  %" icon="lni-bolt-alt" color="warning" %}
+  {% include "components/card.html" with value=total label="Total Workflows" icon="lni-layers" color="primary" %}
+  {% include "components/card.html" with value=active_count label="Active" icon="lni-checkmark-circle" color="success" %}
+  {% include "components/card.html" with value=total_execs label="Total Executions" icon="lni-arrow-right-circle" color="info" %}
+  {% include "components/card.html" with value=success_rate|default:"—" label="Success Rate %" icon="lni-bolt-alt" color="warning" %}
 </div>
 
 <!-- Upload Zone -->
@@ -208,8 +208,7 @@
           </td>
           <td>{{ ex.trigger_type }}</td>
           <td>
-            {% if ex.started_at %}{{ ex.started_at|timesince }} ago{% else %}—{%
-            endif %}
+            {% if ex.started_at %}{{ ex.started_at|timesince }} ago{% else %}—{% endif %}
           </td>
           <td>
             <a
@@ -224,7 +223,9 @@
     </table>
   </div>
 </div>
-{% endif %} {% endblock %} {% block extra_js %}
+{% endif %}
+</div>
+{% endblock %} {% block extra_js %}
 <script src="{% static 'admin/js/durgasflow.js' %}"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {

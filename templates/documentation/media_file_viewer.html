@@ -1,5 +1,7 @@
-{% extends 'base.html' %} {% load static custom_filters %} {% block title
-%}Viewer: {{ file_name }} - DocsAI{% endblock %} {% block extra_css %}
+{% extends 'base.html' %}
+{% load static custom_filters %}
+{% block title %}Viewer: {{ file_name }} - DocsAI{% endblock %}
+{% block extra_css %}
 <link
   rel="stylesheet"
   href="{% static 'admin/css/components/tabs.css' %}?v=20260125"
@@ -145,10 +147,7 @@
             </p>
             {% endif %}
             <div class="flex items-center gap-2 mt-2 flex-wrap">
-              {% if collection_info.schema %} {% include 'components/badge.html'
-              with type='resource' resource_type='postman'
-              text=collection_info.schema|truncatewords:1 size='sm' %} {% endif
-              %}
+              {% if collection_info.schema %} {% include 'components/badge.html' with type='resource' resource_type='postman' text=collection_info.schema|truncatewords:1 size='sm' %} {% endif %}
             </div>
             {% elif is_relationship_file and relationship %}
             <h1 class="text-xl font-bold text-gray-900">
@@ -156,9 +155,7 @@
             </h1>
             <p class="text-sm text-gray-500 font-mono mt-0.5">
               {% if relationship.page_id %}{{ relationship.page_id }}{% endif %}
-              {% if relationship.page_id and relationship.endpoint_path %} → {%
-              endif %} {% if relationship.endpoint_path %}{{
-              relationship.endpoint_path }}{% endif %}
+              {% if relationship.page_id and relationship.endpoint_path %} → {% endif %}{% if relationship.endpoint_path %}{{ relationship.endpoint_path }}{% endif %}
             </p>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
               {% if relationship.usage_type %} {% include
@@ -181,15 +178,7 @@
               {{ endpoint.endpoint_path|default:"" }}
             </p>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
-              {% include 'components/badge.html' with type='method'
-              method=endpoint.method|default:'QUERY'
-              text=endpoint.method|default:'QUERY' %} {% if endpoint.api_version
-              %} {% include 'components/badge.html' with type='resource'
-              resource_type='endpoints' text=endpoint.api_version size='sm' %}
-              {% endif %} {% if endpoint.endpoint_state %} {% include
-              'components/badge.html' with type='status'
-              status=endpoint.endpoint_state text=endpoint.endpoint_state|title
-              %} {% endif %}
+              {% include 'components/badge.html' with type='method' method=endpoint.method|default:'QUERY' text=endpoint.method|default:'QUERY' %} {% if endpoint.api_version %} {% include 'components/badge.html' with type='resource' resource_type='endpoints' text=endpoint.api_version size='sm' %} {% endif %} {% if endpoint.endpoint_state %} {% include 'components/badge.html' with type='status' status=endpoint.endpoint_state text=endpoint.endpoint_state|title %} {% endif %}
             </div>
             {% elif is_page_file and page %}
             <h1 class="text-xl font-bold text-gray-900">
@@ -199,14 +188,7 @@
               {{ page.page_id }}
             </p>
             <div class="flex items-center gap-2 mt-2 flex-wrap">
-              {% include 'components/badge.html' with type='status'
-              status=page.metadata.status|default:'draft'
-              text=page.metadata.status|default:'draft' %} {% if
-              page.metadata.route %} {% include 'components/badge.html' with
-              type='resource' resource_type='pages' text=page.metadata.route
-              size='sm' %} {% endif %} {% include 'components/badge.html' with
-              type='resource' resource_type='pages'
-              text=page.page_type|default:'page' size='sm' %}
+              {% include 'components/badge.html' with type='status' status=page.metadata.status|default:'draft' text=page.metadata.status|default:'draft' %} {% if page.metadata.route %} {% include 'components/badge.html' with type='resource' resource_type='pages' text=page.metadata.route size='sm' %} {% endif %} {% include 'components/badge.html' with type='resource' resource_type='pages' text=page.page_type|default:'page' size='sm' %}
             </div>
             {% else %}
             <h1 class="text-xl font-bold text-gray-900">{{ file_name }}</h1>
@@ -1780,8 +1762,7 @@
                   {% endif %}
                 </dd>
               </div>
-              {% endif %} {% if relationship.endpoint_id or
-              relationship.endpoint_path %}
+              {% endif %} {% if relationship.endpoint_id or relationship.endpoint_path %}
               <div>
                 <dt class="text-sm text-gray-500 mb-1">Endpoint</dt>
                 <dd class="text-sm text-gray-900">
@@ -2420,31 +2401,21 @@
             {% if endpoint.methods %}
             <div class="bg-blue-50 rounded-lg p-4 text-center">
               <div class="text-2xl font-bold text-blue-600">
-                {% with
-                service_count=endpoint.methods.service_methods|length|default:0
-                %}{% with
-                repo_count=endpoint.methods.repository_methods|length|default:0
-                %}{{ service_count|add:repo_count }}{% endwith %}{% endwith %}
+                {% with service_count=endpoint.methods.service_methods|length|default:0 %}{% with repo_count=endpoint.methods.repository_methods|length|default:0 %}{{ service_count|add:repo_count }}{% endwith %}{% endwith %}
               </div>
               <div class="text-xs text-blue-600/70 mt-1">Methods</div>
             </div>
             {% endif %} {% if endpoint.files %}
             <div class="bg-green-50 rounded-lg p-4 text-center">
               <div class="text-2xl font-bold text-green-600">
-                {% if endpoint.files.service_file %}1{% else %}0{% endif %} {%
-                if endpoint.files.router_file %}+1{% endif %} {% if
-                endpoint.files.repository_file %}+1{% endif %} {% if
-                endpoint.files.schema_file %}+1{% endif %} {% if
-                endpoint.files.test_file %}+1{% endif %}
+                {% if endpoint.files.service_file %}1{% else %}0{% endif %} {% if endpoint.files.router_file %}+1{% endif %} {% if endpoint.files.repository_file %}+1{% endif %} {% if endpoint.files.schema_file %}+1{% endif %} {% if endpoint.files.test_file %}+1{% endif %}
               </div>
               <div class="text-xs text-green-600/70 mt-1">Files</div>
             </div>
             {% endif %} {% if endpoint.lambda_services %}
             <div class="bg-orange-50 rounded-lg p-4 text-center">
               <div class="text-2xl font-bold text-orange-600">
-                {% with
-                deps_count=endpoint.lambda_services.dependencies|length|default:0
-                %}{{ deps_count|add:1 }}{% endwith %}
+                {% with deps_count=endpoint.lambda_services.dependencies|length|default:0 %}{{ deps_count|add:1 }}{% endwith %}
               </div>
               <div class="text-xs text-orange-600/70 mt-1">Lambda Services</div>
             </div>
@@ -2665,13 +2636,9 @@
                     </svg>
                     <div>
                       <span class="font-medium text-gray-900">
-                        {% if page_usage.page_path %} {{ page_usage.page_path }}
-                        {% elif page_usage.page_title %} {{
-                        page_usage.page_title }} {% else %} Unknown Page {%
-                        endif %}
+                        {% if page_usage.page_path %} {{ page_usage.page_path }} {% elif page_usage.page_title %} {{ page_usage.page_title }} {% else %} Unknown Page {% endif %}
                       </span>
-                      {% if page_usage.page_title and page_usage.page_path and
-                      page_usage.page_path != page_usage.page_title %}
+                      {% if page_usage.page_title and page_usage.page_path and page_usage.page_path != page_usage.page_title %}
                       <p class="text-xs text-gray-500">
                         {{ page_usage.page_title }}
                       </p>
@@ -2679,8 +2646,7 @@
                     </div>
                   </div>
                 </div>
-                {% if page_usage.via_service or page_usage.via_hook or
-                page_usage.usage_type %}
+                {% if page_usage.via_service or page_usage.via_hook or page_usage.usage_type %}
                 <div class="flex flex-wrap gap-2 text-xs">
                   {% if page_usage.via_service %}
                   <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded"
@@ -2738,9 +2704,7 @@
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center space-x-3">
                     <span class="font-medium text-gray-900">
-                      {% if rel.relationship_id %} {{ rel.relationship_id }} {%
-                      elif rel.relationship_type %} {{ rel.relationship_type }}
-                      {% else %} Unknown Relationship {% endif %}
+                      {% if rel.relationship_id %} {{ rel.relationship_id }} {% elif rel.relationship_type %} {{ rel.relationship_type }} {% else %} Unknown Relationship {% endif %}
                     </span>
                     {% if rel.usage_type %}
                     <span
@@ -2765,8 +2729,7 @@
               {% endfor %}
             </div>
           </div>
-          {% endif %} {% if not pages_using_endpoint and not
-          endpoint_relationships %}
+          {% endif %} {% if not pages_using_endpoint and not endpoint_relationships %}
           <div
             class="flex flex-col items-center justify-center py-12 text-center"
           >
@@ -2833,8 +2796,7 @@
                   {{ endpoint.lambda_services.primary.service_name }}
                 </dd>
               </div>
-              {% endif %} {% if endpoint.lambda_services.primary.function_name
-              %}
+              {% endif %} {% if endpoint.lambda_services.primary.function_name %}
               <div class="flex justify-between">
                 <dt class="c360-mm-muted">Function Name</dt>
                 <dd class="text-sm text-gray-900 font-mono">
@@ -3015,8 +2977,7 @@
                   {% if endpoint.access_control.super_admin.can_access %}<span
                     class="text-xs text-green-600"
                     >View</span
-                  >{% endif %} {% if
-                  endpoint.access_control.super_admin.can_execute %}<span
+                  >{% endif %} {% if endpoint.access_control.super_admin.can_execute %}<span
                     class="text-xs text-green-600"
                     >Execute</span
                   >{% endif %}
@@ -3261,8 +3222,7 @@
               Value Propositions
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {% for prop in page.metadata.content_sections.value_propositions
-              %}
+              {% for prop in page.metadata.content_sections.value_propositions %}
               <div class="bg-gray-50 rounded-lg p-4">
                 <div class="flex items-center space-x-2 mb-2">
                   <span class="text-blue-500"
@@ -4225,8 +4185,7 @@
         </a>
         <div class="text-xs text-gray-400">
           {% if endpoint.updated_at %} Last updated: {{ endpoint.updated_at }}
-          {% elif endpoint.created_at %} Created: {{ endpoint.created_at }} {%
-          endif %}
+          {% elif endpoint.created_at %} Created: {{ endpoint.created_at }} {% endif %}
         </div>
       </div>
     </div>

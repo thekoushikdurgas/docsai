@@ -1,36 +1,36 @@
 {% load admin_tags %}
 {% if node.children %}
 <li
-  class="nav-branch {% nav_item_active node %} {% nav_branch_open node %}"
+  id="nav-li-{{ node.nav_id }}"
+  class="{% nav_item_active node %}"
   role="none"
 >
-  <button
-    type="button"
-    class="nav-branch-toggle"
-    id="nav-btn-{{ node.nav_id }}"
+  <a
+    class="has-arrow ai-icon"
+    href="javascript:void(0);"
     aria-expanded="{% nav_aria_expanded node %}"
+    id="nav-branch-{{ node.nav_id }}"
     aria-controls="nav-sub-{{ node.nav_id }}"
   >
     <i class="{% firstof node.icon 'lni lni-menu' %}" aria-hidden="true"></i>
-    <span class="nav-branch-label">{{ node.label }}</span>
-    <i class="lni lni-chevron-down nav-chevron" aria-hidden="true"></i>
-  </button>
-  <ul class="nav-submenu" id="nav-sub-{{ node.nav_id }}" role="group">
+    <span class="nav-text">{{ node.label }}</span>
+  </a>
+  <ul id="nav-sub-{{ node.nav_id }}" aria-expanded="false" role="group">
     {% for child in node.children %}
       {% include "partials/sidebar_node.html" with node=child %}
     {% endfor %}
   </ul>
 </li>
 {% else %}
-<li class="nav-leaf {% nav_item_active node %}" role="none">
+<li class="{% nav_item_active node %}" role="none">
   <a
     href="{% url node.url_name %}"
     role="menuitem"
-    class="nav-leaf-link {% active_nav_leaf node request %}"
+    class="{% active_nav_leaf node request %}"
     {% if node.url_name == "api-docs" %}target="_blank" rel="noopener"{% endif %}
   >
     <i class="{% firstof node.icon 'lni lni-menu' %}" aria-hidden="true"></i>
-    <span>{{ node.label }}</span>
+    <span class="nav-text">{{ node.label }}</span>
   </a>
 </li>
 {% endif %}

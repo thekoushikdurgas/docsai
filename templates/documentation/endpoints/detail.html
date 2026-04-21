@@ -1,6 +1,7 @@
-{% extends 'layouts/detail-view.html' %} {% load static custom_filters %} {%
-block title %}{{ endpoint.endpoint_id }} - Documentation{% endblock %} {% block
-extra_css %}
+{% extends 'layouts/detail-view.html' %}
+{% load static custom_filters %}
+{% block title %}{{ endpoint.endpoint_id }} - Documentation{% endblock %}
+{% block extra_css %}
 <link
   rel="stylesheet"
   href="{% static 'admin/css/components/form-responsive.css' %}?v=20260124d"
@@ -134,9 +135,7 @@ extra_css %}
         />
       </svg>
       <span>Relationships</span>
-      {% if pages_count or relationships_count %} {% with
-      pages=pages_count|default:0 %}{% with rels=relationships_count|default:0
-      %}<span
+      {% if pages_count or relationships_count %} {% with pages=pages_count|default:0 %}{% with rels=relationships_count|default:0 %}<span
         class="ml-1.5 px-1.5 py-0.5 text-xs bg-green-100 text-green-600 rounded-full"
         >{{ pages|add:rels }}</span
       >{% endwith %}{% endwith %} {% endif %}
@@ -347,14 +346,7 @@ extra_css %}
             {{ endpoint.rate_limit|default:"No rate limit" }}
           </dd>
         </div>
-        {% include 'components/key_value_row.html' with label='SQL file'
-        value=endpoint.sql_file format='mono' %} {% include
-        'components/key_value_row.html' with label='Page count'
-        value=endpoint.page_count %} {% include 'components/key_value_row.html'
-        with label='Created' value=endpoint.created_at format='date' %} {%
-        include 'components/key_value_row.html' with label='Updated'
-        value=endpoint.updated_at format='date' %} {% if
-        endpoint.service_methods %}
+        {% include 'components/key_value_row.html' with label='SQL file' value=endpoint.sql_file format='mono' %} {% include 'components/key_value_row.html' with label='Page count' value=endpoint.page_count %} {% include 'components/key_value_row.html' with label='Created' value=endpoint.created_at format='date' %} {% include 'components/key_value_row.html' with label='Updated' value=endpoint.updated_at format='date' %} {% if endpoint.service_methods %}
         <div class="flex justify-between gap-4 items-start">
           <dt class="text-sm text-gray-500 shrink-0">Service methods</dt>
           <dd class="text-right flex flex-wrap gap-1 justify-end">
@@ -366,9 +358,7 @@ extra_css %}
             {% endfor %}
           </dd>
         </div>
-        {% else %} {% include 'components/key_value_row.html' with
-        label='Service methods' value=endpoint.service_methods %} {% endif %} {%
-        if endpoint.repository_methods %}
+        {% else %} {% include 'components/key_value_row.html' with label='Service methods' value=endpoint.service_methods %} {% endif %} {% if endpoint.repository_methods %}
         <div class="flex justify-between gap-4 items-start">
           <dt class="text-sm text-gray-500 shrink-0">Repository methods</dt>
           <dd class="text-right flex flex-wrap gap-1 justify-end">
@@ -380,9 +370,7 @@ extra_css %}
             {% endfor %}
           </dd>
         </div>
-        {% else %} {% include 'components/key_value_row.html' with
-        label='Repository methods' value=endpoint.repository_methods %} {% endif
-        %}
+        {% else %} {% include 'components/key_value_row.html' with label='Repository methods' value=endpoint.repository_methods %} {% endif %}
       </dl>
     </div>
 
@@ -424,30 +412,21 @@ extra_css %}
       {% if endpoint.methods %}
       <div class="bg-blue-50 rounded-lg p-4 text-center">
         <div class="text-2xl font-bold text-blue-600">
-          {% with
-          service_count=endpoint.methods.service_methods|length|default:0 %}{%
-          with repo_count=endpoint.methods.repository_methods|length|default:0
-          %}{{ service_count|add:repo_count }}{% endwith %}{% endwith %}
+          {% with service_count=endpoint.methods.service_methods|length|default:0 %}{% with repo_count=endpoint.methods.repository_methods|length|default:0 %}{{ service_count|add:repo_count }}{% endwith %}{% endwith %}
         </div>
         <div class="text-xs text-blue-600/70 mt-1">Methods</div>
       </div>
       {% endif %} {% if endpoint.files %}
       <div class="bg-green-50 rounded-lg p-4 text-center">
         <div class="text-2xl font-bold text-green-600">
-          {% if endpoint.files.service_file %}1{% else %}0{% endif %} {% if
-          endpoint.files.router_file %}+1{% endif %} {% if
-          endpoint.files.repository_file %}+1{% endif %} {% if
-          endpoint.files.schema_file %}+1{% endif %} {% if
-          endpoint.files.test_file %}+1{% endif %}
+          {% if endpoint.files.service_file %}1{% else %}0{% endif %} {% if endpoint.files.router_file %}+1{% endif %} {% if endpoint.files.repository_file %}+1{% endif %} {% if endpoint.files.schema_file %}+1{% endif %} {% if endpoint.files.test_file %}+1{% endif %}
         </div>
         <div class="text-xs text-green-600/70 mt-1">Files</div>
       </div>
       {% endif %} {% if endpoint.lambda_services %}
       <div class="bg-orange-50 rounded-lg p-4 text-center">
         <div class="text-2xl font-bold text-orange-600">
-          {% with
-          deps_count=endpoint.lambda_services.dependencies|length|default:0 %}{{
-          deps_count|add:1 }}{% endwith %}
+          {% with deps_count=endpoint.lambda_services.dependencies|length|default:0 %}{{ deps_count|add:1 }}{% endwith %}
         </div>
         <div class="text-xs text-orange-600/70 mt-1">Lambda Services</div>
       </div>
@@ -532,9 +511,8 @@ extra_css %}
         Request Headers
       </h3>
       <div class="space-y-2">
-        {% with
-        headers=endpoint.request_headers|default:endpoint.headers|default:"" %}
-        {% if headers %} {% for header in headers %}
+        {% with headers=endpoint.request_headers|default:endpoint.headers|default:"" %}
+        {% if headers %}{% for header in headers %}
         <div
           class="flex justify-between items-center p-2 bg-white rounded border border-gray-200"
         >
@@ -545,7 +523,7 @@ extra_css %}
             >{{ header.value|default:header }}</span
           >
         </div>
-        {% endfor %} {% endif %} {% endwith %}
+        {% endfor %}{% endif %}{% endwith %}
       </div>
     </div>
     {% endif %}
@@ -570,9 +548,8 @@ extra_css %}
         Request Parameters
       </h3>
       <div class="space-y-2">
-        {% with
-        params=endpoint.request_parameters|default:endpoint.parameters|default:""
-        %} {% if params %} {% for param in params %}
+        {% with params=endpoint.request_parameters|default:endpoint.parameters|default:"" %}
+        {% if params %}{% for param in params %}
         <div class="p-3 bg-white rounded-lg border border-gray-200">
           <div class="flex items-center justify-between mb-1">
             <span class="text-sm font-medium text-gray-900 font-mono"
@@ -592,7 +569,7 @@ extra_css %}
           <p class="text-xs text-gray-600 mt-1">{{ param.description }}</p>
           {% endif %}
         </div>
-        {% endfor %} {% endif %} {% endwith %}
+        {% endfor %}{% endif %}{% endwith %}
       </div>
     </div>
     {% endif %}
@@ -682,9 +659,8 @@ extra_css %}
         Response Examples
       </h3>
       <div class="space-y-4">
-        {% with
-        examples=endpoint.response_examples|default:endpoint.examples|default:""
-        %} {% if examples %} {% for example in examples %}
+        {% with examples=endpoint.response_examples|default:endpoint.examples|default:"" %}
+        {% if examples %}{% for example in examples %}
         <div class="bg-white rounded-lg border border-gray-200 p-4">
           {% if example.status_code %}
           <div class="mb-2">
@@ -697,7 +673,7 @@ extra_css %}
             class="text-sm text-gray-800 overflow-x-auto"
           ><code>{{ example.body|default:example|safe }}</code></pre>
         </div>
-        {% endfor %} {% endif %} {% endwith %}
+        {% endfor %}{% endif %}{% endwith %}
       </div>
     </div>
     {% endif %}
@@ -1333,19 +1309,15 @@ extra_css %}
               </svg>
               <div>
                 <span class="font-medium text-gray-900">
-                  {% if page_usage.page_path %} {{ page_usage.page_path }} {%
-                  elif page_usage.page_title %} {{ page_usage.page_title }} {%
-                  else %} Unknown Page {% endif %}
+                  {% if page_usage.page_path %} {{ page_usage.page_path }} {% elif page_usage.page_title %} {{ page_usage.page_title }} {% else %} Unknown Page {% endif %}
                 </span>
-                {% if page_usage.page_title and page_usage.page_path and
-                page_usage.page_path != page_usage.page_title %}
+                {% if page_usage.page_title and page_usage.page_path and page_usage.page_path != page_usage.page_title %}
                 <p class="text-xs text-gray-500">{{ page_usage.page_title }}</p>
                 {% endif %}
               </div>
             </div>
           </div>
-          {% if page_usage.via_service or page_usage.via_hook or
-          page_usage.usage_type %}
+          {% if page_usage.via_service or page_usage.via_hook or page_usage.usage_type %}
           <div class="flex flex-wrap gap-2 text-xs">
             {% if page_usage.via_service %}
             <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded"
@@ -1610,8 +1582,7 @@ extra_css %}
         >
         {% endfor %}
       </div>
-      {% endif %} {% if not endpoint.service_methods and not
-      endpoint.repository_methods %}
+      {% endif %} {% if not endpoint.service_methods and not endpoint.repository_methods %}
       <p class="c360-mm-muted">—</p>
       {% endif %}
     </div>

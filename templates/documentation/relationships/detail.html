@@ -1,5 +1,6 @@
-{% extends 'layouts/detail-view.html' %} {% load static custom_filters %} {%
-block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
+{% extends 'layouts/detail-view.html' %}
+{% load static custom_filters %}
+{% block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
 {% block extra_css %}
 <link
   rel="stylesheet"
@@ -11,20 +12,20 @@ block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
 />
 {% endblock %} {% block detail_subtitle %}
 <p class="text-sm text-gray-500 font-mono mt-0.5">
-  {% if relationship.page_id %}{{ relationship.page_id }}{% endif %} {% if
-  relationship.page_id and relationship.endpoint_path %} → {% endif %} {% if
-  relationship.endpoint_path %}{{ relationship.endpoint_path }}{% endif %}
+  {% if relationship.page_id %}{{ relationship.page_id }}{% endif %}
+  {% if relationship.page_id and relationship.endpoint_path %} → {% endif %}
+  {% if relationship.endpoint_path %}{{ relationship.endpoint_path }}{% endif %}
 </p>
 <div class="flex items-center gap-2 mt-2 flex-wrap">
-  {% if relationship.usage_type %} {% include 'components/badge.html' with
-  type='resource' resource_type='relationships'
-  text=relationship.usage_type|title size='sm' %} {% endif %} {% if
-  relationship.method %} {% include 'components/badge.html' with type='method'
-  method=relationship.method text=relationship.method %} {% endif %} {% if
-  relationship.usage_context %} {% include 'components/badge.html' with
-  type='resource' resource_type='relationships'
-  text=relationship.usage_context_display|default:relationship.usage_context|title
-  size='sm' %} {% endif %}
+  {% if relationship.usage_type %}
+  {% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_type|title size='sm' %}
+  {% endif %}
+  {% if relationship.method %}
+  {% include 'components/badge.html' with type='method' method=relationship.method text=relationship.method %}
+  {% endif %}
+  {% if relationship.usage_context %}
+  {% include 'components/badge.html' with type='resource' resource_type='relationships' text=relationship.usage_context_display|default:relationship.usage_context|title size='sm' %}
+  {% endif %}
 </div>
 {% endblock %} {% block detail_tabs %}
 <div
@@ -253,8 +254,7 @@ block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
         'components/key_value_row.html' with label='Created'
         value=relationship.created_at format='date' %} {% include
         'components/key_value_row.html' with label='Updated'
-        value=relationship.updated_at format='date' %} {% if
-        relationship.relationship_type %}
+        value=relationship.updated_at format='date' %} {% if relationship.relationship_type %}
         <div class="flex justify-between gap-4">
           <dt class="text-sm text-gray-500 shrink-0">Type</dt>
           <dd class="text-sm text-gray-900 text-right">
@@ -356,8 +356,7 @@ block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
             {% endif %}
           </dd>
         </div>
-        {% endif %} {% if relationship.endpoint_id or relationship.endpoint_path
-        %}
+        {% endif %} {% if relationship.endpoint_id or relationship.endpoint_path %}
         <div>
           <dt class="text-sm text-gray-500 mb-1">Endpoint</dt>
           <dd class="text-sm text-gray-900">
@@ -875,8 +874,7 @@ block title %}{{ relationship.relationship_id }} - Documentation{% endblock %}
         {% endfor %}
       </ul>
     </div>
-    {% endif %} {% if not relationship.connection and not data_flow and not
-    relationship.performance and not relationship.dependencies %}
+    {% endif %} {% if not relationship.connection and not data_flow and not relationship.performance and not relationship.dependencies %}
     <p class="c360-mm-muted">No data flow or connection details.</p>
     {% endif %}
   </div>

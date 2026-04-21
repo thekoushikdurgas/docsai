@@ -1,6 +1,7 @@
-{% extends 'layouts/detail-view.html' %} {% load static admin_tags %} {% block
-title %}{{ collection_info.name|default:postman_id }} - Postman Collection{%
-endblock %} {% block extra_css %}
+{% extends 'layouts/detail-view.html' %}
+{% load static admin_tags %}
+{% block title %}{{ collection_info.name|default:postman_id }} - Postman Collection{% endblock %}
+{% block extra_css %}
 <link
   rel="stylesheet"
   href="{% static 'admin/css/components/form-responsive.css' %}?v=20260124d"
@@ -42,11 +43,12 @@ endblock %} {% block extra_css %}
       </p>
       {% endif %}
       <div class="flex items-center gap-2 mt-2 flex-wrap">
-        {% if postman.state %} {% include 'components/badge.html' with
-        type='status' status=postman.state text=postman.state|title %} {% endif
-        %} {% if collection_info.schema %} {% include 'components/badge.html'
-        with type='resource' resource_type='postman'
-        text=collection_info.schema|truncatewords:1 size='sm' %} {% endif %}
+        {% if postman.state %}
+        {% include 'components/badge.html' with type='status' status=postman.state text=postman.state|title %}
+        {% endif %}
+        {% if collection_info.schema %}
+        {% include 'components/badge.html' with type='resource' resource_type='postman' text=collection_info.schema|truncatewords:1 size='sm' %}
+        {% endif %}
       </div>
     </div>
   </div>
@@ -697,9 +699,7 @@ endblock %} {% block extra_css %}
             >
               {{ endpoint.endpoint_id }}
             </a>
-            {% if endpoint.method %} {% include 'components/badge.html' with
-            type='method' method=endpoint.method text=endpoint.method %} {%
-            endif %}
+            {% if endpoint.method %} {% include 'components/badge.html' with type='method' method=endpoint.method text=endpoint.method %} {% endif %}
           </div>
           <a
             href="{% url 'documentation:endpoint_detail' endpoint_id=endpoint.endpoint_id %}"

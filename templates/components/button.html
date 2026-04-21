@@ -1,0 +1,22 @@
+{% comment %}
+  href (optional), text, type: primary|secondary|success|danger|info|warning|outline_primary|outline_secondary, size: sm|lg, button_type for button element
+{% endcomment %}
+{% with t=type|default:"primary" %}
+{% if href %}
+  {% if t == "outline_primary" %}
+<a class="btn btn-outline-primary{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}" href="{{ href }}">{{ text }}</a>
+  {% elif t == "outline_secondary" %}
+<a class="btn btn-outline-secondary{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}" href="{{ href }}">{{ text }}</a>
+  {% else %}
+<a class="btn btn-{{ t }}{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}" href="{{ href }}">{{ text }}</a>
+  {% endif %}
+{% else %}
+  {% if t == "outline_primary" %}
+<button type="{{ button_type|default:'button' }}" class="btn btn-outline-primary{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}">{{ text }}</button>
+  {% elif t == "outline_secondary" %}
+<button type="{{ button_type|default:'button' }}" class="btn btn-outline-secondary{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}">{{ text }}</button>
+  {% else %}
+<button type="{{ button_type|default:'button' }}" class="btn btn-{{ t }}{% if size == 'sm' %} btn-sm{% elif size == 'lg' %} btn-lg{% endif %}">{{ text }}</button>
+  {% endif %}
+{% endif %}
+{% endwith %}

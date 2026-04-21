@@ -84,10 +84,10 @@ def _node_has_active_descendant(request, node: dict) -> bool:
 
 @register.simple_tag(takes_context=True)
 def nav_item_active(context, node):
-    """Return 'active' for li when this item or a descendant matches the current route."""
+    """Return active classes for li (MetisMenu mm-active + legacy active)."""
     req = context.get("request")
     if req and _node_has_active_descendant(req, node):
-        return "active"
+        return "mm-active active"
     return ""
 
 

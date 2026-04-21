@@ -21,6 +21,13 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito:wght@400;600&display=swap"
     />
 
+    <!-- Eatio kit (Bootstrap 4 + dashboard theme) -->
+    <link
+      rel="stylesheet"
+      href="{% static 'admin/vendor/eatio/vendor/bootstrap-select/dist/css/bootstrap-select.min.css' %}"
+    />
+    <link rel="stylesheet" href="{% static 'admin/vendor/eatio/css/style.css' %}" />
+
     <!-- Design tokens + layout -->
     <link rel="stylesheet" href="{% static 'admin/css/design-tokens.css' %}" />
     <link rel="stylesheet" href="{% static 'admin/css/layout.css' %}" />
@@ -91,6 +98,9 @@
       href="{% static 'admin/css/components/c360-util-shim.css' %}"
     />
 
+    <!-- Bridge: c360 tokens win over kit defaults (load last) -->
+    <link rel="stylesheet" href="{% static 'admin/css/kit-bridge.css' %}" />
+
     <!-- Icons (LineIcons) -->
     <link
       rel="stylesheet"
@@ -99,7 +109,7 @@
 
     {% block extra_css %}{% endblock %}
   </head>
-  <body>
+  <body class="{% block body_class %}c360-admin{% endblock %}">
     <!-- Preloader -->
     {% include "partials/preloader.html" %}
 
@@ -109,7 +119,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
     <div id="main-wrapper">
-      <!-- Sidebar (full-height; brand inside rail — parity with app dashboard shell) -->
+      {% include "partials/nav_header.html" %}
       {% include "partials/sidebar.html" %}
 
       <!-- Content area -->
@@ -152,6 +162,12 @@
 
     <!-- Confirm-delete modal -->
     {% include "components/confirm_modal.html" %}
+
+    <!-- Eatio vendor bundle (jQuery, Bootstrap, MetisMenu, dezSettings, …) -->
+    <script src="{% static 'admin/vendor/eatio/vendor/global/global.min.js' %}"></script>
+    <script src="{% static 'admin/vendor/eatio/vendor/bootstrap-select/dist/js/bootstrap-select.min.js' %}"></script>
+    <script src="{% static 'admin/js/c360-eatio-init.js' %}"></script>
+    <script src="{% static 'admin/vendor/eatio/js/deznav-init.js' %}"></script>
 
     <!-- Scripts -->
     <script src="{% static 'admin/js/app.js' %}"></script>

@@ -1,47 +1,49 @@
-{% comment %} Usage: {% include "components/graph_container.html" with
-graph_id="relGraph" height="600" %} {% endcomment %}
-<div
-  class="graph-container graph-container--dynamic"
-  style="--graph-container-height: {{ height|default:600 }}px"
->
-  <div id="{{ graph_id|default:'graphCanvas' }}" class="graph-canvas"></div>
-
-  <!-- Zoom controls -->
-  <div class="graph-controls" aria-label="Graph controls">
-    <button
-      class="graph-control-btn"
-      data-graph-action="zoom-in"
-      data-graph="{{ graph_id }}"
-      title="Zoom in"
-      aria-label="Zoom in"
+{% comment %} Kit card chrome around graph canvas {% endcomment %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-3">
+    <div
+      class="graph-container graph-container--dynamic"
+      style="--graph-container-height: {{ height|default:600 }}px"
     >
-      +
-    </button>
-    <button
-      class="graph-control-btn"
-      data-graph-action="zoom-out"
-      data-graph="{{ graph_id }}"
-      title="Zoom out"
-      aria-label="Zoom out"
-    >
-      −
-    </button>
-    <button
-      class="graph-control-btn"
-      data-graph-action="fit"
-      data-graph="{{ graph_id }}"
-      title="Fit to screen"
-      aria-label="Fit to screen"
-    >
-      <i class="lni lni-zoom-in" aria-hidden="true"></i>
-    </button>
-  </div>
-
-  <!-- Fallback -->
-  <noscript>
-    <div class="graph-fallback">
-      <div class="graph-fallback-icon"><i class="lni lni-network"></i></div>
-      <p>Graph requires JavaScript. See the table below for the same data.</p>
+      <div id="{{ graph_id|default:'graphCanvas' }}" class="graph-canvas"></div>
+      <div class="graph-controls" aria-label="Graph controls">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary graph-control-btn"
+          data-graph-action="zoom-in"
+          data-graph="{{ graph_id }}"
+          title="Zoom in"
+          aria-label="Zoom in"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary graph-control-btn"
+          data-graph-action="zoom-out"
+          data-graph="{{ graph_id }}"
+          title="Zoom out"
+          aria-label="Zoom out"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary graph-control-btn"
+          data-graph-action="fit"
+          data-graph="{{ graph_id }}"
+          title="Fit to screen"
+          aria-label="Fit to screen"
+        >
+          <i class="lni lni-zoom-in" aria-hidden="true"></i>
+        </button>
+      </div>
+      <noscript>
+        <div class="graph-fallback p-4 text-center">
+          <div class="graph-fallback-icon"><i class="lni lni-network"></i></div>
+          <p class="mb-0">Graph requires JavaScript. See the table below for the same data.</p>
+        </div>
+      </noscript>
     </div>
-  </noscript>
+  </div>
 </div>

@@ -1,26 +1,30 @@
-{% comment %} Usage: {% include "components/tabs.html" with tabs=tab_list
-active_tab=current_tab style="underline" %} tab_list =
-[{"id":"tab1","label":"Tab One","badge":0},...] {% endcomment %}
-<div
-  class="tab-nav {% if style == 'pills' %}tab-nav-pills{% elif style == 'filter' %}tab-nav-filter{% endif %}"
-  role="tablist"
-  data-tab-group="{{ group_id|default:'tabs' }}"
->
-  {% for tab in tabs %}
-  <button
-    type="button"
-    class="tab-link {% if tab.id == active_tab %}active{% endif %}"
-    role="tab"
-    id="tab-{{ tab.id }}"
-    aria-selected="{% if tab.id == active_tab %}true{% else %}false{% endif %}"
-    aria-controls="panel-{{ tab.id }}"
-    data-tab="{{ tab.id }}"
+{% comment %}
+  Usage: {% include "components/tabs.html" with tabs=tab_list active_tab=current_tab style="underline" %}
+  Kit: custom-tab-1 nav nav-tabs (or nav-pills when style=pills)
+{% endcomment %}
+<div class="custom-tab-1">
+  <ul
+    class="nav nav-tabs{% if style == 'pills' %} nav-pills{% endif %} tab-nav {% if style == 'filter' %}tab-nav-filter{% endif %}"
+    role="tablist"
+    data-tab-group="{{ group_id|default:'tabs' }}"
   >
-    {{ tab.label }} {% if tab.badge %}
-    <span class="tab-badge" aria-label="{{ tab.badge }} items"
-      >{{ tab.badge }}</span
-    >
-    {% endif %}
-  </button>
-  {% endfor %}
+    {% for tab in tabs %}
+    <li class="nav-item" role="presentation">
+      <button
+        type="button"
+        class="nav-link tab-link {% if tab.id == active_tab %}active{% endif %}"
+        role="tab"
+        id="tab-{{ tab.id }}"
+        aria-selected="{% if tab.id == active_tab %}true{% else %}false{% endif %}"
+        aria-controls="panel-{{ tab.id }}"
+        data-tab="{{ tab.id }}"
+      >
+        {{ tab.label }}
+        {% if tab.badge %}
+        <span class="badge badge-primary ml-1">{{ tab.badge }}</span>
+        {% endif %}
+      </button>
+    </li>
+    {% endfor %}
+  </ul>
 </div>

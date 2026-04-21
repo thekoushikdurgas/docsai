@@ -1,5 +1,6 @@
-{% extends 'layouts/form-view.html' %} {% load static %} {% block title %}{% if
-is_edit %}Edit{% else %}Create{% endif %} Endpoint - Documentation{% endblock %}
+{% extends 'layouts/form-view.html' %}
+{% load static %}
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} Endpoint - Documentation{% endblock %}
 {% block extra_css %}
 <link
   rel="stylesheet"
@@ -305,9 +306,7 @@ is_edit %}Edit{% else %}Create{% endif %} Endpoint - Documentation{% endblock %}
     </nav>
   </div>
 </div>
-{% endblock %} {% block form_extra_class %}space-y-6{% endblock %} {% block
-form_extra_attrs %}id="endpoint-form" novalidate{% endblock %} {% block
-form_content %} {% if request.GET.return_url %}
+{% endblock %} {% block form_extra_class %}space-y-6{% endblock %} {% block form_extra_attrs %}id="endpoint-form" novalidate{% endblock %} {% block form_content %} {% if request.GET.return_url %}
 <input type="hidden" name="return_url" value="{{ request.GET.return_url }}" />
 {% endif %} {% if return_url %}
 <input type="hidden" name="return_url" value="{{ return_url }}" />
@@ -365,12 +364,7 @@ form_content %} {% if request.GET.return_url %}
           name="endpoint_id"
           value="{{ endpoint.endpoint_id|default:'' }}"
           required
-          {%
-          if
-          is_edit
-          %}readonly{%
-          endif
-          %}
+          {% if is_edit %}readonly{% endif %}
           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
           placeholder="get_company_graphql"
         />
@@ -417,40 +411,13 @@ form_content %} {% if request.GET.return_url %}
           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
           <option value="">Select API version...</option>
-          <option
-            value="v1"
-            {%
-            if
-            endpoint.api_version=""
-            ="v1"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="v1" {% if endpoint.api_version == "v1" %}selected{% endif %}>
             v1
           </option>
-          <option
-            value="v2"
-            {%
-            if
-            endpoint.api_version=""
-            ="v2"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="v2" {% if endpoint.api_version == "v2" %}selected{% endif %}>
             v2
           </option>
-          <option
-            value="graphql"
-            {%
-            if
-            endpoint.api_version=""
-            ="graphql"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="graphql" {% if endpoint.api_version == "graphql" %}selected{% endif %}>
             GraphQL
           </option>
         </select>
@@ -471,88 +438,25 @@ form_content %} {% if request.GET.return_url %}
           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
           <option value="">Select method</option>
-          <option
-            value="QUERY"
-            {%
-            if
-            endpoint.method=""
-            ="QUERY"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="QUERY" {% if endpoint.method == "QUERY" %}selected{% endif %}>
             QUERY (GraphQL)
           </option>
-          <option
-            value="MUTATION"
-            {%
-            if
-            endpoint.method=""
-            ="MUTATION"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="MUTATION" {% if endpoint.method == "MUTATION" %}selected{% endif %}>
             MUTATION (GraphQL)
           </option>
-          <option
-            value="GET"
-            {%
-            if
-            endpoint.method=""
-            ="GET"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="GET" {% if endpoint.method == "GET" %}selected{% endif %}>
             GET (REST)
           </option>
-          <option
-            value="POST"
-            {%
-            if
-            endpoint.method=""
-            ="POST"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="POST" {% if endpoint.method == "POST" %}selected{% endif %}>
             POST (REST)
           </option>
-          <option
-            value="PUT"
-            {%
-            if
-            endpoint.method=""
-            ="PUT"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="PUT" {% if endpoint.method == "PUT" %}selected{% endif %}>
             PUT (REST)
           </option>
-          <option
-            value="DELETE"
-            {%
-            if
-            endpoint.method=""
-            ="DELETE"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="DELETE" {% if endpoint.method == "DELETE" %}selected{% endif %}>
             DELETE (REST)
           </option>
-          <option
-            value="PATCH"
-            {%
-            if
-            endpoint.method=""
-            ="PATCH"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="PATCH" {% if endpoint.method == "PATCH" %}selected{% endif %}>
             PATCH (REST)
           </option>
         </select>
@@ -575,64 +479,19 @@ form_content %} {% if request.GET.return_url %}
           name="endpoint_state"
           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
-          <option
-            value="development"
-            {%
-            if
-            endpoint.endpoint_state=""
-            ="development"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="development" {% if endpoint.endpoint_state == "development" %}selected{% endif %}>
             Development
           </option>
-          <option
-            value="draft"
-            {%
-            if
-            endpoint.endpoint_state=""
-            ="draft"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="draft" {% if endpoint.endpoint_state == "draft" %}selected{% endif %}>
             Draft
           </option>
-          <option
-            value="test"
-            {%
-            if
-            endpoint.endpoint_state=""
-            ="test"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="test" {% if endpoint.endpoint_state == "test" %}selected{% endif %}>
             Test
           </option>
-          <option
-            value="published"
-            {%
-            if
-            endpoint.endpoint_state=""
-            ="published"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="published" {% if endpoint.endpoint_state == "published" %}selected{% endif %}>
             Published
           </option>
-          <option
-            value="coming_soon"
-            {%
-            if
-            endpoint.endpoint_state=""
-            ="coming_soon"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="coming_soon" {% if endpoint.endpoint_state == "coming_soon" %}selected{% endif %}>
             Coming Soon
           </option>
         </select>
@@ -996,64 +855,19 @@ form_content %} {% if request.GET.return_url %}
           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
         >
           <option value="">Select authentication...</option>
-          <option
-            value="required"
-            {%
-            if
-            endpoint.authentication=""
-            ="required"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="required" {% if endpoint.authentication == "required" %}selected{% endif %}>
             Required
           </option>
-          <option
-            value="optional"
-            {%
-            if
-            endpoint.authentication=""
-            ="optional"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="optional" {% if endpoint.authentication == "optional" %}selected{% endif %}>
             Optional
           </option>
-          <option
-            value="none"
-            {%
-            if
-            endpoint.authentication=""
-            ="none"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="none" {% if endpoint.authentication == "none" %}selected{% endif %}>
             None
           </option>
-          <option
-            value="Bearer token"
-            {%
-            if
-            endpoint.authentication=""
-            ="Bearer token"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="Bearer token" {% if endpoint.authentication == "Bearer token" %}selected{% endif %}>
             Bearer Token
           </option>
-          <option
-            value="API Key"
-            {%
-            if
-            endpoint.authentication=""
-            ="API Key"
-            %}selected{%
-            endif
-            %}
-          >
+          <option value="API Key" {% if endpoint.authentication == "API Key" %}selected{% endif %}>
             API Key
           </option>
         </select>
@@ -1094,12 +908,7 @@ form_content %} {% if request.GET.return_url %}
           <input
             type="checkbox"
             name="access_public"
-            {%
-            if
-            endpoint.access_control.public
-            %}checked{%
-            endif
-            %}
+            {% if endpoint.access_control.public %}checked{% endif %}
             class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
           />
           <span class="text-sm text-gray-700">Public</span>
@@ -1110,12 +919,7 @@ form_content %} {% if request.GET.return_url %}
           <input
             type="checkbox"
             name="access_free_user"
-            {%
-            if
-            endpoint.access_control.freeUser
-            %}checked{%
-            endif
-            %}
+            {% if endpoint.access_control.freeUser %}checked{% endif %}
             class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
           />
           <span class="text-sm text-gray-700">Free User</span>
@@ -1126,12 +930,7 @@ form_content %} {% if request.GET.return_url %}
           <input
             type="checkbox"
             name="access_pro_user"
-            {%
-            if
-            endpoint.access_control.proUser
-            %}checked{%
-            endif
-            %}
+            {% if endpoint.access_control.proUser %}checked{% endif %}
             class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
           />
           <span class="text-sm text-gray-700">Pro User</span>
@@ -1142,12 +941,7 @@ form_content %} {% if request.GET.return_url %}
           <input
             type="checkbox"
             name="access_admin"
-            {%
-            if
-            endpoint.access_control.admin
-            %}checked{%
-            endif
-            %}
+            {% if endpoint.access_control.admin %}checked{% endif %}
             class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
           />
           <span class="text-sm text-gray-700">Admin</span>
@@ -1158,12 +952,7 @@ form_content %} {% if request.GET.return_url %}
           <input
             type="checkbox"
             name="access_super_admin"
-            {%
-            if
-            endpoint.access_control.superAdmin
-            %}checked{%
-            endif
-            %}
+            {% if endpoint.access_control.superAdmin %}checked{% endif %}
             class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
           />
           <span class="text-sm text-gray-700">Super Admin</span>
@@ -1259,15 +1048,12 @@ form_content %} {% if request.GET.return_url %}
 {% endblock %} {% block form_actions %}
 <div class="flex flex-wrap items-center justify-between gap-4 w-full">
   <div class="flex items-center gap-3">
-    {% include 'components/button.html' with text=is_edit|yesno:'Save
-    Changes,Create Endpoint' type='primary' size='md' button_type='submit'
-    id='submit-btn' class='disabled:opacity-50 disabled:cursor-not-allowed' %}
-    {% include 'components/button.html' with text='Preview JSON'
-    type='secondary' size='md' id='preview-json-btn' %} {% if is_edit and
-    endpoint.endpoint_id %} {% url 'documentation:endpoint_detail'
-    endpoint_id=endpoint.endpoint_id as view_endpoint_url %} {% include
-    'components/button.html' with href=view_endpoint_url text='View Endpoint'
-    type='secondary' size='md' %} {% endif %}
+    {% include 'components/button.html' with text=is_edit|yesno:'Save Changes,Create Endpoint' type='primary' size='md' button_type='submit' id='submit-btn' class='disabled:opacity-50 disabled:cursor-not-allowed' %}
+    {% include 'components/button.html' with text='Preview JSON' type='secondary' size='md' id='preview-json-btn' %}
+    {% if is_edit and endpoint.endpoint_id %}
+    {% url 'documentation:endpoint_detail' endpoint_id=endpoint.endpoint_id as view_endpoint_url %}
+    {% include 'components/button.html' with href=view_endpoint_url text='View Endpoint' type='secondary' size='md' %}
+    {% endif %}
   </div>
   <div class="flex items-center gap-3">
     <div id="form-status" class="text-sm text-gray-500 hidden">

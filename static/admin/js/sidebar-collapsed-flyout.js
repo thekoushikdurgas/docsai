@@ -1,5 +1,5 @@
 /**
- * Collapsed sidebar flyout menus (parity with contact360.io/app SidebarNav popovers).
+ * Collapsed sidebar flyout menus (MetisMenu + deznav markup).
  * Only active when body.nav-header-open and viewport >= 1024px.
  */
 (function () {
@@ -43,7 +43,8 @@
   }
 
   function pathMatches(href) {
-    if (!href || href === "#") return false;
+    if (!href || href === "#" || href.indexOf("javascript:") === 0)
+      return false;
     try {
       var a = document.createElement("a");
       a.href = href;
@@ -56,53 +57,48 @@
     }
   }
 
+  function leafLabel(a) {
+    var nt = a.querySelector(".nav-text");
+    return nt ? nt.textContent.trim() : a.textContent.trim();
+  }
+
   function buildSubColumn(nestedBranchLi) {
-    var sub = nestedBranchLi.querySelector(":scope > .nav-submenu");
+    var sub = nestedBranchLi.querySelector(":scope > ul");
     var col = document.createElement("div");
     col.className = "c360-admin-flyout__sub";
     if (!sub) return col;
     var children = sub.querySelectorAll(":scope > li");
     children.forEach(function (li) {
-      if (li.classList.contains("nav-leaf")) {
-        var link = li.querySelector(".nav-leaf-link");
-        if (!link) return;
-        var a = document.createElement("a");
-        a.href = link.getAttribute("href") || "#";
-        a.className = "c360-admin-flyout__link";
-        a.textContent = link.querySelector("span")
-          ? link.querySelector("span").textContent.trim()
-          : link.textContent.trim();
-        if (pathMatches(a.getAttribute("href"))) a.classList.add("is-active");
-        col.appendChild(a);
-      } else if (li.classList.contains("nav-branch")) {
-        var toggle = li.querySelector(":scope > .nav-branch-toggle");
-        var label = toggle
-          ? (
-              toggle.querySelector(".nav-branch-label") || toggle
-            ).textContent.trim()
-          : "";
+      var branchA = li.querySelector(":scope > a.has-arrow");
+      if (branchA) {
+        var label = leafLabel(branchA);
         var title = document.createElement("div");
         title.className = "c360-admin-flyout__sub-title";
         title.textContent = label;
         col.appendChild(title);
-        var inner = li.querySelector(":scope > .nav-submenu");
+        var inner = li.querySelector(":scope > ul");
         if (inner) {
-          inner
-            .querySelectorAll(":scope > li.nav-leaf")
-            .forEach(function (leaf) {
-              var lnk = leaf.querySelector(".nav-leaf-link");
-              if (!lnk) return;
-              var a = document.createElement("a");
-              a.href = lnk.getAttribute("href") || "#";
-              a.className = "c360-admin-flyout__link";
-              a.textContent = lnk.querySelector("span")
-                ? lnk.querySelector("span").textContent.trim()
-                : lnk.textContent.trim();
-              if (pathMatches(a.getAttribute("href")))
-                a.classList.add("is-active");
-              col.appendChild(a);
-            });
+          inner.querySelectorAll(":scope > li").forEach(function (leafLi) {
+            var lnk = leafLi.querySelector(":scope > a:not(.has-arrow)");
+            if (!lnk || !lnk.getAttribute("href")) return;
+            var a = document.createElement("a");
+            a.href = lnk.getAttribute("href") || "#";
+            a.className = "c360-admin-flyout__link";
+            a.textContent = leafLabel(lnk);
+            if (pathMatches(a.getAttribute("href")))
+              a.classList.add("is-active");
+            col.appendChild(a);
+          });
         }
+      } else {
+        var link = li.querySelector(":scope > a:not(.has-arrow)");
+        if (!link || !link.getAttribute("href")) return;
+        var a = document.createElement("a");
+        a.href = link.getAttribute("href") || "#";
+        a.className = "c360-admin-flyout__link";
+        a.textContent = leafLabel(link);
+        if (pathMatches(a.getAttribute("href"))) a.classList.add("is-active");
+        col.appendChild(a);
       }
     });
     return col;
@@ -110,7 +106,7 @@
 
   function openFlyout(branchLi, anchor) {
     closeFlyout();
-    var submenu = branchLi.querySelector(":scope > .nav-submenu");
+    var submenu = branchLi.querySelector(":scope > ul");
     if (!submenu) return;
 
     var panel = document.createElement("div");
@@ -124,27 +120,21 @@
     var hasNested = false;
 
     items.forEach(function (li) {
-      if (li.classList.contains("nav-leaf")) {
-        var link = li.querySelector(".nav-leaf-link");
+      var branchA = li.querySelector(":scope > a.has-arrow");
+      if (!branchA) {
+        var link = li.querySelector(":scope > a:not(.has-arrow)");
         if (!link) return;
         var a = document.createElement("a");
         a.href = link.getAttribute("href") || "#";
         a.className = "c360-admin-flyout__link";
         a.setAttribute("role", "menuitem");
-        a.textContent = link.querySelector("span")
-          ? link.querySelector("span").textContent.trim()
-          : link.textContent.trim();
+        a.textContent = leafLabel(link);
         if (pathMatches(a.getAttribute("href"))) a.classList.add("is-active");
         a.addEventListener("click", closeFlyout);
         primary.appendChild(a);
-      } else if (li.classList.contains("nav-branch")) {
+      } else {
         hasNested = true;
-        var toggle = li.querySelector(":scope > .nav-branch-toggle");
-        var label = toggle
-          ? (
-              toggle.querySelector(".nav-branch-label") || toggle
-            ).textContent.trim()
-          : "";
+        var label = leafLabel(branchA);
         var row = document.createElement("button");
         row.type = "button";
         row.className = "c360-admin-flyout__row";
@@ -190,10 +180,10 @@
     "click",
     function (e) {
       if (!isCollapsedDesktop()) return;
-      var btn = e.target.closest(".nav-branch-toggle");
-      if (!btn) return;
-      var branchLi = btn.closest(".nav-branch");
-      if (!branchLi || !branchLi.closest(".dlabnav")) return;
+      var btn = e.target.closest("a.has-arrow");
+      if (!btn || !btn.closest("#menu")) return;
+      var branchLi = btn.closest("li");
+      if (!branchLi || !branchLi.closest(".deznav")) return;
       e.preventDefault();
       e.stopPropagation();
       if (openPanel && openPanel.dataset.branchId === branchLi.id) {
@@ -213,7 +203,7 @@
   document.addEventListener("mousedown", function (e) {
     if (!openPanel) return;
     if (openPanel.contains(e.target)) return;
-    if (e.target.closest(".nav-branch-toggle")) return;
+    if (e.target.closest("a.has-arrow")) return;
     closeFlyout();
   });
 

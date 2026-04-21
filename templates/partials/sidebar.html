@@ -1,27 +1,16 @@
 {% load static admin_tags %}
-<nav class="dlabnav" id="admin-sidebar-nav" aria-label="Main navigation">
-  <div class="dlabnav-brand">
-    <a href="{% url 'core:dashboard' %}" class="brand-logo">
-      <img
-        src="{% static 'admin/images/favicon.svg' %}"
-        alt=""
-        width="32"
-        height="32"
-      />
-      <span class="brand-title">Contact360 Admin</span>
-    </a>
-  </div>
-  <div class="dlabnav-scroll">
-    <ul class="metismenu nav-tree-root" role="menu">
+<div class="deznav" id="admin-sidebar-nav" aria-label="Main navigation">
+  <div class="deznav-scroll">
+    <ul class="metismenu nav-tree-root" id="menu" role="menu">
       {% for item in sidebar_menu %}
         {% include "partials/sidebar_node.html" with node=item %}
       {% endfor %}
     </ul>
-  </div>
 
-  {% if operator %}
-  <div class="sidebar-footer-min">
-    <span class="sidebar-footer-brand">Contact360</span>
+    {% if operator %}
+    <div class="sidebar-footer-min copyright p-3 mt-auto">
+      <span class="sidebar-footer-brand small text-muted">Contact360</span>
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
-</nav>
+</div>

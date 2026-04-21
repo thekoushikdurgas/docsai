@@ -1,7 +1,8 @@
-{% extends 'layouts/operations-view.html' %} {% load static %} {% block title
-%}Analyze Documentation - Operations{% endblock %} {% block
-operations_wrapper_class %}c360-ops-root--narrow{% endblock %} {% block
-operations_content %}
+{% extends 'layouts/operations-view.html' %}
+{% load static %}
+{% block title %}Analyze Documentation - Operations{% endblock %}
+{% block operations_wrapper_class %}c360-ops-root--narrow{% endblock %}
+{% block operations_content %}
 <!-- Suggested next step -->
 <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
   Suggested next step
@@ -192,9 +193,11 @@ operations_content %}
           <ul
             class="text-sm text-gray-600 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto"
           >
-            {% for f in report.pages.files %}{% if f.valid %}
+            {% for f in report.pages.files %}
+            {% if f.valid %}
             <li>{{ f.file }}{% if f.page_id %} ({{ f.page_id }}){% endif %}</li>
-            {% endif %}{% empty %}
+            {% endif %}
+            {% empty %}
             <li class="text-gray-400">No files in this run</li>
             {% endfor %}
           </ul>
@@ -206,8 +209,8 @@ operations_content %}
           >
             {% for err in report.pages.errors %}
             <li>{{ err.file }}: {{ err.error }}</li>
-            {% endfor %} {% for f in report.pages.files %}{% if not f.valid %}{%
-            for e in f.errors %}
+            {% endfor %}
+            {% for f in report.pages.files %}{% if not f.valid %}{% for e in f.errors %}
             <li>{{ f.file }}: {{ e.message|default:e.field|default:"" }}</li>
             {% empty %}
             <li>{{ f.file }}: invalid</li>
@@ -233,12 +236,13 @@ operations_content %}
           <ul
             class="text-sm text-gray-600 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto"
           >
-            {% for f in report.endpoints.files %}{% if f.valid %}
+            {% for f in report.endpoints.files %}
+            {% if f.valid %}
             <li>
-              {{ f.file }}{% if f.endpoint_id %} ({{ f.endpoint_id }}){% endif
-              %}
+              {{ f.file }}{% if f.endpoint_id %} ({{ f.endpoint_id }}){% endif %}
             </li>
-            {% endif %}{% empty %}
+            {% endif %}
+            {% empty %}
             <li class="text-gray-400">No files in this run</li>
             {% endfor %}
           </ul>
@@ -250,8 +254,8 @@ operations_content %}
           >
             {% for err in report.endpoints.errors %}
             <li>{{ err.file }}: {{ err.error }}</li>
-            {% endfor %} {% for f in report.endpoints.files %}{% if not f.valid
-            %}{% for e in f.errors %}
+            {% endfor %}
+            {% for f in report.endpoints.files %}{% if not f.valid %}{% for e in f.errors %}
             <li>{{ f.file }}: {{ e.message|default:e.field|default:"" }}</li>
             {% empty %}
             <li>{{ f.file }}: invalid</li>
@@ -277,9 +281,11 @@ operations_content %}
           <ul
             class="text-sm text-gray-600 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto"
           >
-            {% for f in report.relationships.files %}{% if f.valid %}
+            {% for f in report.relationships.files %}
+            {% if f.valid %}
             <li>{{ f.file }}</li>
-            {% endif %}{% empty %}
+            {% endif %}
+            {% empty %}
             <li class="text-gray-400">No files in this run</li>
             {% endfor %}
           </ul>
@@ -291,8 +297,8 @@ operations_content %}
           >
             {% for err in report.relationships.errors %}
             <li>{{ err.file }}: {{ err.error }}</li>
-            {% endfor %} {% for f in report.relationships.files %}{% if not
-            f.valid %}{% for e in f.errors %}
+            {% endfor %}
+            {% for f in report.relationships.files %}{% if not f.valid %}{% for e in f.errors %}
             <li>{{ f.file }}: {{ e.message|default:e.field|default:"" }}</li>
             {% empty %}
             <li>{{ f.file }}: invalid</li>
@@ -318,9 +324,11 @@ operations_content %}
           <ul
             class="text-sm text-gray-600 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto"
           >
-            {% for f in report.n8n.files %}{% if f.valid %}
+            {% for f in report.n8n.files %}
+            {% if f.valid %}
             <li>{{ f.file }}</li>
-            {% endif %}{% empty %}
+            {% endif %}
+            {% empty %}
             <li class="text-gray-400">No files in this run</li>
             {% endfor %}
           </ul>
@@ -354,9 +362,11 @@ operations_content %}
           <ul
             class="text-sm text-gray-600 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto"
           >
-            {% for f in report.postman.files %}{% if f.valid %}
+            {% for f in report.postman.files %}
+            {% if f.valid %}
             <li>{{ f.file }}</li>
-            {% endif %}{% empty %}
+            {% endif %}
+            {% empty %}
             <li class="text-gray-400">No files in this run</li>
             {% endfor %}
           </ul>
@@ -390,9 +400,11 @@ operations_content %}
           <ul
             class="text-sm text-gray-600 list-disc list-inside space-y-0.5 max-h-64 overflow-y-auto"
           >
-            {% for f in report.result.files %}{% if f.valid %}
+            {% for f in report.result.files %}
+            {% if f.valid %}
             <li>{{ f.file }}</li>
-            {% endif %}{% empty %}
+            {% endif %}
+            {% empty %}
             <li class="text-gray-400">No files in this run</li>
             {% endfor %}
           </ul>

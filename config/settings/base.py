@@ -6,7 +6,6 @@ Environment-specific overrides live in development.py, production.py, staging.py
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 
@@ -57,6 +56,7 @@ _csrf_origins = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins if o.strip()]
 
 INSTALLED_APPS = [
+    "mathfilters",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -119,10 +119,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "docsai.wsgi.application"
 
 # Database: DATABASE_URL for PostgreSQL, else SQLite (see .env.example)
-_database_url = (os.getenv("DATABASE_URL") or "").strip()
+_database_url = config("DATABASE_URL", default="").strip()
 if _database_url:
     DATABASES = {"default": _parse_database_url(_database_url)}
-    DATABASES["default"]["CONN_MAX_AGE"] = int(os.getenv("CONN_MAX_AGE", "60"))
+    DATABASES["default"]["CONN_MAX_AGE"] = config("CONN_MAX_AGE", default=60, cast=int)
 else:
     DATABASES = {
         "default": {
@@ -130,7 +130,7 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-    DATABASES["default"]["CONN_MAX_AGE"] = int(os.getenv("CONN_MAX_AGE", "0"))
+    DATABASES["default"]["CONN_MAX_AGE"] = config("CONN_MAX_AGE", default=0, cast=int)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -224,11 +224,11 @@ API_TRACKING_USER_TYPE_ENABLED = config(
 API_TRACKING_PATH_PREFIX = config("API_TRACKING_PATH_PREFIX", default="/api/v1/")
 
 # Cache: optional Redis (USE_REDIS_CACHE=true + REDIS_URL or host/port)
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
-REDIS_DB = int(os.getenv("REDIS_DB", "0"))
-REDIS_URL = os.getenv("REDIS_URL", "")
-USE_REDIS_CACHE = os.getenv("USE_REDIS_CACHE", "False").lower() == "true"
+REDIS_HOST = config("REDIS_HOST", default="localhost")
+REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
+REDIS_DB = config("REDIS_DB", default=0, cast=int)
+REDIS_URL = config("REDIS_URL", default="")
+USE_REDIS_CACHE = config("USE_REDIS_CACHE", default=False, cast=bool)
 
 _redis_location = None
 if USE_REDIS_CACHE and (REDIS_URL or REDIS_HOST):
@@ -268,5 +268,5 @@ LOGGING = {
 }
 
 # Sentry (initialized in production/development when SENTRY_DSN is set)
-SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
-SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"))
+SENTRY_DSN = config("SENTRY_DSN", default="").strip()
+SENTRY_TRACES_SAMPLE_RATE = config("SENTRY_TRACES_SAMPLE_RATE", default=0.1, cast=float)
