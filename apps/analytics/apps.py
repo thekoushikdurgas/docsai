@@ -1,3 +1,5 @@
+"""Phase 6 — Reliability / observability UI (gateway metrics when available)."""
+
 from django.apps import AppConfig
 
 

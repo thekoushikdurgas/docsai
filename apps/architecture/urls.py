@@ -1,3 +1,5 @@
+"""URLs for ``apps.architecture`` (blueprint)."""
+
 from django.urls import path
 from . import views
 

@@ -107,6 +107,7 @@ def _unwrap_errors(resp: Dict[str, Any]) -> Optional[str]:
 
 
 def _transform_page(p: Dict[str, Any]) -> Dict[str, Any]:
+    ut = p.get("userType") or p.get("user_type")
     return {
         "page_id": p.get("pageId"),
         "title": p.get("title"),
@@ -123,6 +124,7 @@ def _transform_page(p: Dict[str, Any]) -> Dict[str, Any]:
             "page_type": p.get("pageType") or "docs",
             "last_updated": p.get("lastUpdated"),
             "version": p.get("version"),
+            "user_type": ut,
         },
     }
 
@@ -205,8 +207,14 @@ class DocsGraphQLAdapter:
         include_deleted: bool = False,
         status: Optional[str] = None,
     ) -> Dict[str, Any]:
-        # Gateway may not filter by user_type; return all pages for type (compat stub).
-        return self.list_pages(
+        """List pages; filter client-side when ``userType`` is present on results.
+
+        ``documentation.documentationPages`` may omit ``userType``; if the field
+        is absent on all rows, behavior matches an unfiltered list (backward
+        compatible). When any row includes ``userType``, only matching
+        ``user_type`` values are returned.
+        """
+        result = self.list_pages(
             page_type=page_type,
             include_drafts=include_drafts,
             include_deleted=include_deleted,
@@ -214,6 +222,16 @@ class DocsGraphQLAdapter:
             limit=None,
             offset=0,
         )
+        pages = list(result.get("pages") or [])
+        if not user_type or not pages:
+            return result
+        has_ut = any((p.get("metadata") or {}).get("user_type") for p in pages)
+        if not has_ut:
+            return result
+        filtered = [
+            p for p in pages if (p.get("metadata") or {}).get("user_type") == user_type
+        ]
+        return {"pages": filtered, "total": len(filtered)}
 
     def relationships_items(self) -> List[Dict[str, Any]]:
         try:

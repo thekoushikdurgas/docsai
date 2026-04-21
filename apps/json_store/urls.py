@@ -1,3 +1,5 @@
+"""URLs for ``apps.json_store``."""
+
 from django.urls import path
 from . import views
 

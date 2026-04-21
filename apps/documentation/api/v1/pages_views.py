@@ -1,4 +1,9 @@
-"""Pages API v1 — GraphQL-backed (Lambda-parity JSON shapes)."""
+"""
+Pages API v1 — GraphQL-backed (Lambda-parity JSON shapes).
+
+GET handlers are unauthenticated at the Django layer (optional ``get_adapter`` session token).
+Convention: ``@role: public`` for these read-only JSON routes.
+"""
 
 from __future__ import annotations
 

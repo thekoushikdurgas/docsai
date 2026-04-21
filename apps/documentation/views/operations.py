@@ -1,4 +1,8 @@
-"""Documentation operations views."""
+"""
+Documentation ops UI: analyze, validate, index generation, S3 upload, pipeline, media manager.
+
+All user-facing handlers use ``@require_super_admin``; docstrings end with ``@role: super_admin``.
+"""
 
 from __future__ import annotations
 
@@ -345,7 +349,7 @@ def _analyze_report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
 @require_super_admin
 def analyze_docs_view(request: HttpRequest) -> HttpResponse:
     """Analyze documentation view. GET /docs/operations/analyze/ or POST to run analysis.
-    GET with ?job_id=XXX shows report from a completed background analyze job."""
+    GET with ?job_id=<uuid> shows report from a completed background analyze job."""
     context: Dict[str, Any] = {"page_title": "Analyze"}
     job_id = (request.GET.get("job_id") or "").strip()
     if request.method == "GET" and job_id:
@@ -493,7 +497,7 @@ def analyze_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
 @require_super_admin
 def validate_docs_view(request: HttpRequest) -> HttpResponse:
     """Validate documentation view. GET /docs/operations/validate/ or POST to run validation.
-    GET with ?job_id=XXX shows report from a completed background validate job (analyze start API with analysis_type=all)."""
+    GET with ?job_id=<uuid> shows report from a completed background validate job (analyze start API with analysis_type=all)."""
     context: Dict[str, Any] = {"page_title": "Validate"}
     parent_id = (
         request.GET.get("parent_operation_id")
@@ -750,7 +754,7 @@ def generate_json_progress_api(request: HttpRequest, job_id: str) -> JsonRespons
 @require_super_admin
 def generate_json_view(request: HttpRequest) -> HttpResponse:
     """Generate JSON view. GET /docs/operations/generate-json/ or POST to run index generation.
-    GET with ?job_id=XXX shows report from a completed background generate-json job."""
+    GET with ?job_id=<uuid> shows report from a completed background generate-json job."""
     context: Dict[str, Any] = {"page_title": "Generate JSON"}
     parent_id = (
         request.GET.get("parent_operation_id")
@@ -1318,7 +1322,7 @@ def upload_progress_api(request: HttpRequest, job_id: str) -> JsonResponse:
 @require_super_admin
 def upload_docs_view(request: HttpRequest) -> HttpResponse:
     """Upload docs view. GET /docs/operations/upload/ or POST to upload selected types to S3.
-    GET with ?job_id=XXX shows report from a completed background upload job."""
+    GET with ?job_id=<uuid> shows report from a completed background upload job."""
     context: Dict[str, Any] = {}
     parent_id = (
         request.GET.get("parent_operation_id")

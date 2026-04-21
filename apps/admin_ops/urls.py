@@ -88,4 +88,23 @@ urlpatterns = [
     path("system-status/", views.system_status_view, name="system_status"),
     path("settings/", views.settings_view, name="settings"),
     path("statistics/", views.statistics_view, name="statistics"),
+    path("ops/email-jobs/", views.ops_email_jobs_view, name="ops_email_jobs"),
+    path("ops/phone-jobs/", views.ops_phone_jobs_view, name="ops_phone_jobs"),
+    path(
+        "ops/connectra-jobs/",
+        views.ops_connectra_jobs_view,
+        name="ops_connectra_jobs",
+    ),
+    path(
+        "ops/contacts-explorer/",
+        views.ops_contacts_explorer_view,
+        name="ops_contacts_explorer",
+    ),
+    path("ops/campaign-cql/", views.ops_campaign_cql_view, name="ops_campaign_cql"),
+    path("ops/leads/", views.ops_leads_placeholder_view, name="ops_leads"),
+    path(
+        "ops/durgasflow-audit/",
+        views.ops_durgasflow_audit_view,
+        name="ops_durgasflow_audit",
+    ),
 ]

@@ -1,4 +1,8 @@
-"""URL configuration for documentation app."""
+"""
+URL configuration for the documentation app (dashboard, CRUD, API includes, redirects).
+
+HTML flows mostly ``@role: super_admin``; REST v1 uses DRF permissions per view.
+"""
 
 from django.urls import path, include, reverse
 from django.shortcuts import redirect
@@ -927,7 +931,8 @@ urlpatterns = [
         media_manager_api.postman_upload_one_to_s3_api,
         name="api_postman_upload_one_to_s3",
     ),
-    # Documentation files API (S3-only stubs; local file browser removed)
+    # Documentation files API: JSON endpoints for media file listing, sync status,
+    # and bulk sync (S3-backed paths; no legacy local-only file browser).
     path(
         "api/media/files/",
         documentation_file_views.list_files_api,

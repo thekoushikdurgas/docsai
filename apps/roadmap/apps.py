@@ -1,3 +1,5 @@
+"""Product roadmap hub (docs phases + static fallback)."""
+
 from django.apps import AppConfig
 
 

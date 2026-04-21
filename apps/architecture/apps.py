@@ -1,3 +1,5 @@
+"""Phase 0 — Architecture blueprint (static registry + docs index rows; live health TBD)."""
+
 from django.apps import AppConfig
 
 

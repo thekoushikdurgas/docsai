@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
+from apps.admin_ops.services.admin_client import gateway_s3_delete_file
 from apps.admin_ops.services.s3storage_client import S3StorageClient
 from apps.core.decorators import require_login
 from apps.core.exceptions import LambdaAPIError
@@ -52,6 +53,7 @@ def _unique_slug(label: str) -> str:
 @require_login
 @require_http_methods(["GET"])
 def index_view(request):
+    """List JSON documents (local DB + S3 keys). @role: authenticated"""
     docs = JsonDocument.objects.all()
     return render(
         request,
@@ -68,7 +70,11 @@ def index_view(request):
 @require_login
 @require_http_methods(["POST"])
 def upload_view(request):
-    """Accept multipart/form-data: file (JSON), label (optional), bucket_id (optional)."""
+    """
+    Accept multipart/form-data: file (JSON), label (optional), bucket_id (optional).
+
+    @role: authenticated
+    """
     if not S3STORAGE_ENABLED:
         return JsonResponse(
             {"success": False, "error": "S3 storage is not configured."}, status=400
@@ -147,7 +153,11 @@ def upload_view(request):
 @require_login
 @require_http_methods(["GET"])
 def view_json_view(request, doc_id: int):
-    """Return parsed JSON content for a document (for modal viewer)."""
+    """
+    Return parsed JSON content for a document (for modal viewer).
+
+    @role: authenticated
+    """
     doc = get_object_or_404(JsonDocument, pk=doc_id)
     try:
         client = _s3_client()
@@ -165,14 +175,32 @@ def view_json_view(request, doc_id: int):
 @require_login
 @require_http_methods(["POST"])
 def delete_view(request, doc_id: int):
-    """Delete a JSON document (DB record + S3 object)."""
+    """
+    Delete a JSON document (DB record + S3 object; optional ``s3.deleteFile``).
+
+    @role: authenticated
+    """
     doc = get_object_or_404(JsonDocument, pk=doc_id)
-    try:
-        client = _s3_client()
-        # Best-effort S3 delete
-        client._request("DELETE", "/api/v1/objects", params={"key": doc.full_s3_key})
-    except Exception as exc:
-        logger.warning("json_store delete S3 object failed: %s", exc)
+    gateway_ok = False
+    if getattr(settings, "ADMIN_STORAGE_VIA_GATEWAY", False):
+        tok = (request.session.get("operator") or {}).get("token")
+        if tok:
+            try:
+                gateway_s3_delete_file(tok, doc.s3_file_key)
+                gateway_ok = True
+            except Exception as exc:
+                logger.warning(
+                    "json_store gateway s3.deleteFile failed, trying direct API: %s",
+                    exc,
+                )
+    if not gateway_ok:
+        try:
+            client = _s3_client()
+            client._request(
+                "DELETE", "/api/v1/objects", params={"key": doc.full_s3_key}
+            )
+        except Exception as exc:
+            logger.warning("json_store delete S3 object failed: %s", exc)
     doc.delete()
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return JsonResponse({"success": True})
@@ -182,7 +210,11 @@ def delete_view(request, doc_id: int):
 @require_login
 @require_http_methods(["GET"])
 def download_view(request, doc_id: int):
-    """Redirect to presigned download URL for the document."""
+    """
+    Redirect to presigned download URL for the document.
+
+    @role: authenticated
+    """
     doc = get_object_or_404(JsonDocument, pk=doc_id)
     try:
         client = _s3_client()

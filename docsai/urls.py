@@ -1,5 +1,7 @@
 """
-Contact360 DocsAI Admin — Root URL configuration
+Contact360 DocsAI admin — root URL configuration (includes, static, OpenAPI, legacy routes).
+
+Does not define GraphQL; gateway URL is ``settings.GRAPHQL_URL`` (see ``apps.core.services.graphql_client``).
 """
 
 from django.conf import settings
@@ -10,6 +12,16 @@ from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from apps.documentation.views.api_docs import api_tracker_index
+
+
+def _legacy_postman_gone(request):
+    """410 — ``postman_app`` was replaced by ``durgasman`` (Phase 8)."""
+    return HttpResponse(
+        "postman_app removed — use /durgasman/. See docs/codebases/admin.md.",
+        status=410,
+        content_type="text/plain; charset=utf-8",
+    )
+
 
 urlpatterns = [
     path(
@@ -42,6 +54,8 @@ urlpatterns = [
     path("graph/", include("apps.graph.urls")),
     path("roadmap/", include("apps.roadmap.urls")),
     # postman_app replaced by durgasman — /durgasman/ handles all collection/environment routes
+    path("postman/", _legacy_postman_gone),
+    path("postman_app/", _legacy_postman_gone),
     path("templates/", include("apps.templates_app.urls")),
     path("architecture/", include("apps.architecture.urls")),
     path("json-store/", include("apps.json_store.urls")),

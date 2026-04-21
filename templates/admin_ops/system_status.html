@@ -24,6 +24,36 @@
   {% include "components/card.html" with value=uptime_pct label="Uptime %" icon="lni-checkmark-circle" color="info" %}
 </div>
 
+{% if api_metadata %}
+<div class="card" style="margin-bottom: var(--space-6)">
+  <div class="card-header">
+    <h2 class="card-title">Gateway build / release</h2>
+    <p class="page-subtitle" style="margin: 0; font-size: var(--text-sm)">
+      From GraphQL <code>health.apiMetadata</code> (API name, version string, docs link).
+      Per-satellite version skew: see <code>TODO.md</code> Phase 7.
+    </p>
+  </div>
+  <div class="card-body">
+    <dl class="dl-row" style="display: grid; gap: 0.5rem 1.5rem; grid-template-columns: auto 1fr; margin: 0">
+      <dt class="text-muted">Name</dt>
+      <dd style="margin: 0"><strong>{{ api_metadata.name|default:"—" }}</strong></dd>
+      <dt class="text-muted">Version</dt>
+      <dd style="margin: 0"><code>{{ api_metadata.version|default:"—" }}</code></dd>
+      <dt class="text-muted">Docs</dt>
+      <dd style="margin: 0">
+        {% if api_metadata.docs %}
+        <a href="{{ api_metadata.docs }}" target="_blank" rel="noopener">{{ api_metadata.docs }}</a>
+        {% else %}—{% endif %}
+      </dd>
+      <dt class="text-muted">Build SHA</dt>
+      <dd style="margin: 0"><code>{% firstof api_metadata.buildSha api_metadata.build_sha "—" %}</code></dd>
+      <dt class="text-muted">Git ref</dt>
+      <dd style="margin: 0"><code>{% firstof api_metadata.gitRef api_metadata.git_ref "—" %}</code></dd>
+    </dl>
+  </div>
+</div>
+{% endif %}
+
 {% include "components/progress.html" with value=uptime_pct label="Overall uptime" %}
 
 <div class="card" style="margin-top: var(--space-6)">

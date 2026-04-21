@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ page_title }}</h1>
+    <p class="page-subtitle">
+      Gateway <code>campaignSatellite.cqlParse</code>, <code>cqlValidate</code>, and
+      <code>renderTemplatePreview</code> (requires <code>CAMPAIGN_API_URL</code> on the gateway).
+    </p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'operations:index' %}" class="btn btn-outline">Operations</a>
+  </div>
+</div>
+
+{% if error %}
+{% include "components/alert.html" with type="warning" message=error %}
+{% endif %}
+
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div class="card-header"><h2 class="card-title">Parse CQL text</h2></div>
+  <form method="post" class="card-body">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="parse" />
+    <div class="form-group">
+      <label class="form-label">Query string</label>
+      <textarea name="cql_query" class="form-control" rows="3" placeholder="CQL query…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Target (optional)</label>
+      <input type="text" name="target" class="form-control" placeholder="e.g. contacts" />
+    </div>
+    <button type="submit" class="btn btn-primary">Parse</button>
+  </form>
+  {% if parse_out is not None %}
+  <div class="card-body border-top">
+    <h3 class="text-sm">Result</h3>
+    <pre class="code-block" style="max-height: 20rem; overflow: auto; font-size: var(--text-xs)">{{ parse_out }}</pre>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div class="card-header"><h2 class="card-title">Validate CQL JSON</h2></div>
+  <form method="post" class="card-body">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="validate" />
+    <div class="form-group">
+      <label class="form-label">CQL object (JSON)</label>
+      <textarea name="cql_json" class="form-control" rows="8" placeholder="{}">{}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Validate</button>
+  </form>
+  {% if validate_out is not None %}
+  <div class="card-body border-top">
+    <h3 class="text-sm">Result</h3>
+    <pre class="code-block" style="max-height: 20rem; overflow: auto; font-size: var(--text-xs)">{{ validate_out }}</pre>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Template preview</h2></div>
+  <form method="post" class="card-body">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="preview" />
+    <div class="form-group">
+      <label class="form-label">Template ID</label>
+      <input type="text" name="template_id" class="form-control" required />
+    </div>
+    <div class="form-group">
+      <label class="form-label">First name</label>
+      <input type="text" name="first_name" class="form-control" value="Jane" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Last name</label>
+      <input type="text" name="last_name" class="form-control" value="Doe" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" name="email" class="form-control" value="jane@example.com" />
+    </div>
+    <button type="submit" class="btn btn-primary">Preview</button>
+  </form>
+  {% if preview_out is not None %}
+  <div class="card-body border-top">
+    <h3 class="text-sm">Result</h3>
+    <pre class="code-block" style="max-height: 20rem; overflow: auto; font-size: var(--text-xs)">{{ preview_out }}</pre>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

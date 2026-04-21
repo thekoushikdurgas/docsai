@@ -1,3 +1,5 @@
+"""URLs for ``apps.knowledge``."""
+
 from django.urls import path
 
 from . import views
@@ -8,7 +10,7 @@ urlpatterns = [
     path("", views.knowledge_list, name="list"),
     path("create/", views.knowledge_create, name="create"),
     path("search/", views.knowledge_search, name="search"),
-    path("<uuid:knowledge_id>/", views.knowledge_detail, name="detail"),
-    path("<uuid:knowledge_id>/edit/", views.knowledge_edit, name="edit"),
-    path("<uuid:knowledge_id>/delete/", views.knowledge_delete, name="delete"),
+    path("<str:knowledge_id>/", views.knowledge_detail, name="detail"),
+    path("<str:knowledge_id>/edit/", views.knowledge_edit, name="edit"),
+    path("<str:knowledge_id>/delete/", views.knowledge_delete, name="delete"),
 ]

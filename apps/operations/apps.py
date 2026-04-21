@@ -1,3 +1,5 @@
+"""Operations hub app (links and landing; gateway work lives under ``admin_ops``)."""
+
 from django.apps import AppConfig
 
 

@@ -28,10 +28,11 @@ class GraphQLDocumentationService:
             request: Django request object to extract access token from (optional)
             access_token: JWT access token for authentication (optional, can be extracted from request)
         """
-        endpoint_url = getattr(
-            settings,
-            "APPOINTMENT360_GRAPHQL_URL",
-            "http://api.contact360.io/graphql",
+        # Prefer legacy name; fall back to canonical GRAPHQL_URL from config.settings.base.
+        endpoint_url = (
+            getattr(settings, "APPOINTMENT360_GRAPHQL_URL", None)
+            or getattr(settings, "GRAPHQL_URL", None)
+            or "http://api.contact360.io/graphql"
         )
 
         self.client = GraphQLClient(

@@ -1,3 +1,5 @@
+"""URLs for ``apps.roadmap``."""
+
 from django.urls import path
 from . import views
 

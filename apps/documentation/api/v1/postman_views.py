@@ -1,5 +1,7 @@
 """
-Postman API v1 - Lambda-parity GET endpoints (14 routes).
+Postman API v1 — Lambda-parity GET JSON (14 routes).
+
+Uses ``get_postman_service()`` for list/detail. Convention: ``@role: public`` for read-only JSON.
 """
 
 from __future__ import annotations
@@ -8,6 +10,7 @@ import logging
 from django.views.decorators.http import require_http_methods
 from django.http import HttpRequest, JsonResponse
 
+from apps.documentation.services import get_postman_service
 from apps.documentation.services.docs_graphql_adapter import get_adapter
 from apps.documentation.utils.format_examples import postman_examples, analysis_examples
 from django.conf import settings

@@ -1,4 +1,9 @@
-"""Documentation views - export all views."""
+"""
+Documentation UI views package (dashboard, pages, endpoints, relationships, Postman parity).
+
+Re-exports from submodules; URL routing may also import legacy ``documentation.views`` module.
+See ``contact360.io/admin/TODO.md`` for ``docs.*`` gateway coverage; view docstrings use ``@role: super_admin``.
+"""
 
 from .dashboard import (
     documentation_dashboard,

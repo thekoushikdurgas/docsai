@@ -1,3 +1,5 @@
+"""URL routes for ``apps.durgasman`` (dashboard, upload, JSON APIs, send proxy)."""
+
 from django.urls import path
 
 from . import views
@@ -39,7 +41,8 @@ urlpatterns = [
     ),
     # Request proxy
     path("send/", views.send_request_view, name="send"),
-    # Legacy stubs kept for JS compatibility
+    path("import/", views.import_collection_page, name="import"),
+    # DEPRECATED: legacy JSON routes for older Postman-like UI scripts
     path("api/collections/", views.api_collections, name="api_collections"),
     path("api/environments/", views.api_environments, name="api_environments"),
     path("api/history/", views.api_history, name="api_history"),

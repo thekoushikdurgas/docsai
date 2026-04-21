@@ -1,3 +1,5 @@
+"""URLs for ``apps.codebase`` (scanner parity routes)."""
+
 from django.urls import path
 
 from . import views

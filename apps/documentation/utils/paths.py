@@ -36,20 +36,23 @@ def get_endpoints_dir() -> Path:
 
 
 def get_relationships_dir() -> Path:
-    """Get relationships directory. Note: On disk this may be 'relationships', 'relationship' (legacy), or 'relationship'."""
-    # TODO: Migrate directory from 'relationship' / 'relationship' to 'relationships' on disk
-    # For now, check all known names for backward compatibility
+    """Resolve the documentation relationships media directory.
+
+    Prefer ``media/relationships`` (canonical). Fall back to legacy
+    ``media/relationship`` (singular) when present. If neither exists, return
+    the canonical path so new writes land under ``relationships``.
+
+    Disk migration (consolidate to ``relationships`` only): see
+    ``contact360.io/admin/TODO.md`` (Phase 0 — Foundation).
+    """
     media_root = get_media_root()
-    relationships_dir = media_root / "relationships"
-    relationship_dir = media_root / "relationship"
-    relationship_dir = media_root / "relationship"  # singular, used in some setups
-    if relationships_dir.exists():
-        return relationships_dir
-    if relationship_dir.exists():
-        return relationship_dir
-    if relationship_dir.exists():
-        return relationship_dir
-    return relationships_dir  # Return new name even if doesn't exist yet
+    canonical = media_root / "relationships"
+    legacy_singular = media_root / "relationship"
+    if canonical.exists():
+        return canonical
+    if legacy_singular.exists():
+        return legacy_singular
+    return canonical
 
 
 def get_postman_dir() -> Path:

@@ -11,7 +11,9 @@ DEBUG = False
 
 _secret = resolve_secret_key()
 if not _secret:
-    raise ImproperlyConfigured("SECRET_KEY must be set for staging (.env.prod, .env, or environment).")
+    raise ImproperlyConfigured(
+        "SECRET_KEY must be set for staging (.env.prod, .env, or environment)."
+    )
 SECRET_KEY = _secret
 
 USE_HTTPS = os.getenv("SECURE_SSL_REDIRECT", "true").lower() == "true"

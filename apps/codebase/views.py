@@ -1,4 +1,8 @@
-"""Codebase scanner UI (parity routes; wire scanner service for live data)."""
+"""
+Codebase scanner UI (Phase 0). Parity routes; live scanner microservice TBD.
+
+Gateway: none from this app today.
+"""
 
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -9,6 +13,7 @@ from apps.core.decorators import require_super_admin
 
 @require_super_admin
 def codebase_dashboard(request):
+    """Scanner dashboard (empty analyses until service wired). @role: super_admin"""
     return render(
         request,
         "codebase/dashboard.html",
@@ -18,9 +23,12 @@ def codebase_dashboard(request):
 
 @require_super_admin
 def scan_view(request):
+    """Start scan form (POST warns if scanner unavailable). @role: super_admin"""
     if request.method == "POST":
-        messages.info(
-            request, "Scan trigger (stub) — connect codebase scanner microservice."
+        messages.warning(
+            request,
+            "Codebase scanner microservice is not configured — see "
+            "contact360.io/admin/TODO.md (Phase 0 — Foundation).",
         )
         return redirect("codebase:dashboard")
     return render(request, "codebase/scan.html", {"page_title": "New scan"})
@@ -28,6 +36,7 @@ def scan_view(request):
 
 @require_super_admin
 def analysis_detail_view(request, analysis_id):
+    """Single analysis placeholder. @role: super_admin"""
     return render(
         request,
         "codebase/analysis_detail.html",
@@ -37,6 +46,7 @@ def analysis_detail_view(request, analysis_id):
 
 @require_super_admin
 def file_list_view(request, analysis_id):
+    """File list placeholder. @role: super_admin"""
     return render(
         request,
         "codebase/file_list.html",
@@ -46,6 +56,7 @@ def file_list_view(request, analysis_id):
 
 @require_super_admin
 def file_detail_view(request, analysis_id, file_path):
+    """File content placeholder. @role: super_admin"""
     return render(
         request,
         "codebase/file_detail.html",
@@ -60,6 +71,7 @@ def file_detail_view(request, analysis_id, file_path):
 
 @require_super_admin
 def dependencies_view(request, analysis_id):
+    """Dependencies placeholder. @role: super_admin"""
     return render(
         request,
         "codebase/dependencies.html",
@@ -69,6 +81,7 @@ def dependencies_view(request, analysis_id):
 
 @require_super_admin
 def patterns_view(request, analysis_id):
+    """Patterns placeholder. @role: super_admin"""
     return render(
         request,
         "codebase/patterns.html",

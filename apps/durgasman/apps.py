@@ -1,3 +1,5 @@
+"""Postman-style API lab (collections/environments); replaces ``postman_app``."""
+
 from django.apps import AppConfig
 
 

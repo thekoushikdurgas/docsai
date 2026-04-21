@@ -11,6 +11,8 @@ from typing import Any, Dict, Optional
 
 import httpx
 
+from .url_guard import validate_request_url
+
 logger = logging.getLogger(__name__)
 
 # Maximum response body to buffer (5 MiB)
@@ -70,6 +72,10 @@ def run_request(
         body = _substitute_vars(body, vars_)
 
     method = method.upper()
+
+    ok, guard_msg = validate_request_url(url)
+    if not ok:
+        return _error_result(guard_msg)
 
     try:
         start = time.monotonic()

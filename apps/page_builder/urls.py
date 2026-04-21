@@ -1,3 +1,5 @@
+"""URLs for ``apps.page_builder``."""
+
 from django.urls import path
 
 from . import views

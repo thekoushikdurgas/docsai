@@ -1,3 +1,5 @@
+"""Knowledge base app (Phase 5 — gateway ``knowledge.*`` TBD)."""
+
 from django.apps import AppConfig
 
 

@@ -1,9 +1,11 @@
 """
-Durgasflow views — n8n-compatible workflow automation admin.
+Durgasflow views — n8n-compatible workflow automation (Phase 9).
 
-Provides upload, dashboard, workflow list/detail, visual editor, execution
-history, and the n8n template hub.  Execution results are persisted to
-PostgreSQL via models.N8nExecution.
+Local ORM + S3; no gateway GraphQL for workflow CRUD. Webhook URL is unauthenticated
+(``webhook_handler``). Other views use ``@require_super_admin`` — docstrings end with
+``@role: super_admin`` or ``@role: public`` for the webhook.
+
+Execution results persist in PostgreSQL via ``models.N8nExecution``.
 """
 
 from __future__ import annotations
@@ -69,12 +71,22 @@ def _load_n8n_index() -> list[dict]:
         return []
 
 
+def _hub_entry_for_template(template_id) -> dict | None:
+    """Return catalog row whose ``id`` matches ``template_id`` (UUID string)."""
+    tid = str(template_id)
+    for entry in _load_n8n_index():
+        if str(entry.get("id", "")) == tid:
+            return entry
+    return None
+
+
 # ─── Dashboard ────────────────────────────────────────────────────────────────
 
 
 @require_super_admin
 @require_http_methods(["GET"])
 def dashboard(request):
+    """Workflow and execution summaries. @role: super_admin"""
     qs = N8nWorkflow.objects.all()
     total = qs.count()
     active_count = qs.filter(is_active=True).count()
@@ -140,6 +152,7 @@ def dashboard(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def upload_view(request):
+    """Upload workflow form. @role: super_admin"""
     return render(
         request,
         "durgasflow/upload.html",
@@ -155,7 +168,11 @@ def upload_view(request):
 @require_http_methods(["POST"])
 @csrf_exempt
 def upload_workflow_api(request):
-    """POST multipart/form-data with file + bucket_id → validates, uploads to S3, saves DB."""
+    """
+    POST multipart/form-data with file + bucket_id → validates, uploads to S3, saves DB.
+
+    @role: super_admin
+    """
     if not S3STORAGE_ENABLED:
         return JsonResponse(
             {"success": False, "error": "S3 storage not configured."}, status=400
@@ -279,6 +296,7 @@ def upload_workflow_api(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def workflow_list(request):
+    """Paginated workflow table. @role: super_admin"""
     qs = N8nWorkflow.objects.all()
     status_filter = request.GET.get("status", "")
     trigger_filter = request.GET.get("trigger", "")
@@ -328,6 +346,7 @@ def workflow_list(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def workflow_detail(request, workflow_id):
+    """Workflow detail and recent executions. @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
     recent_execs = list(
         wf.executions.order_by("-created_at").values(
@@ -350,12 +369,14 @@ def workflow_detail(request, workflow_id):
 @require_super_admin
 @require_http_methods(["POST"])
 def workflow_edit(request, workflow_id):
+    """POST redirect into visual editor. @role: super_admin"""
     return redirect("durgasflow:editor", workflow_id=workflow_id)
 
 
 @require_super_admin
 @require_http_methods(["POST"])
 def workflow_delete(request, workflow_id):
+    """Delete workflow and optional S3 graph. @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
     # Optionally delete S3 object
     if S3STORAGE_ENABLED and wf.full_s3_key:
@@ -373,6 +394,7 @@ def workflow_delete(request, workflow_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def workflow_json_view(request, workflow_id):
+    """JSON workflow graph (S3 + local overrides). @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
     workflow_json: dict = {}
     if S3STORAGE_ENABLED and wf.full_s3_key:
@@ -401,6 +423,7 @@ def workflow_json_view(request, workflow_id):
 @require_super_admin
 @require_http_methods(["POST"])
 def save_workflow_view(request, workflow_id):
+    """Persist editor graph overrides (nodes/connections/name). @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
     try:
         data = json.loads(request.body)
@@ -428,6 +451,7 @@ def save_workflow_view(request, workflow_id):
 @require_super_admin
 @require_http_methods(["POST"])
 def workflow_execute(request, workflow_id):
+    """Run workflow engine for one workflow (local execution). @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
 
     # Load workflow JSON from S3
@@ -480,6 +504,7 @@ def workflow_execute(request, workflow_id):
 @require_super_admin
 @require_http_methods(["POST"])
 def workflow_activate(request, workflow_id):
+    """Enable workflow for triggers/webhook. @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
     wf.is_active = True
     wf.status = "active"
@@ -490,6 +515,7 @@ def workflow_activate(request, workflow_id):
 @require_super_admin
 @require_http_methods(["POST"])
 def workflow_deactivate(request, workflow_id):
+    """Disable workflow. @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
     wf.is_active = False
     wf.status = "inactive"
@@ -503,6 +529,7 @@ def workflow_deactivate(request, workflow_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def editor(request, workflow_id):
+    """Visual editor for an existing workflow. @role: super_admin"""
     wf = get_object_or_404(N8nWorkflow, pk=workflow_id)
     credentials = list(
         N8nCredential.objects.values("id", "name", "credential_type", "service_name")
@@ -523,6 +550,7 @@ def editor(request, workflow_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def editor_new(request):
+    """Empty editor shell for a new workflow. @role: super_admin"""
     credentials = list(
         N8nCredential.objects.values("id", "name", "credential_type", "service_name")
     )
@@ -545,6 +573,7 @@ def editor_new(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def execution_list(request):
+    """Execution history table. @role: super_admin"""
     qs = N8nExecution.objects.select_related("workflow").order_by("-created_at")
     wf_filter = request.GET.get("workflow_id", "")
     status_filter = request.GET.get("status", "")
@@ -585,6 +614,7 @@ def execution_list(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def execution_detail(request, execution_id):
+    """Single execution and node logs. @role: super_admin"""
     exec_obj = get_object_or_404(N8nExecution, pk=execution_id)
     logs = list(
         exec_obj.logs.values(
@@ -616,6 +646,7 @@ def execution_detail(request, execution_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def execution_json_view(request, execution_id):
+    """JSON API for execution payload and logs. @role: super_admin"""
     exec_obj = get_object_or_404(N8nExecution, pk=execution_id)
     logs = list(
         exec_obj.logs.values(
@@ -655,6 +686,7 @@ def execution_json_view(request, execution_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def workflow_hub(request):
+    """n8n template library + “my workflows”. @role: super_admin"""
     tab = request.GET.get("tab", "library")
     search = request.GET.get("q", "").strip().lower()
     category = request.GET.get("category", "").strip()
@@ -727,6 +759,7 @@ def workflow_hub(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def api_list_view(request):
+    """JSON list of workflows for integrations. @role: super_admin"""
     workflows = list(
         N8nWorkflow.objects.values(
             "id",
@@ -757,6 +790,7 @@ def api_list_view(request):
 
 @require_super_admin
 def workflow_create(request):
+    """Form POST creates blank workflow and opens editor. @role: super_admin"""
     if request.method == "POST":
         name = request.POST.get("name", "").strip() or "New Workflow"
         wf = N8nWorkflow.objects.create(
@@ -777,6 +811,7 @@ def workflow_create(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def credential_list(request):
+    """Stored credentials for node integrations. @role: super_admin"""
     credentials = list(
         N8nCredential.objects.values(
             "id",
@@ -799,6 +834,7 @@ def credential_list(request):
 
 @require_super_admin
 def credential_create(request):
+    """Create credential (GET form / POST save). @role: super_admin"""
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         if not name:
@@ -819,6 +855,7 @@ def credential_create(request):
 
 @require_super_admin
 def credential_detail(request, credential_id):
+    """Credential detail (read-only shell). @role: super_admin"""
     cred = get_object_or_404(N8nCredential, pk=credential_id)
     return render(
         request,
@@ -834,6 +871,7 @@ def credential_detail(request, credential_id):
 @require_super_admin
 @require_http_methods(["POST"])
 def credential_delete(request, credential_id):
+    """Delete credential row. @role: super_admin"""
     cred = get_object_or_404(N8nCredential, pk=credential_id)
     cred.delete()
     return redirect("durgasflow:credential_list")
@@ -845,16 +883,33 @@ def credential_delete(request, credential_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def template_list(request):
+    """Legacy alias → workflow hub. @role: super_admin"""
     return redirect("durgasflow:workflow_hub")
 
 
 @require_super_admin
 @require_http_methods(["POST"])
 def template_use(request, template_id):
-    # Import from hub: create a new workflow stub with template info
-    name = request.POST.get("name", f"Workflow from template {template_id}")
+    """
+    Create a draft workflow from a hub catalog entry (``docs/n8n/index.json``).
+
+    @role: super_admin
+    """
+    entry = _hub_entry_for_template(template_id)
+    default_name = (entry or {}).get("name") or f"Workflow from template {template_id}"
+    name = request.POST.get("name", default_name)
+    description = ""
+    if entry:
+        description = (entry.get("description") or "").strip()
+    if not description and entry:
+        parts = [
+            entry.get("category") or "n8n",
+            entry.get("n8n_path") or "",
+        ]
+        description = " · ".join(p for p in parts if p).strip()
     wf = N8nWorkflow.objects.create(
         name=name,
+        description=description[:5000] if description else "",
         trigger_type="manual",
         created_by=request.session.get("operator", {}).get("email", ""),
     )
@@ -866,7 +921,11 @@ def template_use(request, template_id):
 
 @require_super_admin
 def import_n8n_workflow(request, workflow_path):
-    """Load a workflow JSON from docs/n8n/ by its index path."""
+    """
+    Load a workflow JSON from ``docs/n8n/`` by its index path.
+
+    @role: super_admin
+    """
     full_path = os.path.join(
         settings.BASE_DIR,
         "..",
@@ -901,6 +960,7 @@ def import_n8n_workflow(request, workflow_path):
 @require_super_admin
 @require_http_methods(["POST"])
 def import_n8n_bulk(request):
+    """Placeholder bulk import → hub. @role: super_admin"""
     return redirect("durgasflow:workflow_hub")
 
 
@@ -910,6 +970,11 @@ def import_n8n_bulk(request):
 @csrf_exempt
 @require_http_methods(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"])
 def webhook_handler(request, workflow_id, webhook_path):
+    """
+    Public webhook trigger for an active workflow (no session auth).
+
+    @role: public
+    """
     body = {}
     if request.body:
         try:

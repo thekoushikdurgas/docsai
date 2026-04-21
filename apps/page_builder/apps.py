@@ -1,3 +1,5 @@
+"""Page spec builder (local ``PageSpec`` + S3 JSON; optional gateway delete)."""
+
 from django.apps import AppConfig
 
 

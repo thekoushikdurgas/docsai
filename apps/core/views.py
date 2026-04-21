@@ -1,5 +1,8 @@
 """
 Core views: dashboard, login, logout.
+
+``dashboard_view``: session required — ``@role: authenticated``.
+``login_view`` / ``logout_view``: unauthenticated access to form/redirect — ``@role: public``.
 """
 
 import logging
@@ -106,6 +109,7 @@ def _django_user_stats_fallback():
 
 @require_login
 def dashboard_view(request):
+    """Home dashboard: ``admin.userStats``, service health. @role: authenticated"""
     token = request.session.get("operator", {}).get("token", "")
     stats = {}
     chart_data = {"labels": [], "values": []}
@@ -160,6 +164,7 @@ def dashboard_view(request):
 @ratelimit(key="ip", rate="10/m", method="POST", block=False)
 @require_http_methods(["GET", "POST"])
 def login_view(request):
+    """Gateway sign-in form (optional Django staff fallback). @role: public"""
     if request.session.get("operator"):
         return redirect("core:dashboard")
 
@@ -231,6 +236,7 @@ def login_view(request):
 
 @require_http_methods(["GET", "POST"])
 def logout_view(request):
+    """Clear session and redirect to login. @role: public"""
     request.session.flush()
     messages.info(request, "You have been signed out.")
     return redirect("core:login")

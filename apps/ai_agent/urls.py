@@ -1,3 +1,5 @@
+"""Routes for ``apps.ai_agent`` (chat, sessions, XHR API)."""
+
 from django.urls import path
 from . import views
 
@@ -9,4 +11,5 @@ urlpatterns = [
         "sessions/<str:session_id>/", views.session_detail_view, name="session_detail"
     ),
     path("api/chat/", views.api_chat_view, name="api_chat"),
+    path("api/chat/stream/", views.api_chat_stream_view, name="api_chat_stream"),
 ]

@@ -1,4 +1,9 @@
-"""Documentation Dashboard Views."""
+"""
+Documentation dashboard (tabs, graph, health) and JSON helpers.
+
+Uses ``@require_super_admin`` on HTTP views. Graph/cache helpers are internal.
+View docstrings end with ``@role: super_admin`` where applicable.
+"""
 
 from __future__ import annotations
 
@@ -268,6 +273,8 @@ def documentation_dashboard(request: HttpRequest):
     Query params:
     - tab (pages|endpoints|relationships|postman|graph)
     - graph_tab
+
+    @role: super_admin
     """
     raw_tab = request.GET.get("tab", "pages")
     active_tab = _validate_tab(raw_tab)
@@ -780,6 +787,8 @@ def health_status_api(request: HttpRequest) -> JsonResponse:
 
     GET /docs/api/health/
     Returns: { success, data: { status, components: { application, database, cache, storage, external_api } } }
+
+    @role: super_admin
     """
     try:
         from apps.documentation.utils.health_checks import (
@@ -807,6 +816,8 @@ def dashboard_stats_api(request: HttpRequest) -> JsonResponse:
     Returns: { success, data: { total_pages, total_endpoints, ... } }
 
     Statistics are cached for 5 minutes using RedisCacheManager.
+
+    @role: super_admin
     """
     # Try to get from cache first
     cached_stats = cache_manager.get(

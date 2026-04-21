@@ -1,13 +1,16 @@
 """
 Admin operations views — users, jobs, logs, billing, storage, system status, settings, statistics.
-All views require admin or super_admin role.
+
+Most handlers require Admin or SuperAdmin (see decorators). View docstrings in this module end
+with an ``@role:`` line matching the decorator
+(``authenticated``, ``admin_or_super_admin``, or ``super_admin``). See ``contact360.io/admin/TODO.md``.
 """
 
 import json
 import logging
 import re
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -40,11 +43,17 @@ from .services.admin_client import (
     billing_update_addon,
     billing_update_plan,
     billing_update_plan_period,
+    campaign_cql_parse,
+    campaign_cql_validate,
+    campaign_render_template_preview,
     decline_payment,
     delete_log,
+    delete_logs_bulk,
     delete_storage_artifact,
     delete_user_account,
     find_admin_user,
+    get_api_metadata,
+    get_contacts_page,
     get_download_url,
     get_job_detail,
     get_jobs,
@@ -63,18 +72,16 @@ from .services.admin_client import (
     promote_to_admin,
     promote_to_super_admin,
     retry_job,
+    update_log_entry,
     update_payment_instructions,
     update_user_role,
 )
-from .services.logs_api_client import LogsApiClient
 from .services.s3storage_client import S3StorageClient
 from .utils import time_range_to_iso
 
 logger = logging.getLogger(__name__)
 
-LOGS_API_ENABLED = getattr(
-    settings, "LOGS_API_ENABLED", bool(getattr(settings, "LOGS_API_URL", ""))
-)
+# Logs: always via gateway ``admin.*`` (no direct log.server from Django).
 S3STORAGE_ENABLED = bool(getattr(settings, "S3STORAGE_API_URL", ""))
 
 
@@ -177,7 +184,9 @@ def _get_operator_bucket_for_upload(request) -> str | None:
                     if b:
                         return b
             except Exception:
-                logger.debug("find_admin_user for operator bucket failed", exc_info=True)
+                logger.debug(
+                    "find_admin_user for operator bucket failed", exc_info=True
+                )
 
     return _coalesce_bucket_str(session_uid)
 
@@ -319,6 +328,11 @@ def _users_list_auth_message(exc: AdminGraphQLError) -> str:
 
 @require_super_admin
 def users_view(request):
+    """
+    Paginated ``admin.users`` directory (search, plan, role, active filters).
+
+    @role: super_admin
+    """
     search = request.GET.get("search", "")
     plan = request.GET.get("plan", "")
     role = request.GET.get("role", "")
@@ -424,6 +438,11 @@ def users_view(request):
 
 @require_admin_or_super_admin
 def user_detail_view(request, user_id):
+    """
+    User detail and mutations (credits, role, delete, promote) via ``admin.*``.
+
+    @role: admin_or_super_admin
+    """
     if request.method == "POST":
         action = request.POST.get("action")
         tok = _token(request)
@@ -507,9 +526,14 @@ def _jobs_page_querystring(request, page_num: int) -> str:
 
 @require_admin_or_super_admin
 def jobs_view(request):
+    """
+    Scheduler jobs list (``jobs.*`` / gateway) with status and source filters.
+
+    @role: admin_or_super_admin
+    """
     status_filter = request.GET.get("status", "")
     source_filter = (request.GET.get("source") or "").strip()
-    if source_filter not in ("email_server", "sync_server"):
+    if source_filter not in ("email_server", "sync_server", "phone_server"):
         source_filter = ""
     page = max(1, int(request.GET.get("page", 1)))
     limit = 25
@@ -574,6 +598,11 @@ def jobs_view(request):
 
 @require_admin_or_super_admin
 def job_detail_view(request, job_id):
+    """
+    Single job detail and POST retry.
+
+    @role: admin_or_super_admin
+    """
     if request.method == "POST" and request.POST.get("action") == "retry":
         try:
             result = retry_job(_token(request), job_id)
@@ -628,6 +657,8 @@ def logs_view(request):
     """
     Log.server data is loaded via GraphQL ``admin.logs`` (same path as API ``LogsServerClient``).
     Requires Super Admin on the gateway — matches ``admin.queries.AdminQuery.logs``.
+
+    @role: super_admin
     """
     service = request.GET.get("service", "")
     level = (request.GET.get("level") or "").strip().upper() or ""
@@ -705,6 +736,7 @@ def logs_view(request):
 @require_super_admin
 @require_http_methods(["POST"])
 def delete_log_view(request, log_id):
+    """Delete one log row via ``admin.deleteLog`` (or equivalent). @role: super_admin"""
     success = delete_log(_token(request), log_id)
     if success:
         messages.success(request, "Log entry deleted.")
@@ -718,6 +750,11 @@ def delete_log_view(request, log_id):
 
 @require_admin_or_super_admin
 def billing_view(request):
+    """
+    Payment submissions list (pending / approved / declined / all).
+
+    @role: admin_or_super_admin
+    """
     status_filter = request.GET.get("status", "pending")
     try:
         page = max(0, int(request.GET.get("page", 0)))
@@ -806,6 +843,7 @@ def _billing_plan_by_tier(plans: list, tier: str) -> dict | None:
 
 @require_admin_or_super_admin
 def billing_plans_view(request):
+    """Subscription plans from ``admin.billingPlans`` (read). @role: admin_or_super_admin"""
     plans: list = []
     try:
         plans = get_billing_plans(_token(request))
@@ -827,6 +865,7 @@ def billing_plans_view(request):
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_plan_create_view(request):
+    """Create subscription plan (``admin`` billing mutations). @role: super_admin"""
     if request.method == "POST":
         tier = (request.POST.get("tier") or "").strip()
         name = (request.POST.get("name") or "").strip()
@@ -873,6 +912,7 @@ def billing_plan_create_view(request):
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_plan_edit_view(request, tier: str):
+    """Edit plan metadata for ``tier``. @role: super_admin"""
     plans: list = []
     try:
         plans = get_billing_plans(_token(request))
@@ -916,6 +956,7 @@ def billing_plan_edit_view(request, tier: str):
 @require_super_admin
 @require_http_methods(["POST"])
 def billing_plan_delete_view(request, tier: str):
+    """Delete plan by ``tier``. @role: super_admin"""
     try:
         result = billing_delete_plan(_token(request), tier)
         if result.get("tier"):
@@ -932,6 +973,7 @@ def billing_plan_delete_view(request, tier: str):
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_plan_period_add_view(request, tier: str):
+    """Add billing period to a plan. @role: super_admin"""
     plans: list = []
     try:
         plans = get_billing_plans(_token(request))
@@ -996,6 +1038,7 @@ def billing_plan_period_add_view(request, tier: str):
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_plan_period_edit_view(request, tier: str, period: str):
+    """Edit one plan period (monthly/quarterly/yearly). @role: super_admin"""
     period = period.strip().lower()
     if period not in _BILLING_PERIOD_KEYS:
         messages.error(request, "Invalid period.")
@@ -1053,6 +1096,7 @@ def billing_plan_period_edit_view(request, tier: str, period: str):
 @require_super_admin
 @require_http_methods(["POST"])
 def billing_plan_period_delete_view(request, tier: str, period: str):
+    """Delete one plan period. @role: super_admin"""
     period = period.strip().lower()
     if period not in _BILLING_PERIOD_KEYS:
         messages.error(request, "Invalid period.")
@@ -1072,6 +1116,7 @@ def billing_plan_period_delete_view(request, tier: str, period: str):
 
 @require_admin_or_super_admin
 def billing_addons_view(request):
+    """Billing add-on packages (read). @role: admin_or_super_admin"""
     addons: list = []
     try:
         addons = get_billing_addons(_token(request))
@@ -1091,6 +1136,7 @@ def billing_addons_view(request):
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_addon_create_view(request):
+    """Create add-on package. @role: super_admin"""
     if request.method == "POST":
         pkg_id = (request.POST.get("package_id") or "").strip()
         name = (request.POST.get("name") or "").strip()
@@ -1132,6 +1178,7 @@ def billing_addon_create_view(request):
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_addon_edit_view(request, package_id: str):
+    """Edit add-on package. @role: super_admin"""
     addons: list = []
     try:
         addons = get_billing_addons(_token(request))
@@ -1185,6 +1232,7 @@ def billing_addon_edit_view(request, package_id: str):
 @require_super_admin
 @require_http_methods(["POST"])
 def billing_addon_delete_view(request, package_id: str):
+    """Delete add-on package. @role: super_admin"""
     try:
         result = billing_delete_addon(_token(request), package_id)
         if result.get("id"):
@@ -1201,6 +1249,7 @@ def billing_addon_delete_view(request, package_id: str):
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 def approve_payment_view(request, payment_id):
+    """Approve pending payment (credits). @role: admin_or_super_admin"""
     try:
         result = approve_payment(_token(request), payment_id)
         if result.get("id"):
@@ -1217,6 +1266,7 @@ def approve_payment_view(request, payment_id):
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 def decline_payment_view(request, payment_id):
+    """Decline payment with reason. @role: admin_or_super_admin"""
     reason = request.POST.get("reason", "").strip()
     if not reason:
         messages.error(request, "Reason is required to decline a payment.")
@@ -1237,6 +1287,11 @@ def decline_payment_view(request, payment_id):
 
 @require_admin_or_super_admin
 def storage_view(request):
+    """
+    Browse S3 artifacts by bucket/prefix (direct s3storage listing).
+
+    @role: admin_or_super_admin
+    """
     selected_bucket = request.GET.get("bucket", "").strip()
     prefix = request.GET.get("prefix", "").strip()
     try:
@@ -1310,6 +1365,7 @@ def storage_view(request):
 
 @require_admin_or_super_admin
 def storage_download_url_view(request):
+    """JSON presigned download URL for a storage key. @role: admin_or_super_admin"""
     key = request.GET.get("key", "")
     url = get_download_url(key)
     if url:
@@ -1320,6 +1376,7 @@ def storage_download_url_view(request):
 @require_super_admin
 @require_http_methods(["POST"])
 def delete_artifact_view(request):
+    """Delete storage object by key (ops storage UI). @role: super_admin"""
     key = request.POST.get("key", "")
     selected_bucket = request.POST.get("bucket", "")
     prefix = request.POST.get("prefix", "")
@@ -1340,6 +1397,11 @@ def delete_artifact_view(request):
 
 @require_login
 def system_status_view(request):
+    """
+    Health probes, ``health.satelliteHealth``, and ``health.apiMetadata``.
+
+    @role: authenticated
+    """
     health = []
     satellite_health: list[dict[str, Any]] = []
     try:
@@ -1351,6 +1413,12 @@ def system_status_view(request):
         satellite_health = get_gateway_satellite_health(_token(request))
     except Exception as exc:
         messages.warning(request, f"Gateway satellite health: {exc}")
+
+    api_metadata: Dict[str, Any] = {}
+    try:
+        api_metadata = get_api_metadata(_token(request))
+    except Exception as exc:
+        messages.warning(request, f"Gateway API metadata: {exc}")
 
     up_count = sum(1 for s in health if s.get("status") == "up")
     total = len(health)
@@ -1365,6 +1433,7 @@ def system_status_view(request):
         {
             "health_services": health,
             "satellite_health": satellite_health,
+            "api_metadata": api_metadata,
             "up_count": up_count,
             "total_services": total,
             "uptime_pct": uptime_pct,
@@ -1378,6 +1447,7 @@ def system_status_view(request):
 
 @require_super_admin
 def settings_view(request):
+    """Read-only Django settings snapshot for operators. @role: super_admin"""
     from django.conf import settings as dj_settings
 
     config_snapshot = {
@@ -1404,6 +1474,7 @@ def settings_view(request):
 
 @require_admin_or_super_admin
 def statistics_view(request):
+    """User stats charts from ``admin.userStats``. @role: admin_or_super_admin"""
     stats: dict = {}
     try:
         stats = get_user_stats(_token(request))
@@ -1452,6 +1523,11 @@ def statistics_view(request):
 
 @require_super_admin
 def user_history_view(request, user_id: str):
+    """
+    Per-user activity / history (gateway user activity query).
+
+    @role: super_admin
+    """
     page = max(1, int(request.GET.get("page", 1)))
     event_type = request.GET.get("event_type", "all")
     per_page = 15
@@ -1495,10 +1571,10 @@ def user_history_view(request, user_id: str):
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 def logs_bulk_delete_view(request):
-    if not LOGS_API_ENABLED:
-        return JsonResponse(
-            {"success": False, "error": "Logs API is not enabled"}, status=400
-        )
+    """
+    Bulk delete logs via gateway ``admin.deleteLogsBulk`` (SuperAdmin JWT).
+    @role:admin_or_super_admin
+    """
     try:
         body = json.loads(request.body) if request.body else {}
         time_range = (body.get("time_range") or "").strip()
@@ -1509,24 +1585,26 @@ def logs_bulk_delete_view(request):
         end_time = body.get("end_time") or None
         if time_range and not start_time and not end_time:
             start_time, end_time = time_range_to_iso(time_range)
-        client = LogsApiClient(request_id=_request_trace_id(request))
-        result = client.delete_logs_bulk(
+        result = delete_logs_bulk(
+            _token(request),
             level=level,
-            logger=logger_filter,
+            logger_name=logger_filter,
             user_id=user_id,
             start_time=start_time,
             end_time=end_time,
         )
+        deleted = int(result.get("deleted_count") or 0)
         return JsonResponse(
             {
                 "success": True,
-                "deleted_count": result.get("deleted_count"),
-                "status": result.get("status"),
-                "message": result.get("message"),
+                "deleted_count": deleted,
+                "status": "ok",
+                "message": None,
             }
         )
-    except LambdaAPIError as e:
-        if _is_idempotent_noop_error(e):
+    except AdminGraphQLError as e:
+        msg = str(e).lower()
+        if "at least one filter" in msg or "no matching" in msg:
             return JsonResponse(
                 {
                     "success": True,
@@ -1535,9 +1613,9 @@ def logs_bulk_delete_view(request):
                     "message": "No matching logs to delete",
                 }
             )
-        return JsonResponse(
-            {"success": False, "error": str(e)}, status=getattr(e, "status_code", 500)
-        )
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    except ValueError as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
     except Exception as e:
         logger.exception("logs_bulk_delete_view")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -1546,10 +1624,10 @@ def logs_bulk_delete_view(request):
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 def log_update_view(request, log_id: str):
-    if not LOGS_API_ENABLED:
-        return JsonResponse(
-            {"success": False, "error": "Logs API is not enabled"}, status=400
-        )
+    """
+    PATCH log fields via ``admin.updateLog`` (SuperAdmin JWT).
+    @role:admin_or_super_admin
+    """
     try:
         body = json.loads(request.body) if request.body else {}
         message = body.get("message")
@@ -1559,13 +1637,14 @@ def log_update_view(request, log_id: str):
                 {"success": False, "error": "Provide at least message or context"},
                 status=400,
             )
-        client = LogsApiClient(request_id=_request_trace_id(request))
-        log = client.update_log(log_id=log_id, message=message, context=context)
-        return JsonResponse({"success": True, "data": log})
-    except LambdaAPIError as e:
-        return JsonResponse(
-            {"success": False, "error": str(e)}, status=getattr(e, "status_code", 500)
+        log = update_log_entry(
+            _token(request), log_id, message=message, context=context
         )
+        return JsonResponse({"success": True, "data": log})
+    except AdminGraphQLError as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    except ValueError as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
     except Exception as e:
         logger.exception("log_update_view")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -1574,6 +1653,7 @@ def log_update_view(request, log_id: str):
 @require_admin_or_super_admin
 @require_http_methods(["POST"])
 def job_retry_view(request, job_id: str):
+    """POST retry for one scheduler job. @role: admin_or_super_admin"""
     try:
         result = retry_job(_token(request), job_id)
         if result.get("idempotent"):
@@ -1597,6 +1677,11 @@ def job_retry_view(request, job_id: str):
 @require_super_admin
 @require_http_methods(["GET", "POST"])
 def billing_settings_view(request):
+    """
+    Payment instructions + QR upload (S3) and gateway ``admin`` payment setup.
+
+    @role: super_admin
+    """
     context = {
         "error": None,
         "success": None,
@@ -1650,3 +1735,173 @@ def billing_settings_view(request):
             context["settings"] = {}
 
     return render(request, "admin_ops/billing_settings.html", context)
+
+
+# ----- Cross-phase operator shortcuts (phases 2–4, 10, 11) -----------------
+
+
+@require_admin_or_super_admin
+def ops_email_jobs_view(request):
+    """Phase 2 — filter scheduler jobs to email satellite. @role:admin_or_super_admin"""
+    return redirect(f"{reverse('admin_ops:jobs')}?source=email_server")
+
+
+@require_admin_or_super_admin
+def ops_phone_jobs_view(request):
+    """Phase 2 — phone satellite jobs. @role:admin_or_super_admin"""
+    return redirect(f"{reverse('admin_ops:jobs')}?source=phone_server")
+
+
+@require_admin_or_super_admin
+def ops_connectra_jobs_view(request):
+    """Phase 3/4 — Connectra (sync.server) job rows. @role:admin_or_super_admin"""
+    return redirect(f"{reverse('admin_ops:jobs')}?source=sync_server")
+
+
+@require_admin_or_super_admin
+def ops_contacts_explorer_view(request):
+    """
+    Phase 3 — read-only contact list via gateway ``contacts.contacts`` (operator JWT).
+
+    Org context follows the logged-in operator token (no Connectra from Django).
+    TODO(phase-3): org switcher / impersonation when product supports it.
+    @role:admin_or_super_admin
+    """
+    token = _token(request)
+    limit = max(1, min(100, int(request.GET.get("limit", 25))))
+    offset = max(0, int(request.GET.get("offset", 0)))
+    items: List[Any] = []
+    total = 0
+    error: Optional[str] = None
+    if not token:
+        messages.error(request, "No gateway token in session; sign in again.")
+    else:
+        try:
+            data = get_contacts_page(token, limit=limit, offset=offset)
+            raw_items = data.get("items") or []
+            items = []
+            for c in raw_items:
+                if not isinstance(c, dict):
+                    continue
+                co = c.get("company")
+                co_name = ""
+                if isinstance(co, dict):
+                    co_name = str(co.get("name") or "")
+                items.append(
+                    {
+                        "uuid": c.get("uuid"),
+                        "firstName": c.get("firstName") or "",
+                        "lastName": c.get("lastName") or "",
+                        "email": c.get("email") or "",
+                        "title": c.get("title") or "",
+                        "company_name": co_name,
+                    }
+                )
+            total = int(data.get("total") or 0)
+        except AdminGraphQLError as exc:
+            error = str(exc)
+            messages.warning(request, error)
+        except Exception as exc:
+            error = str(exc)
+            messages.error(request, error)
+    prev_offset = max(0, offset - limit)
+    next_offset = offset + limit if offset + limit < total else None
+    return render(
+        request,
+        "admin_ops/ops_contacts.html",
+        {
+            "page_title": "Contacts explorer",
+            "contact_rows": items,
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "prev_offset": prev_offset,
+            "next_offset": next_offset,
+            "error": error,
+        },
+    )
+
+
+@require_admin_or_super_admin
+@require_http_methods(["GET", "POST"])
+def ops_campaign_cql_view(request):
+    """
+    Phase 10 — CQL parse/validate and template preview via ``campaignSatellite.*``.
+    @role:admin_or_super_admin
+    """
+    parse_out: Any = None
+    validate_out: Any = None
+    preview_out: Any = None
+    err: Optional[str] = None
+    token = _token(request)
+    if request.method == "POST" and token:
+        action = request.POST.get("action", "")
+        try:
+            if action == "parse":
+                parse_out = campaign_cql_parse(
+                    token,
+                    request.POST.get("cql_query", ""),
+                    request.POST.get("target") or None,
+                )
+            elif action == "validate":
+                validate_out = campaign_cql_validate(
+                    token, json.loads(request.POST.get("cql_json", "{}"))
+                )
+            elif action == "preview":
+                preview_out = campaign_render_template_preview(
+                    token,
+                    template_id=(request.POST.get("template_id") or "").strip(),
+                    first_name=request.POST.get("first_name", ""),
+                    last_name=request.POST.get("last_name", ""),
+                    email=request.POST.get("email", ""),
+                )
+        except AdminGraphQLError as exc:
+            err = str(exc)
+            messages.warning(request, err)
+        except json.JSONDecodeError as exc:
+            err = f"Invalid JSON: {exc}"
+            messages.error(request, err)
+        except Exception as exc:
+            err = str(exc)
+            messages.error(request, err)
+    elif request.method == "POST" and not token:
+        messages.error(request, "No gateway token in session.")
+    return render(
+        request,
+        "admin_ops/ops_campaign_cql.html",
+        {
+            "page_title": "Campaign CQL lab",
+            "parse_out": parse_out,
+            "validate_out": validate_out,
+            "preview_out": preview_out,
+            "error": err,
+        },
+    )
+
+
+@require_admin_or_super_admin
+def ops_leads_placeholder_view(request):
+    """Phase 11 — leads / recommendations admin (GraphQL TBD). @role:admin_or_super_admin"""
+    return render(
+        request,
+        "admin_ops/ops_placeholder.html",
+        {
+            "page_title": "Leads & recommendations (Phase 11)",
+            "heading": "Lead generation admin",
+            "body": (
+                "No leads / recommendation GraphQL module on the gateway yet. "
+                "Track in contact360.io/admin/TODO.md (Phase 11 — Lead generation)."
+            ),
+        },
+    )
+
+
+@require_admin_or_super_admin
+def ops_durgasflow_audit_view(request):
+    """
+    Phase 9 — execution history is local Django ORM (``durgasflow``); multi-tenant
+    read-only audit belongs on the gateway (see TODO.md Phase 9 and
+    docs/backend/endpoints/contact360.io/ADMIN-MODULE.md).
+    @role:admin_or_super_admin
+    """
+    return redirect("durgasflow:execution_list")

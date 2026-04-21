@@ -1,4 +1,8 @@
-"""Documentation Dashboard - Endpoints resource views."""
+"""
+Documentation dashboard — endpoint sub-routes (media manager, filters, stats).
+
+Every view uses ``@require_super_admin``; docstrings end with ``@role: super_admin``.
+"""
 
 from __future__ import annotations
 

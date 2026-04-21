@@ -244,8 +244,9 @@ class MediaManagerService(BaseService):
 
         Args:
             file_path: Path to the file to sync
-            direction: Sync direction ('to_lambda' for upload to S3, 'from_lambda' for download)
-                      Note: 'from_lambda' is not yet implemented
+            direction: Sync direction (``to_lambda`` upload to S3, ``from_lambda`` download).
+                ``from_lambda`` is not supported in this service; use gateway ``s3.*`` from the
+                product path or extend this service to call the gateway with operator JWT.
 
         Returns:
             Dictionary with:
@@ -262,7 +263,11 @@ class MediaManagerService(BaseService):
         if direction == "from_lambda":
             return {
                 "success": False,
-                "error": "Sync from Lambda/S3 not implemented yet",
+                "ok": False,
+                "error": (
+                    "from_lambda sync is not supported here; use gateway s3.* "
+                    "(see contact360.io/admin/TODO.md Phase 8)."
+                ),
             }
 
         if direction != "to_lambda":
@@ -279,8 +284,9 @@ class MediaManagerService(BaseService):
         Get aggregated sync statistics for all resource types.
 
         Returns a summary of file counts and sync status across all resource types.
-        Currently uses placeholder sync status (all files marked as 'not_synced').
-        Future enhancement: Implement real sync status checking.
+
+        **Sync state:** Rows are counted as ``not_synced`` until this service compares
+        local media hashes to gateway ``s3.*`` or satellite object metadata (Phase 8).
 
         Returns:
             Dictionary with:
@@ -320,7 +326,7 @@ class MediaManagerService(BaseService):
                 files = self.list_files(rt)
                 n = len(files)
                 total_files += n
-                # Placeholder: no real sync state (future enhancement)
+                # No remote comparison yet — treat all as not_synced (Phase 8).
                 total_not_synced += n
                 by_type[rt] = {
                     "total": n,

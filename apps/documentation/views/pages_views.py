@@ -1,4 +1,9 @@
-"""Views for page operations."""
+"""
+Documentation page HTML/API: detail, create/edit form, draft/save JSON.
+
+Uses ``require_super_admin`` or ``require_admin_or_super_admin`` per view; docstrings end with
+``@role: super_admin`` or ``@role: admin_or_super_admin`` matching the decorator.
+"""
 
 from __future__ import annotations
 

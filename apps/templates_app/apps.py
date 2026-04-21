@@ -1,3 +1,5 @@
+"""Django app config — templates index stub (Phase 0)."""
+
 from django.apps import AppConfig
 
 

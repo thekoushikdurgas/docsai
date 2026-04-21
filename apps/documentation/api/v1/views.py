@@ -1,5 +1,9 @@
 """
-REST API v1 — JSON endpoints (health, dashboard, stats).
+REST API v1 — DRF JSON endpoints (health, dashboard slices, GraphQL-backed stats).
+
+Health/service_info use ``AllowAny`` — ``@role: public``. Dashboard and ``endpoint_stats``
+use default DRF session auth when present — document as ``@role: authenticated`` (JWT/session
+optional depending on deployment).
 """
 
 import logging

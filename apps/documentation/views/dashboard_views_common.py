@@ -1,4 +1,8 @@
-"""Shared helpers and constants for documentation dashboard views."""
+"""
+Shared helpers and constants for documentation dashboard views (no HTTP handlers).
+
+Not a Django view module — no ``@role``.
+"""
 
 from __future__ import annotations
 

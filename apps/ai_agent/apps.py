@@ -1,3 +1,5 @@
+"""Phase 5 — AI chat UI (gateway ``aiChats.*``)."""
+
 from django.apps import AppConfig
 
 

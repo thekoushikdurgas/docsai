@@ -350,11 +350,12 @@ class MediaFileManagerService:
             }
 
     def get_file_sync_status(self, file_path: str) -> Dict[str, Any]:
-        """Return sync status for a file. Placeholder: local exists, remote unknown."""
+        """Return sync status for a file (local known; remote not probed here)."""
         meta = self.get_file_metadata(file_path)
+        local_ok = bool(meta and meta.get("exists"))
         return {
-            "status": "unknown",
-            "local_exists": bool(meta and meta.get("exists")),
+            "status": "local_only",
+            "local_exists": local_ok,
             "remote_exists": None,
             "hash_match": None,
             "sync_needed": None,

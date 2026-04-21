@@ -1,4 +1,8 @@
-"""Views for relationship operations."""
+"""
+Relationship HTML/API: detail, form, CRUD, delete.
+
+All routes use ``@require_super_admin`` unless noted; docstrings end with ``@role: super_admin``.
+"""
 
 from __future__ import annotations
 

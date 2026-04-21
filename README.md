@@ -49,3 +49,14 @@ Dashboard-style tokens and components live under [`static/admin/css/`](static/ad
 
 - **User app:** [contact360.io/app](../app/README.md) → `app.contact360.io`
 - **API gateway:** [contact360.io/api](../api/README.md) → `api.contact360.io`
+
+## Phase 8 note (storage)
+
+`page_builder` and `json_store` may call **s3storage.server** directly via env
+(`S3STORAGE_API_*`). Target architecture: proxy through the gateway only — see
+`docs/DECISIONS.md` (Admin UI policy) and `TODO.md`.
+
+**Optional:** set `ADMIN_STORAGE_VIA_GATEWAY=true` to delete objects via GraphQL
+`s3.deleteFile` (operator JWT). Uploads still use direct s3storage until a generic
+JSON upload exists on the gateway. Deletes fall back to the direct API if the gateway
+call fails (e.g. bucket mismatch vs operator tenant).

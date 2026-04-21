@@ -1,3 +1,5 @@
+"""URL routes for ``apps.analytics`` (dashboard)."""
+
 from django.urls import path
 from . import views
 

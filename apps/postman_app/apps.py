@@ -1,3 +1,5 @@
+"""Deprecated — use ``apps.durgasman``; kept for migrations/data only."""
+
 from django.apps import AppConfig
 
 

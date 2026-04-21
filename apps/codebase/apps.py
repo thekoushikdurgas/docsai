@@ -1,3 +1,5 @@
+"""Codebase scanner app (local UI; external scanner TBD)."""
+
 from django.apps import AppConfig
 
 

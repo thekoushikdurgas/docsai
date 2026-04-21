@@ -8,7 +8,13 @@ User = get_user_model()
 
 
 class OperationLog(models.Model):
-    """Model for tracking system operations."""
+    """
+    Reserved for Phase 6 long-running ops audit (persisted job/sync history).
+
+    Not yet wired from ``operations.views``. Future: correlate with gateway
+    ``jobs.*`` / ``admin.*`` mutations or a dedicated ``admin.auditLog``-style
+    read API — see ``contact360.io/admin/TODO.md`` (Phase 6 — Reliability).
+    """
 
     OPERATION_TYPE_CHOICES = [
         ("documentation_sync", "Documentation Sync"),

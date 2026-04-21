@@ -114,12 +114,17 @@
 {% endblock %} {% block extra_js %}
 <script>
   var sessionId = '{{ session_id|default:"" }}';
+  var streamUrl = '{% url "ai_agent:api_chat_stream" %}';
   function sendChat() {
     var input = document.getElementById("chatInput");
     var msg = input.value.trim();
     if (!msg) return;
     appendMsg("You", msg, "right");
     input.value = "";
+    if (sessionId) {
+      sendChatStream(msg);
+      return;
+    }
     fetch("{% url 'ai_agent:api_chat' %}", {
       method: "POST",
       headers: {
@@ -137,6 +142,47 @@
       .catch(function (e) {
         appendMsg("Error", String(e), "left");
       });
+  }
+  async function sendChatStream(msg) {
+    var decoder = new TextDecoder();
+    var acc = "";
+    var aiText = "";
+    try {
+      var r = await fetch(streamUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({ session_id: sessionId, content: msg }),
+      });
+      if (!r.ok || !r.body) {
+        appendMsg("AI", "Stream failed (" + r.status + ")", "left");
+        return;
+      }
+      var reader = r.body.getReader();
+      while (true) {
+        var chunk = await reader.read();
+        if (chunk.done) break;
+        acc += decoder.decode(chunk.value, { stream: true });
+        var parts = acc.split("\n");
+        acc = parts.pop() || "";
+        for (var i = 0; i < parts.length; i++) {
+          var line = parts[i].trim();
+          if (line.indexOf("data:") !== 0) continue;
+          var payload = line.slice(5).trim();
+          if (payload === "[DONE]") continue;
+          try {
+            var j = JSON.parse(payload);
+            if (j.text) aiText += j.text;
+            if (j.error) aiText += "\n[Error: " + j.error + "]";
+          } catch (e) {}
+        }
+      }
+      appendMsg("AI", aiText || "No response", "left");
+    } catch (e) {
+      appendMsg("Error", String(e), "left");
+    }
   }
   function appendMsg(sender, text, side) {
     var box = document.getElementById("chatMessages");

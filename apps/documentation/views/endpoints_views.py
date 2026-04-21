@@ -1,4 +1,8 @@
-"""Views for endpoint operations."""
+"""
+Endpoint HTML/API: detail, form, CRUD JSON, delete confirm.
+
+``@role:`` lines match ``require_super_admin`` / ``require_admin_or_super_admin`` on each view.
+"""
 
 from __future__ import annotations
 

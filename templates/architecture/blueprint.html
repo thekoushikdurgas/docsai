@@ -19,6 +19,8 @@
             <th>Type</th>
             <th>Host</th>
             <th>Tech</th>
+            <th>Live (gateway)</th>
+            <th>Probe detail</th>
           </tr>
         </thead>
         <tbody>
@@ -34,6 +36,15 @@
             >
               {{ svc.tech }}
             </td>
+            <td>
+              {% if svc.live_status == "not_probed" %}
+              <span class="badge badge-neutral">not probed</span>
+              {% else %}
+              <span class="badge {% if svc.live_status == 'ok' %}badge-success{% elif svc.live_status == 'skipped' %}badge-warning{% elif svc.live_status == 'error' %}badge-danger{% else %}badge-neutral{% endif %}">{{ svc.live_status }}</span>
+              {% if svc.satellite_key %}<code style="font-size: var(--text-xs); margin-left: 6px">{{ svc.satellite_key }}</code>{% endif %}
+              {% endif %}
+            </td>
+            <td style="font-size: var(--text-xs); max-width: 20rem">{{ svc.live_detail|default:"—" }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -74,5 +85,34 @@
       </table>
     </div>
   </div>
+  {% if phase_docs %}
+  <div class="card" style="grid-column: 1 / -1">
+    <div class="card-header">
+      <h2 class="card-title">Documentation phases (from repo docs/*/index.json)</h2>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Status</th>
+            <th>Sections</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in phase_docs %}
+          <tr>
+            <td style="font-size: var(--text-sm)">{{ p.title }}</td>
+            <td>
+              <span class="badge badge-neutral">{{ p.status|default:"—" }}</span>
+            </td>
+            <td>{{ p.sections_count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

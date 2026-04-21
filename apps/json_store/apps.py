@@ -1,3 +1,5 @@
+"""JSON document store (S3 + local metadata; optional gateway delete)."""
+
 from django.apps import AppConfig
 
 

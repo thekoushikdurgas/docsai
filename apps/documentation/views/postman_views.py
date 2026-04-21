@@ -1,4 +1,8 @@
-"""Views for Postman operations."""
+"""
+Postman config HTML: detail, form, delete (docs portal).
+
+``@require_super_admin`` — docstrings end with ``@role: super_admin``.
+"""
 
 from __future__ import annotations
 

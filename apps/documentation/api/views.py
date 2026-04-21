@@ -1,4 +1,9 @@
-"""API views for documentation app."""
+"""
+JSON API for documentation resources (``/api/v2/...`` and legacy aliases).
+
+All handlers use ``@require_super_admin``; backing services call gateway ``docs.*`` where wired.
+View docstrings end with ``@role: super_admin``.
+"""
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -22,7 +27,7 @@ from apps.documentation.utils.list_projectors import (
 @require_super_admin
 @require_http_methods(["GET"])
 def pages_list_api(request):
-    """API endpoint to list pages."""
+    """API endpoint to list pages. @role: super_admin"""
     service = get_pages_service()
     result = service.list_pages(
         page_type=request.GET.get("page_type"),
@@ -44,6 +49,8 @@ def pages_api(request):
     """
     Unified API endpoint for pages list (GET) and create (POST).
     Handles: GET /api/v2/pages/ (list) and POST /api/v2/pages/ (create)
+
+    @role: super_admin
     """
     if request.method == "GET":
         return pages_list_api(request)
@@ -61,6 +68,8 @@ def page_api(request, page_id):
     """
     Unified API endpoint for page detail (GET), update (PUT/PATCH), and delete (DELETE).
     Handles: GET, PUT, PATCH, DELETE /api/v2/pages/<page_id>/
+
+    @role: super_admin
     """
     if request.method == "GET":
         return pages_detail_api(request, page_id)
@@ -77,7 +86,7 @@ def page_api(request, page_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def pages_detail_api(request, page_id):
-    """API endpoint to get single page."""
+    """API endpoint to get single page. @role: super_admin"""
     service = PagesService()
     page = service.get_page(page_id)
     if page:
@@ -89,7 +98,7 @@ def pages_detail_api(request, page_id):
 @require_http_methods(["POST"])
 @csrf_exempt
 def pages_create_api(request):
-    """API endpoint to create page."""
+    """API endpoint to create page. @role: super_admin"""
     try:
         data = json.loads(request.body)
         service = get_pages_service()
@@ -109,7 +118,7 @@ def pages_create_api(request):
 @require_http_methods(["PUT", "PATCH"])
 @csrf_exempt
 def pages_update_api(request, page_id):
-    """API endpoint to update page."""
+    """API endpoint to update page. @role: super_admin"""
     try:
         data = json.loads(request.body)
         service = get_pages_service()
@@ -129,7 +138,7 @@ def pages_update_api(request, page_id):
 @require_http_methods(["DELETE"])
 @csrf_exempt
 def pages_delete_api(request, page_id):
-    """API endpoint to delete page."""
+    """API endpoint to delete page. @role: super_admin"""
     service = get_pages_service()
     success = service.delete_page(page_id)
     if success:
@@ -148,6 +157,8 @@ def endpoints_api(request):
     """
     Unified API endpoint for endpoints list (GET) and create (POST).
     Handles: GET /api/v2/endpoints/ (list) and POST /api/v2/endpoints/ (create)
+
+    @role: super_admin
     """
     if request.method == "GET":
         return endpoints_list_api(request)
@@ -165,6 +176,8 @@ def endpoint_api(request, endpoint_id):
     """
     Unified API endpoint for endpoint detail (GET), update (PUT/PATCH), and delete (DELETE).
     Handles: GET, PUT, PATCH, DELETE /api/v2/endpoints/<endpoint_id>/
+
+    @role: super_admin
     """
     if request.method == "GET":
         return endpoints_detail_api(request, endpoint_id)
@@ -184,7 +197,7 @@ def endpoint_api(request, endpoint_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def endpoints_list_api(request):
-    """API endpoint to list endpoints."""
+    """API endpoint to list endpoints. @role: super_admin"""
     service = EndpointsService()
     result = service.list_endpoints(
         method=request.GET.get("method"),
@@ -202,7 +215,7 @@ def endpoints_list_api(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def endpoints_detail_api(request, endpoint_id):
-    """API endpoint to get single endpoint."""
+    """API endpoint to get single endpoint. @role: super_admin"""
     service = get_endpoints_service()
     endpoint = service.get_endpoint(endpoint_id)
     if endpoint:
@@ -214,7 +227,7 @@ def endpoints_detail_api(request, endpoint_id):
 @require_http_methods(["POST"])
 @csrf_exempt
 def endpoints_create_api(request):
-    """API endpoint to create endpoint."""
+    """API endpoint to create endpoint. @role: super_admin"""
     try:
         data = json.loads(request.body)
         service = EndpointsService()
@@ -232,7 +245,7 @@ def endpoints_create_api(request):
 @require_http_methods(["PUT", "PATCH"])
 @csrf_exempt
 def endpoints_update_api(request, endpoint_id):
-    """API endpoint to update endpoint."""
+    """API endpoint to update endpoint. @role: super_admin"""
     try:
         data = json.loads(request.body)
         service = get_endpoints_service()
@@ -251,7 +264,7 @@ def endpoints_update_api(request, endpoint_id):
 @require_http_methods(["DELETE"])
 @csrf_exempt
 def endpoints_delete_api(request, endpoint_id):
-    """API endpoint to delete endpoint."""
+    """API endpoint to delete endpoint. @role: super_admin"""
     service = get_endpoints_service()
     success = service.delete_endpoint(endpoint_id)
     if success:
@@ -270,6 +283,8 @@ def relationships_api(request):
     """
     Unified API endpoint for relationships list (GET) and create (POST).
     Handles: GET /api/v2/relationships/ (list) and POST /api/v2/relationships/ (create)
+
+    @role: super_admin
     """
     if request.method == "GET":
         return relationships_list_api(request)
@@ -287,6 +302,8 @@ def relationship_api(request, relationship_id):
     """
     Unified API endpoint for relationship detail (GET) and delete (DELETE).
     Handles: GET, DELETE /api/v2/relationships/<relationship_id>/
+
+    @role: super_admin
     """
     if request.method == "GET":
         return relationships_detail_api(request, relationship_id)
@@ -304,7 +321,7 @@ def relationship_api(request, relationship_id):
 @require_super_admin
 @require_http_methods(["GET"])
 def relationships_list_api(request):
-    """API endpoint to list relationships."""
+    """API endpoint to list relationships. @role: super_admin"""
     service = RelationshipsService()
     result = service.list_relationships(
         page_id=request.GET.get("page_id"),
@@ -323,7 +340,7 @@ def relationships_list_api(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def relationships_detail_api(request, relationship_id):
-    """API endpoint to get single relationship."""
+    """API endpoint to get single relationship. @role: super_admin"""
     service = get_relationships_service()
     relationship = service.get_relationship(relationship_id)
     if relationship:
@@ -337,7 +354,7 @@ def relationships_detail_api(request, relationship_id):
 @require_http_methods(["POST"])
 @csrf_exempt
 def relationships_create_api(request):
-    """API endpoint to create relationship."""
+    """API endpoint to create relationship. @role: super_admin"""
     try:
         data = json.loads(request.body)
         service = RelationshipsService()
@@ -355,7 +372,7 @@ def relationships_create_api(request):
 @require_http_methods(["DELETE"])
 @csrf_exempt
 def relationships_delete_api(request, relationship_id):
-    """API endpoint to delete relationship."""
+    """API endpoint to delete relationship. @role: super_admin"""
     service = get_relationships_service()
     success = service.delete_relationship(relationship_id)
     if success:
@@ -377,6 +394,8 @@ def schemas_api(request, resource_type=None):
     Handles: GET /docs/api/schemas/ or GET /docs/api/schemas/{resource_type}/
 
     Resource types: pages, endpoints, relationships, postman
+
+    @role: super_admin
     """
     schema_service = SchemaService()
 

@@ -1,3 +1,5 @@
+"""Documentation relationship graph (``docs.relationships``)."""
+
 from django.apps import AppConfig
 
 

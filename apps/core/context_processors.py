@@ -1,5 +1,7 @@
 """
-Global context processors for DocsAI admin.
+Global context processors for DocsAI admin (sidebar menu, not HTTP views).
+
+Template context only — no ``@role`` (see per-view docstrings in URL handlers).
 """
 
 import copy

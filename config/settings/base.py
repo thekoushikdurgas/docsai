@@ -172,6 +172,16 @@ LOGS_API_URL = config("LOGS_API_URL", default="")
 LOGS_API_KEY = config("LOGS_API_KEY", default="")
 S3STORAGE_API_URL = config("S3STORAGE_API_URL", default="")
 S3STORAGE_API_KEY = config("S3STORAGE_API_KEY", default="")
+# When True, prefer gateway ``s3.deleteFile`` for JSON store / page builder deletes (operator JWT).
+# Uploads still use direct s3storage until a generic JSON upload exists on ``s3.*``.
+ADMIN_STORAGE_VIA_GATEWAY = config(
+    "ADMIN_STORAGE_VIA_GATEWAY", default=False, cast=bool
+)
+# Optional CSV of allowed request hosts for Durgasman (e.g. ``api.stripe.com,.mycompany.com``).
+# Empty = only SSRF blocks (private IPs, non-http(s), etc.). See ``durgasman.services.url_guard``.
+DURGASMAN_ALLOWED_REQUEST_HOSTS = config(
+    "DURGASMAN_ALLOWED_REQUEST_HOSTS", default="", cast=Csv()
+)
 SCHEDULER_URL = config("SCHEDULER_URL", default="")
 AI_API_URL = config("AI_API_URL", default="")
 AI_API_KEY = config("AI_API_KEY", default="")

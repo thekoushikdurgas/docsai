@@ -80,7 +80,7 @@
         <summary class="header-profile-pill">
           <span
             >Hello,
-            <strong>{{ operator.name|default:operator.email|truncatechars:24 }}</strong></span
+            <strong>{% if operator.name %}{{ operator.name|truncatechars:24 }}{% elif operator.email %}{{ operator.email|truncatechars:24 }}{% else %}Operator{% endif %}</strong></span
           >
           <span class="header-avatar" aria-hidden="true"
             >{{ operator.name|first|upper|default:"A" }}</span

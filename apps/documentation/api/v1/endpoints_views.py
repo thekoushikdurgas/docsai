@@ -1,7 +1,10 @@
 """
-Endpoints API v1 - Lambda-parity GET endpoints (28 routes).
+Endpoints API v1 — Lambda-parity GET JSON (28 routes).
 
-Static routes before parameterized {endpoint_id}, {api_version}, {method}, {state}, {service_name}.
+Unauthenticated at Django layer (optional gateway token via ``get_adapter``). Convention:
+``@role: public`` for read-only JSON.
+
+Static routes are registered before parameterized ``{endpoint_id}``, ``{api_version}``, etc.
 """
 
 from __future__ import annotations

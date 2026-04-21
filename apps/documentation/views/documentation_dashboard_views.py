@@ -1,4 +1,5 @@
-"""Documentation Dashboard views - facade module.
+"""
+Documentation Dashboard views — facade module.
 
 Implementation is split into:
 - dashboard_views_common: Shared helpers (validate_tab, render_resource_view, etc.)
@@ -8,6 +9,7 @@ Implementation is split into:
 - dashboard_postman_views: Postman resource views
 
 This module re-exports all media_manager_* views for urls.py compatibility.
+All exported views use ``@require_super_admin``; docstrings end with ``@role: super_admin``.
 """
 
 from __future__ import annotations

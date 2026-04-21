@@ -1,4 +1,8 @@
-"""Documentation views."""
+"""
+HTML documentation CRUD (legacy page flows). Backed by ``get_pages_service()`` → gateway ``docs.*`` / storage.
+
+All views use ``@require_super_admin``. Docstrings end with ``@role: super_admin``.
+"""
 
 import logging
 from django.shortcuts import render, redirect
@@ -14,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @require_super_admin
 def list_pages_view(request):
-    """List all documentation pages."""
+    """List all documentation pages (paginated). @role: super_admin"""
     try:
         from django.core.paginator import Paginator
 
@@ -77,7 +81,7 @@ def list_pages_view(request):
 
 @require_super_admin
 def get_page_view(request, page_id):
-    """Get single documentation page."""
+    """Get single documentation page. @role: super_admin"""
     service = get_pages_service()
     page = service.get_page(page_id)
     if not page:
@@ -96,7 +100,7 @@ def get_page_view(request, page_id):
 
 @require_super_admin
 def create_page_view(request):
-    """Create new documentation page."""
+    """Create new documentation page. @role: super_admin"""
     if request.method == "POST":
         try:
             # Validate required fields
@@ -138,7 +142,7 @@ def create_page_view(request):
 
 @require_super_admin
 def update_page_view(request, page_id):
-    """Update documentation page."""
+    """Update documentation page. @role: super_admin"""
     if not page_id:
         messages.error(request, "Invalid page ID.")
         return redirect("documentation:dashboard")
@@ -208,7 +212,7 @@ def _safe_redirect_url(request, default_name="documentation:dashboard"):
 
 @require_super_admin
 def delete_page_view(request, page_id):
-    """Delete documentation page."""
+    """Delete documentation page (confirm POST). @role: super_admin"""
     if not page_id:
         messages.error(request, "Invalid page ID.")
         return redirect(_safe_redirect_url(request))

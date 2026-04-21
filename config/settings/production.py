@@ -54,7 +54,8 @@ LOGGING["root"]["level"] = "INFO"  # noqa: F405
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-# GraphQL-only auth in production (local staff fallback is for dev / break-glass only)
+# GraphQL-only auth in production: keep ``false`` so operators use gateway JWT only.
+# Set ``true`` only for local break-glass with Django staff (see docs/DECISIONS.md RLS / SuperAdmin).
 AUTH_FALLBACK_LOCAL = os.getenv("AUTH_FALLBACK_LOCAL", "false").lower() == "true"
 
 if SENTRY_DSN:  # noqa: F405

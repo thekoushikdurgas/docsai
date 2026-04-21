@@ -1,7 +1,9 @@
-"""Durgasman views — Postman-compatible collection and environment manager.
+"""
+Durgasman views — Postman-compatible collections/environments (Phase 8).
 
-Replaces postman_app.views.  All models, services, and templates live under
-the 'durgasman' namespace.
+Local ORM + s3storage JSON; HTTP send proxy. All UI/API views use
+``@require_super_admin``; docstrings end with ``@role: super_admin``.
+Replaces ``postman_app``; templates/models under the ``durgasman`` namespace.
 """
 
 from __future__ import annotations
@@ -12,8 +14,9 @@ import logging
 import uuid
 
 from django.conf import settings
+from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
@@ -54,6 +57,7 @@ def _count_requests(items: list) -> int:
 @require_super_admin
 @require_http_methods(["GET"])
 def dashboard(request):
+    """Collections and environments summary. @role: super_admin"""
     collections = list(
         DurgasmanCollection.objects.values(
             "id", "name", "description", "item_count", "request_count", "uploaded_at"
@@ -80,8 +84,43 @@ def dashboard(request):
 
 
 @require_super_admin
+@require_http_methods(["GET", "POST"])
+def import_collection_page(request):
+    """
+    HTML import form; POST delegates to :func:`upload_collection_view`.
+
+    @role: super_admin
+    """
+    if request.method == "POST":
+        resp = upload_collection_view(request)
+        try:
+            payload = json.loads(resp.content.decode())
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            messages.error(request, "Import failed (invalid response).")
+            return render(
+                request,
+                "durgasman/import.html",
+                {"page_title": "Import collection"},
+            )
+        if resp.status_code >= 400 or not payload.get("success"):
+            messages.error(request, payload.get("error") or "Import failed.")
+        else:
+            messages.success(
+                request,
+                f"Imported collection: {payload.get('name', 'OK')}",
+            )
+            return redirect("durgasman:dashboard")
+    return render(
+        request,
+        "durgasman/import.html",
+        {"page_title": "Import collection"},
+    )
+
+
+@require_super_admin
 @require_http_methods(["GET"])
 def upload_view(request):
+    """Upload collection/environment shell. @role: super_admin"""
     collections = list(
         DurgasmanCollection.objects.values(
             "id", "name", "item_count", "request_count", "uploaded_at"
@@ -108,7 +147,11 @@ def upload_view(request):
 @require_super_admin
 @require_http_methods(["POST"])
 def upload_collection_view(request):
-    """Upload a Postman collection JSON file to S3, save metadata to DB."""
+    """
+    Upload a Postman collection JSON file to S3, save metadata to DB.
+
+    @role: super_admin
+    """
     if not S3STORAGE_ENABLED:
         return JsonResponse(
             {"success": False, "error": "S3 storage not configured."}, status=400
@@ -186,7 +229,11 @@ def upload_collection_view(request):
 @require_super_admin
 @require_http_methods(["POST"])
 def upload_environment_view(request):
-    """Upload a Postman environment JSON file."""
+    """
+    Upload a Postman environment JSON file.
+
+    @role: super_admin
+    """
     if not S3STORAGE_ENABLED:
         return JsonResponse(
             {"success": False, "error": "S3 storage not configured."}, status=400
@@ -263,6 +310,7 @@ def upload_environment_view(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def collections_list_view(request):
+    """JSON list of collections. @role: super_admin"""
     cols = list(
         DurgasmanCollection.objects.values(
             "id",
@@ -284,7 +332,11 @@ def collections_list_view(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def collection_json_view(request, col_id: int):
-    """Return full collection JSON fetched from S3."""
+    """
+    Return full collection JSON fetched from S3.
+
+    @role: super_admin
+    """
     col = get_object_or_404(DurgasmanCollection, pk=col_id)
     try:
         client = _s3_client()
@@ -310,6 +362,7 @@ def collection_json_view(request, col_id: int):
 @require_super_admin
 @require_http_methods(["POST"])
 def collection_delete_view(request, col_id: int):
+    """Delete collection row + S3 object. @role: super_admin"""
     col = get_object_or_404(DurgasmanCollection, pk=col_id)
     try:
         _s3_client()._request(
@@ -327,6 +380,7 @@ def collection_delete_view(request, col_id: int):
 @require_super_admin
 @require_http_methods(["GET"])
 def environments_list_view(request):
+    """JSON list of environments. @role: super_admin"""
     envs = list(
         DurgasmanEnvironment.objects.values(
             "id", "name", "variable_count", "uploaded_at"
@@ -342,7 +396,11 @@ def environments_list_view(request):
 @require_super_admin
 @require_http_methods(["GET"])
 def environment_json_view(request, env_id: int):
-    """Return full environment JSON fetched from S3."""
+    """
+    Return full environment JSON fetched from S3.
+
+    @role: super_admin
+    """
     env = get_object_or_404(DurgasmanEnvironment, pk=env_id)
     try:
         client = _s3_client()
@@ -368,6 +426,7 @@ def environment_json_view(request, env_id: int):
 @require_super_admin
 @require_http_methods(["POST"])
 def environment_delete_view(request, env_id: int):
+    """Delete environment row + S3 object. @role: super_admin"""
     env = get_object_or_404(DurgasmanEnvironment, pk=env_id)
     try:
         _s3_client()._request(
@@ -385,7 +444,11 @@ def environment_delete_view(request, env_id: int):
 @require_super_admin
 @require_http_methods(["POST"])
 def send_request_view(request):
-    """Proxy an HTTP request from the browser through the admin backend."""
+    """
+    Proxy an HTTP request from the browser through the admin backend.
+
+    @role: super_admin
+    """
     try:
         payload = json.loads(request.body)
     except (json.JSONDecodeError, Exception):
@@ -410,12 +473,16 @@ def send_request_view(request):
     return JsonResponse(result)
 
 
-# ─── Legacy API stubs (kept for JS API compatibility) ─────────────────────────
+# ─── DEPRECATED: legacy JSON endpoints (kept for old JS clients) ──────────────
 
 
 @require_super_admin
 def api_collections(request):
-    """JSON list — delegates to collections_list_view for GET."""
+    """
+    JSON list — delegates to collections_list_view for GET.
+
+    @role: super_admin
+    """
     if request.method == "GET":
         return collections_list_view(request)
     return JsonResponse({"success": False, "error": "Use GET"}, status=405)
@@ -423,6 +490,7 @@ def api_collections(request):
 
 @require_super_admin
 def api_environments(request):
+    """Legacy JSON — delegates to environments list. @role: super_admin"""
     if request.method == "GET":
         return environments_list_view(request)
     return JsonResponse({"success": False, "error": "Use GET"}, status=405)
@@ -430,13 +498,28 @@ def api_environments(request):
 
 @require_super_admin
 def api_history(request):
+    """Stub history for old clients. @role: super_admin"""
     return JsonResponse({"success": True, "items": []})
 
 
 @require_super_admin
 def api_analyze_response(request):
+    """
+    Deprecated analyze hook; use ``/durgasman/send/`` or execute API.
+
+    @role: super_admin
+    """
     try:
         json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
-    return JsonResponse({"success": True, "analysis": "stub"})
+    resp = JsonResponse(
+        {
+            "success": True,
+            "analysis": None,
+            "deprecated": True,
+            "successor": "/durgasman/send/",
+        }
+    )
+    resp["Deprecation"] = "true"
+    return resp

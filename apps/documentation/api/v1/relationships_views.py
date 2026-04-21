@@ -1,5 +1,7 @@
 """
-Relationships API v1 - Lambda-parity GET endpoints (38 routes).
+Relationships API v1 — Lambda-parity GET JSON (38 routes).
+
+Read-only handlers use ``get_adapter``; convention ``@role: public`` at Django layer.
 """
 
 from __future__ import annotations
@@ -362,7 +364,7 @@ def relationships_by_state_count(request: HttpRequest, state: str) -> JsonRespon
         return JsonResponse({"detail": str(e)}, status=500)
 
 
-# by-lambda, by-invocation-pattern, by-postman-config (stub filter)
+# by-lambda, by-invocation-pattern, by-postman-config (filter dimensions)
 @require_http_methods(["GET"])
 def relationships_by_lambda(request: HttpRequest, service_name: str) -> JsonResponse:
     try:

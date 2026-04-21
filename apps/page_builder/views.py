@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
+from apps.admin_ops.services.admin_client import gateway_s3_delete_file
 from apps.admin_ops.services.s3storage_client import S3StorageClient
 from apps.core.decorators import require_login
 from apps.core.exceptions import LambdaAPIError
@@ -92,6 +93,7 @@ def _json_doc_key_for_page(page_id: str) -> str:
 @require_login
 @require_http_methods(["GET"])
 def dashboard_view(request):
+    """List uploaded page specs (local ORM). @role: authenticated"""
     specs = list(
         PageSpec.objects.values(
             "id",
@@ -135,7 +137,11 @@ def dashboard_view(request):
 @require_login
 @require_http_methods(["GET"])
 def upload_page_view(request):
-    """Dedicated upload page (sidebar link)."""
+    """
+    Dedicated upload page (sidebar link).
+
+    @role: authenticated
+    """
     return render(
         request,
         "page_builder/upload.html",
@@ -150,6 +156,11 @@ def upload_page_view(request):
 @require_login
 @require_http_methods(["POST"])
 def upload_view(request):
+    """
+    Upload ``page_spec`` JSON to S3 and upsert ``PageSpec`` + ``JsonDocument``.
+
+    @role: authenticated
+    """
     if not S3STORAGE_ENABLED:
         return JsonResponse(
             {"success": False, "error": "S3 storage is not configured."}, status=400
@@ -268,6 +279,7 @@ def upload_view(request):
 @require_login
 @require_http_methods(["GET"])
 def editor_view(request, spec_id: int):
+    """Section editor shell for one spec. @role: authenticated"""
     spec = get_object_or_404(PageSpec, pk=spec_id)
     return render(
         request,
@@ -284,6 +296,7 @@ def editor_view(request, spec_id: int):
 @require_login
 @require_http_methods(["GET"])
 def page_spec_json_view(request, spec_id: int):
+    """JSON API: full page_spec from S3 with optional section overrides. @role: authenticated"""
     spec = get_object_or_404(PageSpec, pk=spec_id)
     try:
         client = _s3_client()
@@ -317,6 +330,7 @@ def page_spec_json_view(request, spec_id: int):
 @require_login
 @require_http_methods(["POST"])
 def save_sections_view(request, spec_id: int):
+    """Persist ``sections_override`` for a spec. @role: authenticated"""
     spec = get_object_or_404(PageSpec, pk=spec_id)
     try:
         payload = json.loads(request.body)
@@ -338,13 +352,33 @@ def save_sections_view(request, spec_id: int):
 @require_login
 @require_http_methods(["POST"])
 def delete_view(request, spec_id: int):
+    """
+    Delete spec + linked ``JsonDocument``; S3 via gateway or direct API.
+
+    @role: authenticated
+    """
     spec = get_object_or_404(PageSpec, pk=spec_id)
     jd_key = _json_doc_key_for_page(spec.page_id)
-    try:
-        client = _s3_client()
-        client._request("DELETE", "/api/v1/objects", params={"key": spec.full_s3_key})
-    except Exception as exc:
-        logger.warning("page_builder delete S3: %s", exc)
+    gateway_ok = False
+    if getattr(settings, "ADMIN_STORAGE_VIA_GATEWAY", False):
+        tok = (request.session.get("operator") or {}).get("token")
+        if tok:
+            try:
+                gateway_s3_delete_file(tok, spec.s3_file_key)
+                gateway_ok = True
+            except Exception as exc:
+                logger.warning(
+                    "page_builder gateway s3.deleteFile failed, trying direct API: %s",
+                    exc,
+                )
+    if not gateway_ok:
+        try:
+            client = _s3_client()
+            client._request(
+                "DELETE", "/api/v1/objects", params={"key": spec.full_s3_key}
+            )
+        except Exception as exc:
+            logger.warning("page_builder delete S3: %s", exc)
     JsonDocument.objects.filter(key=jd_key).delete()
     spec.delete()
     return JsonResponse({"success": True})
@@ -353,6 +387,7 @@ def delete_view(request, spec_id: int):
 @require_login
 @require_http_methods(["GET"])
 def api_list_view(request):
+    """JSON list of page specs (summary fields). @role: authenticated"""
     specs = list(
         PageSpec.objects.values(
             "id",

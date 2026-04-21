@@ -1,6 +1,12 @@
 """
 Admin operations service client.
-Bridges to GraphQL gateway + logs.api + s3storage.server.
+
+Primary path: ``POST /graphql`` on the gateway (``admin.*``, ``billing.*``, ``jobs.*``).
+Logs are **only** via ``admin.logs`` / ``admin.updateLog`` / ``admin.deleteLogsBulk`` —
+not direct ``log.server`` from Django (see ``docs/backend/endpoints/contact360.io/ADMIN-MODULE.md``).
+
+**Phase 8 exception:** S3 list/presign/delete still uses ``S3STORAGE_API_URL`` + API key from
+Django until an ``admin.*`` storage resolver exists; avoid expanding direct satellite calls.
 """
 
 import json
@@ -206,6 +212,79 @@ query AdminPaymentSubmissions($status: String, $limit: Int, $offset: Int) {
 }
 """
 
+_ADMIN_LOG_STATISTICS = """
+query AdminLogStatistics($timeRange: String!) {
+  admin {
+    logStatistics(timeRange: $timeRange) {
+      timeRange
+      totalLogs
+      errorRate
+      avgResponseTimeMs
+      slowQueriesCount
+      performanceTrends {
+        time
+        avgDurationMs
+        p95DurationMs
+        slowQueriesCount
+      }
+    }
+  }
+}
+"""
+
+_HEALTH_PERFORMANCE_STATS = """
+query HealthPerformanceStats {
+  health {
+    performanceStats {
+      cache {
+        enabled
+        useRedis
+        hits
+        misses
+        hitRate
+        size
+        maxSize
+      }
+      slowQueries {
+        thresholdMs
+        countLastHour
+      }
+      database {
+        status
+        poolSize
+        activeConnections
+        idleConnections
+      }
+      s3 {
+        status
+        bucket
+        region
+        message
+        error
+      }
+      endpointPerformance {
+        totalRequests
+        averageResponseTimeMs
+        p95ResponseTimeMs
+        p99ResponseTimeMs
+        slowEndpoints {
+          endpoint
+          averageTimeMs
+          requestCount
+        }
+      }
+      tokenBlacklistCleanup {
+        lastReason
+        lastRemovedCount
+        lastRunStatus
+        lastError
+        cleanupIntervalSeconds
+      }
+    }
+  }
+}
+"""
+
 _ADMIN_LOGS = """
 query AdminLogs($filters: LogQueryFilterInput) {
   admin {
@@ -235,6 +314,30 @@ _ADMIN_DELETE_LOG = """
 mutation AdminDeleteLog($input: DeleteLogInput!) {
   admin {
     deleteLog(input: $input)
+  }
+}
+"""
+
+_ADMIN_UPDATE_LOG = """
+mutation AdminUpdateLog($input: UpdateLogInput!) {
+  admin {
+    updateLog(input: $input) {
+      id
+      timestamp
+      level
+      logger
+      message
+    }
+  }
+}
+"""
+
+_ADMIN_DELETE_LOGS_BULK = """
+mutation AdminDeleteLogsBulk($input: DeleteLogsBulkInput!) {
+  admin {
+    deleteLogsBulk(input: $input) {
+      deletedCount
+    }
   }
 }
 """
@@ -350,6 +453,10 @@ def _normalize_job_detail(j: Dict[str, Any]) -> Dict[str, Any]:
 def get_users(
     token: str, filters: Optional[Dict] = None, limit: int = 25, offset: int = 0
 ) -> Dict:
+    """
+    Paginated directory from ``admin.users``; ``filters`` maps to ``UserFilterInput``
+    (limit/offset merged here).
+    """
     # Gateway expects limit/offset inside UserFilterInput, not as separate users(...) arguments.
     merged = dict(filters or {})
     merged["limit"] = limit
@@ -385,6 +492,7 @@ def find_admin_user(token: str, user_id: str) -> Optional[Dict[str, Any]]:
 
 
 def get_user_stats(token: str) -> Dict:
+    """Aggregates from ``admin.userStats`` (totals, ``usersByRole``, ``usersByPlan``)."""
     resp = graphql_query(_ADMIN_USER_STATS, token=token)
     stats = _admin(resp).get("userStats")
     return stats if isinstance(stats, dict) else {}
@@ -426,6 +534,7 @@ def adjust_credits(token: str, user_id: str, amount: int, reason: str) -> Dict:
 
 
 def update_user_role(token: str, user_id: str, role: str) -> Dict[str, Any]:
+    """``admin.updateUserRole`` — sets gateway profile role."""
     try:
         resp = graphql_mutation(
             _UPDATE_USER_ROLE,
@@ -441,6 +550,7 @@ def update_user_role(token: str, user_id: str, role: str) -> Dict[str, Any]:
 
 
 def delete_user_account(token: str, user_id: str) -> Dict[str, Any]:
+    """``admin.deleteUser``."""
     try:
         resp = graphql_mutation(
             _DELETE_USER, {"input": {"userId": user_id}}, token=token
@@ -454,6 +564,7 @@ def delete_user_account(token: str, user_id: str) -> Dict[str, Any]:
 
 
 def promote_to_admin(token: str, user_id: str) -> Dict[str, Any]:
+    """``admin.promoteToAdmin``."""
     try:
         resp = graphql_mutation(
             _PROMOTE_TO_ADMIN, {"input": {"userId": user_id}}, token=token
@@ -467,6 +578,7 @@ def promote_to_admin(token: str, user_id: str) -> Dict[str, Any]:
 
 
 def promote_to_super_admin(token: str, user_id: str) -> Dict[str, Any]:
+    """``admin.promoteToSuperAdmin``."""
     try:
         resp = graphql_mutation(
             _PROMOTE_TO_SUPER_ADMIN,
@@ -506,6 +618,7 @@ def get_pending_payments(
 
 
 def approve_payment(token: str, submission_id: str) -> Dict:
+    """``billing.approvePayment``."""
     resp = graphql_mutation(
         _APPROVE_PAYMENT, {"submissionId": submission_id}, token=token
     )
@@ -515,6 +628,7 @@ def approve_payment(token: str, submission_id: str) -> Dict:
 
 
 def decline_payment(token: str, submission_id: str, reason: str) -> Dict:
+    """``billing.declinePayment``."""
     resp = graphql_mutation(
         _DECLINE_PAYMENT, {"submissionId": submission_id, "reason": reason}, token=token
     )
@@ -558,6 +672,7 @@ def get_jobs(
 
 
 def get_job_detail(token: str, job_id: str) -> Optional[Dict]:
+    """Single scheduler job via ``jobs.job`` (normalized detail)."""
     resp = graphql_query(_JOB_DETAIL, {"jobId": job_id}, token=token)
     _raise_if_graphql_errors(resp)
     job = _jobs_root(resp).get("job")
@@ -567,6 +682,7 @@ def get_job_detail(token: str, job_id: str) -> Optional[Dict]:
 
 
 def retry_job(token: str, job_id: str) -> Dict:
+    """``jobs.retryJob`` — idempotent retry envelope."""
     resp = graphql_mutation(_RETRY_JOB, {"input": {"jobId": job_id}}, token=token)
     _raise_if_graphql_errors(resp)
     out = _jobs_root(resp).get("retryJob")
@@ -904,6 +1020,7 @@ def billing_create_plan(
     periods: List[Dict[str, Any]],
     is_active: bool = True,
 ) -> Dict[str, Any]:
+    """``billing.createPlan``."""
     input_obj: Dict[str, Any] = {
         "tier": tier.strip(),
         "name": name.strip(),
@@ -924,6 +1041,7 @@ def billing_update_plan(
     category: Optional[str] = None,
     is_active: Optional[bool] = None,
 ) -> Dict[str, Any]:
+    """``billing.updatePlan``."""
     input_obj: Dict[str, Any] = {}
     if name is not None:
         input_obj["name"] = name.strip()
@@ -939,6 +1057,7 @@ def billing_update_plan(
 
 
 def billing_delete_plan(token: str, tier: str) -> Dict[str, Any]:
+    """``billing.deletePlan``."""
     resp = graphql_mutation(_BILLING_DELETE_PLAN, {"tier": tier}, token=token)
     _raise_if_graphql_errors(resp)
     return _billing_root(resp).get("deletePlan") or {}
@@ -947,6 +1066,7 @@ def billing_delete_plan(token: str, tier: str) -> Dict[str, Any]:
 def billing_create_plan_period(
     token: str, tier: str, period_row: Dict[str, Any]
 ) -> Dict[str, Any]:
+    """``billing.createPlanPeriod``."""
     resp = graphql_mutation(
         _BILLING_CREATE_PLAN_PERIOD,
         {"tier": tier, "input": _period_row_gql(period_row)},
@@ -984,6 +1104,7 @@ def billing_update_plan_period(
 
 
 def billing_delete_plan_period(token: str, tier: str, period: str) -> Dict[str, Any]:
+    """``billing.deletePlanPeriod``."""
     resp = graphql_mutation(
         _BILLING_DELETE_PLAN_PERIOD,
         {"tier": tier, "period": period},
@@ -1003,6 +1124,7 @@ def billing_create_addon(
     price: float,
     is_active: bool = True,
 ) -> Dict[str, Any]:
+    """``billing.createAddon``."""
     input_obj = {
         "id": package_id.strip(),
         "name": name.strip(),
@@ -1026,6 +1148,7 @@ def billing_update_addon(
     price: Optional[float] = None,
     is_active: Optional[bool] = None,
 ) -> Dict[str, Any]:
+    """``billing.updateAddon``."""
     inp: Dict[str, Any] = {}
     if name is not None:
         inp["name"] = name.strip()
@@ -1047,6 +1170,7 @@ def billing_update_addon(
 
 
 def billing_delete_addon(token: str, package_id: str) -> Dict[str, Any]:
+    """``billing.deleteAddon``."""
     resp = graphql_mutation(
         _BILLING_DELETE_ADDON, {"packageId": package_id}, token=token
     )
@@ -1055,6 +1179,7 @@ def billing_delete_addon(token: str, package_id: str) -> Dict[str, Any]:
 
 
 def get_payment_instructions(token: str) -> Optional[Dict]:
+    """``billing.paymentInstructions`` query."""
     try:
         resp = graphql_query(_PAYMENT_INSTRUCTIONS_Q, token=token)
     except Exception as exc:
@@ -1066,6 +1191,7 @@ def get_payment_instructions(token: str) -> Optional[Dict]:
 
 
 def update_payment_instructions(token: str, input_data: Dict[str, Any]) -> Dict:
+    """``billing.updatePaymentInstructions`` mutation."""
     try:
         resp = graphql_mutation(
             _UPDATE_PAYMENT_INSTRUCTIONS_M, {"input": input_data}, token=token
@@ -1078,6 +1204,29 @@ def update_payment_instructions(token: str, input_data: Dict[str, Any]) -> Dict:
 
 
 # ===== Logs (gateway → log.server via LogsServerClient) =====
+
+
+def get_log_statistics(token: str, time_range: str = "24h") -> Dict[str, Any]:
+    """``admin.logStatistics`` (SuperAdmin). ``time_range``: 1h, 24h, 7d, 30d."""
+    resp = graphql_query(_ADMIN_LOG_STATISTICS, {"timeRange": time_range}, token=token)
+    _raise_if_graphql_errors(resp)
+    raw = _admin(resp).get("logStatistics")
+    return raw if isinstance(raw, dict) else {}
+
+
+def get_health_performance_stats(token: str) -> Dict[str, Any]:
+    """``health.performanceStats`` (SuperAdmin) — gateway SLO / pool metrics."""
+    try:
+        resp = graphql_query(_HEALTH_PERFORMANCE_STATS, token=token)
+        _raise_if_graphql_errors(resp)
+        h = _graphql_data(resp).get("health")
+        if not isinstance(h, dict):
+            return {}
+        raw = h.get("performanceStats")
+        return raw if isinstance(raw, dict) else {}
+    except Exception as exc:
+        logger.warning("get_health_performance_stats failed: %s", exc)
+        return {}
 
 
 def get_logs(
@@ -1145,6 +1294,69 @@ def delete_log(token: str, log_id: str) -> bool:
         return False
 
 
+def update_log_entry(
+    token: str,
+    log_id: str,
+    *,
+    message: Optional[str] = None,
+    context: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """
+    Patch one log via ``admin.updateLog`` (SuperAdmin). ``message`` and/or ``context`` required.
+    """
+    inp: Dict[str, Any] = {"logId": str(log_id)}
+    if message is not None:
+        inp["message"] = message
+    if context is not None:
+        inp["context"] = context
+    if len(inp) <= 1:
+        raise ValueError("At least one of message or context is required")
+    resp = graphql_mutation(_ADMIN_UPDATE_LOG, {"input": inp}, token=token)
+    _raise_if_graphql_errors(resp)
+    row = _admin(resp).get("updateLog")
+    return row if isinstance(row, dict) else {}
+
+
+def delete_logs_bulk(
+    token: str,
+    *,
+    level: Optional[str] = None,
+    logger_name: Optional[str] = None,
+    user_id: Optional[str] = None,
+    request_id: Optional[str] = None,
+    start_time: Optional[str] = None,
+    end_time: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Bulk delete via ``admin.deleteLogsBulk`` (SuperAdmin). At least one filter required by gateway.
+    ``start_time`` / ``end_time`` should be ISO-8601 strings (UTC).
+    """
+    inp: Dict[str, Any] = {}
+    if level:
+        inp["level"] = level
+    if logger_name:
+        inp["logger"] = logger_name
+    if user_id:
+        inp["userId"] = user_id
+    if request_id:
+        inp["requestId"] = request_id
+    if start_time:
+        inp["startTime"] = start_time
+    if end_time:
+        inp["endTime"] = end_time
+    if not inp:
+        raise ValueError("At least one filter is required for bulk log deletion")
+    resp = graphql_mutation(_ADMIN_DELETE_LOGS_BULK, {"input": inp}, token=token)
+    _raise_if_graphql_errors(resp)
+    raw = _admin(resp).get("deleteLogsBulk")
+    if isinstance(raw, dict):
+        dc = raw.get("deletedCount")
+        if dc is None:
+            dc = raw.get("deleted_count")
+        return {"deleted_count": int(dc) if dc is not None else 0}
+    return {"deleted_count": 0}
+
+
 # ===== S3 Storage =====
 
 
@@ -1201,6 +1413,7 @@ def get_storage_artifacts(
 
 
 def get_download_url(key: str) -> Optional[str]:
+    """Presigned download URL from s3storage ``GET .../objects/presign-download`` (direct HTTP)."""
     root = _s3_api_root()
     if not root:
         return None
@@ -1222,6 +1435,7 @@ def get_download_url(key: str) -> Optional[str]:
 
 
 def delete_storage_artifact(key: str) -> bool:
+    """Delete object via s3storage ``DELETE .../objects`` (direct HTTP; not gateway ``s3.*``)."""
     root = _s3_api_root()
     if not root:
         return False
@@ -1319,6 +1533,317 @@ query AdminSatelliteHealth {
 """
 
 
+_API_METADATA_QUERY = """
+query AdminApiMetadata {
+  health {
+    apiMetadata {
+      name
+      version
+      docs
+      buildSha
+      gitRef
+    }
+  }
+}
+"""
+
+_OPS_CONTACTS_LIST = """
+query OpsContactsList($query: VQLQueryInput) {
+  contacts {
+    contacts(query: $query) {
+      items {
+        uuid
+        firstName
+        lastName
+        email
+        title
+        company { name }
+      }
+      total
+      limit
+      offset
+    }
+  }
+}
+"""
+
+_CAMPAIGN_CQL_PARSE = """
+query CampaignCqlParse($query: String!, $target: String) {
+  campaignSatellite {
+    cqlParse(query: $query, target: $target)
+  }
+}
+"""
+
+_CAMPAIGN_CQL_VALIDATE = """
+query CampaignCqlValidate($cql: JSON!) {
+  campaignSatellite {
+    cqlValidate(cql: $cql)
+  }
+}
+"""
+
+_CAMPAIGN_TEMPLATE_PREVIEW = """
+query CampaignTemplatePreview(
+  $templateId: String!
+  $firstName: String!
+  $lastName: String!
+  $email: String!
+) {
+  campaignSatellite {
+    renderTemplatePreview(
+      templateId: $templateId
+      firstName: $firstName
+      lastName: $lastName
+      email: $email
+    )
+  }
+}
+"""
+
+
+def get_api_metadata(token: Optional[str] = None) -> Dict[str, Any]:
+    """Gateway ``health.apiMetadata`` (build name / version / docs link)."""
+    try:
+        resp = graphql_query(_API_METADATA_QUERY, token=token or None)
+        _raise_if_graphql_errors(resp)
+        health = _graphql_data(resp).get("health")
+        if not isinstance(health, dict):
+            return {}
+        meta = health.get("apiMetadata")
+        return meta if isinstance(meta, dict) else {}
+    except Exception as exc:
+        logger.warning("get_api_metadata failed: %s", exc)
+        return {}
+
+
+def get_contacts_page(
+    token: str,
+    *,
+    limit: int = 25,
+    offset: int = 0,
+    query: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Operator-scoped contact list via ``contacts.contacts`` (Connectra-backed on gateway).
+
+    ``query`` is merged into ``VQLQueryInput`` (limit/offset applied if not set).
+    """
+    vql: Dict[str, Any] = dict(query or {})
+    vql.setdefault("limit", limit)
+    vql.setdefault("offset", offset)
+    resp = graphql_query(_OPS_CONTACTS_LIST, {"query": vql}, token=token)
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("contacts")
+    if not isinstance(root, dict):
+        return {"items": [], "total": 0, "limit": limit, "offset": offset}
+    block = root.get("contacts")
+    if not isinstance(block, dict):
+        return {"items": [], "total": 0, "limit": limit, "offset": offset}
+    items = block.get("items")
+    if not isinstance(items, list):
+        items = []
+    return {
+        "items": items,
+        "total": int(block.get("total") or 0),
+        "limit": int(block.get("limit") or limit),
+        "offset": int(block.get("offset") or offset),
+    }
+
+
+def campaign_cql_parse(token: str, query: str, target: Optional[str] = None) -> Any:
+    """``campaignSatellite.cqlParse`` — returns JSON payload from campaign service."""
+    variables: Dict[str, Any] = {"query": query, "target": target}
+    resp = graphql_query(_CAMPAIGN_CQL_PARSE, variables, token=token)
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("campaignSatellite")
+    if isinstance(root, dict):
+        return root.get("cqlParse")
+    return None
+
+
+def campaign_cql_validate(token: str, cql: Dict[str, Any]) -> Any:
+    """``campaignSatellite.cqlValidate``."""
+    resp = graphql_query(_CAMPAIGN_CQL_VALIDATE, {"cql": cql}, token=token)
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("campaignSatellite")
+    if isinstance(root, dict):
+        return root.get("cqlValidate")
+    return None
+
+
+_S3_DELETE_FILE = """
+mutation GatewayS3Delete($fileKey: String!) {
+  s3 {
+    deleteFile(fileKey: $fileKey)
+  }
+}
+"""
+
+
+def gateway_s3_delete_file(token: str, file_key: str) -> bool:
+    """
+    Delete an object via gateway ``s3.deleteFile`` using the operator JWT.
+
+    The gateway resolves the bucket from the authenticated user; keys must match
+    objects uploaded under that tenant. If admin uploads used a different bucket id,
+    keep ``ADMIN_STORAGE_VIA_GATEWAY`` off or fall back to direct s3storage delete.
+    """
+    key = (file_key or "").strip()
+    if not key:
+        raise ValueError("file_key is required")
+    resp = graphql_mutation(_S3_DELETE_FILE, {"fileKey": key}, token=token)
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("s3")
+    if isinstance(root, dict):
+        return bool(root.get("deleteFile"))
+    return False
+
+
+_KNOWLEDGE_ARTICLES = """
+query KnowledgeArticles($limit: Int!, $offset: Int!) {
+  knowledge {
+    articles(limit: $limit, offset: $offset) {
+      id
+      title
+      body
+      tags
+      createdByUserId
+      createdAt
+      updatedAt
+    }
+  }
+}
+"""
+
+_KNOWLEDGE_CREATE = """
+mutation KnowledgeCreate($input: CreateKnowledgeArticleInput!) {
+  knowledge {
+    createArticle(input: $input) {
+      id
+      title
+      body
+      tags
+      createdAt
+      updatedAt
+    }
+  }
+}
+"""
+
+_KNOWLEDGE_UPDATE = """
+mutation KnowledgeUpdate($input: UpdateKnowledgeArticleInput!) {
+  knowledge {
+    updateArticle(input: $input) {
+      id
+      title
+      body
+      tags
+      createdAt
+      updatedAt
+    }
+  }
+}
+"""
+
+_KNOWLEDGE_DELETE = """
+mutation KnowledgeDelete($articleId: ID!) {
+  knowledge {
+    deleteArticle(articleId: $articleId)
+  }
+}
+"""
+
+
+def list_knowledge_articles(
+    token: str, *, limit: int = 50, offset: int = 0
+) -> List[Dict[str, Any]]:
+    """``knowledge.articles`` (SuperAdmin gateway)."""
+    resp = graphql_query(
+        _KNOWLEDGE_ARTICLES, {"limit": limit, "offset": offset}, token=token
+    )
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("knowledge")
+    if not isinstance(root, dict):
+        return []
+    items = root.get("articles")
+    return items if isinstance(items, list) else []
+
+
+def create_knowledge_article(
+    token: str, *, title: str, body: str, tags: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """``knowledge.createArticle``."""
+    inp: Dict[str, Any] = {"title": title, "body": body}
+    if tags is not None:
+        inp["tags"] = tags
+    resp = graphql_mutation(_KNOWLEDGE_CREATE, {"input": inp}, token=token)
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("knowledge")
+    if isinstance(root, dict) and isinstance(root.get("createArticle"), dict):
+        return root["createArticle"]
+    return {}
+
+
+def update_knowledge_article(
+    token: str,
+    *,
+    article_id: str,
+    title: Optional[str] = None,
+    body: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """``knowledge.updateArticle``."""
+    inp: Dict[str, Any] = {"articleId": article_id}
+    if title is not None:
+        inp["title"] = title
+    if body is not None:
+        inp["body"] = body
+    if tags is not None:
+        inp["tags"] = tags
+    resp = graphql_mutation(_KNOWLEDGE_UPDATE, {"input": inp}, token=token)
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("knowledge")
+    if isinstance(root, dict) and isinstance(root.get("updateArticle"), dict):
+        return root["updateArticle"]
+    return {}
+
+
+def delete_knowledge_article(token: str, *, article_id: str) -> bool:
+    """``knowledge.deleteArticle``."""
+    resp = graphql_mutation(
+        _KNOWLEDGE_DELETE, {"articleId": article_id}, token=token
+    )
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("knowledge")
+    if isinstance(root, dict):
+        return bool(root.get("deleteArticle"))
+    return False
+
+
+def campaign_render_template_preview(
+    token: str,
+    *,
+    template_id: str,
+    first_name: str = "",
+    last_name: str = "",
+    email: str = "",
+) -> Any:
+    """``campaignSatellite.renderTemplatePreview``."""
+    variables = {
+        "templateId": template_id,
+        "firstName": first_name,
+        "lastName": last_name,
+        "email": email,
+    }
+    resp = graphql_query(_CAMPAIGN_TEMPLATE_PREVIEW, variables, token=token)
+    _raise_if_graphql_errors(resp)
+    root = _graphql_data(resp).get("campaignSatellite")
+    if isinstance(root, dict):
+        return root.get("renderTemplatePreview")
+    return None
+
+
 def get_gateway_satellite_health(token: str) -> List[Dict[str, Any]]:
     """
     Gateway GraphQL ``health.satelliteHealth`` — authenticated pings of configured satellites
@@ -1365,14 +1890,14 @@ def get_system_health() -> List[Dict]:
 
     jobs_root = (settings.SCHEDULER_URL or "").strip()
 
+    # Omit raw s3storage / logs HTTP rows when ``health.satelliteHealth`` is shown in the
+    # same page — those satellites appear there with gateway-held keys.
     specs = [
         ("GraphQL Gateway", "gateway", _graphql_health_url()),
         ("Connectra (Sync)", "sync", _health_url(connectra)),
         ("Email Server", "email", _optional_full_or_base_health(email_srv)),
         ("Phone Server", "phone", _optional_full_or_base_health(phone_srv)),
         ("Jobs", "jobs", _health_url(jobs_root)),
-        ("S3 Storage", "s3storage", _health_url(settings.S3STORAGE_API_URL or "")),
-        ("Logs API", "logs", _health_url(settings.LOGS_API_URL or "")),
         ("Contact AI", "ai", _health_url(settings.AI_API_URL or "")),
         ("Extension Server", "extension", _health_url(extension)),
         (

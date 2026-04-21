@@ -7,48 +7,155 @@
     <p class="page-subtitle">User growth, credit burn, job throughput</p>
   </div>
 </div>
+{% if observability_error %}
 <div class="card">
-  {% include "components/alert.html" with type="info" message="Analytics
-  aggregates from GraphQL gateway and Logs API. Configure upstream services to
-  populate data." %}
+  {% include "components/alert.html" with type="warning" message=observability_error %}
 </div>
-<div class="c360-chart-grid">
-  <div class="card">
-    <div class="card-header"><h2 class="card-title">User Growth</h2></div>
-    <div class="card-body">
-      <canvas
-        id="userGrowthChart"
-        height="250"
-        aria-label="User growth chart"
-      ></canvas>
+{% endif %}
+<div
+  class="card card-body"
+  style="
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  "
+>
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-muted)">
+      Users (total)
+    </div>
+    <div style="font-size: var(--text-xl); font-weight: 600">
+      {% firstof user_stats.totalUsers user_stats.total_users "—" %}
     </div>
   </div>
-  <div class="card">
-    <div class="card-header"><h2 class="card-title">Job Throughput</h2></div>
-    <div class="card-body">
-      <canvas
-        id="jobChart"
-        height="250"
-        aria-label="Job throughput chart"
-      ></canvas>
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-muted)">
+      Active users
+    </div>
+    <div style="font-size: var(--text-xl); font-weight: 600">
+      {% firstof user_stats.activeUsers user_stats.active_users "—" %}
     </div>
   </div>
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-muted)">
+      Logs (24h)
+    </div>
+    <div style="font-size: var(--text-xl); font-weight: 600">
+      {% firstof log_stats.totalLogs log_stats.total_logs "—" %}
+    </div>
+  </div>
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-muted)">
+      Error rate
+    </div>
+    <div style="font-size: var(--text-xl); font-weight: 600">
+      {% firstof log_stats.errorRate log_stats.error_rate "—" %}
+    </div>
+  </div>
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-muted)">
+      Satellites probed
+    </div>
+    <div style="font-size: var(--text-xl); font-weight: 600">
+      {{ satellite_health|length }}
+    </div>
+  </div>
+  {% if perf_stats.cache %}
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-muted)">
+      Cache hit rate
+    </div>
+    <div style="font-size: var(--text-xl); font-weight: 600">
+      {% firstof perf_stats.cache.hitRate perf_stats.cache.hit_rate "—" %}
+    </div>
+  </div>
+  {% endif %}
+  {% if perf_stats.database %}
+  <div>
+    <div style="font-size: var(--text-xs); color: var(--color-text-muted)">
+      DB pool (active)
+    </div>
+    <div style="font-size: var(--text-xl); font-weight: 600">
+      {% firstof perf_stats.database.activeConnections perf_stats.database.active_connections "—" %}
+    </div>
+  </div>
+  {% endif %}
 </div>
-{% endblock %} {% block extra_js %}
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Satellite health</h2></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in satellite_health %}
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>
+            <span class="badge badge-neutral">{{ row.status }}</span>
+          </td>
+          <td style="font-size: var(--text-xs)">{{ row.detail|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="table-empty">No data (sign in as SuperAdmin).</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if perf_trends %}
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Log performance trend (from admin.logStatistics)</h2></div>
+  <div class="card-body">
+    {{ perf_trends|json_script_tag:"perfTrendsData" }}
+    <canvas
+      id="perfTrendChart"
+      style="max-height: 280px"
+      aria-label="Performance trend chart"
+    ></canvas>
+  </div>
+</div>
+{% endif %}
+<div class="card">
+  {% include "components/alert.html" with type="info" message="Additional SLO tiles use health.performanceStats (gateway SuperAdmin). Extend charts as new time-bucket series land on GraphQL." %}
+</div>
 <script src="{% static 'admin/vendor/chartjs/chart.umd.min.js' %}"></script>
 <script src="{% static 'admin/js/charts.js' %}"></script>
 <script>
-  initLineChart(
-    "userGrowthChart",
-    ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    [120, 145, 160, 180, 210, 250],
-    "Users",
-  );
-  initBarChart(
-    "jobChart",
-    ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    [42, 65, 88, 72, 95, 34, 21],
-    "Jobs",
-  );
+  (function () {
+    var raw = document.getElementById("perfTrendsData");
+    if (!raw) return;
+    var pt = JSON.parse(raw.textContent);
+    if (!pt || !pt.length) return;
+    var labels = [];
+    var vals = [];
+    pt.forEach(function (row) {
+      var t = row.time || row.Time || "";
+      labels.push(t.length > 19 ? t.slice(0, 16) : t);
+      var v =
+        row.avgDurationMs != null
+          ? row.avgDurationMs
+          : row.avg_duration_ms != null
+            ? row.avg_duration_ms
+            : 0;
+      vals.push(Number(v) || 0);
+    });
+    if (typeof window.initLineChart === "function") {
+      window.initLineChart(
+        "perfTrendChart",
+        labels,
+        vals,
+        "Avg duration (ms)"
+      );
+    }
+  })();
 </script>
 {% endblock %}

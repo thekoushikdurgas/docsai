@@ -1,4 +1,8 @@
-"""Documentation Dashboard - Relationships resource views."""
+"""
+Documentation dashboard — relationship sub-routes (media manager, filters).
+
+Every view uses ``@require_super_admin``; docstrings end with ``@role: super_admin``.
+"""
 
 from __future__ import annotations
 

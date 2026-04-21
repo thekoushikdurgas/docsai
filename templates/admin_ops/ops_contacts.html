@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ page_title }}</h1>
+    <p class="page-subtitle">
+      Read-only list from gateway <code>contacts.contacts</code> using your operator JWT
+      (Connectra is reached only by the gateway).
+    </p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'operations:index' %}" class="btn btn-outline">Operations</a>
+  </div>
+</div>
+
+{% if error %}
+{% include "components/alert.html" with type="warning" message=error %}
+{% endif %}
+
+<div class="card" style="margin-bottom: var(--space-4)">
+  <div class="card-header"><h2 class="card-title">Pagination</h2></div>
+  <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center">
+    <span class="text-muted">Total: <strong>{{ total }}</strong></span>
+    {% if offset > 0 %}
+    <a class="btn btn-sm btn-outline" href="?limit={{ limit }}&offset={{ prev_offset }}">Previous</a>
+    {% endif %}
+    {% if next_offset is not None %}
+    <a class="btn btn-sm btn-outline" href="?limit={{ limit }}&offset={{ next_offset }}">Next</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table" aria-label="Contacts">
+      <thead>
+        <tr>
+          <th>UUID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Title</th>
+          <th>Company</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in contact_rows %}
+        <tr>
+          <td><code style="font-size: var(--text-xs)">{{ row.uuid }}</code></td>
+          <td>{{ row.firstName|default:"" }} {{ row.lastName|default:"" }}</td>
+          <td>{{ row.email|default:"—" }}</td>
+          <td>{{ row.title|default:"—" }}</td>
+          <td>{{ row.company_name|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="table-empty">No contacts returned (empty tenant or error above).</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

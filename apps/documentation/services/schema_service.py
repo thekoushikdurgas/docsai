@@ -1,6 +1,11 @@
-"""Schema service - DEPRECATED: Schema fetching from Lambda API removed."""
+"""Schema service — deprecated (Lambda schema fetch removed; cache-only).
+
+Prefer gateway-backed documentation types where possible. Instantiating
+:class:`SchemaService` emits :class:`DeprecationWarning`.
+"""
 
 import logging
+import warnings
 from typing import Optional, Dict, Any
 from django.conf import settings
 from apps.documentation.utils.schema_cache import SchemaCache
@@ -16,7 +21,12 @@ class SchemaService:
     """
 
     def __init__(self):
-        """Initialize schema service."""
+        """Initialize schema service (cache-only; see module docstring)."""
+        warnings.warn(
+            "SchemaService(): cache-only schema access; Lambda fetch removed.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.cache = SchemaCache()
         self.schema_version = getattr(settings, "LAMBDA_SCHEMA_VERSION", None)
 
