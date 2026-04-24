@@ -10,7 +10,7 @@
 - **Security:** `SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`, `TRUSTED_HOSTS`, `ALLOWED_ORIGINS`
 - **DB:** `DATABASE_URL` or `POSTGRES_*`
 - **GraphQL guards:** `GRAPHQL_*`, `IDEMPOTENCY_*`, `MUTATION_ABUSE_GUARD_RPM`, `ABUSE_GUARD_BACKEND`, etc.
-- **Satellites:** `CONNECTRA_*`, `EMAIL_SERVER_*`, `PHONE_SERVER_*`, `AI_SERVER_*`, `S3STORAGE_SERVER_*`, `LOGS_SERVER_*`, `CAMPAIGN_*`, `SALES_NAVIGATOR_*`, `DOCSAI_*`, `RESUME_AI_*`
+- **Satellites:** `CONNECTRA_*`, `EMAIL_SERVER_*`, `PHONE_SERVER_*`, `AI_SERVER_*`, `S3STORAGE_SERVER_*`, `LOGS_SERVER_*`, `CAMPAIGN_*`, `SALES_NAVIGATOR_*`, `JOB_SERVER_*`, `PROXY_SERVER_*`, `DOCSAI_*`, `RESUME_AI_*`
 
 Production validation: `validate_production_security_requirements` in `app/core/config.py` (strict CORS/hosts, postgres backends, required URLs/keys including campaign when configured).
 

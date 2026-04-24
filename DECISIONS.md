@@ -95,6 +95,16 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Observability:** `GET /health` pings Postgres + Redis; `X-Request-ID` on responses.
 - **Events:** No outbound webhooks documented — poll **`GET /jobs/:id/status`** for async jobs.
 
+## Hiring signal (`EC2/job.server`) — Apify + Mongo + Connectra
+
+- **Language:** Go, Gin; **module:** `github.com/thekoushikdurgas/job.server` (Git remote [`job.server`](https://github.com/thekoushikdurgas/job.server)).
+- **Stores:** **MongoDB** for `linkedin_job` and `apify_run`; **Redis** for Asynq and scrape locks; no Postgres in this service.
+- **Workers:** [`cmd/worker`](../EC2/job.server/cmd/worker/main.go) — Asynq consumers + **`robfig/cron`** to enqueue daily scrapes (`SCRAPE_CRON_*`, default **`Asia/Kolkata`**).
+- **Ingest:** **Apify** actor runs; dataset items mapped into job documents; optional **Connectra** batch company/contact upserts when **`CONNECTRA_*`** is set.
+- **Auth:** **`X-API-Key`** = `API_KEY`; gateway uses **`JOB_SERVER_API_URL`**, **`JOB_SERVER_API_KEY`**, **`JOB_SERVER_API_TIMEOUT`** ([`JobServerClient`](../contact360.io/api/app/clients/job_server_client.py)). Dev may omit `API_KEY` on the server when `APP_ENV=development` and `API_KEY` is empty.
+- **Observability:** **`GET /health`** (Mongo + Redis); **`X-Request-ID`** on responses — see [`backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md`](backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
+- **Product surface:** Gateway GraphQL **`hireSignal`**; dashboard route **`/hiring-signals`**. **Events:** see [`EVENTS-BOUNDARY.md`](backend/endpoints/job.server/EVENTS-BOUNDARY.md).
+
 ## Storage satellite (`EC2/s3storage.server`) — S3 + Redis + Asynq
 
 - **Language:** Go (Gin); **module:** `contact360.io/s3storage` (optional rename vs Git remote `storage.server` — see [`docs/backend/endpoints/s3storage.server/MODULE-OPTIONAL.md`](backend/endpoints/s3storage.server/MODULE-OPTIONAL.md)).
@@ -145,10 +155,21 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Gateway:** **`CAMPAIGN_API_URL`** / **`CAMPAIGN_API_KEY`** ([`CampaignServiceClient`](../contact360.io/api/app/clients/campaign_service_client.py)).
 - **Events:** Inbound HTTP + Redis-backed Asynq only — see [`EVENTS-BOUNDARY.md`](backend/endpoints/campaign.server/EVENTS-BOUNDARY.md).
 
+## Proxy pool satellite (`unihost/proxy.server`)
+
+- **Language:** Go (Gin); **module:** `contact360.io/proxy` — Git remote [`proxy.server.git`](https://github.com/thekoushikdurgas/proxy.server.git).
+- **Role:** Manages a **SOCKS5 proxy pool** (rotation, cooldown, throttle, health) and bridges verification to **Reacher** (`EC2/reacher.email`): `POST /v0/check_email` with per-request `proxy` in JSON body.
+- **HTTP:** `GET /health`, `GET /health/ready`; **`/api/v1/*`** REST with **`X-API-Key`** (`API_KEY`) — see [`ROUTES.md`](backend/endpoints/proxy.server/ROUTES.md), [`AUTH-ENV.md`](backend/endpoints/proxy.server/AUTH-ENV.md).
+- **Default port:** **8888** (e.g. `http://54.38.26.4:8888`).
+- **Workers:** `proxyserver jobs` — **Asynq**; **`WORKER_CONCURRENCY`** (default **10**); queues `proxy_health`, `proxy_rotate`, `verify_email`, `verify_bulk`, `default`.
+- **Stores:** Postgres (`proxy_ips`, `proxy_jobs`, `proxy_metrics`, `proxy_events`, `verify_results`); Redis for Asynq + cooldown + per-IP rate limits.
+- **Upstream:** **`REACHER_BASE_URL`** / optional **`REACHER_SECRET`** (`x-reacher-secret`); satellites and gateway use **`PROXY_SERVER_API_URL`** / **`PROXY_SERVER_API_KEY`** when a `ProxyServerClient` is added to the gateway.
+- **Events:** Inbound HTTP + Asynq only — see [`EVENTS-BOUNDARY.md`](backend/endpoints/proxy.server/EVENTS-BOUNDARY.md).
+
 ## API Gateway (`contact360.io/api`)
 
 - **Language / stack:** Python 3.11, **FastAPI**, **Strawberry GraphQL** (`POST /graphql`), **SQLAlchemy async** + **Alembic** for the gateway Postgres schema.
-- **Auth:** JWT access tokens in GraphQL context; satellites use **`X-API-Key`** from env (`CONNECTRA_*`, `EMAIL_*`, `PHONE_*`, `AI_*`, `S3STORAGE_*`, `LOGS_*`, `CAMPAIGN_*`, `SALES_NAVIGATOR_*`, …).
+- **Auth:** JWT access tokens in GraphQL context; satellites use **`X-API-Key`** from env (`CONNECTRA_*`, `EMAIL_*`, `PHONE_*`, `AI_*`, `S3STORAGE_*`, `LOGS_*`, `CAMPAIGN_*`, `SALES_NAVIGATOR_*`, `PROXY_SERVER_*`, …).
 - **Middleware (outermost first on request):** CORS → TrustedHost → ProxyHeaders → GraphQL rate limit → mutation abuse guard → idempotency → body size → trace/request IDs → timing → RED metrics → GZip (see `app/main.py` comment block).
 - **Multi-channel:** GraphQL **`phone`** module proxies **phone.server** (parallel to **`email`**). **`campaignSatellite`** + **`campaigns`** mutations proxy **campaign.server** (incl. CQL parse/validate + template preview).
 - **Health:** **`health.satelliteHealth`** runs best-effort **`GET /health`** (or s3storage/logs-specific probes) across configured satellites.
@@ -177,4 +198,4 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 
 ---
 
-*Last updated: 2026-04-21 (admin UI policy; ADMIN-MODULE link; prior: 2026-04-19 governance, Connectra batch-upsert, extension SaveProfilesResponse)*
+*Last updated: 2026-04-24 (proxy.server satellite, Reacher bridge; prior: 2026-04-21 admin UI policy)*

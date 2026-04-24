@@ -1,6 +1,6 @@
 # Deployment matrix (ECS-first)
 
-**Owner:** platform · **Last reviewed:** 2026-04-21  
+**Owner:** platform · **Last reviewed:** 2026-04-24  
 **Anchor:** [`DECISIONS.md`](DECISIONS.md) § ECS vs EKS — **default ECS Fargate** for stateless services; EC2 hosts satellites listed below.
 
 This matrix maps **product components** → **repository / artifact** → **runtime** → **primary env vars** (see each service `AUTH-ENV.md`). Keep in sync with [`backend/endpoints/contact360.io/SATELLITE-PARITY.md`](backend/endpoints/contact360.io/SATELLITE-PARITY.md).
@@ -18,6 +18,8 @@ This matrix maps **product components** → **repository / artifact** → **runt
 | **campaign.server** | `EC2/campaign.server` | Go binary + worker | EC2 | `CAMPAIGN_API_KEY` |
 | **s3storage.server** | `EC2/s3storage.server` | Go binary + worker | EC2 | `S3STORAGE_SERVER_API_KEY` |
 | **log.server** | `EC2/log.server` | Go binary + worker | EC2 | `LOGS_SERVER_API_KEY` |
+| **job.server** (Hiring signal) | `EC2/job.server` | Go API + `cmd/worker` | **EC2** (Mongo + Redis) | `JOB_SERVER_API_KEY` |
+| **proxy.server** | `unihost/proxy.server` | Go binary + worker | EC2 / unihost | `PROXY_SERVER_API_KEY` |
 | **Chrome extension** | `contact360.io/extension` (or root extension pkg) | `.zip` Chrome Web Store | Client | JWT to gateway |
 
 ### CI → release

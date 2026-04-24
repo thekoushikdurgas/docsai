@@ -16,7 +16,7 @@ Any PR that changes an **external contract** must update [`DECISIONS.md`](DECISI
 After changing a satellite’s routes or env:
 
 1. Update the service’s `ROUTES.md` / `AUTH-ENV.md` under `docs/backend/endpoints/<service>/`.
-2. Refresh [`backend/endpoints/contact360.io/SATELLITE-PARITY.md`](backend/endpoints/contact360.io/SATELLITE-PARITY.md) and the affected satellite’s `GATEWAY-PARITY.md` (when present under `docs/backend/endpoints/<service>/`) if GraphQL mapping to that service changes.
+2. Refresh [`backend/endpoints/contact360.io/SATELLITE-PARITY.md`](backend/endpoints/contact360.io/SATELLITE-PARITY.md) and the affected satellite’s `GATEWAY-PARITY.md` (when present under `docs/backend/endpoints/<service>/`) if GraphQL mapping to that service changes. For **proxy.server** (REST-only today), update [`backend/endpoints/proxy.server/GATEWAY-PARITY.md`](backend/endpoints/proxy.server/GATEWAY-PARITY.md) when a `ProxyServerClient` or `satelliteHealth` row is added.
 
 ## VQL triple sync
 

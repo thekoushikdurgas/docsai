@@ -1,0 +1,150 @@
+{
+  "info": {
+    "name": "EC2 job.server (Contact360)",
+    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Same routes as [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py).\n\n**Base URL**: `{{base_url}}` (default `http://localhost:9900`).\n\n**Auth**: `X-API-Key` = satellite `API_KEY` (gateway: `JOB_SERVER_API_KEY`) when the server is configured; health may be open in development when `API_KEY` is empty.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:9900" },
+    { "key": "api_key", "value": "change-me" },
+    { "key": "company_uuid", "value": "00000000-0000-0000-0000-000000000000" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "GET /api/v1/jobs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs?limit=25&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "limit", "value": "25" },
+                { "key": "offset", "value": "0" },
+                { "key": "title", "value": "", "disabled": true },
+                { "key": "company", "value": "", "disabled": true },
+                { "key": "location", "value": "", "disabled": true },
+                { "key": "employment_type", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/jobs/stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": "{{base_url}}/api/v1/jobs/stats"
+          }
+        },
+        {
+          "name": "GET /api/v1/jobs/{linkedinJobId}",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", ":id"],
+              "variable": [{ "key": "id", "value": "example-job-id" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Runs",
+      "item": [
+        {
+          "name": "GET /api/v1/runs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/runs?limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "runs"],
+              "query": [{ "key": "limit", "value": "50" }]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/runs/{runId}",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/runs/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "runs", ":id"],
+              "variable": [{ "key": "id", "value": "apify-run-id" }]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/runs (enqueue scrape)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trigger\": \"postman\"\n}\n"
+            },
+            "url": "{{base_url}}/api/v1/runs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "GET /api/v1/companies",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies?limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "companies"],
+              "query": [{ "key": "limit", "value": "100" }]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/companies/{companyUuid}/jobs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies/{{company_uuid}}/jobs?limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "companies", "{{company_uuid}}", "jobs"],
+              "query": [{ "key": "limit", "value": "50" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

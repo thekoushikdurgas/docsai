@@ -12,5 +12,6 @@
 | campaignSatellite / mutations.campaigns | `campaign_service_client` | `CAMPAIGN_` |
 | pages (DocsAI) | `docsai_client` | `DOCSAI_` |
 | resume | `resume_ai_client` | `RESUME_AI_` |
+| **hireSignal** (job.server) | `job_server_client` | `JOB_SERVER_` |
 
 See `app/clients/` for method-level mapping.

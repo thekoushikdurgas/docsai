@@ -1,6 +1,6 @@
 # Satellite parity (gateway)
 
-**Last reviewed:** 2026-04-19 — keep aligned with [`../../../DECISIONS.md`](../../../DECISIONS.md).
+**Last reviewed:** 2026-04-24 — keep aligned with [`../../../DECISIONS.md`](../../../DECISIONS.md).
 
 | Satellite | GraphQL surface | Client | Transport / auth | Health probe |
 |-----------|-----------------|--------|------------------|--------------|
@@ -12,6 +12,8 @@
 | log.server | `admin` logs | `LogsServerClient` | HTTPS; **`X-API-Key`** | `GET /health` → **logs** |
 | extension.server | `salesNavigator` | `SalesNavigatorServerClient` | HTTPS; **`X-API-Key`** | `GET /health` → **sales_navigator** |
 | campaign.server | `campaignSatellite`, `campaigns` | `CampaignServiceClient` | HTTPS; **`X-API-Key`**; CQL + preview | `GET /health` → **campaign** |
+| **job.server** (Hiring signal) | **`hireSignal`** | `JobServerClient` | HTTPS; **`X-API-Key`** | `GET /health` → **job_server** |
+| proxy.server | _(future / REST direct)_ | `ProxyServerClient` (planned) | HTTPS; **`X-API-Key`**; REST `/api/v1/*` | `GET /health` → **proxy** _(add to `satelliteHealth` when wired)_ |
 
 ## Gateway aggregation
 

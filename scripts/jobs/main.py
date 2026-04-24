@@ -1,0 +1,19 @@
+# Set API token
+API_TOKEN=<YOUR_API_TOKEN>
+
+# Prepare Actor input
+# cat > input.json << 'EOF'
+{
+  "urls": [
+    "https://www.linkedin.com/jobs/search/?position=1&pageNum=0"
+  ],
+  "count": 100
+}
+EOF
+
+# Run the Actor using an HTTP API
+# See the full API reference at https://docs.apify.com/api/v2
+curl "https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/runs?token=$API_TOKEN" \
+  -X POST \
+  -d @input.json \
+  -H 'Content-Type: application/json'
