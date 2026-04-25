@@ -13,7 +13,7 @@ Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when t
 | `JobServerClient` method | HTTP | Notes |
 | ------------------------ | ---- | ----- |
 | `health_check` | `GET /health` | Unauthenticated. Returns **`mongo`**, **`redis`**, and **`status`**: `ok` or `degraded` (503) if either backend fails. |
-| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type`, `seniority`, `function` (case-insensitive regex on `seniority_level`, `function_category_v2`) |
+| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type`, `seniority`, `function` (case-insensitive regex on `seniority_level`, `function_category_v2`), `posted_after`, `posted_before` (ISO `YYYY-MM-DD` or RFC3339; filters `posted_at` range) |
 | `get_job` | `GET /api/v1/jobs/{linkedinJobId}` | `id` path is LinkedIn job id |
 | `jobs_stats` | `GET /api/v1/jobs/stats` | `total_jobs`, `jobs_with_company` |
 | `list_runs` | `GET /api/v1/runs` | Query: `limit` (default 50) |
