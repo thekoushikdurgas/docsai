@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "EC2 job.server (Contact360)",
-    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Core routes match [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py). **Connectra** folder: read-through to **sync.server** — requires `CONNECTRA_BASE_URL` and `CONNECTRA_API_KEY` on job.server (otherwise **503**); not yet in the Python client.\n\n**Base URL**: `{{base_url}}` (default `http://localhost:9900`).\n\n**Auth**: `X-API-Key` = `API_KEY` when non-empty. If `API_KEY` is empty, `/api/v1` does not require a key. `GET /health` is always unauthenticated.",
+    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Parity with gateway [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) and [`ROUTE-CLIENT-MATRIX`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md).\n\n**Connectra read-through** (`/jobs/.../company`, `/jobs/.../contacts`, `/companies/.../record`, `/companies/.../contacts`): proxies **sync.server** when `CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY` are set. **503** if unset; **502** on upstream HTTP errors; job routes **404** if job missing, **409** if job has no `company_uuid`; company **404** if Connectra has no company.\n\n**Base URL**: `{{base_url}}` (default `http://localhost:9900`).\n\n**Auth**: `X-API-Key` = `API_KEY` when non-empty. If `API_KEY` is empty, `/api/v1` does not require a key. `GET /health` is unauthenticated.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -42,7 +42,9 @@
                 { "key": "title", "value": "", "disabled": true },
                 { "key": "company", "value": "", "disabled": true },
                 { "key": "location", "value": "", "disabled": true },
-                { "key": "employment_type", "value": "", "disabled": true }
+                { "key": "employment_type", "value": "", "disabled": true },
+                { "key": "seniority", "value": "", "description": "Case-insensitive regex on Mongo seniority_level", "disabled": true },
+                { "key": "function", "value": "", "description": "Case-insensitive regex on Mongo function_category_v2", "disabled": true }
               ]
             }
           }
@@ -64,7 +66,7 @@
               "raw": "{{base_url}}/api/v1/jobs/:id",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "jobs", ":id"],
-              "variable": [{ "key": "id", "value": "example-job-id" }]
+              "variable": [{ "key": "id", "value": "{{linkedin_job_id}}" }]
             }
           }
         }
@@ -149,10 +151,12 @@
     },
     {
       "name": "Connectra (sync via job.server)",
+      "description": "Handlers: `job_connectra_handlers.go`, `company_connectra_handlers.go`. Query: `page` (default 1, max 10), `limit` (default 25, max 100), `populate_company` (default true). Job contacts: `include_poster` (default true).",
       "item": [
         {
           "name": "GET /api/v1/jobs/{id}/contacts",
           "request": {
+            "description": "VQL contact search for the job's `company_uuid`. **409** if job has no company link. Response `data`: `contacts`, `job_poster_contact`, `total`.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
@@ -172,6 +176,7 @@
         {
           "name": "GET /api/v1/jobs/{id}/company",
           "request": {
+            "description": "Connectra `GET /companies/{uuid}` for the job's `company_uuid`. Response `data`: `{ job, company }`. **409** if no `company_uuid` on job.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
@@ -183,33 +188,35 @@
           }
         },
         {
-          "name": "GET /api/v1/companies/{companyUuid}/contacts",
+          "name": "GET /api/v1/companies/{company_uuid}/contacts",
           "request": {
+            "description": "VQL contacts for Connectra company UUID (path param matches Gin `:company_uuid`). Response `data`: `contacts`, `total`.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
-              "raw": "{{base_url}}/api/v1/companies/:companyUuid/contacts?page=1&limit=25&populate_company=true",
+              "raw": "{{base_url}}/api/v1/companies/:company_uuid/contacts?page=1&limit=25&populate_company=true",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "companies", ":companyUuid", "contacts"],
+              "path": ["api", "v1", "companies", ":company_uuid", "contacts"],
               "query": [
                 { "key": "page", "value": "1" },
                 { "key": "limit", "value": "25" },
                 { "key": "populate_company", "value": "true" }
               ],
-              "variable": [{ "key": "companyUuid", "value": "{{company_uuid}}" }]
+              "variable": [{ "key": "company_uuid", "value": "{{company_uuid}}" }]
             }
           }
         },
         {
-          "name": "GET /api/v1/companies/{companyUuid}/record",
+          "name": "GET /api/v1/companies/{company_uuid}/record",
           "request": {
+            "description": "Single Connectra company record. Response `data` is the company object.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
-              "raw": "{{base_url}}/api/v1/companies/:companyUuid/record",
+              "raw": "{{base_url}}/api/v1/companies/:company_uuid/record",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "companies", ":companyUuid", "record"],
-              "variable": [{ "key": "companyUuid", "value": "{{company_uuid}}" }]
+              "path": ["api", "v1", "companies", ":company_uuid", "record"],
+              "variable": [{ "key": "company_uuid", "value": "{{company_uuid}}" }]
             }
           }
         }

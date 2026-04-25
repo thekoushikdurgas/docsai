@@ -16,6 +16,6 @@ Constants in [`EC2/job.server/internal/clients/mongo.go`](../../../EC2/job.serve
 
 ## Parity
 
-REST responses used by the gateway’s [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) use `success`, `data`, and `total` where applicable. **Connectra-backed** mapping routes (see [`ROUTE-CLIENT-MATRIX`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md)) are not yet mirrored in the Python client (`_TBD` in that table).
+REST responses used by the gateway’s [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) use `success`, `data`, and `total` where applicable. **Connectra read-through** routes (`GET /jobs/:id/company`, `GET /jobs/:id/contacts`, `GET /companies/:uuid/contacts`, `GET /companies/:uuid/record`) are implemented in job.server and consumed by the gateway `hireSignal` queries — see [`ROUTE-CLIENT-MATRIX`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
 
 **Last reviewed:** 2026-04-25.

@@ -3,7 +3,7 @@
 Source of truth for parity checks:
 
 - **Gateway:** [`contact360.io/api/app/clients/job_server_client.py`](../../../../contact360.io/api/app/clients/job_server_client.py)
-- **Server:** [`EC2/job.server/internal/api/router.go`](../../../../EC2/job.server/internal/api/router.go) registers: [`jobs_handlers.go`](../../../../EC2/job.server/internal/api/jobs_handlers.go), [`runs_handlers.go`](../../../../EC2/job.server/internal/api/runs_handlers.go), [`companies_handlers.go`](../../../../EC2/job.server/internal/api/companies_handlers.go), [`job_contacts_handlers.go`](../../../../EC2/job.server/internal/api/job_contacts_handlers.go), [`job_company_handlers.go`](../../../../EC2/job.server/internal/api/job_company_handlers.go). **Connectra client:** [`internal/clients/connectra_client.go`](../../../../EC2/job.server/internal/clients/connectra_client.go) → **sync.server** (`CONNECTRA_BASE_URL`).
+- **Server:** [`EC2/job.server/internal/api/router.go`](../../../../EC2/job.server/internal/api/router.go) registers: [`jobs_handlers.go`](../../../../EC2/job.server/internal/api/jobs_handlers.go), [`job_connectra_handlers.go`](../../../../EC2/job.server/internal/api/job_connectra_handlers.go), [`company_connectra_handlers.go`](../../../../EC2/job.server/internal/api/company_connectra_handlers.go), [`runs_handlers.go`](../../../../EC2/job.server/internal/api/runs_handlers.go), [`companies_handlers.go`](../../../../EC2/job.server/internal/api/companies_handlers.go). Shared VQL helpers: [`vql_contacts.go`](../../../../EC2/job.server/internal/api/vql_contacts.go). **Connectra client:** [`internal/clients/connectra_client.go`](../../../../EC2/job.server/internal/clients/connectra_client.go) → **sync.server** (`CONNECTRA_BASE_URL`).
 
 **GraphQL (dashboard):** namespace **`hireSignal`** on `POST /graphql` — see [`../contact360.io/ROUTE-CLIENT-MATRIX.md`](../contact360.io/ROUTE-CLIENT-MATRIX.md) (`JOB_SERVER_` env prefix).
 
@@ -13,7 +13,7 @@ Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when t
 | `JobServerClient` method | HTTP | Notes |
 | ------------------------ | ---- | ----- |
 | `health_check` | `GET /health` | Unauthenticated. Returns **`mongo`**, **`redis`**, and **`status`**: `ok` or `degraded` (503) if either backend fails. |
-| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type` |
+| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type`, `seniority`, `function` (case-insensitive regex on `seniority_level`, `function_category_v2`) |
 | `get_job` | `GET /api/v1/jobs/{linkedinJobId}` | `id` path is LinkedIn job id |
 | `jobs_stats` | `GET /api/v1/jobs/stats` | `total_jobs`, `jobs_with_company` |
 | `list_runs` | `GET /api/v1/runs` | Query: `limit` (default 50) |
