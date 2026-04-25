@@ -18,7 +18,7 @@ This matrix maps **product components** → **repository / artifact** → **runt
 | **campaign.server** | `EC2/campaign.server` | Go binary + worker | EC2 | `CAMPAIGN_API_KEY` |
 | **s3storage.server** | `EC2/s3storage.server` | Go binary + worker | EC2 | `S3STORAGE_SERVER_API_KEY` |
 | **log.server** | `EC2/log.server` | Go binary + worker | EC2 | `LOGS_SERVER_API_KEY` |
-| **job.server** (Hiring signal) | `EC2/job.server` | Go API + `cmd/worker` | **EC2** (Mongo + Redis) | `JOB_SERVER_API_KEY` |
+| **job.server** (Hiring signal) | `EC2/job.server` | Go API + `cmd/worker` | **EC2** (Mongo + Redis) | `JOB_SERVER_API_KEY`; optional **`CONNECTRA_*`** toward **sync.server** (ingest upserts + read-through job→company/contacts) |
 | **proxy.server** | `unihost/proxy.server` | Go binary + worker | EC2 / unihost | `PROXY_SERVER_API_KEY` |
 | **Chrome extension** | `contact360.io/extension` (or root extension pkg) | `.zip` Chrome Web Store | Client | JWT to gateway |
 

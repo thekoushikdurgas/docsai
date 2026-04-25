@@ -2,8 +2,8 @@
 
 ## Auth
 
-- **`/api/v1/*`:** **`X-API-Key`** must match **`API_KEY`** when the server is configured with a non-empty `API_KEY`.
-- **Development:** If **`API_KEY`** is **empty** and **`APP_ENV=development`**, requests may skip the key (see [`EC2/job.server/internal/middleware/auth.go`](../../../../EC2/job.server/internal/middleware/auth.go)). Production must set a strong `API_KEY`.
+- **`/api/v1/*`:** When **`API_KEY` is non-empty**, **`X-API-Key`** must match it. When **`API_KEY` is empty**, the middleware does **not** require a key (any `APP_ENV`); this is for local development only. **Always set a strong `API_KEY` in production.** (See [`EC2/job.server/internal/middleware/auth.go`](../../../../EC2/job.server/internal/middleware/auth.go).)
+- **`GET /health`:** On the **root** router, **not** under the API key group — used for liveness/compose healthchecks without a key.
 
 ## Key variables
 
@@ -18,7 +18,10 @@ See also [`EC2/job.server/.env.example`](../../../../EC2/job.server/.env.example
 | `REDIS_ADDR` | Asynq + scrape locks |
 | `APIFY_API_TOKEN`, `APIFY_ACTOR_ID` | Apify actor |
 | `SCRAPE_DEFAULT_*` | Default URLs / counts for scrapes |
-| `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY` | Optional company/contact sync |
+| `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY` | **sync.server** (Connectra) base and key. Required for **batch upserts** during ingest and for **read-through** API routes (job → company/contacts) — they return **503** if unset. |
+| `CONNECTRA_TIMEOUT`, `CONNECTRA_RETRY_*` | Outbound client timeout (seconds) and resty retries |
+| `GIN_MODE` | Set to **`release`** to suppress Gin debug output (or rely on `APP_ENV=production`; see `main.go`). `docker-compose` for `job-api` may set this. |
+| `EMBEDDED_ASYNQ_WORKER` | `true` runs the Asynq worker **inside the API process**; production usually uses a separate `cmd/worker` / `job-worker` container. |
 | `SCRAPE_CRON_*` | `robfig/cron` daily enqueue (`Asia/Kolkata` default) |
 | `ASYNQ_MAX_RETRY` | Task retries |
 

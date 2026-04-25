@@ -1,13 +1,14 @@
 {
   "info": {
     "name": "EC2 job.server (Contact360)",
-    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Same routes as [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py).\n\n**Base URL**: `{{base_url}}` (default `http://localhost:9900`).\n\n**Auth**: `X-API-Key` = satellite `API_KEY` (gateway: `JOB_SERVER_API_KEY`) when the server is configured; health may be open in development when `API_KEY` is empty.",
+    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Core routes match [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py). **Connectra** folder: read-through to **sync.server** — requires `CONNECTRA_BASE_URL` and `CONNECTRA_API_KEY` on job.server (otherwise **503**); not yet in the Python client.\n\n**Base URL**: `{{base_url}}` (default `http://localhost:9900`).\n\n**Auth**: `X-API-Key` = `API_KEY` when non-empty. If `API_KEY` is empty, `/api/v1` does not require a key. `GET /health` is always unauthenticated.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "base_url", "value": "http://localhost:9900" },
     { "key": "api_key", "value": "change-me" },
-    { "key": "company_uuid", "value": "00000000-0000-0000-0000-000000000000" }
+    { "key": "company_uuid", "value": "00000000-0000-0000-0000-000000000000" },
+    { "key": "linkedin_job_id", "value": "example-linkedin-job-id" }
   ],
   "item": [
     {
@@ -108,7 +109,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"trigger\": \"postman\"\n}\n"
+              "raw": "{\n  \"trigger\": \"postman\",\n  \"SCRAPE_URLS\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=go&position=1&pageNum=0\"\n  ],\n  \"SCRAPE_COUNT\": 100\n}\n"
             },
             "url": "{{base_url}}/api/v1/runs"
           }
@@ -141,6 +142,74 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "companies", "{{company_uuid}}", "jobs"],
               "query": [{ "key": "limit", "value": "50" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connectra (sync via job.server)",
+      "item": [
+        {
+          "name": "GET /api/v1/jobs/{id}/contacts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/:id/contacts?page=1&limit=25&populate_company=true&include_poster=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", ":id", "contacts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "25" },
+                { "key": "populate_company", "value": "true" },
+                { "key": "include_poster", "value": "true" }
+              ],
+              "variable": [{ "key": "id", "value": "{{linkedin_job_id}}" }]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/jobs/{id}/company",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/:id/company",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", ":id", "company"],
+              "variable": [{ "key": "id", "value": "{{linkedin_job_id}}" }]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/companies/{companyUuid}/contacts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies/:companyUuid/contacts?page=1&limit=25&populate_company=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "companies", ":companyUuid", "contacts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "25" },
+                { "key": "populate_company", "value": "true" }
+              ],
+              "variable": [{ "key": "companyUuid", "value": "{{company_uuid}}" }]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/companies/{companyUuid}/record",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies/:companyUuid/record",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "companies", ":companyUuid", "record"],
+              "variable": [{ "key": "companyUuid", "value": "{{company_uuid}}" }]
             }
           }
         }

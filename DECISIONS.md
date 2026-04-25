@@ -100,9 +100,10 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Language:** Go, Gin; **module:** `github.com/thekoushikdurgas/job.server` (Git remote [`job.server`](https://github.com/thekoushikdurgas/job.server)).
 - **Stores:** **MongoDB** for `linkedin_job` and `apify_run`; **Redis** for Asynq and scrape locks; no Postgres in this service.
 - **Workers:** [`cmd/worker`](../EC2/job.server/cmd/worker/main.go) — Asynq consumers + **`robfig/cron`** to enqueue daily scrapes (`SCRAPE_CRON_*`, default **`Asia/Kolkata`**).
-- **Ingest:** **Apify** actor runs; dataset items mapped into job documents; optional **Connectra** batch company/contact upserts when **`CONNECTRA_*`** is set.
-- **Auth:** **`X-API-Key`** = `API_KEY`; gateway uses **`JOB_SERVER_API_URL`**, **`JOB_SERVER_API_KEY`**, **`JOB_SERVER_API_TIMEOUT`** ([`JobServerClient`](../contact360.io/api/app/clients/job_server_client.py)). Dev may omit `API_KEY` on the server when `APP_ENV=development` and `API_KEY` is empty.
-- **Observability:** **`GET /health`** (Mongo + Redis); **`X-Request-ID`** on responses — see [`backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md`](backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
+- **Ingest:** **Apify** actor runs; dataset items mapped into `linkedin_jobs`; optional **Connectra** batch company/contact upserts when **`CONNECTRA_*`** is set ([`connectra_bridge`](../EC2/job.server/internal/services/connectra_bridge.go)).
+- **Read-through to sync:** HTTP routes under `/api/v1` can **GET** a Connectra company and **POST** contacts (VQL) for a `company_id` so job rows link to **sync.server** data without a second client; **503** if Connectra is not configured. See [`ROUTE-CLIENT-MATRIX.md`](backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
+- **Auth:** When **`API_KEY` is set**, gateway sends **`X-API-Key`** = **`JOB_SERVER_API_KEY`**. If **`API_KEY` is empty** on the server, the middleware does not enforce a key (local only; use a key in production). Gateway env: **`JOB_SERVER_API_URL`**, **`JOB_SERVER_API_KEY`**, **`JOB_SERVER_API_TIMEOUT`** ([`JobServerClient`](../contact360.io/api/app/clients/job_server_client.py)).
+- **Observability:** **`GET /health`** (Mongo + Redis, unauthenticated on root path); **`X-Request-ID`** on responses — see [`ROUTE-CLIENT-MATRIX.md`](backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
 - **Product surface:** Gateway GraphQL **`hireSignal`**; dashboard route **`/hiring-signals`**. **Events:** see [`EVENTS-BOUNDARY.md`](backend/endpoints/job.server/EVENTS-BOUNDARY.md).
 
 ## Storage satellite (`EC2/s3storage.server`) — S3 + Redis + Asynq

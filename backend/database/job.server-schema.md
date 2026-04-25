@@ -2,12 +2,12 @@
 
 **Server:** [`EC2/job.server`](../../../EC2/job.server) (Go, `github.com/thekoushikdurgas/job.server`).
 
-## Collections (logical)
+## Collections (actual names)
 
-Indexes are ensured at startup in [`EC2/job.server/internal/clients/mongo.go`](../../../EC2/job.server/internal/clients/mongo.go) (`EnsureIndexes`). Exact field names follow BSON tags in [`EC2/job.server/internal/models/`](../../../EC2/job.server/internal/models/).
+Constants in [`EC2/job.server/internal/clients/mongo.go`](../../../EC2/job.server/internal/clients/mongo.go): **`apify_runs`**, **`linkedin_jobs`**. Indexes are created in `EnsureIndexes` (idempotent on startup). BSON field names follow the `bson:"..."` tags in [`EC2/job.server/internal/models/`](../../../EC2/job.server/internal/models/).
 
-- **`apify_run`** — one document per Apify run / task correlation (`run_id`, status, actor id, timestamps).
-- **`linkedin_job`** — normalized job rows from the Apify dataset (`linkedinJobId` unique, company linkage, `description`, location, employment fields, `companyUuid` when Connectra match exists).
+- **`apify_runs`** — one document per Apify actor run (`run_id` unique, `status`, `actor_id`, `dataset_id`, `item_count`, `started_at`, …). Model: `ApifyRun`.
+- **`linkedin_jobs`** — normalized job rows from the Apify dataset (`linkedin_job_id` unique). Includes `company_name`, `company_linkedin_url`, optional **`company_uuid`** (Connectra), optional **`poster_contact_uuid`**, `apify_run_id`, `raw_payload`, and listing fields (title, location, poster links, etc.). Model: `LinkedInJob`.
 
 ## Redis
 
@@ -16,6 +16,6 @@ Indexes are ensured at startup in [`EC2/job.server/internal/clients/mongo.go`](.
 
 ## Parity
 
-REST responses match [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) expectations (`success`, `data`, `total` where applicable).
+REST responses used by the gateway’s [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) use `success`, `data`, and `total` where applicable. **Connectra-backed** mapping routes (see [`ROUTE-CLIENT-MATRIX`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md)) are not yet mirrored in the Python client (`_TBD` in that table).
 
-Last reviewed: 2026-04-25.
+**Last reviewed:** 2026-04-25.
