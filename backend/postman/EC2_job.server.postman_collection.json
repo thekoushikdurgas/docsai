@@ -1,85 +1,161 @@
 {
   "info": {
     "name": "EC2 job.server (Contact360)",
-    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Parity with gateway [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) and [`ROUTE-CLIENT-MATRIX`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md).\n\n**Connectra read-through** (`/jobs/.../company`, `/jobs/.../contacts`, `/companies/.../record`, `/companies/.../contacts`): proxies **sync.server** when `CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY` are set. **503** if unset; **502** on upstream HTTP errors; job routes **404** if job missing, **409** if job has no `company_uuid`; company **404** if Connectra has no company.\n\n**Base URL**: `{{base_url}}` (default `http://localhost:9900`).\n\n**Auth**: `X-API-Key` = `API_KEY` when non-empty. If `API_KEY` is empty, `/api/v1` does not require a key. `GET /health` is unauthenticated.",
+    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Parity with gateway [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) and [`ROUTE-CLIENT-MATRIX`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md).\n\n## Auth\n- **`/api/v1/*`**: header **`X-API-Key`** must match server **`API_KEY`** when non-empty. If `API_KEY` is empty, v1 routes do not require a key.\n- **`GET /health`**: no API key.\n\n## Base URL\n`{{base_url}}` (default `http://localhost:9900`).\n\n## Response shapes (reference)\n| Case | HTTP | JSON |\n|------|------|------|\n| List jobs | 200 | `{ \"success\": true, \"data\": [LinkedInJob…], \"total\": number, \"limit\": number, \"offset\": number }` |\n| Job by id | 200 | `{ \"success\": true, \"data\": LinkedInJob }` |\n| Job missing | 404 | `{ \"detail\": \"job not found\" }` |\n| Jobs stats | 200 | `{ \"success\": true, \"total_jobs\": number, \"jobs_with_company\": number }` |\n| Runs list / run by id | 200 | `{ \"success\": true, \"data\": … }` |\n| Run missing | 404 | `{ \"detail\": \"run not found\" }` |\n| POST run (enqueue) | **202** | `{ \"success\": true, \"message\": \"scrape enqueued\", \"task_id\": string, \"queue\": string }` |\n| POST bad body | 400 | `{ \"detail\": \"…\" }` |\n| Companies list / company jobs | 200 | `{ \"success\": true, \"data\": … }` |\n| Connectra OK (job company) | 200 | `{ \"success\": true, \"data\": { \"job\": …, \"company\": … } }` |\n| Connectra OK (contacts) | 200 | `{ \"success\": true, \"data\": { \"contacts\": [], \"total\": number, \"job_poster_contact\": … } }` (poster only on **job** contacts route) |\n| Connectra OK (company record) | 200 | `{ \"success\": true, \"data\": company }` |\n| Connectra not configured | **503** | `{ \"success\": false, \"detail\": \"Connectra is not configured…\" }` |\n| Job has no `company_uuid` | **409** | `{ \"success\": false, \"detail\": \"job has no company_uuid…\" }` |\n| Connectra / handler errors | **502** / **500** | `{ \"detail\": \"…\" }` |\n| Company record: empty uuid | **400** | `{ \"detail\": \"company_uuid is required\" }` |\n| Health OK | 200 | `{ \"status\": \"ok\", \"mongo\": \"ok\", \"redis\": \"ok\", \"details\": {} }` |\n| Health degraded | **503** | `{ \"status\": \"degraded\", \"mongo\": \"…\", \"redis\": \"…\", \"details\": {} }` |\n\n**Connectra read-through** routes need `CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY`. Contacts use query caps: `page` default 1 **max 10**, `limit` default 25 **max 100**.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "base_url", "value": "http://localhost:9900" },
     { "key": "api_key", "value": "change-me" },
     { "key": "company_uuid", "value": "00000000-0000-0000-0000-000000000000" },
-    { "key": "linkedin_job_id", "value": "example-linkedin-job-id" }
+    { "key": "linkedin_job_id", "value": "example-linkedin-job-id" },
+    { "key": "run_id", "value": "apify-run-id-example" }
   ],
   "item": [
     {
       "name": "Health",
+      "description": "Root router. **`GET /health`** — Mongo + Redis ping. **`status`**: `ok` or `degraded`; HTTP **503** when degraded.",
       "item": [
         {
           "name": "GET /health",
           "request": {
             "method": "GET",
             "header": [],
+            "description": "No query or body. **200** all backends up; **503** if Mongo or Redis ping fails (body still lists `mongo` / `redis` fields).",
             "url": "{{base_url}}/health"
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": { "method": "GET", "header": [], "url": "{{base_url}}/health" },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"ok\",\n  \"mongo\": \"ok\",\n  \"redis\": \"ok\",\n  \"details\": {}\n}"
+            },
+            {
+              "name": "503 Service Unavailable (degraded)",
+              "originalRequest": { "method": "GET", "header": [], "url": "{{base_url}}/health" },
+              "status": "Service Unavailable",
+              "code": 503,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"degraded\",\n  \"mongo\": \"server selection error: …\",\n  \"redis\": \"ok\",\n  \"details\": {}\n}"
+            }
+          ]
         }
       ]
     },
     {
       "name": "Jobs",
+      "description": "Mongo **`linkedin_jobs`**. **`GET /api/v1/jobs`** — filters are optional; **`seniority`** / **`function`** are case-insensitive regex on `seniority_level` / `function_category_v2`. **`posted_after`** / **`posted_before`** accept **`YYYY-MM-DD`** or **RFC3339** (see repo `parsePostedAtLowerBound` / `UpperBound`).",
       "item": [
         {
           "name": "GET /api/v1/jobs",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "**Query (all optional unless noted):** `limit` (default 25), `offset` (default 0), `title`, `company`, `location`, `employment_type`, `seniority`, `function`, `posted_after`, `posted_before`.\n\n**200** envelope: `success`, `data` (array), `total`, `limit`, `offset`. **500** `{ \"detail\": \"…\" }` on DB error.",
             "url": {
               "raw": "{{base_url}}/api/v1/jobs?limit=25&offset=0",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "jobs"],
               "query": [
-                { "key": "limit", "value": "25" },
-                { "key": "offset", "value": "0" },
-                { "key": "title", "value": "", "disabled": true },
-                { "key": "company", "value": "", "disabled": true },
-                { "key": "location", "value": "", "disabled": true },
-                { "key": "employment_type", "value": "", "disabled": true },
-                { "key": "seniority", "value": "", "description": "Case-insensitive regex on Mongo seniority_level", "disabled": true },
-                { "key": "function", "value": "", "description": "Case-insensitive regex on Mongo function_category_v2", "disabled": true }
+                { "key": "limit", "value": "25", "description": "Page size" },
+                { "key": "offset", "value": "0", "description": "Skip rows" },
+                { "key": "title", "value": "", "description": "Case-insensitive regex on title", "disabled": true },
+                { "key": "company", "value": "", "description": "Case-insensitive regex on company_name", "disabled": true },
+                { "key": "location", "value": "", "description": "Case-insensitive regex on location", "disabled": true },
+                { "key": "employment_type", "value": "", "description": "Case-insensitive regex on employment_type", "disabled": true },
+                { "key": "seniority", "value": "", "description": "Case-insensitive regex on seniority_level", "disabled": true },
+                { "key": "function", "value": "", "description": "Case-insensitive regex on function_category_v2", "disabled": true },
+                { "key": "posted_after", "value": "", "description": "ISO date YYYY-MM-DD or RFC3339; posted_at >= bound (UTC start of day for date-only)", "disabled": true },
+                { "key": "posted_before", "value": "", "description": "ISO date or RFC3339; posted_at <= bound (end of day for date-only)", "disabled": true }
               ]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+                "url": "{{base_url}}/api/v1/jobs?limit=25&offset=0"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"data\": [],\n  \"total\": 0,\n  \"limit\": 25,\n  \"offset\": 0\n}"
+            }
+          ]
         },
         {
           "name": "GET /api/v1/jobs/stats",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "No query params. **200**: `success`, `total_jobs`, `jobs_with_company`. **500** `{ \"detail\" }` on error.",
             "url": "{{base_url}}/api/v1/jobs/stats"
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+                "url": "{{base_url}}/api/v1/jobs/stats"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"total_jobs\": 0,\n  \"jobs_with_company\": 0\n}"
+            }
+          ]
         },
         {
           "name": "GET /api/v1/jobs/{linkedinJobId}",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "**Path:** `:id` = LinkedIn job id (`linkedin_job_id` in Mongo). **200**: `{ success, data: LinkedInJob }`. **404**: `{ \"detail\": \"job not found\" }`.",
             "url": {
               "raw": "{{base_url}}/api/v1/jobs/:id",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "jobs", ":id"],
               "variable": [{ "key": "id", "value": "{{linkedin_job_id}}" }]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+                "url": "{{base_url}}/api/v1/jobs/:id"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"job not found\"\n}"
+            }
+          ]
         }
       ]
     },
     {
       "name": "Runs",
+      "description": "Mongo **`apify_runs`**. **`POST /api/v1/runs`** enqueues Asynq task `start_scrape` — response is **202 Accepted**, not 200. Body matches Go **`tasks.StartScrapePayload`** (`internal/tasks/payloads.go`). Empty body is accepted; `trigger` defaults to **`api`**.",
       "item": [
         {
           "name": "GET /api/v1/runs",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "**Query:** `limit` (default 50). **200**: `{ \"success\": true, \"data\": [ … ApifyRun … ] }`.",
             "url": {
               "raw": "{{base_url}}/api/v1/runs?limit=50",
               "host": ["{{base_url}}"],
@@ -93,11 +169,12 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "**Path:** `:id` = Apify run id. **200**: `{ success, data }`. **404**: `{ \"detail\": \"run not found\" }`.",
             "url": {
               "raw": "{{base_url}}/api/v1/runs/:id",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "runs", ":id"],
-              "variable": [{ "key": "id", "value": "apify-run-id" }]
+              "variable": [{ "key": "id", "value": "{{run_id}}" }]
             }
           }
         },
@@ -109,23 +186,48 @@
               { "key": "X-API-Key", "value": "{{api_key}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
+            "description": "**JSON body** (`StartScrapePayload`):\n- `trigger` (optional): e.g. `cron`, `manual`, `api` — default **`api`** if omitted.\n- `urls` (optional): string array of LinkedIn search URLs.\n- `count` (optional): int.\n- `scrapeCompany` (optional): bool.\n- `splitByLocation` (optional): bool.\n\n**202**: `success`, `message`, `task_id`, `queue`. **400** invalid marshal (rare). **500** enqueue failure.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"trigger\": \"postman\",\n  \"SCRAPE_URLS\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=go&position=1&pageNum=0\"\n  ],\n  \"SCRAPE_COUNT\": 100\n}\n"
+              "raw": "{\n  \"trigger\": \"manual\",\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=golang&position=1&pageNum=0\"\n  ],\n  \"count\": 100,\n  \"scrapeCompany\": false,\n  \"splitByLocation\": false\n}\n"
             },
             "url": "{{base_url}}/api/v1/runs"
-          }
+          },
+          "response": [
+            {
+              "name": "202 Accepted",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "X-API-Key", "value": "{{api_key}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trigger\": \"api\"\n}\n"
+                },
+                "url": "{{base_url}}/api/v1/runs"
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"scrape enqueued\",\n  \"task_id\": \"b4c0c8d2-…\",\n  \"queue\": \"apify\"\n}"
+            }
+          ]
         }
       ]
     },
     {
       "name": "Companies",
+      "description": "Distinct companies and jobs-by-company from Mongo (not Connectra). **`GET /api/v1/companies/:company_uuid/jobs`** — `company_uuid` is the stored UUID on job rows.",
       "item": [
         {
           "name": "GET /api/v1/companies",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "**Query:** `limit` (default 100). **200**: `{ \"success\": true, \"data\": … }` (distinct company payload from repo).",
             "url": {
               "raw": "{{base_url}}/api/v1/companies?limit=100",
               "host": ["{{base_url}}"],
@@ -139,11 +241,13 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "**Path:** `:company_uuid`. **Query:** `limit` (default 50). **200**: `{ \"success\": true, \"data\": [ LinkedInJob … ] }`.",
             "url": {
-              "raw": "{{base_url}}/api/v1/companies/{{company_uuid}}/jobs?limit=50",
+              "raw": "{{base_url}}/api/v1/companies/:company_uuid/jobs?limit=50",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "companies", "{{company_uuid}}", "jobs"],
-              "query": [{ "key": "limit", "value": "50" }]
+              "path": ["api", "v1", "companies", ":company_uuid", "jobs"],
+              "query": [{ "key": "limit", "value": "50" }],
+              "variable": [{ "key": "company_uuid", "value": "{{company_uuid}}" }]
             }
           }
         }
@@ -151,12 +255,12 @@
     },
     {
       "name": "Connectra (sync via job.server)",
-      "description": "Handlers: `job_connectra_handlers.go`, `company_connectra_handlers.go`. Query: `page` (default 1, max 10), `limit` (default 25, max 100), `populate_company` (default true). Job contacts: `include_poster` (default true).",
+      "description": "Handlers: `job_connectra_handlers.go`, `company_connectra_handlers.go`. Proxies **sync.server** when `CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY` set.\n\n**Shared query (contacts):** `page` (default 1, **max 10**), `limit` (default 25, **max 100**), `populate_company` (default true; accepts true/false).\n\n**Job contacts only:** `include_poster` (default true).\n\n**Status quick ref:** **503** Connectra unset; **409** job missing `company_uuid`; **404** job or Connectra company not found; **502** upstream/transport; **400** empty `company_uuid` on company routes.",
       "item": [
         {
           "name": "GET /api/v1/jobs/{id}/contacts",
           "request": {
-            "description": "VQL contact search for the job's `company_uuid`. **409** if job has no company link. Response `data`: `contacts`, `job_poster_contact`, `total`.",
+            "description": "VQL contact search for the job's `company_uuid`. **200** `data`: `contacts`, `job_poster_contact` (nullable), `total`.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
@@ -164,19 +268,34 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "jobs", ":id", "contacts"],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "25" },
+                { "key": "page", "value": "1", "description": "1–10" },
+                { "key": "limit", "value": "25", "description": "1–100" },
                 { "key": "populate_company", "value": "true" },
-                { "key": "include_poster", "value": "true" }
+                { "key": "include_poster", "value": "true", "description": "Fetch job poster contact when UUID present" }
               ],
               "variable": [{ "key": "id", "value": "{{linkedin_job_id}}" }]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "409 Conflict (no company_uuid)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+                "url": "{{base_url}}/api/v1/jobs/:id/contacts"
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": false,\n  \"detail\": \"job has no company_uuid; complete Connectra company sync for this ingest run\"\n}"
+            }
+          ]
         },
         {
           "name": "GET /api/v1/jobs/{id}/company",
           "request": {
-            "description": "Connectra `GET /companies/{uuid}` for the job's `company_uuid`. Response `data`: `{ job, company }`. **409** if no `company_uuid` on job.",
+            "description": "Connectra `GET /companies/{uuid}` for the job's `company_uuid`. **200** `data`: `{ \"job\": …, \"company\": … }`. **409** if no `company_uuid` on job.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
@@ -185,12 +304,27 @@
               "path": ["api", "v1", "jobs", ":id", "company"],
               "variable": [{ "key": "id", "value": "{{linkedin_job_id}}" }]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "503 Connectra not configured",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+                "url": "{{base_url}}/api/v1/jobs/:id/company"
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": false,\n  \"detail\": \"Connectra is not configured on job.server (set CONNECTRA_BASE_URL and CONNECTRA_API_KEY)\"\n}"
+            }
+          ]
         },
         {
           "name": "GET /api/v1/companies/{company_uuid}/contacts",
           "request": {
-            "description": "VQL contacts for Connectra company UUID (path param matches Gin `:company_uuid`). Response `data`: `contacts`, `total`.",
+            "description": "VQL contacts for Connectra company UUID. **200** `data`: `contacts`, `total`. No `include_poster` (job-only).",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
@@ -209,7 +343,7 @@
         {
           "name": "GET /api/v1/companies/{company_uuid}/record",
           "request": {
-            "description": "Single Connectra company record. Response `data` is the company object.",
+            "description": "Single Connectra company record. **200** `data` is the company object. **400** if path uuid empty.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {
@@ -218,7 +352,22 @@
               "path": ["api", "v1", "companies", ":company_uuid", "record"],
               "variable": [{ "key": "company_uuid", "value": "{{company_uuid}}" }]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+                "url": "{{base_url}}/api/v1/companies/:company_uuid/record"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"company_uuid is required\"\n}"
+            }
+          ]
         }
       ]
     }

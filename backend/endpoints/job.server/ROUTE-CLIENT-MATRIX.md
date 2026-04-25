@@ -13,19 +13,20 @@ Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when t
 | `JobServerClient` method | HTTP | Notes |
 | ------------------------ | ---- | ----- |
 | `health_check` | `GET /health` | Unauthenticated. Returns **`mongo`**, **`redis`**, and **`status`**: `ok` or `degraded` (503) if either backend fails. |
-| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type`, `seniority`, `function` (case-insensitive regex on `seniority_level`, `function_category_v2`), `posted_after`, `posted_before` (ISO `YYYY-MM-DD` or RFC3339; filters `posted_at` range) |
+| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type`, `seniority`, `function` (case-insensitive regex on `seniority_level`, `function_category_v2`), `posted_after`, `posted_before` (ISO `YYYY-MM-DD` or RFC3339; filters `posted_at` range), **`run_id`** (exact `apify_run_id` for CSV / per-run export) |
 | `get_job` | `GET /api/v1/jobs/{linkedinJobId}` | `id` path is LinkedIn job id |
 | `jobs_stats` | `GET /api/v1/jobs/stats` | `total_jobs`, `jobs_with_company` |
-| `list_runs` | `GET /api/v1/runs` | Query: `limit` (default 50) |
+| `list_runs` | `GET /api/v1/runs` | Query: `limit` (default 50), **`client_scrape_job_id`** (filter Mongo `apify_runs` by gateway `scrape_jobs.id`) |
 | `get_run` | `GET /api/v1/runs/{runId}` | |
-| `trigger_scrape` | `POST /api/v1/runs` | JSON `StartScrapePayload` (`trigger`, `urls`/`count` or `SCRAPE_URLS`/`SCRAPE_COUNT`, …). **Asynchronous:** returns **202** and enqueues Asynq task `start_scrape` on Redis; **Apify** runs in a **worker** (`cmd/worker`, Docker `job-worker`, or API with `EMBEDDED_ASYNQ_WORKER=true`). `SCRAPE_URLS` may be a JSON array or one comma-separated string. Resolved `count` capped (see `maxScrapeRequestCount` in `runs_handlers.go`). |
+| `refresh_run` | `GET /api/v1/runs/{runId}/refresh` | Polls **Apify** `GET /actor-runs/{id}`, updates Mongo `status` + `dataset_id`. Returns `{ success, data, apify_status, apify_dataset }`. **502** if Apify errors. |
+| `trigger_scrape` | `POST /api/v1/runs` | JSON **`StartScrapePayload`**: `trigger`, `urls`, `count`, `scrapeCompany`, `splitByLocation`, optional **`clientScrapeJobId`** (UUID string from gateway `scrape_jobs`). **202** enqueues Asynq `start_scrape`; worker runs **Apify** (`cmd/worker` / `job-worker`). |
 | `list_companies` | `GET /api/v1/companies` | Query: `limit` (default 100) |
 | `company_jobs` | `GET /api/v1/companies/{companyUuid}/jobs` | Query: `limit` (default 50) |
 | `job_connectra_contacts` | `GET /api/v1/jobs/{linkedinJobId}/contacts` | GraphQL: `hireSignal { jobConnectraContacts( … ) }`. VQL via **sync.server** `POST /contacts`. Query: `page` (max 10), `limit` (max 100), `populateCompany`, `includePoster`. **409** if no `company_uuid` on the job. **503** if `CONNECTRA_*` unset. |
 | `company_connectra_contacts` | `GET /api/v1/companies/{companyUuid}/contacts` | GraphQL: `hireSignal { connectraContactsForCompany( … ) }`. Same VQL, keyed by `companyUuid`. |
 | `job_connectra_company` | `GET /api/v1/jobs/{linkedinJobId}/company` | GraphQL: `hireSignal { jobConnectraCompany(linkedinJobId) }`. **Job → Connectra** `GET /companies/{uuid}`. **409** / **404** / **503** as in job.server. |
 | `company_connectra_record` | `GET /api/v1/companies/{companyUuid}/record` | GraphQL: `hireSignal { connectraCompany(companyUuid) }`. One Connectra company, no job row. |
-| **App** | | Dashboard **`/hiring-signals`**: per-row **Connect** action (`JobConnectraModal`); company modal **Connectra** tab (profile + VQL people). |
+| **App** | | Dashboard **`/hiring-signals`**: **Run scrape** opens modal (`RunScrapeModal` → `triggerScrapeAndTrack`); **Runs** tab lists satellite runs + tracked scrapes with CSV export (`scrapeJobJobs`). |
 
 **Implementation notes**
 
