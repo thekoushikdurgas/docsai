@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "EC2 job.server (Contact360)",
-    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) (Gin, Mongo, Asynq). Parity with gateway [`JobServerClient`](../../../contact360.io/api/app/clients/job_server_client.py) and [`ROUTE-CLIENT-MATRIX`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md).\n\n## Auth\n- **`/api/v1/*`**: header **`X-API-Key`** must match server **`API_KEY`** when non-empty. If `API_KEY` is empty, v1 routes do not require a key.\n- **`GET /health`**: no API key.\n\n## Base URL\n`{{base_url}}` (default `http://localhost:9900`).\n\n## Response shapes (reference)\n| Case | HTTP | JSON |\n|------|------|------|\n| List jobs | 200 | `{ \"success\": true, \"data\": [LinkedInJob…], \"total\": number, \"limit\": number, \"offset\": number }` |\n| Job by id | 200 | `{ \"success\": true, \"data\": LinkedInJob }` |\n| Job missing | 404 | `{ \"detail\": \"job not found\" }` |\n| Jobs stats | 200 | `{ \"success\": true, \"total_jobs\": number, \"jobs_with_company\": number }` |\n| Runs list / run by id | 200 | `{ \"success\": true, \"data\": … }` |\n| Run missing | 404 | `{ \"detail\": \"run not found\" }` |\n| POST run (enqueue) | **202** | `{ \"success\": true, \"message\": \"scrape enqueued\", \"task_id\": string, \"queue\": string }` |\n| POST bad body | 400 | `{ \"detail\": \"…\" }` |\n| Companies list / company jobs | 200 | `{ \"success\": true, \"data\": … }` |\n| Connectra OK (job company) | 200 | `{ \"success\": true, \"data\": { \"job\": …, \"company\": … } }` |\n| Connectra OK (contacts) | 200 | `{ \"success\": true, \"data\": { \"contacts\": [], \"total\": number, \"job_poster_contact\": … } }` (poster only on **job** contacts route) |\n| Connectra OK (company record) | 200 | `{ \"success\": true, \"data\": company }` |\n| Connectra not configured | **503** | `{ \"success\": false, \"detail\": \"Connectra is not configured…\" }` |\n| Job has no `company_uuid` | **409** | `{ \"success\": false, \"detail\": \"job has no company_uuid…\" }` |\n| Connectra / handler errors | **502** / **500** | `{ \"detail\": \"…\" }` |\n| Company record: empty uuid | **400** | `{ \"detail\": \"company_uuid is required\" }` |\n| Health OK | 200 | `{ \"status\": \"ok\", \"mongo\": \"ok\", \"redis\": \"ok\", \"details\": {} }` |\n| Health degraded | **503** | `{ \"status\": \"degraded\", \"mongo\": \"…\", \"redis\": \"…\", \"details\": {} }` |\n\n**Connectra read-through** routes need `CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY`. Contacts use query caps: `page` default 1 **max 10**, `limit` default 25 **max 100**.",
+    "description": "HTTP collection for [`EC2/job.server`](../../../EC2/job.server) — Gin API, **MongoDB** (`linkedin_jobs`, `apify_runs`), **Redis** (Asynq queues + export job status), outbound **Apify** + **Connectra (sync.server)**.\n\nParity: [`ROUTE-CLIENT-MATRIX.md`](../endpoints/job.server/ROUTE-CLIENT-MATRIX.md), gateway [`job_server_client.py`](../../../contact360.io/api/app/clients/job_server_client.py).\n\n---\n\n## Request flow (high level)\n\n```mermaid\nflowchart LR\n  Client[HTTP_client] --> Gin[Gin_router]\n  Gin --> MW[Middleware_chain]\n  MW --> V1[/api/v1]\n  V1 --> Mongo[(MongoDB)]\n  V1 --> Redis[(Redis)]\n  V1 --> Apify[Apify_API]\n  V1 --> Sync[Connectra_sync.server]\n  Redis --> Worker[Asynq_worker_apify_export]\n```\n\n---\n\n## Global middleware (order)\n\n| Order | Middleware | Behavior |\n| ----- | ---------- | -------- |\n| 1 | `RequestID` | Sets or echoes **`X-Request-ID`** (UUID) on response. |\n| 2 | `RequestLogger` | Structured log: method, path, status, duration, request_id. |\n| 3 | `gin.Recovery` | Panic recovery. |\n| 4 | `cors.Default()` | Permissive CORS. |\n| **v1 group** | `APIKeyMiddleware` | See **Auth** below. |\n\n**`GET /health`** is registered **outside** `/api/v1` — **no** API key, still gets RequestID + logger + recovery + CORS.\n\n---\n\n## Auth (`/api/v1/*`)\n\n- If **`API_KEY`** env is **non-empty**: require header **`X-API-Key`** to match; else **401** `{ \"detail\": \"invalid or missing API key\" }`.\n- If **`API_KEY`** is **empty**: middleware **allows** all requests (warns in logs in non-development). **`APP_ENV=production` + empty `API_KEY`** → process **exits on startup** (`main.go`).\n\n---\n\n## Databases & async\n\n| Store | Use |\n| ----- | --- |\n| **Mongo** `linkedin_jobs` | Job listings, stats, company grouping, Connectra read-through joins. Indexes: `linkedin_job_id` unique, `apify_run_id`, `company_linkedin_url`, `company_uuid`, `posted_at` desc. |\n| **Mongo** `apify_runs` | Scrape runs; `run_id` unique; `client_scrape_job_id` indexed. |\n| **Redis** | Asynq broker; **export** status blobs (`worker.SetExportStatus` / `GetExportStatus`). |\n| **Asynq** | `POST /runs` → queue **`apify`** task `apify:start_scrape`. `POST /jobs/export` → queue **`export`** task `export:jobs`. |\n\n---\n\n## JSON error shapes\n\n- Most handler errors: **`{ \"detail\": \"…\" }`** (`abortJSON` / `abortNotFound` / `abortBadRequest`).\n- **500** in **Gin release mode** (`GIN_MODE=release` or `APP_ENV=production`): detail is generic **`internal server error`** (no leak).\n- Some Connectra guard responses: **`{ \"success\": false, \"detail\": \"…\" }`** with **503** / **409**.\n\n---\n\n## Status code quick reference\n\n| Code | Typical cases |\n| ---- | ---------------- |\n| **200** | Successful JSON body. |\n| **202** | `POST /api/v1/runs` scrape enqueued; `POST /api/v1/jobs/export` export enqueued. |\n| **400** | Bad JSON, validation (`POST /runs`, `POST /jobs/export`), missing export id, empty `company_uuid` path. |\n| **401** | Missing/wrong `X-API-Key` when `API_KEY` is set. |\n| **404** | Job, run, Connectra company, or export status not found. |\n| **409** | Job exists but **no `company_uuid`** (Connectra job routes). |\n| **502** | Apify error on run refresh; Connectra HTTP/transport failures. |\n| **503** | `/health` degraded; Apify client nil on refresh; Connectra not configured. |\n| **500** | Mongo/Redis errors, enqueue failures, unexpected server errors. |\n\n---\n\n## Base URL\n\n`{{base_url}}` (default `http://localhost:9900`).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -9,19 +9,21 @@
     { "key": "api_key", "value": "change-me" },
     { "key": "company_uuid", "value": "00000000-0000-0000-0000-000000000000" },
     { "key": "linkedin_job_id", "value": "example-linkedin-job-id" },
-    { "key": "run_id", "value": "apify-run-id-example" }
+    { "key": "run_id", "value": "apify-run-id-example" },
+    { "key": "client_scrape_job_id", "value": "gateway-scrape-jobs-uuid" },
+    { "key": "export_job_id", "value": "export-job-uuid-from-202-response" }
   ],
   "item": [
     {
       "name": "Health",
-      "description": "Root router. **`GET /health`** — Mongo + Redis ping. **`status`**: `ok` or `degraded`; HTTP **503** when degraded.",
+      "description": "Root router only. **No** `X-API-Key`. Pings Mongo + Redis (5s timeout). **`status`**: `ok` | `degraded`. HTTP **503** when degraded.",
       "item": [
         {
           "name": "GET /health",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "No query or body. **200** all backends up; **503** if Mongo or Redis ping fails (body still lists `mongo` / `redis` fields).",
+            "description": "Optional: send **`X-Request-ID`** to correlate logs; echoed on response if set.\n\n**200** all backends reachable.\n**503** one or both pings failed — body still includes `mongo` / `redis` fields (error string or `ok`).",
             "url": "{{base_url}}/health"
           },
           "response": [
@@ -48,30 +50,57 @@
       ]
     },
     {
+      "name": "Auth examples",
+      "description": "When **`API_KEY`** is configured, all `/api/v1/*` calls need **`X-API-Key`**. **401** if missing or wrong.",
+      "item": [
+        {
+          "name": "GET /api/v1/jobs — missing X-API-Key (401 when API_KEY set)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Intentionally **no** `X-API-Key`. Expect **401** only when the server has a non-empty `API_KEY`.",
+            "url": "{{base_url}}/api/v1/jobs?limit=1"
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": { "method": "GET", "header": [], "url": "{{base_url}}/api/v1/jobs" },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"invalid or missing API key\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Jobs",
-      "description": "Mongo **`linkedin_jobs`**. **`GET /api/v1/jobs`** — filters are optional; **`seniority`** / **`function`** are case-insensitive regex on `seniority_level` / `function_category_v2`. **`posted_after`** / **`posted_before`** accept **`YYYY-MM-DD`** or **RFC3339** (see repo `parsePostedAtLowerBound` / `UpperBound`).",
+      "description": "Mongo **`linkedin_jobs`**. List filters map to repository regex / range / exact `apify_run_id` (see `JobListFilter`).",
       "item": [
         {
           "name": "GET /api/v1/jobs",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-            "description": "**Query (all optional unless noted):** `limit` (default 25), `offset` (default 0), `title`, `company`, `location`, `employment_type`, `seniority`, `function`, `posted_after`, `posted_before`.\n\n**200** envelope: `success`, `data` (array), `total`, `limit`, `offset`. **500** `{ \"detail\": \"…\" }` on DB error.",
+            "description": "**Query (all optional):** `limit` (default 25, max 200), `offset`, `title`, `company`, `location`, `employment_type`, `seniority` (regex on `seniority_level`), `function` (regex on `function_category_v2`), `posted_after`, `posted_before` (YYYY-MM-DD or RFC3339), **`run_id`** (exact **`apify_run_id`**).\n\n**200:** `success`, `data`, `total`, `limit`, `offset`.\n**500:** `{ \"detail\" }` on DB error (generic in release mode).",
             "url": {
               "raw": "{{base_url}}/api/v1/jobs?limit=25&offset=0",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "jobs"],
               "query": [
-                { "key": "limit", "value": "25", "description": "Page size" },
+                { "key": "limit", "value": "25", "description": "Page size; capped at 200" },
                 { "key": "offset", "value": "0", "description": "Skip rows" },
                 { "key": "title", "value": "", "description": "Case-insensitive regex on title", "disabled": true },
-                { "key": "company", "value": "", "description": "Case-insensitive regex on company_name", "disabled": true },
-                { "key": "location", "value": "", "description": "Case-insensitive regex on location", "disabled": true },
-                { "key": "employment_type", "value": "", "description": "Case-insensitive regex on employment_type", "disabled": true },
-                { "key": "seniority", "value": "", "description": "Case-insensitive regex on seniority_level", "disabled": true },
-                { "key": "function", "value": "", "description": "Case-insensitive regex on function_category_v2", "disabled": true },
-                { "key": "posted_after", "value": "", "description": "ISO date YYYY-MM-DD or RFC3339; posted_at >= bound (UTC start of day for date-only)", "disabled": true },
-                { "key": "posted_before", "value": "", "description": "ISO date or RFC3339; posted_at <= bound (end of day for date-only)", "disabled": true }
+                { "key": "company", "value": "", "description": "Regex on company_name", "disabled": true },
+                { "key": "location", "value": "", "description": "Regex on location", "disabled": true },
+                { "key": "employment_type", "value": "", "disabled": true },
+                { "key": "seniority", "value": "", "description": "Regex on seniority_level", "disabled": true },
+                { "key": "function", "value": "", "description": "Regex on function_category_v2", "disabled": true },
+                { "key": "posted_after", "value": "", "description": "ISO date or RFC3339", "disabled": true },
+                { "key": "posted_before", "value": "", "disabled": true },
+                { "key": "run_id", "value": "", "description": "Exact apify_run_id", "disabled": true }
               ]
             }
           },
@@ -96,7 +125,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-            "description": "No query params. **200**: `success`, `total_jobs`, `jobs_with_company`. **500** `{ \"detail\" }` on error.",
+            "description": "No query params.\n\n**200:** `success`, `total_jobs`, `jobs_with_company`.\n**500** on DB error.",
             "url": "{{base_url}}/api/v1/jobs/stats"
           },
           "response": [
@@ -120,7 +149,7 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-            "description": "**Path:** `:id` = LinkedIn job id (`linkedin_job_id` in Mongo). **200**: `{ success, data: LinkedInJob }`. **404**: `{ \"detail\": \"job not found\" }`.",
+            "description": "**Path:** `:id` = `linkedin_job_id` in Mongo.\n\n**200:** `{ success, data: LinkedInJob }`.\n**404:** `{ \"detail\": \"job not found\" }`.",
             "url": {
               "raw": "{{base_url}}/api/v1/jobs/:id",
               "host": ["{{base_url}}"],
@@ -147,29 +176,153 @@
       ]
     },
     {
+      "name": "Jobs export (async)",
+      "description": "**Connectra + Asynq + Redis.** Requires **`ConnectraClient`** (`CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY`). Builds Excel via worker; poll **`GET .../export/status/:id`** for `pending` → `completed` / `failed`.\n\n**503** if Connectra not configured on job.server.",
+      "item": [
+        {
+          "name": "POST /api/v1/jobs/export",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-API-Key", "value": "{{api_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "description": "**Body:** `{ \"ids\": [ \"linkedin_job_id\", … ] }` — non-empty, deduplicated server-side.\n\n**202:** `success`, `message`, `export_job_id`, `asynq_task_id`, `ids_requested`, `ids_unique`, `status_url`.\n**400** invalid JSON or empty `ids`.\n**500** enqueue failure.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [ \"{{linkedin_job_id}}\" ]\n}\n"
+            },
+            "url": "{{base_url}}/api/v1/jobs/export"
+          },
+          "response": [
+            {
+              "name": "202 Accepted",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "X-API-Key", "value": "{{api_key}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{ \"ids\": [ \"job-1\" ] }\n" },
+                "url": "{{base_url}}/api/v1/jobs/export"
+              },
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Export job queued. Poll the status endpoint to track progress.\",\n  \"export_job_id\": \"…\",\n  \"asynq_task_id\": \"…\",\n  \"ids_requested\": 1,\n  \"ids_unique\": 1,\n  \"status_url\": \"/api/v1/jobs/export/status/…\"\n}"
+            },
+            {
+              "name": "503 Connectra not configured",
+              "status": "Service Unavailable",
+              "code": 503,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Connectra is not configured on job.server\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/jobs/export/status/{export_job_id}",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "Poll export progress.\n\n**200:** `success`, `export_job_id`, `status`, `filename`, `file_path`, `error`, `stats`, `created_at`, `updated_at`.\n**400** empty path id.\n**404** unknown or expired job in Redis.",
+            "url": {
+              "raw": "{{base_url}}/api/v1/jobs/export/status/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "jobs", "export", "status", ":id"],
+              "variable": [{ "key": "id", "value": "{{export_job_id}}" }]
+            }
+          },
+          "response": [
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"export job not found or expired\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Runs",
-      "description": "Mongo **`apify_runs`**. **`POST /api/v1/runs`** enqueues Asynq task `start_scrape` — response is **202 Accepted**, not 200. Body matches Go **`tasks.StartScrapePayload`** (`internal/tasks/payloads.go`). Empty body is accepted; `trigger` defaults to **`api`**.",
+      "description": "Mongo **`apify_runs`**. **`POST /api/v1/runs`** enqueues Asynq **`apify:start_scrape`** on queue **`apify`** (response **202**).\n\n**Route order:** `GET /runs/:id/refresh` is registered **before** `GET /runs/:id` so `refresh` is not captured as an id.",
       "item": [
         {
           "name": "GET /api/v1/runs",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-            "description": "**Query:** `limit` (default 50). **200**: `{ \"success\": true, \"data\": [ … ApifyRun … ] }`.",
+            "description": "**Query:** `limit` (default 50), **`offset`** (default 0), **`client_scrape_job_id`** (optional — filter runs linked to gateway `scrape_jobs.id`).\n\n**200:** `success`, `data` (array), **`total`**, `limit`, `offset`.\n**500** on DB error.",
             "url": {
-              "raw": "{{base_url}}/api/v1/runs?limit=50",
+              "raw": "{{base_url}}/api/v1/runs?limit=50&offset=0",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "runs"],
-              "query": [{ "key": "limit", "value": "50" }]
+              "query": [
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" },
+                {
+                  "key": "client_scrape_job_id",
+                  "value": "{{client_scrape_job_id}}",
+                  "description": "Optional Mongo filter",
+                  "disabled": true
+                }
+              ]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"success\": true,\n  \"data\": [],\n  \"total\": 0,\n  \"limit\": 50,\n  \"offset\": 0\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /api/v1/runs/{runId}/refresh",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "description": "Poll **Apify** for run status; update Mongo `status` + `dataset_id`.\n\n**200:** `success`, `data` (updated run doc), `apify_status`, `apify_dataset`.\n**404** run not in Mongo.\n**503** Apify client unavailable (`ApifyClient` nil).\n**502** Apify HTTP error.\n**500** Mongo update failure.",
+            "url": {
+              "raw": "{{base_url}}/api/v1/runs/:id/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "runs", ":id", "refresh"],
+              "variable": [{ "key": "id", "value": "{{run_id}}" }]
+            }
+          },
+          "response": [
+            {
+              "name": "502 Bad Gateway (Apify error)",
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"…\"\n}"
+            },
+            {
+              "name": "503 Apify unavailable",
+              "status": "Service Unavailable",
+              "code": 503,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"Apify client is not available\"\n}"
+            }
+          ]
         },
         {
           "name": "GET /api/v1/runs/{runId}",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-            "description": "**Path:** `:id` = Apify run id. **200**: `{ success, data }`. **404**: `{ \"detail\": \"run not found\" }`.",
+            "description": "**Path:** Apify run id (`run_id` in Mongo).\n\n**200:** `{ success, data }`.\n**404:** `{ \"detail\": \"run not found\" }`.",
             "url": {
               "raw": "{{base_url}}/api/v1/runs/:id",
               "host": ["{{base_url}}"],
@@ -186,10 +339,10 @@
               { "key": "X-API-Key", "value": "{{api_key}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "description": "**JSON body** (`StartScrapePayload`):\n- `trigger` (optional): e.g. `cron`, `manual`, `api` — default **`api`** if omitted.\n- `urls` (optional): string array of LinkedIn search URLs.\n- `count` (optional): int.\n- `scrapeCompany` (optional): bool.\n- `splitByLocation` (optional): bool.\n\n**202**: `success`, `message`, `task_id`, `queue`. **400** invalid marshal (rare). **500** enqueue failure.",
+            "description": "**JSON body** (`tasks.StartScrapePayload`):\n- `trigger` — default **`api`** if empty after unmarshal; **`cron`** may omit URLs; other triggers require **≥1 non-empty** URL after trim.\n- `urls` — LinkedIn search URLs.\n- `count` — **0 ≤ count ≤ 10000**.\n- `scrapeCompany`, `splitByLocation` — bools.\n- **`clientScrapeJobId`** — optional gateway `scrape_jobs.id` (UUID string).\n\n**Non-empty JSON required** (whitespace-only body → **400**). Malformed JSON → **400**. Validation errors → **400** with message in `detail`.\n\n**202:** `success`, `message`, `task_id`, `queue` (e.g. `apify`).\n**500** Asynq enqueue failure.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"trigger\": \"manual\",\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=golang&position=1&pageNum=0\"\n  ],\n  \"count\": 100,\n  \"scrapeCompany\": false,\n  \"splitByLocation\": false\n}\n"
+              "raw": "{\n  \"trigger\": \"manual\",\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=golang&position=1&pageNum=0\"\n  ],\n  \"count\": 100,\n  \"scrapeCompany\": false,\n  \"splitByLocation\": false,\n  \"clientScrapeJobId\": \"{{client_scrape_job_id}}\"\n}\n"
             },
             "url": "{{base_url}}/api/v1/runs"
           },
@@ -204,7 +357,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"trigger\": \"api\"\n}\n"
+                  "raw": "{\n  \"trigger\": \"manual\",\n  \"urls\": [ \"https://www.linkedin.com/jobs/search/?keywords=test\" ],\n  \"count\": 10\n}\n"
                 },
                 "url": "{{base_url}}/api/v1/runs"
               },
@@ -213,6 +366,14 @@
               "_postman_previewlanguage": "json",
               "header": [{ "key": "Content-Type", "value": "application/json" }],
               "body": "{\n  \"success\": true,\n  \"message\": \"scrape enqueued\",\n  \"task_id\": \"b4c0c8d2-…\",\n  \"queue\": \"apify\"\n}"
+            },
+            {
+              "name": "400 Bad Request (validation)",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"detail\": \"urls must contain at least one non-empty LinkedIn search URL\"\n}"
             }
           ]
         }
@@ -220,14 +381,14 @@
     },
     {
       "name": "Companies",
-      "description": "Distinct companies and jobs-by-company from Mongo (not Connectra). **`GET /api/v1/companies/:company_uuid/jobs`** — `company_uuid` is the stored UUID on job rows.",
+      "description": "Distinct companies and jobs-by-company from **Mongo** (aggregations / queries on `linkedin_jobs`). Not the same as Connectra company **`/record`**.",
       "item": [
         {
           "name": "GET /api/v1/companies",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-            "description": "**Query:** `limit` (default 100). **200**: `{ \"success\": true, \"data\": … }` (distinct company payload from repo).",
+            "description": "**Query:** `limit` (default 100).\n\n**200:** `{ success, data }` — distinct company groups from repo aggregation.\n**500** on error.",
             "url": {
               "raw": "{{base_url}}/api/v1/companies?limit=100",
               "host": ["{{base_url}}"],
@@ -237,11 +398,11 @@
           }
         },
         {
-          "name": "GET /api/v1/companies/{companyUuid}/jobs",
+          "name": "GET /api/v1/companies/{company_uuid}/jobs",
           "request": {
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
-            "description": "**Path:** `:company_uuid`. **Query:** `limit` (default 50). **200**: `{ \"success\": true, \"data\": [ LinkedInJob … ] }`.",
+            "description": "**Path:** `company_uuid` on job documents.\n**Query:** `limit` (default 50).\n\n**200:** `{ success, data: [ LinkedInJob … ] }` (may be empty array).\n**500** on error.",
             "url": {
               "raw": "{{base_url}}/api/v1/companies/:company_uuid/jobs?limit=50",
               "host": ["{{base_url}}"],
@@ -255,7 +416,7 @@
     },
     {
       "name": "Connectra (sync via job.server)",
-      "description": "Handlers: `job_connectra_handlers.go`, `company_connectra_handlers.go`. Proxies **sync.server** when `CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY` set.\n\n**Shared query (contacts):** `page` (default 1, **max 10**), `limit` (default 25, **max 100**), `populate_company` (default true; accepts true/false).\n\n**Job contacts only:** `include_poster` (default true).\n\n**Status quick ref:** **503** Connectra unset; **409** job missing `company_uuid`; **404** job or Connectra company not found; **502** upstream/transport; **400** empty `company_uuid` on company routes.",
+      "description": "Handlers: `job_connectra_handlers.go`, `company_connectra_handlers.go`. Proxies **sync.server** when `CONNECTRA_BASE_URL` + `CONNECTRA_API_KEY` set.\n\n**Shared query (contacts):** `page` (default 1, **max 10**), `limit` (default 25, **max 100**), `populate_company` (default true).\n\n**Job contacts only:** `include_poster` (default true).\n\n**Status quick ref:** **503** Connectra unset; **409** job missing `company_uuid`; **404** job or Connectra company not found; **502** upstream/transport; **400** empty `company_uuid` on company routes.",
       "item": [
         {
           "name": "GET /api/v1/jobs/{id}/contacts",
@@ -295,7 +456,7 @@
         {
           "name": "GET /api/v1/jobs/{id}/company",
           "request": {
-            "description": "Connectra `GET /companies/{uuid}` for the job's `company_uuid`. **200** `data`: `{ \"job\": …, \"company\": … }`. **409** if no `company_uuid` on job.",
+            "description": "Connectra `GET /companies/{uuid}` for the job's `company_uuid`. **200** `data`: `{ \"job\": …, \"company\": … }`. **409** if no `company_uuid` on job. **404** if Connectra returns not found.",
             "method": "GET",
             "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
             "url": {

@@ -7,7 +7,7 @@ Source of truth for parity checks:
 
 **GraphQL (dashboard):** namespace **`hireSignal`** on `POST /graphql` — see [`../contact360.io/ROUTE-CLIENT-MATRIX.md`](../contact360.io/ROUTE-CLIENT-MATRIX.md) (`JOB_SERVER_` env prefix).
 
-Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when the server is configured with a **non-empty** `API_KEY` (gateway: **`JOB_SERVER_API_KEY`**). If **`API_KEY` is empty**, the middleware **does not** require a key in any `APP_ENV` (local use only; **set a non-empty `API_KEY` in production**).  
+Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when the server is configured with a **non-empty** `API_KEY` (gateway: **`JOB_SERVER_API_KEY`**). If **`API_KEY` is empty**, the middleware **does not** require a key in any `APP_ENV` (local use only). **`APP_ENV=production` fails fast on startup** if `API_KEY` is unset or empty; otherwise **set a non-empty `API_KEY` in production**. Empty key also logs a **warning** in non-production.  
 **`GET /health`** is on the **root** router and is **not** protected by the API key middleware (used for liveness; returns Mongo + Redis status).
 
 | `JobServerClient` method | HTTP | Notes |
@@ -16,10 +16,10 @@ Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when t
 | `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type`, `seniority`, `function` (case-insensitive regex on `seniority_level`, `function_category_v2`), `posted_after`, `posted_before` (ISO `YYYY-MM-DD` or RFC3339; filters `posted_at` range), **`run_id`** (exact `apify_run_id` for CSV / per-run export) |
 | `get_job` | `GET /api/v1/jobs/{linkedinJobId}` | `id` path is LinkedIn job id |
 | `jobs_stats` | `GET /api/v1/jobs/stats` | `total_jobs`, `jobs_with_company` |
-| `list_runs` | `GET /api/v1/runs` | Query: `limit` (default 50), **`client_scrape_job_id`** (filter Mongo `apify_runs` by gateway `scrape_jobs.id`) |
+| `list_runs` | `GET /api/v1/runs` | Query: `limit` (default 50), **`offset`** (pagination), **`client_scrape_job_id`** (filter Mongo `apify_runs` by gateway `scrape_jobs.id`). JSON: `data`, **`total`**, `limit`, `offset`. |
 | `get_run` | `GET /api/v1/runs/{runId}` | |
 | `refresh_run` | `GET /api/v1/runs/{runId}/refresh` | Polls **Apify** `GET /actor-runs/{id}`, updates Mongo `status` + `dataset_id`. Returns `{ success, data, apify_status, apify_dataset }`. **502** if Apify errors. |
-| `trigger_scrape` | `POST /api/v1/runs` | JSON **`StartScrapePayload`**: `trigger`, `urls`, `count`, `scrapeCompany`, `splitByLocation`, optional **`clientScrapeJobId`** (UUID string from gateway `scrape_jobs`). **202** enqueues Asynq `start_scrape`; worker runs **Apify** (`cmd/worker` / `job-worker`). |
+| `trigger_scrape` | `POST /api/v1/runs` | JSON **`StartScrapePayload`**: `trigger`, `urls`, `count`, `scrapeCompany`, `splitByLocation`, optional **`clientScrapeJobId`** (UUID string from gateway `scrape_jobs`). **400** if body missing/invalid JSON, non-`cron` trigger without URLs, or `count` out of range. **202** enqueues Asynq `start_scrape`; worker runs **Apify** (`cmd/worker` / `job-worker`). |
 | `list_companies` | `GET /api/v1/companies` | Query: `limit` (default 100) |
 | `company_jobs` | `GET /api/v1/companies/{companyUuid}/jobs` | Query: `limit` (default 50) |
 | `job_connectra_contacts` | `GET /api/v1/jobs/{linkedinJobId}/contacts` | GraphQL: `hireSignal { jobConnectraContacts( … ) }`. VQL via **sync.server** `POST /contacts`. Query: `page` (max 10), `limit` (max 100), `populateCompany`, `includePoster`. **409** if no `company_uuid` on the job. **503** if `CONNECTRA_*` unset. |

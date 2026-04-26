@@ -2,7 +2,7 @@
 
 ## Auth
 
-- **`/api/v1/*`:** When **`API_KEY` is non-empty**, **`X-API-Key`** must match it. When **`API_KEY` is empty**, the middleware does **not** require a key (any `APP_ENV`); this is for local development only. **Always set a strong `API_KEY` in production.** (See [`EC2/job.server/internal/middleware/auth.go`](../../../../EC2/job.server/internal/middleware/auth.go).)
+- **`/api/v1/*`:** When **`API_KEY` is non-empty**, **`X-API-Key`** must match it. When **`API_KEY` is empty**, the middleware does **not** require a key (any `APP_ENV`); this is for local development only. **`APP_ENV=production` + empty/missing `API_KEY` exits the process on startup** (`main.go`). In other envs, empty `API_KEY` logs a warning. **Always set a strong `API_KEY` in production.** (See [`EC2/job.server/internal/middleware/auth.go`](../../../../EC2/job.server/internal/middleware/auth.go).)
 - **`GET /health`:** On the **root** router, **not** under the API key group — used for liveness/compose healthchecks without a key.
 
 ## Key variables
