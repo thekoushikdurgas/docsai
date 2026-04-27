@@ -1,7 +1,8 @@
 [Unit]
-Description=Contact360 DocsAI Admin (Gunicorn) — simple HTTP bind template
+Description=Contact360 DocsAI Admin (Gunicorn) — simple HTTP bind template (127.0.0.1:8000)
 After=network.target
-# For production with Nginx + Unix socket, use deploy/systemd/gunicorn.service instead.
+# Production: use deploy/systemd/gunicorn.service + gunicorn.socket (Unix socket to Nginx).
+# WSGI entrypoint matches deploy/systemd/gunicorn-start.sh: docsai.wsgi:application, DJANGO_SETTINGS_MODULE=config.settings.
 
 [Service]
 User=ubuntu

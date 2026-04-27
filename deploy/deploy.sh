@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# -----------------------------------------------------------------------------
+# DEPRECATED for new installs: uses hardcoded PROJECT_DIR=/var/www/docsai and
+# does not match QUICK_START (/home/ubuntu/docsai) or remote-deploy.sh discovery.
+# Prefer: sudo bash deploy/deploy-to-ec2.sh  (or full-deploy.sh), then routine
+# updates via git + deploy/remote-deploy.sh (or GitHub Actions).
+# -----------------------------------------------------------------------------
+
 # Master deployment script for Django DocsAI on EC2/Ubuntu
 # Usage:
 #   With domain + SSL: ./deploy/deploy.sh <domain> <email>

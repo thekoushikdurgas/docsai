@@ -368,6 +368,93 @@ query AdminSchedulerJobs($status: String, $sourceService: String, $limit: Int, $
 }
 """
 
+_JOB_TICKETS_LIST = """
+query AdminJobTickets(
+  $limit: Int
+  $offset: Int
+  $status: String
+  $userId: ID
+  $externalJobId: String
+) {
+  admin {
+    jobTickets(
+      limit: $limit
+      offset: $offset
+      status: $status
+      userId: $userId
+      externalJobId: $externalJobId
+    ) {
+      tickets {
+        id
+        userId
+        jobSource
+        externalJobId
+        jobType
+        jobStatusSnapshot
+        title
+        description
+        severity
+        status
+        adminNotes
+        resolvedByUserId
+        resolvedAt
+        createdAt
+        updatedAt
+      }
+      pageInfo { total limit offset hasNext hasPrevious }
+    }
+  }
+}
+"""
+
+_JOB_TICKET_DETAIL = """
+query AdminJobTicket($ticketId: ID!) {
+  admin {
+    jobTicket(ticketId: $ticketId) {
+      id
+      userId
+      jobSource
+      externalJobId
+      jobType
+      jobStatusSnapshot
+      title
+      description
+      severity
+      status
+      adminNotes
+      resolvedByUserId
+      resolvedAt
+      createdAt
+      updatedAt
+    }
+  }
+}
+"""
+
+_UPDATE_JOB_TICKET_STATUS = """
+mutation AdminUpdateJobTicketStatus($input: UpdateJobTicketStatusInput!) {
+  admin {
+    updateJobTicketStatus(input: $input) {
+      id
+      userId
+      jobSource
+      externalJobId
+      jobType
+      jobStatusSnapshot
+      title
+      description
+      severity
+      status
+      adminNotes
+      resolvedByUserId
+      resolvedAt
+      createdAt
+      updatedAt
+    }
+  }
+}
+"""
+
 _JOB_DETAIL = """
 query SchedulerJobDetail($jobId: ID!) {
   jobs {
@@ -697,6 +784,106 @@ def retry_job(token: str, job_id: str) -> Dict:
         except json.JSONDecodeError:
             return {"success": False, "error": out}
     return {"success": bool(out), "detail": out}
+
+
+def _normalize_job_ticket(t: Dict[str, Any]) -> Dict[str, Any]:
+    """Map gateway JobTicket JSON to Django template fields."""
+    if not isinstance(t, dict):
+        return {}
+    return {
+        "id": str(t.get("id") or ""),
+        "userId": t.get("userId") or t.get("user_id"),
+        "jobSource": t.get("jobSource") or t.get("job_source"),
+        "externalJobId": t.get("externalJobId") or t.get("external_job_id"),
+        "jobType": t.get("jobType") or t.get("job_type"),
+        "jobStatusSnapshot": t.get("jobStatusSnapshot")
+        or t.get("job_status_snapshot"),
+        "title": t.get("title"),
+        "description": t.get("description"),
+        "severity": t.get("severity"),
+        "status": t.get("status"),
+        "adminNotes": t.get("adminNotes") or t.get("admin_notes"),
+        "resolvedByUserId": t.get("resolvedByUserId")
+        or t.get("resolved_by_user_id"),
+        "resolvedAt": t.get("resolvedAt") or t.get("resolved_at"),
+        "createdAt": t.get("createdAt") or t.get("created_at"),
+        "updatedAt": t.get("updatedAt") or t.get("updated_at"),
+    }
+
+
+def get_job_tickets(
+    token: str,
+    limit: int = 25,
+    offset: int = 0,
+    status: Optional[str] = None,
+    user_id: Optional[str] = None,
+    external_job_id: Optional[str] = None,
+) -> Dict:
+    """
+    List job review tickets (``admin.jobTickets``).
+
+    Operators use this for the Django job-tickets queue.
+    """
+    variables: Dict[str, Any] = {
+        "limit": limit,
+        "offset": offset,
+        "status": status.strip() if status else None,
+        "userId": (user_id.strip() if user_id and user_id.strip() else None),
+        "externalJobId": (
+            external_job_id.strip()
+            if external_job_id and external_job_id.strip()
+            else None
+        ),
+    }
+    resp = graphql_query(_JOB_TICKETS_LIST, variables, token=token)
+    _raise_if_graphql_errors(resp)
+    raw = _admin(resp).get("jobTickets")
+    if not isinstance(raw, dict):
+        return {}
+    rows = raw.get("tickets") if isinstance(raw.get("tickets"), list) else []
+    items = [
+        _normalize_job_ticket(j)
+        for j in rows
+        if isinstance(j, dict)
+    ]
+    return {
+        "items": items,
+        "pageInfo": raw.get("pageInfo")
+        if isinstance(raw.get("pageInfo"), dict)
+        else {},
+    }
+
+
+def get_job_ticket_detail(token: str, ticket_id: str) -> Optional[Dict]:
+    """Single job ticket via ``admin.jobTicket``."""
+    resp = graphql_query(_JOB_TICKET_DETAIL, {"ticketId": ticket_id}, token=token)
+    _raise_if_graphql_errors(resp)
+    t = _admin(resp).get("jobTicket")
+    if not isinstance(t, dict):
+        return None
+    return _normalize_job_ticket(t)
+
+
+def update_job_ticket_status(
+    token: str,
+    ticket_id: str,
+    status: str,
+    admin_notes: Optional[str] = None,
+) -> Dict:
+    """``admin.updateJobTicketStatus`` — status transition and optional admin notes."""
+    payload: Dict[str, Any] = {"ticketId": ticket_id, "status": status}
+    if admin_notes is not None:
+        payload["adminNotes"] = admin_notes
+    resp = graphql_mutation(
+        _UPDATE_JOB_TICKET_STATUS,
+        {"input": payload},
+        token=token,
+    )
+    _raise_if_graphql_errors(resp)
+    out = _admin(resp).get("updateJobTicketStatus")
+    if isinstance(out, dict):
+        return _normalize_job_ticket(out)
+    return {}
 
 
 _USER_HISTORY_FOR_USER = """

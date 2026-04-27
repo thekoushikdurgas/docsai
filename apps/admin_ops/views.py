@@ -56,6 +56,8 @@ from .services.admin_client import (
     get_contacts_page,
     get_download_url,
     get_job_detail,
+    get_job_ticket_detail,
+    get_job_tickets,
     get_jobs,
     get_logs,
     get_payment_instructions,
@@ -72,6 +74,7 @@ from .services.admin_client import (
     promote_to_admin,
     promote_to_super_admin,
     retry_job,
+    update_job_ticket_status,
     update_log_entry,
     update_payment_instructions,
     update_user_role,
@@ -636,6 +639,137 @@ def job_detail_view(request, job_id):
             "job": job,
             "job_id": job_id,
             "page_title": f"Job {job_id[:8]}…" if job_id else "Job Detail",
+        },
+    )
+
+
+def _job_tickets_page_querystring(request, page_num: int) -> str:
+    q = request.GET.copy()
+    if page_num <= 1:
+        q.pop("page", None)
+    else:
+        q["page"] = str(page_num)
+    return q.urlencode()
+
+
+@require_admin_or_super_admin
+def job_tickets_view(request):
+    """
+    Job review tickets queue (``admin.jobTickets``).
+
+    @role: admin_or_super_admin
+    """
+    status_filter = request.GET.get("status", "") or ""
+    user_filter = (request.GET.get("user_id") or "").strip()
+    external_job_filter = (request.GET.get("job") or "").strip()
+    page = max(1, int(request.GET.get("page", 1)))
+    limit = 25
+    offset = (page - 1) * limit
+
+    tickets_data: dict = {}
+    tickets_load_failed = False
+    try:
+        tickets_data = get_job_tickets(
+            _token(request),
+            limit=limit,
+            offset=offset,
+            status=status_filter or None,
+            user_id=user_filter or None,
+            external_job_id=external_job_filter or None,
+        )
+    except Exception as exc:
+        tickets_load_failed = True
+        logger.error("job_tickets_view error: %s", exc)
+        messages.error(request, "Failed to load job tickets.")
+
+    page_info = (
+        tickets_data.get("pageInfo", {}) if isinstance(tickets_data, dict) else {}
+    )
+    pagination_query_prev = ""
+    pagination_query_next = ""
+    if not tickets_load_failed and isinstance(page_info, dict):
+        try:
+            total_n = int(page_info.get("total") or 0)
+        except (TypeError, ValueError):
+            total_n = 0
+        if total_n > limit:
+            if page_info.get("hasPrevious"):
+                pagination_query_prev = _job_tickets_page_querystring(request, page - 1)
+            if page_info.get("hasNext"):
+                pagination_query_next = _job_tickets_page_querystring(request, page + 1)
+
+    status_tabs = [
+        {"id": "", "label": "All"},
+        {"id": "open", "label": "Open"},
+        {"id": "in_review", "label": "In review"},
+        {"id": "resolved", "label": "Resolved"},
+        {"id": "closed", "label": "Closed"},
+    ]
+    return render(
+        request,
+        "admin_ops/job_tickets.html",
+        {
+            "tickets": tickets_data.get("items", []),
+            "page_info": page_info,
+            "status_filter": status_filter,
+            "user_filter": user_filter,
+            "external_job_filter": external_job_filter,
+            "status_tabs": status_tabs,
+            "current_page": page,
+            "page_title": "Job tickets",
+            "tickets_load_failed": tickets_load_failed,
+            "pagination_query_prev": pagination_query_prev,
+            "pagination_query_next": pagination_query_next,
+        },
+    )
+
+
+@require_admin_or_super_admin
+def job_ticket_detail_view(request, ticket_id):
+    """
+    Single job ticket; POST updates status / admin notes (``admin.updateJobTicketStatus``).
+
+    @role: admin_or_super_admin
+    """
+    if request.method == "POST":
+        new_status = (request.POST.get("status") or "").strip().lower()
+        raw_notes = request.POST.get("admin_notes")
+        notes: Optional[str] = None
+        if raw_notes is not None:
+            s = raw_notes.strip()
+            notes = s if s else None
+        try:
+            if not new_status:
+                messages.error(request, "Status is required.")
+            else:
+                update_job_ticket_status(
+                    _token(request), ticket_id, new_status, admin_notes=notes
+                )
+                messages.success(request, "Ticket updated.")
+        except AdminGraphQLError as exc:
+            messages.error(request, str(exc))
+        except Exception as exc:
+            logger.error("job_ticket_detail_view POST: %s", exc)
+            messages.error(request, f"Update failed: {exc}")
+        return redirect("admin_ops:job_ticket_detail", ticket_id=ticket_id)
+
+    ticket = None
+    try:
+        ticket = get_job_ticket_detail(_token(request), ticket_id)
+    except AdminGraphQLError as exc:
+        messages.error(request, str(exc))
+    except Exception as exc:
+        logger.error("job_ticket_detail_view GET: %s", exc)
+        messages.error(request, f"Failed to load ticket: {exc}")
+
+    display_id = ticket_id[:8] if len(ticket_id) > 8 else ticket_id
+    return render(
+        request,
+        "admin_ops/job_ticket_detail.html",
+        {
+            "ticket": ticket,
+            "ticket_id": ticket_id,
+            "page_title": f"Ticket {display_id}",
         },
     )
 

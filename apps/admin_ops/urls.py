@@ -17,6 +17,10 @@ urlpatterns = [
     path("jobs/", views.jobs_view, name="jobs"),
     path("jobs/<str:job_id>/retry/", views.job_retry_view, name="job_retry"),
     path("jobs/<str:job_id>/", views.job_detail_view, name="job_detail"),
+    path("job-tickets/", views.job_tickets_view, name="job_tickets"),
+    path(
+        "job-tickets/<str:ticket_id>/", views.job_ticket_detail_view, name="job_ticket_detail"
+    ),
     path("logs/", views.logs_view, name="logs"),
     path("logs/bulk-delete/", views.logs_bulk_delete_view, name="logs_bulk_delete"),
     path("logs/<str:log_id>/update/", views.log_update_view, name="log_update"),

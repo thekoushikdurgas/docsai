@@ -6,8 +6,14 @@
 <div class="container-fluid">
 <div class="page-header">
   <div>
-    <h1 class="page-title">Analytics</h1>
-    <p class="page-subtitle">User growth, credit burn, job throughput</p>
+    <h1 class="page-title">Analytics &amp; observability</h1>
+    <p class="page-subtitle">
+      Operator view: gateway <code>admin</code> stats, log aggregates, and
+      <code>health.satelliteHealth</code>. The product app&rsquo;s
+      <code>/analytics</code> page was removed; RUM/usage remains on the
+      dashboard/activities surfaces for end users, while this page focuses on
+      platform visibility.
+    </p>
   </div>
 </div>
 {% if observability_error %}
@@ -99,15 +105,15 @@
       <tbody>
         {% for row in satellite_health %}
         <tr>
-          <td>{{ row.name }}</td>
+          <td><strong>{{ row.name }}</strong></td>
           <td>
-            <span class="badge badge-neutral">{{ row.status }}</span>
+            <span class="badge {% if row.status == 'ok' %}badge-success{% elif row.status == 'error' %}badge-danger{% elif row.status == 'skipped' %}badge-warning{% else %}badge-neutral{% endif %}">{{ row.status }}</span>
           </td>
           <td style="font-size: var(--text-xs)">{{ row.detail|default:"—" }}</td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="3" class="table-empty">No data (sign in as SuperAdmin).</td>
+          <td colspan="3" class="table-empty">No satellite data (empty gateway response or not configured). Sign in as an operator with SuperAdmin if you expect probes.</td>
         </tr>
         {% endfor %}
       </tbody>

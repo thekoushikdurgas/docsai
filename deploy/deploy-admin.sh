@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# DEPRECATED — legacy operator script (global pip, fixed branch "docs",
+# gunicorn-docsai / supervisor, health on :8000). Prefer venv + deploy/remote-deploy.sh
+# (same path GitHub Actions uses). See docs/github-actions-and-ec2-deploy.md.
+#
 # Contact360 DocsAI Admin — Deployment script
 # Usage: bash deploy/deploy-admin.sh
 # Target: 34.201.10.84 / admin.contact360.io

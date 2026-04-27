@@ -1,9 +1,8 @@
-# Deploy DocsAI (Django admin) to EC2 — use when THIS REPO is the standalone admin checkout.
-# Monorepo: GitHub loads workflows from repo root only; use /.github/workflows/admin-deploy-ec2.yml.
+# Deploy DocsAI (Django admin) to EC2 — monorepo entrypoint.
 # Secrets: EC2_SSH_PRIVATE_KEY, EC2_HOST, EC2_USER
-# Optional repo variable: EC2_PROJECT_DIR — absolute path on the server where the repo is cloned (default /home/ubuntu/docsai).
-# EC2 must be a git clone: ssh ubuntu@host "cd $PATH && git status". If you see "not a git repository", clone: git clone <url> $PATH
-# Monorepo: changes under contact360.io/admin/**. Standalone (e.g. docsai): paths below include apps/**, manage.py, etc.
+# Variable EC2_PROJECT_DIR: path on EC2 to the directory containing deploy/remote-deploy.sh
+#   (e.g. /home/ubuntu/contact360/contact360.io/admin for a full monorepo clone)
+# Standalone admin repo: use contact360.io/admin/.github/workflows/deploy.yml and default PROJECT_DIR.
 
 name: Deploy Admin to EC2
 
@@ -12,13 +11,7 @@ on:
     branches: [main]
     paths:
       - "contact360.io/admin/**"
-      # Standalone admin repo (manage.py at root; no contact360.io/ prefix)
-      - "apps/**"
-      - "config/**"
-      - "requirements.txt"
-      - "manage.py"
-      - "deploy/**"
-      - ".github/workflows/deploy.yml"
+      - ".github/workflows/admin-deploy-ec2.yml"
   workflow_dispatch:
     inputs:
       branch:
@@ -28,7 +21,6 @@ on:
         default: "main"
 
 env:
-  # Repository → Settings → Variables → EC2_PROJECT_DIR (optional absolute path on EC2)
   PROJECT_DIR: ${{ vars.EC2_PROJECT_DIR || '/home/ubuntu/docsai' }}
 
 jobs:
@@ -56,7 +48,7 @@ jobs:
           BRANCH: ${{ github.event.inputs.branch || (github.event_name == 'push' && github.ref_name) || 'main' }}
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes "$EC2_USER@$EC2_HOST" \
-            "set -e && cd '${{ env.PROJECT_DIR }}' && if [ ! -d .git ]; then echo '::error::Not a git repository at ${{ env.PROJECT_DIR }}. On EC2: git clone https://github.com/${{ github.repository }}.git . (or set repo variable EC2_PROJECT_DIR to your clone path).'; exit 128; fi && git fetch origin && git reset --hard origin/$BRANCH && bash deploy/remote-deploy.sh"
+            "set -e && cd '${{ env.PROJECT_DIR }}' && if [ ! -d .git ]; then echo '::error::Not a git repository at ${{ env.PROJECT_DIR }}. Clone the repo so this path contains .git and deploy/remote-deploy.sh; for monorepo, set EC2_PROJECT_DIR to contact360.io/admin inside the clone.'; exit 128; fi && git fetch origin && git reset --hard origin/$BRANCH && bash deploy/remote-deploy.sh"
 
       - name: Verify deployment
         env:
@@ -64,6 +56,5 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
         run: |
           sleep 5
-          # Curl from inside EC2 to 127.0.0.1 avoids ALLOWED_HOSTS rejecting the public IP / elastic IP.
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes "$EC2_USER@$EC2_HOST" \
             "curl -sf --connect-timeout 15 'http://127.0.0.1/api/v1/health/'"

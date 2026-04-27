@@ -6,8 +6,10 @@
   <div>
     <h1 class="page-title">System Status</h1>
     <p class="page-subtitle">
-      Real-time service health probes. Uptime % counts only services with a
-      configured probe (excludes &ldquo;Not configured&rdquo;).
+      <strong>Canonical internal status for operators.</strong> The product
+      web app&rsquo;s <code>/status</code> page has been removed; all satellite
+      and gateway health context lives here. Uptime % counts only services with
+      a configured probe (excludes &ldquo;Not configured&rdquo;).
     </p>
   </div>
   <div class="page-actions">
@@ -127,7 +129,7 @@
           <td><strong>{{ row.name }}</strong></td>
           <td>{% if row.configured %}Yes{% else %}No{% endif %}</td>
           <td>
-            <span class="badge {% if row.status == 'ok' %}badge-success{% elif row.status == 'error' %}badge-danger{% else %}badge-neutral{% endif %}">
+            <span class="badge {% if row.status == 'ok' %}badge-success{% elif row.status == 'error' %}badge-danger{% elif row.status == 'skipped' %}badge-warning{% else %}badge-neutral{% endif %}">
               {{ row.status }}
             </span>
           </td>

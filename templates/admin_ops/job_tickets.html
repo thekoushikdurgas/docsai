@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Job tickets — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Job tickets</h1>
+    <p class="page-subtitle">
+      User-submitted issues linked to scheduler or scrape jobs (gateway
+      <code>admin.jobTickets</code>).
+      {% if page_info.total is not None %}<span class="text-muted">— {{ page_info.total }} total</span>{% endif %}
+    </p>
+  </div>
+</div>
+
+<form
+  method="get"
+  class="card"
+  style="
+    margin-bottom: var(--space-4);
+    padding: 0;
+    border: none;
+    background: transparent;
+  "
+>
+  <div
+    class="card-body"
+    style="
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: flex-end;
+    "
+  >
+    <input type="hidden" name="status" value="{{ status_filter }}" />
+    <div class="form-group" style="margin: 0">
+      <label class="form-label" for="id_user_id">User ID</label>
+      <input
+        id="id_user_id"
+        name="user_id"
+        class="form-control"
+        value="{{ user_filter }}"
+        placeholder="Filter by user UUID"
+        style="min-width: 14rem"
+      />
+    </div>
+    <div class="form-group" style="margin: 0">
+      <label class="form-label" for="id_external_job">External job ID</label>
+      <input
+        id="id_external_job"
+        name="job"
+        class="form-control"
+        value="{{ external_job_filter }}"
+        placeholder="Scheduler / scrape job id"
+        style="min-width: 14rem"
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Apply filters</button>
+  </div>
+</form>
+
+{% include "components/tabs.html" with tabs=status_tabs active_tab=status_filter style="filter" group_id="jobTicketTabs" %}
+
+<div style="margin-top: var(--space-4)">
+  <div class="card">
+    {% if tickets_load_failed %}
+    <div class="card-body">
+      <p class="text-muted" style="margin: 0" role="alert">
+        Could not load tickets from the gateway. Check your session token and try
+        again.
+      </p>
+    </div>
+    {% else %}
+    <div class="table-wrap">
+      <table class="table" aria-label="Job tickets table">
+        <thead>
+          <tr>
+            <th>Created</th>
+            <th>User</th>
+            <th>Source</th>
+            <th>Job</th>
+            <th>Title</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tickets %}
+          <tr>
+            <td><small>{{ t.createdAt|default:"—" }}</small></td>
+            <td><code>{{ t.userId|default:"—"|truncatechars:12 }}</code></td>
+            <td>
+              <span class="badge badge-neutral">{{ t.jobSource|default:"—" }}</span>
+            </td>
+            <td><code>{{ t.externalJobId|default:"—"|truncatechars:24 }}</code></td>
+            <td>{{ t.title|truncatechars:48 }}</td>
+            <td>{{ t.severity|default:"—" }}</td>
+            <td>
+              {% if t.status == "open" %}
+              <span class="badge badge-warning">open</span>
+              {% elif t.status == "in_review" %}
+              <span class="badge badge-info">in_review</span>
+              {% elif t.status == "resolved" %}
+              <span class="badge badge-success">resolved</span>
+              {% elif t.status == "closed" %}
+              <span class="badge badge-secondary">closed</span>
+              {% else %}
+              <span class="badge badge-secondary">{{ t.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <a
+                href="{% url 'admin_ops:job_ticket_detail' t.id %}"
+                class="btn btn-sm btn-outline"
+                >View</a
+              >
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="table-empty">
+              No tickets in this view. Adjust filters or pagination.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_info.total and page_info.total > 25 %}
+    <div class="table-pagination">
+      <span class="pagination-info">
+        Showing {{ page_info.offset|default:0|add:1 }}–{% with end=page_info.offset|add:25 %}{% if end > page_info.total %}{{ page_info.total }}{% else %}{{ end }}{% endif %}{% endwith %} of {{ page_info.total }}
+      </span>
+      <nav class="pagination-controls" aria-label="Job tickets pagination">
+        {% if page_info.hasPrevious and pagination_query_prev %}
+        <a
+          href="{% url 'admin_ops:job_tickets' %}?{{ pagination_query_prev }}"
+          class="pagination-btn"
+          >‹ Prev</a
+        >
+        {% endif %} {% if page_info.hasNext and pagination_query_next %}
+        <a
+          href="{% url 'admin_ops:job_tickets' %}?{{ pagination_query_next }}"
+          class="pagination-btn"
+          >Next ›</a
+        >
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %} {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  document
+    .querySelectorAll('[data-tab-group="jobTicketTabs"] .tab-link')
+    .forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var status = this.dataset.tab;
+        var url = new URL(window.location.href);
+        if (status) {
+          url.searchParams.set("status", status);
+        } else {
+          url.searchParams.delete("status");
+        }
+        url.searchParams.delete("page");
+        window.location.href = url.toString();
+      });
+    });
+</script>
+{% endblock %}

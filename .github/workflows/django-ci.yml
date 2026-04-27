@@ -1,6 +1,6 @@
-# Works in both layouts:
-# - Monorepo: `manage.py` under `contact360.io/admin/`
-# - Standalone (e.g. docsai): `manage.py` at repo root — do NOT use a fixed `contact360.io/admin` cwd.
+# Works when this repository is the standalone admin app (manage.py at repo root).
+# Contact360 monorepo: workflows under contact360.io/admin/.github are NOT executed by GitHub;
+# use /.github/workflows/admin-ci.yml at the monorepo root (path: contact360.io/admin/**).
 
 name: Django CI
 
@@ -52,4 +52,4 @@ jobs:
         working-directory: ${{ env.ADMIN_DIR }}
         env:
           DJANGO_ENV: testing
-        run: python -m pytest apps/core/tests/ -q
+        run: python -m pytest apps/core/tests apps/admin_ops/tests -q

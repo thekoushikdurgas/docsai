@@ -257,6 +257,12 @@ SIDEBAR_MENU = [
                 "also_active": ["admin_ops:job_detail", "admin_ops:job_retry"],
             },
             {
+                "label": "Job tickets",
+                "icon": "lni lni-support",
+                "url_name": "admin_ops:job_tickets",
+                "also_active": ["admin_ops:job_ticket_detail"],
+            },
+            {
                 "label": "Logs",
                 "icon": "lni lni-list",
                 "url_name": "admin_ops:logs",

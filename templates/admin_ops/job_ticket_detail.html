@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static admin_tags %}
+{% block title %}Job ticket — Contact360 Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Job ticket</h1>
+    <p class="page-subtitle"><code>{{ ticket.id|default:ticket_id }}</code></p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'admin_ops:job_tickets' %}" class="btn btn-outline"
+      ><i class="lni lni-arrow-left"></i> Back to tickets</a
+    >
+    {% if ticket.userId %}
+    <a
+      class="btn btn-outline"
+      href="{% url 'admin_ops:user_detail' ticket.userId %}"
+      ><i class="lni lni-user"></i> User profile</a
+    >
+    {% endif %}
+    {% if ticket.jobSource == "scheduler" and ticket.externalJobId %}
+    <a
+      class="btn btn-outline"
+      href="{% url 'admin_ops:job_detail' ticket.externalJobId %}"
+      ><i class="lni lni-briefcase"></i> Scheduler job</a
+    >
+    {% endif %}
+  </div>
+</div>
+
+{% if ticket %}
+<div
+  style="
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+  "
+>
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Ticket</h2></div>
+    <div class="card-body">
+      <table class="table">
+        <tr>
+          <th>Status</th>
+          <td>
+            {% if ticket.status == "open" %}
+            <span class="badge badge-warning">open</span>
+            {% elif ticket.status == "in_review" %}
+            <span class="badge badge-info">in_review</span>
+            {% elif ticket.status == "resolved" %}
+            <span class="badge badge-success">resolved</span>
+            {% elif ticket.status == "closed" %}
+            <span class="badge badge-secondary">closed</span>
+            {% else %}
+            <span class="badge badge-secondary">{{ ticket.status }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Severity</th>
+          <td>{{ ticket.severity|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Title</th>
+          <td>{{ ticket.title|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Description</th>
+          <td style="white-space: pre-wrap">{{ ticket.description|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Job source</th>
+          <td>
+            <span class="badge badge-neutral">{{ ticket.jobSource|default:"—" }}</span>
+          </td>
+        </tr>
+        <tr>
+          <th>External job ID</th>
+          <td><code>{{ ticket.externalJobId|default:"—" }}</code></td>
+        </tr>
+        <tr>
+          <th>Job type</th>
+          <td>{{ ticket.jobType|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Status snapshot</th>
+          <td><code>{{ ticket.jobStatusSnapshot|default:"—" }}</code></td>
+        </tr>
+        <tr>
+          <th>Created</th>
+          <td>{{ ticket.createdAt|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Updated</th>
+          <td>{{ ticket.updatedAt|default:"—" }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Resolution</h2>
+    </div>
+    <div class="card-body">
+      {% if ticket.adminNotes %}
+      <p class="text-muted" style="margin-top: 0; font-size: var(--text-sm)">
+        Current notes
+      </p>
+      <pre
+        style="
+          white-space: pre-wrap;
+          font-size: var(--text-sm);
+          background: var(--surface-muted);
+          padding: var(--space-3);
+          border-radius: var(--radius-md);
+        "
+      >{{ ticket.adminNotes }}</pre>
+      {% endif %}
+      {% if ticket.resolvedAt %}
+      <p style="font-size: var(--text-sm)">
+        Resolved at <strong>{{ ticket.resolvedAt }}</strong>
+        {% if ticket.resolvedByUserId %}
+        by <code>{{ ticket.resolvedByUserId }}</code>
+        {% endif %}
+      </p>
+      {% endif %}
+
+      <form method="post" style="margin-top: var(--space-4)">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="id_status">New status</label>
+          <select id="id_status" name="status" class="form-control" required>
+            <option value="open" {% if ticket.status == "open" %}selected{% endif %}>
+              open
+            </option>
+            <option
+              value="in_review"
+              {% if ticket.status == "in_review" %}selected{% endif %}
+            >
+              in_review
+            </option>
+            <option
+              value="resolved"
+              {% if ticket.status == "resolved" %}selected{% endif %}
+            >
+              resolved
+            </option>
+            <option
+              value="closed"
+              {% if ticket.status == "closed" %}selected{% endif %}
+            >
+              closed
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_admin_notes">Admin notes</label>
+          <textarea
+            id="id_admin_notes"
+            name="admin_notes"
+            class="form-control"
+            rows="6"
+            placeholder="Internal notes for operators…"
+          >{{ ticket.adminNotes|default:"" }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Save update</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% else %}
+{% include "components/alert.html" with type="warning" message="Ticket not found or could not be loaded." %}
+{% endif %}
+{% endblock %}

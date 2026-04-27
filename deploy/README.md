@@ -2,6 +2,8 @@
 
 This directory contains deployment scripts for automating DocsAI deployment on EC2 Ubuntu servers.
 
+**CI/CD overview (monorepo vs standalone, Actions secrets, `EC2_PROJECT_DIR`, canonical `remote-deploy.sh`):** see [docs/github-actions-and-ec2-deploy.md](../docs/github-actions-and-ec2-deploy.md).
+
 ## Scripts Overview
 
 ### 1. `deploy-to-ec2.sh` - Single-Command Automated Deploy ⭐ **RECOMMENDED**
