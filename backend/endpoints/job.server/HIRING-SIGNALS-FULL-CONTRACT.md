@@ -40,7 +40,8 @@ List endpoints may include `total`, `limit`, `offset` where supported.
 | Method | Path | Auth | Success | Notes |
 | ------ | ---- | ---- | ------- | ----- |
 | GET | `/health` | No | `status`, `mongo`, `redis` | 503 if backends unhealthy (see health handler). |
-| GET | `/api/v1/jobs` | Yes | `success`, `data`, `total`, `limit`, `offset` | Query filters: `title`, `company`, `location`, `employment_type`, `seniority`, `function`, `posted_after`, `posted_before`, **`run_id`** → Mongo `apify_run_id`. |
+| GET | `/api/v1/jobs` | Yes | `success`, `data`, `total`, `limit`, `offset` | Query filters: **`title`**, **`company`**, **`location`** may be repeated (OR within each field; substring regex, case-insensitive). Also `employment_type`, `seniority`, `function`, `posted_after`, `posted_before`, **`run_id`** → Mongo `apify_run_id`. |
+| GET | `/api/v1/jobs/filter-options` | Yes | `success`, `data` (array of `{ value, count }`), `field` | `field` = `title` \| `company` \| `location`; `q` optional prefix search; `limit` max options (default 50). Same filter query params as `/jobs` to scope the aggregation; the facet field’s own filters are excluded so lists stay usable. **Register this route before `/api/v1/jobs/:id`.** |
 | GET | `/api/v1/jobs/stats` | Yes | `success`, `total_jobs`, `jobs_with_company` | |
 | GET | `/api/v1/jobs/:linkedinJobId` | Yes | `success`, `data` | 404 if not found. |
 | GET | `/api/v1/runs` | Yes | `success`, `data`, **`total`**, `limit`, `offset` | `client_scrape_job_id` optional filter. |
@@ -62,7 +63,8 @@ All fields require an authenticated user unless noted. Satellite calls use `JobS
 
 | GraphQL field | job.server / source | HTTP / behavior |
 | ------------- | ------------------- | --------------- |
-| `jobs(...)` | `GET /api/v1/jobs` | Args include `runId` → `run_id`. |
+| `jobs(...)` | `GET /api/v1/jobs` | Args include `titles`, `companies`, `locations` (lists) and `runId` → `run_id`. |
+| `jobFilterOptions(...)` | `GET /api/v1/jobs/filter-options` | Distinct values + counts for title / company / location; optional `q`, `limit`. |
 | `job(linkedinJobId)` | `GET /api/v1/jobs/{id}` | |
 | `stats` | `GET /api/v1/jobs/stats` | |
 | `runs(limit, offset)` | `GET /api/v1/runs` | |
@@ -106,13 +108,13 @@ Upstream errors are raised as `JobServerClientError` / `BaseHTTPClientAPIError` 
 
 | Query param | Mongo field / behavior |
 | ----------- | ---------------------- |
-| `title` | `title` regex (i) |
-| `company` | `company_name` regex (i) |
-| `location` | `location` regex (i) |
+| `title` (repeat) | **OR** of substring regexes on `title` (i) |
+| `company` (repeat) | **OR** of substring regexes on `company_name` (i) |
+| `location` (repeat) | **OR** of substring regexes on `location` (i) |
 | `employment_type` | `employment_type` regex (i) |
 | `seniority` | `seniority_level` regex (i) |
 | `function` | `function_category_v2` regex (i) |
 | `posted_after` / `posted_before` | `posted_at` range |
 | **`run_id`** | **exact `apify_run_id`** |
 
-**Last reviewed:** 2026-04-26.
+**Last reviewed:** 2026-04-27.
