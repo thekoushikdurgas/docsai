@@ -16,8 +16,11 @@ See also [`EC2/job.server/.env.example`](../../../../EC2/job.server/.env.example
 | `API_KEY` | Shared secret for **`X-API-Key`** |
 | `MONGO_URI`, `MONGO_DATABASE` | Job and run storage |
 | `REDIS_ADDR` | Asynq + scrape locks |
-| `APIFY_API_TOKEN`, `APIFY_ACTOR_ID` | Apify actor |
-| `SCRAPE_DEFAULT_*` | Default URLs / counts for scrapes |
+| `APIFY_API_TOKEN`, `APIFY_ACTOR_ID` | Apify (optional legacy job actor; profile actor may still apply) |
+| `SCRAPER_SERVER_URL`, `SCRAPER_SERVER_API_KEY` | **`EC2/scraper.server`** base URL and optional `X-API-Key` (when scraper has `API_KEY` set) |
+| `SCRAPE_BACKEND` | `auto` (default: use scraper when `SCRAPER_SERVER_URL` is set), `scraper`, or `apify` |
+| `SCRAPE_CRON_KEYWORDS`, `SCRAPE_CRON_GEO_ID`, `SCRAPE_CRON_MAX_JOBS` | Cron scrape parameters when using scraper |
+| `SCRAPE_DEFAULT_*` | Default URLs / counts for **Apify**-mode scrapes |
 | `CONNECTRA_BASE_URL`, `CONNECTRA_API_KEY` | **sync.server** (Connectra) base and key. Required for **batch upserts** during ingest and for **read-through** API routes (job → company/contacts) — they return **503** if unset. |
 | `CONNECTRA_TIMEOUT`, `CONNECTRA_RETRY_*` | Outbound client timeout (seconds) and resty retries |
 | `GIN_MODE` | Set to **`release`** to suppress Gin debug output (or rely on `APP_ENV=production`; see `main.go`). `docker-compose` for `job-api` may set this. |
@@ -35,4 +38,4 @@ See also [`EC2/job.server/.env.example`](../../../../EC2/job.server/.env.example
 
 `health_check` in `JobServerClient` uses the same key when configured.
 
-Last reviewed: 2026-04-25.
+Last reviewed: 2026-05-05.

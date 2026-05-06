@@ -95,12 +95,12 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Observability:** `GET /health` pings Postgres + Redis; `X-Request-ID` on responses.
 - **Events:** No outbound webhooks documented — poll **`GET /jobs/:id/status`** for async jobs.
 
-## Hiring signal (`EC2/job.server`) — Apify + Mongo + Connectra
+## Hiring signal (`EC2/job.server`) — scraper.server + Mongo + Connectra (+ optional Apify profiles)
 
 - **Language:** Go, Gin; **module:** `github.com/thekoushikdurgas/job.server` (Git remote [`job.server`](https://github.com/thekoushikdurgas/job.server)).
 - **Stores:** **MongoDB** for `linkedin_job` and `apify_run`; **Redis** for Asynq and scrape locks; no Postgres in this service.
 - **Workers:** [`cmd/worker`](../EC2/job.server/cmd/worker/main.go) — Asynq consumers + **`robfig/cron`** to enqueue daily scrapes (`SCRAPE_CRON_*`, default **`Asia/Kolkata`**).
-- **Ingest:** **Apify** actor runs; dataset items mapped into `linkedin_jobs`; optional **Connectra** batch company/contact upserts when **`CONNECTRA_*`** is set ([`connectra_bridge`](../EC2/job.server/internal/services/connectra_bridge.go)).
+- **Ingest (jobs):** When **`SCRAPER_SERVER_URL`** is set (**`SCRAPE_BACKEND=auto`** default), **`EC2/scraper.server`** runs LinkedIn job scrapes (`POST /scrape/start`, poll status/results); rows map into **`linkedin_jobs`** (`actor_id` **`scraper.server`** on `apify_runs`). If **`SCRAPE_BACKEND=apify`** or scraper URL unset, legacy **Apify** job actor may still be used. **LinkedIn profile** enrichment may still use a separate **Apify** actor (`RunProfileScrape`).
 - **Read-through to sync:** HTTP routes under `/api/v1` can **GET** a Connectra company and **POST** contacts (VQL) for a **`company_id`** (Connectra UUID) so job rows link to **sync.server** data without a second client; **503** if Connectra is not configured. Handlers: `job_connectra_handlers.go`, `company_connectra_handlers.go`. See [`ROUTE-CLIENT-MATRIX.md`](backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
 - **List filters:** `GET /api/v1/jobs` accepts **`seniority`** and **`function`** query params (regex match on Mongo `seniority_level` and `function_category_v2`). Gateway GraphQL `hireSignal.jobs` exposes the same as **`seniority`** and **`functionCategory`** → forwarded to job.server.
 - **Auth:** When **`API_KEY` is set**, gateway sends **`X-API-Key`** = **`JOB_SERVER_API_KEY`**. If **`API_KEY` is empty** on the server, the middleware does not enforce a key (local only; use a key in production). Gateway env: **`JOB_SERVER_API_URL`**, **`JOB_SERVER_API_KEY`**, **`JOB_SERVER_API_TIMEOUT`** ([`JobServerClient`](../contact360.io/api/app/clients/job_server_client.py)).
@@ -187,6 +187,15 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **VQL preview:** The advanced builder modal can show a **full merged list query** (sidebar + advanced + derived columns + list `limit`/`offset`) for debugging and support, not only the advanced-only draft.
 - **Long-form doc + backlog tasks:** [`docs/docs/contacts-filter-vql-ui.md`](docs/contacts-filter-vql-ui.md); phase 3 pointer: [`docs/3.Contact360 contact and company data system/52-app-contacts-vql-filters.md`](3.Contact360%20contact%20and%20company%20data%20system/52-app-contacts-vql-filters.md).
 
+## Hiring signals — job.server list filters & gateway prefs
+
+- **Literal substrings:** `title`, `company`, `location`, `employment_type`, industries, and exclusion tokens are matched with **Mongo `$regex` built from `regexp.QuoteMeta`** (case-insensitive). Users cannot inject regex operators; patterns are **substring** matches, not whole-field anchors.
+- **Facet algebra:** OR within repeated params for the same field; AND across different fields. **`run_id`** remains **exact** on `apify_run_id`.
+- **Extended JSON:** The dashboard sends additional dimensions as GraphQL `extendedJobFilters` (camelCase); the gateway merges into job.server snake/plural query params via `job_server_job_filters.merge_extended_job_filters`.
+- **Derived job fields:** Salary bands, `experience_bucket`, `role_track`, `education_level_min`, clearance / H1B / `skill_tags`, etc. are set at **ingest** (`ApplyDerivedFieldsToJob`). Listing on old documents without backfill may return zero rows for those filters.
+- **Gateway-owned exclusions:** Hidden companies and optional “hide applied” use Postgres tables (`hire_signal_user_prefs` migration) and are merged into `excluded_company` / `exclude_linkedin_job_id` **before** pagination so totals stay consistent with the list.
+- **Resume → filters:** `suggestHireSignalFiltersFromResumeUpload` calls resume.ai; the UI merges suggestions into the **filter draft only** until the user clicks **Apply filters** (no automatic search; avoid logging raw resume bytes).
+
 ## Row Level Security (RLS) pattern
 
 - Session sets `SET LOCAL app.current_org_id = '<uuid>'` after JWT validation in CRM path.
@@ -200,4 +209,4 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 
 ---
 
-*Last updated: 2026-04-24 (proxy.server satellite, Reacher bridge; prior: 2026-04-21 admin UI policy)*
+*Last updated: 2026-05-05 (scraper.server job ingest). Prior: 2026-04-29*

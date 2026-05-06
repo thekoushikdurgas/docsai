@@ -13,13 +13,13 @@ Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when t
 | `JobServerClient` method | HTTP | Notes |
 | ------------------------ | ---- | ----- |
 | `health_check` | `GET /health` | Unauthenticated. Returns **`mongo`**, **`redis`**, and **`status`**: `ok` or `degraded` (503) if either backend fails. |
-| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, `title`, `company`, `location`, `employment_type`, `seniority`, `function` (case-insensitive regex on `seniority_level`, `function_category_v2`), `posted_after`, `posted_before` (ISO `YYYY-MM-DD` or RFC3339; filters `posted_at` range), **`run_id`** (exact `apify_run_id` for CSV / per-run export) |
+| `list_jobs` | `GET /api/v1/jobs` | Query: `limit`, `offset`, repeated **`title`**, **`company`**, **`location`**, repeated **`employment_type`**, **`workplace_type`**, **`industry`** / **`excluded_*`**, **`salary_min`**, **`experience_bucket`**, **`role_track`**, **`education_level_min`**, **`clearance_mode`**, **`h1b_only`**, repeated **`skill`**, repeated **`exclude_linkedin_job_id`**, `seniority`, `function`, `posted_after`, `posted_before`, **`run_id`** (exact `apify_run_id`). User-submitted tokens use **literal** substring matching (quoted regex). |
 | `get_job` | `GET /api/v1/jobs/{linkedinJobId}` | `id` path is LinkedIn job id |
 | `jobs_stats` | `GET /api/v1/jobs/stats` | `total_jobs`, `jobs_with_company` |
 | `list_runs` | `GET /api/v1/runs` | Query: `limit` (default 50), **`offset`** (pagination), **`client_scrape_job_id`** (filter Mongo `apify_runs` by gateway `scrape_jobs.id`). JSON: `data`, **`total`**, `limit`, `offset`. |
 | `get_run` | `GET /api/v1/runs/{runId}` | |
-| `refresh_run` | `GET /api/v1/runs/{runId}/refresh` | Polls **Apify** `GET /actor-runs/{id}`, updates Mongo `status` + `dataset_id`. Returns `{ success, data, apify_status, apify_dataset }`. **502** if Apify errors. |
-| `trigger_scrape` | `POST /api/v1/runs` | JSON **`StartScrapePayload`**: `trigger`, `urls`, `count`, `scrapeCompany`, `splitByLocation`, optional **`clientScrapeJobId`** (UUID string from gateway `scrape_jobs`). **400** if body missing/invalid JSON, non-`cron` trigger without URLs, or `count` out of range. **202** enqueues Asynq `start_scrape`; worker runs **Apify** (`cmd/worker` / `job-worker`). |
+| `refresh_run` | `GET /api/v1/runs/{runId}/refresh` | If run `actor_id` is **`scraper.server`**, polls **`GET /scrape/status/{id}`** on scraper.server; otherwise polls **Apify** `GET /actor-runs/{id}`. Updates Mongo `status` (+ `dataset_id` for Apify). Returns `{ success, data, apify_status, apify_dataset }` (keys unchanged for gateway compat). **502** if upstream errors. |
+| `trigger_scrape` | `POST /api/v1/runs` | JSON **`StartScrapePayload`**: `trigger`, optional **`keywords`**, **`geoId`**, **`maxJobs`**, **`enableEnrichment`**, **`urls`** (LinkedIn search URLs with `keywords=` for URL mode), **`count`**, legacy **`scrapeCompany`**, **`splitByLocation`**, optional **`clientScrapeJobId`**. **400** if validation fails. **202** enqueues Asynq `start_scrape`; worker runs **scraper.server** or **Apify** per **`SCRAPE_BACKEND`** / **`SCRAPER_SERVER_URL`**. |
 | `list_companies` | `GET /api/v1/companies` | Query: `limit` (default 100) |
 | `company_jobs` | `GET /api/v1/companies/{companyUuid}/jobs` | Query: `limit` (default 50) |
 | `job_connectra_contacts` | `GET /api/v1/jobs/{linkedinJobId}/contacts` | GraphQL: `hireSignal { jobConnectraContacts( … ) }`. VQL via **sync.server** `POST /contacts`. Query: `page` (max 10), `limit` (max 100), `populateCompany`, `includePoster`. **409** if no `company_uuid` on the job. **503** if `CONNECTRA_*` unset. |
@@ -31,8 +31,8 @@ Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when t
 **Implementation notes**
 
 - **MongoDB** collections: **`linkedin_jobs`**, **`apify_runs`** (see [`job.server-schema.md`](../../database/job.server-schema.md)).
-- **Ingestion:** Asynq + **Redis** for scrape/ingest tasks; **Apify** for actor runs; **Connectra bridge** (batch company/contact upsert) in [`EC2/job.server/internal/services/connectra_bridge.go`](../../../../EC2/job.server/internal/services/connectra_bridge.go) when `CONNECTRA_*` is set.
+- **Ingestion:** Asynq + **Redis** for scrape/ingest tasks; **`EC2/scraper.server`** for job scrapes when configured, else **Apify** job actor; **Connectra bridge** (batch company/contact upsert) in [`EC2/job.server/internal/services/connectra_bridge.go`](../../../../EC2/job.server/internal/services/connectra_bridge.go) when `CONNECTRA_*` is set.
 - **Read-through to sync:** Mapping routes call **sync.server** only when `CONNECTRA_BASE_URL` and `CONNECTRA_API_KEY` are set; otherwise they respond **503**. Contacts use **VQL** over **`POST /contacts`**, companies use **`GET /companies/{uuid}`** (see [sync.server `modules/`](../../../../EC2/sync.server/modules)).
 - **Gin:** In [`main.go`](../../../../EC2/job.server/main.go), `GIN_MODE=release` or `APP_ENV=production` sets release mode; Docker compose may set `GIN_MODE=release` for the API (see `EC2/job.server/docker-compose.yml`).
 
-**Last reviewed:** 2026-04-25.
+**Last reviewed:** 2026-05-05.

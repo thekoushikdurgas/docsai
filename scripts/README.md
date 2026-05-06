@@ -7,6 +7,7 @@
 | [`generate_phase_stubs.py`](generate_phase_stubs.py) | Creates missing markdown files listed in each phase `index.json` (templated stubs; idempotent). Run: `python docs/scripts/generate_phase_stubs.py` |
 | [`apollo/`](apollo/) | Apollo URL → VQL conversion helpers; see folder README. |
 | [`linkdin/`](linkdin/) | Sample HTML → JSON extracts (research). |
+| [`jobs/`](jobs/) | Saved LinkedIn job-detail HTML → JSON (`main.py`, `input/`, `output/`). Field shapes align with `EC2/scraper.server` `JobResult` / `job.server` ingest. |
 
 ## Doc generation (repo root)
 
