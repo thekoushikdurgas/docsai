@@ -95,12 +95,12 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Observability:** `GET /health` pings Postgres + Redis; `X-Request-ID` on responses.
 - **Events:** No outbound webhooks documented — poll **`GET /jobs/:id/status`** for async jobs.
 
-## Hiring signal (`EC2/job.server`) — scraper.server + Mongo + Connectra (+ optional Apify profiles)
+## Hiring signal (`EC2/job.server`) — Apify job ingest + Mongo + Connectra (+ optional Apify profiles)
 
 - **Language:** Go, Gin; **module:** `github.com/thekoushikdurgas/job.server` (Git remote [`job.server`](https://github.com/thekoushikdurgas/job.server)).
 - **Stores:** **MongoDB** for `linkedin_job` and `apify_run`; **Redis** for Asynq and scrape locks; no Postgres in this service.
 - **Workers:** [`cmd/worker`](../EC2/job.server/cmd/worker/main.go) — Asynq consumers + **`robfig/cron`** to enqueue daily scrapes (`SCRAPE_CRON_*`, default **`Asia/Kolkata`**).
-- **Ingest (jobs):** When **`SCRAPER_SERVER_URL`** is set (**`SCRAPE_BACKEND=auto`** default), **`EC2/scraper.server`** runs LinkedIn job scrapes (`POST /scrape/start`, poll status/results); rows map into **`linkedin_jobs`** (`actor_id` **`scraper.server`** on `apify_runs`). If **`SCRAPE_BACKEND=apify`** or scraper URL unset, legacy **Apify** job actor may still be used. **LinkedIn profile** enrichment may still use a separate **Apify** actor (`RunProfileScrape`).
+- **Ingest (jobs):** **Apify** LinkedIn jobs actor (`APIFY_ACTOR_ID`); worker polls Apify, ingests dataset into **`linkedin_jobs`**, and records runs in **`apify_runs`**. **LinkedIn profile** enrichment uses a separate **Apify** actor (`RunProfileScrape`). Legacy Mongo rows may still reference historical `actor_id` values; ingest still includes mappers for older **`scraper.server`-shaped** `raw_payload` reads only.
 - **Read-through to sync:** HTTP routes under `/api/v1` can **GET** a Connectra company and **POST** contacts (VQL) for a **`company_id`** (Connectra UUID) so job rows link to **sync.server** data without a second client; **503** if Connectra is not configured. Handlers: `job_connectra_handlers.go`, `company_connectra_handlers.go`. See [`ROUTE-CLIENT-MATRIX.md`](backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
 - **List filters:** `GET /api/v1/jobs` accepts **`seniority`** and **`function`** query params (regex match on Mongo `seniority_level` and `function_category_v2`). Gateway GraphQL `hireSignal.jobs` exposes the same as **`seniority`** and **`functionCategory`** → forwarded to job.server.
 - **Auth:** When **`API_KEY` is set**, gateway sends **`X-API-Key`** = **`JOB_SERVER_API_KEY`**. If **`API_KEY` is empty** on the server, the middleware does not enforce a key (local only; use a key in production). Gateway env: **`JOB_SERVER_API_URL`**, **`JOB_SERVER_API_KEY`**, **`JOB_SERVER_API_TIMEOUT`** ([`JobServerClient`](../contact360.io/api/app/clients/job_server_client.py)).
@@ -209,4 +209,4 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 
 ---
 
-*Last updated: 2026-05-05 (scraper.server job ingest). Prior: 2026-04-29*
+*Last updated: 2026-05-07 (Apify-only job ingest; scraper.server integration removed). Prior: 2026-05-05*

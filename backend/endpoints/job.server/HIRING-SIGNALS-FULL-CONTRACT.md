@@ -46,9 +46,10 @@ List endpoints may include `total`, `limit`, `offset` where supported.
 | GET | `/api/v1/jobs/stats` | Yes | `success`, `total_jobs`, `jobs_with_company` | |
 | GET | `/api/v1/jobs/:linkedinJobId` | Yes | `success`, `data` | 404 if not found. |
 | GET | `/api/v1/runs` | Yes | `success`, `data`, **`total`**, `limit`, `offset` | `client_scrape_job_id` optional filter. |
+| GET | `/api/v1/runs/metrics` | Yes | `success`, `data` (`total`, `by_status`, `broker_queue_depth`) | Mongo aggregate on `apify_runs.status`. |
 | GET | `/api/v1/runs/:id` | Yes | `success`, `data` | 404 if not found. |
-| GET | `/api/v1/runs/:id/refresh` | Yes | `success`, `data`, `apify_status`, `apify_dataset` | Polls **scraper.server** or **Apify** depending on run `actor_id`. **502** if upstream HTTP fails. |
-| POST | `/api/v1/runs` | Yes | **202** `success`, `message`, `task_id`, `queue` | Body: `StartScrapePayload`. **400** if invalid JSON, empty body, or validation fails (scraper: keywords/geo or parseable URLs; Apify: URLs unless `trigger=cron`). |
+| GET | `/api/v1/runs/:id/refresh` | Yes | `success`, `data`, `apify_status`, `apify_dataset` | Polls **Apify**. **502** if upstream HTTP fails. |
+| POST | `/api/v1/runs` | Yes | **202** `success`, `message`, `task_id`, `queue` | Body: `StartScrapePayload`. **400** if invalid JSON, empty body, or validation fails (keywords/geo may synthesize URLs; Apify: URLs unless `trigger=cron`). |
 | GET | `/api/v1/companies` | Yes | companies list | |
 | GET | `/api/v1/companies/:uuid/jobs` | Yes | jobs for company | |
 | GET | `/api/v1/jobs/:id/company` | Yes | job + Connectra company | **409** if job has no `company_uuid`; **503** if Connectra not configured. |
@@ -69,6 +70,7 @@ All fields require an authenticated user unless noted. Satellite calls use `JobS
 | `job(linkedinJobId)` | `GET /api/v1/jobs/{id}` | |
 | `stats` | `GET /api/v1/jobs/stats` | |
 | `runs(limit, offset)` | `GET /api/v1/runs` | |
+| `hireSignalRunMetrics` | `GET /api/v1/runs/metrics` | |
 | `run(runId)` | `GET /api/v1/runs/{id}` | |
 | `refreshHireSignalRun(runId)` | `GET /api/v1/runs/{id}/refresh` | |
 | `companies` | `GET /api/v1/companies` | |
@@ -79,6 +81,7 @@ All fields require an authenticated user unless noted. Satellite calls use `JobS
 | `connectraContactsForCompany` | `GET /api/v1/companies/{uuid}/contacts` | |
 | `triggerScrape(body)` | `POST /api/v1/runs` | |
 | `triggerScrapeAndTrack(body)` | Creates `scrape_jobs` row, then `POST /api/v1/runs` with `clientScrapeJobId` | |
+| `deleteScrapeJob(scrapeJobId)` | Deletes `scrape_jobs` row; cancels linked job.server run when status is queued/running | |
 | `listScrapeJobs` | Postgres only | |
 | `getScrapeJob` / `scrapeJobJobs` | Postgres + job.server | |
 | `suggestHireSignalFiltersFromResumeUpload` | resume.ai via gateway | Multipart resume parse → suggested titles/locations + `extendedJobFilters` JSON (user reviews in UI before search). |
@@ -98,7 +101,7 @@ Upstream errors are raised as `JobServerClientError` / `BaseHTTPClientAPIError` 
 | 404 | `NOT_FOUND` | Message preserved. |
 | 409 | `CONFLICT` | |
 | 422 | `VALIDATION_ERROR` | |
-| 502 | `BAD_GATEWAY` | e.g. scraper.server or Apify failure from satellite. |
+| 502 | `BAD_GATEWAY` | e.g. Apify failure from satellite. |
 | 503 | `SERVICE_UNAVAILABLE` | e.g. Connectra / scraper / Apify unavailable. |
 | other | `HTTP_ERROR` | |
 
