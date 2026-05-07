@@ -107,6 +107,12 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Observability:** **`GET /health`** (Mongo + Redis, unauthenticated on root path); **`X-Request-ID`** on responses — see [`ROUTE-CLIENT-MATRIX.md`](backend/endpoints/job.server/ROUTE-CLIENT-MATRIX.md).
 - **Product surface:** Gateway GraphQL **`hireSignal`**; dashboard route **`/hiring-signals`**. **Events:** see [`EVENTS-BOUNDARY.md`](backend/endpoints/job.server/EVENTS-BOUNDARY.md).
 
+## LinkedIn scraper satellite (`EC2/scraper.server`)
+
+- **Role:** FastAPI + Celery worker for optional LinkedIn job scraping (distinct from Apify ingest in job.server). Each flush batch **normalizes** company LinkedIn URLs (same cleaning as job.server UUID derivation), **batch-upserts** employers to **Connectra**, writes denormalized snapshots to Mongo **`MONGO_COMPANIES_COLLECTION`** (default **`linkedin_company_snapshots`**), then persists slim job rows to **`linkedin_jobs`** (heavy company fields stripped — canonical employer remains Connectra).
+- **Observability:** Worker logs `flush_company_metrics` per batch (Connectra payload counts, UUID assignment breakdown, Mongo snapshot writes).
+- **Doc:** [`scraper-server-company-pipeline.md`](backend/scraper-server-company-pipeline.md).
+
 ## Storage satellite (`EC2/s3storage.server`) — S3 + Redis + Asynq
 
 - **Language:** Go (Gin); **module:** `contact360.io/s3storage` (optional rename vs Git remote `storage.server` — see [`docs/backend/endpoints/s3storage.server/MODULE-OPTIONAL.md`](backend/endpoints/s3storage.server/MODULE-OPTIONAL.md)).
@@ -209,4 +215,4 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 
 ---
 
-*Last updated: 2026-05-07 (Apify-only job ingest; scraper.server integration removed). Prior: 2026-05-05*
+*Last updated: 2026-05-07 (scraper.server: Connectra upsert + Mongo `linkedin_company_snapshots`; job.server primary ingest remains Apify). Prior: 2026-05-05*

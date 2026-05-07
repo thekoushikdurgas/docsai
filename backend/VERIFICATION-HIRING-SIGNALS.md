@@ -33,3 +33,26 @@ cd contact360.io/app && npx tsc --noEmit
 - [ROUTE-CLIENT-MATRIX.md](endpoints/job.server/ROUTE-CLIENT-MATRIX.md)
 
 **Last reviewed:** 2026-04-26.
+
+## scraper.server (tracked LinkedIn scrape → Mongo + Connectra)
+
+After changing **`EC2/scraper.server`** (enrichment, Connectra upsert, company snapshots):
+
+```bash
+cd EC2/scraper.server
+pip install -r requirements-dev.txt
+python -m pytest tests/ -q
+```
+
+**Mongo spot-check** (defaults: DB `job_server`, collections `linkedin_jobs`, `linkedin_company_snapshots`):
+
+```javascript
+// Recent company snapshots (denormalized cache)
+db.linkedin_company_snapshots.find().sort({ updated_at: -1 }).limit(5)
+
+// Job rows should carry company_uuid but not stripped blob fields
+db.linkedin_jobs.findOne({ company_uuid: { $exists: true } })
+```
+
+Design notes: [`scraper-server-company-pipeline.md`](scraper-server-company-pipeline.md).
+

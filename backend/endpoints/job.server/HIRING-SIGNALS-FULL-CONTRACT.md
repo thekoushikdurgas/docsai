@@ -52,10 +52,10 @@ List endpoints may include `total`, `limit`, `offset` where supported.
 | POST | `/api/v1/runs` | Yes | **202** `success`, `message`, `task_id`, `queue` | Body: `StartScrapePayload`. **400** if invalid JSON, empty body, or validation fails (keywords/geo may synthesize URLs; Apify: URLs unless `trigger=cron`). |
 | GET | `/api/v1/companies` | Yes | companies list | |
 | GET | `/api/v1/companies/:uuid/jobs` | Yes | jobs for company | |
-| GET | `/api/v1/jobs/:id/company` | Yes | job + Connectra company | **409** if job has no `company_uuid`; **503** if Connectra not configured. |
+| GET | `/api/v1/jobs/:id/company` | Yes | job + Connectra company (or Mongo company snapshot fallback — same as `/companies/:uuid/record`) | **409** if job has no `company_uuid`; **503** if Connectra not configured **and** no snapshot. |
 | GET | `/api/v1/jobs/:id/contacts` | Yes | VQL contacts | **409** / **503** per handler. |
 | GET | `/api/v1/companies/:uuid/contacts` | Yes | VQL contacts | **503** if Connectra not configured. |
-| GET | `/api/v1/companies/:uuid/record` | Yes | Connectra company record | |
+| GET | `/api/v1/companies/:uuid/record` | Yes | Connectra company record, or **Mongo** `linkedin_company_snapshots` fallback when Connectra fails / 404 / unset (`source`: `mongo_company_snapshot`) — see [hire-signal-data-pipeline.md](../../hire-signal-data-pipeline.md) | |
 
 Export / Connectra batch routes: see [router.go](../../../../EC2/job.server/internal/api/router.go).
 
