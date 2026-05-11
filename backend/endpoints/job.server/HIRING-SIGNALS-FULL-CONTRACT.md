@@ -116,7 +116,7 @@ Upstream errors are raised as `JobServerClientError` / `BaseHTTPClientAPIError` 
 - **Within a multi-value facet** (e.g. several `title` params): **OR**.
 - **Across dimensions** (title vs company vs location vs structured filters): **AND**.
 - **Exclude lists** (`excluded_title`, `excluded_company`, …): job must **not** match any token in that dimension (same literal-substring semantics as includes).
-- **Date range:** `posted_after` lower bound matches if **either** `posted_at` or `ingested_at` clears the cutoff (aligns with UI “Posted” when ingest fills gaps). `posted_before` applies an upper bound on **`max(posted_at, ingested_at)`** via `$expr` (ISO date or RFC3339).
+- **Date range:** `posted_after` lower bound matches if any of **`posted_at` / `postedAt` / `ingested_at` / `ingestedAt`** clears the cutoff (legacy camelCase docs), **or** a listing time parsed from common **`raw_payload`** keys (`postedAt`, `posted_at`, `listedAt`, `listAt`, `datePosted`, …) via **`$convert`** to date. `posted_before` applies an upper bound on **`max(posted_at, ingested_at)`** via `$expr` (ISO date or RFC3339).
 - **`run_id`:** exact match on `apify_run_id` (not substring).
 - **User text:** treated as **literal substrings** (not user-controlled regex); see `DECISIONS.md`.
 
@@ -133,7 +133,7 @@ Upstream errors are raised as `JobServerClientError` / `BaseHTTPClientAPIError` 
 | `industry` (repeat) | **OR** literal substring on free-text industries field |
 | `seniority` | `seniority_level` literal substring (i) |
 | `function` | `function_category_v2` literal substring (i) |
-| `posted_after` / `posted_before` | **`posted_after`:** `$or` — `posted_at >= bound` **or** `ingested_at >= bound`. **`posted_before`:** `$expr` `max(posted_at, ingested_at) <= bound` |
+| `posted_after` / `posted_before` | **`posted_after`:** `$or` — `posted_at` / **`postedAt`** / `ingested_at` / **`ingestedAt`** `>= bound`, plus `$expr` `$gte` on `$convert` of nested `raw_payload` posting fields (null/error → epoch). **`posted_before`:** `$expr` `max(posted_at, ingested_at) <= bound` |
 | **`run_id`** | **exact `apify_run_id`** |
 | `salary_min` | `salary_min_usd >=` (ingest-normalized) |
 | `experience_bucket` (repeat) | `experience_bucket` **`$in`** |
