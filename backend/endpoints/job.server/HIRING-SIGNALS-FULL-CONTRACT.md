@@ -116,7 +116,7 @@ Upstream errors are raised as `JobServerClientError` / `BaseHTTPClientAPIError` 
 - **Within a multi-value facet** (e.g. several `title` params): **OR**.
 - **Across dimensions** (title vs company vs location vs structured filters): **AND**.
 - **Exclude lists** (`excluded_title`, `excluded_company`, …): job must **not** match any token in that dimension (same literal-substring semantics as includes).
-- **Date range:** `posted_after` lower bound matches if any of **`posted_at` / `postedAt` / `ingested_at` / `ingestedAt`** clears the cutoff (legacy camelCase docs), **or** a listing time parsed from common **`raw_payload`** keys (`postedAt`, `posted_at`, `listedAt`, `listAt`, `datePosted`, …) via **`$convert`** to date. `posted_before` applies an upper bound on **`max(posted_at, ingested_at)`** via `$expr` (ISO date or RFC3339).
+- **Date range:** `posted_after` lower bound is **`$expr`**: **`$or`** of **`$gte`** on **`$convert`** (→ date, null/error → epoch) for each field family the app can show as “Posted” (posted, created, listed, date_posted, `raw_payload` chain, ingested, updated — aligned with `resolvePostedAtIso`). `posted_before` applies an upper bound on **`max(posted_at, ingested_at)`** via `$expr` (ISO date or RFC3339).
 - **`run_id`:** exact match on `apify_run_id` (not substring).
 - **User text:** treated as **literal substrings** (not user-controlled regex); see `DECISIONS.md`.
 
@@ -126,14 +126,14 @@ Upstream errors are raised as `JobServerClientError` / `BaseHTTPClientAPIError` 
 | ----------- | ---------------------- |
 | `title` (repeat) | **OR** of literal substring `$regex` on `title` (i) |
 | `company` (repeat) | **OR** of literal substring on `company_name` (i) |
-| `location` (repeat) | **OR** of literal substring on `location` (i) |
+| `location` (repeat) | **OR** of literal substring on `location` (i); tokens like **`City, ST`** also OR a match on **`City`** so stored `City, State, Country` rows still match |
 | `excluded_title` / `excluded_company` / `excluded_location` / `excluded_industry` (repeat) | **None** shall match (literal substring, i) |
 | `employment_type` (repeat) | **OR** — each term literal substring on `employment_type` (i) |
 | `workplace_type` (repeat) | `workplace_types` array **`$in`** |
 | `industry` (repeat) | **OR** literal substring on free-text industries field |
 | `seniority` | `seniority_level` literal substring (i) |
 | `function` | `function_category_v2` literal substring (i) |
-| `posted_after` / `posted_before` | **`posted_after`:** `$or` — `posted_at` / **`postedAt`** / `ingested_at` / **`ingestedAt`** `>= bound`, plus `$expr` `$gte` on `$convert` of nested `raw_payload` posting fields (null/error → epoch). **`posted_before`:** `$expr` `max(posted_at, ingested_at) <= bound` |
+| `posted_after` / `posted_before` | **`posted_after`:** `$expr` **`$or`** of **`$gte`** on **`$convert`** (→ date) for posted/created/listed/date_posted/raw_payload/ingested/updated field families. **`posted_before`:** `$expr` `max(posted_at, ingested_at) <= bound` |
 | **`run_id`** | **exact `apify_run_id`** |
 | `salary_min` | `salary_min_usd >=` (ingest-normalized) |
 | `experience_bucket` (repeat) | `experience_bucket` **`$in`** |
