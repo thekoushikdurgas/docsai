@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Type, TypeVar, cast
 
 from django.http import HttpRequest, JsonResponse
 from pydantic import BaseModel, ValidationError as PydanticValidationError
 
-from apps.documentation.utils.api_responses import APIResponse, server_error_response
+from apps.documentation.utils.api_responses import server_error_response
 
 logger = logging.getLogger(__name__)
 
@@ -93,11 +93,10 @@ def validate_response(
 
                 # Validate against schema
                 try:
-                    validated_data = (
+                    if isinstance(data_to_validate, dict):
                         schema(**data_to_validate)
-                        if isinstance(data_to_validate, dict)
-                        else schema(data_to_validate)
-                    )
+                    else:
+                        schema(data_to_validate)
                     logger.debug(f"Response validation passed for {func.__name__}")
                 except PydanticValidationError as e:
                     error_msg = (
@@ -135,7 +134,7 @@ def validate_response(
 
             return response
 
-        return wrapper  # type: ignore
+        return cast(F, wrapper)
 
     return decorator
 
@@ -262,7 +261,7 @@ def validate_response_list(
 
             return response
 
-        return wrapper  # type: ignore
+        return cast(F, wrapper)
 
     return decorator
 
@@ -367,6 +366,6 @@ def validate_response_type(
 
             return response
 
-        return wrapper  # type: ignore
+        return cast(F, wrapper)
 
     return decorator

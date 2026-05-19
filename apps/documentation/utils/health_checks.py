@@ -16,15 +16,18 @@ import logging
 import time
 import urllib.parse
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from django.db import connection
 from django.core.cache import cache
 from django.conf import settings
 
+httpx: Any
 try:
-    import httpx
+    import httpx as _httpx
+
+    httpx = _httpx
 except ImportError:
-    httpx = None  # type: ignore[assignment]
+    httpx = None
 
 logger = logging.getLogger(__name__)
 

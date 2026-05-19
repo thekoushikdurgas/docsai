@@ -9,7 +9,7 @@ from __future__ import annotations
 import functools
 import logging
 import time
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar, cast
 
 from django.core.cache import cache
 from django.http import HttpRequest, JsonResponse
@@ -192,7 +192,7 @@ def rate_limit(
 
             return result
 
-        return wrapper  # type: ignore
+        return cast(F, wrapper)
 
     return decorator
 

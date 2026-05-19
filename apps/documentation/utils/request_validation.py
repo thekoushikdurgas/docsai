@@ -9,7 +9,7 @@ from __future__ import annotations
 import functools
 import json
 import logging
-from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Type, TypeVar, cast
 
 from django.http import HttpRequest, JsonResponse
 from pydantic import BaseModel, ValidationError as PydanticValidationError
@@ -98,7 +98,7 @@ def validate_request(
             # Call original function
             return func(request, *args, **kwargs)
 
-        return wrapper  # type: ignore
+        return cast(F, wrapper)
 
     return decorator
 
@@ -167,7 +167,7 @@ def validate_query_params(
             # Call original function
             return func(request, *args, **kwargs)
 
-        return wrapper  # type: ignore
+        return cast(F, wrapper)
 
     return decorator
 
@@ -224,6 +224,6 @@ def validate_path_params(
             # Call original function
             return func(request, *args, **kwargs)
 
-        return wrapper  # type: ignore
+        return cast(F, wrapper)
 
     return decorator
