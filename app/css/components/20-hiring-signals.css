@@ -1,0 +1,1098 @@
+/* Contact360 — Hiring signals page (JD HTML, table row accent, avatars, drawer) */
+
+@media (min-width: 640px) {
+  .c360-hs-page-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.c360-hs-latest-run-inner {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* HiringSignalsDashboard root wrapper — collapse gap between all child sections */
+.c360-hs-dashboard-wrapper.c360-gap-6 {
+  gap: 0;
+}
+
+/* Dashboard 2-col chart grids — flush gap between chart cards */
+.c360-hs-dashboard-2col.c360-2col-grid {
+  gap: 0;
+}
+
+.c360-hs-dashboard-postings-week-card.c360-card {
+  border-radius: 0;
+}
+
+.c360-hs-dashboard-latest-run-card.c360-card {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.c360-hs-dashboard-employment-type-card.c360-card {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Latest scrape run card (dashboard layout): full-width body (overrides kit `.c360-card__body { width: 50% }`) */
+.c360-hs-dashboard-latest-run-card .c360-card__body {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Status / started / progress column — flex + gap (replaces stack utilities on inner column) */
+.c360-hs-dashboard-latest-run-card .c360-hs-latest-run-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* Weekly postings chart — full-width body (kit `.c360-card__body { width: 50% }` → ~half column) */
+.c360-hs-dashboard-postings-week-card .c360-card__body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Employment type (donut) chart — same kit override + chart shell width */
+.c360-hs-dashboard-employment-type-card .c360-card__body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Signals table shell: use shared `.c360-data-table-shell` via `C360DataTableShell`. */
+
+/* Hiring signals dashboard — lists / cards (no inline styles) */
+.c360-hs-dashboard-recent-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.c360-hs-dashboard-recent-item {
+  padding: 10px;
+}
+
+/* Top companies card — flush with grid, full-width body */
+.c360-hs-dashboard-top-companies-card.c360-card {
+  box-shadow: none;
+}
+
+.c360-hs-dashboard-top-companies-card .c360-card__body {
+  width: 100%;
+  max-width: 100%;
+  height: fit-content;
+  box-sizing: border-box;
+}
+
+.c360-hs-dashboard-companies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 10px;
+}
+
+.c360-hs-dashboard-company-li {
+  padding: 0;
+  border-radius: 10px;
+}
+
+.c360-hs-dashboard-company-btn {
+  border-radius: 7px;
+  padding: 5px 11px;
+}
+
+/* Job description modal body */
+.c360-hs-jd-modal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.c360-hs-jd-modal-meta-row {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.c360-hs-jd-modal-desc-scroll {
+  max-height: min(60vh, 28rem);
+}
+
+/* ─── Sanitized job description HTML (dangerouslySetInnerHTML) ───────────── */
+.c360-job-desc-html {
+  font-size: var(--c360-text-sm);
+  line-height: 1.6;
+  color: var(--c360-text);
+  word-break: break-word;
+}
+
+.c360-job-desc-html h1,
+.c360-job-desc-html h2,
+.c360-job-desc-html h3,
+.c360-job-desc-html h4 {
+  margin: var(--c360-spacing-4) 0 var(--c360-spacing-2);
+  font-weight: 700;
+  color: var(--c360-text);
+  line-height: 1.25;
+}
+
+.c360-job-desc-html h1 {
+  font-size: var(--c360-text-2xl);
+}
+
+.c360-job-desc-html h2 {
+  font-size: var(--c360-text-xl);
+}
+
+.c360-job-desc-html h3 {
+  font-size: var(--c360-text-lg);
+}
+
+.c360-job-desc-html h4 {
+  font-size: var(--c360-text-base);
+}
+
+.c360-job-desc-html p {
+  margin: 0 0 var(--c360-spacing-3);
+}
+
+.c360-job-desc-html ul,
+.c360-job-desc-html ol {
+  margin: 0 0 var(--c360-spacing-3);
+  padding-left: var(--c360-spacing-6);
+}
+
+.c360-job-desc-html li {
+  margin-bottom: var(--c360-spacing-1);
+}
+
+.c360-job-desc-html a {
+  color: var(--c360-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.c360-job-desc-html a:hover {
+  color: var(--c360-accent);
+}
+
+.c360-job-desc-html blockquote {
+  margin: var(--c360-spacing-3) 0;
+  padding: var(--c360-spacing-3) var(--c360-spacing-4);
+  border-left: 4px solid var(--c360-primary);
+  background: var(--c360-bg-secondary);
+  font-style: italic;
+  color: var(--c360-text-muted);
+}
+
+.c360-job-desc-html code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  background: var(--c360-bg-secondary);
+  border-radius: var(--c360-radius-sm);
+}
+
+.c360-job-desc-html pre {
+  margin: var(--c360-spacing-3) 0;
+  padding: var(--c360-spacing-3);
+  overflow-x: auto;
+  background: var(--c360-bg-secondary);
+  border-radius: var(--c360-radius-md);
+  font-size: var(--c360-text-xs);
+}
+
+.c360-job-desc-html pre code {
+  padding: 0;
+  background: none;
+}
+
+.c360-job-desc-html table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--c360-spacing-3) 0;
+  font-size: var(--c360-text-xs);
+}
+
+.c360-job-desc-html th,
+.c360-job-desc-html td {
+  border: 1px solid var(--c360-border);
+  padding: var(--c360-spacing-2) var(--c360-spacing-3);
+  text-align: left;
+}
+
+.c360-job-desc-html th {
+  background: var(--c360-bg-secondary);
+  font-weight: 600;
+}
+
+/* ─── Data table row hover accent (prototype left border) ────────────────── */
+.c360-hs-row {
+  border-left: 3px solid transparent;
+  transition:
+    background-color var(--c360-transition-fast),
+    border-color var(--c360-transition-fast);
+}
+
+.c360-hs-row:hover {
+  border-left-color: var(--c360-primary);
+  background: var(--c360-bg-secondary);
+}
+
+.c360-hs-row:last-child {
+  border-bottom-width: 0;
+}
+
+.c360-hs-title-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--c360-spacing-2);
+  min-width: 0;
+  max-width: 250px;
+  white-space: nowrap;
+}
+
+.c360-hs-title-cell__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.c360-hs-title-cell__jd {
+  flex: 0 0 auto;
+}
+
+.c360-break-all {
+  word-break: break-all;
+}
+
+/* ─── Company cell: square avatar + optional logo image ──────────────────── */
+.c360-hs-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--c360-radius-md);
+  border: 1px solid var(--c360-border);
+  background: var(--c360-bg-secondary);
+  font-size: var(--c360-text-2xs);
+  font-weight: 700;
+  color: var(--c360-primary);
+  overflow: hidden;
+}
+
+.c360-hs-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Plain <button> for company name — reset UA border/box (avoid “black frame”). */
+.c360-hs-table__company-link {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.c360-hs-table__company-link:focus-visible {
+  outline: 2px solid var(--c360-focus-ring, rgba(47, 76, 221, 0.45));
+  outline-offset: 2px;
+}
+
+/* ─── Company slide-over drawer ──────────────────────────────────────────── */
+.c360-hs-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--c360-z-modal) - 1);
+  background: var(--c360-bg-overlay);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.c360-hs-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--c360-z-modal);
+  width: min(550px, 100vw);
+  max-width: 100%;
+  background: var(--c360-bg-elevated);
+  box-shadow: var(--c360-shadow-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.c360-hs-drawer__header {
+  flex-shrink: 0;
+  padding: 5px 15px;
+  border-bottom: 1px solid var(--c360-border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0;
+}
+
+.c360-hs-drawer__header-company {
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.c360-hs-drawer__header-company .c360-hs-drawer__header-meta {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.c360-hs-drawer__header-company .c360-hs-drawer__header-meta>p.c360-text-ink {
+  width: 100%;
+}
+
+.c360-hs-drawer__header-company .c360-hs-drawer__header-meta>a.c360-btn:first-of-type {
+  margin-right: 5px;
+}
+
+.c360-hs-drawer__header-company .c360-media__title {
+  font-size: var(--c360-text-lg);
+  font-weight: 600;
+  margin-bottom: 2px;
+  padding-top: 5px;
+}
+
+/* Drawer — contact filters (title + department grid) */
+.c360-hs-drawer-contact-filters {
+  margin-bottom: 5px;
+}
+
+.c360-hs-drawer-contact-filters__grid {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--c360-spacing-2);
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.c360-hs-drawer-contact-filters__chips {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.c360-hs-drawer__header-company .c360-media__title--solo {
+  margin-bottom: 0;
+}
+
+.c360-hs-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Company drawer — open roles line + hiring functions pills */
+.c360-hs-drawer__body>p.c360-mb-4.c360-text-sm {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.c360-hs-drawer__body>section.c360-mb-4 {
+  margin-bottom: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+}
+
+.c360-hs-drawer__body>section.c360-mb-4>p.c360-mb-2 {
+  margin-bottom: 0;
+}
+
+/* DataGrid inside hiring-signal aside drawers (narrow shell; horizontal scroll in shell) */
+.c360-hs-drawer .c360-hs-data-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.c360-hs-drawer .c360-hs-data-grid .MuiDataGrid-root {
+  min-width: 520px;
+}
+
+/* Company drawer — `CompanyHiringTab` (browser preview layout) */
+.c360-hs-drawer section.c360-mb-1 {
+  box-sizing: content-box;
+}
+
+.c360-hs-drawer section.c360-mb-1>.c360-section-stack {
+  gap: 0;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.c360-hs-drawer section.c360-mb-1 .c360-2col-grid {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.c360-hs-drawer section.c360-mb-1 .c360-card {
+  width: 100%;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.c360-hs-drawer section.c360-mb-1 .c360-card__body {
+  width: 100%;
+}
+
+.c360-hs-drawer__avatar {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--c360-radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--c360-text-3xl);
+  font-weight: 800;
+  background: var(--c360-primary-light);
+  color: var(--c360-primary);
+  border: 1px solid var(--c360-border);
+}
+
+/* Fill circle reliably; avoids core.css `img { height: auto }` + flex min-size quirks */
+.c360-hs-drawer__avatar img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Connectra drawer — section title row (browser preview layout) */
+.c360-hs-drawer__section-toolbar {
+  padding: 5px 15px;
+}
+
+/* Connectra job drawer — people panel */
+.c360-hs-drawer section[aria-labelledby="c360-connectra-people"] {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.c360-hs-drawer__jobs-meta {
+  padding: 5px 10px;
+}
+
+/* Connectra / company sections — MediaObject logo (50×50) */
+.c360-hs-drawer .c360-media__figure {
+  width: 50px;
+  height: 50px;
+}
+
+.c360-hs-drawer .c360-media__figure img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ─── Chart containers (recharts respects parent size) ───────────────────── */
+.c360-hs-chart {
+  width: 100%;
+  height: 260px;
+  min-height: 200px;
+}
+
+.c360-hs-chart--h280 {
+  height: 280px;
+  min-height: 240px;
+}
+
+.c360-hs-chart--h320 {
+  height: 320px;
+  min-height: 260px;
+}
+
+.c360-hs-chart.c360-hs-chart--pie {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 280px;
+}
+
+/* Recharts measures parent; kit-narrow body yields ~393px — stretch to card width */
+.c360-hs-chart--pie .recharts-responsive-container,
+.c360-hs-chart--pie .recharts-wrapper {
+  max-width: 100% !important;
+}
+
+.c360-hs-chart--pie .recharts-responsive-container {
+  height: 100% !important;
+}
+
+.c360-hs-chart--pie .recharts-wrapper {
+  max-height: none !important;
+}
+
+/* Donut fills explicit wrapper from DonutChart (ResponsiveContainer height 100%) */
+.c360-donut-chart {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Demands & Trends: kit `.c360-card__body { width: 50% }` clips tables/charts */
+.c360-demands-trends-page .c360-card>.c360-card__body {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Demands: vertical rhythm — section stack gap off (browser preview) */
+.c360-demands-trends-page .c360-section-stack {
+  gap: 0;
+}
+
+/*
+ * Rows that use `c360-2col-grid lg:c360-grid-cols-3`: stack as column, no gap.
+ * Class name contains `:` — escape for CSS selectors.
+ */
+.c360-demands-trends-page .c360-2col-grid.lg\:c360-grid-cols-3 {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Two-up rows (locations+daily, titles+skills): flex column, no gap (browser preview) */
+.c360-demands-trends-page .c360-2col-grid:not(.lg\:c360-grid-cols-3) {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Flat cards on Demands & Trends — no shadow, square corners */
+.c360-demands-trends-page .c360-card {
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Line / bar charts in demands: Recharts wrapper max-width follows card */
+.c360-demands-trends-page .c360-hs-chart:not(.c360-hs-chart--pie) .recharts-responsive-container,
+.c360-demands-trends-page .c360-hs-chart:not(.c360-hs-chart--pie) .recharts-wrapper {
+  max-width: 100% !important;
+}
+
+.c360-demands-trends-page .c360-hs-chart.c360-hs-chart--pie {
+  height: 220px;
+  min-height: 220px;
+}
+
+/* Demands & Trends — main column: kit `layout.css` uses gap on `.c360-data-layout__content` */
+.c360-demands-trends-page .c360-data-layout__content {
+  gap: 0;
+}
+
+/* Market Insights — data column, floating tabs chrome, flat cards, stacked grids */
+.c360-market-insights-page .c360-data-layout__content {
+  gap: 0;
+}
+
+.c360-market-insights-page .c360-tabs__list--floating-wrap {
+  width: 100%;
+  box-shadow: none;
+}
+
+.c360-market-insights-page .c360-tabs.c360-tabs--floating {
+  gap: 0;
+}
+
+.c360-market-insights-page .c360-tabs__panel .c360-section-stack {
+  gap: 0;
+}
+
+/* Skills tab: first row is a 2-col grid (unique among insight tabs) */
+.c360-market-insights-page .c360-section-stack:has(> .c360-2col-grid:first-child) {
+  justify-content: flex-start;
+}
+
+.c360-market-insights-page .c360-card {
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.c360-market-insights-page .c360-card>.c360-card__body {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.c360-market-insights-page .c360-2col-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Hiring KPI strip (dashboard, demands, etc.) — flex wrap vs grid */
+.c360-hiring-kpi-strip>.c360-stat-card {
+  flex: 1 1 140px;
+  min-width: min(140px, 100%);
+}
+
+@media (min-width: 768px) {
+  .c360-hiring-kpi-strip>.c360-stat-card {
+    flex: 1 1 calc(50% - var(--c360-spacing-4) / 2);
+  }
+}
+
+@media (min-width: 1280px) {
+  .c360-hiring-kpi-strip>.c360-stat-card {
+    flex: 1 1 calc(20% - var(--c360-spacing-4) * 4 / 5);
+    max-width: calc(20% - var(--c360-spacing-4) * 4 / 5);
+  }
+}
+
+.c360-hs-line-clamp-2,
+.c360-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.c360-list-none {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.c360-hs-hover-primary-border:hover {
+  border-color: var(--c360-primary);
+}
+
+/* Aliases used by hiring-signals components (legacy class names) */
+.c360-text-ink {
+  color: var(--c360-text);
+}
+
+.c360-text-ink-muted {
+  color: var(--c360-text-muted);
+}
+
+.c360-border-ink-8 {
+  border-color: var(--c360-border);
+}
+
+.c360-border-ink-12 {
+  border-color: var(--c360-border-strong);
+}
+
+.c360-bg-ink-1 {
+  background: var(--c360-bg-secondary);
+}
+
+.c360-bg-ink-1\/30,
+.c360-bg-ink-1\/40 {
+  background: var(--c360-bg-secondary);
+}
+
+.c360-bg-ink-2\/15,
+.c360-bg-ink-2\/30 {
+  background: var(--c360-bg-elevated);
+}
+
+.c360-bg-ink-4\/40 {
+  background: var(--c360-bg-secondary);
+}
+
+@media (min-width: 1024px) {
+  .c360-hs-filters-mobile-toggle {
+    display: none !important;
+  }
+}
+
+/* ─── Table density (toolbar “compact” view) ─────────────────────────────── */
+.c360-hs-row--compact td {
+  padding: 0.25rem 0.75rem;
+}
+
+/* ─── Run status text (legacy / table cells) ───────────────────────────── */
+.c360-hs-run-status--success {
+  color: var(--c360-success);
+}
+
+.c360-hs-run-status--warning {
+  color: var(--c360-warning);
+}
+
+.c360-hs-run-status--danger {
+  color: var(--c360-danger);
+}
+
+.c360-hs-run-status--muted {
+  color: var(--c360-text-muted);
+}
+
+/* ─── Active filter chips (sidebar) ────────────────────────────────────── */
+.c360-page.c360-hiring-signals-page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.c360-page.c360-hiring-signals-page>.c360-data-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0;
+  width: 100%;
+}
+
+.c360-page.c360-hiring-signals-page>.c360-data-layout>.c360-data-layout__filters {
+  flex: 0 0 auto;
+}
+
+.c360-page.c360-hiring-signals-page>.c360-data-layout>.c360-data-layout__filters:not(.c360-data-layout__filters--peek-rail) {
+  min-width: 260px;
+  max-width: 300px;
+  width: 300px;
+}
+
+.c360-page.c360-hiring-signals-page>.c360-data-layout>.c360-data-layout__content {
+  flex: 1;
+  min-width: 0;
+  gap: 0;
+}
+
+/* Sticky signals toolbar: stays visible under fixed topbar while scrolling the list */
+.c360-page.c360-hiring-signals-page>.c360-data-layout--with-toolbar>.c360-data-layout__content>.c360-data-layout__toolbar {
+  position: sticky;
+  z-index: 5;
+  align-self: stretch;
+}
+
+.c360-main:not(.c360-main--collapsed) .c360-page.c360-hiring-signals-page>.c360-data-layout--with-toolbar>.c360-data-layout__content>.c360-data-layout__toolbar,
+.c360-shell--sidebar-peek .c360-main.c360-main--collapsed .c360-page.c360-hiring-signals-page>.c360-data-layout--with-toolbar>.c360-data-layout__content>.c360-data-layout__toolbar {
+  top: var(--c360-topbar-height);
+}
+
+.c360-shell:not(.c360-shell--sidebar-peek) .c360-main.c360-main--collapsed .c360-page.c360-hiring-signals-page>.c360-data-layout--with-toolbar>.c360-data-layout__content>.c360-data-layout__toolbar {
+  top: var(--c360-topbar-height-collapsed);
+}
+
+.c360-page.c360-hiring-signals-page .c360-toolbar {
+  border-radius: 0;
+}
+
+/* Peek rail filter aside: square corners (flush with chrome; overrides layout peek peel radius) */
+.c360-page.c360-hiring-signals-page>.c360-data-layout>.c360-data-layout__filters.c360-data-layout__filters--peek-rail {
+  border-radius: 0;
+}
+
+@media (hover: hover) {
+  .c360-page.c360-hiring-signals-page>.c360-data-layout>.c360-data-layout__filters.c360-data-layout__filters--peek-rail:not(.c360-data-layout__filters--peek-pinned):is(:hover, :focus-within) {
+    border-radius: 0;
+  }
+}
+
+/* Signals list pager lives in toolbar `meta` (between scope tabs and actions) */
+.c360-page.c360-hiring-signals-page .c360-toolbar__meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.c360-page.c360-hiring-signals-page .c360-hiring-signals-toolbar-pagination {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Filter rail root: flush with peek panel (overrides shared `.c360-contacts-filters` padding/gap) */
+.c360-contacts-filters.c360-hs-filters {
+  padding: 0;
+  gap: 0;
+}
+
+.c360-hs-filters .c360-contacts-filters__head-row {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.c360-hs-filters .c360-contacts-filters__head-text {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.c360-hs-filters__group-header {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: var(--c360-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  vertical-align: middle;
+  color: var(--c360-text-ink-muted);
+  border-bottom: 1px solid var(--c360-border-ink-8);
+}
+
+.c360-hs-filters__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Flat collapsible sections (overrides kit `border-radius: var(--c360-radius-md)`) */
+.c360-hs-filters .c360-contacts-filter-section {
+  border-radius: 0;
+}
+
+.c360-hs-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.c360-hs-filter-chips--section {
+  margin-bottom: 0.5rem;
+}
+
+.c360-hs-filters__run-row .c360-hs-filter-chips--run {
+  margin-bottom: 0;
+}
+
+.c360-hs-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--c360-radius-full);
+  background: var(--c360-bg-secondary);
+  border: 1px solid var(--c360-border);
+  font-size: var(--c360-text-2xs);
+  color: var(--c360-text);
+}
+
+.c360-hs-filter-chip__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.c360-hs-filter-chip__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--c360-text-muted);
+  border-radius: var(--c360-radius-sm);
+  cursor: pointer;
+}
+
+.c360-hs-filter-chip__remove:hover {
+  color: var(--c360-danger);
+  background: var(--c360-danger-light);
+}
+
+/* ─── Runs tables: pagination row ─────────────────────────────────────── */
+.c360-hs-table-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* ─── Signals table skeleton rows (shared bar: `.c360-table__skeleton-bar`) ─ */
+.c360-hs-skeleton-row td {
+  vertical-align: middle;
+}
+
+/* Dashboard KPI strip — data-card rhythm (gap, tile width) */
+.c360-hs-stats-grid.c360-stat-grid {
+  gap: var(--c360-spacing-4);
+}
+
+.c360-hs-stats-grid.c360-stat-grid--wide {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.c360-hs-stats-grid .c360-stat-card {
+  flex-direction: column;
+  padding: 10px;
+  border-radius: 5px;
+  transition:
+    box-shadow var(--c360-transition-fast),
+    border-color var(--c360-transition-fast);
+}
+
+.c360-hs-stats-grid .c360-stat-card:hover {
+  box-shadow: var(--c360-shadow-lg);
+}
+
+/* ─── Hiring Signals — MUI DataGrid cell layout (tokens + alignment) ─────── */
+.c360-hs-grid-title-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.c360-hs-grid-title-stack__row {
+  display: flex;
+  align-items: center;
+  gap: var(--c360-spacing-2);
+  min-width: 0;
+}
+
+.c360-hs-grid-title-stack__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--c360-text-sm);
+  line-height: 1.35;
+}
+
+.c360-hs-grid-title-stack__meta {
+  margin: 0;
+  font-size: var(--c360-text-xs);
+  line-height: 1.4;
+  color: var(--c360-text-muted);
+}
+
+.c360-hs-grid-meta-text {
+  font-size: var(--c360-text-xs);
+  line-height: 1.45;
+  color: var(--c360-text);
+}
+
+.c360-hs-grid-company-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--c360-spacing-3);
+  min-width: 0;
+  width: 100%;
+}
+
+/* Row actions: match DataGrid preview (flex row, no wrap, tight spacing) */
+.c360-hs-grid-actions-row {
+  flex-wrap: nowrap;
+  gap: 0;
+  width: 100%;
+}
+
+/* Fixed circle + fallback initials; prevents collapsed flex strip artifacts */
+.c360-hs-grid-company-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  margin-top: 2px;
+  border-radius: 9999px;
+}
+
+.c360-hs-grid-company-avatar__initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: var(--c360-text-xs);
+  font-weight: 700;
+}
+
+/* Comfortable tap targets for row actions */
+.c360-hs-grid-action-btn {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+/* Keep trailing columns readable: horizontal scroll inside shell instead of squashing headers */
+.c360-hs-data-grid .MuiDataGrid-root {
+  min-width: 1080px;
+}
+
+/* Runs tab — queue metrics (overrides kit `.c360-card__body { width: 50% }`) */
+.c360-hs-queue-metrics-card .c360-card__body {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Runs tab — tracked scrape session cards */
+.c360-hs-scrape-session-card .c360-card__body {
+  width: 100%;
+  min-width: 0;
+}
+
+.c360-hs-scrape-session-card .c360-hs-scrape-session-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+.c360-hs-scrape-session-card .c360-hs-scrape-session-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.c360-hs-scrape-session-card .c360-hs-scrape-session-card__actions {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}

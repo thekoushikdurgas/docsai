@@ -1,0 +1,37 @@
+Slow GraphQL query: /graphql (1273ms, status=200, in_flight=0, rps=0.0686)
+Cannot query field 'hasNextPage' on type 'PageInfo'. Did you mean 'hasNext'?
+
+GraphQL request:26:20
+25 |  }
+26 |         pageInfo { hasNextPage hasPreviousPage }
+   |                    ^
+27 |       }
+Cannot query field 'hasPreviousPage' on type 'PageInfo'. Did you mean 'hasPrevious'?
+
+GraphQL request:26:32
+25 |  }
+26 |         pageInfo { hasNextPage hasPreviousPage }
+   |                                ^
+27 |       }
+GraphQL operation exceeded slow threshold
+Slow GraphQL query: /graphql (36447ms, status=200, in_flight=0, rps=0.0681)
+Runtime Error
+
+
+
+Cannot query field 'hasNextPage' on type 'PageInfo'. Did you mean 'hasNext'?
+src/lib/graphqlClient.ts (256:28) @ graphqlRequest
+
+
+  254 |         if (errors.length > 0) {
+  255 |           const parsed = parseGraphQLError(errors);
+> 256 |           const apiError = new Error(parsed.message) as Error & {
+      |                            ^
+  257 |             parsedError?: ParsedGraphQLError;
+  258 |           };
+  259 |           apiError.parsedError = parsed;
+Call Stack
+1
+
+graphqlRequest
+src/lib/graphqlClient.ts (256:28)
