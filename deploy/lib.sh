@@ -26,7 +26,7 @@ PM2_APP_NAME_DEFAULT="${PM2_APP_NAME:-contact360-admin}"
 
 load_production_env() {
   PM2_APP_NAME="${PM2_APP_NAME:-$PM2_APP_NAME_DEFAULT}"
-  export PORT="${PORT:-3001}"
+  export PORT="${PORT:-3000}"
   if [ -f "$APP_DIR/.env.production" ]; then
     set -a
     # shellcheck disable=SC1090
@@ -78,7 +78,7 @@ optional_api_health_check() {
 }
 
 free_admin_port() {
-  local port="${PORT:-3001}"
+  local port="${PORT:-3000}"
   if command -v fuser >/dev/null 2>&1; then
     sudo fuser -k "${port}/tcp" >/dev/null 2>&1 || true
   elif command -v lsof >/dev/null 2>&1; then

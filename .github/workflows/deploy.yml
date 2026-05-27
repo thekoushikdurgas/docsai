@@ -19,7 +19,7 @@ jobs:
       - name: Deploy via SSH (PM2 + deploy/ec2-github-deploy.sh)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_ADMIN_HOST != '' && secrets.EC2_ADMIN_HOST || secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
@@ -35,7 +35,7 @@ jobs:
             {
               echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}"
               echo "NEXT_PUBLIC_GRAPHQL_URL=${{ secrets.NEXT_PUBLIC_GRAPHQL_URL }}"
-              echo "PORT=3001"
+              echo "PORT=3000"
             } > .env.production
             chmod 600 .env.production
             export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
@@ -44,10 +44,10 @@ jobs:
       - name: Health check
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.EC2_ADMIN_HOST != '' && secrets.EC2_ADMIN_HOST || secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
             set -e
-            curl -sf --connect-timeout 15 http://127.0.0.1:3001/login || exit 1
+            curl -sf --connect-timeout 15 http://127.0.0.1:3000/login || exit 1

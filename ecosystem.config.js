@@ -5,13 +5,13 @@
  *   pm2 start ecosystem.config.js --env production
  *
  * Env:
- *   PORT              — listen port (default 3001)
+ *   PORT              — listen port (default 3000 production)
  *   PM2_APP_NAME      — process name in pm2 list (default contact360-admin)
  */
 const path = require("path");
 
 const appName = process.env.PM2_APP_NAME || "contact360-admin";
-const port = process.env.PORT || "3001";
+const port = process.env.PORT || "3000";
 
 module.exports = {
   apps: [

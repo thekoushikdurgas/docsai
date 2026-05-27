@@ -16,18 +16,21 @@ Sign in with a gateway user whose role is `Admin` or `SuperAdmin`. Login sends `
 
 ## Production (EC2 / PM2)
 
-Same host as the dashboard app is supported:
+**Dedicated admin host** (recommended): `18.207.217.168`, domain `admin.contact360.io`, PM2 port **3000**.
 
-| Process              | Port | PM2 name                 |
-| -------------------- | ---- | ------------------------ |
-| User app             | 3000 | `contact360-dashboard`   |
-| Admin                | 3001 | `contact360-admin`       |
+| Process              | Port | PM2 name                 | Host |
+| -------------------- | ---- | ------------------------ | ---- |
+| Admin (production)   | 3000 | `contact360-admin`       | `18.207.217.168` |
+| User app (local dev) | 3000 | `contact360-dashboard`   | separate app EC2 |
+| Admin (local dev)    | 3001 | —                        | `npm run dev` |
 
-1. `cp .env.production.example .env.production` — set `NEXT_PUBLIC_GRAPHQL_URL`
+If admin shares a host with the dashboard, use admin on **3001** and dashboard on **3000** — see [deploy/COEXISTENCE.md](deploy/COEXISTENCE.md).
+
+1. `cp .env.production.example .env.production` — set `NEXT_PUBLIC_GRAPHQL_URL`, `PORT=3000`
 2. `bash deploy/ec2-deploy.sh`
 3. Install nginx: `deploy/ec2-nginx-admin.conf` → `admin.contact360.io`
 
-See [deploy/README.md](deploy/README.md) and monorepo workflow `.github/workflows/deploy-contact360-admin.yml`.
+See [deploy/README.md](deploy/README.md), [deploy/EC2-ADMIN-HOST.md](deploy/EC2-ADMIN-HOST.md), and monorepo workflow `.github/workflows/deploy-contact360-admin.yml`.
 
 ## Scripts
 
@@ -44,7 +47,7 @@ See [deploy/README.md](deploy/README.md) and monorepo workflow `.github/workflow
 docker compose -f docker-compose.prod.yml up --build
 ```
 
-Maps host port **3001**.
+Maps host port **3000** (production). Local dev remains **3001** via `npm run dev`.
 
 ## UI / CSS sync with app
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Non-interactive deploy for GitHub Actions → EC2 (PM2 + npm, port 3001).
+# Non-interactive deploy for GitHub Actions → EC2 (PM2 + npm, port 3000).
 ###############################################################################
 
 set -eo pipefail
@@ -92,4 +92,4 @@ pm2 save || true
 
 optional_api_health_check || true
 
-print_status "Deploy finished. curl: curl -sf http://127.0.0.1:${PORT:-3001}/login"
+print_status "Deploy finished. curl: curl -sf http://127.0.0.1:${PORT:-3000}/login"

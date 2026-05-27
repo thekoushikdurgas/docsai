@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# EC2 initial server setup — Ubuntu for Contact360 Admin (Next.js, port 3001).
+# EC2 initial server setup — Ubuntu for Contact360 Admin (Next.js, port 3000).
 #
 # One run per host is enough (same Node/PM2/nginx as the dashboard app).
 #   sudo ./deploy/ec2-setup.sh

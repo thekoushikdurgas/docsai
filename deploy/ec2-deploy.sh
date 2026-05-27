@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# EC2 — deploy Contact360 Admin (PM2 + build). Port 3001.
+# EC2 — deploy Contact360 Admin (PM2 + build). Port 3000.
 #
 # Run as app user from admin root:
 #   bash deploy/ec2-deploy.sh
@@ -108,7 +108,7 @@ step_07_summary() {
   print_status "=========================================="
   pm2 list
   print_status "Logs: pm2 logs $PM2_APP_NAME"
-  print_status "Local: curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:${PORT:-3001}/login || true"
+  print_status "Local: curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:${PORT:-3000}/login || true"
   print_status "Nginx: install deploy/ec2-nginx-admin.conf for admin.contact360.io"
 }
 
