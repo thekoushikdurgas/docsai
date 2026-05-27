@@ -1,52 +1,46 @@
-# Codebase: `contact360.io/admin` (DocsAI / internal admin console)
+# Codebase: `contact360.io/admin` (Contact360 Admin — Next.js)
 
-**Role:** Internal operator UI at `admin.contact360.io` (Django).  
-**Primary integration:** `POST /graphql` on the API gateway with `Authorization: Bearer <JWT>` from the operator session.  
-**Docs index:** [`PHASE-DOCS-INDEX.md`](../PHASE-DOCS-INDEX.md) · **Admin GraphQL contract:** [`../backend/endpoints/contact360.io/ADMIN-MODULE.md`](../backend/endpoints/contact360.io/ADMIN-MODULE.md)
+**Role:** Internal operator UI at `admin.contact360.io` (Next.js, production port **3000** on EC2 `18.207.217.168`; local dev **3001**).  
+**Legacy full DocsAI:** Django app at [`contact360.io/1`](../contact360.io/1/README.md) (Gunicorn ~8000) — kept in parallel until parity matrix is 100% implemented.  
+**Primary integration:** `POST /graphql` on [`contact360.io/api`](../../contact360.io/api/README.md) with operator JWT (`pageType: "admin"` on login).
+
+**Docs:** [`PHASE-DOCS-INDEX.md`](../PHASE-DOCS-INDEX.md) · [`ADMIN-MODULE.md`](../backend/endpoints/contact360.io/ADMIN-MODULE.md) · [Parity matrix](../frontend/pages/admin-parity-matrix.md)
 
 ## Stack
 
-- Python / Django, session-based operator identity (`apps.core`)
-- Shared HTTP client: `apps/core/services/graphql_client.py` → gateway
-- SuperAdmin product flows: `apps/admin_ops` → `admin.*` GraphQL (see ADMIN-MODULE)
+- Next.js 16 (App Router), React 19, MUI DataGrid, c360 CSS from `contact360.io/app`
+- GraphQL client: `src/lib/graphqlClient.ts` → gateway
+- No local database; all data via API gateway
 
-## Sub-apps and phase mapping (roadmap)
+## Legacy Django (`contact360.io/1`)
 
-| Django app | URL prefix | Primary phase | Notes |
-| ---------- | ---------- | ------------- | ----- |
-| `core` | `/` | 0 | Login, dashboard shell |
-| `admin_ops` | `/admin/` | 1 (+ ops) | Users, jobs, logs, billing, storage, system status |
-| `documentation` | `/docs/`, `api/v1/` | 0, 8 | Docs portal and internal REST |
-| `graph` | `/graph/` | 0, 3 | Relationship graph (gateway) |
-| `roadmap` | `/roadmap/` | 0 | Roadmap hub |
-| `architecture` | `/architecture/` | 0 | Architecture hub |
-| `analytics` | `/analytics/` | 6 | Observability tiles (target) |
-| `operations` | `/operations/` | 6 | Ops hub |
-| `ai_agent` | `/ai/` | 5 | AI chat — non-streaming via gateway `aiChats.*`; SSE still TBD |
-| `knowledge` | `/knowledge/` | 5 | Knowledge base UI (gateway `knowledge.*` CRUD) |
-| `page_builder` | `/page-builder/` | 0, 8 | Page specs + storage |
-| `json_store` | `/json-store/` | 0 | JSON documents + storage |
-| `durgasman` | `/durgasman/` | 8 | API collections / request runner |
-| `durgasflow` | `/durgasflow/` | 9 | Workflow automation (ORM) |
-| `codebase` | `/codebase/` | 0 | Codebase scanner (stub/WIP) |
-| `templates_app` | `/templates/` | 0 | Templates index |
+| Concern | Django prefix | Next status |
+| ------- | ------------- | ----------- |
+| Operator admin | `/admin/` | Migrated to Next (`/users`, `/billing`, …) |
+| Documentation platform | `/docs/`, `/api/v1/` | BFF proxy + `/docs/*` shells (see admin `app/api/docsai`) |
+| Automation | `/durgasflow/`, `/durgasman/`, `/page-builder/` | Legacy iframe/proxy routes until Phase 5 UI port |
 
-Phases **2, 3, 4, 10, 11** add operator views under `admin_ops` (satellite job monitors, read-only CRM tools, campaign CQL lab, etc.) per product roadmap.
+Regenerate route parity: `node contact360.io/admin/scripts/generate-parity-matrix.mjs`
 
-## Gateway GraphQL used by the admin UI (beyond `admin.*`)
+## Next.js route map (operator console)
 
-| Namespace | Example fields | Admin surface |
-| --------- | -------------- | ------------- |
-| `contacts` | `contacts(query:)` | `/admin/ops/contacts-explorer/` |
-| `campaignSatellite` | `cqlParse`, `cqlValidate`, `renderTemplatePreview` | `/admin/ops/campaign-cql/` |
-| `aiChats` | `aiChats`, `createAIChat`, `sendMessage` | `/ai/` chat + sessions |
-| `health` | `satelliteHealth`, `apiMetadata` | Analytics tiles, system status |
-| `s3` | `deleteFile` | Optional `ADMIN_STORAGE_VIA_GATEWAY` deletes for `json_store` / `page_builder` |
+| Area | Routes | GraphQL |
+| ---- | ------ | ------- |
+| Core | `/dashboard`, `/login`, `/settings` | `auth`, `admin.userStats` |
+| Users & billing | `/users`, `/users/[id]`, `/billing/*` | `admin.*`, `billing.*` |
+| Operations | `/jobs`, `/jobs/tickets`, `/ops/*` | `admin`, `jobs`, `contacts`, `campaignSatellite` |
+| Platform | `/logs`, `/storage`, `/ai/*`, `/knowledge/*`, `/health`, `/analytics`, `/audit` | `admin`, `s3`, `aiChats`, `knowledge`, `health` |
+| Documentation | `/docs/*` | BFF → Django REST + gateway where available |
+| Legacy tools | `/durgasflow`, `/durgasman`, … | Proxy to Django |
 
-## CI
+## CI & deploy
 
-- [`contact360.io/admin/.github/workflows/django-ci.yml`](../../contact360.io/admin/.github/workflows/django-ci.yml)
+- CI: `npm run ci` in `contact360.io/admin`
+- Deploy: [`contact360.io/admin/deploy/README.md`](../../contact360.io/admin/deploy/README.md), workflow `.github/workflows/deploy-contact360-admin.yml`
+- Coexistence nginx: [`contact360.io/admin/deploy/COEXISTENCE.md`](../../contact360.io/admin/deploy/COEXISTENCE.md)
 
-## Deployment
+## Related
 
-- See [`../DEPLOYMENT-MATRIX.md`](../DEPLOYMENT-MATRIX.md) — Admin row (ECS, gateway auth).
+- User app: [`contact360.io/app`](../../contact360.io/app/README.md)
+- API gateway: [`contact360.io/api`](../../contact360.io/api/README.md)
+- Django DocsAI (legacy): [`contact360.io/1`](../../contact360.io/1/README.md)

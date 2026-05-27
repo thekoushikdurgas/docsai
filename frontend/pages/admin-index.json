@@ -1,93 +1,199 @@
 {
   "kind": "frontend",
-  "title": "Contact360 DocsAI Admin — routes",
-  "version": "1.0.0",
-  "status": "complete",
+  "title": "Contact360 Admin (Next.js) — routes",
+  "version": "2.0.0",
+  "status": "in_progress",
   "app_path": "contact360.io/admin",
+  "legacy_django_path": "contact360.io/1",
+  "parity_matrix": "docs/frontend/pages/admin-parity-matrix.json",
   "deploy": {
     "hostname": "admin.contact360.io",
-    "ec2_ip": "34.201.10.84",
-    "git": "https://github.com/thekoushikdurgas/docsai.git",
-    "branch": "docs"
+    "ec2_host": "18.207.217.168",
+    "port": 3000,
+    "pm2": "contact360-admin",
+    "legacy_hostname_optional": "docs-admin.contact360.io"
   },
   "routes": [
     {
-      "route": "/",
+      "route": "/dashboard",
       "page_title": "Dashboard",
-      "api_deps": ["GraphQL gateway (session), optional REST"],
-      "notes": "core:dashboard"
+      "notes": "Operator home"
     },
     {
-      "route": "/login/",
+      "route": "/login",
       "page_title": "Login",
-      "api_deps": ["Mutation.auth via appointment360_client / gateway"],
-      "notes": "Gateway auth vs AUTH_FALLBACK_LOCAL"
+      "api_deps": [
+        "auth.login pageType admin"
+      ]
     },
     {
-      "route": "/admin/",
-      "page_title": "Admin ops (users, jobs, billing, storage, system status)",
-      "api_deps": ["Query.admin", "Query.jobs", "Query.billing", "Query.health.satelliteHealth"],
-      "notes": "apps.admin_ops"
+      "route": "/users",
+      "page_title": "Users",
+      "api_deps": [
+        "admin.users"
+      ]
     },
     {
-      "route": "/admin/system-status/",
-      "page_title": "System status",
-      "api_deps": ["HTTP GET /health probes", "Query.health.satelliteHealth"],
-      "notes": "Service health + gateway satellite table"
+      "route": "/users/[id]",
+      "page_title": "User detail + history",
+      "api_deps": [
+        "admin.users",
+        "admin.userHistory"
+      ]
     },
     {
-      "route": "/docs/",
-      "page_title": "Documentation hub",
-      "api_deps": ["GraphQL documentation / pages storage"],
-      "notes": "apps.documentation"
+      "route": "/billing",
+      "page_title": "Billing payments",
+      "api_deps": [
+        "billing.paymentSubmissions",
+        "billing.approvePayment"
+      ]
     },
     {
-      "route": "/operations/",
-      "page_title": "Operations hub",
-      "api_deps": [],
-      "notes": "Links to jobs, system status, architecture, graph, codebase"
+      "route": "/billing/plans",
+      "page_title": "Billing plans",
+      "api_deps": [
+        "billing.plans"
+      ]
     },
     {
-      "route": "/graph/",
-      "page_title": "Graph visualization",
-      "api_deps": [],
-      "notes": "apps.graph"
+      "route": "/billing/addons",
+      "page_title": "Billing add-ons",
+      "api_deps": [
+        "billing"
+      ]
     },
     {
-      "route": "/codebase/",
-      "page_title": "Codebase",
-      "api_deps": [],
-      "notes": "apps.codebase"
+      "route": "/billing/settings",
+      "page_title": "Payment setup",
+      "api_deps": [
+        "billing"
+      ]
     },
     {
-      "route": "/architecture/",
-      "page_title": "Architecture blueprint",
-      "api_deps": [],
-      "notes": "apps.architecture"
+      "route": "/jobs",
+      "page_title": "Scheduler jobs",
+      "api_deps": [
+        "admin.schedulerJobs",
+        "jobs.retryJob"
+      ]
     },
     {
-      "route": "/analytics/",
+      "route": "/jobs/[id]",
+      "page_title": "Job detail",
+      "api_deps": [
+        "admin.schedulerJobs",
+        "jobs"
+      ]
+    },
+    {
+      "route": "/jobs/tickets",
+      "page_title": "Job tickets",
+      "api_deps": [
+        "admin.jobTickets"
+      ]
+    },
+    {
+      "route": "/logs",
+      "page_title": "Logs",
+      "api_deps": [
+        "admin.logs",
+        "admin.deleteLog"
+      ]
+    },
+    {
+      "route": "/storage",
+      "page_title": "S3 storage",
+      "api_deps": [
+        "s3.s3Files",
+        "s3.deleteFile"
+      ]
+    },
+    {
+      "route": "/ai",
+      "page_title": "AI chats",
+      "api_deps": [
+        "aiChats"
+      ]
+    },
+    {
+      "route": "/ai/chat",
+      "page_title": "AI chat",
+      "api_deps": [
+        "aiChats",
+        "SSE /api/v1/ai-chats"
+      ]
+    },
+    {
+      "route": "/ai/sessions",
+      "page_title": "AI sessions",
+      "api_deps": [
+        "aiChats"
+      ]
+    },
+    {
+      "route": "/knowledge",
+      "page_title": "Knowledge base",
+      "api_deps": [
+        "knowledge.articles"
+      ]
+    },
+    {
+      "route": "/health",
+      "page_title": "System health",
+      "api_deps": [
+        "health.satelliteHealth",
+        "health.apiMetadata"
+      ]
+    },
+    {
+      "route": "/analytics",
       "page_title": "Analytics",
-      "api_deps": ["GraphQL + Logs API when configured"],
-      "notes": "apps.analytics"
+      "api_deps": [
+        "admin.userStats",
+        "admin.logStatistics"
+      ]
     },
     {
-      "route": "/ai/",
-      "page_title": "AI chat / sessions",
-      "api_deps": ["AI_API_URL direct ai.server"],
-      "notes": "apps.ai_agent — see README in app"
+      "route": "/audit",
+      "page_title": "Audit events",
+      "api_deps": [
+        "admin.graphqlAuditEvents"
+      ]
     },
     {
-      "route": "/api/tracker/",
-      "page_title": "API endpoint registry",
-      "api_deps": [],
-      "notes": "Align with docs/backend/endpoints"
+      "route": "/ops/contacts",
+      "page_title": "Contacts explorer",
+      "api_deps": [
+        "contacts.contacts"
+      ]
     },
     {
-      "route": "/api/docs/",
-      "page_title": "OpenAPI Swagger",
-      "api_deps": [],
-      "notes": "drf-spectacular"
+      "route": "/ops/campaign-cql",
+      "page_title": "Campaign CQL lab",
+      "api_deps": [
+        "campaignSatellite"
+      ]
+    },
+    {
+      "route": "/docs",
+      "page_title": "Documentation hub",
+      "notes": "BFF → Django /docs/"
+    },
+    {
+      "route": "/durgasflow",
+      "page_title": "Durgasflow",
+      "notes": "Legacy proxy Phase 5"
+    },
+    {
+      "route": "/durgasman",
+      "page_title": "Durgasman",
+      "notes": "Legacy proxy Phase 5"
+    },
+    {
+      "route": "/legal/terms",
+      "page_title": "Terms",
+      "notes": "Public static"
     }
   ]
 }

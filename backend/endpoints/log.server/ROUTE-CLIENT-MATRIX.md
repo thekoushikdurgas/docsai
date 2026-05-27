@@ -19,7 +19,7 @@ Auth for protected routes: header **`X-API-Key`** or query **`api_key`** must eq
 | `update_log` | `PUT /logs/:id` | `message`, `meta` (client maps `context` → `meta` JSON) |
 | `delete_log` | `DELETE /logs/:id` | |
 | `delete_logs_bulk` | `POST /logs/delete` | JSON filters: `level`, `logger`, `user_id`, `request_id`, `start_time`, `end_time` (RFC3339), or `ids` |
-| `get_statistics` | — | **Not implemented** on Go service (`GET /logs/statistics` returns 404); GraphQL `logStatistics` uses [`LogStatsRepository`](../../../../contact360.io/api/app/repositories/log_stats_repository.py) |
+| `get_statistics` | `GET /logs/statistics` | Aggregates in-memory logs by level for `time_range` (`1h`, `24h`, `7d`, `30d`); GraphQL `logStatistics` via [`LogStatsRepository`](../../../../contact360.io/api/app/repositories/log_stats_repository.py) |
 
 **Public (no API key when `LOGSAPI_API_KEY` is set):** `GET /health` only.
 
