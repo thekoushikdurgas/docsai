@@ -38,7 +38,6 @@ export const ADMIN_SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     items: [
       { href: ADMIN_ROUTES.JOBS, label: "Jobs", icon: "Briefcase" },
       { href: ADMIN_ROUTES.JOB_TICKETS, label: "Job Tickets", icon: "Ticket" },
-      { href: ADMIN_ROUTES.LOGS, label: "Logs", icon: "ScrollText" },
       { href: ADMIN_ROUTES.STORAGE, label: "Storage", icon: "HardDrive" },
     ],
   },
@@ -92,6 +91,7 @@ export const ADMIN_SIDEBAR_SECTIONS: SidebarSectionConfig[] = [
     requiresSuperAdmin: true,
     items: [
       { href: ADMIN_ROUTES.AUDIT, label: "Audit Events", icon: "Shield" },
+      { href: ADMIN_ROUTES.LOGS, label: "Logs", icon: "ScrollText" },
     ],
   },
 ];

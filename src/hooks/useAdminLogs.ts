@@ -1,10 +1,18 @@
 "use client";
 
-import { logsService } from "@/services/logsService";
+import { logsService, type LogQueryFilters } from "@/services/logsService";
 import { useAdminResource } from "./useAdminResource";
 
-export function useAdminLogs() {
-  return useAdminResource(() => logsService.list(100, 0), []);
+export function useAdminLogs(filters: LogQueryFilters) {
+  return useAdminResource(
+    () => logsService.list(filters),
+    [
+      filters.limit,
+      filters.offset,
+      filters.level,
+      filters.logger,
+    ],
+  );
 }
 
 type LogStatsResponse = Awaited<ReturnType<typeof logsService.stats>>;
@@ -16,9 +24,17 @@ export function useAdminLogStats(timeRange = "24h") {
   );
 }
 
-export function useAdminLogSearch(query: string) {
+export function useAdminLogSearch(
+  query: string,
+  enabled: boolean,
+  limit: number,
+  offset: number,
+) {
   return useAdminResource(
-    () => (query.trim() ? logsService.search(query, 100) : Promise.resolve(null)),
-    [query],
+    () =>
+      enabled && query.trim()
+        ? logsService.search(query.trim(), limit, offset)
+        : Promise.resolve({ items: [], pageInfo: {} }),
+    [query, enabled, limit, offset],
   );
 }

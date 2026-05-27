@@ -264,7 +264,13 @@ export const ADMIN_LOGS_QUERY = `
           logger
           timestamp
         }
-        pageInfo { hasNext hasPrevious }
+        pageInfo {
+          total
+          limit
+          offset
+          hasNext
+          hasPrevious
+        }
       }
     }
   }
@@ -281,7 +287,14 @@ export const ADMIN_SEARCH_LOGS_QUERY = `
           logger
           timestamp
         }
-        pageInfo { hasNext hasPrevious }
+        pageInfo {
+          total
+          limit
+          offset
+          hasNext
+          hasPrevious
+        }
+        query
       }
     }
   }
@@ -528,7 +541,6 @@ export const ADMIN_DELETE_LOGS_BULK = `
     admin {
       deleteLogsBulk(input: $input) {
         deletedCount
-        failedIds
       }
     }
   }
