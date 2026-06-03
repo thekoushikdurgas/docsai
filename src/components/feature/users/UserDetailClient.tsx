@@ -295,7 +295,7 @@ export function UserDetailClient() {
       title={user.name || user.email || "User"}
       subtitle={user.email ?? id}
       actions={
-        <div className="c360-flex c360-flex--gap-2 c360-flex--wrap">
+        <div className="c360-flex c360-gap-2">
           {isSuperAdmin ? (
             <Button
               variant="outline"
@@ -351,28 +351,23 @@ export function UserDetailClient() {
             </dl>
           </Card>
 
-          <Card style={{ marginTop: 24 }}>
+          <Card className="c360-admin-form-card" style={{ marginTop: 24 }}>
             <h2 className="c360-card-title" style={{ marginBottom: 16 }}>
               Adjust credits
             </h2>
-            <div
-              className="c360-flex c360-flex--wrap c360-flex--gap-3"
-              style={{ alignItems: "flex-end", maxWidth: 640 }}
-            >
+            <div className="c360-admin-form-stack">
               <Input
                 label="Delta (add / deduct)"
                 type="number"
                 placeholder="e.g. 100 or -50"
                 value={creditDelta}
                 onChange={(e) => setCreditDelta(e.target.value)}
-                style={{ width: 160 }}
               />
               <Input
                 label="Reason"
                 placeholder="Admin adjustment note"
                 value={creditReason}
                 onChange={(e) => setCreditReason(e.target.value)}
-                style={{ flex: 1, minWidth: 200 }}
               />
               <Button onClick={applyCreditDelta} loading={saving}>
                 Apply
@@ -387,19 +382,17 @@ export function UserDetailClient() {
             </p>
           </Card>
 
-          <Card style={{ marginTop: 24 }}>
+          <Card className="c360-admin-form-card" style={{ marginTop: 24 }}>
             <h2 className="c360-card-title" style={{ marginBottom: 16 }}>
               Role
             </h2>
-            <div
-              className="c360-flex c360-flex--gap-3"
-              style={{ alignItems: "flex-end", flexWrap: "wrap" }}
-            >
+            <div className="c360-admin-role-row">
               <Select
                 label="Role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 options={ROLE_OPTIONS}
+                fullWidth
               />
               <Button onClick={saveRole} loading={saving}>
                 Save role

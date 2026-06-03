@@ -12,10 +12,8 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import {
-  useAdminBillingPayments,
-  useAdminBillingPlans,
-} from "@/hooks/useAdminBilling";
+import { BillingPlansTab } from "@/components/feature/billing/BillingPlansTab";
+import { useAdminBillingPayments } from "@/hooks/useAdminBilling";
 import { billingService } from "@/services/billingService";
 import { ADMIN_ROUTES } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
@@ -29,7 +27,6 @@ export function BillingPageClient() {
   const [declineId, setDeclineId] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState("");
   const payments = useAdminBillingPayments(status || undefined);
-  const plans = useAdminBillingPlans();
 
   const paymentRows = useMemo(() => {
     const items =
@@ -50,21 +47,6 @@ export function BillingPageClient() {
       createdAt: String(p.createdAt ?? ""),
     }));
   }, [payments.data]);
-
-  const planRows = useMemo(() => {
-    const list =
-      (
-        plans.data as {
-          billing?: { plans?: Array<Record<string, unknown>> };
-        }
-      )?.billing?.plans ?? [];
-    return list.map((p, i) => ({
-      id: String(p.tier ?? i),
-      tier: String(p.tier ?? ""),
-      name: String(p.name ?? ""),
-      category: String(p.category ?? ""),
-    }));
-  }, [plans.data]);
 
   async function approve(submissionId: string) {
     try {
@@ -131,18 +113,11 @@ export function BillingPageClient() {
     },
   ];
 
-  const planColumns: GridColDef[] = [
-    { field: "tier", headerName: "Tier", width: 120 },
-    { field: "name", headerName: "Name", flex: 1 },
-    { field: "category", headerName: "Category", width: 160 },
-  ];
-
   const setTab = (next: string) => {
     router.replace(`/billing?tab=${next}`);
   };
 
-  const loading = tab === "payments" ? payments.loading : plans.loading;
-  const error = tab === "payments" ? payments.error : plans.error;
+  const isPaymentsTab = tab === "payments";
 
   return (
     <AdminListPage
@@ -171,11 +146,11 @@ export function BillingPageClient() {
           </TabsList>
         </Tabs>
       }
-      loading={loading}
-      error={error}
-      onRetry={tab === "payments" ? payments.reload : plans.reload}
+      loading={isPaymentsTab ? payments.loading : false}
+      error={isPaymentsTab ? payments.error : null}
+      onRetry={isPaymentsTab ? payments.reload : undefined}
     >
-      {declineId ? (
+      {declineId && isPaymentsTab ? (
         <div className="c360-card" style={{ marginBottom: 16, padding: 16 }}>
           <Input
             label="Decline reason"
@@ -213,16 +188,7 @@ export function BillingPageClient() {
           />
         </TabsContent>
         <TabsContent value="plans">
-          <p className="c360-mm-lead" style={{ marginBottom: 12 }}>
-            Plan CRUD is managed via gateway billing APIs; extended editing in{" "}
-            <Link href={ADMIN_ROUTES.BILLING_PLANS_MANAGE}>plan management</Link>.
-          </p>
-          <MuiDataGrid
-            rows={planRows}
-            columns={planColumns}
-            loading={plans.loading}
-            autoHeight
-          />
+          <BillingPlansTab />
         </TabsContent>
       </Tabs>
     </AdminListPage>

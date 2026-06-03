@@ -1,5 +1,6 @@
-import { BillingPlansManageClient } from "@/components/feature/billing/BillingPlansManageClient";
+import { redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@/lib/routes";
 
-export default function BillingPlansManagePage() {
-  return <BillingPlansManageClient />;
+export default function BillingPlansManageRedirect() {
+  redirect(ADMIN_ROUTES.BILLING_PLANS_TAB);
 }

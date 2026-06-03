@@ -16,7 +16,7 @@ export function AdminPageLayout({
   return (
     <div className="c360-admin-page c360-page">
       <header className="c360-admin-page__header c360-flex c360-flex--between c360-flex--wrap">
-        <div>
+        <div className="c360-admin-page__heading">
           <h1 className="c360-admin-page__title">{title}</h1>
           {subtitle ? (
             <p className="c360-text-muted c360-admin-page__subtitle">

@@ -14,7 +14,20 @@ export const ADMIN_ROUTES = {
     `/users/${encodeURIComponent(id)}?tab=history`,
   BILLING: "/billing",
   BILLING_PLANS: "/billing/plans",
+  BILLING_PLANS_TAB: "/billing?tab=plans",
   BILLING_PLANS_MANAGE: "/billing/plans/manage",
+  BILLING_PLAN_CREATE: "/billing/plans/create",
+  BILLING_PLAN_EDIT: (tier: string) =>
+    `/billing/plans/${encodeURIComponent(tier)}/edit`,
+  BILLING_PLAN_PERIOD_ADD: (tier: string) =>
+    `/billing/plans/${encodeURIComponent(tier)}/period/add`,
+  BILLING_PLAN_PERIODS_EDIT: (tier: string) =>
+    `/billing/plans/${encodeURIComponent(tier)}/edit`,
+  /** @deprecated Use BILLING_PLAN_EDIT */
+  BILLING_PLAN_PERIOD_EDIT: (tier: string, _period?: string) =>
+    `/billing/plans/${encodeURIComponent(tier)}/edit`,
+  BILLING_PLAN_FEATURES: (tier: string) =>
+    `/billing/plans/${encodeURIComponent(tier)}/edit`,
   BILLING_PAYMENTS: "/billing/payments",
   BILLING_ADDONS: "/billing/addons",
   BILLING_ADDON_CREATE: "/billing/addons/create",

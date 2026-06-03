@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdminPageLayout } from "@/components/layouts/AdminPageLayout";
-import { BillingSubNav } from "@/components/feature/billing/BillingSubNav";
 import { Alert } from "@/components/ui/Alert";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -173,7 +172,6 @@ export function BillingSettingsClient() {
       title="Billing — payment setup"
       subtitle="UPI, contact, QR image upload to S3, and gateway save via billing.updatePaymentInstructions. Super Admin only."
     >
-      <BillingSubNav />
       {loading ? (
         <div className="c360-flex c360-flex--center" style={{ minHeight: 160 }}>
           <Spinner />
@@ -188,15 +186,15 @@ export function BillingSettingsClient() {
           </div>
         </Alert>
       ) : (
-        <div className="c360-card">
+        <div className="c360-card c360-admin-form-card">
           <div className="c360-card__body">
             <h2 className="c360-admin-page__title" style={{ fontSize: "1.125rem" }}>
               Payment instructions
             </h2>
             <form
               onSubmit={handleSubmit}
-              className="c360-flex c360-flex--col c360-flex--gap-4"
-              style={{ maxWidth: 520, marginTop: 16 }}
+              className="c360-admin-form-stack c360-admin-form-stack--full"
+              style={{ marginTop: 16 }}
             >
               <Input
                 label="UPI ID"

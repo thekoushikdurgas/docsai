@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AdminPageLayout } from "@/components/layouts/AdminPageLayout";
-import { BillingSubNav } from "@/components/feature/billing/BillingSubNav";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -139,7 +138,6 @@ export function BillingAddonFormClient({
         </Link>
       }
     >
-      <BillingSubNav />
       <form
         onSubmit={submit}
         className="c360-flex c360-flex--col c360-flex--gap-4"

@@ -889,27 +889,29 @@ export type CancelSubscriptionResult = {
 
 export type Company = {
   address?: Maybe<Scalars['String']['output']>;
-  annualRevenue?: Maybe<Scalars['Int']['output']>;
+  annualRevenue?: Maybe<Scalars['BigInt']['output']>;
   city?: Maybe<Scalars['String']['output']>;
   companyNameForEmails?: Maybe<Scalars['String']['output']>;
+  contactCount?: Maybe<Scalars['Int']['output']>;
   contacts?: Maybe<Array<Contact>>;
   country?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['DateTime']['output']>;
-  employeesCount?: Maybe<Scalars['Int']['output']>;
+  employeesCount?: Maybe<Scalars['BigInt']['output']>;
   facebookUrl?: Maybe<Scalars['String']['output']>;
   industries?: Maybe<Array<Scalars['String']['output']>>;
   keywords?: Maybe<Array<Scalars['String']['output']>>;
   lastRaisedAt?: Maybe<Scalars['String']['output']>;
   latestFunding?: Maybe<Scalars['String']['output']>;
-  latestFundingAmount?: Maybe<Scalars['Int']['output']>;
+  latestFundingAmount?: Maybe<Scalars['BigInt']['output']>;
   linkedinSalesUrl?: Maybe<Scalars['String']['output']>;
   linkedinUrl?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   normalizedDomain?: Maybe<Scalars['String']['output']>;
   phoneNumber?: Maybe<Scalars['String']['output']>;
+  profilePic?: Maybe<Scalars['String']['output']>;
   state?: Maybe<Scalars['String']['output']>;
   technologies?: Maybe<Array<Scalars['String']['output']>>;
-  totalFunding?: Maybe<Scalars['Int']['output']>;
+  totalFunding?: Maybe<Scalars['BigInt']['output']>;
   twitterUrl?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   uuid: Scalars['ID']['output'];
@@ -2191,6 +2193,7 @@ export type HireSignalQueryJobFilterOptionsArgs = {
   postedBefore?: InputMaybe<Scalars['String']['input']>;
   q?: InputMaybe<Scalars['String']['input']>;
   runId?: InputMaybe<Scalars['String']['input']>;
+  searchTokens?: InputMaybe<Array<Scalars['String']['input']>>;
   seniority?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
   titles?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -2213,6 +2216,7 @@ export type HireSignalQueryJobsArgs = {
   postedAfter?: InputMaybe<Scalars['String']['input']>;
   postedBefore?: InputMaybe<Scalars['String']['input']>;
   runId?: InputMaybe<Scalars['String']['input']>;
+  searchTokens?: InputMaybe<Array<Scalars['String']['input']>>;
   seniority?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
   titles?: InputMaybe<Array<Scalars['String']['input']>>;

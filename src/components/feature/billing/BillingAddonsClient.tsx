@@ -10,7 +10,6 @@ import { MuiDataGrid } from "@/components/ui/MuiDataGrid";
 import { Alert } from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
-import { BillingSubNav } from "@/components/feature/billing/BillingSubNav";
 import { useAdminBillingAddons } from "@/hooks/useAdminBilling";
 import { billingService } from "@/services/billingService";
 import { ADMIN_ROUTES } from "@/lib/routes";
@@ -125,7 +124,6 @@ export function BillingAddonsClient() {
       onRetry={reload}
       empty={!loading && rows.length === 0}
     >
-      <BillingSubNav />
       {!isSuperAdmin ? (
         <Alert variant="info" style={{ marginBottom: 16 }}>
           You can view packages. Super Admins can create, edit, or delete add-ons.

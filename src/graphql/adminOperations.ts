@@ -322,6 +322,17 @@ export const ADMIN_SUBSCRIPTION_SWEEP = `
   }
 `;
 
+const BILLING_PLAN_PERIOD_FIELDS = `
+  period
+  credits
+  ratePerCredit
+  price
+  savings {
+    amount
+    percentage
+  }
+`;
+
 export const BILLING_PLANS_QUERY = `
   query AdminBillingPlans {
     billing {
@@ -329,6 +340,125 @@ export const BILLING_PLANS_QUERY = `
         tier
         name
         category
+        periods {
+          monthly { ${BILLING_PLAN_PERIOD_FIELDS} }
+          quarterly { ${BILLING_PLAN_PERIOD_FIELDS} }
+          yearly { ${BILLING_PLAN_PERIOD_FIELDS} }
+        }
+        features {
+          id
+          label
+          sortOrder
+        }
+      }
+    }
+  }
+`;
+
+export const BILLING_CREATE_PLAN_FEATURE = `
+  mutation AdminBillingCreatePlanFeature($tier: String!, $input: CreatePlanFeatureInput!) {
+    billing {
+      createPlanFeature(tier: $tier, input: $input) {
+        message
+        id
+        tier
+      }
+    }
+  }
+`;
+
+export const BILLING_UPDATE_PLAN_FEATURE = `
+  mutation AdminBillingUpdatePlanFeature(
+    $tier: String!
+    $featureId: Int!
+    $input: UpdatePlanFeatureInput!
+  ) {
+    billing {
+      updatePlanFeature(tier: $tier, featureId: $featureId, input: $input) {
+        message
+        id
+        tier
+      }
+    }
+  }
+`;
+
+export const BILLING_DELETE_PLAN_FEATURE = `
+  mutation AdminBillingDeletePlanFeature($tier: String!, $featureId: Int!) {
+    billing {
+      deletePlanFeature(tier: $tier, featureId: $featureId) {
+        message
+        id
+        tier
+      }
+    }
+  }
+`;
+
+export const BILLING_CREATE_PLAN = `
+  mutation AdminBillingCreatePlan($input: CreatePlanInput!) {
+    billing {
+      createPlan(input: $input) {
+        message
+        tier
+      }
+    }
+  }
+`;
+
+export const BILLING_UPDATE_PLAN = `
+  mutation AdminBillingUpdatePlan($tier: String!, $input: UpdatePlanInput!) {
+    billing {
+      updatePlan(tier: $tier, input: $input) {
+        message
+        tier
+      }
+    }
+  }
+`;
+
+export const BILLING_DELETE_PLAN = `
+  mutation AdminBillingDeletePlan($tier: String!) {
+    billing {
+      deletePlan(tier: $tier) {
+        message
+        tier
+      }
+    }
+  }
+`;
+
+export const BILLING_CREATE_PLAN_PERIOD = `
+  mutation AdminBillingCreatePlanPeriod($tier: String!, $input: CreatePlanPeriodInput!) {
+    billing {
+      createPlanPeriod(tier: $tier, input: $input) {
+        message
+        tier
+        period
+      }
+    }
+  }
+`;
+
+export const BILLING_UPDATE_PLAN_PERIOD = `
+  mutation AdminBillingUpdatePlanPeriod($tier: String!, $period: String!, $input: UpdatePlanPeriodInput!) {
+    billing {
+      updatePlanPeriod(tier: $tier, period: $period, input: $input) {
+        message
+        tier
+        period
+      }
+    }
+  }
+`;
+
+export const BILLING_DELETE_PLAN_PERIOD = `
+  mutation AdminBillingDeletePlanPeriod($tier: String!, $period: String!) {
+    billing {
+      deletePlanPeriod(tier: $tier, period: $period) {
+        message
+        tier
+        period
       }
     }
   }
