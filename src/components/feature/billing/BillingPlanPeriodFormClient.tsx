@@ -36,7 +36,7 @@ export function BillingPlanPeriodFormClient({
 }) {
   const router = useRouter();
   const { isSuperAdmin } = useAuth();
-  const catalog = useAdminBillingPlans();
+  const catalog = useAdminBillingPlans(true);
 
   const plan = catalog.data?.billing?.plans?.find((p) => p.category === category);
   const available = useMemo(

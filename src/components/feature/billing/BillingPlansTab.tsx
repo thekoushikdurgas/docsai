@@ -38,6 +38,7 @@ function PeriodRow({
     <tr>
       <td>{label}</td>
       <td>{period.credits}</td>
+      <td>{period.dailyCreditsLimit ?? "—"}</td>
       <td>${Number(period.ratePerCredit).toFixed(4)}</td>
       <td>${Number(period.price).toFixed(2)}</td>
       <td className="c360-text-muted" style={{ fontSize: "0.875rem" }}>
@@ -245,6 +246,7 @@ function PlanCard({
                 <tr>
                   <th>Period</th>
                   <th>Credits</th>
+                  <th>Daily limit</th>
                   <th>Rate / credit</th>
                   <th>Price</th>
                   <th>Savings</th>
