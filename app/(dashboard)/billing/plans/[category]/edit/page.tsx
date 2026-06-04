@@ -5,6 +5,6 @@ import { BillingPlanFormClient } from "@/components/feature/billing/BillingPlanF
 
 export default function BillingPlanEditPage() {
   const params = useParams();
-  const tier = decodeURIComponent(String(params.tier ?? ""));
-  return <BillingPlanFormClient mode="edit" tier={tier} />;
+  const category = decodeURIComponent(String(params.category ?? ""));
+  return <BillingPlanFormClient mode="edit" category={category} />;
 }

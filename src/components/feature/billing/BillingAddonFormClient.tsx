@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Spinner } from "@/components/ui/Spinner";
 import { useAdminBillingAddons } from "@/hooks/useAdminBilling";
 import { billingService } from "@/services/billingService";
+import { computeRatePerCreditString } from "@/lib/billingPlanConstants";
 import { ADMIN_ROUTES } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
 
@@ -39,10 +40,15 @@ export function BillingAddonFormClient({
 
   useEffect(() => {
     if (mode !== "edit" || !existing) return;
+    const creditsStr = String(existing.credits ?? "");
+    const priceStr = String(existing.price ?? "");
     setName(String(existing.name ?? ""));
-    setCredits(String(existing.credits ?? ""));
-    setRatePerCredit(String(existing.ratePerCredit ?? ""));
-    setPrice(String(existing.price ?? ""));
+    setCredits(creditsStr);
+    setPrice(priceStr);
+    setRatePerCredit(
+      computeRatePerCreditString(creditsStr, priceStr) ||
+      String(existing.ratePerCredit ?? ""),
+    );
   }, [mode, existing]);
 
   useEffect(() => {
@@ -166,19 +172,28 @@ export function BillingAddonFormClient({
           min={1}
           step={1}
           value={credits}
-          onChange={(e) => setCredits(e.target.value)}
+          onChange={(e) => {
+            const nextCredits = e.target.value;
+            setCredits(nextCredits);
+            setRatePerCredit(computeRatePerCreditString(nextCredits, price));
+          }}
           required
         />
         <Input
           label="Rate per credit"
           value={ratePerCredit}
-          onChange={(e) => setRatePerCredit(e.target.value)}
+          readOnly
+          helperText="Calculated from price ÷ credits"
           required
         />
         <Input
           label="Price"
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(e) => {
+            const nextPrice = e.target.value;
+            setPrice(nextPrice);
+            setRatePerCredit(computeRatePerCreditString(credits, nextPrice));
+          }}
           required
         />
         <Checkbox

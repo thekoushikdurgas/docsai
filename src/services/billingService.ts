@@ -38,6 +38,7 @@ export type PlansQueryResult = {
 export type PlanPeriodMutationInput = {
   period: string;
   credits: number;
+  dailyCreditsLimit: number;
   ratePerCredit: number;
   price: number;
   savingsAmount?: number;
@@ -84,44 +85,45 @@ export const billingService = {
     graphqlMutation(BILLING_DELETE_ADDON, { packageId }),
 
   createPlan: (input: {
-    tier: string;
-    name: string;
     category: string;
+    name: string;
     periods: PlanPeriodMutationInput[];
     isActive?: boolean;
   }) => graphqlMutation(BILLING_CREATE_PLAN, { input }),
 
   updatePlan: (
-    tier: string,
-    input: { name?: string; category?: string; isActive?: boolean },
-  ) => graphqlMutation(BILLING_UPDATE_PLAN, { tier, input }),
+    category: string,
+    input: { name?: string; isActive?: boolean },
+  ) => graphqlMutation(BILLING_UPDATE_PLAN, { category, input }),
 
-  deletePlan: (tier: string) => graphqlMutation(BILLING_DELETE_PLAN, { tier }),
+  deletePlan: (category: string) =>
+    graphqlMutation(BILLING_DELETE_PLAN, { category }),
 
-  createPlanPeriod: (tier: string, input: PlanPeriodMutationInput) =>
-    graphqlMutation(BILLING_CREATE_PLAN_PERIOD, { tier, input }),
+  createPlanPeriod: (category: string, input: PlanPeriodMutationInput) =>
+    graphqlMutation(BILLING_CREATE_PLAN_PERIOD, { category, input }),
 
   updatePlanPeriod: (
-    tier: string,
+    category: string,
     period: string,
     input: {
       credits?: number;
+      dailyCreditsLimit?: number;
       ratePerCredit?: number;
       price?: number;
       savingsAmount?: number;
       savingsPercentage?: number;
     },
-  ) => graphqlMutation(BILLING_UPDATE_PLAN_PERIOD, { tier, period, input }),
+  ) => graphqlMutation(BILLING_UPDATE_PLAN_PERIOD, { category, period, input }),
 
-  deletePlanPeriod: (tier: string, period: string) =>
-    graphqlMutation(BILLING_DELETE_PLAN_PERIOD, { tier, period }),
+  deletePlanPeriod: (category: string, period: string) =>
+    graphqlMutation(BILLING_DELETE_PLAN_PERIOD, { category, period }),
 
   createPlanFeature: (
-    tier: string,
+    category: string,
     input: { label: string; sortOrder?: number },
   ) =>
     graphqlMutation(BILLING_CREATE_PLAN_FEATURE, {
-      tier,
+      category,
       input: {
         label: input.label,
         sortOrder: input.sortOrder ?? 0,
@@ -129,13 +131,14 @@ export const billingService = {
     }),
 
   updatePlanFeature: (
-    tier: string,
+    category: string,
     featureId: number,
     input: { label?: string; sortOrder?: number },
-  ) => graphqlMutation(BILLING_UPDATE_PLAN_FEATURE, { tier, featureId, input }),
+  ) =>
+    graphqlMutation(BILLING_UPDATE_PLAN_FEATURE, { category, featureId, input }),
 
-  deletePlanFeature: (tier: string, featureId: number) =>
-    graphqlMutation(BILLING_DELETE_PLAN_FEATURE, { tier, featureId }),
+  deletePlanFeature: (category: string, featureId: number) =>
+    graphqlMutation(BILLING_DELETE_PLAN_FEATURE, { category, featureId }),
 
   paymentInstructions: () =>
     graphqlQuery(BILLING_PAYMENT_INSTRUCTIONS_QUERY),

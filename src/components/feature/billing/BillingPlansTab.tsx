@@ -59,11 +59,11 @@ function PeriodRow({
 }
 
 function PlanFeaturesSection({
-  tier,
+  category,
   features,
   isSuperAdmin,
 }: {
-  tier: string;
+  category: string;
   features: PlanFeature[];
   isSuperAdmin: boolean;
 }) {
@@ -87,7 +87,7 @@ function PlanFeaturesSection({
           Plan features
         </h3>
         {isSuperAdmin ? (
-          <Link href={ADMIN_ROUTES.BILLING_PLAN_FEATURES(tier)}>
+          <Link href={ADMIN_ROUTES.BILLING_PLAN_FEATURES(category)}>
             <Button size="sm" variant="outline">
               Manage features
             </Button>
@@ -100,7 +100,7 @@ function PlanFeaturesSection({
           {isSuperAdmin ? (
             <>
               {" "}
-              <Link href={ADMIN_ROUTES.BILLING_PLAN_FEATURES(tier)}>Add features</Link>
+              <Link href={ADMIN_ROUTES.BILLING_PLAN_FEATURES(category)}>Add features</Link>
             </>
           ) : null}
         </p>
@@ -136,7 +136,7 @@ function PlanCard({
 
   async function confirmDeletePlan() {
     try {
-      await billingService.deletePlan(plan.tier);
+      await billingService.deletePlan(plan.category);
       toast.success("Plan deleted");
       setDeletePlanOpen(false);
       onMutated();
@@ -148,7 +148,7 @@ function PlanCard({
   async function confirmDeletePeriod() {
     if (!deletePeriodKey) return;
     try {
-      await billingService.deletePlanPeriod(plan.tier, deletePeriodKey);
+      await billingService.deletePlanPeriod(plan.category, deletePeriodKey);
       toast.success("Period deleted");
       setDeletePeriodKey(null);
       onMutated();
@@ -171,10 +171,10 @@ function PlanCard({
       >
         <div>
           <h2 className="c360-text-lg" style={{ margin: 0 }}>
-            {plan.name || plan.tier}
+            {plan.name || plan.category}
           </h2>
           <p className="c360-mm-lead" style={{ margin: "4px 0 0" }}>
-            <code>{plan.tier}</code>
+            <code>{plan.category}</code>
             {plan.category ? (
               <span className="c360-badge c360-badge--outline" style={{ marginLeft: 8 }}>
                 {plan.category}
@@ -187,7 +187,7 @@ function PlanCard({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => router.push(ADMIN_ROUTES.BILLING_PLAN_EDIT(plan.tier))}
+              onClick={() => router.push(ADMIN_ROUTES.BILLING_PLAN_EDIT(plan.category))}
             >
               Edit plan
             </Button>
@@ -208,7 +208,7 @@ function PlanCard({
             {isSuperAdmin ? (
               <>
                 {" "}
-                <Link href={ADMIN_ROUTES.BILLING_PLAN_EDIT(plan.tier)}>
+                <Link href={ADMIN_ROUTES.BILLING_PLAN_EDIT(plan.category)}>
                   Configure plan
                 </Link>
               </>
@@ -216,7 +216,7 @@ function PlanCard({
           </p>
         ) : (
           <div className="c360-table-wrap">
-            <table className="c360-table" aria-label={`Pricing for ${plan.tier}`}>
+            <table className="c360-table" aria-label={`Pricing for ${plan.category}`}>
               <thead>
                 <tr>
                   <th>Period</th>
@@ -253,7 +253,7 @@ function PlanCard({
         )}
       </div>
       <PlanFeaturesSection
-        tier={plan.tier}
+        category={plan.category}
         features={plan.features ?? []}
         isSuperAdmin={isSuperAdmin}
       />
@@ -262,7 +262,7 @@ function PlanCard({
         onClose={() => setDeletePlanOpen(false)}
         onConfirm={() => void confirmDeletePlan()}
         title="Delete plan"
-        message={`Delete plan ${plan.tier} and all periods? This cannot be undone.`}
+        message={`Delete plan ${plan.category} and all periods? This cannot be undone.`}
         confirmLabel="Delete"
         variant="danger"
       />
@@ -271,7 +271,7 @@ function PlanCard({
         onClose={() => setDeletePeriodKey(null)}
         onConfirm={() => void confirmDeletePeriod()}
         title="Delete period"
-        message={`Delete ${deletePeriodKey} period for ${plan.tier}?`}
+        message={`Delete ${deletePeriodKey} period for ${plan.category}?`}
         confirmLabel="Delete"
         variant="danger"
       />
@@ -339,7 +339,7 @@ export function BillingPlansTab() {
       ) : (
         plans.map((plan) => (
           <PlanCard
-            key={plan.tier}
+            key={plan.category}
             plan={plan}
             isSuperAdmin={isSuperAdmin}
             onMutated={() => void reload()}

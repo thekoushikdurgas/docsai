@@ -4,6 +4,8 @@ import Input from "@/components/ui/Input";
 import { Alert } from "@/components/ui/Alert";
 import {
   BILLING_PERIOD_KEYS,
+  applyPeriodFormChange,
+  periodFormWithAutoRate,
   periodLabel,
   type BillingPeriodKey,
   type PeriodFormValues,
@@ -29,6 +31,14 @@ export function PlanPeriodColumn({
     >
       <h3 className="c360-text-md" style={{ margin: "0 0 12px", textAlign: "center" }}>
         {periodLabel(periodKey)}
+        {periodKey === "monthly" ? (
+          <span
+            className="c360-mm-lead"
+            style={{ display: "block", fontSize: "0.75rem", fontWeight: 400 }}
+          >
+            Drives quarterly ×3 and yearly ×12
+          </span>
+        ) : null}
       </h3>
       <div className="c360-admin-form-stack">
         <Input
@@ -37,33 +47,57 @@ export function PlanPeriodColumn({
           min={1}
           step={1}
           value={values.credits}
-          onChange={(e) => onChange({ ...values, credits: e.target.value })}
+          onChange={(e) =>
+            onChange(periodFormWithAutoRate(values, { credits: e.target.value }))
+          }
+        />
+        <Input
+          label="Daily credits limit"
+          type="number"
+          min={1}
+          step={1}
+          value={values.dailyCreditsLimit}
+          onChange={(e) =>
+            onChange({ ...values, dailyCreditsLimit: e.target.value })
+          }
+          helperText="Max credits usable per UTC day for this period"
         />
         <Input
           label="Rate / credit"
           value={values.ratePerCredit}
-          onChange={(e) => onChange({ ...values, ratePerCredit: e.target.value })}
+          readOnly
+          helperText="Calculated from price ÷ credits"
         />
         <Input
           label="Price"
           value={values.price}
-          onChange={(e) => onChange({ ...values, price: e.target.value })}
+          onChange={(e) =>
+            onChange(periodFormWithAutoRate(values, { price: e.target.value }))
+          }
         />
         <Input
-          label="Savings % (optional)"
+          label="Savings %"
           type="number"
           min={0}
           max={100}
           step={1}
           value={values.savingsPercentage}
-          onChange={(e) =>
-            onChange({ ...values, savingsPercentage: e.target.value })
+          readOnly
+          helperText={
+            periodKey === "monthly"
+              ? "No savings on monthly baseline"
+              : "Vs paying monthly × months (from rate/price)"
           }
         />
         <Input
-          label="Savings amount (optional)"
+          label="Savings amount"
           value={values.savingsAmount}
-          onChange={(e) => onChange({ ...values, savingsAmount: e.target.value })}
+          readOnly
+          helperText={
+            periodKey === "monthly"
+              ? undefined
+              : "Bundle price discount vs monthly × months"
+          }
         />
       </div>
     </div>
@@ -85,8 +119,11 @@ export function BillingPlanPeriodsSection({
         Billing periods
       </h3>
       <p className="c360-mm-lead" style={{ fontSize: "0.875rem", marginBottom: 16 }}>
-        Monthly, quarterly, and yearly pricing. Leave a column empty to skip that
-        period when saving.
+        Monthly, quarterly, and yearly pricing. <strong>Monthly</strong> drives
+        quarterly (×3 credits, 10% bundle discount) and yearly (×12 credits, 20%
+        discount). Rate per credit = price ÷ credits; savings % and amount on
+        quarterly/yearly compare bundle price to paying monthly × months. Leave a
+        column empty to skip that period when saving.
       </p>
       <div
         className="c360-billing-periods-grid"
@@ -102,7 +139,7 @@ export function BillingPlanPeriodsSection({
             key={key}
             periodKey={key}
             values={periodForms[key]}
-            onChange={(next) => onChange({ ...periodForms, [key]: next })}
+            onChange={(next) => onChange(applyPeriodFormChange(periodForms, key, next))}
           />
         ))}
       </div>

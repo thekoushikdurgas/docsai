@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -28,16 +28,15 @@ import {
 
 export function BillingPlanFormClient({
   mode,
-  tier,
+  category: categoryProp,
 }: {
   mode: "create" | "edit";
-  tier?: string;
+  category?: string;
 }) {
   const router = useRouter();
   const { isSuperAdmin } = useAuth();
   const catalog = useAdminBillingPlans();
 
-  const [tierField, setTierField] = useState("");
   const [name, setName] = useState("");
   const [category, setCategory] = useState<string>(PLAN_CATEGORIES[0]);
   const [isActive, setIsActive] = useState(true);
@@ -51,7 +50,24 @@ export function BillingPlanFormClient({
   const [saving, setSaving] = useState(false);
   const [periodsHydrated, setPeriodsHydrated] = useState(false);
 
-  const existing = catalog.data?.billing?.plans?.find((p) => p.tier === tier);
+  const existingPlans = useMemo(
+    () => catalog.data?.billing?.plans ?? [],
+    [catalog.data?.billing?.plans],
+  );
+  const existing = existingPlans.find(
+    (p) => p.category.toUpperCase() === (categoryProp ?? "").toUpperCase(),
+  );
+
+  const usedCategories = useMemo(
+    () => new Set(existingPlans.map((p) => p.category.toUpperCase())),
+    [existingPlans],
+  );
+
+  const categoryOptions = PLAN_CATEGORIES.map((c) => ({
+    value: c,
+    label: usedCategories.has(c) && mode === "create" ? `${c} (exists)` : c,
+    disabled: mode === "create" && usedCategories.has(c),
+  }));
 
   useEffect(() => {
     if (!isSuperAdmin) {
@@ -79,9 +95,8 @@ export function BillingPlanFormClient({
     setSaving(true);
     try {
       if (mode === "create") {
-        const tierVal = tierField.trim();
-        if (!tierVal) {
-          toast.error("Tier ID is required");
+        if (usedCategories.has(category)) {
+          toast.error("A plan for this category already exists");
           return;
         }
         const periods = collectPeriodsFromCreateForm(periodForms);
@@ -90,9 +105,8 @@ export function BillingPlanFormClient({
           return;
         }
         const res = await billingService.createPlan({
-          tier: tierVal,
-          name: name.trim(),
           category,
+          name: name.trim(),
           periods,
           isActive,
         });
@@ -101,15 +115,19 @@ export function BillingPlanFormClient({
             ?.createPlan;
         toast.success(created?.message ?? "Plan created");
         router.push(ADMIN_ROUTES.BILLING_PLANS_TAB);
-      } else if (tier && existing) {
-        const res = await billingService.updatePlan(tier, {
+      } else if (categoryProp && existing) {
+        const res = await billingService.updatePlan(categoryProp, {
           name: name.trim(),
-          category,
+          isActive,
         });
         const updated =
           (res as { billing?: { updatePlan?: { message?: string } } })?.billing
             ?.updatePlan;
-        const periodCount = await savePlanPeriods(tier, existing, periodForms);
+        const periodCount = await savePlanPeriods(
+          categoryProp,
+          existing,
+          periodForms,
+        );
         const parts = [updated?.message ?? "Plan updated"];
         if (periodCount > 0) {
           parts.push(`${periodCount} period(s) saved`);
@@ -134,7 +152,7 @@ export function BillingPlanFormClient({
     );
   }
 
-  if (mode === "edit" && !catalog.loading && tier && !existing) {
+  if (mode === "edit" && !catalog.loading && categoryProp && !existing) {
     return (
       <AdminPageLayout title="Edit plan" subtitle="Plan not found">
         <Link href={ADMIN_ROUTES.BILLING_PLANS_TAB}>
@@ -150,7 +168,7 @@ export function BillingPlanFormClient({
       subtitle={
         mode === "create"
           ? "billing.createPlan"
-          : `billing.updatePlan · periods · features — ${tier}`
+          : `billing.updatePlan · periods · features — ${categoryProp}`
       }
       actions={
         <Link href={ADMIN_ROUTES.BILLING_PLANS_TAB}>
@@ -167,15 +185,15 @@ export function BillingPlanFormClient({
             Plan metadata
           </h3>
           {mode === "create" ? (
-            <Input
-              label="Tier ID"
-              value={tierField}
-              onChange={(e) => setTierField(e.target.value)}
-              placeholder="e.g. 5k, custom_tier"
+            <Select
+              label="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              options={categoryOptions}
               required
             />
           ) : (
-            <Input label="Tier" value={tier ?? ""} disabled readOnly />
+            <Input label="Category" value={categoryProp ?? ""} disabled readOnly />
           )}
           <Input
             label="Display name"
@@ -183,15 +201,7 @@ export function BillingPlanFormClient({
             onChange={(e) => setName(e.target.value)}
             required
           />
-          <Select
-            label="Category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            options={PLAN_CATEGORIES.map((c) => ({ value: c, label: c }))}
-          />
-          {mode === "create" ? (
-            <Checkbox label="Active" checked={isActive} onChange={setIsActive} />
-          ) : null}
+          <Checkbox label="Active" checked={isActive} onChange={setIsActive} />
         </section>
 
         <BillingPlanPeriodsSection
@@ -200,9 +210,9 @@ export function BillingPlanFormClient({
           showDeleteHint={mode === "edit"}
         />
 
-        {mode === "edit" && tier && existing ? (
+        {mode === "edit" && categoryProp && existing ? (
           <BillingPlanFeaturesSection
-            tier={tier}
+            category={categoryProp}
             features={existing.features ?? []}
             onMutated={() => catalog.reload()}
           />

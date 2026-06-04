@@ -325,6 +325,7 @@ export const ADMIN_SUBSCRIPTION_SWEEP = `
 const BILLING_PLAN_PERIOD_FIELDS = `
   period
   credits
+  dailyCreditsLimit
   ratePerCredit
   price
   savings {
@@ -337,9 +338,8 @@ export const BILLING_PLANS_QUERY = `
   query AdminBillingPlans {
     billing {
       plans {
-        tier
-        name
         category
+        name
         periods {
           monthly { ${BILLING_PLAN_PERIOD_FIELDS} }
           quarterly { ${BILLING_PLAN_PERIOD_FIELDS} }
@@ -356,12 +356,12 @@ export const BILLING_PLANS_QUERY = `
 `;
 
 export const BILLING_CREATE_PLAN_FEATURE = `
-  mutation AdminBillingCreatePlanFeature($tier: String!, $input: CreatePlanFeatureInput!) {
+  mutation AdminBillingCreatePlanFeature($category: String!, $input: CreatePlanFeatureInput!) {
     billing {
-      createPlanFeature(tier: $tier, input: $input) {
+      createPlanFeature(category: $category, input: $input) {
         message
         id
-        tier
+        category
       }
     }
   }
@@ -369,27 +369,27 @@ export const BILLING_CREATE_PLAN_FEATURE = `
 
 export const BILLING_UPDATE_PLAN_FEATURE = `
   mutation AdminBillingUpdatePlanFeature(
-    $tier: String!
+    $category: String!
     $featureId: Int!
     $input: UpdatePlanFeatureInput!
   ) {
     billing {
-      updatePlanFeature(tier: $tier, featureId: $featureId, input: $input) {
+      updatePlanFeature(category: $category, featureId: $featureId, input: $input) {
         message
         id
-        tier
+        category
       }
     }
   }
 `;
 
 export const BILLING_DELETE_PLAN_FEATURE = `
-  mutation AdminBillingDeletePlanFeature($tier: String!, $featureId: Int!) {
+  mutation AdminBillingDeletePlanFeature($category: String!, $featureId: Int!) {
     billing {
-      deletePlanFeature(tier: $tier, featureId: $featureId) {
+      deletePlanFeature(category: $category, featureId: $featureId) {
         message
         id
-        tier
+        category
       }
     }
   }
@@ -400,40 +400,40 @@ export const BILLING_CREATE_PLAN = `
     billing {
       createPlan(input: $input) {
         message
-        tier
+        category
       }
     }
   }
 `;
 
 export const BILLING_UPDATE_PLAN = `
-  mutation AdminBillingUpdatePlan($tier: String!, $input: UpdatePlanInput!) {
+  mutation AdminBillingUpdatePlan($category: String!, $input: UpdatePlanInput!) {
     billing {
-      updatePlan(tier: $tier, input: $input) {
+      updatePlan(category: $category, input: $input) {
         message
-        tier
+        category
       }
     }
   }
 `;
 
 export const BILLING_DELETE_PLAN = `
-  mutation AdminBillingDeletePlan($tier: String!) {
+  mutation AdminBillingDeletePlan($category: String!) {
     billing {
-      deletePlan(tier: $tier) {
+      deletePlan(category: $category) {
         message
-        tier
+        category
       }
     }
   }
 `;
 
 export const BILLING_CREATE_PLAN_PERIOD = `
-  mutation AdminBillingCreatePlanPeriod($tier: String!, $input: CreatePlanPeriodInput!) {
+  mutation AdminBillingCreatePlanPeriod($category: String!, $input: CreatePlanPeriodInput!) {
     billing {
-      createPlanPeriod(tier: $tier, input: $input) {
+      createPlanPeriod(category: $category, input: $input) {
         message
-        tier
+        category
         period
       }
     }
@@ -441,11 +441,11 @@ export const BILLING_CREATE_PLAN_PERIOD = `
 `;
 
 export const BILLING_UPDATE_PLAN_PERIOD = `
-  mutation AdminBillingUpdatePlanPeriod($tier: String!, $period: String!, $input: UpdatePlanPeriodInput!) {
+  mutation AdminBillingUpdatePlanPeriod($category: String!, $period: String!, $input: UpdatePlanPeriodInput!) {
     billing {
-      updatePlanPeriod(tier: $tier, period: $period, input: $input) {
+      updatePlanPeriod(category: $category, period: $period, input: $input) {
         message
-        tier
+        category
         period
       }
     }
@@ -453,11 +453,11 @@ export const BILLING_UPDATE_PLAN_PERIOD = `
 `;
 
 export const BILLING_DELETE_PLAN_PERIOD = `
-  mutation AdminBillingDeletePlanPeriod($tier: String!, $period: String!) {
+  mutation AdminBillingDeletePlanPeriod($category: String!, $period: String!) {
     billing {
-      deletePlanPeriod(tier: $tier, period: $period) {
+      deletePlanPeriod(category: $category, period: $period) {
         message
-        tier
+        category
         period
       }
     }

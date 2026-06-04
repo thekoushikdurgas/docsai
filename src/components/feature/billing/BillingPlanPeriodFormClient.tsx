@@ -15,7 +15,9 @@ import { ADMIN_ROUTES } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
 import {
   BILLING_PERIOD_KEYS,
+  enrichPeriodFromMonthly,
   missingPeriodKeys,
+  monthlyPeriodFormFromPlan,
   periodFormToInput,
   type BillingPeriodKey,
   type PeriodFormValues,
@@ -23,18 +25,18 @@ import {
 
 export function BillingPlanPeriodFormClient({
   mode,
-  tier,
+  category,
   periodKey,
 }: {
   mode: "add" | "edit";
-  tier: string;
+  category: string;
   periodKey?: string;
 }) {
   const router = useRouter();
   const { isSuperAdmin } = useAuth();
   const catalog = useAdminBillingPlans();
 
-  const plan = catalog.data?.billing?.plans?.find((p) => p.tier === tier);
+  const plan = catalog.data?.billing?.plans?.find((p) => p.category === category);
   const available = useMemo(
     () => (plan ? missingPeriodKeys(plan) : []),
     [plan],
@@ -42,6 +44,7 @@ export function BillingPlanPeriodFormClient({
 
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
   const [credits, setCredits] = useState("");
+  const [dailyCreditsLimit, setDailyCreditsLimit] = useState("");
   const [ratePerCredit, setRatePerCredit] = useState("");
   const [price, setPrice] = useState("");
   const [savingsPercentage, setSavingsPercentage] = useState("");
@@ -67,26 +70,66 @@ export function BillingPlanPeriodFormClient({
   }, [mode, available, selectedPeriod]);
 
   useEffect(() => {
-    if (!existingPeriod) return;
-    setCredits(String(existingPeriod.credits ?? ""));
-    setRatePerCredit(String(existingPeriod.ratePerCredit ?? ""));
-    setPrice(String(existingPeriod.price ?? ""));
-    setSavingsPercentage(
-      existingPeriod.savings?.percentage != null
-        ? String(existingPeriod.savings.percentage)
-        : "",
+    if (!existingPeriod || !editKey || !plan) return;
+    const creditsStr = String(existingPeriod.credits ?? "");
+    const priceStr = String(existingPeriod.price ?? "");
+    const enriched = enrichPeriodFromMonthly(
+      monthlyPeriodFormFromPlan(plan),
+      {
+        credits: creditsStr,
+        dailyCreditsLimit: String(existingPeriod.dailyCreditsLimit ?? ""),
+        price: priceStr,
+        ratePerCredit: "",
+        savingsPercentage: "",
+        savingsAmount: "",
+      },
+      editKey,
     );
-    setSavingsAmount(
-      existingPeriod.savings?.amount != null
-        ? String(existingPeriod.savings.amount)
-        : "",
+    setCredits(enriched.credits);
+    setDailyCreditsLimit(enriched.dailyCreditsLimit);
+    setPrice(enriched.price);
+    setRatePerCredit(enriched.ratePerCredit);
+    setSavingsPercentage(enriched.savingsPercentage);
+    setSavingsAmount(enriched.savingsAmount);
+  }, [existingPeriod, editKey, plan]);
+
+  function applyCreditsPriceChange(
+    nextCredits: string,
+    nextPrice: string,
+    periodOverride?: BillingPeriodKey,
+  ) {
+    const period =
+      periodOverride ??
+      editKey ??
+      (BILLING_PERIOD_KEYS.includes(selectedPeriod as BillingPeriodKey)
+        ? (selectedPeriod as BillingPeriodKey)
+        : null);
+    if (!plan || !period) return;
+    const enriched = enrichPeriodFromMonthly(
+      monthlyPeriodFormFromPlan(plan),
+      {
+        credits: nextCredits,
+        dailyCreditsLimit,
+        price: nextPrice,
+        ratePerCredit: "",
+        savingsPercentage: "",
+        savingsAmount: "",
+      },
+      period,
     );
-  }, [existingPeriod]);
+    setCredits(enriched.credits);
+    setDailyCreditsLimit(enriched.dailyCreditsLimit);
+    setPrice(enriched.price);
+    setRatePerCredit(enriched.ratePerCredit);
+    setSavingsPercentage(enriched.savingsPercentage);
+    setSavingsAmount(enriched.savingsAmount);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const form: PeriodFormValues = {
       credits,
+      dailyCreditsLimit,
       ratePerCredit,
       price,
       savingsPercentage,
@@ -101,12 +144,12 @@ export function BillingPlanPeriodFormClient({
       }
       const input = periodFormToInput(period, form);
       if (!input) {
-        toast.error("Credits, rate, and price are required");
+        toast.error("Credits, daily limit, rate, and price are required");
         return;
       }
       setSaving(true);
       try {
-        const res = await billingService.createPlanPeriod(tier, input);
+        const res = await billingService.createPlanPeriod(category, input);
         const msg =
           (res as { billing?: { createPlanPeriod?: { message?: string } } })
             ?.billing?.createPlanPeriod?.message;
@@ -122,10 +165,15 @@ export function BillingPlanPeriodFormClient({
 
     if (!editKey) return;
     const creditsN = parseInt(credits, 10);
+    const dailyN = parseInt(dailyCreditsLimit, 10);
     const rateN = parseFloat(ratePerCredit);
     const priceN = parseFloat(price);
     if (Number.isNaN(creditsN) || creditsN < 1) {
       toast.error("Invalid credits");
+      return;
+    }
+    if (Number.isNaN(dailyN) || dailyN < 1) {
+      toast.error("Invalid daily credits limit");
       return;
     }
     if (Number.isNaN(rateN) || rateN <= 0 || Number.isNaN(priceN) || priceN <= 0) {
@@ -135,12 +183,14 @@ export function BillingPlanPeriodFormClient({
 
     const input: {
       credits: number;
+      dailyCreditsLimit: number;
       ratePerCredit: number;
       price: number;
       savingsAmount?: number;
       savingsPercentage?: number;
     } = {
       credits: creditsN,
+      dailyCreditsLimit: dailyN,
       ratePerCredit: rateN,
       price: priceN,
     };
@@ -155,7 +205,7 @@ export function BillingPlanPeriodFormClient({
 
     setSaving(true);
     try {
-      const res = await billingService.updatePlanPeriod(tier, editKey, input);
+      const res = await billingService.updatePlanPeriod(category, editKey, input);
       const msg =
         (res as { billing?: { updatePlanPeriod?: { message?: string } } })?.billing
           ?.updatePlanPeriod?.message;
@@ -202,7 +252,7 @@ export function BillingPlanPeriodFormClient({
     return (
       <AdminPageLayout
         title="Add period"
-        subtitle={`Plan ${tier} already has all periods`}
+        subtitle={`Plan ${category} already has all periods`}
       >
         <Link href={ADMIN_ROUTES.BILLING_PLANS_TAB}>
           <Button variant="outline">Back to plans</Button>
@@ -216,8 +266,8 @@ export function BillingPlanPeriodFormClient({
       title={mode === "add" ? "Add billing period" : "Edit billing period"}
       subtitle={
         mode === "add"
-          ? `billing.createPlanPeriod — ${tier}`
-          : `billing.updatePlanPeriod — ${tier} / ${editKey}`
+          ? `billing.createPlanPeriod — ${category}`
+          : `billing.updatePlanPeriod — ${category} / ${editKey}`
       }
       actions={
         <Link href={ADMIN_ROUTES.BILLING_PLANS_TAB}>
@@ -233,7 +283,17 @@ export function BillingPlanPeriodFormClient({
           <Select
             label="Period"
             value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value as BillingPeriodKey;
+              setSelectedPeriod(next);
+              if (
+                plan &&
+                BILLING_PERIOD_KEYS.includes(next) &&
+                (credits.trim() || price.trim())
+              ) {
+                applyCreditsPriceChange(credits, price, next);
+              }
+            }}
             options={available.map((p) => ({
               value: p,
               label: p.charAt(0).toUpperCase() + p.slice(1),
@@ -249,34 +309,50 @@ export function BillingPlanPeriodFormClient({
           min={1}
           step={1}
           value={credits}
-          onChange={(e) => setCredits(e.target.value)}
+          onChange={(e) => applyCreditsPriceChange(e.target.value, price)}
+          required
+        />
+        <Input
+          label="Daily credits limit"
+          type="number"
+          min={1}
+          step={1}
+          value={dailyCreditsLimit}
+          onChange={(e) => setDailyCreditsLimit(e.target.value)}
+          helperText="Plan allowance refilled each UTC day (same cap across monthly/quarterly/yearly is typical)"
           required
         />
         <Input
           label="Rate / credit"
           value={ratePerCredit}
-          onChange={(e) => setRatePerCredit(e.target.value)}
+          readOnly
+          helperText="Calculated from price ÷ credits"
           required
         />
         <Input
           label="Price"
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(e) => applyCreditsPriceChange(credits, e.target.value)}
           required
         />
         <Input
-          label="Savings % (optional)"
+          label="Savings %"
           type="number"
           min={0}
           max={100}
           step={1}
           value={savingsPercentage}
-          onChange={(e) => setSavingsPercentage(e.target.value)}
+          readOnly
+          helperText={
+            editKey === "monthly"
+              ? "No savings on monthly baseline"
+              : "Vs monthly × months (from rate/price)"
+          }
         />
         <Input
-          label="Savings amount (optional)"
+          label="Savings amount"
           value={savingsAmount}
-          onChange={(e) => setSavingsAmount(e.target.value)}
+          readOnly
         />
         <Button type="submit" loading={saving}>
           {mode === "add" ? "Add period" : "Save"}

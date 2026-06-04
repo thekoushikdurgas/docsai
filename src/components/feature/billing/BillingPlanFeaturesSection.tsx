@@ -10,11 +10,11 @@ import { billingService } from "@/services/billingService";
 import type { PlanFeature } from "@/lib/billingPlanConstants";
 
 export function BillingPlanFeaturesSection({
-  tier,
+  category,
   features: rawFeatures,
   onMutated,
 }: {
-  tier: string;
+  category: string;
   features: PlanFeature[];
   onMutated: () => void | Promise<void>;
 }) {
@@ -39,7 +39,7 @@ export function BillingPlanFeaturesSection({
     const order = parseInt(sortOrder, 10);
     setSaving(true);
     try {
-      const res = await billingService.createPlanFeature(tier, {
+      const res = await billingService.createPlanFeature(category, {
         label: label.trim(),
         sortOrder: Number.isNaN(order) ? 0 : order,
       });
@@ -65,7 +65,7 @@ export function BillingPlanFeaturesSection({
     const order = parseInt(editSortOrder, 10);
     setSaving(true);
     try {
-      await billingService.updatePlanFeature(tier, featureId, {
+      await billingService.updatePlanFeature(category, featureId, {
         label: editLabel.trim(),
         sortOrder: Number.isNaN(order) ? 0 : order,
       });
@@ -82,7 +82,7 @@ export function BillingPlanFeaturesSection({
   async function confirmDelete() {
     if (deleteId == null) return;
     try {
-      await billingService.deletePlanFeature(tier, deleteId);
+      await billingService.deletePlanFeature(category, deleteId);
       toast.success("Feature deleted");
       setDeleteId(null);
       await onMutated();
@@ -148,7 +148,7 @@ export function BillingPlanFeaturesSection({
         <Alert variant="info">No features yet for this plan.</Alert>
       ) : (
         <div className="c360-table-wrap">
-          <table className="c360-table" aria-label={`Features for ${tier}`}>
+          <table className="c360-table" aria-label={`Features for ${category}`}>
             <thead>
               <tr>
                 <th style={{ width: 80 }}>Order</th>

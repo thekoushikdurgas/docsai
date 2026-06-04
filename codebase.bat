@@ -22,6 +22,8 @@ REM SKIP_CLEAN=1            Skip npm run clean
 REM SKIP_INSTALL=1          Skip npm install (use when node_modules already fresh)
 REM SKIP_CODEGEN=1          Skip GraphQL codegen
 REM SKIP_BUILD=1            Skip production build (typecheck+lint only)
+REM SKIP_DEV_PROMPT=1       Skip optional dev-server prompt after checks
+REM START_DEV=1             Start dev on :3001 after checks (non-interactive)
 REM
 REM Codegen needs reachable schema; on failure retries codegen:local (http://127.0.0.1:8001/graphql).
 REM Start contact360.io/api on :8001 before a full local audit if you need fresh types.
@@ -53,6 +55,14 @@ endlocal
 goto :eof
 
 :main
+set "LOCKFILE=%ADMIN_DIR%.codebase-check.lock"
+if exist "%LOCKFILE%" (
+  call :color_echo "%RED%" "ERROR: Another codebase check appears to be running."
+  call :color_echo "%YELLOW%" "  Lock: %LOCKFILE%"
+  call :color_echo "%YELLOW%" "  Stop the other run or delete the lock file if stale."
+  exit /b 1
+)
+echo %RANDOM%-%TIME%> "%LOCKFILE%"
 echo.
 call :color_echo "%CYAN%" "========================================"
 call :color_echo "%CYAN%" "  CONTACT360 ADMIN STATE CHECK"
@@ -67,6 +77,10 @@ if not exist "%ADMIN_DIR%" (
 cd /d "%ADMIN_DIR%"
 call :color_echo "%BLUE%" "Current directory: %CD%"
 call :color_echo "%BLUE%" "Dev port: 3001  |  PM2 name: contact360-admin"
+netstat -ano 2>nul | findstr /C:":3001" | findstr /I "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+  call :color_echo "%YELLOW%" "  Warning: port 3001 is already in use. Stop any running dev server before checks."
+)
 echo.
 
 set "SECTION0_STATUS=SKIPPED"
@@ -242,31 +256,42 @@ echo.
 call :color_echo "%BLUE%" "CI parity: npm run ci  (lint + typecheck + build, no install/codegen)"
 echo.
 
-if %ERROR_COUNT% EQU 0 (
-    call :color_echo "%GREEN%" "  OK All checks passed!"
-    if %WARNING_COUNT% GTR 0 call :color_echo "%YELLOW%" "  Found %WARNING_COUNT% warning(s)"
-    echo.
-    call :color_echo "%CYAN%" "  Start development server on :3001? (Y/N)"
-    choice /C YN /N /M ""
-    if errorlevel 2 goto :end
-    if errorlevel 1 goto :dev_server
-) else (
+if not %ERROR_COUNT% EQU 0 (
     call :color_echo "%RED%" "  X Found %ERROR_COUNT% error(s)"
     if %WARNING_COUNT% GTR 0 call :color_echo "%YELLOW%" "  Found %WARNING_COUNT% warning(s)"
     echo.
     call :color_echo "%YELLOW%" "  Please fix the errors before proceeding."
+    goto :finish
 )
-goto :end
 
-:dev_server
+call :color_echo "%GREEN%" "  OK All checks passed!"
+if %WARNING_COUNT% GTR 0 call :color_echo "%YELLOW%" "  Found %WARNING_COUNT% warning(s)"
+echo.
+
+if /i "%START_DEV%"=="1" (
+  call :run_dev_server
+  goto :finish
+)
+
+if /i "%SKIP_DEV_PROMPT%"=="1" goto :finish
+
+call :color_echo "%CYAN%" "  Start development server on :3001? (Y/N)"
+choice /C YN /N /M ">"
+set "DEV_CHOICE=!ERRORLEVEL!"
+if "!DEV_CHOICE!"=="1" call :run_dev_server
+goto :finish
+
+:run_dev_server
 echo.
 call :color_echo "%CYAN%" "[6/6] Starting development server (port 3001)..."
 call :color_echo "%BLUE%" "  Press Ctrl+C to stop the server"
 call :color_echo "%BLUE%" "  Ensure API ALLOWED_ORIGINS includes http://localhost:3001"
 echo.
 call npm run dev
+goto :eof
 
-:end
+:finish
+if exist "%LOCKFILE%" del /f /q "%LOCKFILE%" 2>nul
 echo.
 call :color_echo "%CYAN%" "========================================"
 call :color_echo "%CYAN%" "  CHECK COMPLETE"
