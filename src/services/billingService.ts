@@ -46,7 +46,10 @@ export type PlanPeriodMutationInput = {
 };
 
 export const billingService = {
-  plans: () => graphqlQuery<PlansQueryResult>(BILLING_PLANS_QUERY),
+  plans: (includeInactive = false) =>
+    graphqlQuery<PlansQueryResult>(BILLING_PLANS_QUERY, {
+      includeInactive,
+    }),
 
   addons: () => graphqlQuery(BILLING_ADDONS_QUERY),
 

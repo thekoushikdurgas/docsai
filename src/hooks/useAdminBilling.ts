@@ -3,8 +3,11 @@
 import { billingService } from "@/services/billingService";
 import { useAdminResource } from "./useAdminResource";
 
-export function useAdminBillingPlans() {
-  return useAdminResource(() => billingService.plans(), []);
+export function useAdminBillingPlans(includeInactive = false) {
+  return useAdminResource(
+    () => billingService.plans(includeInactive),
+    [includeInactive],
+  );
 }
 
 export function useAdminBillingPayments(status?: string) {

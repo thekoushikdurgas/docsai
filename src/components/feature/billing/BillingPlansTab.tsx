@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -133,6 +133,7 @@ function PlanCard({
   );
 
   const hasPeriods = BILLING_PERIOD_KEYS.some((k) => plan.periods[k]);
+  const isInactive = plan.isActive === false;
 
   async function confirmDeletePlan() {
     try {
@@ -158,7 +159,16 @@ function PlanCard({
   }
 
   return (
-    <div className="c360-card c360-billing-plan-card" style={{ marginBottom: 16 }}>
+    <div
+      className="c360-card c360-billing-plan-card"
+      style={{
+        marginBottom: 16,
+        opacity: isInactive ? 0.72 : 1,
+        borderColor: isInactive
+          ? "var(--c360-border-subtle)"
+          : undefined,
+      }}
+    >
       <div
         className="c360-card__header"
         style={{
@@ -172,6 +182,14 @@ function PlanCard({
         <div>
           <h2 className="c360-text-lg" style={{ margin: 0 }}>
             {plan.name || plan.category}
+            {isInactive ? (
+              <span
+                className="c360-badge c360-badge--outline"
+                style={{ marginLeft: 8, verticalAlign: "middle" }}
+              >
+                Inactive
+              </span>
+            ) : null}
           </h2>
           <p className="c360-mm-lead" style={{ margin: "4px 0 0" }}>
             <code>{plan.category}</code>
@@ -181,6 +199,12 @@ function PlanCard({
               </span>
             ) : null}
           </p>
+          {isInactive ? (
+            <p className="c360-text-sm c360-text-muted" style={{ margin: "6px 0 0" }}>
+              Soft-deleted — not shown in app checkout. Edit plan and enable{" "}
+              <strong>Active</strong> to restore.
+            </p>
+          ) : null}
         </div>
         {isSuperAdmin ? (
           <div className="c360-flex c360-flex--gap-1" style={{ flexWrap: "wrap" }}>
@@ -282,9 +306,20 @@ function PlanCard({
 export function BillingPlansTab() {
   const router = useRouter();
   const { isSuperAdmin } = useAuth();
-  const { data, loading, error, reload } = useAdminBillingPlans();
+  const { data, loading, error, reload } = useAdminBillingPlans(true);
 
-  const plans = data?.billing?.plans ?? [];
+  const plans = useMemo(() => {
+    const rows = data?.billing?.plans ?? [];
+    return [...rows].sort((a, b) => {
+      const aActive = a.isActive !== false ? 0 : 1;
+      const bActive = b.isActive !== false ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return (a.category ?? "").localeCompare(b.category ?? "");
+    });
+  }, [data?.billing?.plans]);
+
+  const inactiveCount = plans.filter((p) => p.isActive === false).length;
+  const activeCount = plans.length - inactiveCount;
 
   if (loading) {
     return <Spinner label="Loading plans" />;
@@ -315,10 +350,16 @@ export function BillingPlansTab() {
             Subscription plans
           </h2>
           <p className="c360-mm-lead" style={{ marginTop: 4 }}>
-            Catalog from <code>billing.plans</code>. Create, edit, and delete require{" "}
-            <strong>Super Admin</strong> (
-            <code>billing.createPlan</code>, <code>updatePlan</code>,{" "}
-            <code>deletePlan</code>, period mutations).
+            Catalog from <code>billing.plans(includeInactive: true)</code>.
+            {activeCount > 0 || inactiveCount > 0 ? (
+              <>
+                {" "}
+                {activeCount} active
+                {inactiveCount > 0 ? `, ${inactiveCount} inactive` : ""}.
+              </>
+            ) : null}{" "}
+            Delete sets a plan inactive (hidden from checkout). Create, edit, and
+            delete require <strong>Super Admin</strong>.
           </p>
         </div>
         {isSuperAdmin ? (
@@ -331,6 +372,15 @@ export function BillingPlansTab() {
       {!isSuperAdmin ? (
         <Alert variant="info" style={{ marginBottom: 16 }}>
           You can view plans. Super Admins can add, edit, or delete plans and periods.
+        </Alert>
+      ) : null}
+
+      {inactiveCount > 0 ? (
+        <Alert variant="warning" style={{ marginBottom: 16 }}>
+          {inactiveCount} plan(s) are <strong>inactive</strong> (soft-deleted). They
+          still appear here but not in the public app. Open each plan, check{" "}
+          <strong>Active</strong>, and save to restore — you cannot create a new
+          plan for the same category until it is removed or restored.
         </Alert>
       ) : null}
 

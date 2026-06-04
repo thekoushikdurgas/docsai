@@ -4,7 +4,9 @@ import Input from "@/components/ui/Input";
 import { Alert } from "@/components/ui/Alert";
 import {
   BILLING_PERIOD_KEYS,
+  DAYS_PER_CREDIT_MONTH,
   applyPeriodFormChange,
+  periodCreditsFromMonthlyDailyLimit,
   periodFormWithAutoRate,
   periodLabel,
   type BillingPeriodKey,
@@ -15,11 +17,29 @@ export function PlanPeriodColumn({
   periodKey,
   values,
   onChange,
+  monthlyDailyLimit = "",
 }: {
   periodKey: BillingPeriodKey;
   values: PeriodFormValues;
   onChange: (next: PeriodFormValues) => void;
+  /** When set, quarterly/yearly credits & daily cap follow monthly daily limit. */
+  monthlyDailyLimit?: string;
 }) {
+  const drivenByMonthlyDaily = Boolean(
+    periodKey !== "monthly" && monthlyDailyLimit.trim(),
+  );
+
+  function handleMonthlyDailyChange(daily: string) {
+    const credits =
+      periodCreditsFromMonthlyDailyLimit(daily, "monthly") || values.credits;
+    onChange(
+      periodFormWithAutoRate(
+        { ...values, dailyCreditsLimit: daily, credits },
+        {},
+      ),
+    );
+  }
+
   return (
     <div
       className="c360-card"
@@ -36,7 +56,7 @@ export function PlanPeriodColumn({
             className="c360-mm-lead"
             style={{ display: "block", fontSize: "0.75rem", fontWeight: 400 }}
           >
-            Drives quarterly ×3 and yearly ×12
+            Drives credits (×30 / ×90 / ×360) and quarterly & yearly bundles
           </span>
         ) : null}
       </h3>
@@ -47,8 +67,16 @@ export function PlanPeriodColumn({
           min={1}
           step={1}
           value={values.credits}
+          readOnly={drivenByMonthlyDaily}
           onChange={(e) =>
             onChange(periodFormWithAutoRate(values, { credits: e.target.value }))
+          }
+          helperText={
+            drivenByMonthlyDaily
+              ? `From monthly daily × ${periodKey === "quarterly" ? "3" : "12"} × ${DAYS_PER_CREDIT_MONTH}`
+              : periodKey === "monthly"
+                ? `Auto: daily × ${DAYS_PER_CREDIT_MONTH} when daily limit changes`
+                : undefined
           }
         />
         <Input
@@ -57,10 +85,19 @@ export function PlanPeriodColumn({
           min={1}
           step={1}
           value={values.dailyCreditsLimit}
+          readOnly={drivenByMonthlyDaily}
           onChange={(e) =>
-            onChange({ ...values, dailyCreditsLimit: e.target.value })
+            periodKey === "monthly"
+              ? handleMonthlyDailyChange(e.target.value)
+              : onChange({ ...values, dailyCreditsLimit: e.target.value })
           }
-          helperText="Max credits usable per UTC day for this period"
+          helperText={
+            drivenByMonthlyDaily
+              ? "Same daily cap as monthly"
+              : periodKey === "monthly"
+                ? `Period credits = daily × ${DAYS_PER_CREDIT_MONTH}; quarterly ×3×${DAYS_PER_CREDIT_MONTH}, yearly ×12×${DAYS_PER_CREDIT_MONTH}`
+                : "Max credits usable per UTC day for this period"
+          }
         />
         <Input
           label="Rate / credit"
@@ -119,11 +156,12 @@ export function BillingPlanPeriodsSection({
         Billing periods
       </h3>
       <p className="c360-mm-lead" style={{ fontSize: "0.875rem", marginBottom: 16 }}>
-        Monthly, quarterly, and yearly pricing. <strong>Monthly</strong> drives
-        quarterly (×3 credits, 10% bundle discount) and yearly (×12 credits, 20%
-        discount). Rate per credit = price ÷ credits; savings % and amount on
-        quarterly/yearly compare bundle price to paying monthly × months. Leave a
-        column empty to skip that period when saving.
+        Monthly, quarterly, and yearly pricing. <strong>Monthly daily credits
+          limit</strong> sets period credits: monthly = daily × {DAYS_PER_CREDIT_MONTH},
+        quarterly = daily × 3 × {DAYS_PER_CREDIT_MONTH}, yearly = daily × 12 ×{" "}
+        {DAYS_PER_CREDIT_MONTH} (same daily cap on all periods). Price still
+        drives quarterly (10%) and yearly (20%) bundle discounts. Rate per credit
+        = price ÷ credits. Leave a column empty to skip that period when saving.
       </p>
       <div
         className="c360-billing-periods-grid"
@@ -139,6 +177,7 @@ export function BillingPlanPeriodsSection({
             key={key}
             periodKey={key}
             values={periodForms[key]}
+            monthlyDailyLimit={periodForms.monthly.dailyCreditsLimit}
             onChange={(next) => onChange(applyPeriodFormChange(periodForms, key, next))}
           />
         ))}

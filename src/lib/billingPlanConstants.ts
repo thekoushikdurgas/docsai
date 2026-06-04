@@ -15,6 +15,9 @@ export type BillingPeriodKey = (typeof BILLING_PERIOD_KEYS)[number];
 export const QUARTERLY_MONTH_MULTIPLIER = 3;
 export const YEARLY_MONTH_MULTIPLIER = 12;
 
+/** Days per month when deriving period credits from the monthly daily cap. */
+export const DAYS_PER_CREDIT_MONTH = 30;
+
 /** Default bundle discounts vs paying monthly × months (see root billing types). */
 export const QUARTERLY_PRICE_DISCOUNT = 0.1;
 export const YEARLY_PRICE_DISCOUNT = 0.2;
@@ -48,6 +51,7 @@ export type PlanFeature = {
 export type BillingPlan = {
   category: string;
   name: string;
+  isActive?: boolean;
   periods: PlanPeriods;
   features?: PlanFeature[];
 };
@@ -105,6 +109,49 @@ export function periodFormWithAutoRate(
   const next = { ...form, ...patch };
   next.ratePerCredit = computeRatePerCreditString(next.credits, next.price);
   return next;
+}
+
+export function parsePositiveInt(value: string): number | null {
+  const n = parseInt(value.trim(), 10);
+  if (!value.trim() || Number.isNaN(n) || n < 1) {
+    return null;
+  }
+  return n;
+}
+
+/**
+ * Period bundle credits from monthly daily cap (D credits / UTC day):
+ * monthly D×30, quarterly D×3×30, yearly D×12×30.
+ */
+export function periodCreditsFromMonthlyDailyLimit(
+  dailyLimitStr: string,
+  periodKey: BillingPeriodKey,
+): string {
+  const daily = parsePositiveInt(dailyLimitStr);
+  if (daily === null) {
+    return "";
+  }
+  const months =
+    periodKey === "monthly"
+      ? 1
+      : periodKey === "quarterly"
+        ? QUARTERLY_MONTH_MULTIPLIER
+        : YEARLY_MONTH_MULTIPLIER;
+  return String(daily * months * DAYS_PER_CREDIT_MONTH);
+}
+
+/** Apply monthly credits from daily cap when daily is set. */
+export function monthlyPeriodWithCreditsFromDaily(
+  monthly: PeriodFormValues,
+): PeriodFormValues {
+  const credits = periodCreditsFromMonthlyDailyLimit(
+    monthly.dailyCreditsLimit,
+    "monthly",
+  );
+  if (!credits) {
+    return monthly;
+  }
+  return periodFormWithAutoRate({ ...monthly, credits }, {});
 }
 
 function scaleCreditsString(credits: string, multiplier: number): string {
@@ -203,9 +250,14 @@ export function scalePeriodFromMonthly(
     periodKey === "quarterly"
       ? QUARTERLY_MONTH_MULTIPLIER
       : YEARLY_MONTH_MULTIPLIER;
+  const creditsFromDaily = periodCreditsFromMonthlyDailyLimit(
+    monthly.dailyCreditsLimit,
+    periodKey,
+  );
   const scaled = periodFormWithAutoRate(
     {
-      credits: scaleCreditsString(monthly.credits, mult),
+      credits:
+        creditsFromDaily || scaleCreditsString(monthly.credits, mult),
       dailyCreditsLimit: monthly.dailyCreditsLimit,
       price: scalePriceString(
         monthly.price,
@@ -222,7 +274,11 @@ export function scalePeriodFromMonthly(
 }
 
 function monthlyHasCascadeSource(monthly: PeriodFormValues): boolean {
-  return Boolean(monthly.credits.trim() || monthly.price.trim());
+  return Boolean(
+    monthly.credits.trim() ||
+    monthly.price.trim() ||
+    monthly.dailyCreditsLimit.trim(),
+  );
 }
 
 /** When monthly changes, derive quarterly (×3) and yearly (×12) with savings. */
@@ -230,7 +286,12 @@ export function cascadePeriodsFromMonthly(
   forms: Record<BillingPeriodKey, PeriodFormValues>,
   monthly: PeriodFormValues,
 ): Record<BillingPeriodKey, PeriodFormValues> {
-  const monthlyWithRate = enrichPeriodFromMonthly(monthly, monthly, "monthly");
+  const monthlySynced = monthlyPeriodWithCreditsFromDaily(monthly);
+  const monthlyWithRate = enrichPeriodFromMonthly(
+    monthlySynced,
+    monthlySynced,
+    "monthly",
+  );
   if (!monthlyHasCascadeSource(monthlyWithRate)) {
     return { ...forms, monthly: monthlyWithRate };
   }

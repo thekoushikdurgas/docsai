@@ -335,11 +335,12 @@ const BILLING_PLAN_PERIOD_FIELDS = `
 `;
 
 export const BILLING_PLANS_QUERY = `
-  query AdminBillingPlans {
+  query AdminBillingPlans($includeInactive: Boolean = false) {
     billing {
-      plans {
+      plans(includeInactive: $includeInactive) {
         category
         name
+        isActive
         periods {
           monthly { ${BILLING_PLAN_PERIOD_FIELDS} }
           quarterly { ${BILLING_PLAN_PERIOD_FIELDS} }

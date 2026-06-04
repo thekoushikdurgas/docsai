@@ -15,9 +15,11 @@ import { ADMIN_ROUTES } from "@/lib/routes";
 import { useAuth } from "@/context/AuthContext";
 import {
   BILLING_PERIOD_KEYS,
+  DAYS_PER_CREDIT_MONTH,
   enrichPeriodFromMonthly,
   missingPeriodKeys,
   monthlyPeriodFormFromPlan,
+  periodCreditsFromMonthlyDailyLimit,
   periodFormToInput,
   type BillingPeriodKey,
   type PeriodFormValues,
@@ -123,6 +125,22 @@ export function BillingPlanPeriodFormClient({
     setRatePerCredit(enriched.ratePerCredit);
     setSavingsPercentage(enriched.savingsPercentage);
     setSavingsAmount(enriched.savingsAmount);
+  }
+
+  function applyDailyLimitChange(nextDaily: string) {
+    setDailyCreditsLimit(nextDaily);
+    const period =
+      editKey ??
+      (BILLING_PERIOD_KEYS.includes(selectedPeriod as BillingPeriodKey)
+        ? (selectedPeriod as BillingPeriodKey)
+        : null);
+    if (period !== "monthly") {
+      return;
+    }
+    const nextCredits = periodCreditsFromMonthlyDailyLimit(nextDaily, "monthly");
+    if (nextCredits) {
+      applyCreditsPriceChange(nextCredits, price, "monthly");
+    }
   }
 
   async function submit(e: React.FormEvent) {
@@ -318,8 +336,12 @@ export function BillingPlanPeriodFormClient({
           min={1}
           step={1}
           value={dailyCreditsLimit}
-          onChange={(e) => setDailyCreditsLimit(e.target.value)}
-          helperText="Plan allowance refilled each UTC day (same cap across monthly/quarterly/yearly is typical)"
+          onChange={(e) => applyDailyLimitChange(e.target.value)}
+          helperText={
+            (editKey ?? selectedPeriod) === "monthly"
+              ? `Credits auto-set to daily × ${DAYS_PER_CREDIT_MONTH} (edit all periods on the plan form for quarterly/yearly cascade)`
+              : "Plan allowance refilled each UTC day"
+          }
           required
         />
         <Input

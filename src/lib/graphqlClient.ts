@@ -349,6 +349,16 @@ function cacheSet<T>(key: string, data: T, ttlMs: number): void {
   }
 }
 
+/** True when graphqlMutation/graphqlQuery already showed a toast for this error. */
+export function wasGraphqlErrorToasted(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "parsedError" in error &&
+    (error as Error & { parsedError?: ParsedGraphQLError }).parsedError !==
+    undefined
+  );
+}
+
 /** Mark an error as a "service unavailable" so callers can return empty data. */
 export function isServiceUnavailableError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
