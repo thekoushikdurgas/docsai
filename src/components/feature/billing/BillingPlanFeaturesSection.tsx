@@ -31,8 +31,7 @@ export function BillingPlanFeaturesSection({
     [rawFeatures],
   );
 
-  async function addFeature(e: React.FormEvent) {
-    e.preventDefault();
+  async function addFeature() {
     if (!label.trim()) {
       toast.error("Feature text is required");
       return;
@@ -101,20 +100,30 @@ export function BillingPlanFeaturesSection({
         Marketing bullets shown on pricing and checkout. Changes save immediately.
       </p>
 
-      <form
-        onSubmit={addFeature}
+      <div
         className="c360-card c360-admin-form-stack c360-admin-form-stack--full"
         style={{ padding: 16, marginBottom: 20 }}
+        role="group"
+        aria-labelledby="billing-plan-add-feature-heading"
       >
-        <h4 className="c360-text-sm" style={{ margin: 0, fontWeight: 600 }}>
+        <h4
+          id="billing-plan-add-feature-heading"
+          className="c360-text-sm"
+          style={{ margin: 0, fontWeight: 600 }}
+        >
           Add feature
         </h4>
         <Input
           label="Feature text"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void addFeature();
+            }
+          }}
           placeholder="e.g. 5,000 Credits / mo"
-          required
         />
         <Input
           label="Sort order"
@@ -125,10 +134,15 @@ export function BillingPlanFeaturesSection({
           onChange={(e) => setSortOrder(e.target.value)}
           helperText="Lower numbers appear first"
         />
-        <Button type="submit" loading={saving} size="sm">
+        <Button
+          type="button"
+          loading={saving}
+          size="sm"
+          onClick={() => void addFeature()}
+        >
           Add feature
         </Button>
-      </form>
+      </div>
 
       {features.length === 0 ? (
         <Alert variant="info">No features yet for this plan.</Alert>
