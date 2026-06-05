@@ -10,6 +10,8 @@
 
 ## GraphQL — Jobs module
 
+[`app/graphql/modules/email/queries.py`](../../../../contact360.io/api/app/graphql/modules/email/queries.py) / [`mutations.py`](../../../../contact360.io/api/app/graphql/modules/email/mutations.py) — **`jobEmailNotificationConfig`** / **`toggleJobEmailNotification`** call `GET|POST|PUT /client-configs/` for daily hire-signal digests.
+
 [`app/graphql/modules/jobs/mutations.py`](../../../../contact360.io/api/app/graphql/modules/jobs/mutations.py):
 
 - **Create email S3 jobs** — `createEmailFinderExport`, `createEmailVerifyExport`, and related flows call satellite methods such as `create_finder_s3_job` / `create_verifier_s3_job`, then persist **`scheduler_jobs`** with `source_service="email_server"`.
