@@ -152,8 +152,6 @@ Establish the core platform. Users can log in, see live job signals from integra
 
 * LinkedIn Jobs integration
 
-* Indeed integration
-
 * Job normalization engine: map all fields to Contact 360 schema
 
 * Deduplication logic: same job from multiple sources shown once
@@ -239,7 +237,7 @@ Note: Credit system for contact reveals will be defined ahead of v1.3 when Phone
 
 | Metric | Target |
 | :---- | :---- |
-| Job platforms integrated | 2 (LinkedIn, Indeed) |
+| Job platforms integrated | LinkedIn |
 | Company filters live | 4 (Name, Country, Industry, Employee Size) |
 | Job filters live | 8 (Title, Location, Date Posted, Experience, Job Type, LinkedIn Apply, Department, Job Function) |
 | Email notifications | Live and functional |
