@@ -7,7 +7,7 @@
 | :---- | :---- |
 | Document Title | Contact 360 — Product Requirements & Roadmap |
 | Platform Name | Contact 360 |
-| Document Version | v2.0 (Updated) |
+| Document Version | v2.1 (Implementation-aligned) |
 | Date Updated | June 2026 |
 | Document Owner | Product Team |
 | Classification | Internal — Confidential |
@@ -42,9 +42,9 @@ Version 1.x serves three primary customer segments:
 
 ## **1.4 Geographic Coverage**
 
-* United States — primary and only market for v1.x series
+* United States — primary market for v1.x series 
 
-* Country filter is fixed to US; no global expansion planned in this version series
+* Country filter: multi-country UI (ISO country include/exclude via job and company country facets). US remains the default focus for ingest and GTM; additional countries are supported where job data includes country metadata.
 
 ## **1.5 Integrated Job Platforms**
 
@@ -74,7 +74,7 @@ Below is the full filter specification for Contact 360, organized by version. Fi
 | Filter | Description | Version | Notes |
 | :---- | :---- | :---- | :---- |
 | Company Name | Search by exact or partial company name | v1 | Text search, core filter |
-| Country | US only — fixed, no multi-country selection | v1 | Defaults to and locked to United States |
+| Country | Multi-country include/exclude (ISO codes) | v1 | \`COUNTRY\_FILTER\_OPTIONS\` in hiring-signals UI; US is primary ingest market |
 | Industry | Filter by industry vertical (Tech, Healthcare, Finance, etc.) | v1 | Multi-select dropdown |
 | Employee Size | Filter by company headcount ranges (1-50, 51-200, 201-1000, 1000+) | v1 | Range selector |
 | Revenue | Filter by estimated annual revenue bands | v1.2 | Requires enrichment data |
@@ -90,7 +90,7 @@ Below is the full filter specification for Contact 360, organized by version. Fi
 | Experience Level | Entry, Mid, Senior, Director, Executive | v1 | Multi-select |
 | Job Type | Full-time, Part-time, Contract, Internship, Freelance | v1 | Multi-select |
 | LinkedIn Apply | Filter to jobs with LinkedIn Easy Apply enabled | v1 | Toggle |
-| Department | Job department: Sales, Marketing, Engineering, Finance, HR, etc. | v1 | Renamed from Category/Topic. Multi-select |
+| Department | Job department: Sales, Marketing, Engineering, Finance, HR, etc. | v1 | Renamed from Function . Multi-select |
 | Job Function | Specific function within a Department | v1 | Lives under Department filter |
 | Education | Minimum education requirement (High School, Bachelor's, Master's, PhD) | v1.1 | Multi-select |
 | Required Skills | Filter by specific skills listed in the job description | v1.1 | Tag-based multi-select, NLP parsed |
@@ -101,7 +101,7 @@ Below is the full filter specification for Contact 360, organized by version. Fi
 
 | Filter | Decision | Reason |
 | :---- | :---- | :---- |
-| View | Removed | Replaced by tab navigation (All Signals / Today's Jobs / Saved) |
+| View | Removed |  |
 | Remote / Workplace | Removed | Not required for v1.x scope |
 
 | 3\. Product Roadmap — Version 1.x Series v1  •  v1.1  •  v1.2 |
@@ -119,6 +119,18 @@ Contact 360 follows a structured versioning model. Each version has a fixed, pre
 | Stability gate | By the time v1.2 is released, v1 must be completely stable. Version stability is a hard prerequisite before the next version ships. |
 | Continuous feedback loop | Customer requests are collected throughout the product lifecycle. Only the most impactful 2 requests per version are selected for inclusion. |
 
+## **3.0.1** Implementation alignment (v2.1)
+
+Decisions below match the shipping codebase (\`contact360.io\` \+ \`EC2/\`). Engineering and QA should treat these as authoritative over earlier PRD drafts. 
+
+| Area  | PRD (v2.1) | Code reference |
+| :---- | :---- | :---- |
+| RBAC  | FreeUser, ProUser, Admin, SuperAdmin, Owner | \`contact360.io/api/app/core/constants.py\` |
+| Saved searches | Side panel, not main tab | \`SavedSearchesMenu\` in \`HiringSignalsPageClient.tsx\` |
+| Country filter | Multi-country ISO include/exclude | \`COUNTRY\_FILTER\_OPTIONS\`, \`hiringSignalFilterDraft.countries\` |
+| Department (v1) | Job Function only (\`function\_category\`) | \`HiringSignalsFilterSidebar\` field \`function\_category\` |
+| Work email | Masked until reveal | \`HiringSignalDrawerContactsGrid.tsx\`, \`JobConnectraModal.tsx\` |
+
 | VERSION 1 |
 | :---- |
 
@@ -132,7 +144,7 @@ Establish the core platform. Users can log in, see live job signals from integra
 
 * Team/organization onboarding flow
 
-* Role-based access: Admin and Viewer
+* Role-based access: Role-based access: FreeUser, ProUser, Admin, SuperAdmin , Owner (gateway \`app/core/constants.py\`). Billing tier (\`FreeUser\` / \`ProUser\`) is separate from operator roles (\`Admin\` / \`SuperAdmin\`). Team invites use owner \+ member model.
 
 * Basic subscription and billing scaffolding
 
@@ -152,7 +164,9 @@ Establish the core platform. Users can log in, see live job signals from integra
 
 * Main job signals list: Title, Company, Location, Type, Posted, Actions columns
 
-* Tab navigation: All Signals | Today's Jobs | Saved
+* Tab navigation: All Signals | Today's Jobs (main toolbar) 
+
+* Saved searches: side panel (\`SavedSearchesMenu\`), not a third main tab — save/apply filter sets and configure email notifications from the panel
 
 * Total signal count display
 
@@ -168,7 +182,7 @@ Company Filters:
 
 * Company Name (text search)
 
-* Country (US only, fixed)
+* Country (multi-country include/exclude)
 
 * Industry (multi-select)
 
@@ -188,9 +202,7 @@ Job Filters:
 
 * LinkedIn Apply (toggle)
 
-* Department (Sales, Marketing, Engineering, Finance, HR, etc.)
-
-* Job Function (lives under Department)
+* Job Department (Job function category — v1 substitute Department filter)
 
 ### **3.1.5 Email Notifications — v1 Core Feature**
 
@@ -217,7 +229,7 @@ When a staffing company sees a company posting jobs, they need to know who to co
 | First Name | Always visible | v1 |
 | Job Title | Always visible | v1 |
 | Department | Always visible | v1 |
-| Work Email | Always visible | v1 |
+| Work Email | Masked until reveal | v1 |
 | LinkedIn Profile | Always visible | v1 |
 | Phone Number | Planned | v1.3 (TBD) |
 
@@ -233,7 +245,8 @@ Note: Credit system for contact reveals will be defined ahead of v1.3 when Phone
 | Email notifications | Live and functional |
 | Dashboard load time | \< 3 seconds |
 | Job fetch freshness | \< 30 minutes |
-| Contact Intelligence | Live (5 fields: First Name, Job Title, Department, Work Email, LinkedIn) |
+| Contact Intelligence | Live (5 fields: First Name, Job Title, Department, work email reveal-on-demand , LinkedIn) |
+| RBAC roles | FreeUser, ProUser, Admin, SuperAdmin, Owner |
 
 | VERSION 1.1 |
 | :---- |
@@ -351,8 +364,8 @@ As part of the versioning philosophy, v1.2 will include 2 additional requirement
 | date\_posted | Timestamp | Platform | Original posting date |
 | date\_fetched | Timestamp | System | When Contact 360 ingested this |
 | source\_platform | String | System | linkedin, indeed, glassdoor, etc. |
-| source\_url | URL | Platform | Original job posting URL |
-| description\_raw | Text | Platform | Full job description |
+| link | URL | Platform | Original job posting URL |
+| description\_text | Text | Platform | Full job description |
 | required\_skills | String\[\] | Parsed (v1.1) | NLP-extracted from description |
 | salary\_min | Number | Platform/Parsed (v1.1) | Minimum salary if disclosed |
 | salary\_max | Number | Platform/Parsed (v1.1) | Maximum salary if disclosed |
