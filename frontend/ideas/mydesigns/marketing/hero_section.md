@@ -1,4 +1,4 @@
-https://21st.dev/community/components/shivendra9795kumar/halide-topo-hero/default
+https://21st.dev/community/components/YoucefBnm/animated-gallery/animated-scroll-gallery
 You are given a task to integrate an existing React component in the codebase
 
 The codebase should support:
@@ -12,233 +12,383 @@ Determine the default path for components and styles.
 If default path for components is not /components/ui, provide instructions on why it's important to create this folder
 Copy-paste this component to /components/ui folder:
 ```tsx
-halide-topo-hero.tsx
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+animated-gallery.tsx
+"use client" 
 
-export const Component = () => {
-  const [count, setCount] = useState(0);
+import * as React from "react"
+
+import {
+  HTMLMotionProps,
+  MotionValue,
+  Variants,
+  motion,
+  useScroll,
+  useTransform,
+} from "motion/react"
+
+import { cn } from "@/lib/utils"
+
+interface ContainerScrollContextValue {
+  scrollYProgress: MotionValue<number>
+}
+
+const SPRING_CONFIG = {
+  type: "spring",
+  stiffness: 100,
+  damping: 16,
+  mass: 0.75,
+  restDelta: 0.005,
+  duration: 0.3,
+}
+const blurVariants: Variants = {
+  hidden: {
+    filter: "blur(10px)",
+    opacity: 0,
+  },
+  visible: {
+    filter: "blur(0px)",
+    opacity: 1,
+  },
+}
+
+const ContainerScrollContext = React.createContext<
+  ContainerScrollContextValue | undefined
+>(undefined)
+function useContainerScrollContext() {
+  const context = React.useContext(ContainerScrollContext)
+  if (!context) {
+    throw new Error(
+      "useContainerScrollContext must be used within a ContainerScroll Component"
+    )
+  }
+  return context
+}
+export const ContainerScroll = ({
+  children,
+  className,
+  style,
+  ...props
+}: React.HtmlHTMLAttributes<HTMLDivElement>) => {
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: scrollRef,
+  })
+  return (
+    <ContainerScrollContext.Provider value={{ scrollYProgress }}>
+      <div
+        ref={scrollRef}
+        className={cn("relative min-h-[120vh]", className)}
+        style={{
+          perspective: "1000px",
+          perspectiveOrigin: "center top",
+          transformStyle: "preserve-3d",
+          ...style,
+        }}
+        {...props}
+      >
+        {children}
+      </div>
+    </ContainerScrollContext.Provider>
+  )
+}
+ContainerScroll.displayName = "ContainerScroll"
+export const ContainerSticky = ({
+  className,
+  style,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => {
+  return (
+    <div
+      className={cn(
+        "sticky left-0 top-0 min-h-[30rem] w-full overflow-hidden",
+        className
+      )}
+      style={{
+        perspective: "1000px",
+        perspectiveOrigin: "center top",
+        transformStyle: "preserve-3d",
+        transformOrigin: "50% 50%",
+        ...style,
+      }}
+      {...props}
+    />
+  )
+}
+ContainerSticky.displayName = "ContainerSticky"
+
+export const GalleryContainer = ({
+  children,
+  className,
+  style,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & HTMLMotionProps<"div">) => {
+  const { scrollYProgress } = useContainerScrollContext()
+  const rotateX = useTransform(scrollYProgress, [0, 0.5], [75, 0])
+  const scale = useTransform(scrollYProgress, [0.5, 0.9], [1.2, 1])
 
   return (
-    <div className={cn("flex flex-col items-center gap-4 p-4 rounded-lg")}>
-      <h1 className="text-2xl font-bold mb-2">Component Example</h1>
-      <h2 className="text-xl font-semibold">{count}</h2>
-      <div className="flex gap-2">
-        <button onClick={() => setCount((prev) => prev - 1)}>-</button>
-        <button onClick={() => setCount((prev) => prev + 1)}>+</button>
-      </div>
-    </div>
-  );
-};
+    <motion.div
+      className={cn(
+        "relative grid size-full grid-cols-3 gap-2 rounded-2xl",
+        className
+      )}
+      style={{
+        rotateX,
+        scale,
+        transformStyle: "preserve-3d",
+        perspective: "1000px",
+        ...style,
+      }}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+}
+GalleryContainer.displayName = "GalleryContainer"
 
+export const GalleryCol = ({
+  className,
+  style,
+  yRange = ["0%", "-10%"],
+  ...props
+}: HTMLMotionProps<"div"> & { yRange?: string[] }) => {
+  const { scrollYProgress } = useContainerScrollContext()
+  const y = useTransform(scrollYProgress, [0.5, 1], yRange)
+
+  return (
+    <motion.div
+      className={cn("relative flex w-full flex-col gap-2 ", className)}
+      style={{
+        y,
+        ...style,
+      }}
+      {...props}
+    />
+  )
+}
+GalleryCol.displayName = "GalleryCol"
+
+export const ContainerStagger = React.forwardRef<
+  HTMLDivElement,
+  HTMLMotionProps<"div">
+>(({ className, viewport, transition, ...props }, ref) => {
+  return (
+    <motion.div
+      className={cn("relative", className)}
+      ref={ref}
+      initial="hidden"
+      whileInView={"visible"}
+      viewport={{ once: true || viewport?.once, ...viewport }}
+      transition={{
+        staggerChildren: transition?.staggerChildren || 0.2,
+        ...transition,
+      }}
+      {...props}
+    />
+  )
+})
+ContainerStagger.displayName = "ContainerStagger"
+
+export const ContainerAnimated = React.forwardRef<
+  HTMLDivElement,
+  HTMLMotionProps<"div">
+>(({ className, transition, ...props }, ref) => {
+  return (
+    <motion.div
+      ref={ref}
+      className={cn(className)}
+      variants={blurVariants}
+      transition={SPRING_CONFIG || transition}
+      {...props}
+    />
+  )
+})
+ContainerAnimated.displayName = "ContainerAnimated"
 
 demo.tsx
-import React, { useEffect, useRef } from 'react';
+import { ContainerAnimated,
+  ContainerScroll,
+  ContainerStagger,
+  ContainerSticky,
+  GalleryCol,
+  GalleryContainer } from "@/components/blocks/animated-gallery"
+import { Button } from "@/components/ui/button"
+import { VideoIcon } from "lucide-react"
 
-const HalideLanding: React.FC = () => {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const layersRef = useRef<HTMLDivElement[]>([]);
+const IMAGES_1 = [
+  "https://images.unsplash.com/photo-1529218402470-5dec8fea0761?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGFkfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fHRva3lvfGVufDB8MHwwfHx8Mg%3D%3D",
+  "https://images.unsplash.com/photo-1604928141064-207cea6f571f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8dG9reW98ZW58MHwwfDB8fHwy",
+  "https://images.unsplash.com/photo-1573455494060-c5595004fb6c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8dG9reW98ZW58MHwwfDB8fHwy",
+]
+const IMAGES_2 = [
+  "https://images.unsplash.com/photo-1542052125323-e69ad37a47c2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjJ8fHRva3lvfGVufDB8MHwwfHx8Mg%3D%3D",
+  "https://images.unsplash.com/photo-1564284369929-026ba231f89b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1532236204992-f5e85c024202?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjF8fHRva3lvfGVufDB8MHwwfHx8Mg%3D%3D",
+  "https://images.unsplash.com/photo-1493515322954-4fa727e97985?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fHRva3lvfGVufDB8MHwwfHx8Mg%3D%3D",
+]
+const IMAGES_3 = [
+  "https://images.unsplash.com/photo-1528361237150-8a9a7df33035?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1493515322954-4fa727e97985?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fHRva3lvfGVufDB8MHwwfHx8Mg%3D%3D",
+  "https://images.unsplash.com/photo-1608875004752-2fdb6a39ba4c?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+]
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Mouse Parallax Logic
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (window.innerWidth / 2 - e.pageX) / 25;
-      const y = (window.innerHeight / 2 - e.pageY) / 25;
-
-      // Rotate the 3D Canvas
-      canvas.style.transform = `rotateX(${55 + y / 2}deg) rotateZ(${-25 + x / 2}deg)`;
-
-      // Apply depth shift to layers
-      layersRef.current.forEach((layer, index) => {
-        if (!layer) return;
-        const depth = (index + 1) * 15;
-        const moveX = x * (index + 1) * 0.2;
-        const moveY = y * (index + 1) * 0.2;
-        layer.style.transform = `translateZ(${depth}px) translate(${moveX}px, ${moveY}px)`;
-      });
-    };
-
-    // Entrance Animation
-    canvas.style.opacity = '0';
-    canvas.style.transform = 'rotateX(90deg) rotateZ(0deg) scale(0.8)';
-    
-    const timeout = setTimeout(() => {
-      canvas.style.transition = 'all 2.5s cubic-bezier(0.16, 1, 0.3, 1)';
-      canvas.style.opacity = '1';
-      canvas.style.transform = 'rotateX(55deg) rotateZ(-25deg) scale(1)';
-    }, 300);
-
-    window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      clearTimeout(timeout);
-    };
-  }, []);
-
+export const DemoVariant1 = () => {
   return (
-    <>
-      <style>{`
-        :root {
-          --bg: #0a0a0a;
-          --silver: #e0e0e0;
-          --accent: #ff3c00;
-          --grain-opacity: 0.15;
-        }
+    <div className="relative bg-white ">
+      <ContainerStagger className="relative z-[9999] -mb-12 place-self-center px-6 pt-12 text-center">
+        <ContainerAnimated>
+          <h1 className="font-serif text-4xl font-extralight  md:text-5xl">
+            Your{" "}
+            <span className=" font-serif font-extralight text-indigo-600">
+              one source
+            </span>
+          </h1>
+        </ContainerAnimated>
+        <ContainerAnimated>
+          <h1 className="font-serif text-4xl font-extralight md:text-5xl">
+            for all your designs
+          </h1>
+        </ContainerAnimated>
 
-        .halide-body {
-          background-color: var(--bg);
-          color: var(--silver);
-          font-family: 'Syncopate', sans-serif;
-          overflow: hidden;
-          height: 100vh;
-          width: 100vw;
-          margin: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
+        <ContainerAnimated className="my-4">
+          <p className="leading-normal tracking-tight text-muted-foreground">
+            No waste of time and money, we provide you with
+            <br /> collection of designs to plan your next project.
+          </p>
+        </ContainerAnimated>
 
-        .halide-grain {
-          position: fixed;
-          top: 0; left: 0; width: 100%; height: 100%;
-          pointer-events: none;
-          z-index: 100;
-          opacity: var(--grain-opacity);
-        }
+        <ContainerAnimated>
+          <Button
+            className="gap-1 bg-indigo-700"
+          >
+            Book free call <VideoIcon className="size-4  " />
+          </Button>
+          <Button variant={"link"} className="text-sencondary">
+            About Us
+          </Button>
+        </ContainerAnimated>
+      </ContainerStagger>
+      <div className="pointer-events-none absolute z-10 h-[70vh] w-full "
+      style={{
+            background: "linear-gradient(to right, gray, rebeccapurple, blue)",
+            filter: "blur(84px)",
+            mixBlendMode: "screen",
+          }}
+      />
 
-        .viewport {
-          perspective: 2000px;
-          width: 100vw; height: 100vh;
-          display: flex; align-items: center; justify-content: center;
-          overflow: hidden;
-        }
+      <ContainerScroll className="relative h-[350vh]">
+        <ContainerSticky className="h-svh">
+          <GalleryContainer className="">
+            <GalleryCol yRange={["-10%", "2%"]} className="-mt-2">
+              {IMAGES_1.map((imageUrl, index) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={index}
+                  className="aspect-video block h-auto max-h-full w-full  rounded-md  object-cover shadow"
+                  src={imageUrl}
+                  alt="gallery item"
+                />
+              ))}
+            </GalleryCol>
+            <GalleryCol className="mt-[-50%]" yRange={["15%", "5%"]}>
+              {IMAGES_2.map((imageUrl, index) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={index}
+                  className="aspect-video block h-auto max-h-full w-full  rounded-md  object-cover shadow"
+                  src={imageUrl}
+                  alt="gallery item"
+                />
+              ))}
+            </GalleryCol>
+            <GalleryCol yRange={["-10%", "2%"]} className="-mt-2">
+              {IMAGES_3.map((imageUrl, index) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={index}
+                  className="aspect-video block h-auto max-h-full w-full  rounded-md  object-cover shadow"
+                  src={imageUrl}
+                  alt="gallery item"
+                />
+              ))}
+            </GalleryCol>
+          </GalleryContainer>
+        </ContainerSticky>
+      </ContainerScroll>
+    </div>
+  )
+}
 
-        .canvas-3d {
-          position: relative;
-          width: 800px; height: 500px;
-          transform-style: preserve-3d;
-          transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+```
 
-        .layer {
-          position: absolute;
-          inset: 0;
-          border: 1px solid rgba(224, 224, 224, 0.1);
-          background-size: cover;
-          background-position: center;
-          transition: transform 0.5s ease;
-        }
+Copy-paste these files for dependencies:
+```tsx
+shadcn/button
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-        .layer-1 { background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1200'); filter: grayscale(1) contrast(1.2) brightness(0.5); }
-        .layer-2 { background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1200'); filter: grayscale(1) contrast(1.1) brightness(0.7); opacity: 0.6; mix-blend-mode: screen; }
-        .layer-3 { background-image: url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&q=80&w=1200'); filter: grayscale(1) contrast(1.3) brightness(0.8); opacity: 0.4; mix-blend-mode: overlay; }
+import { cn } from "@/lib/utils"
 
-        .contours {
-          position: absolute;
-          width: 200%; height: 200%;
-          top: -50%; left: -50%;
-          background-image: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 40px, rgba(255,255,255,0.05) 41px, transparent 42px);
-          transform: translateZ(120px);
-          pointer-events: none;
-        }
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+)
 
-        .interface-grid {
-          position: fixed;
-          inset: 0;
-          padding: 4rem;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          grid-template-rows: auto 1fr auto;
-          z-index: 10;
-          pointer-events: none;
-        }
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
 
-        .hero-title {
-          grid-column: 1 / -1;
-          align-self: center;
-          font-size: clamp(3rem, 10vw, 10rem);
-          line-height: 0.85;
-          letter-spacing: -0.04em;
-          mix-blend-mode: difference;
-        }
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  },
+)
+Button.displayName = "Button"
 
-        .cta-button {
-          pointer-events: auto;
-          background: var(--silver);
-          color: var(--bg);
-          padding: 1rem 2rem;
-          text-decoration: none;
-          font-weight: 700;
-          clip-path: polygon(0 0, 100% 0, 100% 70%, 85% 100%, 0 100%);
-          transition: 0.3s;
-        }
+export { Button, buttonVariants }
 
-        .cta-button:hover { background: var(--accent); transform: translateY(-5px); }
+```
 
-        .scroll-hint {
-          position: absolute;
-          bottom: 2rem; left: 50%;
-          width: 1px; height: 60px;
-          background: linear-gradient(to bottom, var(--silver), transparent);
-          animation: flow 2s infinite ease-in-out;
-        }
-
-        @keyframes flow {
-          0%, 100% { transform: scaleY(0); transform-origin: top; }
-          50% { transform: scaleY(1); transform-origin: top; }
-          51% { transform: scaleY(1); transform-origin: bottom; }
-        }
-      `}</style>
-
-      <div className="halide-body">
-        {/* SVG Filter for Grain */}
-        <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-          <filter id="grain">
-            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" />
-            <feColorMatrix type="saturate" values="0" />
-          </filter>
-        </svg>
-
-        <div className="halide-grain" style={{ filter: 'url(#grain)' }}></div>
-
-        <div className="interface-grid">
-          <div style={{ fontWeight: 700 }}>HALIDE_CORE</div>
-          <div style={{ textAlign: 'right', fontFamily: 'monospace', color: 'var(--accent)', fontSize: '0.7rem' }}>
-            <div>LATITUDE: 34.0522° N</div>
-            <div>FOCAL DEPTH: 80MM</div>
-          </div>
-
-          <h1 className="hero-title">SILVER<br />SULPHIDE</h1>
-
-          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-              <p>[ ARCHIVE 2024 ]</p>
-              <p>SURFACE TENSION & TOPOGRAPHICAL LIGHT</p>
-            </div>
-            <a href="#" className="cta-button">EXPLORE DEPTH</a>
-          </div>
-        </div>
-
-        <div className="viewport">
-          <div className="canvas-3d" ref={canvasRef}>
-            <div className="layer layer-1" ref={(el) => (layersRef.current[0] = el!)}></div>
-            <div className="layer layer-2" ref={(el) => (layersRef.current[1] = el!)}></div>
-            <div className="layer layer-3" ref={(el) => (layersRef.current[2] = el!)}></div>
-            <div className="contours"></div>
-          </div>
-        </div>
-
-        <div className="scroll-hint"></div>
-      </div>
-    </>
-  );
-};
-
-export default HalideLanding;
+Install NPM dependencies:
+```bash
+motion, @radix-ui/react-slot, class-variance-authority
 ```
 
 Implementation Guidelines
@@ -257,20 +407,195 @@ Steps to integrate
  1. Install external dependencies
  2. Fill image assets with Unsplash stock images you know exist
  3. Use lucide-react icons for svgs or logos if component requires them
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+"use client" 
 
-export const Component = () => {
-  const [count, setCount] = useState(0);
+import * as React from "react"
+
+import {
+  HTMLMotionProps,
+  MotionValue,
+  Variants,
+  motion,
+  useScroll,
+  useTransform,
+} from "motion/react"
+
+import { cn } from "@/lib/utils"
+
+interface ContainerScrollContextValue {
+  scrollYProgress: MotionValue<number>
+}
+
+const SPRING_CONFIG = {
+  type: "spring",
+  stiffness: 100,
+  damping: 16,
+  mass: 0.75,
+  restDelta: 0.005,
+  duration: 0.3,
+}
+const blurVariants: Variants = {
+  hidden: {
+    filter: "blur(10px)",
+    opacity: 0,
+  },
+  visible: {
+    filter: "blur(0px)",
+    opacity: 1,
+  },
+}
+
+const ContainerScrollContext = React.createContext<
+  ContainerScrollContextValue | undefined
+>(undefined)
+function useContainerScrollContext() {
+  const context = React.useContext(ContainerScrollContext)
+  if (!context) {
+    throw new Error(
+      "useContainerScrollContext must be used within a ContainerScroll Component"
+    )
+  }
+  return context
+}
+export const ContainerScroll = ({
+  children,
+  className,
+  style,
+  ...props
+}: React.HtmlHTMLAttributes<HTMLDivElement>) => {
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: scrollRef,
+  })
+  return (
+    <ContainerScrollContext.Provider value={{ scrollYProgress }}>
+      <div
+        ref={scrollRef}
+        className={cn("relative min-h-[120vh]", className)}
+        style={{
+          perspective: "1000px",
+          perspectiveOrigin: "center top",
+          transformStyle: "preserve-3d",
+          ...style,
+        }}
+        {...props}
+      >
+        {children}
+      </div>
+    </ContainerScrollContext.Provider>
+  )
+}
+ContainerScroll.displayName = "ContainerScroll"
+export const ContainerSticky = ({
+  className,
+  style,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => {
+  return (
+    <div
+      className={cn(
+        "sticky left-0 top-0 min-h-[30rem] w-full overflow-hidden",
+        className
+      )}
+      style={{
+        perspective: "1000px",
+        perspectiveOrigin: "center top",
+        transformStyle: "preserve-3d",
+        transformOrigin: "50% 50%",
+        ...style,
+      }}
+      {...props}
+    />
+  )
+}
+ContainerSticky.displayName = "ContainerSticky"
+
+export const GalleryContainer = ({
+  children,
+  className,
+  style,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & HTMLMotionProps<"div">) => {
+  const { scrollYProgress } = useContainerScrollContext()
+  const rotateX = useTransform(scrollYProgress, [0, 0.5], [75, 0])
+  const scale = useTransform(scrollYProgress, [0.5, 0.9], [1.2, 1])
 
   return (
-    <div className={cn("flex flex-col items-center gap-4 p-4 rounded-lg")}>
-      <h1 className="text-2xl font-bold mb-2">Component Example</h1>
-      <h2 className="text-xl font-semibold">{count}</h2>
-      <div className="flex gap-2">
-        <button onClick={() => setCount((prev) => prev - 1)}>-</button>
-        <button onClick={() => setCount((prev) => prev + 1)}>+</button>
-      </div>
-    </div>
-  );
-};
+    <motion.div
+      className={cn(
+        "relative grid size-full grid-cols-3 gap-2 rounded-2xl",
+        className
+      )}
+      style={{
+        rotateX,
+        scale,
+        transformStyle: "preserve-3d",
+        perspective: "1000px",
+        ...style,
+      }}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+}
+GalleryContainer.displayName = "GalleryContainer"
+
+export const GalleryCol = ({
+  className,
+  style,
+  yRange = ["0%", "-10%"],
+  ...props
+}: HTMLMotionProps<"div"> & { yRange?: string[] }) => {
+  const { scrollYProgress } = useContainerScrollContext()
+  const y = useTransform(scrollYProgress, [0.5, 1], yRange)
+
+  return (
+    <motion.div
+      className={cn("relative flex w-full flex-col gap-2 ", className)}
+      style={{
+        y,
+        ...style,
+      }}
+      {...props}
+    />
+  )
+}
+GalleryCol.displayName = "GalleryCol"
+
+export const ContainerStagger = React.forwardRef<
+  HTMLDivElement,
+  HTMLMotionProps<"div">
+>(({ className, viewport, transition, ...props }, ref) => {
+  return (
+    <motion.div
+      className={cn("relative", className)}
+      ref={ref}
+      initial="hidden"
+      whileInView={"visible"}
+      viewport={{ once: true || viewport?.once, ...viewport }}
+      transition={{
+        staggerChildren: transition?.staggerChildren || 0.2,
+        ...transition,
+      }}
+      {...props}
+    />
+  )
+})
+ContainerStagger.displayName = "ContainerStagger"
+
+export const ContainerAnimated = React.forwardRef<
+  HTMLDivElement,
+  HTMLMotionProps<"div">
+>(({ className, transition, ...props }, ref) => {
+  return (
+    <motion.div
+      ref={ref}
+      className={cn(className)}
+      variants={blurVariants}
+      transition={SPRING_CONFIG || transition}
+      {...props}
+    />
+  )
+})
+ContainerAnimated.displayName = "ContainerAnimated"
