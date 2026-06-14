@@ -27,7 +27,10 @@ Auth for **`/api/v1/*`**: header **`X-API-Key`** must match **`API_KEY`** when t
 | `company_connectra_contacts` | `GET /api/v1/companies/{companyUuid}/contacts` | GraphQL: `hireSignal { connectraContactsForCompany( … ) }`. Same VQL, keyed by `companyUuid`. |
 | `job_connectra_company` | `GET /api/v1/jobs/{linkedinJobId}/company` | GraphQL: `hireSignal { jobConnectraCompany(linkedinJobId) }`. **Job → Connectra** `GET /companies/{uuid}`. **409** / **404** / **503** as in job.server. |
 | `company_connectra_record` | `GET /api/v1/companies/{companyUuid}/record` | GraphQL: `hireSignal { connectraCompany(companyUuid) }`. One Connectra company, no job row. |
-| **App** | | Dashboard **`/hiring-signals`**: **Run scrape** opens modal (`RunScrapeModal` → `triggerScrapeAndTrack`); **Runs** tab lists satellite runs + tracked scrapes with CSV export (`scrapeJobJobs`). |
+| `enrich_bench_candidates` | `POST /api/v1/bench-candidates/enrich` | JSON `{ candidates: [{ benchCandidateId, linkedinUrl, name? }] }`. **202** enqueues Asynq `apify:bench_enrich_one` per candidate. |
+| `get_bench_enrichment_status` | `GET /api/v1/bench-candidates/{id}/enrichment-status` | Redis-backed profile/posts/comments/reactions status + `contactUuid`. |
+| `get_bench_contact_detail` | `GET /api/v1/bench/contacts/{uuid}/detail` | Profile (`contacts_index_v1`) + paginated posts/comments/reactions from `contact_index_*`. |
+| **App** | | Dashboard **`/hiring-signals`**: **Run scrape** opens modal (`RunScrapeModal` → `triggerScrapeAndTrack`); **Runs** tab lists satellite runs + tracked scrapes with CSV export (`scrapeJobJobs`). Dashboard **`/candidates`**: bench list + detail with matched jobs tab. |
 
 **Implementation notes**
 

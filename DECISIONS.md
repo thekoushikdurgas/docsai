@@ -202,6 +202,14 @@ Credit spend is **reserved upfront**, **settled** on partial completion per `Enr
 - **Gateway-owned exclusions:** Hidden companies and optional “hide applied” use Postgres tables (`hire_signal_user_prefs` migration) and are merged into `excluded_company` / `exclude_linkedin_job_id` **before** pagination so totals stay consistent with the list.
 - **Resume → filters:** `suggestHireSignalFiltersFromResumeUpload` calls resume.ai; the UI merges suggestions into the **filter draft only** until the user clicks **Apply filters** (no automatic search; avoid logging raw resume bytes).
 
+## Bench candidates (staffing pipeline)
+
+- **Ownership:** Postgres table `bench_candidates` is **per user** (`user_id` → `users.uuid`); GraphQL namespace **`benchCandidates`** on the gateway (not scheduler `jobs`).
+- **Identity:** After profile enrichment, `contact_uuid` = UUID5(LinkedIn slug), shared with Connectra `contacts_index` and bench OpenSearch indices.
+- **Enrichment:** On `createBenchCandidate`, gateway enqueues **`POST /api/v1/bench-candidates/enrich`** on job.server (Asynq `apify:bench_enrich_one`). Pipeline: **profile actor first** → `contacts_index` (slim) + `contacts_index_v1` (full JSON) → **posts / comments / reactions** in parallel into `contact_index_*`.
+- **Status sync:** job.server stores per-step status in Redis (`bench:enrich:{id}`); gateway queries sync into Postgres on list/detail.
+- **Matched jobs:** `benchCandidateMatchedJobs` maps Apify profile → `list_jobs` filters (same merge path as hire signal + user hidden companies / hide applied).
+
 ## Row Level Security (RLS) pattern
 
 - Session sets `SET LOCAL app.current_org_id = '<uuid>'` after JWT validation in CRM path.

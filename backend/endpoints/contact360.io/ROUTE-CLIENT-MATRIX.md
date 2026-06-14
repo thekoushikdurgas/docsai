@@ -13,5 +13,6 @@
 | pages (DocsAI) | `docsai_client` | `DOCSAI_` |
 | resume | `resume_ai_client` | `RESUME_AI_` |
 | **hireSignal** (job.server) | `job_server_client` | `JOB_SERVER_` |
+| **benchCandidates** (bench + job.server enrich) | `job_server_client` + Postgres `bench_candidates` | `JOB_SERVER_` |
 
 See `app/clients/` for method-level mapping.
